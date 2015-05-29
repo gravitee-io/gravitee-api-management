@@ -24,6 +24,8 @@ public class DispatcherServlet extends HttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DispatcherServlet.class);
 
 	protected void handle(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		LOGGER.info("Accept request", req);
+
 		// Initialize async processing.
 	//	final AsyncContext context = req.startAsync();
 
@@ -35,41 +37,6 @@ public class DispatcherServlet extends HttpServlet {
 		});
 
 		processor.process();
-
-		HttpClient client = createHttpClient();
-		client.
-
-		LOGGER.info("Accept request", req);
-	}
-
-	protected HttpClient createHttpClient() throws ServletException {
-		HttpClient client = new HttpClient();
-
-		// Redirects must be proxied as is, not followed
-		client.setFollowRedirects(false);
-
-		// Must not store cookies, otherwise cookies of different clients will mix
-		client.setCookieStore(new HttpCookieStore.Empty());
-
-		QueuedThreadPool qtp = new QueuedThreadPool(2);
-
-		qtp.setName("dispatcher");
-
-		client.setExecutor(qtp);
-		client.setIdleTimeout(30000);
-		client.setRequestBufferSize(16384);
-		client.setResponseBufferSize(163840);
-
-		try {
-			client.start();
-
-			// Content must not be decoded, otherwise the client gets confused
-			client.getContentDecoderFactories().clear();
-
-			return client;
-		} catch (Exception x) {
-			throw new ServletException(x);
-		}
 	}
 
 	@Override protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

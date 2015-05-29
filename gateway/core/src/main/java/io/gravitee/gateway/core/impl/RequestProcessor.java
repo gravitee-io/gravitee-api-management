@@ -29,7 +29,7 @@ public class RequestProcessor implements Processor {
 	@Override public void process() {
 		try {
 			HttpClient client = createHttpClient();
-			org.eclipse.jetty.client.api.Request request = client.newRequest("http://dev-bamboo.fr.corp.leroymerlin.com/api-product/v1/nomenclatures/web");
+			org.eclipse.jetty.client.api.Request request = client.newRequest("target url here");
 
 			request.content(new ContentProvider() {
 				@Override public long getLength() {
@@ -39,7 +39,7 @@ public class RequestProcessor implements Processor {
 				@Override public Iterator<ByteBuffer> iterator() {
 					return null;
 				}
-			})
+			});
 		} catch (Exception ex) {
 
 		}

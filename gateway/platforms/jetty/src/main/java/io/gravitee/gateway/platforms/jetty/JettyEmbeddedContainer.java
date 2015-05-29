@@ -1,6 +1,6 @@
 package io.gravitee.gateway.platforms.jetty;
 
-import io.gravity.gateway.api.Platform;
+import io.gravitee.gateway.core.Platform;
 import io.gravitee.gateway.platforms.servlet.DispatcherServlet;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
