@@ -38,7 +38,7 @@ public class DispatcherServlet extends HttpServlet {
 		Processor processor = reactor.handle(RequestBuilder.from(req), new AsyncHandler<Response>() {
 			@Override public void handle(Response result) {
 				writeResponse(resp, result);
-				
+
 				asyncContext.complete();
 			}
 		});
@@ -81,7 +81,12 @@ public class DispatcherServlet extends HttpServlet {
 		for (Map.Entry<String, String> entry : headers.entrySet()) {
 			String hname = entry.getKey();
 			String hval = entry.getValue();
-			response.setHeader(hname, hval);
+			// TODO: Content-Length should be provide as soon as content is pushed in the stream
+			if (! hname.equalsIgnoreCase("Content-Length")) {
+				response.setHeader(hname, hval);
+			}
+			System.out.println(hname + ":\"" + hval+"\"");
 		}
+
 	}
 }
