@@ -26,8 +26,6 @@ public class Request {
 
 	private Map<String, String> headers = new HashMap();
 
-	private InputStream inputStream;
-
 	public Request() {
 		this.id = UUID.randomUUID().toString();
 	}
@@ -84,11 +82,7 @@ public class Request {
 		return id;
 	}
 
-	public InputStream getInputStream() {
-		return inputStream;
-	}
-
-	public void setInputStream(InputStream inputStream) {
-		this.inputStream = inputStream;
+	public boolean hasContent() {
+		return false;
 	}
 }
