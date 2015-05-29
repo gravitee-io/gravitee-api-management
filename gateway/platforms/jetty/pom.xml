@@ -5,25 +5,25 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravity</groupId>
+        <groupId>io.gravitee</groupId>
         <artifactId>platforms</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravity</groupId>
+    <groupId>io.gravitee</groupId>
     <artifactId>jetty</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>Gravity IO - API Management - Jetty Valve</name>
+    <name>Gravitee IO - API Management - Jetty Valve</name>
 
     <dependencies>
         <!-- Gravity -->
         <dependency>
-            <groupId>io.gravity</groupId>
+            <groupId>io.gravitee</groupId>
             <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.gravity</groupId>
+            <groupId>io.gravitee</groupId>
             <artifactId>servlet</artifactId>
             <version>${project.version}</version>
         </dependency>

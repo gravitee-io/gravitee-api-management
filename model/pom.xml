@@ -5,14 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravity</groupId>
+        <groupId>io.gravitee</groupId>
         <artifactId>parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravity</groupId>
+    <groupId>io.gravitee</groupId>
     <artifactId>model</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
-    <name>Gravity IO - API Management - Model</name>
+    <name>Gravitee IO - API Management - Model</name>
 </project>
