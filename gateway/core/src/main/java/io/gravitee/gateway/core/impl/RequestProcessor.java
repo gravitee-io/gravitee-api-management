@@ -15,7 +15,6 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -47,6 +46,9 @@ public class RequestProcessor implements Processor {
 
     private final AsyncHandler<Response> responseHandler;
 
+    //TODO: do not create a new instance of client for each request !!!
+    private static HttpClient client = createHttpClient();
+
     public RequestProcessor(final Request request, final AsyncHandler<Response> responseHandler) {
         this.request = request;
         this.responseHandler = responseHandler;
@@ -55,8 +57,8 @@ public class RequestProcessor implements Processor {
     @Override
     public void process() {
         try {
-            HttpClient client = createHttpClient();
-            org.eclipse.jetty.client.api.Request proxyRequest = client.newRequest("http://yrfrlmasbam.corp.leroymerlin.com/api-product/v1/products/69135185?storeId=142&webmetadata=true").method(HttpMethod.GET).version(HttpVersion.HTTP_1_1);
+
+            org.eclipse.jetty.client.api.Request proxyRequest = client.newRequest("http://www.thomas-bayer.com/sqlrest/CUSTOMER/").method(HttpMethod.GET).version(HttpVersion.HTTP_1_1);
 
             if (request.hasContent()) {
                 proxyRequest.content(new ProxyInputStreamContentProvider(proxyRequest, (ContentRequest) request));
@@ -143,8 +145,6 @@ public class RequestProcessor implements Processor {
     {
         LOGGER.debug("{} proxying successful", clientRequest.getId());
         responseHandler.handle(proxyResponse);
-//        AsyncContext asyncContext = clientRequest.getAsyncContext();
-//        asyncContext.complete();
     }
 
     protected void onProxyResponseFailure(Request clientRequest, Response proxyResponse, org.eclipse.jetty.client.api.Response serverResponse, Throwable failure)
@@ -159,35 +159,6 @@ public class RequestProcessor implements Processor {
         proxyResponse.getHeaders().put(HttpHeader.CONNECTION.asString(), HttpHeaderValue.CLOSE.asString());
 
         responseHandler.handle(proxyResponse);
-
-        /*
-        if (proxyResponse.isCommitted())
-        {
-            try
-            {
-                // Use Jetty specific behavior to close connection.
-                proxyResponse.sendError(-1);
-                AsyncContext asyncContext = clientRequest.getAsyncContext();
-                asyncContext.complete();
-            }
-            catch (IOException x)
-            {
-                if (_log.isDebugEnabled())
-                    _log.debug(getRequestId(clientRequest) + " could not close the connection", failure);
-            }
-        }
-        else
-        {
-            proxyResponse.resetBuffer();
-            if (failure instanceof TimeoutException)
-                proxyResponse.setStatus(HttpServletResponse.SC_GATEWAY_TIMEOUT);
-            else
-                proxyResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
-            proxyResponse.setHeader(HttpHeader.CONNECTION.asString(), HttpHeaderValue.CLOSE.asString());
-            AsyncContext asyncContext = clientRequest.getAsyncContext();
-            asyncContext.complete();
-        }
-        */
     }
 
     protected void onResponseContent(Request request, Response response, org.eclipse.jetty.client.api.Response proxyResponse, byte[] buffer, int offset, int length, Callback callback)
@@ -257,7 +228,7 @@ public class RequestProcessor implements Processor {
         proxyRequest.abort(failure);
     }
 
-    protected HttpClient createHttpClient() throws Exception {
+    protected static HttpClient createHttpClient()  {
         HttpClient client = new HttpClient();
 
         // Redirects must be proxied as is, not followed
@@ -276,7 +247,11 @@ public class RequestProcessor implements Processor {
         client.setRequestBufferSize(16384);
         client.setResponseBufferSize(163840);
 
-        client.start();
+        try {
+            client.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // Content must not be decoded, otherwise the client gets confused
         client.getContentDecoderFactories().clear();

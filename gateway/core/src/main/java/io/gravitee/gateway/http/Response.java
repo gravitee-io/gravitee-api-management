@@ -15,7 +15,7 @@ public class Response {
 
     private Map<String, String> headers = new HashMap();
 
-    private OutputStream os = new ByteArrayOutputStream(5120);
+    private ByteArrayOutputStream os = new ByteArrayOutputStream(5120);
 
     public int getStatus() {
         return status;
@@ -37,7 +37,7 @@ public class Response {
         return os;
     }
 
-    public void setOutputStream(OutputStream os) {
-        this.os = os;
+    public byte [] getContent() {
+        return os.toByteArray();
     }
 }
