@@ -31,12 +31,14 @@
             <artifactId>logback-core</artifactId>
         </dependency>
 
+        <!-- Proxy : Jetty implementation-->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-client</artifactId>
             <version>9.2.10.v20150310</version>
         </dependency>
 
+        <!-- Unit Tests -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

@@ -39,6 +39,17 @@ public class DispatcherServlet extends HttpServlet {
 			@Override public void handle(Response result) {
 				writeResponse(resp, result);
 
+
+                try {
+                    final ServletOutputStream outputStream = resp.getOutputStream();
+                    byte [] buffer = result.getContent();
+                    outputStream.write(buffer, 0, buffer.length);
+
+                    resp.flushBuffer();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
 				asyncContext.complete();
 			}
 		});
@@ -81,12 +92,7 @@ public class DispatcherServlet extends HttpServlet {
 		for (Map.Entry<String, String> entry : headers.entrySet()) {
 			String hname = entry.getKey();
 			String hval = entry.getValue();
-			// TODO: Content-Length should be provide as soon as content is pushed in the stream
-			if (! hname.equalsIgnoreCase("Content-Length")) {
-				response.setHeader(hname, hval);
-			}
-			System.out.println(hname + ":\"" + hval+"\"");
+            response.setHeader(hname, hval);
 		}
-
 	}
 }
