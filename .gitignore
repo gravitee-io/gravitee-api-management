@@ -1,6 +1,8 @@
 !.gitignore
 
 target/
+.idea/
+.DS_Store
 
 *.class
 

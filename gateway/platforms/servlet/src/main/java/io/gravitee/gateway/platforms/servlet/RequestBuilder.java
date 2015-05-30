@@ -1,6 +1,8 @@
 package io.gravitee.gateway.platforms.servlet;
 
+import io.gravitee.gateway.http.ContentRequest;
 import io.gravitee.gateway.http.Request;
+import org.eclipse.jetty.http.HttpHeader;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -15,13 +17,26 @@ import java.util.Enumeration;
 public class RequestBuilder extends Request {
 
 	public static Request from(HttpServletRequest servletRequest) throws IOException {
-		Request request = new Request();
+
+		Request request = null;
+
+		if (hasContent(servletRequest)) {
+			request = new ContentRequest(servletRequest.getInputStream());
+		} else {
+			request = new Request();
+		}
 
 		copyHeaders(request, servletRequest);
 		copyQueryParameters(request, servletRequest);
 
-		request.setInputStream(servletRequest.getInputStream());
 		return request;
+	}
+
+	private static boolean hasContent(HttpServletRequest servletRequest)
+	{
+		return servletRequest.getContentLength() > 0 ||
+				servletRequest.getContentType() != null ||
+				servletRequest.getHeader(HttpHeader.TRANSFER_ENCODING.asString()) != null;
 	}
 
 	private static void copyHeaders(Request request, HttpServletRequest servletRequest) {
