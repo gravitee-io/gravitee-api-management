@@ -15,27 +15,18 @@
  */
 package io.gravitee.gateway.core.impl;
 
-import io.gravitee.gateway.core.AsyncHandler;
-import io.gravitee.gateway.http.Request;
-import io.gravitee.gateway.http.Response;
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpMethod;
-import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.HttpCookieStore;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.junit.Assert;
 import org.junit.Test;
 
-import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -47,7 +38,7 @@ public class RequestProcessorTest {
         HttpClient client = createHttpClient();
 
         org.eclipse.jetty.client.api.Request req = client
-                .newRequest("http://yrfrlmasbam.corp.leroymerlin.com/api-product/v1/products/69135185?storeId=142&webmetadata=true")
+                .newRequest("http://91.121.136.43:8059/api/app/team/list")
                 .method(HttpMethod.GET)
                 .version(HttpVersion.HTTP_1_1);
 

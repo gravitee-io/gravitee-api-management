@@ -73,7 +73,7 @@ public class RequestProcessor implements Processor {
     public void process() {
         try {
 
-            org.eclipse.jetty.client.api.Request proxyRequest = client.newRequest("http://www.thomas-bayer.com/sqlrest/CUSTOMER/").method(HttpMethod.GET).version(HttpVersion.HTTP_1_1);
+            org.eclipse.jetty.client.api.Request proxyRequest = client.newRequest("http://91.121.136.43:8059/api/app/team/list").method(HttpMethod.GET).version(HttpVersion.HTTP_1_1);
 
             if (request.hasContent()) {
                 proxyRequest.content(new ProxyInputStreamContentProvider(proxyRequest, (ContentRequest) request));
