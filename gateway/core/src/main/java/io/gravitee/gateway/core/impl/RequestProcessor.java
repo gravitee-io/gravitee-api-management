@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.gravitee.gateway.core.impl;
 
 import io.gravitee.gateway.core.AsyncHandler;
@@ -58,7 +73,7 @@ public class RequestProcessor implements Processor {
     public void process() {
         try {
 
-            org.eclipse.jetty.client.api.Request proxyRequest = client.newRequest("http://www.thomas-bayer.com/sqlrest/CUSTOMER/").method(HttpMethod.GET).version(HttpVersion.HTTP_1_1);
+            org.eclipse.jetty.client.api.Request proxyRequest = client.newRequest("http://91.121.136.43:8059/api/app/team/list").method(HttpMethod.GET).version(HttpVersion.HTTP_1_1);
 
             if (request.hasContent()) {
                 proxyRequest.content(new ProxyInputStreamContentProvider(proxyRequest, (ContentRequest) request));
