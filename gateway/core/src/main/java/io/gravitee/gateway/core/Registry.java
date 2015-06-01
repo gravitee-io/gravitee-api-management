@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http;
+package io.gravitee.gateway.core;
 
-import java.util.Map;
+import io.gravitee.model.Api;
+
+import java.util.Set;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Request {
+public interface Registry {
 
-	String id();
+    Set<Api> listAll();
 
-	Map<String, ?> headers();
+    Api findMatchingApi(String uri);
 }

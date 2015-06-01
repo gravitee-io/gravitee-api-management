@@ -13,13 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api;
+package io.gravitee.gateway.core.impl;
+
+import io.gravitee.gateway.core.Registry;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface AsyncHandler<T> {
+public class DefaultRegistryTest {
 
-	void handle(T result);
+    @Test
+    public void testConfigurations() throws URISyntaxException {
+        URL url = DefaultRegistryTest.class.getResource("/registry/conf");
+
+        Registry registry = new DefaultRegistry(url.getPath());
+        Assert.assertTrue(registry != null);
+        Assert.assertTrue(registry.listAll().size()  == 1);
+    }
 }
