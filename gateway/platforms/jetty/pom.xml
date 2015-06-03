@@ -80,9 +80,18 @@
             <artifactId>jetty-jmx</artifactId>
             <version>${jetty.version}</version>
         </dependency>
+
+        <!-- HTTP Client for testing -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>fluent-hc</artifactId>
+            <version>${httpclient.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <properties>
         <jetty.version>9.2.10.v20150310</jetty.version>
+        <httpclient.version>4.4.1</httpclient.version>
     </properties>
 </project>

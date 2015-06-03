@@ -8,9 +8,16 @@ import io.gravitee.gateway.core.registry.FileRegistry;
 import io.gravitee.gateway.platforms.jetty.context.JettyPlatformContext;
 import io.gravitee.gateway.platforms.jetty.resource.ApiExternalResource;
 import io.gravitee.gateway.platforms.jetty.servlet.ApiServlet;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.fluent.Request;
+import org.apache.http.client.fluent.Response;
 import org.junit.*;
 
+import java.io.IOException;
 import java.net.URL;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -44,7 +51,11 @@ public class JettyEmbeddedContainerTest {
     }
 
     @Test
-    public void doHttpGet() {
-        Assert.assertTrue(true);
+    public void doHttpGet() throws IOException {
+        Request request = Request.Get("http://localhost:8082/test");
+        Response response = request.execute();
+        HttpResponse returnResponse = response.returnResponse();
+
+        assertEquals(HttpStatus.SC_BAD_REQUEST, returnResponse.getStatusLine().getStatusCode());
     }
 }
