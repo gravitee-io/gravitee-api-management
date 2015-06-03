@@ -17,7 +17,6 @@ package io.gravitee.gateway.platforms.servlet;
 
 import io.gravitee.gateway.core.http.ContentRequest;
 import io.gravitee.gateway.core.http.Request;
-import org.eclipse.jetty.http.HttpHeader;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -49,7 +48,8 @@ public class RequestBuilder extends Request {
 	private static boolean hasContent(HttpServletRequest servletRequest) {
 		return servletRequest.getContentLength() > 0 ||
 				servletRequest.getContentType() != null ||
-				servletRequest.getHeader(HttpHeader.TRANSFER_ENCODING.asString()) != null;
+				// TODO: create an enum class for common HTTP headers
+				servletRequest.getHeader("Transfer-Encoding") != null;
 	}
 
 	private static void copyHeaders(Request request, HttpServletRequest servletRequest) {
