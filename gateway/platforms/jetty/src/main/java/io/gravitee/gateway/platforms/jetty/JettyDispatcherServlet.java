@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core;
+package io.gravitee.gateway.platforms.jetty;
 
-import io.gravitee.gateway.core.http.Request;
-import io.gravitee.gateway.core.http.Response;
-import rx.Observable;
+import io.gravitee.gateway.core.PlatformContext;
+import io.gravitee.gateway.platforms.servlet.DispatcherServlet;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Reactor {
+public class JettyDispatcherServlet extends DispatcherServlet {
 
-	Observable<Response> process(Request request);
+    public final static String GRAVITEE_CONTEXT_ATTRIBUTE = "gravitee.context";
+
+    @Override
+    protected PlatformContext getPlatformContext() {
+        return (PlatformContext) getServletContext().getAttribute(GRAVITEE_CONTEXT_ATTRIBUTE);
+    }
 }

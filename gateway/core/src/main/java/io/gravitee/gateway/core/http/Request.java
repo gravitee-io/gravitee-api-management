@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http;
+package io.gravitee.gateway.core.http;
 
 import java.io.InputStream;
 import java.util.HashMap;

@@ -15,15 +15,12 @@
  */
 package io.gravitee.gateway.core;
 
-import io.gravitee.gateway.core.http.Request;
-import io.gravitee.gateway.core.http.Response;
-import rx.Observable;
-
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Reactor {
+public interface PlatformContext {
 
-	Observable<Response> process(Request request);
+    Reactor getReactor();
+
+    Registry getRegistry();
 }

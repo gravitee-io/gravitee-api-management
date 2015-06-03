@@ -33,6 +33,11 @@
     <name>Gravitee IO - API Management - Servlet</name>
 
     <dependencies>
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava</artifactId>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
