@@ -13,37 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http;
+package io.gravitee.gateway.platforms.jetty.context;
 
-import java.io.InputStream;
+import io.gravitee.gateway.core.PlatformContext;
+import io.gravitee.gateway.core.Reactor;
+import io.gravitee.gateway.core.Registry;
+import io.gravitee.gateway.core.impl.DefaultReactor;
+import io.gravitee.gateway.core.impl.FileRegistry;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ContentRequest extends Request {
+public class JettyPlatformContext implements PlatformContext {
 
-    private final InputStream inputStream;
+    private final Reactor reactor = new DefaultReactor();
+    private final Registry registry = new FileRegistry();
 
-    private long contentLength;
-
-    public ContentRequest(InputStream is) {
-        this.inputStream = is;
+    @Override
+    public Reactor getReactor() {
+        return reactor;
     }
 
-    public InputStream getInputStream() {
-        return inputStream;
-    }
-
-    public long getContentLength() {
-        return contentLength;
-    }
-
-    public void setContentLength(long contentLength) {
-        this.contentLength = contentLength;
-    }
-
-    public boolean hasContent() {
-        return true;
+    @Override
+    public Registry getRegistry() {
+        return registry;
     }
 }

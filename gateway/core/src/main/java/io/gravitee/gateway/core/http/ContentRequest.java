@@ -13,26 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.impl;
+package io.gravitee.gateway.core.http;
 
-import io.gravitee.gateway.core.Registry;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.InputStream;
 
 /**
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class DefaultRegistryTest {
+public class ContentRequest extends Request {
 
-    @Test
-    public void testConfigurations() throws URISyntaxException {
-        URL url = DefaultRegistryTest.class.getResource("/registry/conf");
+    private final InputStream inputStream;
 
-        Registry registry = new DefaultRegistry(url.getPath());
-        Assert.assertTrue(registry != null);
-        Assert.assertTrue(registry.listAll().size()  == 1);
+    private long contentLength;
+
+    public ContentRequest(InputStream is) {
+        this.inputStream = is;
+    }
+
+    public InputStream getInputStream() {
+        return inputStream;
+    }
+
+    public long getContentLength() {
+        return contentLength;
+    }
+
+    public boolean hasContent() {
+        return true;
     }
 }

@@ -38,4 +38,18 @@
         <module>core</module>
         <module>platforms</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>${rxjava.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <properties>
+        <rxjava.version>1.0.11</rxjava.version>
+    </properties>
 </project>
