@@ -16,7 +16,8 @@
 package io.gravitee.gateway.platforms.jetty;
 
 import io.gravitee.gateway.core.Platform;
-import io.gravitee.gateway.platforms.servlet.DispatcherServlet;
+import io.gravitee.gateway.core.PlatformContext;
+import io.gravitee.gateway.platforms.jetty.context.JettyPlatformContext;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -31,6 +32,12 @@ public class JettyEmbeddedContainer implements Platform {
 	protected final static String REGEX_SERVLET_MAPPING_ALL = "/*";
 
 	private Server server;
+
+    private final PlatformContext platformContext;
+
+    public JettyEmbeddedContainer(PlatformContext platformContext) {
+        this.platformContext = platformContext;
+    }
 
 	public String name() {
 		//TODO: Get Jetty informations somewhere from Jetty artifact
@@ -51,9 +58,10 @@ public class JettyEmbeddedContainer implements Platform {
 
 	private Handler createHandler() {
 		ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+		handler.setAttribute(JettyDispatcherServlet.GRAVITEE_CONTEXT_ATTRIBUTE, platformContext);
 		handler.setContextPath("/");
 
-		ServletHolder dispatchServletHolder = new ServletHolder(DispatcherServlet.class);
+		ServletHolder dispatchServletHolder = new ServletHolder(JettyDispatcherServlet.class);
 		handler.addServlet(dispatchServletHolder, REGEX_SERVLET_MAPPING_ALL);
 
 		return handler;

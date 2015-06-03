@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.platforms.servlet;
 
-import io.gravitee.gateway.http.ContentRequest;
-import io.gravitee.gateway.http.Request;
+import io.gravitee.gateway.core.http.ContentRequest;
+import io.gravitee.gateway.core.http.Request;
 import org.eclipse.jetty.http.HttpHeader;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,8 +32,7 @@ import java.util.Enumeration;
 public class RequestBuilder extends Request {
 
 	public static Request from(HttpServletRequest servletRequest) throws IOException {
-
-		Request request = null;
+		Request request;
 
 		if (hasContent(servletRequest)) {
 			request = new ContentRequest(servletRequest.getInputStream());
@@ -47,8 +46,7 @@ public class RequestBuilder extends Request {
 		return request;
 	}
 
-	private static boolean hasContent(HttpServletRequest servletRequest)
-	{
+	private static boolean hasContent(HttpServletRequest servletRequest) {
 		return servletRequest.getContentLength() > 0 ||
 				servletRequest.getContentType() != null ||
 				servletRequest.getHeader(HttpHeader.TRANSFER_ENCODING.asString()) != null;

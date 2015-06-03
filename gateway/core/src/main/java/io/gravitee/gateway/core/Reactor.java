@@ -15,13 +15,15 @@
  */
 package io.gravitee.gateway.core;
 
-import io.gravitee.gateway.http.Request;
-import io.gravitee.gateway.http.Response;
+import io.gravitee.gateway.core.http.Request;
+import io.gravitee.gateway.core.http.Response;
+import rx.Observable;
 
 /**
- * Created by david on 28/05/2015.
+ *
+ * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface Reactor {
 
-	Processor handle(Request request, AsyncHandler<Response> responseHandler);
+	Observable<Response> process(Request request);
 }

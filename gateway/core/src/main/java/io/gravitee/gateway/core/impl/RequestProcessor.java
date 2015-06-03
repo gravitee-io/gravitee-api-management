@@ -15,11 +15,10 @@
  */
 package io.gravitee.gateway.core.impl;
 
-import io.gravitee.gateway.core.AsyncHandler;
 import io.gravitee.gateway.core.Processor;
-import io.gravitee.gateway.http.ContentRequest;
-import io.gravitee.gateway.http.Request;
-import io.gravitee.gateway.http.Response;
+import io.gravitee.gateway.core.http.ContentRequest;
+import io.gravitee.gateway.core.http.Request;
+import io.gravitee.gateway.core.http.Response;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.client.util.InputStreamContentProvider;
@@ -29,9 +28,14 @@ import org.eclipse.jetty.util.HttpCookieStore;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
+import rx.Subscriber;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -42,9 +46,9 @@ public class RequestProcessor implements Processor {
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestProcessor.class);
 
     protected static final Set<String> HOP_HEADERS;
-    static
-    {
-        Set<String> hopHeaders = new HashSet();
+
+    static {
+        Set<String> hopHeaders = new HashSet<String>();
         hopHeaders.add("connection");
         hopHeaders.add("keep-alive");
         hopHeaders.add("proxy-authorization");
@@ -57,86 +61,73 @@ public class RequestProcessor implements Processor {
         HOP_HEADERS = Collections.unmodifiableSet(hopHeaders);
     }
 
-    private final Request request;
-
-    private final AsyncHandler<Response> responseHandler;
-
     //TODO: do not create a new instance of client for each request !!!
     private static HttpClient client = createHttpClient();
 
-    public RequestProcessor(final Request request, final AsyncHandler<Response> responseHandler) {
-        this.request = request;
-        this.responseHandler = responseHandler;
-    }
-
     @Override
-    public void process() {
-        try {
+    public Observable<Response> process(final Request request) {
+        Observable<Response> response = Observable.create(
+                new Observable.OnSubscribe<Response>() {
+                    @Override
+                    public void call(final Subscriber<? super Response> observer) {
+                        org.eclipse.jetty.client.api.Request proxyRequest = client.newRequest(
+                                "http://91.121.136.43:8059/api/app/team/list").method(HttpMethod.GET).version(HttpVersion.HTTP_1_1);
 
-            org.eclipse.jetty.client.api.Request proxyRequest = client.newRequest("http://91.121.136.43:8059/api/app/team/list").method(HttpMethod.GET).version(HttpVersion.HTTP_1_1);
+                        if (request.hasContent()) {
+                            proxyRequest.content(new ProxyInputStreamContentProvider(proxyRequest, (ContentRequest) request));
+                        }
 
-            if (request.hasContent()) {
-                proxyRequest.content(new ProxyInputStreamContentProvider(proxyRequest, (ContentRequest) request));
-            }
+                        proxyRequest.send(new ProxyResponseListener(request, new Response(), observer));
+                    }
+                }
+        );
 
-            proxyRequest.send(new ProxyResponseListener(request, new Response()));
-        } catch (Exception ex) {
-            LOGGER.error("An error occurs while proxying request...", ex);
-        }
+        return response;
     }
 
-    protected class ProxyResponseListener extends org.eclipse.jetty.client.api.Response.Listener.Adapter
-    {
+    protected class ProxyResponseListener extends org.eclipse.jetty.client.api.Response.Listener.Adapter {
         private final Request request;
         private final Response response;
+        private final Subscriber<? super Response> observer;
 
-        protected ProxyResponseListener(Request request, Response response)
-        {
+        protected ProxyResponseListener(Request request, Response response, Subscriber<? super Response> observer) {
             this.request = request;
             this.response = response;
+            this.observer = observer;
         }
 
         @Override
-        public void onBegin(org.eclipse.jetty.client.api.Response proxyResponse)
-        {
+        public void onBegin(org.eclipse.jetty.client.api.Response proxyResponse) {
             response.setStatus(proxyResponse.getStatus());
         }
 
         @Override
-        public void onHeaders(org.eclipse.jetty.client.api.Response proxyResponse)
-        {
+        public void onHeaders(org.eclipse.jetty.client.api.Response proxyResponse) {
             onServerResponseHeaders(response, proxyResponse);
         }
 
         @Override
-        public void onContent(final org.eclipse.jetty.client.api.Response proxyResponse, ByteBuffer content, final Callback callback)
-        {
+        public void onContent(final org.eclipse.jetty.client.api.Response proxyResponse, ByteBuffer content, final Callback callback) {
             byte[] buffer;
             int offset;
             int length = content.remaining();
-            if (content.hasArray())
-            {
+            if (content.hasArray()) {
                 buffer = content.array();
                 offset = content.arrayOffset();
-            }
-            else
-            {
+            } else {
                 buffer = new byte[length];
                 content.get(buffer);
                 offset = 0;
             }
 
-            onResponseContent(request, response, proxyResponse, buffer, offset, length, new Callback()
-            {
+            onResponseContent(request, response, proxyResponse, buffer, offset, length, new Callback() {
                 @Override
-                public void succeeded()
-                {
+                public void succeeded() {
                     callback.succeeded();
                 }
 
                 @Override
-                public void failed(Throwable x)
-                {
+                public void failed(Throwable x) {
                     callback.failed(x);
                     proxyResponse.abort(x);
                 }
@@ -144,26 +135,24 @@ public class RequestProcessor implements Processor {
         }
 
         @Override
-        public void onComplete(Result result)
-        {
+        public void onComplete(Result result) {
             if (result.isSucceeded()) {
-                onProxyResponseSuccess(request, response, result.getResponse());
+                onProxyResponseSuccess(request, response, result.getResponse(), observer);
             } else {
-                onProxyResponseFailure(request, response, result.getResponse(), result.getFailure());
+                onProxyResponseFailure(request, response, result.getResponse(), result.getFailure(), observer);
             }
 
+            observer.onCompleted();
             LOGGER.debug("{} proxying complete", request.getId());
         }
     }
 
-    protected void onProxyResponseSuccess(Request clientRequest, Response proxyResponse, org.eclipse.jetty.client.api.Response serverResponse)
-    {
+    protected void onProxyResponseSuccess(Request clientRequest, Response proxyResponse, org.eclipse.jetty.client.api.Response serverResponse, Subscriber<? super Response> observer) {
         LOGGER.debug("{} proxying successful", clientRequest.getId());
-        responseHandler.handle(proxyResponse);
+        observer.onNext(proxyResponse);
     }
 
-    protected void onProxyResponseFailure(Request clientRequest, Response proxyResponse, org.eclipse.jetty.client.api.Response serverResponse, Throwable failure)
-    {
+    protected void onProxyResponseFailure(Request clientRequest, Response proxyResponse, org.eclipse.jetty.client.api.Response serverResponse, Throwable failure, Subscriber<? super Response> observer) {
         LOGGER.debug(clientRequest.getId() + " proxying failed", failure);
 
         if (failure instanceof TimeoutException)
@@ -173,27 +162,21 @@ public class RequestProcessor implements Processor {
 
         proxyResponse.getHeaders().put(HttpHeader.CONNECTION.asString(), HttpHeaderValue.CLOSE.asString());
 
-        responseHandler.handle(proxyResponse);
+        observer.onNext(proxyResponse);
     }
 
-    protected void onResponseContent(Request request, Response response, org.eclipse.jetty.client.api.Response proxyResponse, byte[] buffer, int offset, int length, Callback callback)
-    {
-        try
-        {
+    protected void onResponseContent(Request request, Response response, org.eclipse.jetty.client.api.Response proxyResponse, byte[] buffer, int offset, int length, Callback callback) {
+        try {
             LOGGER.debug("{} proxying content to downstream: {} bytes", request.getId(), length);
             response.getOutputStream().write(buffer, offset, length);
             callback.succeeded();
-        }
-        catch (Throwable x)
-        {
+        } catch (Throwable x) {
             callback.failed(x);
         }
     }
 
-    protected void onServerResponseHeaders(Response proxyResponse, org.eclipse.jetty.client.api.Response serverResponse)
-    {
-        for (HttpField field : serverResponse.getHeaders())
-        {
+    protected void onServerResponseHeaders(Response proxyResponse, org.eclipse.jetty.client.api.Response serverResponse) {
+        for (HttpField field : serverResponse.getHeaders()) {
             String headerName = field.getName();
             String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
             if (HOP_HEADERS.contains(lowerHeaderName))
@@ -243,7 +226,7 @@ public class RequestProcessor implements Processor {
         proxyRequest.abort(failure);
     }
 
-    protected static HttpClient createHttpClient()  {
+    protected static HttpClient createHttpClient() {
         HttpClient client = new HttpClient();
 
         // Redirects must be proxied as is, not followed

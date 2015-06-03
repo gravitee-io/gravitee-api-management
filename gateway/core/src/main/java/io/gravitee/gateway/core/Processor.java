@@ -15,11 +15,15 @@
  */
 package io.gravitee.gateway.core;
 
+import io.gravitee.gateway.core.http.Request;
+import io.gravitee.gateway.core.http.Response;
+import rx.Observable;
+
 /**
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface Processor {
 
-	void process();
+	Observable<Response> process(final Request request);
 }
