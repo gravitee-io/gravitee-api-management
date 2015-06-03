@@ -34,17 +34,17 @@ import java.util.Set;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class DefaultRegistry extends AbstractRegistry {
+public class FileRegistry extends AbstractRegistry {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRegistry.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileRegistry.class);
 
     private final static String JSON_EXTENSION = ".json";
 
-    public DefaultRegistry() {
+    public FileRegistry() {
         this(System.getProperty("gateway.conf", "/etc/gravitee.io/conf"));
     }
 
-    public DefaultRegistry(String configurationPath) {
+    public FileRegistry(String configurationPath) {
         File configuration = new File(configurationPath);
 
         if (configuration.exists()) {
@@ -94,7 +94,6 @@ public class DefaultRegistry extends AbstractRegistry {
                     return pathname.getName().endsWith(JSON_EXTENSION);
                 }
             });
-
 
             return new HashSet<File>(Arrays.asList(confs));
         }

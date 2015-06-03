@@ -15,15 +15,14 @@
  */
 package io.gravitee.gateway.platforms.servlet;
 
-import io.gravitee.gateway.core.Processor;
-import io.gravitee.gateway.core.impl.DefaultReactor;
-import io.gravitee.gateway.http.Response;
-import io.gravitee.gateway.core.AsyncHandler;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.util.HttpCookieStore;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import io.gravitee.gateway.core.PlatformContext;
+import io.gravitee.gateway.core.Reactor;
+import io.gravitee.gateway.core.Registry;
+import io.gravitee.gateway.core.http.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
+import rx.functions.Action1;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -34,30 +33,30 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class DispatcherServlet extends HttpServlet {
+public abstract class DispatcherServlet extends HttpServlet {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DispatcherServlet.class);
 
 	protected void handle(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-		LOGGER.info("Accept request", req);
-
 		// Initialize async processing.
 		final AsyncContext asyncContext = req.startAsync();
 		// We do not timeout the continuation, but the proxy request
 		asyncContext.setTimeout(0);
 
-		DefaultReactor reactor = new DefaultReactor();
-		Processor processor = reactor.handle(RequestBuilder.from(req), new AsyncHandler<Response>() {
-			@Override public void handle(Response result) {
-				writeResponse(resp, result);
+        Observable<Response> response = getReactor().process(RequestBuilder.from(req));
+        response.subscribe(new Action1<Response>() {
+            @Override
+            public void call(Response response) {
+                writeResponse(resp, response);
 
 
                 try {
                     final ServletOutputStream outputStream = resp.getOutputStream();
-                    byte [] buffer = result.getContent();
+                    byte [] buffer = response.getContent();
                     outputStream.write(buffer, 0, buffer.length);
 
                     resp.flushBuffer();
@@ -65,11 +64,9 @@ public class DispatcherServlet extends HttpServlet {
                     e.printStackTrace();
                 }
 
-				asyncContext.complete();
-			}
-		});
-
-		processor.process();
+                asyncContext.complete();
+            }
+        });
 	}
 
 	@Override protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -110,4 +107,14 @@ public class DispatcherServlet extends HttpServlet {
             response.setHeader(hname, hval);
 		}
 	}
+
+    private Registry getRegistry() {
+        return getPlatformContext().getRegistry();
+    }
+
+    private Reactor getReactor() {
+        return getPlatformContext().getReactor();
+    }
+
+    protected abstract PlatformContext getPlatformContext();
 }
