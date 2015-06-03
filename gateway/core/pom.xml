@@ -74,6 +74,18 @@
             <version>${jackson.version}</version>
         </dependency>
 
+        <!-- MongoDB dependencies -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+        </dependency>
+
+        <!-- Guava dependencies -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
         <!-- Unit Tests -->
         <dependency>
             <groupId>junit</groupId>
