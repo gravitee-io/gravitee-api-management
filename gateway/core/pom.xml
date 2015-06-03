@@ -73,6 +73,7 @@
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+<<<<<<< HEAD
 
         <!-- MongoDB dependencies -->
         <dependency>
@@ -93,5 +94,7 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+=======
+>>>>>>> fc986a8... Add unit tests
     </dependencies>
 </project>
