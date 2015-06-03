@@ -17,8 +17,6 @@ package io.gravitee.gateway.core.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.model.Api;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -35,8 +33,6 @@ import java.util.Set;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class FileRegistry extends AbstractRegistry {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileRegistry.class);
 
     private final static String JSON_EXTENSION = ".json";
 
@@ -77,7 +73,7 @@ public class FileRegistry extends AbstractRegistry {
 
     private Set<File> lookingForConfigurationFiles(File configuration) {
         if (configuration.isFile()) {
-            LOGGER.debug("Provided configuration is a file...");
+            LOGGER.debug("Provided configuration path is a file...");
 
             // Check if provided file is suffixed with .json
             if (! configuration.getName().endsWith(JSON_EXTENSION)) {
