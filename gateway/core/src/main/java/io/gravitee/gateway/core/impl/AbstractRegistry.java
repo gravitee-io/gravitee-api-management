@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public abstract class AbstractRegistry implements Registry {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRegistry.class);
+    protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
     private final Set<Api> apis = new HashSet<Api>();
 

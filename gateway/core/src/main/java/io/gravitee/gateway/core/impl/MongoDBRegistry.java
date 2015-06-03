@@ -21,8 +21,6 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 import io.gravitee.model.Api;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,8 +35,6 @@ import java.util.function.Consumer;
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 public class MongoDBRegistry extends AbstractRegistry {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBRegistry.class);
 
     private final Properties properties = new Properties();
 
