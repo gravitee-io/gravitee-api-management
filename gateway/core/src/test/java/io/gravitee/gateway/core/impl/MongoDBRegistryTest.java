@@ -13,29 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.platforms.jetty.context;
+package io.gravitee.gateway.core.impl;
 
-import io.gravitee.gateway.core.PlatformContext;
-import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.Registry;
-import io.gravitee.gateway.core.impl.DefaultReactor;
-import io.gravitee.gateway.core.impl.FileRegistry;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-public class JettyPlatformContext implements PlatformContext {
+public class MongoDBRegistryTest {
 
-    private final Reactor reactor = new DefaultReactor();
-    private final Registry registry = new FileRegistry();
-
-    @Override
-    public Reactor getReactor() {
-        return reactor;
-    }
-
-    @Override
-    public Registry getRegistry() {
-        return registry;
+    @Test
+    public void testConfigurations() {
+        final Registry registry = new MongoDBRegistry();
+        Assert.assertTrue(registry != null);
+        Assert.assertTrue(registry.listAll().size()  == 1);
     }
 }
