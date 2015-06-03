@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Default API registry.
+ * File API registry.
  * This registry is based on JSON processed files to provide Gateway configuration.
  *
  * @author David BRASSELY (brasseld at gmail.com)
