@@ -59,9 +59,20 @@
         </dependencies>
     </dependencyManagement>
 
+    <dependencies>
+        <!-- Unit Tests -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <properties>
         <guava.version>18.0</guava.version>
         <mongo.version>3.0.1</mongo.version>
         <rxjava.version>1.0.11</rxjava.version>
+        <junit.version>4.12</junit.version>
     </properties>
 </project>
