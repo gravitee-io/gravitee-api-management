@@ -10,6 +10,8 @@ import io.gravitee.gateway.platforms.jetty.resource.ApiExternalResource;
 import io.gravitee.gateway.platforms.jetty.servlet.ApiServlet;
 import org.junit.*;
 
+import java.net.URL;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -28,7 +30,9 @@ public class JettyEmbeddedContainerTest {
     }
 
     private PlatformContext prepareContext() {
-        Registry registry = new FileRegistry();
+        URL url = JettyEmbeddedContainerTest.class.getResource("/conf/test01");
+
+        Registry registry = new FileRegistry(url.getPath());
         Reactor reactor = new DefaultReactor();
 
         return new JettyPlatformContext(registry, reactor);
