@@ -19,7 +19,7 @@ import io.gravitee.gateway.core.PlatformContext;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.Registry;
 import io.gravitee.gateway.core.impl.DefaultReactor;
-import io.gravitee.gateway.core.impl.FileRegistry;
+import io.gravitee.gateway.core.registry.FileRegistry;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

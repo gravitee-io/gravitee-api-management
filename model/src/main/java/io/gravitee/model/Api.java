@@ -16,7 +16,10 @@
 package io.gravitee.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.gravitee.model.jackson.URIDeserializer;
 
+import java.net.URI;
 import java.util.Objects;
 
 /**
@@ -30,6 +33,8 @@ public class Api {
     private String version = "unknown";
 
     private String contextPath;
+
+    private URI target;
 
     @JsonIgnore
     private boolean enabled = true;
@@ -64,6 +69,15 @@ public class Api {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public URI getTarget() {
+        return this.target;
+    }
+
+    @JsonDeserialize(using = URIDeserializer.class)
+    public void setTarget(URI target) {
+        this.target = target;
     }
 
     @Override

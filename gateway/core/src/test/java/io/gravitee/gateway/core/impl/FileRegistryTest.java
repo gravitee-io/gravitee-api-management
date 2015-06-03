@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.impl;
 
 import io.gravitee.gateway.core.Registry;
+import io.gravitee.gateway.core.registry.FileRegistry;
 import org.junit.Assert;
 import org.junit.Test;
 
