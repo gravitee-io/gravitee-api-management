@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.registry;
+package io.gravitee.gateway.registry.mongodb;
 
 import com.google.common.base.Strings;
 import com.mongodb.Block;
@@ -21,6 +21,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
+import io.gravitee.gateway.core.registry.AbstractRegistry;
 import io.gravitee.model.Api;
 
 import java.io.FileInputStream;

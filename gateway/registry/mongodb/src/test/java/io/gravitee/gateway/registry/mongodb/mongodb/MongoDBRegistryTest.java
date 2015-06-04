@@ -13,11 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core;
+package io.gravitee.gateway.registry.mongodb.mongodb;
+
+import io.gravitee.gateway.core.Registry;
+import io.gravitee.gateway.registry.mongodb.MongoDBRegistry;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- *
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-public interface Plugin {
+public class MongoDBRegistryTest {
+
+    @Test
+    public void testConfigurations() {
+        final Registry registry = new MongoDBRegistry();
+        Assert.assertTrue(registry != null);
+        Assert.assertTrue(registry.listAll().size()  == 1);
+    }
 }
