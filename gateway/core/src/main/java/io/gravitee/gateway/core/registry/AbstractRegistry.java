@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.impl;
+package io.gravitee.gateway.core.registry;
 
 import io.gravitee.gateway.core.Registry;
 import io.gravitee.model.Api;
@@ -53,6 +53,11 @@ public abstract class AbstractRegistry implements Registry {
 
         if (api.getContextPath() == null || api.getContextPath().isEmpty()) {
             LOGGER.error("Unable to register API {} : context path is missing", api);
+            return false;
+        }
+
+        if (api.getTarget() == null) {
+            LOGGER.error("Unable to register API {} : target URI is missing", api);
             return false;
         }
 

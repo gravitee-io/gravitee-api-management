@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.impl;
+package io.gravitee.gateway.core.registry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.model.Api;
