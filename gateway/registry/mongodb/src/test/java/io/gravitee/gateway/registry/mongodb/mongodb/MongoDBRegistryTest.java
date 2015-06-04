@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.impl;
+package io.gravitee.gateway.registry.mongodb.mongodb;
 
 import io.gravitee.gateway.core.Registry;
-import io.gravitee.gateway.core.registry.MongoDBRegistry;
+import io.gravitee.gateway.registry.mongodb.MongoDBRegistry;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,7 +29,7 @@ public class MongoDBRegistryTest {
 
     @Test
     public void testConfigurations() {
-        final URL url = FileRegistryTest.class.getResource("/registry/conf/mongodb.properties");
+        final URL url = MongoDBRegistryTest.class.getResource("/registry/conf/mongodb.properties");
         final Registry registry = new MongoDBRegistry(url.getPath());
         Assert.assertTrue(registry != null);
         Assert.assertTrue(registry.listAll().size()  == 1);
