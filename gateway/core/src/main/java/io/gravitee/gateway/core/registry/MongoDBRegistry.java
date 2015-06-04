@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.registry;
 
 import com.google.common.base.Strings;
+import com.mongodb.Block;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
@@ -25,8 +26,8 @@ import io.gravitee.model.Api;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Properties;
-import java.util.function.Consumer;
 
 /**
  * MongoDB API registry.
@@ -59,9 +60,9 @@ public class MongoDBRegistry extends AbstractRegistry {
     private void readConfiguration(final MongoDatabase db) {
         LOGGER.info("Loading Gravitee configuration from MongoDB database '{}'", db.getName());
         final FindIterable<DBObject> apis = db.getCollection("apis", DBObject.class).find();
-        apis.forEach(new Consumer<DBObject>() {
+        apis.forEach(new Block<DBObject>() {
             @Override
-            public void accept(final DBObject api) {
+            public void apply(final DBObject api) {
                 final Api newAPI = new Api();
                 final Object name = api.get("name");
                 if (name != null) {
@@ -78,6 +79,10 @@ public class MongoDBRegistry extends AbstractRegistry {
                 final Object enabled = api.get("enabled");
                 if (enabled != null) {
                     newAPI.setEnabled((Boolean) enabled);
+                }
+                final Object target = api.get("target");
+                if (target != null) {
+                    newAPI.setTarget(URI.create((String) target));
                 }
                 register(newAPI);
             }
