@@ -16,9 +16,14 @@
 package io.gravitee.gateway.core.impl;
 
 import io.gravitee.gateway.api.Registry;
+import io.gravitee.gateway.core.components.client.HttpClient;
+import io.gravitee.gateway.core.components.client.HttpClientFactory;
+import io.gravitee.gateway.core.components.client.jetty.JettyHttpClientFactory;
 import io.gravitee.gateway.core.http.Request;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.http.Response;
+import io.gravitee.gateway.core.registry.FileRegistry;
+import io.gravitee.model.Api;
 import rx.Observable;
 
 /**
@@ -26,14 +31,26 @@ import rx.Observable;
  */
 public class DefaultReactor implements Reactor {
 
-    private Registry registry;
+    // TODO: externalize it
+    private Registry registry = new FileRegistry();
+
+    private final HttpClientFactory httpClientFactory = new JettyHttpClientFactory();
 
 	@Override
 	public Observable<Response> process(Request request) {
         // TODO: get the associated API / service from the request using the registry
+        Api api = registry.findMatchingApi(request.getDestination());
 
-//		return new RequestProcessor().process(request);
-        return null;
+        if (api == null) {
+            // Not found -> 404
+            Response response = new Response();
+            response.setStatus(404);
+
+            return Observable.just(response);
+        } else {
+            HttpClient client = httpClientFactory.create(api);
+            return client.invoke(request);
+        }
 	}
 
     public Registry getRegistry() {

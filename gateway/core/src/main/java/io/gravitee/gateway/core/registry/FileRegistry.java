@@ -37,7 +37,7 @@ public class FileRegistry extends AbstractRegistry {
     private final static String JSON_EXTENSION = ".json";
 
     public FileRegistry() {
-        this(System.getProperty("gateway.conf", "/etc/gravitee.io/conf"));
+        this(System.getProperty("gateway.conf", "augier.maxence/etc/gravitee.io/conf"));
     }
 
     public FileRegistry(String configurationPath) {
