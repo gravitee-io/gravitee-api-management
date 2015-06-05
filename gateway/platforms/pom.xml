@@ -31,7 +31,7 @@
     <artifactId>platforms</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Gravitee IO - API Management - Platforms</name>
+    <name>Gravitee IO - API Management - Gateway Platforms</name>
 
     <modules>
         <module>servlet</module>
