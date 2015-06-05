@@ -15,10 +15,10 @@
  */
 package io.gravitee.admin.rest.api;
 
-import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.servlet.ServletContainer;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -27,7 +27,7 @@ public class App {
 
     public static void main(String[] args) throws Exception {
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
-        servletHolder.setInitParameter("com.sun.jersey.config.property.packages", "io.gravitee.admin.rest.api");
+        servletHolder.setInitParameter("jersey.config.server.provider.packages", "io.gravitee.admin.rest.api");
         servletHolder.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
         final Server server = new Server(8059);
         final ServletContextHandler context = new ServletContextHandler(server, "/rest", ServletContextHandler.NO_SESSIONS);
