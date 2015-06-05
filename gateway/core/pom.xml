@@ -48,6 +48,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
         </dependency>

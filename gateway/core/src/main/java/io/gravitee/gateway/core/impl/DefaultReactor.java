@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.impl;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Registry;
 import io.gravitee.gateway.core.components.client.HttpClient;
 import io.gravitee.gateway.core.components.client.HttpClientFactory;
@@ -44,7 +45,7 @@ public class DefaultReactor implements Reactor {
         if (api == null) {
             // Not found -> 404
             Response response = new Response();
-            response.setStatus(404);
+            response.setStatus(HttpStatusCode.NOT_FOUND_404);
 
             return Observable.just(response);
         } else {
