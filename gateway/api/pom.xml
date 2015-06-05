@@ -31,7 +31,7 @@
     <artifactId>api</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
-    <name>Gravitee IO - API Management - API</name>
+    <name>Gravitee IO - API Management - Gateway API</name>
 
     <dependencies>
         <!-- Gravitee internal dependencies -->
