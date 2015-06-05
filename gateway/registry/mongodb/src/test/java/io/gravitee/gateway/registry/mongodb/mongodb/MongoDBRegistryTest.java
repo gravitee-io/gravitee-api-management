@@ -20,6 +20,8 @@ import io.gravitee.gateway.registry.mongodb.MongoDBRegistry;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.net.URL;
+
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
@@ -27,7 +29,9 @@ public class MongoDBRegistryTest {
 
     @Test
     public void testConfigurations() {
-        final Registry registry = new MongoDBRegistry();
+        URL url = MongoDBRegistryTest.class.getResource("/conf/mongodb.properties");
+
+        final Registry registry = new MongoDBRegistry(url.getPath());
         Assert.assertTrue(registry != null);
         Assert.assertTrue(registry.listAll().size()  == 1);
     }
