@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core;
+package io.gravitee.gateway.core.components.client;
 
-import io.gravitee.model.Api;
-
-import java.util.Set;
+import io.gravitee.gateway.core.http.Request;
+import io.gravitee.gateway.core.http.Response;
+import rx.Observable;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Registry {
+public interface HttpClient {
 
-    Set<Api> listAll();
-
-    Api findMatchingApi(String uri);
+    Observable<Response> invoke(Request request);
 }

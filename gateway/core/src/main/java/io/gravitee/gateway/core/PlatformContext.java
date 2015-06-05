@@ -21,6 +21,4 @@ package io.gravitee.gateway.core;
 public interface PlatformContext {
 
     Reactor getReactor();
-
-    Registry getRegistry();
 }

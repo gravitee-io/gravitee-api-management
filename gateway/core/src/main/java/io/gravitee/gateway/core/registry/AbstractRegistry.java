@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.registry;
 
-import io.gravitee.gateway.core.Registry;
+import io.gravitee.gateway.api.Registry;
 import io.gravitee.model.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

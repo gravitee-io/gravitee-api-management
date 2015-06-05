@@ -27,12 +27,19 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee</groupId>
+    <groupId>io.gravitee.gateway</groupId>
     <artifactId>servlet</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>Gravitee IO - API Management - Servlet</name>
 
     <dependencies>
+        <!-- Gravity -->
+        <dependency>
+            <groupId>io.gravitee.gateway</groupId>
+            <artifactId>core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
