@@ -17,6 +17,7 @@ package io.gravitee.gateway.platforms.jetty.context;
 
 import io.gravitee.gateway.core.PlatformContext;
 import io.gravitee.gateway.core.Reactor;
+import io.gravitee.gateway.core.impl.DefaultReactor;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -24,6 +25,10 @@ import io.gravitee.gateway.core.Reactor;
 public class JettyPlatformContext implements PlatformContext {
 
     private final Reactor reactor;
+
+    public JettyPlatformContext() {
+        this.reactor = new DefaultReactor();
+    }
 
     public JettyPlatformContext(Reactor reactor) {
         this.reactor = reactor;
