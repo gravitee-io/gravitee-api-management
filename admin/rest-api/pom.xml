@@ -22,29 +22,28 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway</groupId>
-        <artifactId>platforms</artifactId>
+        <groupId>io.gravitee</groupId>
+        <artifactId>admin</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway</groupId>
-    <artifactId>jetty</artifactId>
+    <groupId>io.gravitee</groupId>
+    <artifactId>rest-api</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>Gravitee IO - API Management - Jetty Valve</name>
+    <name>Gravitee IO - API Management - Admin Rest API</name>
 
     <dependencies>
-        <!-- Gravity -->
+        <!-- Gravitee dependencies -->
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>servlet</artifactId>
+            <groupId>io.gravitee</groupId>
+            <artifactId>mongodb</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -58,39 +57,32 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
         </dependency>
-
-        <!-- Jetty -->
+        <!-- JAX RS dependencies -->
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>jsr311-api</artifactId>
+            <version>${jsr311-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-servlet</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <!-- Jetty dependencies -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-webapp</artifactId>
             <version>${jetty.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-proxy</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlets</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-jmx</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-
-        <!-- HTTP Client for testing -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>fluent-hc</artifactId>
-            <version>${httpclient.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <properties>
-        <httpclient.version>4.4.1</httpclient.version>
+        <jersey.version>1.19</jersey.version>
+        <jsr311-api.version>1.1.1</jsr311-api.version>
     </properties>
 </project>

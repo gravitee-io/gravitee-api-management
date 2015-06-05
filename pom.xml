@@ -28,7 +28,7 @@
     </parent>
 
     <groupId>io.gravitee</groupId>
-    <artifactId>parent</artifactId>
+    <artifactId>gravitee-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Gravitee IO - API Management</name>
@@ -37,6 +37,7 @@
     <modules>
         <module>model</module>
         <module>gateway</module>
+        <module>admin</module>
     </modules>
 
     <build>
@@ -102,6 +103,7 @@
     <properties>
         <jackson.version>2.5.3</jackson.version>
         <java.version>1.7</java.version>
+        <jetty.version>9.2.10.v20150310</jetty.version>
         <logback.version>1.1.3</logback.version>
         <slf4j.version>1.7.12</slf4j.version>
     </properties>
