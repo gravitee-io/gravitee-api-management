@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api;
+package io.gravitee.admin.rest.api;
+
+import javax.servlet.http.HttpServlet;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-public interface Policy {
+public class AppServlet extends HttpServlet {
 }

@@ -23,36 +23,18 @@
 
     <parent>
         <groupId>io.gravitee</groupId>
-        <artifactId>platforms</artifactId>
+        <artifactId>gravitee-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway</groupId>
-    <artifactId>servlet</artifactId>
+    <groupId>io.gravitee</groupId>
+    <artifactId>admin</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>Gravitee IO - API Management - Servlet</name>
+    <packaging>pom</packaging>
+    <name>Gravitee IO - API Management - Admin</name>
 
-    <dependencies>
-        <!-- Gravity -->
-        <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.reactivex</groupId>
-            <artifactId>rxjava</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${javax.servlet-api.version}</version>
-        </dependency>
-    </dependencies>
-
-    <properties>
-        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-    </properties>
+    <modules>
+        <module>admin-console</module>
+        <module>rest-api</module>
+    </modules>
 </project>

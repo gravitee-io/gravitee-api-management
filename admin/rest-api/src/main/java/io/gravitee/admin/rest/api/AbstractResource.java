@@ -13,10 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api;
+package io.gravitee.admin.rest.api;
+
+import io.gravitee.gateway.registry.mongodb.MongoDBRegistry;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-public interface Policy {
+public abstract class AbstractResource {
+
+    private MongoDBRegistry mongoDBRegistry;
+
+    protected MongoDBRegistry getMongoDBRegistry() {
+        if (mongoDBRegistry == null) {
+            mongoDBRegistry = new MongoDBRegistry();
+        }
+        return mongoDBRegistry;
+    }
 }

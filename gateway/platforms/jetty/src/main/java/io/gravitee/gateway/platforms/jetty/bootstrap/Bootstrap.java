@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.platforms.jetty.bootstrap;
 
+import io.gravitee.gateway.core.impl.DefaultReactor;
 import io.gravitee.gateway.platforms.jetty.context.JettyPlatformContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class Bootstrap {
 
 	public static void main(String[] args) {
 		final JettyEmbeddedContainer container = new JettyEmbeddedContainer(
-				new JettyPlatformContext());
+				new JettyPlatformContext(new DefaultReactor()));
 
 		try {
 			container.start();
