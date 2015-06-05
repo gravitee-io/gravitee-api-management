@@ -27,10 +27,10 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee</groupId>
-    <artifactId>rest-api</artifactId>
+    <groupId>io.gravitee.admin</groupId>
+    <artifactId>api</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>Gravitee IO - API Management - Admin Rest API</name>
+    <name>Gravitee IO - API Management - Admin - Rest API</name>
 
     <dependencies>
         <!-- Gravitee dependencies -->
@@ -40,7 +40,7 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.gravitee</groupId>
+            <groupId>io.gravitee.gateway.registry</groupId>
             <artifactId>mongodb</artifactId>
             <version>${project.version}</version>
         </dependency>

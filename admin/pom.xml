@@ -34,7 +34,7 @@
     <name>Gravitee IO - API Management - Admin</name>
 
     <modules>
-        <module>admin-console</module>
-        <module>rest-api</module>
+        <module>console</module>
+        <module>api</module>
     </modules>
 </project>
