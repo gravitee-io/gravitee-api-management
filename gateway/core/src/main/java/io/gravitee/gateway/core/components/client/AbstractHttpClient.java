@@ -15,8 +15,29 @@
  */
 package io.gravitee.gateway.core.components.client;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ProxyClient {
+public abstract class AbstractHttpClient implements HttpClient {
+
+    protected static final Set<String> HOP_HEADERS;
+
+    static {
+        Set<String> hopHeaders = new HashSet<String>();
+        hopHeaders.add("connection");
+        hopHeaders.add("keep-alive");
+        hopHeaders.add("proxy-authorization");
+        hopHeaders.add("proxy-authenticate");
+        hopHeaders.add("proxy-connection");
+        hopHeaders.add("transfer-encoding");
+        hopHeaders.add("te");
+        hopHeaders.add("trailer");
+        hopHeaders.add("upgrade");
+        HOP_HEADERS = Collections.unmodifiableSet(hopHeaders);
+    }
+
 }

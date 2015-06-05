@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.components.client.jetty;
+package io.gravitee.gateway.api;
 
-import io.gravitee.gateway.core.components.client.AbstractProxyClient;
+import io.gravitee.model.Api;
+
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class JettyProxyClient extends AbstractProxyClient {
+public interface Registry {
+
+    Set<Api> listAll();
+
+    Api findMatchingApi(String uri);
 }

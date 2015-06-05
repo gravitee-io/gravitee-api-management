@@ -15,9 +15,8 @@
  */
 package io.gravitee.gateway.platforms.jetty;
 
+import io.gravitee.gateway.api.Registry;
 import io.gravitee.gateway.core.PlatformContext;
-import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.Registry;
 import io.gravitee.gateway.core.impl.DefaultReactor;
 import io.gravitee.gateway.core.registry.FileRegistry;
 import io.gravitee.gateway.platforms.jetty.context.JettyPlatformContext;
@@ -55,9 +54,10 @@ public class JettyEmbeddedContainerTest {
         URL url = JettyEmbeddedContainerTest.class.getResource("/conf/test01");
 
         Registry registry = new FileRegistry(url.getPath());
-        Reactor reactor = new DefaultReactor();
+        DefaultReactor reactor = new DefaultReactor();
+        reactor.setRegistry(registry);
 
-        return new JettyPlatformContext(registry, reactor);
+        return new JettyPlatformContext(reactor);
     }
 
     @After

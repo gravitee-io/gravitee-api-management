@@ -17,9 +17,6 @@ package io.gravitee.gateway.platforms.jetty.context;
 
 import io.gravitee.gateway.core.PlatformContext;
 import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.Registry;
-import io.gravitee.gateway.core.impl.DefaultReactor;
-import io.gravitee.gateway.core.registry.FileRegistry;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -27,24 +24,13 @@ import io.gravitee.gateway.core.registry.FileRegistry;
 public class JettyPlatformContext implements PlatformContext {
 
     private final Reactor reactor;
-    private final Registry registry;
 
-    public JettyPlatformContext() {
-        this(new FileRegistry(), new DefaultReactor());
-    }
-
-    public JettyPlatformContext(Registry registry, Reactor reactor) {
-        this.registry = registry;
+    public JettyPlatformContext(Reactor reactor) {
         this.reactor = reactor;
     }
 
     @Override
     public Reactor getReactor() {
         return reactor;
-    }
-
-    @Override
-    public Registry getRegistry() {
-        return registry;
     }
 }

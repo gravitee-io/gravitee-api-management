@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.impl;
+package io.gravitee.gateway.core.components.client.jetty;
 
-import io.gravitee.gateway.core.Processor;
+import io.gravitee.gateway.core.components.client.AbstractHttpClient;
 import io.gravitee.gateway.core.http.ContentRequest;
 import io.gravitee.gateway.core.http.Request;
 import io.gravitee.gateway.core.http.Response;
+import io.gravitee.model.Api;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.client.util.InputStreamContentProvider;
@@ -32,40 +33,26 @@ import rx.Observable;
 import rx.Subscriber;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class RequestProcessor implements Processor {
+public class JettyHttpClient extends AbstractHttpClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RequestProcessor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JettyHttpClient.class);
 
-    protected static final Set<String> HOP_HEADERS;
+    private final HttpClient client;
+    private final Api api;
 
-    static {
-        Set<String> hopHeaders = new HashSet<String>();
-        hopHeaders.add("connection");
-        hopHeaders.add("keep-alive");
-        hopHeaders.add("proxy-authorization");
-        hopHeaders.add("proxy-authenticate");
-        hopHeaders.add("proxy-connection");
-        hopHeaders.add("transfer-encoding");
-        hopHeaders.add("te");
-        hopHeaders.add("trailer");
-        hopHeaders.add("upgrade");
-        HOP_HEADERS = Collections.unmodifiableSet(hopHeaders);
+    public JettyHttpClient(final Api api) {
+        this.api = api;
+        this.client = construct();
     }
 
-    //TODO: do not create a new instance of client for each request !!!
-    private static HttpClient client = createHttpClient();
-
     @Override
-    public Observable<Response> process(final Request request) {
+    public Observable<Response> invoke(final Request request) {
         Observable<Response> response = Observable.create(
                 new Observable.OnSubscribe<Response>() {
                     @Override
@@ -226,7 +213,8 @@ public class RequestProcessor implements Processor {
         proxyRequest.abort(failure);
     }
 
-    protected static HttpClient createHttpClient() {
+    // TODO: client should be highly configurable !
+    private HttpClient construct() {
         HttpClient client = new HttpClient();
 
         // Redirects must be proxied as is, not followed
@@ -238,7 +226,7 @@ public class RequestProcessor implements Processor {
         // Be careful : max threads can't be less than 2 -> deadlock
         QueuedThreadPool qtp = new QueuedThreadPool(200);
 
-        qtp.setName("dispatcher");
+        qtp.setName("dispatcher" + api.getName());
 
         client.setExecutor(qtp);
         client.setIdleTimeout(30000);
@@ -256,5 +244,4 @@ public class RequestProcessor implements Processor {
 
         return client;
     }
-
 }

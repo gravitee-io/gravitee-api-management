@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.impl;
 
+import io.gravitee.gateway.api.Registry;
 import io.gravitee.gateway.core.http.Request;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.http.Response;
@@ -25,8 +26,21 @@ import rx.Observable;
  */
 public class DefaultReactor implements Reactor {
 
+    private Registry registry;
+
 	@Override
 	public Observable<Response> process(Request request) {
-		return new RequestProcessor().process(request);
+        // TODO: get the associated API / service from the request using the registry
+
+//		return new RequestProcessor().process(request);
+        return null;
 	}
+
+    public Registry getRegistry() {
+        return registry;
+    }
+
+    public void setRegistry(Registry registry) {
+        this.registry = registry;
+    }
 }
