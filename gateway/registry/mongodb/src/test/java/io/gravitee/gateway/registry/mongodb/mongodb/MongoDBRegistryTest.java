@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.registry.mongodb.mongodb;
 
-import io.gravitee.gateway.core.Registry;
+import io.gravitee.gateway.api.Registry;
 import io.gravitee.gateway.registry.mongodb.MongoDBRegistry;
 import org.junit.Assert;
 import org.junit.Test;
