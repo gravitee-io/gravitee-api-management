@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.platforms.jetty;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Registry;
 import io.gravitee.gateway.core.PlatformContext;
 import io.gravitee.gateway.core.impl.DefaultReactor;
@@ -23,7 +24,6 @@ import io.gravitee.gateway.platforms.jetty.context.JettyPlatformContext;
 import io.gravitee.gateway.platforms.jetty.resource.ApiExternalResource;
 import io.gravitee.gateway.platforms.jetty.servlet.ApiServlet;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.junit.After;
@@ -83,6 +83,6 @@ public class JettyEmbeddedContainerTest {
         Response response = request.execute();
         HttpResponse returnResponse = response.returnResponse();
 
-        assertEquals(HttpStatus.SC_NOT_FOUND, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatusCode.NOT_FOUND_404, returnResponse.getStatusLine().getStatusCode());
     }
 }

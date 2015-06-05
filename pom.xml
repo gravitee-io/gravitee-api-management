@@ -36,6 +36,7 @@
 
     <modules>
         <module>model</module>
+        <module>common</module>
         <module>gateway</module>
         <module>admin</module>
     </modules>
