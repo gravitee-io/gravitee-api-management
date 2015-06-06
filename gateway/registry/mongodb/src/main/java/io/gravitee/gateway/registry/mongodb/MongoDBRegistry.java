@@ -22,12 +22,12 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 import io.gravitee.gateway.core.registry.AbstractRegistry;
+import io.gravitee.gateway.registry.mongodb.converters.ApiConverter;
 import io.gravitee.model.Api;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.Properties;
 
 /**
@@ -38,7 +38,9 @@ import java.util.Properties;
  */
 public class MongoDBRegistry extends AbstractRegistry {
 
+    private ApiConverter apiConverter = new ApiConverter();
     private final Properties properties = new Properties();
+    private MongoDatabase mongoDatabase;
 
     public MongoDBRegistry() {
         this(System.getProperty("gateway.conf.mongodb", "/etc/gravitee.io/conf/mongodb.properties"));
@@ -52,40 +54,27 @@ public class MongoDBRegistry extends AbstractRegistry {
             final int port = getPropertyAsInteger("port");
             final String database = getProperty("database");
             final MongoClient mongoClient = new MongoClient(host, port);
-            readConfiguration(mongoClient.getDatabase(database));
+            mongoDatabase = mongoClient.getDatabase(database);
+            readConfiguration();
         } catch (final IOException e) {
             LOGGER.error("No MongoDB configuration can be read from {}", configurationPath, e);
         }
     }
 
-    private void readConfiguration(final MongoDatabase db) {
-        LOGGER.info("Loading Gravitee configuration from MongoDB database '{}'", db.getName());
-        final FindIterable<DBObject> apis = db.getCollection("apis", DBObject.class).find();
+    public void writeApi(final Api api) {
+        final DBObject document = apiConverter.convertTo(api);
+        if (document != null) {
+            mongoDatabase.getCollection("apis", DBObject.class).insertOne(document);
+        }
+    }
+
+    private void readConfiguration() {
+        LOGGER.info("Loading Gravitee configuration from MongoDB database '{}'", mongoDatabase.getName());
+        final FindIterable<DBObject> apis = mongoDatabase.getCollection("apis", DBObject.class).find();
         apis.forEach(new Block<DBObject>() {
             @Override
-            public void apply(final DBObject api) {
-                final Api newAPI = new Api();
-                final Object name = api.get("name");
-                if (name != null) {
-                    newAPI.setName((String) name);
-                }
-                final Object version = api.get("version");
-                if (version != null) {
-                    newAPI.setVersion((String) version);
-                }
-                final Object contextPath = api.get("contextPath");
-                if (contextPath != null) {
-                    newAPI.setContextPath((String) contextPath);
-                }
-                final Object enabled = api.get("enabled");
-                if (enabled != null) {
-                    newAPI.setEnabled((Boolean) enabled);
-                }
-                final Object target = api.get("target");
-                if (target != null) {
-                    newAPI.setTarget(URI.create((String) target));
-                }
-                register(newAPI);
+            public void apply(final DBObject dbObject) {
+                register(apiConverter.convertFrom(dbObject));
             }
         });
         LOGGER.info("{} API(s) registered", listAll().size());

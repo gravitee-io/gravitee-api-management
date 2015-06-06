@@ -37,7 +37,7 @@ public class Api {
     private URI target;
 
     @JsonIgnore
-    private boolean enabled = true;
+    private Boolean enabled = true;
 
     public String getName() {
         return name;
@@ -63,11 +63,11 @@ public class Api {
         this.contextPath = contextPath;
     }
 
-    public boolean isEnabled() {
+    public Boolean isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }
 

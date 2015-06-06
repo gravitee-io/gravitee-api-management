@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.admin.rest.api;
+package io.gravitee.admin.api.resources;
 
-import io.gravitee.model.Api;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import java.util.Set;
+import io.gravitee.gateway.api.Registry;
+import io.gravitee.gateway.registry.mongodb.MongoDBRegistry;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-@Path("/apis")
-public class ApiResource extends AbstractResource {
+public abstract class AbstractResource {
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Set<Api> listAll() {
-        return getMongoDBRegistry().listAll();
+    private Registry registry;
+
+    protected Registry getRegistry() {
+        if (registry == null) {
+            registry = new MongoDBRegistry();
+        }
+        return registry;
+    }
+
+    protected void reloadRegistry() {
+        registry = new MongoDBRegistry();
     }
 }
