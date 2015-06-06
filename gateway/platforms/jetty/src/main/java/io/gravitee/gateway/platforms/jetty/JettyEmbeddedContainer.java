@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.platforms.jetty;
 
+import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.core.Platform;
 import io.gravitee.gateway.core.PlatformContext;
-import io.gravitee.gateway.platforms.jetty.context.JettyPlatformContext;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -27,7 +27,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class JettyEmbeddedContainer implements Platform {
+public class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbeddedContainer> implements Platform {
 
 	protected final static String REGEX_SERVLET_MAPPING_ALL = "/*";
 
@@ -44,7 +44,8 @@ public class JettyEmbeddedContainer implements Platform {
 		return "Jetty"; //$NON-NLS-1$
 	}
 
-	public void start() throws Exception {
+	@Override
+	protected void doStart() throws Exception {
 		server = new Server(8082);
 		Handler rootHandler = createHandler();
 
@@ -52,7 +53,8 @@ public class JettyEmbeddedContainer implements Platform {
 		server.start();
 	}
 
-	public void stop() throws Exception {
+	@Override
+	protected void doStop() throws Exception {
 		server.stop();
 	}
 
