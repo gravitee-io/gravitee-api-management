@@ -39,6 +39,7 @@
         <module>common</module>
         <module>gateway</module>
         <module>admin</module>
+        <module>distribution</module>
     </modules>
 
     <build>
