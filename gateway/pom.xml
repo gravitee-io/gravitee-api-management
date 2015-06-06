@@ -52,11 +52,6 @@
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.mongodb</groupId>
-                <artifactId>mongo-java-driver</artifactId>
-                <version>${mongo.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -72,7 +67,6 @@
 
     <properties>
         <guava.version>18.0</guava.version>
-        <mongo.version>3.0.1</mongo.version>
         <rxjava.version>1.0.11</rxjava.version>
         <junit.version>4.12</junit.version>
     </properties>
