@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.core.registry;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
 import io.gravitee.gateway.api.Registry;
 import io.gravitee.model.Api;
 import org.slf4j.Logger;
@@ -24,40 +27,51 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public abstract class AbstractRegistry implements Registry {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
-    private final Set<Api> apis = new HashSet<Api>();
+    private final Set<Api> apis = new HashSet<>();
 
-    protected void register(Api api) {
+    protected void register(final Api api) {
         LOGGER.info("Register a new API : {}", api);
 
         if (validate(api)) {
-            // TODO: internal check
-            // - Api not added twice
-            // - Context path not already registered
-
             apis.add(api);
         }
     }
 
-    private boolean validate(Api api) {
-        if (api.getName() == null || api.getName().isEmpty()) {
+    private boolean validate(final Api api) {
+        if (api == null) {
+            return false;
+        }
+
+        if (Strings.isNullOrEmpty(api.getName())) {
             LOGGER.error("Unable to register API {} : name is missing", api);
             return false;
         }
 
-        if (api.getContextPath() == null || api.getContextPath().isEmpty()) {
+        if (Strings.isNullOrEmpty(api.getContextPath())) {
             LOGGER.error("Unable to register API {} : context path is missing", api);
             return false;
         }
 
         if (api.getTarget() == null) {
             LOGGER.error("Unable to register API {} : target URI is missing", api);
+            return false;
+        }
+
+        final boolean isContextPathExists = FluentIterable.from(apis).anyMatch(new Predicate<Api>() {
+            @Override
+            public boolean apply(final Api input) {
+                return api.getContextPath().startsWith(input.getContextPath());
+            }
+        });
+
+        if (isContextPathExists) {
+            LOGGER.error("Unable to register API {} : context path already exists", api);
             return false;
         }
 
@@ -70,7 +84,26 @@ public abstract class AbstractRegistry implements Registry {
     }
 
     @Override
-    public Api findMatchingApi(String uri) {
-        return null;
+    public Api findMatchingApi(final String uri) {
+        if (Strings.isNullOrEmpty(uri)) {
+            return null;
+        }
+        return FluentIterable.from(apis).firstMatch(new Predicate<Api>() {
+            @Override
+            public boolean apply(final Api input) {
+                return uri.startsWith(input.getContextPath());
+            }
+        }).orNull();
     }
+
+    @Override
+    public boolean createApi(final Api api) {
+        if (validate(api)) {
+            writeApi(api);
+            return true;
+        }
+        return false;
+    }
+
+    protected abstract void writeApi(Api api);
 }

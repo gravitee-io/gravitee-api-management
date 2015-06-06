@@ -33,6 +33,6 @@ public class MongoDBRegistryTest {
 
         final Registry registry = new MongoDBRegistry(url.getPath());
         Assert.assertTrue(registry != null);
-        Assert.assertTrue(registry.listAll().size()  == 1);
+        Assert.assertTrue(registry.listAll().size() > 0);
     }
 }

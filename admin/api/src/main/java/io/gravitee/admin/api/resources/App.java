@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.admin.rest.api;
+package io.gravitee.admin.api.resources;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -27,7 +27,7 @@ public class App {
 
     public static void main(String[] args) throws Exception {
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
-        servletHolder.setInitParameter("jersey.config.server.provider.packages", "io.gravitee.admin.rest.api");
+        servletHolder.setInitParameter("jersey.config.server.provider.packages", "io.gravitee.admin.api.resources");
         servletHolder.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
         final Server server = new Server(8059);
         final ServletContextHandler context = new ServletContextHandler(server, "/rest", ServletContextHandler.NO_SESSIONS);
