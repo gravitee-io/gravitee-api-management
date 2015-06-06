@@ -15,8 +15,10 @@
  */
 package io.gravitee.gateway.platforms.jetty.bootstrap;
 
+import io.gravitee.gateway.api.Node;
 import io.gravitee.gateway.core.impl.DefaultReactor;
 import io.gravitee.gateway.platforms.jetty.context.JettyPlatformContext;
+import io.gravitee.gateway.platforms.jetty.node.JettyNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +32,10 @@ public class Bootstrap {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Bootstrap.class);
 
 	public static void main(String[] args) {
-		final JettyEmbeddedContainer container = new JettyEmbeddedContainer(
-				new JettyPlatformContext(new DefaultReactor()));
+		final Node node = new JettyNode();
 
 		try {
-			container.start();
+			node.start();
 
 			// Ajout d'un hook pour gérer un arrêt propre.
 			Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -42,7 +43,7 @@ public class Bootstrap {
 				public void run() {
 					LOGGER.info("Shutting-down Gravitee Gateway...");
 					try {
-						container.stop();
+						node.stop();
 					} catch (Exception ex) {
 						LOGGER.error("Unable to stop Gravitee Gateway", ex);
 					}
@@ -51,5 +52,8 @@ public class Bootstrap {
 		} catch (Exception ex) {
 			LOGGER.error("Unable to start Gravitee Gateway", ex);
 		}
+	}
+
+	private Bootstrap() {
 	}
 }
