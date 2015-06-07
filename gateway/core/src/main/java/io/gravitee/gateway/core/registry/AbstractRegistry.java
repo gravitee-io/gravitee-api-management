@@ -23,6 +23,7 @@ import io.gravitee.model.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,12 +36,24 @@ public abstract class AbstractRegistry implements Registry {
 
     private final Set<Api> apis = new HashSet<>();
 
-    protected void register(final Api api) {
-        LOGGER.info("Register a new API : {}", api);
+    protected boolean register(final Api api) {
+        LOGGER.info("Registering a new API : {}", api);
 
         if (validate(api)) {
             apis.add(api);
+            return true;
         }
+        return false;
+    }
+
+    protected void deregisterAll() {
+        LOGGER.info("Deregistering all APIs");
+        apis.clear();;
+    }
+
+    protected boolean deregister(final Api api) {
+        LOGGER.info("Deregistering an API : {}", api);
+        return apis.remove(api);
     }
 
     private boolean validate(final Api api) {
@@ -66,7 +79,7 @@ public abstract class AbstractRegistry implements Registry {
         final boolean isContextPathExists = FluentIterable.from(apis).anyMatch(new Predicate<Api>() {
             @Override
             public boolean apply(final Api input) {
-                return api.getContextPath().startsWith(input.getContextPath());
+                return api.getContextPath().equals(input.getContextPath());
             }
         });
 
@@ -75,12 +88,24 @@ public abstract class AbstractRegistry implements Registry {
             return false;
         }
 
+        final boolean isNameExists = FluentIterable.from(apis).anyMatch(new Predicate<Api>() {
+            @Override
+            public boolean apply(final Api input) {
+                return api.getName().equals(input.getName());
+            }
+        });
+
+        if (isNameExists) {
+            LOGGER.error("Unable to register API {} : name already exists", api);
+            return false;
+        }
+
         return true;
     }
 
     @Override
     public Set<Api> listAll() {
-        return apis;
+        return Collections.unmodifiableSet(apis);
     }
 
     @Override

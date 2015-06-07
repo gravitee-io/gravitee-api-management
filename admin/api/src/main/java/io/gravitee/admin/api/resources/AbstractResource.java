@@ -31,8 +31,4 @@ public abstract class AbstractResource {
         }
         return registry;
     }
-
-    protected void reloadRegistry() {
-        registry = new MongoDBRegistry();
-    }
 }

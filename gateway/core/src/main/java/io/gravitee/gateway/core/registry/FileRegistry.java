@@ -56,6 +56,31 @@ public class FileRegistry extends AbstractRegistry {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
+    @Override
+    public boolean startApi(String name) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public boolean stopApi(String name) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public boolean reloadApi(String name) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public boolean statusApi(String name) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public boolean reloadAll() {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
     private void readConfiguration(File configuration) {
         LOGGER.info("Loading Gravitee configuration from {}", configuration.getAbsolutePath());
 

@@ -21,9 +21,11 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import io.gravitee.gateway.core.registry.AbstractRegistry;
 import io.gravitee.gateway.registry.mongodb.converters.ApiConverter;
 import io.gravitee.model.Api;
+import org.bson.Document;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -50,9 +52,9 @@ public class MongoDBRegistry extends AbstractRegistry {
         try {
             final InputStream input = new FileInputStream(configurationPath);
             properties.load(input);
-            final String host = getProperty("host");
-            final int port = getPropertyAsInteger("port");
-            final String database = getProperty("database");
+            final String host = getProperty("gravitee.io.mongdb.host");
+            final int port = getPropertyAsInteger("gravitee.io.mongdb.port");
+            final String database = getProperty("gravitee.io.mongdb.database");
             final MongoClient mongoClient = new MongoClient(host, port);
             mongoDatabase = mongoClient.getDatabase(database);
             readConfiguration();
@@ -66,6 +68,48 @@ public class MongoDBRegistry extends AbstractRegistry {
         if (document != null) {
             mongoDatabase.getCollection("apis", DBObject.class).insertOne(document);
         }
+    }
+
+    @Override
+    public boolean startApi(final String name) {
+        return mongoDatabase.getCollection("apis", DBObject.class).updateOne(Filters.eq("name", name),
+                new Document("$set", new Document("enabled", true))).getModifiedCount() == 1;
+    }
+
+    @Override
+    public boolean stopApi(final String name) {
+        return mongoDatabase.getCollection("apis", DBObject.class).updateOne(Filters.eq("name", name),
+                new Document("$set", new Document("enabled", false))).getModifiedCount() == 1;
+    }
+
+    @Override
+    public boolean reloadApi(final String name) {
+        final DBObject dbObject =
+                mongoDatabase.getCollection("apis", DBObject.class).find(Filters.eq("name", name)).first();
+        if (dbObject == null) {
+            return false;
+        }
+        final Api api = apiConverter.convertFrom(dbObject);
+        deregister(api);
+        return register(api);
+    }
+
+    @Override
+    public boolean statusApi(final String name) {
+        final DBObject dbObject =
+                mongoDatabase.getCollection("apis", DBObject.class).find(Filters.eq("name", name)).first();
+        final Object enabled = dbObject.get("enabled");
+        if (dbObject == null || enabled == null) {
+            return false;
+        }
+        return (boolean) enabled;
+    }
+
+    @Override
+    public boolean reloadAll() {
+        deregisterAll();
+        readConfiguration();
+        return true;
     }
 
     private void readConfiguration() {
