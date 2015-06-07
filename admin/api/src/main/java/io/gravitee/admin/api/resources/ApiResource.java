@@ -19,9 +19,8 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.model.Api;
 
 import javax.inject.Singleton;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Set;
 
@@ -31,7 +30,9 @@ import static javax.ws.rs.core.HttpHeaders.LOCATION;
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 @Singleton
+@Produces(MediaType.APPLICATION_JSON)
 @Path("/apis")
+// TODO handle messages responses
 public class ApiResource extends AbstractResource {
 
     @GET
@@ -40,6 +41,7 @@ public class ApiResource extends AbstractResource {
     }
 
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response create(final Api api) {
         if (getRegistry().createApi(api)) {
             return Response.status(HttpStatusCode.CREATED_201).header(LOCATION, "/rest/apis" +
@@ -49,10 +51,49 @@ public class ApiResource extends AbstractResource {
         }
     }
 
+    @POST
+    @Path("/start/{name}")
+    public Response startApi(@PathParam("name") final String name) {
+        if (getRegistry().startApi(name)) {
+            return Response.status(HttpStatusCode.OK_200).build();
+        } else {
+            return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
+        }
+    }
+
+    @POST
+    @Path("/stop/{name}")
+    public Response stopApi(@PathParam("name") final String name) {
+        if (getRegistry().stopApi(name)) {
+            return Response.status(HttpStatusCode.OK_200).build();
+        } else {
+            return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
+        }
+    }
+
+    @POST
+    @Path("/reload/{name}")
+    public Response reloadApi(@PathParam("name") final String name) {
+        if (getRegistry().reloadApi(name)) {
+            return Response.status(HttpStatusCode.OK_200).build();
+        } else {
+            return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
+        }
+    }
+
+    @POST
+    @Path("/reloadAll")
+    public Response reloadAll() {
+        if (getRegistry().reloadAll()) {
+            return Response.status(HttpStatusCode.OK_200).build();
+        } else {
+            return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
+        }
+    }
+
     @GET
-    @Path("/reload")
-    public Response reload() {
-        reloadRegistry();
-        return Response.status(HttpStatusCode.CREATED_201).build();
+    @Path("/status/{name}")
+    public boolean statusApi(@PathParam("name") final String name) {
+        return getRegistry().statusApi(name);
     }
 }
