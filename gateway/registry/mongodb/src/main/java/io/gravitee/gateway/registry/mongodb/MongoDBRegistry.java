@@ -63,6 +63,13 @@ public class MongoDBRegistry extends AbstractRegistry {
         }
     }
 
+    @Override
+    protected Api findApiByName(String name) {
+        final DBObject dbObject =
+                mongoDatabase.getCollection("apis", DBObject.class).find(Filters.eq("name", name)).first();
+        return apiConverter.convertFrom(dbObject);
+    }
+
     public void writeApi(final Api api) {
         final DBObject document = apiConverter.convertTo(api);
         if (document != null) {
@@ -80,29 +87,6 @@ public class MongoDBRegistry extends AbstractRegistry {
     public boolean stopApi(final String name) {
         return mongoDatabase.getCollection("apis", DBObject.class).updateOne(Filters.eq("name", name),
                 new Document("$set", new Document("enabled", false))).getModifiedCount() == 1;
-    }
-
-    @Override
-    public boolean reloadApi(final String name) {
-        final DBObject dbObject =
-                mongoDatabase.getCollection("apis", DBObject.class).find(Filters.eq("name", name)).first();
-        if (dbObject == null) {
-            return false;
-        }
-        final Api api = apiConverter.convertFrom(dbObject);
-        deregister(api);
-        return register(api);
-    }
-
-    @Override
-    public boolean statusApi(final String name) {
-        final DBObject dbObject =
-                mongoDatabase.getCollection("apis", DBObject.class).find(Filters.eq("name", name)).first();
-        final Object enabled = dbObject.get("enabled");
-        if (dbObject == null || enabled == null) {
-            return false;
-        }
-        return (boolean) enabled;
     }
 
     @Override

@@ -48,7 +48,7 @@ public abstract class AbstractRegistry implements Registry {
 
     protected void deregisterAll() {
         LOGGER.info("Deregistering all APIs");
-        apis.clear();;
+        apis.clear();
     }
 
     protected boolean deregister(final Api api) {
@@ -130,5 +130,23 @@ public abstract class AbstractRegistry implements Registry {
         return false;
     }
 
+    @Override
+    public boolean reloadApi(final String name) {
+        final Api api = findApiByName(name);
+        deregister(api);
+        return register(api);
+    }
+
+    @Override
+    public boolean statusApi(final String name) {
+        final Api api = findApiByName(name);
+        if (api == null) {
+            return false;
+        }
+        return api.isEnabled();
+    }
+
     protected abstract void writeApi(Api api);
+
+    protected abstract Api findApiByName(String name);
 }
