@@ -52,6 +52,11 @@ public class FileRegistry extends AbstractRegistry {
     }
 
     @Override
+    protected Api findApiByName(final String name) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
     protected void writeApi(Api api) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
@@ -63,16 +68,6 @@ public class FileRegistry extends AbstractRegistry {
 
     @Override
     public boolean stopApi(String name) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
-    public boolean reloadApi(String name) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
-    public boolean statusApi(String name) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
