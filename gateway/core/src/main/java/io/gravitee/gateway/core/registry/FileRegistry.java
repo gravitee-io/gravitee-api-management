@@ -116,7 +116,7 @@ public class FileRegistry extends AbstractRegistry {
                 }
             });
 
-            return new HashSet<File>(Arrays.asList(confs));
+            return new HashSet<>(Arrays.asList(confs));
         }
     }
 }
