@@ -51,8 +51,9 @@
                 <artifactId>yeoman-maven-plugin</artifactId>
                 <version>0.4</version>
                 <configuration>
-                    <yeomanProjectDirectory>${project.basedir}</yeomanProjectDirectory>
+                    <bowerInstallArgs>install --allow-root</bowerInstallArgs>
                     <buildTool>gulp</buildTool>
+                    <yeomanProjectDirectory>${project.basedir}</yeomanProjectDirectory>
                 </configuration>
                 <executions>
                     <execution>
