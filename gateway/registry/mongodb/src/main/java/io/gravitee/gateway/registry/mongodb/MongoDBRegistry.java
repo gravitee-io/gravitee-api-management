@@ -52,9 +52,9 @@ public class MongoDBRegistry extends AbstractRegistry {
         try {
             final InputStream input = new FileInputStream(configurationPath);
             properties.load(input);
-            final String host = getProperty("gravitee.io.mongdb.host");
-            final int port = getPropertyAsInteger("gravitee.io.mongdb.port");
-            final String database = getProperty("gravitee.io.mongdb.database");
+            final String host = getProperty("gravitee.io.mongodb.host");
+            final int port = getPropertyAsInteger("gravitee.io.mongodb.port");
+            final String database = getProperty("gravitee.io.mongodb.database");
             final MongoClient mongoClient = new MongoClient(host, port);
             mongoDatabase = mongoClient.getDatabase(database);
             readConfiguration();
