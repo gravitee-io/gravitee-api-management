@@ -15,13 +15,13 @@
  */
 package io.gravitee.gateway.registry.mongodb;
 
-import com.google.common.base.Strings;
 import com.mongodb.Block;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import io.gravitee.common.utils.PropertiesUtils;
 import io.gravitee.gateway.core.registry.AbstractRegistry;
 import io.gravitee.gateway.registry.mongodb.converters.ApiConverter;
 import io.gravitee.model.Api;
@@ -52,9 +52,9 @@ public class MongoDBRegistry extends AbstractRegistry {
         try {
             final InputStream input = new FileInputStream(configurationPath);
             properties.load(input);
-            final String host = getProperty("gravitee.io.mongodb.host");
-            final int port = getPropertyAsInteger("gravitee.io.mongodb.port");
-            final String database = getProperty("gravitee.io.mongodb.database");
+            final String host = PropertiesUtils.getProperty(properties, "gravitee.io.mongodb.host");
+            final int port = PropertiesUtils.getPropertyAsInteger(properties, "gravitee.io.mongodb.port");
+            final String database = PropertiesUtils.getProperty(properties, "gravitee.io.mongodb.database");
             final MongoClient mongoClient = new MongoClient(host, port);
             mongoDatabase = mongoClient.getDatabase(database);
             readConfiguration();
@@ -106,30 +106,5 @@ public class MongoDBRegistry extends AbstractRegistry {
             }
         });
         LOGGER.info("{} API(s) registered", listAll().size());
-    }
-
-    private String getProperty(final String propertyName) {
-        return (String) getProperty(propertyName, false);
-    }
-
-    private Integer getPropertyAsInteger(final String propertyName) {
-        return (Integer) getProperty(propertyName, true);
-    }
-
-    private Object getProperty(final String propertyName, final boolean isNumber) {
-        final String propertyValue = properties.getProperty(propertyName);
-        if (Strings.isNullOrEmpty(propertyValue)) {
-            LOGGER.error("Missing property configuration:{}", propertyName);
-            throw new IllegalStateException("Missing MongoDB configuration properties");
-        }
-        try {
-            if (isNumber) {
-                return Integer.parseInt(propertyValue);
-            }
-            return propertyValue;
-        } catch (final NumberFormatException e) {
-            LOGGER.error("The property configuration {} must be a valid number", propertyName);
-            throw new IllegalArgumentException("Wrong MongoDB configuration properties", e);
-        }
     }
 }

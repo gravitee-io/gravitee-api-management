@@ -47,11 +47,6 @@
                 <artifactId>rxjava</artifactId>
                 <version>${rxjava.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -66,7 +61,6 @@
     </dependencies>
 
     <properties>
-        <guava.version>18.0</guava.version>
         <rxjava.version>1.0.11</rxjava.version>
         <junit.version>4.12</junit.version>
     </properties>

@@ -99,10 +99,16 @@
                 <artifactId>logback-core</artifactId>
                 <version>${logback.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <properties>
+        <guava.version>18.0</guava.version>
         <jackson.version>2.5.3</jackson.version>
         <java.version>1.7</java.version>
         <jetty.version>9.2.10.v20150310</jetty.version>
