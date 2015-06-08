@@ -68,6 +68,8 @@
                         <exclude>**/README</exclude>
                         <exclude>src/test/resources/**</exclude>
                         <exclude>src/main/resources/**</exclude>
+                        <exclude>node_modules/**</exclude>
+                        <exclude>build/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>
