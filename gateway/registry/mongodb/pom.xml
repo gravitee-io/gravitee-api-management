@@ -43,6 +43,13 @@
             <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.gravitee</groupId>
+            <artifactId>model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- MongoDB dependencies -->
         <dependency>
             <groupId>org.mongodb</groupId>

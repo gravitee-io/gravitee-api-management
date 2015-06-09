@@ -66,8 +66,8 @@ public abstract class AbstractRegistry implements Registry {
             return false;
         }
 
-        if (Strings.isNullOrEmpty(api.getContextPath())) {
-            LOGGER.error("Unable to register API {} : context path is missing", api);
+        if (api.getPublicURI() == null) {
+            LOGGER.error("Unable to register API {} : public URI is missing", api);
             return false;
         }
 
@@ -79,7 +79,7 @@ public abstract class AbstractRegistry implements Registry {
         final boolean isContextPathExists = FluentIterable.from(apis).anyMatch(new Predicate<Api>() {
             @Override
             public boolean apply(final Api input) {
-                return api.getContextPath().equals(input.getContextPath());
+                return api.getPublicURI().getPath().equals(input.getPublicURI().getPath());
             }
         });
 
@@ -116,7 +116,7 @@ public abstract class AbstractRegistry implements Registry {
         return FluentIterable.from(apis).firstMatch(new Predicate<Api>() {
             @Override
             public boolean apply(final Api input) {
-                return uri.startsWith(input.getContextPath());
+                return uri.startsWith(input.getPublicURI().getPath());
             }
         }).orNull();
     }
