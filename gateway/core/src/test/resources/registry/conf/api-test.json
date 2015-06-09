@@ -1,6 +1,6 @@
 {
   "name": "api-test",
   "version": "v1",
-  "contextPath": "/test",
+  "public": "http://localhost:8082/test",
   "target": "http://localhost:8083/myapi"
 }

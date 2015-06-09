@@ -16,6 +16,7 @@
 package io.gravitee.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.model.jackson.URIDeserializer;
 
@@ -32,14 +33,14 @@ public class Api {
     @JsonIgnore
     private String version = "unknown";
 
-    private String contextPath;
-
+    @JsonProperty("public")
     private URI publicURI;
 
+    @JsonProperty("target")
     private URI targetURI;
 
     @JsonIgnore
-    private Boolean enabled = true;
+    private boolean enabled = true;
 
     public String getName() {
         return name;
@@ -57,19 +58,11 @@ public class Api {
         this.version = version;
     }
 
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
-    }
-
-    public Boolean isEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(Boolean enabled) {
+    public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -91,10 +84,6 @@ public class Api {
         this.publicURI = publicURI;
     }
 
-    public Boolean getEnabled() {
-        return enabled;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -114,7 +103,8 @@ public class Api {
         final StringBuilder sb = new StringBuilder("Api{");
         sb.append("name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
-        sb.append(", contextPath='").append(contextPath).append('\'');
+        sb.append(", publicURI=").append(publicURI);
+        sb.append(", targetURI=").append(targetURI);
         sb.append(", enabled=").append(enabled);
         sb.append('}');
         return sb.toString();

@@ -39,14 +39,14 @@ public class ApiConverter extends AbstractConverter<Api, DBObject> {
         if (!Strings.isNullOrEmpty(api.getVersion())) {
             dbObject.put("version", api.getVersion());
         }
-        if (!Strings.isNullOrEmpty(api.getContextPath())) {
-            dbObject.put("contextPath", api.getContextPath());
-        }
-        if (api.isEnabled() != null) {
+        if (api.isEnabled()) {
             dbObject.put("enabled", api.isEnabled());
         }
         if (api.getTargetURI() != null) {
             dbObject.put("target", api.getTargetURI().getPath());
+        }
+        if (api.getPublicURI() != null) {
+            dbObject.put("public", api.getPublicURI().getPath());
         }
         return dbObject;
     }
@@ -62,9 +62,9 @@ public class ApiConverter extends AbstractConverter<Api, DBObject> {
         if (version != null) {
             api.setVersion((String) version);
         }
-        final Object contextPath = dbobject.get("contextPath");
-        if (contextPath != null) {
-            api.setContextPath((String) contextPath);
+        final Object publicURI = dbobject.get("public");
+        if (publicURI != null) {
+            api.setPublicURI(URI.create((String) publicURI));
         }
         final Object enabled = dbobject.get("enabled");
         if (enabled != null) {

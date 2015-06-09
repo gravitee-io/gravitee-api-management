@@ -87,6 +87,7 @@ public class FileRegistry extends AbstractRegistry {
         // Read all configuration files
         for(File conf : configurations) {
             try {
+                LOGGER.info("Read Gravitee configuration from {}", conf.getAbsolutePath());
                 register(mapper.readValue(conf, Api.class));
             } catch (IOException ioe) {
                 LOGGER.error("Unable to read file : {}", conf, ioe);

@@ -16,8 +16,10 @@
 package io.gravitee.gateway.platforms.jetty;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.api.Node;
 import io.gravitee.gateway.platforms.jetty.resource.ApiExternalResource;
 import io.gravitee.gateway.platforms.jetty.servlet.ApiServlet;
+import io.gravitee.gateway.platforms.jetty.spring.JettyConfiguration;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
@@ -25,6 +27,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.*;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import java.io.IOException;
 
@@ -33,22 +41,29 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(loader=AnnotationConfigContextLoader.class)
 public class JettyEmbeddedContainerTest {
+
+    @Configuration
+    @Import({JettyConfiguration.class})
+    static class ContextConfiguration {
+    }
 
     @ClassRule
     public static ApiExternalResource SERVER_MOCK = new ApiExternalResource("8083", ApiServlet.class, "/*", null);
 
-    private JettyEmbeddedContainer container;
+    @Autowired
+    private Node node;
 
     @Before
     public void setUp() throws Exception {
-        container = new JettyEmbeddedContainer();
-        container.start();
+        node.start();
     }
 
     @After
     public void stop() throws Exception {
-        container.stop();
+        node.stop();
     }
 
     @Test
