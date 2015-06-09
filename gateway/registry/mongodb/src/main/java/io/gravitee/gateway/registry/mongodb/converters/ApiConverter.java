@@ -45,8 +45,8 @@ public class ApiConverter extends AbstractConverter<Api, DBObject> {
         if (api.isEnabled() != null) {
             dbObject.put("enabled", api.isEnabled());
         }
-        if (api.getTarget() != null) {
-            dbObject.put("target", api.getTarget().getPath());
+        if (api.getTargetURI() != null) {
+            dbObject.put("target", api.getTargetURI().getPath());
         }
         return dbObject;
     }
@@ -72,7 +72,7 @@ public class ApiConverter extends AbstractConverter<Api, DBObject> {
         }
         final Object target = dbobject.get("target");
         if (target != null) {
-            api.setTarget(URI.create((String) target));
+            api.setTargetURI(URI.create((String) target));
         }
         return api;
     }

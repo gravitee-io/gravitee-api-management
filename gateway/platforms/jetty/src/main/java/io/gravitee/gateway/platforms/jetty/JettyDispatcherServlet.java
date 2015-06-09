@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.platforms.jetty;
 
-import io.gravitee.gateway.core.PlatformContext;
+import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.platforms.servlet.DispatcherServlet;
 
 /**
@@ -23,10 +23,10 @@ import io.gravitee.gateway.platforms.servlet.DispatcherServlet;
  */
 public class JettyDispatcherServlet extends DispatcherServlet {
 
-    public final static String GRAVITEE_CONTEXT_ATTRIBUTE = "gravitee.context";
+    public final static String GRAVITEE_REACTOR_ATTRIBUTE = "gravitee.reactor";
 
     @Override
-    protected PlatformContext getPlatformContext() {
-        return (PlatformContext) getServletContext().getAttribute(GRAVITEE_CONTEXT_ATTRIBUTE);
+    protected Reactor getReactor() {
+        return (Reactor) getServletContext().getAttribute(GRAVITEE_REACTOR_ATTRIBUTE);
     }
 }

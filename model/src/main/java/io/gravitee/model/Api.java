@@ -34,7 +34,9 @@ public class Api {
 
     private String contextPath;
 
-    private URI target;
+    private URI publicURI;
+
+    private URI targetURI;
 
     @JsonIgnore
     private Boolean enabled = true;
@@ -71,13 +73,26 @@ public class Api {
         this.enabled = enabled;
     }
 
-    public URI getTarget() {
-        return this.target;
+    public URI getTargetURI() {
+        return this.targetURI;
     }
 
     @JsonDeserialize(using = URIDeserializer.class)
-    public void setTarget(URI target) {
-        this.target = target;
+    public void setTargetURI(URI targetURI) {
+        this.targetURI = targetURI;
+    }
+
+    public URI getPublicURI() {
+        return publicURI;
+    }
+
+    @JsonDeserialize(using = URIDeserializer.class)
+    public void setPublicURI(URI publicURI) {
+        this.publicURI = publicURI;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
     }
 
     @Override

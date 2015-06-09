@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Subscriber;
 
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.TimeoutException;
@@ -44,10 +45,9 @@ public class JettyHttpClient extends AbstractHttpClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(JettyHttpClient.class);
 
     private final HttpClient client;
-    private final Api api;
 
     public JettyHttpClient(final Api api) {
-        this.api = api;
+        super(api);
         this.client = construct();
     }
 
@@ -57,8 +57,12 @@ public class JettyHttpClient extends AbstractHttpClient {
                 new Observable.OnSubscribe<Response>() {
                     @Override
                     public void call(final Subscriber<? super Response> observer) {
-                        org.eclipse.jetty.client.api.Request proxyRequest = client.newRequest(
-                                "http://91.121.136.43:8059/api/app/team/list").method(HttpMethod.GET).version(HttpVersion.HTTP_1_1);
+                        URI rewrittenURI = rewriteURI(request);
+                        LOGGER.debug("{} rewriting: {} -> {}", request.getId(), request.getRequestURI(), rewrittenURI);
+
+                        org.eclipse.jetty.client.api.Request proxyRequest = client
+                                .newRequest(rewrittenURI)
+                                .method(request.getMethod());
 
                         if (request.hasContent()) {
                             proxyRequest.content(new ProxyInputStreamContentProvider(proxyRequest, (ContentRequest) request));
@@ -70,6 +74,11 @@ public class JettyHttpClient extends AbstractHttpClient {
         );
 
         return response;
+    }
+
+    protected URI rewriteURI(Request request) {
+        String newTarget = rewriteTarget(request);
+        return newTarget == null ? null : URI.create(newTarget);
     }
 
     protected class ProxyResponseListener extends org.eclipse.jetty.client.api.Response.Listener.Adapter {

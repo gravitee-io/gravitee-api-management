@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.http;
 
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -33,7 +32,7 @@ public class Request {
 
 	private String method;
 
-	private String destination;
+	private String requestURI;
 
 	private boolean secure;
 
@@ -61,12 +60,12 @@ public class Request {
 		this.method = method;
 	}
 
-	public String getDestination() {
-		return destination;
+	public String getRequestURI() {
+		return requestURI;
 	}
 
-	public void setDestination(String destination) {
-		this.destination = destination;
+	public void setRequestURI(String requestURI) {
+		this.requestURI = requestURI;
 	}
 
 	public boolean isSecure() {

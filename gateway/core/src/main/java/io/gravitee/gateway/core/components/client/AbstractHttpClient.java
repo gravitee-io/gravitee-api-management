@@ -15,8 +15,12 @@
  */
 package io.gravitee.gateway.core.components.client;
 
+import io.gravitee.gateway.core.http.Request;
+import io.gravitee.model.Api;
+
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -38,6 +42,32 @@ public abstract class AbstractHttpClient implements HttpClient {
         hopHeaders.add("trailer");
         hopHeaders.add("upgrade");
         HOP_HEADERS = Collections.unmodifiableSet(hopHeaders);
+    }
+
+    protected final Api api;
+
+    protected AbstractHttpClient(Api api) {
+        this.api = api;
+    }
+
+    protected String rewriteTarget(Request request) {
+        StringBuffer requestURI =
+                new StringBuffer(request.getRequestURI())
+                        .delete(0, api.getPublicURI().getPath().length())
+                        .insert(0, api.getTargetURI().toString());
+
+        if (request.getQueryParameters() != null && ! request.getQueryParameters().isEmpty()) {
+            requestURI.append('?');
+
+            for(Map.Entry<String, String> queryParam : request.getQueryParameters().entrySet()) {
+                requestURI.append(queryParam.getKey()).append('=').append(queryParam.getValue()).append('&');
+            }
+
+            // Removing latest & separator
+            requestURI.deleteCharAt(requestURI.length() - 1);
+        }
+
+        return requestURI.toString();
     }
 
 }
