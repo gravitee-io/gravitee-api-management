@@ -44,8 +44,8 @@ public class ApiResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(final Api api) {
         if (getRegistry().createApi(api)) {
-            return Response.status(HttpStatusCode.CREATED_201).header(LOCATION, "/rest/apis" +
-                    api.getContextPath()).entity(api).build();
+            return Response.status(HttpStatusCode.CREATED_201).header(LOCATION, "/rest/apis/" +
+                    api.getName()).entity(api).build();
         } else {
             return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
         }

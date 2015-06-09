@@ -23,10 +23,10 @@ import {ComponentAnnotation as Component, ViewAnnotation as View} from 'angular2
   templateUrl: 'gravitee-io.html'
 })
 
-export class GraviteeIo {
+export class GraviteeIO {
 
   constructor() {
-    console.info('GraviteeIo Component Mounted Successfully');
+    console.info('GraviteeIO Component Mounted Successfully');
   }
 
 }
