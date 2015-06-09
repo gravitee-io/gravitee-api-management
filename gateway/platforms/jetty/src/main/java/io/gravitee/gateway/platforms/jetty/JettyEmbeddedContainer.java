@@ -17,7 +17,6 @@ package io.gravitee.gateway.platforms.jetty;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.core.Platform;
-import io.gravitee.gateway.core.PlatformContext;
 import io.gravitee.gateway.core.Reactor;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;

@@ -16,11 +16,6 @@
 package io.gravitee.gateway.platforms.jetty;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.api.Registry;
-import io.gravitee.gateway.core.PlatformContext;
-import io.gravitee.gateway.core.impl.DefaultReactor;
-import io.gravitee.gateway.core.registry.FileRegistry;
-import io.gravitee.gateway.platforms.jetty.context.JettyPlatformContext;
 import io.gravitee.gateway.platforms.jetty.resource.ApiExternalResource;
 import io.gravitee.gateway.platforms.jetty.servlet.ApiServlet;
 import org.apache.http.HttpResponse;
@@ -31,10 +26,9 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
-import java.net.URL;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -48,19 +42,8 @@ public class JettyEmbeddedContainerTest {
 
     @Before
     public void setUp() throws Exception {
-        PlatformContext platformContext = prepareContext();
         container = new JettyEmbeddedContainer();
         container.start();
-    }
-
-    private PlatformContext prepareContext() {
-        URL url = JettyEmbeddedContainerTest.class.getResource("/conf/test01");
-
-        Registry registry = new FileRegistry(url.getPath());
-        DefaultReactor reactor = new DefaultReactor();
-        reactor.setRegistry(registry);
-
-        return new JettyPlatformContext(reactor);
     }
 
     @After
