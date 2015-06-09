@@ -18,8 +18,7 @@ var gulp = require('gulp'),
   rename = require('gulp-rename'),
   shell = require('gulp-shell'),
   traceur = require('gulp-traceur'),
-  webserver = require('gulp-webserver'),
-  postcss = require('gulp-postcss');
+  webserver = require('gulp-webserver');
 
 // run init tasks
 gulp.task('build', ['dependencies', 'angular2', 'js', 'html', 'css']);
@@ -104,7 +103,6 @@ gulp.task('html', function () {
 // move css
 gulp.task('css', function () {
   return gulp.src('src/**/*.css')
-    .pipe(postcss([require('cssnext')(), require('cssnano')()]))
     .pipe(gulp.dest('build'));
 });
 
