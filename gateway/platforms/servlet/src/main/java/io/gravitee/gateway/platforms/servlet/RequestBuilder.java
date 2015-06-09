@@ -42,6 +42,9 @@ public class RequestBuilder extends Request {
 		copyHeaders(request, servletRequest);
 		copyQueryParameters(request, servletRequest);
 
+		request.setMethod(servletRequest.getMethod());
+		request.setRequestURI(servletRequest.getRequestURI());
+		
 		return request;
 	}
 

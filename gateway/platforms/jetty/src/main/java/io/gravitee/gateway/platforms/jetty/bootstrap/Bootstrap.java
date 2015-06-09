@@ -16,13 +16,11 @@
 package io.gravitee.gateway.platforms.jetty.bootstrap;
 
 import io.gravitee.gateway.api.Node;
-import io.gravitee.gateway.core.impl.DefaultReactor;
-import io.gravitee.gateway.platforms.jetty.context.JettyPlatformContext;
-import io.gravitee.gateway.platforms.jetty.node.JettyNode;
+import io.gravitee.gateway.platforms.jetty.spring.JettyConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.gravitee.gateway.platforms.jetty.JettyEmbeddedContainer;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -32,26 +30,29 @@ public class Bootstrap {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Bootstrap.class);
 
 	public static void main(String[] args) {
-		final Node node = new JettyNode();
+        Thread t = Thread.currentThread();
+        t.setName("graviteeio-gateway");
 
-		try {
-			node.start();
+        final AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+        ctx.register(JettyConfiguration.class);
+        ctx.registerShutdownHook();
+        ctx.refresh();
 
-			// Ajout d'un hook pour gérer un arrêt propre.
-			Runtime.getRuntime().addShutdownHook(new Thread() {
-				@Override
-				public void run() {
-					LOGGER.info("Shutting-down Gravitee Gateway...");
-					try {
-						node.stop();
-					} catch (Exception ex) {
-						LOGGER.error("Unable to stop Gravitee Gateway", ex);
-					}
-				}
-			});
-		} catch (Exception ex) {
-			LOGGER.error("Unable to start Gravitee Gateway", ex);
-		}
+        try {
+            final Node node = ctx.getBean(Node.class);
+            node.start();
+
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    LoggerFactory.getLogger(Bootstrap.class).info("Shutting-down Gravitee Gateway...");
+                    node.stop();
+                    ctx.close();
+                }
+            });
+        } catch (Exception ex) {
+            LOGGER.error("Unable to start Gravitee Gateway", ex);
+        }
 	}
 
 	private Bootstrap() {

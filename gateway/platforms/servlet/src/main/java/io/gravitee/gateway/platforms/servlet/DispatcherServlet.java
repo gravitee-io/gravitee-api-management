@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.platforms.servlet;
 
-import io.gravitee.gateway.core.PlatformContext;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.http.Response;
 import org.slf4j.Logger;
@@ -107,9 +106,5 @@ public abstract class DispatcherServlet extends HttpServlet {
 		}
 	}
 
-    private Reactor getReactor() {
-        return getPlatformContext().getReactor();
-    }
-
-    protected abstract PlatformContext getPlatformContext();
+    protected abstract Reactor getReactor();
 }

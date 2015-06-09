@@ -81,6 +81,18 @@
             <version>${jetty.version}</version>
         </dependency>
 
+        <!-- Spring dependencies -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
         <!-- HTTP Client for testing -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

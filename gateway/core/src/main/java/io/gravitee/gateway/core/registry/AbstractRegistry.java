@@ -71,7 +71,7 @@ public abstract class AbstractRegistry implements Registry {
             return false;
         }
 
-        if (api.getTarget() == null) {
+        if (api.getTargetURI() == null) {
             LOGGER.error("Unable to register API {} : target URI is missing", api);
             return false;
         }

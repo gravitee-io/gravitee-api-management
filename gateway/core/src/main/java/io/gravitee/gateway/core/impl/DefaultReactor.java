@@ -25,6 +25,7 @@ import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.http.Response;
 import io.gravitee.gateway.core.registry.FileRegistry;
 import io.gravitee.model.Api;
+import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 
 /**
@@ -32,15 +33,15 @@ import rx.Observable;
  */
 public class DefaultReactor implements Reactor {
 
-    // TODO: externalize it
-    private Registry registry = new FileRegistry();
+    @Autowired
+    private Registry registry;
 
     private final HttpClientFactory httpClientFactory = new JettyHttpClientFactory();
 
 	@Override
 	public Observable<Response> process(Request request) {
         // TODO: get the associated API / service from the request using the registry
-        Api api = registry.findMatchingApi(request.getDestination());
+        Api api = registry.findMatchingApi(request.getRequestURI());
 
         if (api == null) {
             // Not found -> 404

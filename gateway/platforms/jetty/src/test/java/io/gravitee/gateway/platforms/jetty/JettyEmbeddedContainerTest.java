@@ -49,7 +49,7 @@ public class JettyEmbeddedContainerTest {
     @Before
     public void setUp() throws Exception {
         PlatformContext platformContext = prepareContext();
-        container = new JettyEmbeddedContainer(platformContext);
+        container = new JettyEmbeddedContainer();
         container.start();
     }
 

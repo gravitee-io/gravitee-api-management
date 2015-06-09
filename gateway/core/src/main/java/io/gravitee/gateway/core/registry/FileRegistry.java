@@ -46,7 +46,7 @@ public class FileRegistry extends AbstractRegistry {
         if (configuration.exists()) {
             readConfiguration(configuration);
         } else {
-            LOGGER.error("No configuration can be read from {}",
+            LOGGER.warn("No configuration can be read from {}",
                     configuration.getAbsolutePath());
         }
     }

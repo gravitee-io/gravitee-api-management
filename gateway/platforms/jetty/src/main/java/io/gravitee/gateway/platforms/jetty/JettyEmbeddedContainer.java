@@ -18,10 +18,12 @@ package io.gravitee.gateway.platforms.jetty;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.core.Platform;
 import io.gravitee.gateway.core.PlatformContext;
+import io.gravitee.gateway.core.Reactor;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -31,16 +33,13 @@ public class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbe
 
 	protected final static String REGEX_SERVLET_MAPPING_ALL = "/*";
 
+    @Autowired
+    private Reactor reactor;
+
 	private Server server;
 
-    private final PlatformContext platformContext;
-
-    public JettyEmbeddedContainer(PlatformContext platformContext) {
-        this.platformContext = platformContext;
-    }
-
 	public String name() {
-		//TODO: Get Jetty informations somewhere from Jetty artifact
+		//TODO: Get Jetty information somewhere from Jetty artifact
 		return "Jetty"; //$NON-NLS-1$
 	}
 
@@ -60,7 +59,7 @@ public class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbe
 
 	private Handler createHandler() {
 		ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-		handler.setAttribute(JettyDispatcherServlet.GRAVITEE_CONTEXT_ATTRIBUTE, platformContext);
+		handler.setAttribute(JettyDispatcherServlet.GRAVITEE_REACTOR_ATTRIBUTE, reactor);
 		handler.setContextPath("/");
 
 		ServletHolder dispatchServletHolder = new ServletHolder(JettyDispatcherServlet.class);
