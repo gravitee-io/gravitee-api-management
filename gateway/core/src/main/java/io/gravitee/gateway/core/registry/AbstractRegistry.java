@@ -139,7 +139,12 @@ public abstract class AbstractRegistry implements Registry {
 
     @Override
     public boolean statusApi(final String name) {
-        final Api api = findApiByName(name);
+        final Api api = FluentIterable.from(apis).firstMatch(new Predicate<Api>() {
+            @Override
+            public boolean apply(final Api input) {
+                return input.getName().equals(name);
+            }
+        }).orNull();
         if (api == null) {
             return false;
         }

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 import {ComponentAnnotation as Component, ViewAnnotation as View, bootstrap} from 'angular2/angular2';
-import {GraviteeIo} from 'gravitee-io';
+import {GraviteeIO} from 'gravitee-io';
 
 @Component({
   selector: 'main'
 })
 
 @View({
-  directives: [GraviteeIo],
+  directives: [GraviteeIO],
   template: `
     <gravitee-io></gravitee-io>
   `

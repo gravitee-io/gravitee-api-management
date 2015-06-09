@@ -22,7 +22,7 @@ import java.util.Properties;
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-public final class PropertiesUtils {
+public class PropertiesUtils {
 
   private PropertiesUtils() {
   }

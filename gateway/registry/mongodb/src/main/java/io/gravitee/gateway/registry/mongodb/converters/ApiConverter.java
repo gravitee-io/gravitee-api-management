@@ -39,9 +39,7 @@ public class ApiConverter extends AbstractConverter<Api, DBObject> {
         if (!Strings.isNullOrEmpty(api.getVersion())) {
             dbObject.put("version", api.getVersion());
         }
-        if (api.isEnabled()) {
-            dbObject.put("enabled", api.isEnabled());
-        }
+        dbObject.put("enabled", api.isEnabled());
         if (api.getTargetURI() != null) {
             dbObject.put("target", api.getTargetURI().getPath());
         }
@@ -53,6 +51,9 @@ public class ApiConverter extends AbstractConverter<Api, DBObject> {
 
     @Override
     public Api convertFrom(final DBObject dbobject) {
+        if (dbobject == null) {
+            return null;
+        }
         final Api api = new Api();
         final Object name = dbobject.get("name");
         if (name != null) {
