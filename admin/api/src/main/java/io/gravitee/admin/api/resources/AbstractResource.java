@@ -28,6 +28,8 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
+ * Provides an abstraction for REST resources.
+ *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 public abstract class AbstractResource {

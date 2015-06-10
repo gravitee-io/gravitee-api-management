@@ -27,6 +27,8 @@ import java.util.Set;
 import static javax.ws.rs.core.HttpHeaders.LOCATION;
 
 /**
+ * Defines the REST resources to manage {@code Api}.
+ *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 @Singleton

@@ -46,6 +46,15 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
+ * Allows to start/stop an instance of MongoDB for each tests and inject a data set provided.
+ * The data set must be a json array.
+ * The setup phase create a database and a collection named as the file.
+ *
+ * Example:
+ * If the file provided path is:"/data/apis.json", for each test the setup will create a database and a collection
+ * named "apis" with the file data set, execute the test, and then shut down.
+ *
+ *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 @RunWith(PowerMockRunner.class)

@@ -28,6 +28,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Defines the default behaviour of registries.
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public abstract class AbstractRegistry implements Registry {
