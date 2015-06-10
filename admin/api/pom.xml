@@ -80,6 +80,6 @@
     </dependencies>
 
     <properties>
-        <jersey.version>2.17</jersey.version>
+        <jersey.version>2.18</jersey.version>
     </properties>
 </project>
