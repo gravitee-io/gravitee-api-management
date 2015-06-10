@@ -109,6 +109,6 @@
     </dependencies>
 
     <properties>
-        <httpclient.version>4.4.1</httpclient.version>
+        <httpclient.version>4.5</httpclient.version>
     </properties>
 </project>

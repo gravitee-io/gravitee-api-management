@@ -35,7 +35,7 @@
     <properties>
         <embed.mongo.version>1.47.3</embed.mongo.version>
         <embedmongo-maven-plugin.version>0.1.12</embedmongo-maven-plugin.version>
-        <mongo.version>3.0.1</mongo.version>
+        <mongo.version>3.0.2</mongo.version>
         <powermock.version>1.6.2</powermock.version>
     </properties>
 
