@@ -23,6 +23,8 @@ import io.gravitee.model.Api;
 import java.net.URI;
 
 /**
+ * A MongoDB converter to convert {@code Api} and {@code DBObject}.
+ *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 public class ApiConverter extends AbstractConverter<Api, DBObject> {

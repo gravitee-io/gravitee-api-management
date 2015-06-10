@@ -24,6 +24,8 @@ import java.net.URI;
 import java.util.Objects;
 
 /**
+ * Defines end points used by the gateway proxy.
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class Api {

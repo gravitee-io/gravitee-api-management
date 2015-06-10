@@ -25,6 +25,8 @@ import java.net.URI;
 import static org.junit.Assert.*;
 
 /**
+ * Allows to test {@code Api} operations on {@code MongoDBRegistry}.
+ *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 public class MongoDBRegistryTest extends AbstractMongoDBTest {

@@ -20,6 +20,8 @@ import io.gravitee.model.Api;
 import java.util.Set;
 
 /**
+ * The registry interface used to manage {@code Api}.
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface Registry {
