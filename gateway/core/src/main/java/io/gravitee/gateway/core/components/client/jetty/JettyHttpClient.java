@@ -15,10 +15,12 @@
  */
 package io.gravitee.gateway.core.components.client.jetty;
 
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.components.client.AbstractHttpClient;
 import io.gravitee.gateway.core.http.ContentRequest;
-import io.gravitee.gateway.core.http.Request;
-import io.gravitee.gateway.core.http.Response;
+import io.gravitee.gateway.core.http.DefaultRequest;
+import io.gravitee.gateway.core.http.DefaultResponse;
 import io.gravitee.model.Api;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Result;
@@ -53,27 +55,25 @@ public class JettyHttpClient extends AbstractHttpClient {
 
     @Override
     public Observable<Response> invoke(final Request request) {
-        Observable<Response> response = Observable.create(
+        return Observable.create(
                 new Observable.OnSubscribe<Response>() {
                     @Override
                     public void call(final Subscriber<? super Response> observer) {
                         URI rewrittenURI = rewriteURI(request);
-                        LOGGER.debug("{} rewriting: {} -> {}", request.getId(), request.getRequestURI(), rewrittenURI);
+                        LOGGER.debug("{} rewriting: {} -> {}", request.id(), request.requestURI(), rewrittenURI);
 
                         org.eclipse.jetty.client.api.Request proxyRequest = client
                                 .newRequest(rewrittenURI)
-                                .method(request.getMethod());
+                                .method(request.method());
 
                         if (request.hasContent()) {
                             proxyRequest.content(new ProxyInputStreamContentProvider(proxyRequest, (ContentRequest) request));
                         }
 
-                        proxyRequest.send(new ProxyResponseListener(request, new Response(), observer));
+                        proxyRequest.send(new ProxyResponseListener(request, new DefaultResponse(), observer));
                     }
                 }
         );
-
-        return response;
     }
 
     protected URI rewriteURI(Request request) {
@@ -83,10 +83,10 @@ public class JettyHttpClient extends AbstractHttpClient {
 
     protected class ProxyResponseListener extends org.eclipse.jetty.client.api.Response.Listener.Adapter {
         private final Request request;
-        private final Response response;
+        private final DefaultResponse response;
         private final Subscriber<? super Response> observer;
 
-        protected ProxyResponseListener(Request request, Response response, Subscriber<? super Response> observer) {
+        protected ProxyResponseListener(Request request, DefaultResponse response, Subscriber<? super Response> observer) {
             this.request = request;
             this.response = response;
             this.observer = observer;
@@ -139,31 +139,31 @@ public class JettyHttpClient extends AbstractHttpClient {
             }
 
             observer.onCompleted();
-            LOGGER.debug("{} proxying complete", request.getId());
+            LOGGER.debug("{} proxying complete", request.id());
         }
     }
 
     protected void onProxyResponseSuccess(Request clientRequest, Response proxyResponse, org.eclipse.jetty.client.api.Response serverResponse, Subscriber<? super Response> observer) {
-        LOGGER.debug("{} proxying successful", clientRequest.getId());
+        LOGGER.debug("{} proxying successful", clientRequest.id());
         observer.onNext(proxyResponse);
     }
 
-    protected void onProxyResponseFailure(Request clientRequest, Response proxyResponse, org.eclipse.jetty.client.api.Response serverResponse, Throwable failure, Subscriber<? super Response> observer) {
-        LOGGER.debug(clientRequest.getId() + " proxying failed", failure);
+    protected void onProxyResponseFailure(Request clientRequest, DefaultResponse proxyResponse, org.eclipse.jetty.client.api.Response serverResponse, Throwable failure, Subscriber<? super Response> observer) {
+        LOGGER.debug(clientRequest.id() + " proxying failed", failure);
 
         if (failure instanceof TimeoutException)
             proxyResponse.setStatus(504);
         else
             proxyResponse.setStatus(502);
 
-        proxyResponse.getHeaders().put(HttpHeader.CONNECTION.asString(), HttpHeaderValue.CLOSE.asString());
+        proxyResponse.headers().put(HttpHeader.CONNECTION.asString(), HttpHeaderValue.CLOSE.asString());
 
         observer.onNext(proxyResponse);
     }
 
-    protected void onResponseContent(Request request, Response response, org.eclipse.jetty.client.api.Response proxyResponse, byte[] buffer, int offset, int length, Callback callback) {
+    protected void onResponseContent(Request request, DefaultResponse response, org.eclipse.jetty.client.api.Response proxyResponse, byte[] buffer, int offset, int length, Callback callback) {
         try {
-            LOGGER.debug("{} proxying content to downstream: {} bytes", request.getId(), length);
+            LOGGER.debug("{} proxying content to downstream: {} bytes", request.id(), length);
             response.getOutputStream().write(buffer, offset, length);
             callback.succeeded();
         } catch (Throwable x) {
@@ -171,7 +171,7 @@ public class JettyHttpClient extends AbstractHttpClient {
         }
     }
 
-    protected void onServerResponseHeaders(Response proxyResponse, org.eclipse.jetty.client.api.Response serverResponse) {
+    protected void onServerResponseHeaders(DefaultResponse proxyResponse, org.eclipse.jetty.client.api.Response serverResponse) {
         for (HttpField field : serverResponse.getHeaders()) {
             String headerName = field.getName();
             String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
@@ -182,7 +182,7 @@ public class JettyHttpClient extends AbstractHttpClient {
             if (newHeaderValue == null || newHeaderValue.trim().length() == 0)
                 continue;
 
-            proxyResponse.getHeaders().put(headerName, newHeaderValue);
+            proxyResponse.headers().put(headerName, newHeaderValue);
         }
     }
 
@@ -203,7 +203,7 @@ public class JettyHttpClient extends AbstractHttpClient {
 
         @Override
         protected ByteBuffer onRead(byte[] buffer, int offset, int length) {
-            LOGGER.debug("{} proxying content to upstream: {} bytes", request.getId(), length);
+            LOGGER.debug("{} proxying content to upstream: {} bytes", request.id(), length);
             return onRequestContent(proxyRequest, request, buffer, offset, length);
         }
 
@@ -217,8 +217,8 @@ public class JettyHttpClient extends AbstractHttpClient {
         }
     }
 
-    protected void onClientRequestFailure(org.eclipse.jetty.client.api.Request proxyRequest, Request request, Throwable failure) {
-        LOGGER.debug(request.getId() + " client request failure", failure);
+    protected void onClientRequestFailure(org.eclipse.jetty.client.api.Request proxyRequest, DefaultRequest request, Throwable failure) {
+        LOGGER.debug(request.id() + " client request failure", failure);
         proxyRequest.abort(failure);
     }
 

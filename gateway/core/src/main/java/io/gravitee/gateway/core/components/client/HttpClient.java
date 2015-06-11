@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.core.components.client;
 
-import io.gravitee.gateway.core.http.Request;
-import io.gravitee.gateway.core.http.Response;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import rx.Observable;
 
 /**

@@ -17,13 +17,13 @@ package io.gravitee.gateway.core.impl;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Registry;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.components.client.HttpClient;
 import io.gravitee.gateway.core.components.client.HttpClientFactory;
 import io.gravitee.gateway.core.components.client.jetty.JettyHttpClientFactory;
-import io.gravitee.gateway.core.http.Request;
 import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.http.Response;
-import io.gravitee.gateway.core.registry.FileRegistry;
+import io.gravitee.gateway.core.http.DefaultResponse;
 import io.gravitee.model.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
@@ -41,14 +41,14 @@ public class DefaultReactor implements Reactor {
 	@Override
 	public Observable<Response> process(Request request) {
         // TODO: get the associated API / service from the request using the registry
-        Api api = registry.findMatchingApi(request.getRequestURI());
+        Api api = registry.findMatchingApi(request.requestURI());
 
         if (api == null) {
             // Not found -> 404
-            Response response = new Response();
+            DefaultResponse response = new DefaultResponse();
             response.setStatus(HttpStatusCode.NOT_FOUND_404);
 
-            return Observable.just(response);
+            return Observable.just((Response)response);
         } else {
             HttpClient client = httpClientFactory.create(api);
             return client.invoke(request);

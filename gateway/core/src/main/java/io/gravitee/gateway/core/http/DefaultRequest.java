@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.http;
 
+import io.gravitee.gateway.api.Request;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,7 +26,7 @@ import java.util.UUID;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class Request {
+public class DefaultRequest implements Request {
 
 	private final String id;
 
@@ -40,7 +42,7 @@ public class Request {
 
 	private Map<String, String> headers = new HashMap();
 
-	public Request() {
+	public DefaultRequest() {
 		this.id = UUID.randomUUID().toString();
 	}
 
@@ -52,7 +54,7 @@ public class Request {
 		this.remoteAddr = remoteAddr;
 	}
 
-	public String getMethod() {
+	public String method() {
 		return method;
 	}
 
@@ -60,7 +62,7 @@ public class Request {
 		this.method = method;
 	}
 
-	public String getRequestURI() {
+	public String requestURI() {
 		return requestURI;
 	}
 
@@ -76,7 +78,7 @@ public class Request {
 		this.secure = secure;
 	}
 
-	public Map<String, String> getQueryParameters() {
+	public Map<String, String> queryParameters() {
 		return queryParameters;
 	}
 
@@ -92,7 +94,7 @@ public class Request {
 		this.headers = headers;
 	}
 
-	public String getId() {
+	public String id() {
 		return id;
 	}
 

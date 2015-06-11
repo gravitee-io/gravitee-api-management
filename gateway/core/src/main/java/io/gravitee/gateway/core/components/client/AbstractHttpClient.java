@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.components.client;
 
-import io.gravitee.gateway.core.http.Request;
+import io.gravitee.gateway.api.Request;
 import io.gravitee.model.Api;
 
 import java.util.Collections;
@@ -52,14 +52,14 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     protected String rewriteTarget(Request request) {
         StringBuffer requestURI =
-                new StringBuffer(request.getRequestURI())
+                new StringBuffer(request.requestURI())
                         .delete(0, api.getPublicURI().getPath().length())
                         .insert(0, api.getTargetURI().toString());
 
-        if (request.getQueryParameters() != null && ! request.getQueryParameters().isEmpty()) {
+        if (request.queryParameters() != null && ! request.queryParameters().isEmpty()) {
             requestURI.append('?');
 
-            for(Map.Entry<String, String> queryParam : request.getQueryParameters().entrySet()) {
+            for(Map.Entry<String, String> queryParam : request.queryParameters().entrySet()) {
                 requestURI.append(queryParam.getKey()).append('=').append(queryParam.getValue()).append('&');
             }
 
