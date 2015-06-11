@@ -21,7 +21,7 @@ import java.io.InputStream;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ContentRequest extends Request {
+public class ContentRequest extends DefaultRequest {
 
     private final InputStream inputStream;
 

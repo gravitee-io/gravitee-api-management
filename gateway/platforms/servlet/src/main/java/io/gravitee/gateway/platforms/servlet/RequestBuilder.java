@@ -16,7 +16,7 @@
 package io.gravitee.gateway.platforms.servlet;
 
 import io.gravitee.gateway.core.http.ContentRequest;
-import io.gravitee.gateway.core.http.Request;
+import io.gravitee.gateway.core.http.DefaultRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -28,15 +28,15 @@ import java.util.Enumeration;
  *
  * @author David BRASSEY (brasseld at gmail.com)
  */
-public class RequestBuilder extends Request {
+public class RequestBuilder extends DefaultRequest {
 
-	public static Request from(HttpServletRequest servletRequest) throws IOException {
-		Request request;
+	public static DefaultRequest from(HttpServletRequest servletRequest) throws IOException {
+		DefaultRequest request;
 
 		if (hasContent(servletRequest)) {
 			request = new ContentRequest(servletRequest.getInputStream());
 		} else {
-			request = new Request();
+			request = new DefaultRequest();
 		}
 
 		copyHeaders(request, servletRequest);
@@ -55,7 +55,7 @@ public class RequestBuilder extends Request {
 				servletRequest.getHeader("Transfer-Encoding") != null;
 	}
 
-	private static void copyHeaders(Request request, HttpServletRequest servletRequest) {
+	private static void copyHeaders(DefaultRequest request, HttpServletRequest servletRequest) {
 		Enumeration<String> headerNames = servletRequest.getHeaderNames();
 		while (headerNames.hasMoreElements()) {
 			String hname = headerNames.nextElement();
@@ -64,7 +64,7 @@ public class RequestBuilder extends Request {
 		}
 	}
 
-	private static void copyQueryParameters(Request request, HttpServletRequest servletRequest) {
+	private static void copyQueryParameters(DefaultRequest request, HttpServletRequest servletRequest) {
 		String query = servletRequest.getQueryString();
 
 		if (query != null) {
@@ -80,9 +80,9 @@ public class RequestBuilder extends Request {
 				if (idx != -1) {
 					String key = paramPair.substring(0, idx);
 					String val = paramPair.substring(idx + 1);
-					request.getQueryParameters().put(key, val);
+					request.queryParameters().put(key, val);
 				} else {
-					request.getQueryParameters().put(paramPair, null);
+					request.queryParameters().put(paramPair, null);
 				}
 			}
 		}

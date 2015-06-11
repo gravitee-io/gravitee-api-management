@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.platforms.servlet;
 
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.http.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
@@ -54,7 +54,7 @@ public abstract class DispatcherServlet extends HttpServlet {
 
                 try {
                     final ServletOutputStream outputStream = resp.getOutputStream();
-                    byte [] buffer = response.getContent();
+                    byte [] buffer = response.content();
                     outputStream.write(buffer, 0, buffer.length);
 
                     resp.flushBuffer();
@@ -96,9 +96,9 @@ public abstract class DispatcherServlet extends HttpServlet {
 	}
 
 	protected void writeResponse(HttpServletResponse response, Response proxyResponse) {
-		response.setStatus(proxyResponse.getStatus());
+		response.setStatus(proxyResponse.status());
 
-		Map<String, String> headers = proxyResponse.getHeaders();
+		Map<String, String> headers = proxyResponse.headers();
 		for (Map.Entry<String, String> entry : headers.entrySet()) {
 			String hname = entry.getKey();
 			String hval = entry.getValue();
