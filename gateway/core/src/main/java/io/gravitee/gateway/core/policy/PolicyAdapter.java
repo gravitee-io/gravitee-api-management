@@ -13,16 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api;
+package io.gravitee.gateway.core.policy;
+
+import io.gravitee.gateway.api.Policy;
+import io.gravitee.gateway.api.PolicyChain;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Policy {
+public abstract class PolicyAdapter implements Policy {
 
-    void apply(Request request, PolicyChain<Request> handler);
+    @Override
+    public void apply(Request request, PolicyChain<Request> handler) {
 
-    void apply(Response response, PolicyChain<Response> handler);
+        // If everything goes fine, let's continue chain handler
+        handler.apply(request);
+    }
 
-    String name();
+    @Override
+    public void apply(Response response, PolicyChain<Response> handler) {
+
+        // If everything goes fine, let's continue chain handler
+        handler.apply(response);
+    }
 }

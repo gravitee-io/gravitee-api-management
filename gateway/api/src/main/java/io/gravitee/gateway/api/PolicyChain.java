@@ -16,13 +16,12 @@
 package io.gravitee.gateway.api;
 
 /**
+ *
+ * @param <T> The type of object on which we are applying {@link Policy}
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Policy {
+public interface PolicyChain<T> {
 
-    void apply(Request request, PolicyChain<Request> handler);
-
-    void apply(Response response, PolicyChain<Response> handler);
-
-    String name();
+    void apply(T obj);
 }
