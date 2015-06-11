@@ -50,8 +50,14 @@ public class DefaultReactor implements Reactor {
 
             return Observable.just((Response)response);
         } else {
+
+            // 1_ Apply request policies
+
+            // 2_ Call remote service
             HttpClient client = httpClientFactory.create(api);
             return client.invoke(request);
+
+            // 3_ Apply response policies
         }
 	}
 
