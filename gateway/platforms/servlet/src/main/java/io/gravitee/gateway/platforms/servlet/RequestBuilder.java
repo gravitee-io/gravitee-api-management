@@ -22,6 +22,7 @@ import io.gravitee.gateway.core.http.ServerRequest;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Enumeration;
 
@@ -44,7 +45,7 @@ public class RequestBuilder {
 		copyQueryParameters(request, servletRequest);
 
 		request.setMethod(HttpMethod.valueOf(servletRequest.getMethod()));
-		request.setRequestURI(servletRequest.getRequestURI());
+		request.setRequestURI(URI.create(servletRequest.getRequestURI()));
 		
 		return request;
 	}
