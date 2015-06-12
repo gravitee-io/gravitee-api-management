@@ -32,7 +32,7 @@ public class RateLimitPolicy extends PolicyAdapter {
     public void apply(Request request, PolicyChain<Request> handler) {
         LOGGER.debug("Applying {} to request {}", name(), request.id());
 
-        handler.apply(request);
+        handler.doChain(request);
     }
 
     @Override

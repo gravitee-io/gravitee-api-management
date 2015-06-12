@@ -32,7 +32,7 @@ public class ResponsePolicyChain extends AbstractPolicyChain<Response> {
     }
 
     @Override
-    public void apply(Response response) {
+    public void doChain(Response response) {
         if (iterator().hasNext()) {
             Policy first = iterator().next();
             first.apply(response, this);

@@ -30,7 +30,7 @@ public class RequestPolicyChain extends AbstractPolicyChain<Request> {
     }
 
     @Override
-    public void apply(Request request) {
+    public void doChain(Request request) {
         if (iterator().hasNext()) {
             Policy first = iterator().next();
             first.apply(request, this);
