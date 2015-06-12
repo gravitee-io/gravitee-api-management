@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class DefaultResponse implements Response {
+public class ServerResponse implements Response {
 
     private int status;
 

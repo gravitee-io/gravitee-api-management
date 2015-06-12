@@ -15,8 +15,9 @@
  */
 package io.gravitee.gateway.platforms.servlet;
 
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.core.http.ContentRequest;
-import io.gravitee.gateway.core.http.DefaultRequest;
+import io.gravitee.gateway.core.http.ServerRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -28,21 +29,21 @@ import java.util.Enumeration;
  *
  * @author David BRASSEY (brasseld at gmail.com)
  */
-public class RequestBuilder extends DefaultRequest {
+public class RequestBuilder {
 
-	public static DefaultRequest from(HttpServletRequest servletRequest) throws IOException {
-		DefaultRequest request;
+	public static ServerRequest from(HttpServletRequest servletRequest) throws IOException {
+		ServerRequest request;
 
 		if (hasContent(servletRequest)) {
 			request = new ContentRequest(servletRequest.getInputStream());
 		} else {
-			request = new DefaultRequest();
+			request = new ServerRequest();
 		}
 
 		copyHeaders(request, servletRequest);
 		copyQueryParameters(request, servletRequest);
 
-		request.setMethod(servletRequest.getMethod());
+		request.setMethod(HttpMethod.valueOf(servletRequest.getMethod()));
 		request.setRequestURI(servletRequest.getRequestURI());
 		
 		return request;
@@ -55,16 +56,16 @@ public class RequestBuilder extends DefaultRequest {
 				servletRequest.getHeader("Transfer-Encoding") != null;
 	}
 
-	private static void copyHeaders(DefaultRequest request, HttpServletRequest servletRequest) {
+	private static void copyHeaders(ServerRequest request, HttpServletRequest servletRequest) {
 		Enumeration<String> headerNames = servletRequest.getHeaderNames();
 		while (headerNames.hasMoreElements()) {
 			String hname = headerNames.nextElement();
 			String hval = servletRequest.getHeader(hname);
-			request.getHeaders().put(hname, hval);
+			request.headers().put(hname, hval);
 		}
 	}
 
-	private static void copyQueryParameters(DefaultRequest request, HttpServletRequest servletRequest) {
+	private static void copyQueryParameters(ServerRequest request, HttpServletRequest servletRequest) {
 		String query = servletRequest.getQueryString();
 
 		if (query != null) {
@@ -80,9 +81,9 @@ public class RequestBuilder extends DefaultRequest {
 				if (idx != -1) {
 					String key = paramPair.substring(0, idx);
 					String val = paramPair.substring(idx + 1);
-					request.queryParameters().put(key, val);
+					request.parameters().put(key, val);
 				} else {
-					request.queryParameters().put(paramPair, null);
+					request.parameters().put(paramPair, null);
 				}
 			}
 		}

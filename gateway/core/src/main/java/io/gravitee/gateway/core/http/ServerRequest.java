@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.http;
 
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.Request;
 
 import java.util.HashMap;
@@ -26,23 +28,25 @@ import java.util.UUID;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class DefaultRequest implements Request {
+public class ServerRequest implements Request {
 
 	private final String id;
 
 	private String remoteAddr;
 
-	private String method;
+	private HttpMethod method;
 
 	private String requestURI;
 
 	private boolean secure;
 
+	private HttpVersion version;
+
 	private Map<String, String> queryParameters = new LinkedHashMap();
 
 	private Map<String, String> headers = new HashMap();
 
-	public DefaultRequest() {
+	public ServerRequest() {
 		this.id = UUID.randomUUID().toString();
 	}
 
@@ -54,15 +58,20 @@ public class DefaultRequest implements Request {
 		this.remoteAddr = remoteAddr;
 	}
 
-	public String method() {
+	public HttpMethod method() {
 		return method;
 	}
 
-	public void setMethod(String method) {
+	@Override
+	public HttpVersion version() {
+		return version;
+	}
+
+	public void setMethod(HttpMethod method) {
 		this.method = method;
 	}
 
-	public String requestURI() {
+	public String uri() {
 		return requestURI;
 	}
 
@@ -78,20 +87,13 @@ public class DefaultRequest implements Request {
 		this.secure = secure;
 	}
 
-	public Map<String, String> queryParameters() {
+	public Map<String, String> parameters() {
 		return queryParameters;
 	}
 
-	public void setQueryParameters(Map<String, String> queryParameters) {
-		this.queryParameters = queryParameters;
-	}
-
-	public Map<String, String> getHeaders() {
+	@Override
+	public Map<String, String> headers() {
 		return headers;
-	}
-
-	public void setHeaders(Map<String, String> headers) {
-		this.headers = headers;
 	}
 
 	public String id() {
