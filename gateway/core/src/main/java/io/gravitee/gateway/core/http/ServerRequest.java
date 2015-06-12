@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.Request;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class ServerRequest implements Request {
 
 	private HttpMethod method;
 
-	private String requestURI;
+	private URI requestURI;
 
 	private boolean secure;
 
@@ -72,10 +73,15 @@ public class ServerRequest implements Request {
 	}
 
 	public String uri() {
-		return requestURI;
+		return requestURI.toString();
 	}
 
-	public void setRequestURI(String requestURI) {
+	@Override
+	public String path() {
+		return requestURI.getPath();
+	}
+
+	public void setRequestURI(URI requestURI) {
 		this.requestURI = requestURI;
 	}
 

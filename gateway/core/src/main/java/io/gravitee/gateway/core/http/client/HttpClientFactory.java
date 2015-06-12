@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.components.client;
+package io.gravitee.gateway.core.http.client;
 
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import rx.Observable;
+import io.gravitee.model.Api;
 
 /**
+ * An HTTP client factory
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface HttpClient {
+public interface HttpClientFactory<T extends HttpClient> {
 
-    Observable<Response> invoke(Request request);
+    T create(Api api);
 }

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.components.client.jetty;
+package io.gravitee.gateway.core.http.client.jetty;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.components.client.AbstractHttpClient;
+import io.gravitee.gateway.core.http.client.AbstractHttpClient;
 import io.gravitee.gateway.core.http.ContentRequest;
 import io.gravitee.gateway.core.http.ServerRequest;
 import io.gravitee.gateway.core.http.ServerResponse;

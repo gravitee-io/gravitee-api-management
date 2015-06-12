@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.components.client;
+package io.gravitee.gateway.core.registry;
 
-import io.gravitee.model.Api;
+import io.gravitee.gateway.api.Registry;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
- * An HTTP client factory
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface HttpClientFactory<T extends HttpClient> {
+public class FileRegistryTest {
 
-    T create(Api api);
+    @Test
+    public void testConfigurations() throws URISyntaxException {
+        URL url = FileRegistryTest.class.getResource("/registry/conf");
+
+        Registry registry = new FileRegistry(url.getPath());
+        Assert.assertTrue(registry != null);
+        Assert.assertTrue(registry.listAll().size()  == 1);
+    }
 }

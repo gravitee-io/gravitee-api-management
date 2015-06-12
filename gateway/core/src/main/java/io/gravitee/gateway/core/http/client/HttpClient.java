@@ -13,30 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.components.client.jetty;
+package io.gravitee.gateway.core.http.client;
 
-import io.gravitee.gateway.core.components.client.HttpClientFactory;
-import io.gravitee.model.Api;
-
-import java.util.HashMap;
-import java.util.Map;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
+import rx.Observable;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class JettyHttpClientFactory implements HttpClientFactory<JettyHttpClient> {
+public interface HttpClient {
 
-    private Map<Api, JettyHttpClient> clients = new HashMap();
-
-    @Override
-    public JettyHttpClient create(Api api) {
-        synchronized (clients) {
-            JettyHttpClient client = clients.get(api);
-            if (client == null) {
-                client = new JettyHttpClient(api);
-                clients.put(api, client);
-            }
-            return client;
-        }
-    }
+    Observable<Response> invoke(Request request);
 }
