@@ -23,5 +23,5 @@ package io.gravitee.gateway.api;
  */
 public interface PolicyChain<T> {
 
-    void apply(T obj);
+    void doChain(T obj);
 }

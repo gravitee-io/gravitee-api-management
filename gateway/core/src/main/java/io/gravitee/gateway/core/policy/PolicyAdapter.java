@@ -29,13 +29,13 @@ public abstract class PolicyAdapter implements Policy {
     public void apply(Request request, PolicyChain<Request> handler) {
 
         // If everything goes fine, let's continue chain handler
-        handler.apply(request);
+        handler.doChain(request);
     }
 
     @Override
     public void apply(Response response, PolicyChain<Response> handler) {
 
         // If everything goes fine, let's continue chain handler
-        handler.apply(response);
+        handler.doChain(response);
     }
 }
