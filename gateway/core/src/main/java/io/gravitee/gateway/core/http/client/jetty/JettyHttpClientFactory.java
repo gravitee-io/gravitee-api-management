@@ -13,27 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.impl;
+package io.gravitee.gateway.core.http.client.jetty;
 
-import io.gravitee.gateway.api.Registry;
-import io.gravitee.gateway.core.registry.FileRegistry;
-import org.junit.Assert;
-import org.junit.Test;
+import io.gravitee.gateway.core.http.client.HttpClientFactory;
+import io.gravitee.model.Api;
 
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class FileRegistryTest {
+public class JettyHttpClientFactory implements HttpClientFactory<JettyHttpClient> {
 
-    @Test
-    public void testConfigurations() throws URISyntaxException {
-        URL url = FileRegistryTest.class.getResource("/registry/conf");
+    private Map<Api, JettyHttpClient> clients = new HashMap();
 
-        Registry registry = new FileRegistry(url.getPath());
-        Assert.assertTrue(registry != null);
-        Assert.assertTrue(registry.listAll().size()  == 1);
+    @Override
+    public JettyHttpClient create(Api api) {
+        synchronized (clients) {
+            JettyHttpClient client = clients.get(api);
+            if (client == null) {
+                client = new JettyHttpClient(api);
+                clients.put(api, client);
+            }
+            return client;
+        }
     }
 }

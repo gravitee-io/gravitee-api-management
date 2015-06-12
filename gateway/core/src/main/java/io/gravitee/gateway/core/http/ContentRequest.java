@@ -18,6 +18,7 @@ package io.gravitee.gateway.core.http;
 import java.io.InputStream;
 
 /**
+ *  TODO: To remove in the future.... Content should be handled by the serverRequest !
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */

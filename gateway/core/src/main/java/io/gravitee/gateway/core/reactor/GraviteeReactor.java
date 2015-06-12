@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.impl;
+package io.gravitee.gateway.core.reactor;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.api.Registry;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.components.client.HttpClient;
-import io.gravitee.gateway.core.components.client.HttpClientFactory;
-import io.gravitee.gateway.core.components.client.jetty.JettyHttpClientFactory;
+import io.gravitee.gateway.core.http.client.HttpClient;
+import io.gravitee.gateway.core.http.client.HttpClientFactory;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.http.ServerResponse;
+import io.gravitee.gateway.core.policy.PolicyChainBuilder;
+import io.gravitee.gateway.core.policy.RequestPolicyChain;
+import io.gravitee.gateway.core.policy.ResponsePolicyChain;
 import io.gravitee.model.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
@@ -31,17 +32,23 @@ import rx.Observable;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class DefaultReactor implements Reactor {
+public class GraviteeReactor implements Reactor {
 
     @Autowired
-    private Registry registry;
+    private RouteMatcher routeMatcher;
 
-    private final HttpClientFactory httpClientFactory = new JettyHttpClientFactory();
+    @Autowired
+    private PolicyChainBuilder<RequestPolicyChain> requestPolicyChainBuilder;
+
+    @Autowired
+    private PolicyChainBuilder<ResponsePolicyChain> responsePolicyChainBuilder;
+
+    @Autowired
+    private HttpClientFactory httpClientFactory;
 
 	@Override
 	public Observable<Response> process(Request request) {
-        // TODO: get the associated API / service from the request using the registry
-        Api api = registry.findMatchingApi(request.uri());
+        Api api = routeMatcher.match(request);
 
         if (api == null) {
             // Not found -> 404
@@ -50,22 +57,16 @@ public class DefaultReactor implements Reactor {
 
             return Observable.just((Response)response);
         } else {
-
             // 1_ Apply request policies
+            requestPolicyChainBuilder.newPolicyChain().apply(request);
 
             // 2_ Call remote service
             HttpClient client = httpClientFactory.create(api);
             return client.invoke(request);
 
             // 3_ Apply response policies
+        //    responsePolicyChainBuilder.newPolicyChain().apply(response);
+
         }
 	}
-
-    public Registry getRegistry() {
-        return registry;
-    }
-
-    public void setRegistry(Registry registry) {
-        this.registry = registry;
-    }
 }

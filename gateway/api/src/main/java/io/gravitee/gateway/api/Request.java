@@ -30,9 +30,14 @@ public interface Request {
     String id();
 
     /**
-     * @return the URI of the request. This is usually a relative URI.
+     * @return the URI of the request.
      */
     String uri();
+
+    /**
+     * @return The path part of the uri.
+     */
+    String path();
 
     /**
      * @return the query parameters in the request

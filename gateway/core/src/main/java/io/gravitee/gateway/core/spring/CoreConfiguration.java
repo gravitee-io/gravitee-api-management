@@ -17,7 +17,12 @@ package io.gravitee.gateway.core.spring;
 
 import io.gravitee.gateway.api.Registry;
 import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.impl.DefaultReactor;
+import io.gravitee.gateway.core.http.client.HttpClientFactory;
+import io.gravitee.gateway.core.http.client.jetty.JettyHttpClientFactory;
+import io.gravitee.gateway.core.reactor.GraviteeReactor;
+import io.gravitee.gateway.core.reactor.RouteMatcher;
+import io.gravitee.gateway.core.policy.builder.RequestPolicyChainBuilder;
+import io.gravitee.gateway.core.policy.builder.ResponsePolicyChainBuilder;
 import io.gravitee.gateway.core.registry.FileRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,11 +35,31 @@ public class CoreConfiguration {
 
     @Bean
     public Reactor reactor() {
-        return new DefaultReactor();
+        return new GraviteeReactor();
     }
 
     @Bean
     public Registry registry() {
         return new FileRegistry();
+    }
+
+    @Bean
+    public RequestPolicyChainBuilder requestPolicyChainBuilder() {
+        return new RequestPolicyChainBuilder();
+    }
+
+    @Bean
+    public ResponsePolicyChainBuilder responsePolicyChainBuilder() {
+        return new ResponsePolicyChainBuilder();
+    }
+
+    @Bean
+    public HttpClientFactory httpClientFactory() {
+        return new JettyHttpClientFactory();
+    }
+
+    @Bean
+    public RouteMatcher routeMatcher(Registry registry) {
+        return new RouteMatcher(registry);
     }
 }
