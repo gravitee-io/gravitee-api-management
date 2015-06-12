@@ -69,7 +69,8 @@ public class JettyNode implements Node, ApplicationContextAware {
     public String name() {
         try {
             return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
+        } catch (final UnknownHostException e) {
+            LOGGER.info("The local host name could not be resolved into an address", e);
             return "localhost";
         }
     }

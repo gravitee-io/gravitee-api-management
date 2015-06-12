@@ -166,7 +166,7 @@ public class JettyHttpClient extends AbstractHttpClient {
             LOGGER.debug("{} proxying content to downstream: {} bytes", request.id(), length);
             response.getOutputStream().write(buffer, offset, length);
             callback.succeeded();
-        } catch (Throwable x) {
+        } catch (final Exception x) {
             callback.failed(x);
         }
     }
@@ -244,8 +244,8 @@ public class JettyHttpClient extends AbstractHttpClient {
 
         try {
             client.start();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            LOGGER.error("An error occurred while trying to start the Jetty client", e);
         }
 
         // Content must not be decoded, otherwise the client gets confused

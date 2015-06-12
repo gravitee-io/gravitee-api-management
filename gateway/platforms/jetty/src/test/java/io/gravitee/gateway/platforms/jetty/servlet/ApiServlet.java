@@ -40,8 +40,6 @@ public class ApiServlet extends HttpServlet {
     super();
   }
 
-  public static int errorCode;
-
   /**
    *
    */
@@ -51,8 +49,6 @@ public class ApiServlet extends HttpServlet {
 
     if (query != null && !query.isEmpty()) {
       resp.getOutputStream().print(query);
-    } else if (errorCode > 0) {
-      resp.sendError(this.errorCode);
     } else {
       resp.getOutputStream().print("hello");
     }

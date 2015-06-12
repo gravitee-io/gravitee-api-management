@@ -23,7 +23,10 @@ import org.glassfish.jersey.servlet.ServletContainer;
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-public class App {
+public final class App {
+
+    private App() {
+    }
 
     public static void main(String[] args) throws Exception {
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
