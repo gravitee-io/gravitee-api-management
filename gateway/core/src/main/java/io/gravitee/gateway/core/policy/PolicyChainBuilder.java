@@ -13,33 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http;
+package io.gravitee.gateway.core.policy;
 
-import java.io.InputStream;
+import io.gravitee.gateway.api.PolicyChain;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ContentRequest extends ServerRequest {
+public interface PolicyChainBuilder<T extends PolicyChain> {
 
-    private final InputStream inputStream;
-
-    private long contentLength;
-
-    public ContentRequest(InputStream is) {
-        this.inputStream = is;
-    }
-
-    public InputStream getInputStream() {
-        return inputStream;
-    }
-
-    public long getContentLength() {
-        return contentLength;
-    }
-
-    public boolean hasContent() {
-        return true;
-    }
+    T newPolicyChain();
 }

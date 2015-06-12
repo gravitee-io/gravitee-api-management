@@ -23,7 +23,7 @@ import io.gravitee.gateway.core.components.client.HttpClient;
 import io.gravitee.gateway.core.components.client.HttpClientFactory;
 import io.gravitee.gateway.core.components.client.jetty.JettyHttpClientFactory;
 import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.http.DefaultResponse;
+import io.gravitee.gateway.core.http.ServerResponse;
 import io.gravitee.model.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
@@ -41,11 +41,11 @@ public class DefaultReactor implements Reactor {
 	@Override
 	public Observable<Response> process(Request request) {
         // TODO: get the associated API / service from the request using the registry
-        Api api = registry.findMatchingApi(request.requestURI());
+        Api api = registry.findMatchingApi(request.uri());
 
         if (api == null) {
             // Not found -> 404
-            DefaultResponse response = new DefaultResponse();
+            ServerResponse response = new ServerResponse();
             response.setStatus(HttpStatusCode.NOT_FOUND_404);
 
             return Observable.just((Response)response);

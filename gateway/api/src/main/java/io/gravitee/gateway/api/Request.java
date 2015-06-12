@@ -15,20 +15,45 @@
  */
 package io.gravitee.gateway.api;
 
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpVersion;
+
 import java.util.Map;
 
 /**
+ * Represents a server-side HTTP request.
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface Request {
 
     String id();
 
-    String requestURI();
+    /**
+     * @return the URI of the request. This is usually a relative URI.
+     */
+    String uri();
 
-    Map<String, String> queryParameters();
+    /**
+     * @return the query parameters in the request
+     */
+    Map<String, String> parameters();
 
-    String method();
+    /**
+     * @return the headers in the request.
+     */
+    Map<String, String> headers();
 
+    /**
+     * @return the HTTP method for the request.
+     */
+    HttpMethod method();
+
+    /**
+     * @return the HTTP version of the request
+     */
+    HttpVersion version();
+
+    //TODO: Shouldn't be manage like this... not the best way...
     boolean hasContent();
 }

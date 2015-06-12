@@ -52,14 +52,14 @@ public abstract class AbstractHttpClient implements HttpClient {
 
     protected String rewriteTarget(Request request) {
         StringBuffer requestURI =
-                new StringBuffer(request.requestURI())
+                new StringBuffer(request.uri())
                         .delete(0, api.getPublicURI().getPath().length())
                         .insert(0, api.getTargetURI().toString());
 
-        if (request.queryParameters() != null && ! request.queryParameters().isEmpty()) {
+        if (request.parameters() != null && ! request.parameters().isEmpty()) {
             requestURI.append('?');
 
-            for(Map.Entry<String, String> queryParam : request.queryParameters().entrySet()) {
+            for(Map.Entry<String, String> queryParam : request.parameters().entrySet()) {
                 requestURI.append(queryParam.getKey()).append('=').append(queryParam.getValue()).append('&');
             }
 

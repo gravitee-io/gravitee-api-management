@@ -16,14 +16,11 @@
 package io.gravitee.common.http;
 
 /**
+ * Represents an HTTP method.
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface HttpMethod {
+public enum HttpMethod {
 
-  String OPTIONS = "OPTIONS";
-  String GET = "GET";
-  String POST = "POST";
-  String PUT = "PUT";
-  String DELETE = "DELETE";
-  String PATCH = "PATCH";
+  CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE;
 }

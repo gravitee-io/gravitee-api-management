@@ -13,33 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http;
+package io.gravitee.gateway.core.policy.rules;
 
-import java.io.InputStream;
+import io.gravitee.gateway.api.PolicyChain;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.core.policy.PolicyAdapter;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ContentRequest extends ServerRequest {
+public class AccessControlPolicy extends PolicyAdapter {
 
-    private final InputStream inputStream;
-
-    private long contentLength;
-
-    public ContentRequest(InputStream is) {
-        this.inputStream = is;
+    @Override
+    public void apply(Request request, PolicyChain<Request> handler) {
+        super.apply(request, handler);
     }
 
-    public InputStream getInputStream() {
-        return inputStream;
-    }
-
-    public long getContentLength() {
-        return contentLength;
-    }
-
-    public boolean hasContent() {
-        return true;
+    @Override
+    public String name() {
+        return "Access Control Policy";
     }
 }
