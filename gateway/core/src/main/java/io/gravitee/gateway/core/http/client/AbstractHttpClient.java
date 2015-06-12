@@ -51,8 +51,8 @@ public abstract class AbstractHttpClient implements HttpClient {
     }
 
     protected String rewriteTarget(Request request) {
-        StringBuffer requestURI =
-                new StringBuffer(request.uri())
+        final StringBuilder requestURI =
+                new StringBuilder(request.uri())
                         .delete(0, api.getPublicURI().getPath().length())
                         .insert(0, api.getTargetURI().toString());
 

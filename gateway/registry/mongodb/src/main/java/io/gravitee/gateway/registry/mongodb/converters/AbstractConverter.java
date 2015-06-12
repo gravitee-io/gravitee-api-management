@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.registry.mongodb.converters;
 
-import java.util.*;
-
 /**
  * Defines an abstraction to convert from a source to a target type and vice versa.
  *
@@ -27,27 +25,5 @@ public abstract class AbstractConverter<S, T> {
     public abstract T convertTo(S object);
 
     public abstract S convertFrom(T object);
-
-    public List<T> convertToAll(final Collection<? extends S> objects) {
-        if (objects == null) {
-            return null;
-        }
-        final List<T> results = new ArrayList<>(objects.size());
-        for (final S object : objects) {
-            results.add(convertTo(object));
-        }
-        return results;
-    }
-
-    public List<S> convertFromAll(final Collection<? extends T> objects) {
-        if (objects == null) {
-            return null;
-        }
-        final List<S> results = new ArrayList<>(objects.size());
-        for (final T object : objects) {
-            results.add(convertFrom(object));
-        }
-        return results;
-    }
 }
 

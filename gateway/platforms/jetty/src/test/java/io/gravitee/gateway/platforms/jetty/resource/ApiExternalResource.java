@@ -18,6 +18,8 @@ package io.gravitee.gateway.platforms.jetty.resource;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.rules.ExternalResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.Servlet;
 
@@ -25,6 +27,8 @@ import javax.servlet.Servlet;
  * Rule à utiliser pour lancer un serveur Jetty en amont des tests et l'éteindre après la suite de test.
  */
 public class ApiExternalResource extends ExternalResource {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApiExternalResource.class);
 
   private Server server;
 
@@ -69,12 +73,11 @@ public class ApiExternalResource extends ExternalResource {
     try {
       // Démarrage du serveur.
       this.server.start();
-    } catch (Exception e) {
-      System.err.println("Exception in server of api management proxy.");
-      e.printStackTrace();
+    } catch (final Exception e) {
+      LOGGER.error("Exception in server of api management proxy", e);
     } finally {
       if (this.server.isStarted()) {
-        System.out.println("Jetty server for api management proxy successfully started.");
+        LOGGER.info("Jetty server for api management proxy successfully started");
       }
     }
   }

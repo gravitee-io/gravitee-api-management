@@ -51,7 +51,7 @@ public class JettyEmbeddedContainerTest {
     }
 
     @ClassRule
-    public static ApiExternalResource SERVER_MOCK = new ApiExternalResource("8083", ApiServlet.class, "/*", null);
+    public static final ApiExternalResource SERVER_MOCK = new ApiExternalResource("8083", ApiServlet.class, "/*", null);
 
     @Autowired
     private Node node;

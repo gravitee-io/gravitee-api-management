@@ -51,15 +51,14 @@ public abstract class DispatcherServlet extends HttpServlet {
             public void call(Response response) {
                 writeResponse(resp, response);
 
-
                 try {
                     final ServletOutputStream outputStream = resp.getOutputStream();
                     byte [] buffer = response.content();
                     outputStream.write(buffer, 0, buffer.length);
 
                     resp.flushBuffer();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (final IOException e) {
+					LOGGER.error("Error while handling proxy request", e);
                 }
 
                 asyncContext.complete();
