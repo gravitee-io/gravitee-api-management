@@ -15,8 +15,9 @@
  */
 package io.gravitee.gateway.core.policy.rules;
 
-import io.gravitee.gateway.api.PolicyChain;
+import io.gravitee.gateway.api.PolicyHandler;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.policy.PolicyAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +30,10 @@ public class RateLimitPolicy extends PolicyAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(RateLimitPolicy.class);
 
     @Override
-    public void apply(Request request, PolicyChain<Request> handler) {
+    public void onRequest(Request request, Response response, PolicyHandler handler) {
         LOGGER.debug("Applying {} to request {}", name(), request.id());
 
-        handler.doChain(request);
+        handler.handle(request, response);
     }
 
     @Override

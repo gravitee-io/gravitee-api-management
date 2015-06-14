@@ -16,26 +16,40 @@
 package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.Policy;
-import io.gravitee.gateway.api.PolicyChain;
+import io.gravitee.gateway.api.PolicyHandler;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ResponsePolicyChain extends AbstractPolicyChain<Response> {
+public abstract class AbstractPolicyHandler implements PolicyHandler {
 
-    public ResponsePolicyChain(Set<Policy> policies) {
-        super(policies);
+    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
+
+    private Set<Policy> policies;
+    private Iterator<Policy> policyIterator;
+
+    protected AbstractPolicyHandler(final Set<Policy> policies) {
+        this.policies = policies;
+        this.policyIterator = policies.iterator();
     }
 
     @Override
-    public void doChain(Response response) {
-        if (iterator().hasNext()) {
-            Policy first = iterator().next();
-            first.apply(response, this);
-        }
+    public void fail(Request request, Response response, Throwable throwable) {
+        LOGGER.info("Exit policy chain...");
     }
-}
+
+    public Set<Policy> getPolicies() {
+        return this.policies;
+    }
+
+    protected Iterator<Policy> iterator() {
+        return policyIterator;
+    }
+ }

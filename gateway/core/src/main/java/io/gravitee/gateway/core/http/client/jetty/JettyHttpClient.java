@@ -54,7 +54,7 @@ public class JettyHttpClient extends AbstractHttpClient {
     }
 
     @Override
-    public Observable<Response> invoke(final Request request) {
+    public Observable<Response> invoke(final Request request, final Response response) {
         return Observable.create(
                 new Observable.OnSubscribe<Response>() {
                     @Override
@@ -70,7 +70,7 @@ public class JettyHttpClient extends AbstractHttpClient {
                             proxyRequest.content(new ProxyInputStreamContentProvider(proxyRequest, (ContentRequest) request));
                         }
 
-                        proxyRequest.send(new ProxyResponseListener(request, new ServerResponse(), observer));
+                        proxyRequest.send(new ProxyResponseListener(request, (ServerResponse) response, observer));
                     }
                 }
         );
