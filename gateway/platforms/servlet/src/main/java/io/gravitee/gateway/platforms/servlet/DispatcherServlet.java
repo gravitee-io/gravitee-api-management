@@ -47,23 +47,31 @@ public abstract class DispatcherServlet extends HttpServlet {
 
         Observable<Response> response = getReactor().process(RequestBuilder.from(req));
         response.subscribe(new Action1<Response>() {
-            @Override
-            public void call(Response response) {
-                writeResponse(resp, response);
+			@Override
+			public void call(Response response) {
+				LOGGER.error("Prepare response with: ", response);
 
-                try {
-                    final ServletOutputStream outputStream = resp.getOutputStream();
-                    byte [] buffer = response.content();
-                    outputStream.write(buffer, 0, buffer.length);
+				writeResponse(resp, response);
 
-                    resp.flushBuffer();
-                } catch (final IOException e) {
+				try {
+					final ServletOutputStream outputStream = resp.getOutputStream();
+					byte[] buffer = response.content();
+					outputStream.write(buffer, 0, buffer.length);
+
+					resp.flushBuffer();
+				} catch (final IOException e) {
 					LOGGER.error("Error while handling proxy request", e);
-                }
+				}
 
-                asyncContext.complete();
-            }
-        });
+				asyncContext.complete();
+			}
+		}, new Action1<Throwable>() {
+			@Override
+			public void call(Throwable throwable) {
+				LOGGER.error("An error occurs: ", throwable);
+				asyncContext.complete();
+			}
+		});
 	}
 
 	@Override protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -105,5 +113,5 @@ public abstract class DispatcherServlet extends HttpServlet {
 		}
 	}
 
-    protected abstract Reactor getReactor();
+    protected abstract Reactor<Observable<Response>> getReactor();
 }

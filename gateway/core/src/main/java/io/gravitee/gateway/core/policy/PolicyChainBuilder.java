@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.PolicyHandler;
+import io.gravitee.gateway.api.PolicyChain;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyChainBuilder<T extends PolicyHandler, R> {
+public interface PolicyChainBuilder<T extends PolicyChain, R> {
 
     /**
      * Create a new Policy chain based on the given input object.

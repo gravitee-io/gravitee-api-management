@@ -18,7 +18,7 @@ package io.gravitee.gateway.core.policy.builder;
 import io.gravitee.gateway.api.Policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.policy.PolicyChainBuilder;
-import io.gravitee.gateway.core.policy.ResponsePolicyHandler;
+import io.gravitee.gateway.core.policy.ResponsePolicyChain;
 import io.gravitee.gateway.core.policy.rules.TransformPolicy;
 
 import java.util.HashSet;
@@ -27,13 +27,13 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ResponsePolicyChainBuilder implements PolicyChainBuilder<ResponsePolicyHandler, Request> {
+public class ResponsePolicyChainBuilder implements PolicyChainBuilder<ResponsePolicyChain, Request> {
 
     @Override
-    public ResponsePolicyHandler newPolicyChain(Request request) {
+    public ResponsePolicyChain newPolicyChain(Request request) {
         Set<Policy> policies = policies();
 
-        return new ResponsePolicyHandler(policies);
+        return new ResponsePolicyChain(policies);
     }
 
     private Set<Policy> policies() {

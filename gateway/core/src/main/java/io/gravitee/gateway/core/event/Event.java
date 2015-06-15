@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core;
-
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import rx.Observable;
+package io.gravitee.gateway.core.event;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Reactor<T> {
+public interface Event<T extends Enum, S> {
 
-	T process(Request request);
+  S content();
+
+  T type();
 }

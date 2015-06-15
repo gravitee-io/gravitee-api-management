@@ -13,33 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reactor;
+package io.gravitee.gateway.core.event.impl;
 
-import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.event.Event;
-import io.gravitee.gateway.core.event.EventListener;
-import io.gravitee.gateway.core.event.EventManager;
-import io.gravitee.gateway.core.registry.RegistryEvent;
-import io.gravitee.model.Api;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<RegistryEvent, Api> {
+public class SimpleEvent<T extends Enum, S> implements Event<T, S> {
 
-    @Autowired
-    private EventManager eventManager;
+  private final T type;
+  private final S content;
 
-    @PostConstruct
-    public void init() {
-        eventManager.subscribeForEvents(this, RegistryEvent.class);
-    }
+  public SimpleEvent(T type, S content) {
+    this.type = type;
+    this.content = content;
+  }
 
-    @Override
-    public void onEvent(Event<RegistryEvent, Api> event) {
+  @Override public S content() {
+    return this.content;
+  }
 
-    }
+  @Override public T type() {
+    return this.type;
+  }
 }

@@ -34,7 +34,7 @@ import static javax.ws.rs.core.HttpHeaders.LOCATION;
 @Singleton
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/apis")
-// TODO handle messages responses
+// TODO doNext messages responses
 public class ApiResource extends AbstractResource {
 
     @GET

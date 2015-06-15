@@ -20,9 +20,9 @@ package io.gravitee.gateway.api;
  */
 public interface Policy {
 
-    void onRequest(final Request request, final Response response, final PolicyHandler handler);
+    void onRequest(final Request request, final Response response, final PolicyChain handler);
 
-    void onResponse(final Request request, final Response response, final PolicyHandler handler);
+    void onResponse(final Request request, final Response response, final PolicyChain handler);
 
     String name();
 }

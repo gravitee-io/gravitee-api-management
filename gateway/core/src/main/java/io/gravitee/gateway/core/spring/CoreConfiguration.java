@@ -17,9 +17,11 @@ package io.gravitee.gateway.core.spring;
 
 import io.gravitee.gateway.api.Registry;
 import io.gravitee.gateway.core.Reactor;
+import io.gravitee.gateway.core.event.EventManager;
+import io.gravitee.gateway.core.event.impl.EventManagerImpl;
 import io.gravitee.gateway.core.http.client.HttpClientFactory;
 import io.gravitee.gateway.core.http.client.jetty.JettyHttpClientFactory;
-import io.gravitee.gateway.core.reactor.GraviteeReactor;
+import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
 import io.gravitee.gateway.core.reactor.RouteMatcher;
 import io.gravitee.gateway.core.policy.builder.RequestPolicyChainBuilder;
 import io.gravitee.gateway.core.policy.builder.ResponsePolicyChainBuilder;
@@ -35,7 +37,7 @@ public class CoreConfiguration {
 
     @Bean
     public Reactor reactor() {
-        return new GraviteeReactor();
+        return new AsyncGraviteeReactor();
     }
 
     @Bean
@@ -61,5 +63,10 @@ public class CoreConfiguration {
     @Bean
     public RouteMatcher routeMatcher(Registry registry) {
         return new RouteMatcher(registry);
+    }
+
+    @Bean
+    public EventManager eventManager() {
+        return new EventManagerImpl();
     }
 }

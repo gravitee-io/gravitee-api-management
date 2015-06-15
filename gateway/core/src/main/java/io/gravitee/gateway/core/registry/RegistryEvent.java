@@ -13,28 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy;
-
-import io.gravitee.gateway.api.Policy;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-
-import java.util.Set;
+package io.gravitee.gateway.core.registry;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ResponsePolicyHandler extends AbstractPolicyHandler {
-
-    public ResponsePolicyHandler(Set<Policy> policies) {
-        super(policies);
-    }
-
-    @Override
-    public void handle(Request request, Response response) {
-        if (iterator().hasNext()) {
-            Policy first = iterator().next();
-            first.onResponse(request, response, this);
-        }
-    }
+public enum RegistryEvent {
+    CREATE,
+    UPDATE,
+    DELETE
 }

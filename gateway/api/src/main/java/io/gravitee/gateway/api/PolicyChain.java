@@ -19,9 +19,7 @@ package io.gravitee.gateway.api;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyHandler {
+public interface PolicyChain {
 
-    void handle(Request request, Response response);
-
-    void fail(Request request, Response response, Throwable throwable);
+    void doNext(Request request, Response response);
 }

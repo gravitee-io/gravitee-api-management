@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.policy.rules;
 
-import io.gravitee.gateway.api.PolicyHandler;
+import io.gravitee.gateway.api.PolicyChain;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.policy.PolicyAdapter;
@@ -30,10 +30,10 @@ public class AccessControlPolicy extends PolicyAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccessControlPolicy.class);
 
     @Override
-    public void onRequest(Request request, Response response, PolicyHandler handler) {
+    public void onRequest(Request request, Response response, PolicyChain handler) {
         LOGGER.debug("Applying {} to request {}", name(), request.id());
 
-        handler.handle(request, response);
+        handler.doNext(request, response);
     }
 
     @Override
