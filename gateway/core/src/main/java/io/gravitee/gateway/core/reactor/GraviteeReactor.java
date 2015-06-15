@@ -69,7 +69,7 @@ public class GraviteeReactor implements Reactor {
     }
 
     private Observable<Response> handle(final Api api, final Request request, final Response response) {
-        return Observable.zip()create(
+        return Observable.create(
                 new Observable.OnSubscribe<Response>() {
 
                     @Override
