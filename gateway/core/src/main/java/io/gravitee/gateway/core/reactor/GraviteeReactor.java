@@ -23,8 +23,8 @@ import io.gravitee.gateway.core.http.client.HttpClientFactory;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.http.ServerResponse;
 import io.gravitee.gateway.core.policy.PolicyChainBuilder;
-import io.gravitee.gateway.core.policy.RequestPolicyChain;
-import io.gravitee.gateway.core.policy.ResponsePolicyChain;
+import io.gravitee.gateway.core.policy.RequestPolicyHandler;
+import io.gravitee.gateway.core.policy.ResponsePolicyHandler;
 import io.gravitee.model.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +43,10 @@ public class GraviteeReactor implements Reactor {
     private RouteMatcher routeMatcher;
 
     @Autowired
-    private PolicyChainBuilder<RequestPolicyChain> requestPolicyChainBuilder;
+    private PolicyChainBuilder<RequestPolicyHandler, Request> requestPolicyChainBuilder;
 
     @Autowired
-    private PolicyChainBuilder<ResponsePolicyChain> responsePolicyChainBuilder;
+    private PolicyChainBuilder<ResponsePolicyHandler, Request> responsePolicyChainBuilder;
 
     @Autowired
     private HttpClientFactory httpClientFactory;
@@ -56,33 +56,35 @@ public class GraviteeReactor implements Reactor {
         LOGGER.debug("Receiving a request {} for path {}", request.id(), request.path());
 
         final Api api = routeMatcher.match(request);
+        final ServerResponse response = new ServerResponse();
 
         if (api == null) {
             LOGGER.warn("No API can be found to match request path {}, returning 404", request.path());
 
-            ServerResponse response = new ServerResponse();
             response.setStatus(HttpStatusCode.NOT_FOUND_404);
-
             return Observable.just((Response)response);
         }
 
-        return handle(api, request);
+        return handle(api, request, response);
     }
 
-    private Observable<Response> handle(final Api api, final Request request) {
-        return Observable.create(
+    private Observable<Response> handle(final Api api, final Request request, final Response response) {
+        return Observable.zip()create(
                 new Observable.OnSubscribe<Response>() {
 
                     @Override
                     public void call(final Subscriber<? super Response> observer) {
                         // 1_ Apply request policies
-                        requestPolicyChainBuilder.newPolicyChain().doChain(request);
+                        requestPolicyChainBuilder.newPolicyChain(request).handle(request, response);
+
+                        // TODO: How to now that something goes wrong in policy chain and skip
+                        // remote service invocation...
 
                         // TODO: remove this part from each call...
                         HttpClient client = httpClientFactory.create(api);
 
                         // 2_ Call remote service
-                        client.invoke(request).subscribe(new Subscriber<Response>() {
+                        client.invoke(request, response).subscribe(new Subscriber<Response>() {
                             @Override
                             public void onCompleted() {
                                 observer.onCompleted();
@@ -95,7 +97,7 @@ public class GraviteeReactor implements Reactor {
 
                             @Override
                             public void onNext(Response response) {
-                                responsePolicyChainBuilder.newPolicyChain().doChain(response);
+                                responsePolicyChainBuilder.newPolicyChain(request).handle(request, response);
                                 observer.onNext(response);
                             }
                         });

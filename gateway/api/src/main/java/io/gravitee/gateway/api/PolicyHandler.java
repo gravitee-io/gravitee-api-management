@@ -17,11 +17,11 @@ package io.gravitee.gateway.api;
 
 /**
  *
- * @param <T> The type of object on which we are applying {@link Policy}
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyChain<T> {
+public interface PolicyHandler {
 
-    void doChain(T obj);
+    void handle(Request request, Response response);
+
+    void fail(Request request, Response response, Throwable throwable);
 }

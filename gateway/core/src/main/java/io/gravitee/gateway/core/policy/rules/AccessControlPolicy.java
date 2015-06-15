@@ -15,18 +15,25 @@
  */
 package io.gravitee.gateway.core.policy.rules;
 
-import io.gravitee.gateway.api.PolicyChain;
+import io.gravitee.gateway.api.PolicyHandler;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.policy.PolicyAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class AccessControlPolicy extends PolicyAdapter {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AccessControlPolicy.class);
+
     @Override
-    public void apply(Request request, PolicyChain<Request> handler) {
-        super.apply(request, handler);
+    public void onRequest(Request request, Response response, PolicyHandler handler) {
+        LOGGER.debug("Applying {} to request {}", name(), request.id());
+
+        handler.handle(request, response);
     }
 
     @Override

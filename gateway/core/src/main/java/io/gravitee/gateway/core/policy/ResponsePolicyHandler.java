@@ -17,23 +17,24 @@ package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.Policy;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class RequestPolicyChain extends AbstractPolicyChain<Request> {
+public class ResponsePolicyHandler extends AbstractPolicyHandler {
 
-    public RequestPolicyChain(Set<Policy> policies) {
+    public ResponsePolicyHandler(Set<Policy> policies) {
         super(policies);
     }
 
     @Override
-    public void doChain(Request request) {
+    public void handle(Request request, Response response) {
         if (iterator().hasNext()) {
             Policy first = iterator().next();
-            first.apply(request, this);
+            first.onResponse(request, response, this);
         }
     }
 }

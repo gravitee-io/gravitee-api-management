@@ -24,5 +24,5 @@ import rx.Observable;
  */
 public interface HttpClient {
 
-    Observable<Response> invoke(Request request);
+    Observable<Response> invoke(Request request, Response response);
 }
