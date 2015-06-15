@@ -16,7 +16,7 @@
 package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.Policy;
-import io.gravitee.gateway.api.PolicyHandler;
+import io.gravitee.gateway.api.PolicyChain;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import org.slf4j.Logger;
@@ -30,18 +30,18 @@ public abstract class PolicyAdapter implements Policy {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     @Override
-    public void onRequest(Request request, Response response, PolicyHandler handler) {
+    public void onRequest(Request request, Response response, PolicyChain handler) {
         LOGGER.debug("Applying {} to request {}", name(), request.id());
 
         // If everything goes fine, let's continue chain handler
-        handler.handle(request, response);
+        handler.doNext(request, response);
     }
 
     @Override
-    public void onResponse(Request request, Response response, PolicyHandler handler) {
+    public void onResponse(Request request, Response response, PolicyChain handler) {
         LOGGER.debug("Applying {} to response {}", name(), response);
 
         // If everything goes fine, let's continue chain handler
-        handler.handle(request, response);
+        handler.doNext(request, response);
     }
 }

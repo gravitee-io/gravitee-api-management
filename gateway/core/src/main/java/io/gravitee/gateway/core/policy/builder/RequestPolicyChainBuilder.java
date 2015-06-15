@@ -18,7 +18,7 @@ package io.gravitee.gateway.core.policy.builder;
 import io.gravitee.gateway.api.Policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.policy.PolicyChainBuilder;
-import io.gravitee.gateway.core.policy.RequestPolicyHandler;
+import io.gravitee.gateway.core.policy.RequestPolicyChain;
 import io.gravitee.gateway.core.policy.rules.AccessControlPolicy;
 import io.gravitee.gateway.core.policy.rules.RateLimitPolicy;
 
@@ -28,13 +28,13 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class RequestPolicyChainBuilder implements PolicyChainBuilder<RequestPolicyHandler, Request> {
+public class RequestPolicyChainBuilder implements PolicyChainBuilder<RequestPolicyChain, Request> {
 
     @Override
-    public RequestPolicyHandler newPolicyChain(Request request) {
+    public RequestPolicyChain newPolicyChain(Request request) {
         Set<Policy> policies = policies();
 
-        return new RequestPolicyHandler(policies);
+        return new RequestPolicyChain(policies);
     }
 
     private Set<Policy> policies() {
