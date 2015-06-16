@@ -27,7 +27,6 @@ import java.util.Set;
 public interface Registry {
 
     Set<Api> listAll();
-    Api findMatchingApi(String uri);
     boolean createApi(Api api);
     boolean startApi(String name);
     boolean stopApi(String name);
