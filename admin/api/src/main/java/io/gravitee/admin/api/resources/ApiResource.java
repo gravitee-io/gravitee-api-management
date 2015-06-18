@@ -45,7 +45,7 @@ public class ApiResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(final Api api) {
-        if (getRegistry().createApi(api)) {
+        if (getRegistry().create(api)) {
             return Response.status(HttpStatusCode.CREATED_201).header(LOCATION, "/rest/apis/" +
                     api.getName()).entity(api).build();
         } else {

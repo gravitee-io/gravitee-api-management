@@ -26,6 +26,8 @@ import io.gravitee.gateway.core.reactor.RouteMatcher;
 import io.gravitee.gateway.core.policy.builder.RequestPolicyChainBuilder;
 import io.gravitee.gateway.core.policy.builder.ResponsePolicyChainBuilder;
 import io.gravitee.gateway.core.registry.FileRegistry;
+import io.gravitee.gateway.core.service.ApiService;
+import io.gravitee.gateway.core.service.impl.ApiServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -68,5 +70,10 @@ public class CoreConfiguration {
     @Bean
     public EventManager eventManager() {
         return new EventManagerImpl();
+    }
+
+    @Bean
+    public ApiService apiService() {
+        return new ApiServiceImpl();
     }
 }

@@ -138,6 +138,8 @@ public class JettyHttpClient extends AbstractHttpClient {
                 onProxyResponseFailure(request, response, result.getResponse(), result.getFailure(), observer);
             }
 
+            LOGGER.debug("Is proxy response success ? {}", result.isSucceeded());
+
             observer.onCompleted();
             LOGGER.debug("{} proxying complete", request.id());
         }

@@ -111,7 +111,17 @@ public abstract class AbstractRegistry implements Registry {
     }
 
     @Override
-    public boolean createApi(final Api api) {
+    public Api get(final String name) {
+        return FluentIterable.from(apis).firstMatch(new Predicate<Api>() {
+            @Override
+            public boolean apply(final Api input) {
+                return input.getName().equals(name);
+            }
+        }).orNull();
+    }
+
+    @Override
+    public boolean create(final Api api) {
         if (validate(api)) {
             writeApi(api);
             return true;

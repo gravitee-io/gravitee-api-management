@@ -24,6 +24,8 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.model.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.net.URI;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -37,6 +39,11 @@ public class RouteMatcher {
     }
 
     public Api match(final Request request) {
+        Api api = new Api();
+        api.setTargetURI(URI.create("http://tests.gravitee.io/api/"));
+        api.setPublicURI(URI.create("http://tests.gravitee.io/api/"));
+        return api;
+        /*
         // Matching rules:
         // - Context Path
         // - Virtual host (using HOST header)
@@ -52,5 +59,6 @@ public class RouteMatcher {
                         return api.getPublicURI().getHost().equalsIgnoreCase(request.headers().get(HttpHeaders.HOST));
                     }
                 })).orNull();
+                */
     }
 }

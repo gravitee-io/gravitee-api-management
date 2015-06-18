@@ -27,7 +27,12 @@ import java.util.Set;
 public interface Registry {
 
     Set<Api> listAll();
-    boolean createApi(Api api);
+    Api get(String name);
+    boolean create(Api api);
+
+    // Following methods should not be part of the registry
+    // but more in a service layer / manager
+    //TODO: remove these methods and use ApiService instead.
     boolean startApi(String name);
     boolean stopApi(String name);
     boolean statusApi(String name);

@@ -17,14 +17,23 @@ package io.gravitee.gateway.core.handler;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class ContextHandler implements Handler {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ContextHandler.class);
+
+    private ConcurrentMap<String, Handler> handlers = new ConcurrentHashMap();
+
     @Override
     public void handle(Request request, Response response) {
-
+        // Select the best handler
     }
 }

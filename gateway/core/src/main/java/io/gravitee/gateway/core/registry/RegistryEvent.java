@@ -19,7 +19,6 @@ package io.gravitee.gateway.core.registry;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public enum RegistryEvent {
-    CREATE,
-    UPDATE,
-    DELETE
+    START,
+    STOP
 }

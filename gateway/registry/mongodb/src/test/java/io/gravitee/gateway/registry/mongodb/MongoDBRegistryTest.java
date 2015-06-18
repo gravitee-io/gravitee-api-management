@@ -57,7 +57,7 @@ public class MongoDBRegistryTest extends AbstractMongoDBTest {
         api.setName(name);
         api.setPublicURI(URI.create("http://localhost:8082/users"));
         api.setTargetURI(URI.create("http://localhost:8083/app/users"));
-        assertTrue(registry.createApi(api));
+        assertTrue(registry.create(api));
         assertEquals(1, registry.listAll().size());
         registry.reloadApi(name);
         assertEquals(2, registry.listAll().size());
@@ -68,7 +68,7 @@ public class MongoDBRegistryTest extends AbstractMongoDBTest {
         final String name = "api-users";
         final Api api = new Api();
         api.setName(name);
-        assertFalse(registry.createApi(api));
+        assertFalse(registry.create(api));
         assertEquals(1, registry.listAll().size());
         registry.reloadApi(name);
         assertEquals(1, registry.listAll().size());
