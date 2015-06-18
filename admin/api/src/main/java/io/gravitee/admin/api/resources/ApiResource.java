@@ -22,7 +22,6 @@ import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Set;
 
 import static javax.ws.rs.core.HttpHeaders.LOCATION;
 
@@ -38,8 +37,9 @@ import static javax.ws.rs.core.HttpHeaders.LOCATION;
 public class ApiResource extends AbstractResource {
 
     @GET
-    public Set<Api> listAll() {
-        return getRegistry().listAll();
+    public Response listAll() {
+        return Response.status(HttpStatusCode.OK_200).entity(getRegistry().listAll())
+                .header("Access-Control-Allow-Origin", "*").build();
     }
 
     @POST
