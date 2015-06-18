@@ -27,9 +27,14 @@ Gulp tasks are run from this base dir.
 
 ## Serve
 
-If you wanna serve the built version with live reload and css preprocessing :
+If you wanna serve the built version on dev mode :
 ```
-gulp serve
+gulp serve.dev
+```
+
+If you wanna serve the built version on production mode :
+```
+gulp serve.prod
 ```
 
 [1]: http://nodejs.org

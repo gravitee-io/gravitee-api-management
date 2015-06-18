@@ -26,4 +26,16 @@ export class ApisService {
     list() {
         return fetch('http://localhost:8059/rest/apis').then(r => r.json());
     }
+
+    start(name: string) {
+        return fetch('http://localhost:8059/rest/apis/start/' + name, {mode: 'no-cors', method:'POST'});
+    }
+
+    stop(name: string) {
+        return fetch('http://localhost:8059/rest/apis/stop/' + name, {mode: 'no-cors', method:'POST'});
+    }
+
+    reloadAll() {
+        return fetch('http://localhost:8059/rest/apis/reloadAll', {mode: 'no-cors', method:'POST'});
+    }
 }

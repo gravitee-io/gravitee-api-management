@@ -24,7 +24,7 @@ import java.net.URI;
 import java.util.Objects;
 
 /**
- * Defines end points used by the gateway proxy.
+ * Defines end points used by the gateway reverse proxy.
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -41,7 +41,6 @@ public class Api {
     @JsonProperty("target")
     private URI targetURI;
 
-    @JsonIgnore
     private boolean enabled = true;
 
     public String getName() {
