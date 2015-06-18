@@ -1,5 +1,6 @@
 !.gitignore
 
+build/
 target/
 .idea/
 .DS_Store
