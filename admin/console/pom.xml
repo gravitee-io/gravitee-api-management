@@ -36,22 +36,12 @@
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>2.6.1</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>build</directory>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>com.github.trecloux</groupId>
                 <artifactId>yeoman-maven-plugin</artifactId>
                 <version>0.4</version>
                 <configuration>
-                    <bowerInstallArgs>install --allow-root</bowerInstallArgs>
+                    <bowerInstallArgs>install --no-color --allow-root</bowerInstallArgs>
+                    <buildArgs>build.prod --no-color</buildArgs>
                     <buildTool>gulp</buildTool>
                     <yeomanProjectDirectory>${project.basedir}</yeomanProjectDirectory>
                 </configuration>

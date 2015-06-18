@@ -15,4 +15,18 @@
     limitations under the License.
 
 -->
-<h1>Gravitee-io</h1>
+
+<h1>Gestion des APIs</h1>
+
+<table>
+    <tr>
+        <th>Nom</th>
+        <th>URI public</th>
+        <th>URI cible</th>
+    </tr>
+    <tr *ng-for="#api of apis">
+        <td>{{api.name}}</td>
+        <td>{{api.public}}</td>
+        <td>{{api.target}}</td>
+    </tr>
+</table>
