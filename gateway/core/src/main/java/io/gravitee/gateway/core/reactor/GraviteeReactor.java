@@ -16,45 +16,108 @@
 package io.gravitee.gateway.core.reactor;
 
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.event.Event;
 import io.gravitee.gateway.core.event.EventListener;
 import io.gravitee.gateway.core.event.EventManager;
+import io.gravitee.gateway.core.handler.ContextHandler;
+import io.gravitee.gateway.core.handler.ErrorHandler;
 import io.gravitee.gateway.core.handler.Handler;
-import io.gravitee.gateway.core.registry.RegistryEvent;
+import io.gravitee.gateway.core.handler.context.ApiHandlerConfiguration;
+import io.gravitee.gateway.core.service.ApiLifecycleEvent;
+import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.model.Api;
+import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 
 import javax.annotation.PostConstruct;
+import java.net.URI;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<RegistryEvent, Api> {
+public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<ApiLifecycleEvent, Api>, ApplicationContextAware {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GraviteeReactor.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(GraviteeReactor.class);
 
     @Autowired
     private EventManager eventManager;
 
-    private ConcurrentMap<String, Handler> handlers = new ConcurrentHashMap();
+    @Autowired
+    private ApiService apiService;
 
-    @PostConstruct
-    public void init() {
-        eventManager.subscribeForEvents(this, RegistryEvent.class);
+    private ApplicationContext applicationContext;
+
+    private final ErrorHandler errorHandler = new ErrorHandler();
+
+    private final ConcurrentMap<String, ContextHandler> handlers = new ConcurrentHashMap();
+
+    protected Handler getHandler(Request request) {
+        String path = request.path();
+
+        Set<ContextHandler> mapHandlers = new HashSet();
+        for(Map.Entry<String, ContextHandler> entry : handlers.entrySet()) {
+            if (path.startsWith(entry.getKey())) {
+                mapHandlers.add(entry.getValue());
+            }
+        }
+
+        if (! mapHandlers.isEmpty()) {
+
+            // Sort valid handlers and push handler with VirtualHost first
+            ContextHandler[] sorted = new ContextHandler[mapHandlers.size()];
+            int idx = 0;
+            for (ContextHandler handler : mapHandlers) {
+                if (handler.hasVirtualHost()) {
+                    sorted[idx++] = handler;
+                }
+            }
+            for (ContextHandler handler : mapHandlers) {
+                if (!handler.hasVirtualHost()) {
+                    sorted[idx++] = handler;
+                }
+            }
+
+            String host = getHost(request);
+
+            // Always pick-up the first which is corresponding
+            for (ContextHandler handler : sorted) {
+                if (host.equals(handler.getVirtualHost())) {
+                    return handler;
+                }
+            }
+        }
+
+        return errorHandler;
+    }
+
+    private String getHost(Request request) {
+        String host = request.headers().get(HttpHeader.HOST);
+        if (host == null || host.isEmpty()) {
+            return URI.create(request.uri()).getHost();
+        } else {
+            return host;
+        }
     }
 
     @Override
-    public void onEvent(Event<RegistryEvent, Api> event) {
+    public void onEvent(Event<ApiLifecycleEvent, Api> event) {
         switch(event.type()) {
             case START:
+                addHandler(event.content());
                 break;
             case STOP:
+                removeHandler(event.content());
                 break;
         }
     }
@@ -62,12 +125,38 @@ public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<Re
     protected void addHandler(Api api) {
         LOGGER.info("API {} has been enabled in reactor", api);
 
-        handlers.putIfAbsent(api.getPublicURI().getPath(), null);
+        AbstractApplicationContext childContext = buildApplicationContext(api);
+        ContextHandler handler = childContext.getBean(ContextHandler.class);
+
+        handlers.putIfAbsent(handler.getContextPath(), handler);
     }
 
     protected void removeHandler(Api api) {
         LOGGER.info("API {} has been disabled (or removed) in reactor", api);
 
+        //TODO: Close application context relative to the handler
         handlers.remove(api.getPublicURI().getPath());
+    }
+
+    private AbstractApplicationContext buildApplicationContext(Api api) {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.setParent(this.applicationContext);
+        context.getBeanFactory().registerSingleton("api", api);
+        context.register(ApiHandlerConfiguration.class);
+        context.refresh();
+
+        return context;
+    }
+
+    @PostConstruct
+    public void init() {
+        eventManager.subscribeForEvents(this, ApiLifecycleEvent.class);
+        //TODO: Not sure it's the best place to do the following...
+        apiService.startAll();
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

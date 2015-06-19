@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.spring;
+package io.gravitee.gateway.core.handler.context;
 
-import io.gravitee.gateway.api.Registry;
-import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.event.EventManager;
-import io.gravitee.gateway.core.event.impl.EventManagerImpl;
-import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
-import io.gravitee.gateway.core.registry.FileRegistry;
-import io.gravitee.gateway.core.service.ApiService;
-import io.gravitee.gateway.core.service.impl.ApiServiceImpl;
+import io.gravitee.gateway.core.handler.ApiHandler;
+import io.gravitee.gateway.core.handler.ContextHandler;
+import io.gravitee.gateway.core.http.client.HttpClient;
+import io.gravitee.gateway.core.http.client.jetty.JettyHttpClient;
+import io.gravitee.gateway.core.policy.builder.RequestPolicyChainBuilder;
+import io.gravitee.gateway.core.policy.builder.ResponsePolicyChainBuilder;
+import io.gravitee.model.Api;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,25 +29,25 @@ import org.springframework.context.annotation.Configuration;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-public class CoreConfiguration {
+public class ApiHandlerConfiguration {
 
     @Bean
-    public Reactor reactor() {
-        return new AsyncGraviteeReactor();
+    public RequestPolicyChainBuilder requestPolicyChainBuilder() {
+        return new RequestPolicyChainBuilder();
     }
 
     @Bean
-    public Registry registry() {
-        return new FileRegistry();
+    public ResponsePolicyChainBuilder responsePolicyChainBuilder() {
+        return new ResponsePolicyChainBuilder();
     }
 
     @Bean
-    public EventManager eventManager() {
-        return new EventManagerImpl();
+    public ContextHandler handler() {
+        return new ApiHandler();
     }
 
     @Bean
-    public ApiService apiService() {
-        return new ApiServiceImpl();
+    public HttpClient httpClient(Api api) {
+        return new JettyHttpClient(api);
     }
 }

@@ -49,7 +49,7 @@ public abstract class DispatcherServlet extends HttpServlet {
         response.subscribe(new Action1<Response>() {
 			@Override
 			public void call(Response response) {
-				LOGGER.error("Prepare response with: ", response);
+				LOGGER.debug("Return response: {}", response);
 
 				writeResponse(resp, response);
 

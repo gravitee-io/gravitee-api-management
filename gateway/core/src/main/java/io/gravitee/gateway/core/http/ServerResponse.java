@@ -57,4 +57,12 @@ public class ServerResponse implements Response {
     public byte [] content() {
         return os.toByteArray();
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ServerResponse{");
+        sb.append("status=").append(status);
+        sb.append('}');
+        return sb.toString();
+    }
 }

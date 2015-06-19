@@ -31,6 +31,7 @@ import org.eclipse.jetty.util.HttpCookieStore;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 import rx.Subscriber;
 
@@ -48,6 +49,7 @@ public class JettyHttpClient extends AbstractHttpClient {
 
     private final HttpClient client;
 
+    @Autowired
     public JettyHttpClient(final Api api) {
         super(api);
         this.client = construct();

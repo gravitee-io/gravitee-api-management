@@ -15,14 +15,26 @@
  */
 package io.gravitee.gateway.core.handler;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.core.http.ServerResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Handler {
+public class ErrorHandler implements Handler {
 
-    Observable<Response> handle(Request request, Response response);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ErrorHandler.class);
+
+    @Override
+    public Observable<Response> handle(Request request, Response response) {
+        LOGGER.warn("No API can be found to match request path {}, returning 404", request.path());
+
+        ((ServerResponse)response).setStatus(HttpStatusCode.NOT_FOUND_404);
+        return Observable.just(response);
+    }
 }

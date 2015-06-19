@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.registry;
+package io.gravitee.gateway.core.service;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum RegistryEvent {
+public enum ApiLifecycleEvent {
     START,
     STOP
 }
