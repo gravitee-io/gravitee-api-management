@@ -90,10 +90,4 @@ public class MongoDBRegistryTest extends AbstractMongoDBTest {
         assertTrue(registry.reloadAll());
         assertTrue(registry.statusApi(name));
     }
-
-    @Test
-    public void shouldFindMatchingApi() {
-        assertNotNull(registry.findMatchingApi("/test"));
-        assertNull(registry.findMatchingApi("/myapi"));
-    }
 }
