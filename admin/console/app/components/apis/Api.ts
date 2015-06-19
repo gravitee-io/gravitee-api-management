@@ -16,9 +16,9 @@
 
 export class Api {
     name: string;
-    version: string;
     public: string;
     target: string;
+    enabled: boolean;
     constructor() {
     }
 }

@@ -14,26 +14,49 @@
 /// limitations under the License.
 ///
 
-import {Component, View, NgFor} from 'angular2/angular2';
+import {Component, View, NgFor, NgIf} from 'angular2/angular2';
 
 import {ApisService} from '../../services/ApisService';
 import {Api} from './api';
 
 @Component({
-  selector: 'component-apis',
+  selector: 'apis',
   appInjector: [ApisService]
 })
 @View({
   templateUrl: './components/apis/apis.html?v=<%= VERSION %>',
-  directives: [NgFor]
+  directives: [NgFor, NgIf]
 })
 
 export class Apis {
+
   apis: Array<Api>;
+  apisService: ApisService;
 
   constructor(apisService: ApisService) {
-    apisService.list().then(data => {
+    this.apisService = apisService;
+    this.list();
+  }
+
+  list() {
+    this.apisService.list().then(data => {
       this.apis = data;
-    })
+    });
+  }
+
+  start(name: string) {
+    this.apisService.start(name).then(data => {
+      this.apisService.reloadAll().then(data => {
+        this.list();
+      });
+    });
+  }
+
+  stop(name: string) {
+    this.apisService.stop(name).then(data => {
+      this.apisService.reloadAll().then(data => {
+        this.list();
+      });
+    });
   }
 }

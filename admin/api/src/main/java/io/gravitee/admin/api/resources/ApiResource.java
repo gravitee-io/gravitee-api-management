@@ -56,21 +56,15 @@ public class ApiResource extends AbstractResource {
     @POST
     @Path("/start/{name}")
     public Response startApi(@PathParam("name") final String name) {
-        if (getRegistry().startApi(name)) {
-            return Response.status(HttpStatusCode.OK_200).build();
-        } else {
-            return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
-        }
+        getRegistry().startApi(name);
+        return Response.status(HttpStatusCode.OK_200).build();
     }
 
     @POST
     @Path("/stop/{name}")
     public Response stopApi(@PathParam("name") final String name) {
-        if (getRegistry().stopApi(name)) {
-            return Response.status(HttpStatusCode.OK_200).build();
-        } else {
-            return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
-        }
+        getRegistry().stopApi(name);
+        return Response.status(HttpStatusCode.OK_200).build();
     }
 
     @POST
