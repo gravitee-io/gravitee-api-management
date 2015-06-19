@@ -15,23 +15,34 @@
  */
 package io.gravitee.gateway.core.reactor;
 
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.event.Event;
 import io.gravitee.gateway.core.event.EventListener;
 import io.gravitee.gateway.core.event.EventManager;
+import io.gravitee.gateway.core.handler.Handler;
 import io.gravitee.gateway.core.registry.RegistryEvent;
 import io.gravitee.model.Api;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<RegistryEvent, Api> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(GraviteeReactor.class);
+
     @Autowired
     private EventManager eventManager;
+
+    private ConcurrentMap<String, Handler> handlers = new ConcurrentHashMap();
 
     @PostConstruct
     public void init() {
@@ -40,6 +51,23 @@ public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<Re
 
     @Override
     public void onEvent(Event<RegistryEvent, Api> event) {
+        switch(event.type()) {
+            case START:
+                break;
+            case STOP:
+                break;
+        }
+    }
 
+    protected void addHandler(Api api) {
+        LOGGER.info("API {} has been enabled in reactor", api);
+
+        handlers.putIfAbsent(api.getPublicURI().getPath(), null);
+    }
+
+    protected void removeHandler(Api api) {
+        LOGGER.info("API {} has been disabled (or removed) in reactor", api);
+
+        handlers.remove(api.getPublicURI().getPath());
     }
 }
