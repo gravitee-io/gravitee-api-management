@@ -16,24 +16,35 @@
 package io.gravitee.gateway.core.handler;
 
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import io.gravitee.gateway.core.policy.PolicyChainBuilder;
+import io.gravitee.gateway.core.policy.RequestPolicyChain;
+import io.gravitee.gateway.core.policy.ResponsePolicyChain;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ContextHandler implements Handler {
+public abstract class ContextHandler implements Handler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ContextHandler.class);
+    @Autowired
+    private PolicyChainBuilder<RequestPolicyChain, Request> requestPolicyChainBuilder;
 
-    private ConcurrentMap<String, Handler> handlers = new ConcurrentHashMap();
+    @Autowired
+    private PolicyChainBuilder<ResponsePolicyChain, Request> responsePolicyChainBuilder;
 
-    @Override
-    public void handle(Request request, Response response) {
-        // Select the best handler
+    public PolicyChainBuilder<RequestPolicyChain, Request> getRequestPolicyChainBuilder() {
+        return requestPolicyChainBuilder;
     }
+
+    public PolicyChainBuilder<ResponsePolicyChain, Request> getResponsePolicyChainBuilder() {
+        return responsePolicyChainBuilder;
+    }
+
+    public boolean hasVirtualHost() {
+        return (getVirtualHost() != null && !getVirtualHost().isEmpty());
+    }
+
+    public abstract String getContextPath();
+
+    public abstract String getVirtualHost();
 }

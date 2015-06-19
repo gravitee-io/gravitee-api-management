@@ -45,7 +45,7 @@ public class RequestBuilder {
 		copyQueryParameters(request, servletRequest);
 
 		request.setMethod(HttpMethod.valueOf(servletRequest.getMethod()));
-		request.setRequestURI(URI.create(servletRequest.getRequestURI()));
+		request.setRequestURI(URI.create(servletRequest.getRequestURL().toString()));
 		
 		return request;
 	}
