@@ -35,7 +35,6 @@
 
     <modules>
         <module>servlet</module>
-        <module>jetty</module>
     </modules>
 
     <dependencies>
