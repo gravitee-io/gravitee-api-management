@@ -27,7 +27,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway</groupId>
+    <groupId>io.gravitee.gateway.platforms</groupId>
     <artifactId>servlet</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>Gravitee IO - API Management - Gateway Platforms - Servlet</name>
