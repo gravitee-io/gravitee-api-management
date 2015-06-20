@@ -38,7 +38,6 @@
         <module>model</module>
         <module>common</module>
         <module>gateway</module>
-        <module>distribution</module>
     </modules>
 
     <build>
