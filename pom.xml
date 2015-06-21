@@ -36,18 +36,18 @@
         <!-- Gravitee dependencies -->
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
-            <artifactId>api</artifactId>
-            <version>${gateway.version}</version>
+            <artifactId>gateway-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.gravitee</groupId>
-            <artifactId>common</artifactId>
-            <version>${gateway.version}</version>
+            <groupId>io.gravitee.common</groupId>
+            <artifactId>gravitee-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.gravitee.gateway.registry</groupId>
-            <artifactId>mongodb</artifactId>
-            <version>${gateway.version}</version>
+            <artifactId>gateway-mongodb</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <!-- Jersey dependencies -->
         <dependency>
@@ -80,7 +80,6 @@
     </dependencies>
 
     <properties>
-        <gateway.version>1.0.0-SNAPSHOT</gateway.version>
         <jetty.version>9.2.11.v20150529</jetty.version>
         <jackson.version>2.5.3</jackson.version>
         <jersey.version>2.18</jersey.version>
