@@ -33,7 +33,7 @@
     <name>Gravitee IO - API Management - Gateway Platforms - Servlet</name>
 
     <dependencies>
-        <!-- Gravity -->
+        <!-- Gravitee -->
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>core</artifactId>
