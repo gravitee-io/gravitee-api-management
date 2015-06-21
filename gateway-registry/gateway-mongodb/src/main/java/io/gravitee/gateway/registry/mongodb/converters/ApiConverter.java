@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.registry.mongodb.converters;
 
-import com.google.common.base.Strings;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import io.gravitee.model.Api;
@@ -35,10 +34,10 @@ public class ApiConverter extends AbstractConverter<Api, DBObject> {
             return null;
         }
         final DBObject dbObject = new BasicDBObject();
-        if (!Strings.isNullOrEmpty(api.getName())) {
+        if (api.getName() != null && !api.getName().isEmpty()) {
             dbObject.put("name", api.getName());
         }
-        if (!Strings.isNullOrEmpty(api.getVersion())) {
+        if (api.getVersion() != null && !api.getVersion().isEmpty()) {
             dbObject.put("version", api.getVersion());
         }
         dbObject.put("enabled", api.isEnabled());

@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.registry.mongodb;
 
-import com.mongodb.Block;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
@@ -31,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.function.Consumer;
 
 /**
  * MongoDB API registry.
@@ -99,12 +99,7 @@ public class MongoDBRegistry extends AbstractRegistry {
     private void readConfiguration() {
         LOGGER.info("Loading Gravitee configuration from MongoDB database '{}'", mongoDatabase.getName());
         final FindIterable<DBObject> apis = mongoDatabase.getCollection("apis", DBObject.class).find();
-        apis.forEach(new Block<DBObject>() {
-            @Override
-            public void apply(final DBObject dbObject) {
-                register(apiConverter.convertFrom(dbObject));
-            }
-        });
+        apis.forEach((Consumer<DBObject>) dbObject -> register(apiConverter.convertFrom(dbObject)));
         LOGGER.info("{} API(s) registered", listAll().size());
     }
 }
