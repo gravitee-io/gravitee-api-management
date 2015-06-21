@@ -23,12 +23,12 @@
 
     <parent>
         <groupId>io.gravitee.gateway</groupId>
-        <artifactId>platforms</artifactId>
+        <artifactId>gateway-platforms</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.gateway.platforms</groupId>
-    <artifactId>servlet</artifactId>
+    <artifactId>gateway-servlet</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>Gravitee IO - API Management - Gateway Platforms - Servlet</name>
 
@@ -36,7 +36,7 @@
         <!-- Gravitee -->
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>gateway-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
