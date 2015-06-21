@@ -23,20 +23,21 @@
 
     <parent>
         <groupId>io.gravitee</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>gravitee-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee</groupId>
-    <artifactId>gateway-parent</artifactId>
+    <artifactId>gateway</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Gravitee IO - API Management</name>
 
     <modules>
-        <module>model</module>
-        <module>common</module>
-        <module>gateway</module>
+        <module>api</module>
+        <module>core</module>
+        <module>platforms</module>
+        <module>registry</module>
     </modules>
 
     <dependencyManagement>
@@ -57,15 +58,34 @@
                 <artifactId>logback-core</artifactId>
                 <version>${logback.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>${rxjava.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
+    <dependencies>
+        <!-- Unit Tests -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <properties>
+        <rxjava.version>1.0.11</rxjava.version>
+        <junit.version>4.12</junit.version>
         <guava.version>18.0</guava.version>
         <jackson.version>2.5.3</jackson.version>
         <jetty.version>9.2.11.v20150529</jetty.version>
