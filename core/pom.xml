@@ -28,7 +28,7 @@
     </parent>
 
     <groupId>io.gravitee.gateway</groupId>
-    <artifactId>core</artifactId>
+    <artifactId>gateway-core</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <name>Gravitee IO - API Management - Gateway Core</name>
@@ -37,13 +37,13 @@
         <!-- Gravitee internal dependencies -->
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
-            <artifactId>api</artifactId>
+            <artifactId>gateway-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee</groupId>
-            <artifactId>common</artifactId>
+            <groupId>io.gravitee.common</groupId>
+            <artifactId>gravitee-common</artifactId>
             <version>${project.version}</version>
         </dependency>
 

@@ -28,7 +28,7 @@
     </parent>
 
     <groupId>io.gravitee.gateway.registry</groupId>
-    <artifactId>registry</artifactId>
+    <artifactId>gateway-registry</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Gravitee IO - API Management - Gateway Registry</name>
