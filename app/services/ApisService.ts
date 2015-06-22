@@ -16,7 +16,7 @@
 
 import {Api} from '../components/apis/api';
 
-declare var fetch;
+declare var $;
 
 export class ApisService {
 
@@ -24,18 +24,20 @@ export class ApisService {
     }
 
     list() {
-        return fetch('http://localhost:8059/rest/apis').then(r => r.json());
+        return $.get("http://localhost:8059/rest/apis",
+            function(data) {return data;}
+        );
     }
 
     start(name: string) {
-        return fetch('http://localhost:8059/rest/apis/start/' + name, {mode: 'no-cors', method:'POST'});
+        return $.post('http://localhost:8059/rest/apis/start/' + name);
     }
 
     stop(name: string) {
-        return fetch('http://localhost:8059/rest/apis/stop/' + name, {mode: 'no-cors', method:'POST'});
+        return $.post('http://localhost:8059/rest/apis/stop/' + name);
     }
 
     reloadAll() {
-        return fetch('http://localhost:8059/rest/apis/reloadAll', {mode: 'no-cors', method:'POST'});
+        return $.post('http://localhost:8059/rest/apis/reloadAll');
     }
 }

@@ -26,7 +26,7 @@ import {Apis} from './components/apis/apis';
 })
 @RouteConfig([
   { path: '/', component: Home, as: 'home' },
-  { path: '/apis', component: Apis, as: 'apis' }
+  { path: '#apis', component: Apis, as: 'apis' }
 ])
 @View({
   templateUrl: './app.html?v=<%= VERSION %>',

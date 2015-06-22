@@ -1,6 +1,7 @@
 !.gitignore
 
-build/
+dist/dev/
+dist/prod/
 node_modules/
 
 *.iml
