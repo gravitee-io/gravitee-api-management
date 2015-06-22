@@ -34,7 +34,7 @@
     <name>Gravitee IO - API Management - Gateway Platforms</name>
 
     <modules>
-        <module>servlet</module>
+        <module>gateway-servlet</module>
     </modules>
 
     <dependencies>
