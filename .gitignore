@@ -5,3 +5,5 @@ dist/prod/
 node_modules/
 
 *.iml
+
+target/
