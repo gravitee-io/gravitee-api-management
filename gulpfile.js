@@ -58,7 +58,8 @@ var PATH = {
     },
     prod: {
       all: 'dist/prod',
-      lib: 'dist/prod/lib'
+      lib: 'dist/prod/lib',
+      font: 'dist/prod/fonts'
     }
   },
   src: {
@@ -219,7 +220,6 @@ gulp.task('build.js.tmp', function () {
     .pipe(gulp.dest('tmp'));
 });
 
-// TODO: add inline source maps (System only generate separate source maps file).
 gulp.task('build.js.prod', ['build.js.tmp'], function() {
   return appProdBuilder.build('app', join(PATH.dest.prod.all, 'app.js'),
     { minify: true }).catch(function (e) { console.log(e); });
@@ -238,10 +238,17 @@ gulp.task('build.init.prod', function() {
     .pipe(gulp.dest(PATH.dest.prod.all));
 });
 
-gulp.task('build.assets.prod', ['build.js.prod'], function () {
+gulp.task('build.font.prod', function () {
+  return gulp.src('./app/fonts/*')
+      .pipe(gulp.dest(PATH.dest.prod.font));
+});
+
+gulp.task('build.assets.prod', ['build.js.prod', 'build.font.prod'], function () {
   var filterHTML = filter('**/*.html');
   var filterCSS = filter('**/*.css');
-  return gulp.src(['./app/**/*.html', './app/**/*.css'])
+  return gulp.src(['./app/**/*.html', './app/**/*.css'].concat(PATH.src.lib.filter(function (file) {
+    return file.endsWith('.css');
+  })))
     .pipe(filterHTML)
     .pipe(minifyHTML(HTMLMinifierOpts))
     .pipe(filterHTML.restore())
