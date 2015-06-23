@@ -52,6 +52,7 @@ var PATH = {
     dev: {
       all: 'dist/dev',
       lib: 'dist/dev/lib',
+      font: 'dist/dev/fonts',
       ng2: 'dist/dev/lib/angular2.js',
       router: 'dist/dev/lib/router.js'
     },
@@ -70,7 +71,8 @@ var PATH = {
       './node_modules/reflect-metadata/Reflect.js.map',
       './node_modules/systemjs/dist/system.src.js',
       './node_modules/angular2/node_modules/zone.js/dist/zone.js',
-      './node_modules/jquery/dist/jquery.min.js'
+      './node_modules/jquery/dist/jquery.min.js',
+      './node_modules/bootstrap/dist/css/bootstrap.css'
     ]
   }
 };
@@ -160,9 +162,14 @@ gulp.task('build.js.dev', function () {
     .pipe(gulp.dest(PATH.dest.dev.all));
 });
 
-gulp.task('build.assets.dev', ['build.js.dev'], function () {
+gulp.task('build.font.dev', function () {
+  return gulp.src('./app/fonts/*')
+      .pipe(gulp.dest(PATH.dest.dev.font));
+});
+
+gulp.task('build.assets.dev', ['build.js.dev', 'build.font.dev'], function () {
   return gulp.src(['./app/**/*.html', './app/**/*.css'])
-    .pipe(gulp.dest(PATH.dest.dev.all));
+      .pipe(gulp.dest(PATH.dest.dev.all));
 });
 
 gulp.task('build.index.dev', function() {
