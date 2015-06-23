@@ -23,7 +23,8 @@
         <th>Nom</th>
         <th>URI public</th>
         <th>URI cible</th>
-        <th>Statut</th>
+        <th class="text-center">Statut</th>
+        <th></th>
     </tr>
     <tr *ng-for="#api of apis">
         <td>{{api.name}}</td>
@@ -31,7 +32,11 @@
         <td>{{api.target}}</td>
         <td *ng-if="api.enabled" class="text-center"><i class="glyphicon glyphicon-ok"></i></td>
         <td *ng-if="!api.enabled" class="text-center"><i class="glyphicon glyphicon-remove"></i></td>
-        <td *ng-if="!api.enabled"><button class="btn btn-success" (click)="start(api.name)">Démarrer</button></td>
-        <td *ng-if="api.enabled"><button class="btn btn-danger" (click)="stop(api.name)">Arrêter</button></td>
+        <td *ng-if="!api.enabled">
+            <button class="btn btn-success glyphicon glyphicon-play" (click)="start(api.name)"> Démarrer</button>
+        </td>
+        <td *ng-if="api.enabled">
+            <button class="btn btn-danger glyphicon glyphicon-stop" (click)="stop(api.name)"> Arrêter</button>
+        </td>
     </tr>
 </table>

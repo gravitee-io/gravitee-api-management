@@ -15,11 +15,10 @@
     limitations under the License.
 
 -->
-<section>
-  <nav>
-    <a router-link="home">Home</a>
-    <a router-link="apis">APIs</a>
-  </nav>
-
-  <router-outlet></router-outlet>
-</section>
+<div class="container-fluid">
+    <ul class="nav nav-tabs">
+        <li role="presentation"><a router-link="home">Home</a></li>
+        <li role="presentation"><a router-link="apis">APIs</a></li>
+    </ul>
+    <router-outlet></router-outlet>
+</div>

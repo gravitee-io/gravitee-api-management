@@ -15,24 +15,24 @@
 ///
 
 /// <reference path="../typings/tsd.d.ts" />
-import {Component, View, bootstrap, NgFor} from 'angular2/angular2';
+import {Component, View, bootstrap} from 'angular2/angular2';
 import {RouteConfig, RouterOutlet, RouterLink, routerInjectables} from 'angular2/router';
 
 import {Home} from './components/home/home';
 import {Apis} from './components/apis/apis';
 
 @Component({
-  selector: 'app'
+    selector: 'app'
 })
 @RouteConfig([
-  { path: '/', component: Home, as: 'home' },
-  { path: '#apis', component: Apis, as: 'apis' }
+    {path: '/', component: Home, as: 'home'},
+    {path: '#apis', component: Apis, as: 'apis'}
 ])
 @View({
-  templateUrl: './app.html?v=<%= VERSION %>',
-  directives: [RouterOutlet, RouterLink]
+    templateUrl: './app.html?v=<%= VERSION %>',
+    directives: [RouterOutlet, RouterLink]
 })
-class App {}
 
+class App {}
 
 bootstrap(App, [routerInjectables]);
