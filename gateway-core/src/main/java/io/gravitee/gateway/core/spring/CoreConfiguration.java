@@ -19,6 +19,8 @@ import io.gravitee.gateway.api.Registry;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.event.impl.EventManagerImpl;
+import io.gravitee.gateway.core.handler.ErrorHandler;
+import io.gravitee.gateway.core.handler.Handler;
 import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
 import io.gravitee.gateway.core.registry.FileRegistry;
 import io.gravitee.gateway.core.service.ApiService;
@@ -50,5 +52,10 @@ public class CoreConfiguration {
     @Bean
     public ApiService apiService() {
         return new ApiServiceImpl();
+    }
+
+    @Bean(name = "errorHandler")
+    public Handler errorHandler() {
+        return new ErrorHandler();
     }
 }

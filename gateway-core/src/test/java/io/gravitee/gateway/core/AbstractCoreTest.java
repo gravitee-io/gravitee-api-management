@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reactor;
+package io.gravitee.gateway.core;
 
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import rx.Observable;
+import io.gravitee.gateway.core.spring.CoreConfiguration;
+import org.junit.runner.RunWith;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class AsyncGraviteeReactor extends GraviteeReactor<Observable<Response>> {
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(loader=AnnotationConfigContextLoader.class)
+public class AbstractCoreTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncGraviteeReactor.class);
-
-    @Override
-    public Observable<Response> process(Request request) {
-        LOGGER.debug("Receiving a request {} for path {}", request.id(), request.path());
-        return super.handle(request);
+    @Configuration
+    @Import({CoreConfiguration.class})
+    static class ContextConfiguration {
     }
 }

@@ -13,15 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api;
+package io.gravitee.gateway.core.builder;
+
+import io.gravitee.model.Api;
+
+import java.net.URI;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyChain {
+public class ApiBuilder {
 
-    void doNext(Request request, Response response);
+    private final Api api = new Api();
 
-    void doError(Throwable throwable);
+    public ApiBuilder name(String name) {
+        this.api.setName(name);
+        return this;
+    }
+
+    public ApiBuilder target(String target) {
+        this.api.setTargetURI(URI.create(target));
+        return this;
+    }
+
+    public ApiBuilder origin(String origin) {
+        this.api.setPublicURI(URI.create(origin));
+        return this;
+    }
+
+    public ApiBuilder enable() {
+        this.api.setEnabled(true);
+        return this;
+    }
+
+    public Api build() {
+        return this.api;
+    }
 }
