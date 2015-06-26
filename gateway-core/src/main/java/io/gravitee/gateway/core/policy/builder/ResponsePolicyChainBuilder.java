@@ -19,7 +19,7 @@ import io.gravitee.gateway.api.Policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.policy.PolicyChainBuilder;
 import io.gravitee.gateway.core.policy.ResponsePolicyChain;
-import io.gravitee.gateway.core.policy.rules.TransformPolicy;
+import io.gravitee.gateway.core.policy.impl.TransformPolicy;
 
 import java.util.HashSet;
 import java.util.Set;

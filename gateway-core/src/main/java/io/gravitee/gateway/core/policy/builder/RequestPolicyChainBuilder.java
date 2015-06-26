@@ -19,8 +19,8 @@ import io.gravitee.gateway.api.Policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.policy.PolicyChainBuilder;
 import io.gravitee.gateway.core.policy.RequestPolicyChain;
-import io.gravitee.gateway.core.policy.rules.AccessControlPolicy;
-import io.gravitee.gateway.core.policy.rules.RateLimitPolicy;
+import io.gravitee.gateway.core.policy.impl.AccessControlPolicy;
+import io.gravitee.gateway.core.policy.impl.RateLimitPolicy;
 
 import java.util.HashSet;
 import java.util.Set;

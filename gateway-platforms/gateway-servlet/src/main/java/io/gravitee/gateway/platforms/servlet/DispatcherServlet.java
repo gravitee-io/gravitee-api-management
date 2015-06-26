@@ -20,7 +20,6 @@ import io.gravitee.gateway.core.Reactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
-import rx.functions.Action1;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -45,34 +44,37 @@ public abstract class DispatcherServlet extends HttpServlet {
 		// We do not timeout the continuation, but the proxy request
 		asyncContext.setTimeout(0);
 
-        Observable<Response> response = getReactor().process(RequestBuilder.from(req));
-        response.subscribe(new Action1<Response>() {
-			@Override
-			public void call(Response response) {
-				LOGGER.debug("Return response: {}", response);
-
-				writeResponse(resp, response);
-
-				try {
-					final ServletOutputStream outputStream = resp.getOutputStream();
-					byte[] buffer = response.content();
-					outputStream.write(buffer, 0, buffer.length);
-
-					resp.flushBuffer();
-				} catch (final IOException e) {
-					LOGGER.error("Error while handling proxy request", e);
-				}
-
-				asyncContext.complete();
-			}
-		}, new Action1<Throwable>() {
-			@Override
-			public void call(Throwable throwable) {
-				LOGGER.error("An error occurs: ", throwable);
-				asyncContext.complete();
-			}
-		});
+        getReactor()
+                .process(RequestBuilder.from(req))
+		        .subscribe(
+                    result -> handleResult(req, resp, result),
+                    error -> handleError(req, resp, error)
+                );
 	}
+
+    private void handleResult(final HttpServletRequest req, final HttpServletResponse resp, Response response) {
+        LOGGER.debug("Return response: {}", response);
+
+        writeResponse(resp, response);
+
+        try {
+            final ServletOutputStream outputStream = resp.getOutputStream();
+            byte[] buffer = response.content();
+            outputStream.write(buffer, 0, buffer.length);
+
+            resp.flushBuffer();
+        } catch (final IOException e) {
+            LOGGER.error("Error while handling proxy request", e);
+        }
+
+        req.getAsyncContext().complete();
+    }
+
+    private void handleError(final HttpServletRequest req, final HttpServletResponse resp, Throwable throwable) {
+        LOGGER.error("An error occurs: ", throwable);
+
+        req.getAsyncContext().complete();
+    }
 
 	@Override protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		handle(req, resp);

@@ -16,13 +16,10 @@
 package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.Policy;
-import io.gravitee.gateway.api.PolicyResult;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
-import rx.Subscriber;
 
 import java.util.Set;
 
@@ -37,27 +34,16 @@ public class ResponsePolicyChain extends AbstractPolicyChain {
         super(policies);
     }
 
-    public Observable<PolicyResult> asyncHandle(final Request request, final Response response) {
-        return Observable.create(
-                new Observable.OnSubscribe<PolicyResult>() {
-
-                    @Override
-                    public void call(Subscriber<? super PolicyResult> observer) {
-                        doNext(request, response);
-
-                        observer.onNext(new PolicyResult() {
-                        });
-                        observer.onCompleted();
-                    }
-                }
-        );
-    }
-
     @Override
     public void doNext(final Request request, final Response response) {
         if (iterator().hasNext()) {
             Policy policy = iterator().next();
             policy.onResponse(request, response, this);
         }
+    }
+
+    @Override
+    public void doError(Throwable throwable) {
+
     }
 }
