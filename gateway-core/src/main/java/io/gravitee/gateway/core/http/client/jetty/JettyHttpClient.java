@@ -239,7 +239,7 @@ public class JettyHttpClient extends AbstractHttpClient {
         // Be careful : max threads can't be less than 2 -> deadlock
         QueuedThreadPool qtp = new QueuedThreadPool(200);
 
-        qtp.setName("dispatcher" + api.getName());
+        qtp.setName("dispatcher-" + api.getName());
 
         client.setExecutor(qtp);
         client.setIdleTimeout(30000);
