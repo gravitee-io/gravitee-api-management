@@ -28,7 +28,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(loader=AnnotationConfigContextLoader.class)
-public class AbstractCoreTest {
+public abstract class AbstractCoreTest {
 
     @Configuration
     @Import({CoreConfiguration.class})
