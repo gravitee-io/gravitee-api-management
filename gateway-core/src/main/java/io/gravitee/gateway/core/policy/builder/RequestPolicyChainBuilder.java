@@ -28,21 +28,14 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class RequestPolicyChainBuilder implements PolicyChainBuilder<RequestPolicyChain, Request> {
+public class RequestPolicyChainBuilder extends AbstractPolicyChainBuilder<RequestPolicyChain> {
 
     @Override
     public RequestPolicyChain newPolicyChain(Request request) {
         Set<Policy> policies = policies();
 
+        // TODO: Check if the policy should be applied to the current request according
+        // to the request path
         return new RequestPolicyChain(policies);
-    }
-
-    private Set<Policy> policies() {
-        Set<Policy> policies = new HashSet<>();
-
-        policies.add(new AccessControlPolicy());
-        policies.add(new RateLimitPolicy());
-
-        return policies;
     }
 }
