@@ -1,3 +1,4 @@
+[![Build Status](http://build.gravitee.io/jenkins/buildStatus/icon?job=gateway-admin-web)](http://build.gravitee.io/jenkins/view/Tous/job/gateway-admin-web/)
 # Gravitee-IO
 
 # Install
