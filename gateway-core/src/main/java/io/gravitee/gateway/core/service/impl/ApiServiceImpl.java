@@ -15,14 +15,17 @@
  */
 package io.gravitee.gateway.core.service.impl;
 
-import io.gravitee.gateway.api.Registry;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import io.gravitee.gateway.api.Repository;
 import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.service.ApiLifecycleEvent;
 import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.model.Api;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -35,11 +38,11 @@ public class ApiServiceImpl implements ApiService {
     private EventManager eventManager;
 
     @Autowired
-    private Registry registry;
+    private Repository repository;
 
     @Override
     public boolean start(String name) {
-        Api api = registry.get(name);
+        Api api = repository.get(name);
         if (api == null) {
             return false;
         } else {
@@ -50,7 +53,7 @@ public class ApiServiceImpl implements ApiService {
 
     @Override
     public boolean stop(String name) {
-        Api api = registry.get(name);
+        Api api = repository.get(name);
         if (api == null) {
             return false;
         } else {
@@ -68,11 +71,21 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public void startAll() {
         LOGGER.info("Starting APIs... ");
-        for(Api api: registry.listAll()) {
+        for(Api api: repository.listAll()) {
             if (api.isEnabled()) {
                 start(api.getName());
             }
         }
         LOGGER.info("Starting APIs... DONE");
+    }
+
+    @Override
+    public Set<Api> listAll() {
+        return repository.listAll();
+    }
+
+    @Override
+    public boolean create(Api api) {
+        return repository.create(api);
     }
 }

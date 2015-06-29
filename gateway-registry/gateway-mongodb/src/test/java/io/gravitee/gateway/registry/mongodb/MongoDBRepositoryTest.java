@@ -15,25 +15,26 @@
  */
 package io.gravitee.gateway.registry.mongodb;
 
-import io.gravitee.gateway.api.Registry;
-import io.gravitee.model.Api;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.net.URI;
 
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+
+import io.gravitee.gateway.api.Repository;
+import io.gravitee.model.Api;
 
 /**
  * Allows to test {@code Api} operations on {@code MongoDBRegistry}.
  *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-public class MongoDBRegistryTest extends AbstractMongoDBTest {
+public class MongoDBRepositoryTest extends AbstractMongoDBTest {
 
     private static final String APIS_DATA = "/data/apis.json";
 
-    private Registry registry;
+    private Repository repository;
 
     @Override
     protected String getJsonDataSetResourceName() {
@@ -42,12 +43,12 @@ public class MongoDBRegistryTest extends AbstractMongoDBTest {
 
     @Before
     public void init() {
-        registry = new MongoDBRegistry(this.getClass().getResource(APIS_DATA).getPath());
+        repository = new MongoDBRepository(this.getClass().getResource(APIS_DATA).getPath());
     }
 
     @Test
     public void shouldListAll() {
-        assertEquals(1, registry.listAll().size());
+        assertEquals(1, repository.listAll().size());
     }
 
     @Test
@@ -57,37 +58,27 @@ public class MongoDBRegistryTest extends AbstractMongoDBTest {
         api.setName(name);
         api.setPublicURI(URI.create("http://localhost:8082/users"));
         api.setTargetURI(URI.create("http://localhost:8083/app/users"));
-        assertTrue(registry.create(api));
-        assertEquals(1, registry.listAll().size());
-        registry.reloadApi(name);
-        assertEquals(2, registry.listAll().size());
+        assertEquals(1, repository.listAll().size());
+        assertEquals(2, repository.fetchAll().size());
+        assertTrue(repository.create(api));
+        assertEquals(1, repository.listAll().size());
+        assertEquals(3, repository.fetchAll().size());
     }
 
     @Test
-    public void shouldNotCreateApi() {
-        final String name = "api-users";
+    public void shouldUpdateApi() {
+        final String name = "api-test";
+        final URI oldTargetURI = repository.get(name).getTargetURI();
         final Api api = new Api();
         api.setName(name);
-        assertFalse(registry.create(api));
-        assertEquals(1, registry.listAll().size());
-        registry.reloadApi(name);
-        assertEquals(1, registry.listAll().size());
-    }
-
-    @Test
-    public void shouldStartAndStopApi() {
-        final String name = "api-test";
-        // stop API
-        assertTrue(registry.statusApi(name));
-        assertTrue(registry.stopApi(name));
-        assertTrue(registry.statusApi(name));
-        assertTrue(registry.reloadAll());
-        assertFalse(registry.statusApi(name));
-
-        // start API
-        assertTrue(registry.startApi(name));
-        assertFalse(registry.statusApi(name));
-        assertTrue(registry.reloadAll());
-        assertTrue(registry.statusApi(name));
+        api.setPublicURI(URI.create("http://localhost:8082/users"));
+        api.setTargetURI(URI.create("http://localhost:8083/newapp/users"));
+        assertEquals(1, repository.listAll().size());
+        assertEquals(2, repository.fetchAll().size());
+        assertTrue(repository.update(api));
+        assertEquals(1, repository.listAll().size());
+        assertEquals(2, repository.fetchAll().size());
+        assertEquals(oldTargetURI, repository.get(name).getTargetURI());
+        assertEquals(URI.create("/newapp/users"), repository.fetch(name).getTargetURI());
     }
 }
