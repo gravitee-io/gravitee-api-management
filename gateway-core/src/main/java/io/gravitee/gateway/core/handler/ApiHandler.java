@@ -15,13 +15,14 @@
  */
 package io.gravitee.gateway.core.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.model.Api;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 import rx.Subscriber;
 
@@ -83,6 +84,6 @@ public class ApiHandler extends ContextHandler {
 
     @Override
     public String getVirtualHost() {
-        return api.getPublicURI().getHost();
+        return api.getPublicURI().getAuthority();
     }
 }
