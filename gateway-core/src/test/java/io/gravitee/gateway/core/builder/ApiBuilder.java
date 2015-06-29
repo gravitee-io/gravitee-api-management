@@ -15,9 +15,10 @@
  */
 package io.gravitee.gateway.core.builder;
 
-import io.gravitee.model.Api;
-
 import java.net.URI;
+
+import io.gravitee.model.Api;
+import io.gravitee.model.ApiState;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -41,8 +42,8 @@ public class ApiBuilder {
         return this;
     }
 
-    public ApiBuilder enable() {
-        this.api.setEnabled(true);
+    public ApiBuilder start() {
+        this.api.setState(ApiState.STARTED);
         return this;
     }
 
