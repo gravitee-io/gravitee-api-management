@@ -33,13 +33,6 @@
     <name>Gravitee IO - API Management - Gateway Platforms - Servlet</name>
 
     <dependencies>
-        <!-- Gravitee -->
-        <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gateway-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
