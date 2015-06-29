@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.registry;
-
-import io.gravitee.gateway.api.Registry;
-import io.gravitee.model.Api;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package io.gravitee.gateway.core.repository;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.gravitee.gateway.api.Repository;
+import io.gravitee.model.Api;
 
 /**
  * Defines the default behaviour of registries.
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public abstract class AbstractRegistry implements Registry {
+public abstract class AbstractRepository implements Repository {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
@@ -50,12 +51,7 @@ public abstract class AbstractRegistry implements Registry {
         apis.clear();
     }
 
-    protected boolean deregister(final Api api) {
-        LOGGER.info("Deregistering an API : {}", api);
-        return apis.remove(api);
-    }
-
-    private boolean validate(final Api api) {
+    protected boolean validate(final Api api) {
         if (api == null) {
             return false;
         }
@@ -97,33 +93,4 @@ public abstract class AbstractRegistry implements Registry {
     public Api get(final String name) {
         return apis.stream().filter(input -> input.getName().equals(name)).findFirst().get();
     }
-
-    @Override
-    public boolean create(final Api api) {
-        if (validate(api)) {
-            writeApi(api);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean reloadApi(final String name) {
-        final Api api = findApiByName(name);
-        deregister(api);
-        return register(api);
-    }
-
-    @Override
-    public boolean statusApi(final String name) {
-        final Api api = apis.stream().filter(input -> input.getName().equals(name)).findFirst().get();
-        if (api == null) {
-            return false;
-        }
-        return api.isEnabled();
-    }
-
-    protected abstract void writeApi(Api api);
-
-    protected abstract Api findApiByName(String name);
 }

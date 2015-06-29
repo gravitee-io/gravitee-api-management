@@ -13,29 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api;
+package io.gravitee.gateway.core.registry;
 
-import io.gravitee.model.Api;
+import java.net.URISyntaxException;
+import java.net.URL;
 
-import java.util.Set;
+import org.junit.Assert;
+import org.junit.Test;
+
+import io.gravitee.gateway.api.Repository;
+import io.gravitee.gateway.core.repository.FileRepository;
 
 /**
- * The registry interface used to manage {@code Api}.
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Registry {
+public class FileRepositoryTest {
 
-    Set<Api> listAll();
-    Api get(String name);
-    boolean create(Api api);
+    @Test
+    public void testConfigurations() throws URISyntaxException {
+        URL url = FileRepositoryTest.class.getResource("/registry/conf");
 
-    // Following methods should not be part of the registry
-    // but more in a service layer / manager
-    //TODO: remove these methods and use ApiService instead.
-    boolean startApi(String name);
-    boolean stopApi(String name);
-    boolean statusApi(String name);
-    boolean reloadApi(String name);
-    boolean reloadAll();
+        Repository repository = new FileRepository(url.getPath());
+        Assert.assertTrue(repository != null);
+        Assert.assertTrue(repository.listAll().size()  == 1);
+    }
 }

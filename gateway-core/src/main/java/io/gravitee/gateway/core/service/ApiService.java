@@ -15,6 +15,10 @@
  */
 package io.gravitee.gateway.core.service;
 
+import java.util.Set;
+
+import io.gravitee.model.Api;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -25,4 +29,6 @@ public interface ApiService {
     boolean reload(String name);
 
     void startAll();
+    boolean create(Api api);
+    Set<Api> listAll();
 }

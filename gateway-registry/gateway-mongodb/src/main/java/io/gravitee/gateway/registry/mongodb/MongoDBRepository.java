@@ -15,40 +15,43 @@
  */
 package io.gravitee.gateway.registry.mongodb;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
+import java.util.function.Consumer;
+
+import org.bson.Document;
+
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
 import io.gravitee.common.utils.PropertiesUtils;
-import io.gravitee.gateway.core.registry.AbstractRegistry;
+import io.gravitee.gateway.core.repository.AbstractRepository;
 import io.gravitee.gateway.registry.mongodb.converters.ApiConverter;
 import io.gravitee.model.Api;
-import org.bson.Document;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.function.Consumer;
 
 /**
- * MongoDB API registry.
- * This registry is based on MongoDB datasource to provide Gateway configuration.
+ * MongoDB API repository.
+ * This repository is based on MongoDB datasource to provide Gateway configuration.
  *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-public class MongoDBRegistry extends AbstractRegistry {
+public class MongoDBRepository extends AbstractRepository {
 
     private ApiConverter apiConverter = new ApiConverter();
     private final Properties properties = new Properties();
     private MongoDatabase mongoDatabase;
 
-    public MongoDBRegistry() {
+    public MongoDBRepository() {
         this(System.getProperty("gateway.conf.mongodb", "/etc/gravitee.io/conf/mongodb.properties"));
     }
 
-    public MongoDBRegistry(final String configurationPath) {
+    public MongoDBRepository(final String configurationPath) {
         try {
             final InputStream input = new FileInputStream(configurationPath);
             properties.load(input);
@@ -64,36 +67,37 @@ public class MongoDBRegistry extends AbstractRegistry {
     }
 
     @Override
-    protected Api findApiByName(String name) {
-        final DBObject dbObject =
-                mongoDatabase.getCollection("apis", DBObject.class).find(Filters.eq("name", name)).first();
-        return apiConverter.convertFrom(dbObject);
-    }
-
-    public void writeApi(final Api api) {
+    public boolean create(final Api api) {
         final DBObject document = apiConverter.convertTo(api);
         if (document != null) {
             mongoDatabase.getCollection("apis", DBObject.class).insertOne(document);
+            return true;
         }
+        return false;
     }
 
     @Override
-    public boolean startApi(final String name) {
-        return mongoDatabase.getCollection("apis", DBObject.class).updateOne(Filters.eq("name", name),
-                new Document("$set", new Document("enabled", true))).getModifiedCount() == 1;
+    public boolean update(final Api api) {
+        final DBObject document = apiConverter.convertTo(api);
+        if (document != null) {
+            mongoDatabase.getCollection("apis", DBObject.class).replaceOne(new BasicDBObject("name", api.getName()), document);
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public boolean stopApi(final String name) {
-        return mongoDatabase.getCollection("apis", DBObject.class).updateOne(Filters.eq("name", name),
-                new Document("$set", new Document("enabled", false))).getModifiedCount() == 1;
+    public Api fetch(final String name) {
+        final DBObject api = mongoDatabase.getCollection("apis", DBObject.class).find(new Document("name", name)).first();
+        return apiConverter.convertFrom(api);
     }
 
     @Override
-    public boolean reloadAll() {
-        deregisterAll();
-        readConfiguration();
-        return true;
+    public Set<Api> fetchAll() {
+        final FindIterable<DBObject> apis = mongoDatabase.getCollection("apis", DBObject.class).find();
+        final Set<Api> list = new HashSet<>();
+        apis.forEach((Consumer<DBObject>) api -> list.add(apiConverter.convertFrom(api)));
+        return list;
     }
 
     private void readConfiguration() {

@@ -13,66 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.registry;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.model.Api;
+package io.gravitee.gateway.core.repository;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.model.Api;
+
 /**
- * File API registry.
- * This registry is based on JSON processed files to provide Gateway configuration.
+ * File API repository.
+ * This repository is based on JSON processed files to provide Gateway configuration.
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class FileRegistry extends AbstractRegistry {
+public class FileRepository extends AbstractRepository {
 
     private final static String JSON_EXTENSION = ".json";
 
-    public FileRegistry() {
+    public FileRepository() {
         this(System.getProperty("gateway.conf", "/etc/gravitee.io/conf"));
     }
 
-    public FileRegistry(String configurationPath) {
+    public FileRepository(String configurationPath) {
         File configuration = new File(configurationPath);
 
         if (configuration.exists()) {
             readConfiguration(configuration);
         } else {
             LOGGER.warn("No configuration can be read from {}",
-                    configuration.getAbsolutePath());
+                configuration.getAbsolutePath());
         }
     }
 
     @Override
-    protected Api findApiByName(final String name) {
+    public boolean create(Api api) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
-    protected void writeApi(Api api) {
+    public boolean update(Api api) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
-    public boolean startApi(String name) {
+    public Set<Api> fetchAll() {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
-    public boolean stopApi(String name) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
-    public boolean reloadAll() {
+    public Api fetch(final String name) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
@@ -85,7 +79,7 @@ public class FileRegistry extends AbstractRegistry {
         ObjectMapper mapper = new ObjectMapper();
 
         // Read all configuration files
-        for(File conf : configurations) {
+        for (File conf : configurations) {
             try {
                 LOGGER.info("Read Gravitee configuration from {}", conf.getAbsolutePath());
                 register(mapper.readValue(conf, Api.class));
@@ -102,7 +96,7 @@ public class FileRegistry extends AbstractRegistry {
             LOGGER.debug("Provided configuration path is a file...");
 
             // Check if provided file is suffixed with .json
-            if (! configuration.getName().endsWith(JSON_EXTENSION)) {
+            if (!configuration.getName().endsWith(JSON_EXTENSION)) {
                 LOGGER.error("Configuration file is not a JSON file (does not end with .json)");
                 throw new IllegalStateException("Configuration file is not a JSON file (does not end with .json)");
             }
@@ -110,11 +104,8 @@ public class FileRegistry extends AbstractRegistry {
             return Collections.singleton(configuration);
         } else {
             LOGGER.debug("Provided configuration is a directory, looking for json files.");
-            File [] confs = configuration.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File pathname) {
-                    return pathname.getName().endsWith(JSON_EXTENSION);
-                }
+            final File[] confs = configuration.listFiles(pathname -> {
+                return pathname.getName().endsWith(JSON_EXTENSION);
             });
 
             return new HashSet<>(Arrays.asList(confs));
