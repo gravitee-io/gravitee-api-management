@@ -15,11 +15,12 @@
  */
 package io.gravitee.gateway.registry.mongodb.converters;
 
+import java.net.URI;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import io.gravitee.model.Api;
-
-import java.net.URI;
+import io.gravitee.model.ApiState;
 
 /**
  * A MongoDB converter to convert {@code Api} and {@code DBObject}.
@@ -40,7 +41,9 @@ public class ApiConverter extends AbstractConverter<Api, DBObject> {
         if (api.getVersion() != null && !api.getVersion().isEmpty()) {
             dbObject.put("version", api.getVersion());
         }
-        dbObject.put("enabled", api.isEnabled());
+        if (api.getState() != null) {
+            dbObject.put("state", api.getState().name());
+        }
         if (api.getTargetURI() != null) {
             dbObject.put("target", api.getTargetURI().getPath());
         }
@@ -68,9 +71,9 @@ public class ApiConverter extends AbstractConverter<Api, DBObject> {
         if (publicURI != null) {
             api.setPublicURI(URI.create((String) publicURI));
         }
-        final Object enabled = dbobject.get("enabled");
-        if (enabled != null) {
-            api.setEnabled((Boolean) enabled);
+        final Object state = dbobject.get("state");
+        if (state != null) {
+            api.setState(ApiState.valueOf((String) state));
         }
         final Object target = dbobject.get("target");
         if (target != null) {

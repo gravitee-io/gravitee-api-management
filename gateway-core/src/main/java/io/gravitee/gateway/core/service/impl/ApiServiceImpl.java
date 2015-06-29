@@ -26,6 +26,7 @@ import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.service.ApiLifecycleEvent;
 import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.model.Api;
+import io.gravitee.model.ApiState;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -71,11 +72,11 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public void startAll() {
         LOGGER.info("Starting APIs... ");
-        for(Api api: repository.listAll()) {
-            if (api.isEnabled()) {
+        repository.listAll().forEach(api -> {
+            if (ApiState.STARTED.equals(api.getState())) {
                 start(api.getName());
             }
-        }
+        });
         LOGGER.info("Starting APIs... DONE");
     }
 
