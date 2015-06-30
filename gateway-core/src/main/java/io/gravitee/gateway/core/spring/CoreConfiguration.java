@@ -15,19 +15,16 @@
  */
 package io.gravitee.gateway.core.spring;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import io.gravitee.gateway.api.Repository;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.event.impl.EventManagerImpl;
 import io.gravitee.gateway.core.handler.ErrorHandler;
 import io.gravitee.gateway.core.handler.Handler;
 import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
-import io.gravitee.gateway.core.repository.FileRepository;
 import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.gateway.core.service.impl.ApiServiceImpl;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -41,8 +38,8 @@ public class CoreConfiguration {
     }
 
     @Bean
-    public Repository repository() {
-        return new FileRepository();
+    public static RepositoryBeanFactoryPostProcessor repository() {
+        return new RepositoryBeanFactoryPostProcessor();
     }
 
     @Bean
