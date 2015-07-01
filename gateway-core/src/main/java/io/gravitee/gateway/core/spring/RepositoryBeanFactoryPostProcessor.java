@@ -41,7 +41,7 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        LOGGER.info("Looking for a {} implementation...", Repository.class.getSimpleName());
+        LOGGER.info("Looking for a repository {} implementation...", Repository.class.getSimpleName());
 
         Set<String> initializerNames = new HashSet(
                 SpringFactoriesLoader.loadFactoryNames(Repository.class, beanFactory.getBeanClassLoader()));
