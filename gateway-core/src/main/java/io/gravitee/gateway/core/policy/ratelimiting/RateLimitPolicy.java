@@ -13,31 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy.impl;
+package io.gravitee.gateway.core.policy.ratelimiting;
 
 import io.gravitee.gateway.api.PolicyChain;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.policy.PolicyAdapter;
+import io.gravitee.gateway.core.policy.annotations.Policy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class CorsPolicy extends PolicyAdapter {
+@Policy(name = "rate-limit")
+public class RateLimitPolicy extends PolicyAdapter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CorsPolicy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RateLimitPolicy.class);
 
     @Override
     public void onRequest(Request request, Response response, PolicyChain handler) {
-        LOGGER.debug("Applying {} to request {}", name(), request.id());
+        LOGGER.debug("Applying {} to request {}", description(), request.id());
 
         handler.doNext(request, response);
     }
 
     @Override
-    public String name() {
-        return "CORS Policy";
+    public String description() {
+        return "Rate Limit Policy";
     }
 }

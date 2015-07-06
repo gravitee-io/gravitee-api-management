@@ -31,7 +31,7 @@ public abstract class PolicyAdapter implements Policy {
 
     @Override
     public void onRequest(Request request, Response response, PolicyChain handler) {
-        LOGGER.debug("Applying {} to request {}", name(), request.id());
+        LOGGER.debug("Applying {} to request {}", description(), request.id());
 
         // If everything goes fine, let's continue chain handler
         handler.doNext(request, response);
@@ -39,7 +39,7 @@ public abstract class PolicyAdapter implements Policy {
 
     @Override
     public void onResponse(Request request, Response response, PolicyChain handler) {
-        LOGGER.debug("Applying {} to response {}", name(), response);
+        LOGGER.debug("Applying {} to response {}", description(), response);
 
         // If everything goes fine, let's continue chain handler
         handler.doNext(request, response);
