@@ -15,16 +15,14 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.Policy;
-
-import java.util.Map;
+import java.util.Collection;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface PolicyRegistry {
 
-    Map<String, Class<? extends Policy>> policies();
+    Collection<PolicyDefinition> policies();
 
-    Class<? extends Policy> getPolicy(String name);
+    PolicyDefinition getPolicy(String name);
 }

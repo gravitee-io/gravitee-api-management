@@ -16,6 +16,8 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.api.Policy;
+import io.gravitee.gateway.api.PolicyConfiguration;
+import io.gravitee.gateway.core.policy.PolicyDefinition;
 import io.gravitee.gateway.core.policy.PolicyRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +25,7 @@ import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -35,15 +34,15 @@ public class PolicyRegistryImpl implements PolicyRegistry {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(PolicyRegistryImpl.class);
 
-    private Map<String, Class<? extends Policy>> policies;
+    private final Map<String, PolicyDefinition> policies = new HashMap<>();
 
     @Override
-    public Map<String, Class<? extends Policy>> policies() {
-        return policies;
+    public Collection<PolicyDefinition> policies() {
+        return policies.values();
     }
 
     @Override
-    public Class<? extends Policy> getPolicy(String name) {
+    public PolicyDefinition getPolicy(String name) {
         return policies.get(name);
     }
 
@@ -54,20 +53,42 @@ public class PolicyRegistryImpl implements PolicyRegistry {
                 SpringFactoriesLoader.loadFactoryNames(Policy.class, this.getClass().getClassLoader()));
 
         LOGGER.info("\tFound {} {} definitions:", policyClasses.size(), Policy.class.getSimpleName());
-        policies = new HashMap<>(policyClasses.size());
 
         for(String policyClass : policyClasses) {
             try {
-                Class<?> instanceClass = ClassUtils.forName(policyClass, this.getClass().getClassLoader());
+                final Class<?> instanceClass = ClassUtils.forName(policyClass, this.getClass().getClassLoader());
                 Assert.isAssignable(Policy.class, instanceClass);
 
                 io.gravitee.gateway.core.policy.annotations.Policy annot =
                         instanceClass.getAnnotation(io.gravitee.gateway.core.policy.annotations.Policy.class);
 
                 if (annot != null) {
-                    String policyName = annot.name();
+                    final String policyName = annot.name();
+
+                    PolicyDefinition definition = new PolicyDefinition() {
+                        @Override
+                        public String name() {
+                            return policyName;
+                        }
+
+                        @Override
+                        public String description() {
+                            return "Policy description";
+                        }
+
+                        @Override
+                        public Class<Policy> policy() {
+                            return (Class<Policy>) instanceClass;
+                        }
+
+                        @Override
+                        public Class<PolicyConfiguration> configuration() {
+                            return null;
+                        }
+                    };
+
                     LOGGER.info("\t\tRegister policy definition: {} ({})", policyName, instanceClass.getName());
-                    policies.put(policyName, (Class<? extends Policy>) instanceClass);
+                    policies.put(policyName, definition);
                 } else {
                     LOGGER.warn("\t\tPolicy {} can't be registered since @Policy annotation is not present.", instanceClass.getName());
                 }

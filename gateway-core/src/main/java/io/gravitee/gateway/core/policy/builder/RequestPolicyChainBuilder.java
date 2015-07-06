@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.policy.builder;
 
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.core.policy.PolicyDefinition;
 import io.gravitee.gateway.core.policy.RequestPolicyChain;
 import io.gravitee.model.Policy;
 import org.slf4j.Logger;
@@ -39,14 +40,14 @@ public class RequestPolicyChainBuilder extends AbstractPolicyChainBuilder<Reques
         Map<String, Policy> definedPolicies = getApi().getPolicies();
         if (definedPolicies != null) {
             for (Map.Entry<String, Policy> entry : definedPolicies.entrySet()){
-                Class<? extends io.gravitee.gateway.api.Policy> policy = getRegistry().getPolicy(entry.getKey());
+                PolicyDefinition policy = getRegistry().getPolicy(entry.getKey());
                 if (policy == null) {
                     LOGGER.error("Policy {} can't be found in registry. Unable to apply it fo request {}", entry.getKey(), request.id());
                 } else {
                     try {
-                        appliedPolicies.add(policy.newInstance());
+                        appliedPolicies.add(policy.policy().newInstance());
                     } catch (InstantiationException | IllegalAccessException ex) {
-                        LOGGER.error("Unable to create an instance of Policy class {}", policy.getName(), ex);
+                        LOGGER.error("Unable to create an instance of Policy class {}", policy.name(), ex);
                     }
                 }
             }
