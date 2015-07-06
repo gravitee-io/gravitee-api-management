@@ -13,31 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy.impl;
+package io.gravitee.gateway.core.policy.ip;
 
-import io.gravitee.gateway.api.PolicyChain;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.policy.PolicyAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class RateLimitPolicy extends PolicyAdapter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RateLimitPolicy.class);
+public class IPWhitelistPolicy extends PolicyAdapter {
 
     @Override
-    public void onRequest(Request request, Response response, PolicyChain handler) {
-        LOGGER.debug("Applying {} to request {}", name(), request.id());
-
-        handler.doNext(request, response);
-    }
-
-    @Override
-    public String name() {
-        return "Rate Limit Policy";
+    public String description() {
+        return "IP Whitelist";
     }
 }

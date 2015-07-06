@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy.impl;
+package io.gravitee.gateway.core.repository;
 
-import io.gravitee.gateway.core.policy.PolicyAdapter;
+import java.net.URISyntaxException;
+import java.net.URL;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import io.gravitee.gateway.api.Repository;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class TransformPolicy extends PolicyAdapter {
+public class FileRepositoryTest {
 
-    @Override
-    public String name() {
-        return "Transform Policy";
+    @Test
+    public void testConfigurations() throws URISyntaxException {
+        URL url = FileRepositoryTest.class.getResource("/registry/conf");
+
+        Repository repository = new FileRepository(url.getPath());
+        Assert.assertTrue(repository != null);
+        Assert.assertTrue(repository.listAll().size()  == 1);
     }
 }

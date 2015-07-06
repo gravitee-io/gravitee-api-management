@@ -13,28 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.registry;
+package io.gravitee.gateway.core.policy.ip;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-
-import org.junit.Assert;
-import org.junit.Test;
-
-import io.gravitee.gateway.api.Repository;
-import io.gravitee.gateway.core.repository.FileRepository;
+import io.gravitee.gateway.core.policy.PolicyAdapter;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class FileRepositoryTest {
+public class IPBlacklistPolicy extends PolicyAdapter {
 
-    @Test
-    public void testConfigurations() throws URISyntaxException {
-        URL url = FileRepositoryTest.class.getResource("/registry/conf");
-
-        Repository repository = new FileRepository(url.getPath());
-        Assert.assertTrue(repository != null);
-        Assert.assertTrue(repository.listAll().size()  == 1);
+    @Override
+    public String description() {
+        return "IP Blacklist";
     }
 }

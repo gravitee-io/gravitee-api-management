@@ -15,10 +15,14 @@
  */
 package io.gravitee.gateway.core.policy.builder;
 
-import io.gravitee.gateway.api.Policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.policy.ResponsePolicyChain;
+import io.gravitee.model.Policy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -26,12 +30,28 @@ import java.util.Set;
  */
 public class ResponsePolicyChainBuilder extends AbstractPolicyChainBuilder<ResponsePolicyChain> {
 
+    private final Logger LOGGER = LoggerFactory.getLogger(ResponsePolicyChainBuilder.class);
+
     @Override
     public ResponsePolicyChain newPolicyChain(Request request) {
-        Set<Policy> policies = policies();
+        Set<io.gravitee.gateway.api.Policy> appliedPolicies = new HashSet<>();
 
-        // TODO: Check if the policy should be applied to the current request according
-        // to the request path
-        return new ResponsePolicyChain(policies);
+        Map<String, Policy> definedPolicies = getApi().getPolicies();
+        if (definedPolicies != null) {
+            for (Map.Entry<String, Policy> entry : definedPolicies.entrySet()){
+                Class<? extends io.gravitee.gateway.api.Policy> policy = getRegistry().getPolicy(entry.getKey());
+                if (policy == null) {
+                    LOGGER.error("Policy {} can't be found in registry. Unable to apply it fo request {}", entry.getKey(), request.id());
+                } else {
+                    try {
+                        appliedPolicies.add(policy.newInstance());
+                    } catch (InstantiationException | IllegalAccessException ex) {
+                        LOGGER.error("Unable to create an instance of Policy class {}", policy.getName(), ex);
+                    }
+                }
+            }
+        }
+
+        return new ResponsePolicyChain(appliedPolicies);
     }
 }

@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api;
+package io.gravitee.gateway.core.policy.annotations;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Node {
+@Target({ ElementType.TYPE })
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Policy {
 
-    /**
-     * Start the node. If the node is already started, this method is no-op.
-     */
-    void start();
-
-    /**
-     * Stops the node. If the node is already stopped, this method is no-op.
-     */
-    void stop();
-
-    /**
-     * Returns the node description.
-     *
-     * @return The node description.
-     */
     String name();
 }

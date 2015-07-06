@@ -17,6 +17,9 @@ package io.gravitee.gateway.core;
 
 import io.gravitee.gateway.core.spring.CoreConfiguration;
 import org.junit.runner.RunWith;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,10 +31,17 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(loader=AnnotationConfigContextLoader.class)
-public abstract class AbstractCoreTest {
+public abstract class AbstractCoreTest implements ApplicationContextAware {
+
+    protected ApplicationContext applicationContext;
 
     @Configuration
     @Import({CoreConfiguration.class})
     static class ContextConfiguration {
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

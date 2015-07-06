@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api;
+package io.gravitee.gateway.core.policy.accesscontrol;
+
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.core.policy.annotations.Policy;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Node {
+@Policy(name = "token-accesscontrol")
+public class TokenBasedAccessControlPolicy extends AccessControlPolicy {
 
-    /**
-     * Start the node. If the node is already started, this method is no-op.
-     */
-    void start();
+    @Override
+    boolean checkAccess(Request request) {
+        return true;
+    }
 
-    /**
-     * Stops the node. If the node is already stopped, this method is no-op.
-     */
-    void stop();
-
-    /**
-     * Returns the node description.
-     *
-     * @return The node description.
-     */
-    String name();
+    @Override
+    public String description() {
+        return "token-accesscontrol";
+    }
 }

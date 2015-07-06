@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.handler.ContextHandler;
 import io.gravitee.gateway.core.handler.Handler;
 import io.gravitee.gateway.core.handler.context.ApiHandlerConfiguration;
 import io.gravitee.gateway.core.http.ServerResponse;
+import io.gravitee.gateway.core.policy.PolicyRegistry;
 import io.gravitee.gateway.core.service.ApiLifecycleEvent;
 import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.model.Api;
@@ -35,12 +36,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.net.URI;
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -65,6 +68,7 @@ public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<Ap
     private Handler errorHandler;
 
     private final ConcurrentMap<String, ContextHandler> handlers = new ConcurrentHashMap();
+    private final ConcurrentMap<String, ConfigurableApplicationContext> contexts = new ConcurrentHashMap();
 
     protected Handler getHandler(Request request) {
         String path = request.path();
@@ -131,22 +135,27 @@ public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<Ap
     }
 
     public void addHandler(Api api) {
-        LOGGER.info("API {} has been enabled in reactor", api);
+        LOGGER.info("API {} ({}) has been enabled in reactor", api.getName(), api.getVersion());
 
-        AbstractApplicationContext childContext = buildApplicationContext(api);
-        ContextHandler handler = childContext.getBean(ContextHandler.class);
+        AbstractApplicationContext internalApplicationContext = buildApplicationContext(api);
+        ContextHandler handler = internalApplicationContext.getBean(ContextHandler.class);
 
         handlers.putIfAbsent(handler.getContextPath(), handler);
+        contexts.putIfAbsent(handler.getContextPath(), internalApplicationContext);
     }
 
     public void removeHandler(Api api) {
-        LOGGER.info("API {} has been disabled (or removed) in reactor", api);
+        LOGGER.info("API {} ({}) has been disabled (or removed) from reactor", api.getName(), api.getVersion());
         removeHandler(api.getPublicURI().getPath());
     }
 
     public void removeHandler(String contextPath) {
-        //TODO: Close application context relative to the handler
         handlers.remove(contextPath);
+
+        ConfigurableApplicationContext internalApplicationContext = contexts.remove(contextPath);
+        if (internalApplicationContext != null) {
+            internalApplicationContext.close();
+        }
     }
 
     private AbstractApplicationContext buildApplicationContext(Api api) {
@@ -154,6 +163,7 @@ public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<Ap
         context.setParent(this.applicationContext);
         context.getBeanFactory().registerSingleton("api", api);
         context.register(ApiHandlerConfiguration.class);
+        context.setId("context-api-" + api.getName() + "-" + api.getVersion());
         context.refresh();
 
         return context;

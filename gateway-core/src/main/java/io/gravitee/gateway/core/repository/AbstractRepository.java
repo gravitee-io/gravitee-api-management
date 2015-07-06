@@ -57,7 +57,7 @@ public abstract class AbstractRepository implements Repository {
         }
 
         if (api.getName() == null || api.getName().isEmpty()) {
-            LOGGER.error("Unable to register API {} : name is missing", api);
+            LOGGER.error("Unable to register API {} : description is missing", api);
             return false;
         }
 
@@ -77,7 +77,7 @@ public abstract class AbstractRepository implements Repository {
         }
 
         if (apis.stream().anyMatch(input -> api.getName().equals(input.getName()))) {
-            LOGGER.error("Unable to register API {} : name already exists", api);
+            LOGGER.error("Unable to register API {} : description already exists", api);
             return false;
         }
 

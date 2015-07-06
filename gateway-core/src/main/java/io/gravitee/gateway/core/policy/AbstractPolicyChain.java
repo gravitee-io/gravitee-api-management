@@ -19,6 +19,7 @@ import io.gravitee.gateway.api.Policy;
 import io.gravitee.gateway.api.PolicyChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -29,6 +30,9 @@ import java.util.Set;
 public abstract class AbstractPolicyChain implements PolicyChain {
 
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    private PolicyRegistry registry;
 
     private Set<Policy> policies;
     private Iterator<Policy> policyIterator;

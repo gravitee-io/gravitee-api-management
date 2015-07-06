@@ -32,7 +32,7 @@ public class ErrorHandler implements Handler {
 
     @Override
     public Observable<Response> handle(Request request, Response response) {
-        LOGGER.warn("No API can be found to match request path {}, returning 404", request.path());
+        LOGGER.warn("No Gravitee handler can be found for request {}, returns NOT_FOUND(404)", request.path());
 
         ((ServerResponse)response).setStatus(HttpStatusCode.NOT_FOUND_404);
         return Observable.just(response);
