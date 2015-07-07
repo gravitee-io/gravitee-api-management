@@ -80,7 +80,7 @@ public class MongoDBRepository extends AbstractRepository {
     public boolean update(final Api api) {
         final DBObject document = apiConverter.convertTo(api);
         if (document != null) {
-            mongoDatabase.getCollection("apis", DBObject.class).replaceOne(new BasicDBObject("description", api.getName()), document);
+            mongoDatabase.getCollection("apis", DBObject.class).replaceOne(new BasicDBObject("name", api.getName()), document);
             return true;
         }
         return false;
@@ -88,7 +88,7 @@ public class MongoDBRepository extends AbstractRepository {
 
     @Override
     public Api fetch(final String name) {
-        final DBObject api = mongoDatabase.getCollection("apis", DBObject.class).find(new Document("description", name)).first();
+        final DBObject api = mongoDatabase.getCollection("apis", DBObject.class).find(new Document("name", name)).first();
         return apiConverter.convertFrom(api);
     }
 

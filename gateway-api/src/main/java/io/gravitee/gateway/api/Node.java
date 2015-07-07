@@ -31,9 +31,9 @@ public interface Node {
     void stop();
 
     /**
-     * Returns the node description.
+     * Returns the node name.
      *
-     * @return The node description.
+     * @return The node name.
      */
     String name();
 }

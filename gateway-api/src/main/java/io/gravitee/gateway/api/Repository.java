@@ -33,8 +33,8 @@ public interface Repository {
     Set<Api> listAll();
 
     /**
-     * Allows to get a registered API by its description.
-     * @param name the description of the API to get
+     * Allows to get a registered API by its name.
+     * @param name the name of the API to get
      * @return the registered API
      */
     Api get(String name);
@@ -46,8 +46,8 @@ public interface Repository {
     Set<Api> fetchAll();
 
     /**
-     * Allows to get a registered or unregistered API by its description.
-     * @param name the description of the API to get
+     * Allows to get a registered or unregistered API by its name.
+     * @param name the name of the API to get
      * @return the (un)registered API
      */
     Api fetch(String name);
