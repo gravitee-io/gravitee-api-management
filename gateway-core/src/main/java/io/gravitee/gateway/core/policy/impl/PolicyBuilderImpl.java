@@ -19,26 +19,37 @@ import io.gravitee.gateway.api.Policy;
 import io.gravitee.gateway.api.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.PolicyBuilder;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class PolicyBuilderImpl implements PolicyBuilder {
 
+    protected final Logger LOGGER = LoggerFactory.getLogger(PolicyBuilderImpl.class);
+
     @Override
     public Policy build(PolicyDefinition policyDefinition, String configuration) {
-        Class<PolicyConfiguration> policyConfiguration = policyDefinition.configuration();
+        Class<? extends PolicyConfiguration> policyConfigurationClazz = policyDefinition.configuration();
         Class<? extends Policy> policyClass = policyDefinition.policy();
 
         Policy policy = null;
 
         try {
             if (policyClass != null) {
-                policy = createInstance(policyClass);
-
-                if (policyConfiguration != null) {
-
+                PolicyConfiguration policyConfiguration = null;
+                if (policyConfigurationClazz != null) {
+                    if (configuration == null) {
+                        LOGGER.error("A configuration is required for policy {}, returning a null policy.", policyDefinition.name());
+                        return null;
+                    } else {
+                        LOGGER.debug("Initializing policy configuration for policy {}", policyDefinition.name());
+                        policyConfiguration = null;
+                    }
                 }
+
+                policy = createInstance(policyClass);
             }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
