@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Access log
+ * Allows to write access log in a file.
  *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */

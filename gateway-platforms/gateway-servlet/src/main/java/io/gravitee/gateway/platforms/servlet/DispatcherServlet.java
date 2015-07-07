@@ -54,9 +54,9 @@ public abstract class DispatcherServlet extends HttpServlet {
         getReactor()
                 .process(RequestBuilder.from(req))
 		        .subscribe(
-                    result -> handleResult(req, resp, result),
-                    error -> handleError(req, resp, error)
-                );
+			        result -> handleResult(req, resp, result),
+			        error -> handleError(req, resp, error)
+		        );
 	}
 
     private void handleResult(final HttpServletRequest req, final HttpServletResponse resp, Response response) {
@@ -74,8 +74,14 @@ public abstract class DispatcherServlet extends HttpServlet {
             LOGGER.error("Error while handling proxy request", e);
         }
 
-	    accessLogWriter.path(req.getRequestURL().toString()).httpMethod(req.getMethod()).apiName("")
-		    .responseSize(response.content().length).requestDuration(System.currentTimeMillis() - timeInMs).write();
+	    final String requestPath = req.getRequestURL().toString();
+	    final String method = req.getMethod();
+	    new Thread() {
+		    public void run() {
+			    accessLogWriter.path(requestPath).httpMethod(method).apiName("")
+				    .responseSize(response.content().length).requestDuration(System.currentTimeMillis() - timeInMs).write();
+		    }
+	    }.start();
 
 	    req.getAsyncContext().complete();
     }
