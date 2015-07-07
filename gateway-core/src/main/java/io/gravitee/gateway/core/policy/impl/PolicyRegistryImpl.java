@@ -32,7 +32,7 @@ import java.util.*;
  */
 public class PolicyRegistryImpl implements PolicyRegistry {
 
-    protected final Logger LOGGER = LoggerFactory.getLogger(PolicyRegistryImpl.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(PolicyRegistryImpl.class);
 
     private final Map<String, PolicyDefinition> policies = new HashMap<>();
 

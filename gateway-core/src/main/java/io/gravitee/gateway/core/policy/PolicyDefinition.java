@@ -29,5 +29,5 @@ public interface PolicyDefinition {
 
     Class<? extends Policy> policy();
 
-    Class<PolicyConfiguration> configuration();
+    Class<? extends PolicyConfiguration> configuration();
 }
