@@ -29,11 +29,6 @@ import java.util.Set;
  */
 public abstract class AbstractPolicyChain implements PolicyChain {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
-
-    @Autowired
-    private PolicyRegistry registry;
-
     private Set<Policy> policies;
     private Iterator<Policy> policyIterator;
 
