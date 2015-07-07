@@ -22,8 +22,4 @@ import io.gravitee.gateway.core.policy.PolicyAdapter;
  */
 public class IPBlacklistPolicy extends PolicyAdapter {
 
-    @Override
-    public String description() {
-        return "IP Blacklist";
-    }
 }

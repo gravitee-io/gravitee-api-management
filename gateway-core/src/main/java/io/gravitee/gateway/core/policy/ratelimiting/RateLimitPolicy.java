@@ -15,31 +15,40 @@
  */
 package io.gravitee.gateway.core.policy.ratelimiting;
 
+import io.gravitee.gateway.api.ConfigurablePolicy;
 import io.gravitee.gateway.api.PolicyChain;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.policy.PolicyAdapter;
 import io.gravitee.gateway.core.policy.annotations.Policy;
+import io.gravitee.gateway.core.policy.ratelimiting.configuration.RateLimitConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Policy(name = "rate-limit")
-public class RateLimitPolicy extends PolicyAdapter {
+@Policy(
+        name = "rate-limit",
+        description = "Rate Limit policy"
+)
+public class RateLimitPolicy implements ConfigurablePolicy<RateLimitConfiguration> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RateLimitPolicy.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(RateLimitPolicy.class);
 
     @Override
     public void onRequest(Request request, Response response, PolicyChain handler) {
-        LOGGER.debug("Applying {} to request {}", description(), request.id());
+        LOGGER.debug("Applying {} to request {}", getClass().getSimpleName(), request.id());
 
         handler.doNext(request, response);
     }
 
     @Override
-    public String description() {
-        return "Rate Limit Policy";
+    public void onResponse(Request request, Response response, PolicyChain handler) {
+        // Do nothing here...
+    }
+
+    @Override
+    public Class<RateLimitConfiguration> getConfigurationClass() {
+        return RateLimitConfiguration.class;
     }
 }

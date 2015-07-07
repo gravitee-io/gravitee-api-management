@@ -21,16 +21,13 @@ import io.gravitee.gateway.core.policy.annotations.Policy;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Policy(name = "token-accesscontrol")
+@Policy(
+        name = "token-accesscontrol",
+        description = "Token Based Access Control")
 public class TokenBasedAccessControlPolicy extends AccessControlPolicy {
 
     @Override
     boolean checkAccess(Request request) {
         return true;
-    }
-
-    @Override
-    public String description() {
-        return "token-accesscontrol";
     }
 }
