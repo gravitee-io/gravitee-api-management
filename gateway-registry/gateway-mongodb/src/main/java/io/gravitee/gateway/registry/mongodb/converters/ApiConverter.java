@@ -36,7 +36,7 @@ public class ApiConverter extends AbstractConverter<Api, DBObject> {
         }
         final DBObject dbObject = new BasicDBObject();
         if (api.getName() != null && !api.getName().isEmpty()) {
-            dbObject.put("description", api.getName());
+            dbObject.put("name", api.getName());
         }
         if (api.getVersion() != null && !api.getVersion().isEmpty()) {
             dbObject.put("version", api.getVersion());
@@ -59,7 +59,7 @@ public class ApiConverter extends AbstractConverter<Api, DBObject> {
             return null;
         }
         final Api api = new Api();
-        final Object name = dbobject.get("description");
+        final Object name = dbobject.get("name");
         if (name != null) {
             api.setName((String) name);
         }
