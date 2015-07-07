@@ -37,7 +37,6 @@
         <module>gateway-api</module>
         <module>gateway-core</module>
         <module>gateway-platforms</module>
-        <module>gateway-registry</module>
     </modules>
 
     <dependencyManagement>
