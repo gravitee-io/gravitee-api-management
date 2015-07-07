@@ -20,5 +20,5 @@ package io.gravitee.gateway.api;
  */
 public interface ConfigurablePolicy<T extends PolicyConfiguration> extends Policy {
 
-    T getConfiguration();
+    Class<T> getConfigurationClass();
 }

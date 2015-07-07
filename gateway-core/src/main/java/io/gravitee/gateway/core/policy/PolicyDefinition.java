@@ -27,7 +27,7 @@ public interface PolicyDefinition {
 
     String description();
 
-    Class<Policy> policy();
+    Class<? extends Policy> policy();
 
     Class<PolicyConfiguration> configuration();
 }

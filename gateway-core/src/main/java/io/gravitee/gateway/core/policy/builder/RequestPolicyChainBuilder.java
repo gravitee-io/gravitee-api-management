@@ -16,43 +16,15 @@
 package io.gravitee.gateway.core.policy.builder;
 
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.core.policy.PolicyDefinition;
 import io.gravitee.gateway.core.policy.RequestPolicyChain;
-import io.gravitee.model.Policy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class RequestPolicyChainBuilder extends AbstractPolicyChainBuilder<RequestPolicyChain> {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(RequestPolicyChainBuilder.class);
-
     @Override
     public RequestPolicyChain newPolicyChain(Request request) {
-        Set<io.gravitee.gateway.api.Policy> appliedPolicies = new HashSet<>();
-
-        Map<String, Policy> definedPolicies = getApi().getPolicies();
-        if (definedPolicies != null) {
-            for (Map.Entry<String, Policy> entry : definedPolicies.entrySet()){
-                PolicyDefinition policy = getRegistry().getPolicy(entry.getKey());
-                if (policy == null) {
-                    LOGGER.error("Policy {} can't be found in registry. Unable to apply it fo request {}", entry.getKey(), request.id());
-                } else {
-                    try {
-                        appliedPolicies.add(policy.policy().newInstance());
-                    } catch (InstantiationException | IllegalAccessException ex) {
-                        LOGGER.error("Unable to create an instance of Policy class {}", policy.name(), ex);
-                    }
-                }
-            }
-        }
-
-        return new RequestPolicyChain(appliedPolicies);
+        return new RequestPolicyChain(calculatePolicies(request));
     }
 }

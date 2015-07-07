@@ -26,7 +26,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Policy(name = "response-time")
+@Policy(
+        name = "response-time",
+        description = "Response Time Policy")
 public class ResponseTimePolicy implements io.gravitee.gateway.api.Policy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResponseTimePolicy.class);
@@ -37,7 +39,7 @@ public class ResponseTimePolicy implements io.gravitee.gateway.api.Policy {
 
     @Override
     public void onRequest(Request request, Response response, PolicyChain handler) {
-        LOGGER.debug("Applying {} to request {}", description(), request.id());
+        LOGGER.debug("Applying {} to request {}", getClass().getSimpleName(), request.id());
 
         startTime = System.currentTimeMillis();
 
@@ -50,10 +52,5 @@ public class ResponseTimePolicy implements io.gravitee.gateway.api.Policy {
 
         response.headers().put(X_GATEWAY_RESPONSETIME, elapsed + "ms");
         handler.doNext(request, response);
-    }
-
-    @Override
-    public String description() {
-        return "Response Time Policy";
     }
 }

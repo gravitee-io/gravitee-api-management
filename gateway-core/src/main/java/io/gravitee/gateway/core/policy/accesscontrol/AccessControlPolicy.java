@@ -31,7 +31,7 @@ public abstract class AccessControlPolicy extends PolicyAdapter {
 
     @Override
     public void onRequest(Request request, Response response, PolicyChain handler) {
-        LOGGER.debug("Applying {} to request {}", description(), request.id());
+        LOGGER.debug("Applying {} to request {}", getClass().getSimpleName(), request.id());
 
         if (checkAccess(request)) {
             handler.doNext(request, response);

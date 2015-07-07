@@ -31,13 +31,8 @@ public class CorsPolicy extends PolicyAdapter {
 
     @Override
     public void onRequest(Request request, Response response, PolicyChain handler) {
-        LOGGER.debug("Applying {} to request {}", description(), request.id());
+        LOGGER.debug("Applying {} to request {}", getClass().getSimpleName(), request.id());
 
         handler.doNext(request, response);
-    }
-
-    @Override
-    public String description() {
-        return "CORS Policy";
     }
 }

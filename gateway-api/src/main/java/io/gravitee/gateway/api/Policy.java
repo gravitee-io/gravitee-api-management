@@ -23,6 +23,4 @@ public interface Policy {
     void onRequest(final Request request, final Response response, final PolicyChain handler);
 
     void onResponse(final Request request, final Response response, final PolicyChain handler);
-
-    String description();
 }

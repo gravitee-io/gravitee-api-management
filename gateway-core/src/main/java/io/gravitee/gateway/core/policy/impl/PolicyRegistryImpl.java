@@ -59,21 +59,20 @@ public class PolicyRegistryImpl implements PolicyRegistry {
                 final Class<?> instanceClass = ClassUtils.forName(policyClass, this.getClass().getClassLoader());
                 Assert.isAssignable(Policy.class, instanceClass);
 
-                io.gravitee.gateway.core.policy.annotations.Policy annot =
+                final io.gravitee.gateway.core.policy.annotations.Policy annot =
                         instanceClass.getAnnotation(io.gravitee.gateway.core.policy.annotations.Policy.class);
 
                 if (annot != null) {
-                    final String policyName = annot.name();
 
                     PolicyDefinition definition = new PolicyDefinition() {
                         @Override
                         public String name() {
-                            return policyName;
+                            return annot.name();
                         }
 
                         @Override
                         public String description() {
-                            return "Policy description";
+                            return annot.description();
                         }
 
                         @Override
@@ -87,8 +86,8 @@ public class PolicyRegistryImpl implements PolicyRegistry {
                         }
                     };
 
-                    LOGGER.info("\t\tRegister policy definition: {} ({})", policyName, instanceClass.getName());
-                    policies.put(policyName, definition);
+                    LOGGER.info("\t\tRegister policy definition: {} ({})", definition.name(), instanceClass.getName());
+                    policies.put(definition.name(), definition);
                 } else {
                     LOGGER.warn("\t\tPolicy {} can't be registered since @Policy annotation is not present.", instanceClass.getName());
                 }

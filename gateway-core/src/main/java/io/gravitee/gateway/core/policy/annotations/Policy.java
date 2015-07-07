@@ -28,4 +28,6 @@ import java.lang.annotation.Target;
 public @interface Policy {
 
     String name();
+
+    String description();
 }
