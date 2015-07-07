@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.http.client.HttpClient;
+import io.gravitee.gateway.core.logging.AccessLogWriter;
 import io.gravitee.model.Api;
 import rx.Observable;
 import rx.Subscriber;
@@ -33,6 +34,9 @@ public class ApiHandler extends ContextHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiHandler.class);
 
+    private AccessLogWriter accessLogWriter = new AccessLogWriter();
+    private long timeInMs;
+
     @Autowired
     private Api api;
 
@@ -41,6 +45,7 @@ public class ApiHandler extends ContextHandler {
 
     @Override
     public Observable<Response> handle(final Request request, final Response response) {
+        timeInMs = System.currentTimeMillis();
         return Observable.create(
                 new Observable.OnSubscribe<Response>() {
 
@@ -70,6 +75,13 @@ public class ApiHandler extends ContextHandler {
                             public void onNext(Response response) {
                                 getResponsePolicyChainBuilder().newPolicyChain(request).doNext(request, response);
                                 observer.onNext(response);
+
+                                new Thread() {
+                                    public void run() {
+                                        accessLogWriter.path(request.path()).httpMethod(request.method().name()).apiName(api.getName())
+                                            .responseSize(response.content().length).requestDuration(System.currentTimeMillis() - timeInMs).write();
+                                    }
+                                }.start();
                             }
                         });
                     }

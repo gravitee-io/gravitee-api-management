@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.logging.AccessLogWriter;
 import rx.Observable;
 
 
@@ -41,11 +40,7 @@ public abstract class DispatcherServlet extends HttpServlet {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DispatcherServlet.class);
 
-	private AccessLogWriter accessLogWriter = new AccessLogWriter();
-	private long timeInMs;
-
 	protected void handle(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-		timeInMs = System.currentTimeMillis();
 		// Initialize async processing.
 		final AsyncContext asyncContext = req.startAsync();
 		// We do not timeout the continuation, but the proxy request
@@ -73,15 +68,6 @@ public abstract class DispatcherServlet extends HttpServlet {
         } catch (final IOException e) {
             LOGGER.error("Error while handling proxy request", e);
         }
-
-	    final String requestPath = req.getRequestURL().toString();
-	    final String method = req.getMethod();
-	    new Thread() {
-		    public void run() {
-			    accessLogWriter.path(requestPath).httpMethod(method).apiName("")
-				    .responseSize(response.content().length).requestDuration(System.currentTimeMillis() - timeInMs).write();
-		    }
-	    }.start();
 
 	    req.getAsyncContext().complete();
     }
