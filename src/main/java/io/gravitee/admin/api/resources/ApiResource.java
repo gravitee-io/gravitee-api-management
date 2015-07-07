@@ -15,34 +15,30 @@
  */
 package io.gravitee.admin.api.resources;
 
-import static javax.ws.rs.core.HttpHeaders.LOCATION;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.core.service.ApiService;
+import io.gravitee.model.Api;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import javax.inject.Singleton;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.core.service.ApiService;
-import io.gravitee.gateway.core.service.impl.ApiServiceImpl;
-import io.gravitee.model.Api;
+import static javax.ws.rs.core.HttpHeaders.LOCATION;
 
 /**
  * Defines the REST resources to manage {@code Api}.
  *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-@Singleton
+@Component
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/apis")
 public class ApiResource {
 
-    private ApiService apiService = new ApiServiceImpl();
+    @Autowired
+    private ApiService apiService;
 
     @GET
     public Response listAll() {
