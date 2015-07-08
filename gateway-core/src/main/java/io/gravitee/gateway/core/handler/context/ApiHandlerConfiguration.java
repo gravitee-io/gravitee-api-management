@@ -19,8 +19,12 @@ import io.gravitee.gateway.core.handler.ApiHandler;
 import io.gravitee.gateway.core.handler.ContextHandler;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.http.client.jetty.JettyHttpClient;
+import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.gateway.core.policy.builder.RequestPolicyChainBuilder;
 import io.gravitee.gateway.core.policy.builder.ResponsePolicyChainBuilder;
+import io.gravitee.gateway.core.policy.impl.PolicyConfigurationFactoryImpl;
+import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
 import io.gravitee.model.Api;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +35,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ApiHandlerConfiguration {
 
+    @Bean
+    public PolicyFactory policyFactory() {
+        return new PolicyFactoryImpl();
+    }
+
+    @Bean
+    public PolicyConfigurationFactory policyConfigurationFactory() {
+        return new PolicyConfigurationFactoryImpl();
+    }
     @Bean
     public RequestPolicyChainBuilder requestPolicyChainBuilder() {
         return new RequestPolicyChainBuilder();
