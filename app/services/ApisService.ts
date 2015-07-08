@@ -24,20 +24,20 @@ export class ApisService {
     }
 
     list() {
-        return $.get("http://localhost:8059/rest/apis",
+        return $.get("http://localhost:8082/api/apis",
             function(data) {return data;}
         );
     }
 
     start(name: string) {
-        return $.post('http://localhost:8059/rest/apis/start/' + name);
+        return $.post('http://localhost:8082/api/apis/start/' + name);
     }
 
     stop(name: string) {
-        return $.post('http://localhost:8059/rest/apis/stop/' + name);
+        return $.post('http://localhost:8082/api/apis/stop/' + name);
     }
 
-    reloadAll() {
-        return $.post('http://localhost:8059/rest/apis/reloadAll');
+    reload(name: string) {
+        return $.post('http://localhost:8082/api/apis/reload/' + name);
     }
 }

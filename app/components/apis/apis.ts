@@ -46,7 +46,7 @@ export class Apis {
 
   start(name: string) {
     this.apisService.start(name).then(data => {
-      this.apisService.reloadAll().then(data => {
+      this.apisService.reload(name).then(data => {
         this.list();
       });
     });
@@ -54,7 +54,7 @@ export class Apis {
 
   stop(name: string) {
     this.apisService.stop(name).then(data => {
-      this.apisService.reloadAll().then(data => {
+      this.apisService.reload(name).then(data => {
         this.list();
       });
     });

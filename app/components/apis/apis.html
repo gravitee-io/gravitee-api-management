@@ -30,12 +30,12 @@
         <td>{{api.name}}</td>
         <td>{{api.public}}</td>
         <td>{{api.target}}</td>
-        <td *ng-if="api.enabled" class="text-center"><i class="glyphicon glyphicon-ok"></i></td>
-        <td *ng-if="!api.enabled" class="text-center"><i class="glyphicon glyphicon-remove"></i></td>
-        <td *ng-if="!api.enabled">
+        <td *ng-if="api.state === 'STARTED'" class="text-center"><i class="glyphicon glyphicon-ok"></i></td>
+        <td *ng-if="api.state !== 'STARTED'" class="text-center"><i class="glyphicon glyphicon-remove"></i></td>
+        <td *ng-if="api.state !== 'STARTED'">
             <button class="btn btn-success glyphicon glyphicon-play" (click)="start(api.name)"> Démarrer</button>
         </td>
-        <td *ng-if="api.enabled">
+        <td *ng-if="api.state === 'STARTED'">
             <button class="btn btn-danger glyphicon glyphicon-stop" (click)="stop(api.name)"> Arrêter</button>
         </td>
     </tr>
