@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.Policy;
+import io.gravitee.gateway.api.PolicyConfiguration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyBuilder {
+public interface PolicyConfigurationFactory {
 
-    Policy build(PolicyDefinition policyDefinition, String configuration);
+    <T extends PolicyConfiguration> T create(Class<T> policyConfigurationClass, String configuration);
 }

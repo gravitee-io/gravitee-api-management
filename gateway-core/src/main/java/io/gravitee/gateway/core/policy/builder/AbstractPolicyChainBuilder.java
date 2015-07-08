@@ -18,7 +18,7 @@ package io.gravitee.gateway.core.policy.builder;
 import io.gravitee.gateway.api.Policy;
 import io.gravitee.gateway.api.PolicyChain;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.core.policy.PolicyBuilder;
+import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.gateway.core.policy.PolicyChainBuilder;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
 import io.gravitee.gateway.core.policy.PolicyRegistry;
@@ -45,7 +45,7 @@ public abstract class AbstractPolicyChainBuilder<T extends PolicyChain> implemen
     private PolicyRegistry policyRegistry;
 
     @Autowired
-    private PolicyBuilder policyBuilder;
+    private PolicyFactory policyFactory;
 
     public Api getApi() {
         return api;
@@ -63,12 +63,12 @@ public abstract class AbstractPolicyChainBuilder<T extends PolicyChain> implemen
         this.policyRegistry = policyRegistry;
     }
 
-    public PolicyBuilder getPolicyBuilder() {
-        return policyBuilder;
+    public PolicyFactory getPolicyFactory() {
+        return policyFactory;
     }
 
-    public void setPolicyBuilder(PolicyBuilder policyBuilder) {
-        this.policyBuilder = policyBuilder;
+    public void setPolicyFactory(PolicyFactory policyFactory) {
+        this.policyFactory = policyFactory;
     }
 
     protected Set<Policy> calculatePolicies(Request request) {
@@ -96,6 +96,6 @@ public abstract class AbstractPolicyChainBuilder<T extends PolicyChain> implemen
     }
 
     private Policy createPolicy(PolicyDefinition policyDefinition, String policyConfiguration) {
-        return policyBuilder.build(policyDefinition, policyConfiguration);
+        return policyFactory.create(policyDefinition, policyConfiguration);
     }
 }

@@ -19,7 +19,7 @@ import io.gravitee.gateway.api.PolicyConfiguration;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.builder.ApiBuilder;
 import io.gravitee.gateway.core.policy.builder.RequestPolicyChainBuilder;
-import io.gravitee.gateway.core.policy.impl.PolicyBuilderImpl;
+import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
 import io.gravitee.model.Api;
 import io.gravitee.model.Policy;
 import org.junit.Assert;
@@ -42,7 +42,7 @@ public class RequestPolicyChainBuilderTest {
     @Mock
     private PolicyRegistry policyRegistry;
 
-    private PolicyBuilder policyBuilder = new PolicyBuilderImpl();
+    private PolicyFactory policyFactory = new PolicyFactoryImpl();
 
     @Before
     public void setUp() {
@@ -76,7 +76,7 @@ public class RequestPolicyChainBuilderTest {
         RequestPolicyChainBuilder builder = new RequestPolicyChainBuilder();
 
         builder.setPolicyRegistry(policyRegistry);
-        builder.setPolicyBuilder(policyBuilder);
+        builder.setPolicyFactory(policyFactory);
 
         Api api = new ApiBuilder()
                 .name("my-team-api")
@@ -97,7 +97,7 @@ public class RequestPolicyChainBuilderTest {
         RequestPolicyChainBuilder builder = new RequestPolicyChainBuilder();
 
         builder.setPolicyRegistry(policyRegistry);
-        builder.setPolicyBuilder(policyBuilder);
+        builder.setPolicyFactory(policyFactory);
 
         Api api = new ApiBuilder()
                 .name("my-team-api")
@@ -122,7 +122,7 @@ public class RequestPolicyChainBuilderTest {
         RequestPolicyChainBuilder builder = new RequestPolicyChainBuilder();
 
         builder.setPolicyRegistry(policyRegistry);
-        builder.setPolicyBuilder(policyBuilder);
+        builder.setPolicyFactory(policyFactory);
 
         Api api = new ApiBuilder()
                 .name("my-team-api")
@@ -147,7 +147,7 @@ public class RequestPolicyChainBuilderTest {
         RequestPolicyChainBuilder builder = new RequestPolicyChainBuilder();
 
         builder.setPolicyRegistry(policyRegistry);
-        builder.setPolicyBuilder(policyBuilder);
+        builder.setPolicyFactory(policyFactory);
 
         Api api = new ApiBuilder()
                 .name("my-team-api")
@@ -177,7 +177,7 @@ public class RequestPolicyChainBuilderTest {
         RequestPolicyChainBuilder builder = new RequestPolicyChainBuilder();
 
         builder.setPolicyRegistry(policyRegistry);
-        builder.setPolicyBuilder(policyBuilder);
+        builder.setPolicyFactory(policyFactory);
 
         Api api = new ApiBuilder()
                 .name("my-team-api")

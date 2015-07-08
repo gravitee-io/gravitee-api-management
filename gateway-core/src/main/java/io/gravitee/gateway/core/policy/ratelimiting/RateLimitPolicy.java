@@ -35,6 +35,8 @@ public class RateLimitPolicy implements ConfigurablePolicy<RateLimitConfiguratio
 
     private final Logger LOGGER = LoggerFactory.getLogger(RateLimitPolicy.class);
 
+    private RateLimitConfiguration configuration;
+
     @Override
     public void onRequest(Request request, Response response, PolicyChain handler) {
         LOGGER.debug("Applying {} to request {}", getClass().getSimpleName(), request.id());
@@ -47,8 +49,9 @@ public class RateLimitPolicy implements ConfigurablePolicy<RateLimitConfiguratio
         // Do nothing here...
     }
 
+
     @Override
-    public Class<RateLimitConfiguration> getConfigurationClass() {
-        return RateLimitConfiguration.class;
+    public void setConfiguration(RateLimitConfiguration configuration) {
+        this.configuration = configuration;
     }
 }

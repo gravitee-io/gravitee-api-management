@@ -17,53 +17,63 @@ package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.Policy;
 import io.gravitee.gateway.api.PolicyConfiguration;
-import io.gravitee.gateway.core.policy.impl.PolicyBuilderImpl;
+import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+import static org.mockito.Mockito.*;
 
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PolicyBuilderTest {
+public class PolicyFactoryTest {
+
+    private PolicyFactory policyFactory;
+
+    private PolicyConfigurationFactory policyConfigurationFactory;
+
+    @Before
+    public void setUp() {
+        policyFactory = new PolicyFactoryImpl();
+        policyConfigurationFactory = mock(PolicyConfigurationFactory.class);
+        ((PolicyFactoryImpl) policyFactory).setPolicyConfigurationFactory(policyConfigurationFactory);
+    }
 
     @Test
     public void createPolicyWithConfigurationAndWithoutConfigurationData() {
-        PolicyBuilder builder = new PolicyBuilderImpl();
-
         PolicyDefinition definition = getPolicyDefinitionWithConfiguration();
-        Policy policy = builder.build(definition, null);
+        Policy policy = policyFactory.create(definition, null);
 
+        verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNull(policy);
     }
 
     @Test
     public void createPolicyWithoutConfigurationAndWithoutConfigurationData() {
-        PolicyBuilder builder = new PolicyBuilderImpl();
-
         PolicyDefinition definition = getPolicyDefinitionWithoutConfiguration();
-        Policy policy = builder.build(definition, null);
+        Policy policy = policyFactory.create(definition, null);
 
+        verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNotNull(policy);
     }
 
     @Test
     public void createPolicyWithConfigurationAndConfigurationData() {
-        PolicyBuilder builder = new PolicyBuilderImpl();
-
         PolicyDefinition definition = getPolicyDefinitionWithConfiguration();
-        Policy policy = builder.build(definition, "{}");
+        Policy policy = policyFactory.create(definition, "{}");
 
+        verify(policyConfigurationFactory, times(1)).create(any(), anyString());
         Assert.assertNotNull(policy);
     }
 
     @Test
     public void createPolicyWithoutConfigurationAndWithConfigurationData() {
-        PolicyBuilder builder = new PolicyBuilderImpl();
-
         PolicyDefinition definition = getPolicyDefinitionWithoutConfiguration();
-        Policy policy = builder.build(definition, "{}");
+        Policy policy = policyFactory.create(definition, "{}");
 
+        verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNotNull(policy);
     }
 

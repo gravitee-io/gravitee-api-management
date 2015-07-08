@@ -15,28 +15,34 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
+import io.gravitee.gateway.api.ConfigurablePolicy;
 import io.gravitee.gateway.api.Policy;
 import io.gravitee.gateway.api.PolicyConfiguration;
-import io.gravitee.gateway.core.policy.PolicyBuilder;
+import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PolicyBuilderImpl implements PolicyBuilder {
+public class PolicyFactoryImpl implements PolicyFactory {
 
-    protected final Logger LOGGER = LoggerFactory.getLogger(PolicyBuilderImpl.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(PolicyFactoryImpl.class);
+
+    @Autowired
+    private PolicyConfigurationFactory policyConfigurationFactory;
 
     @Override
-    public Policy build(PolicyDefinition policyDefinition, String configuration) {
+    public Policy create(PolicyDefinition policyDefinition, String configuration) {
         Class<? extends PolicyConfiguration> policyConfigurationClazz = policyDefinition.configuration();
         Class<? extends Policy> policyClass = policyDefinition.policy();
 
-        Policy policy = null;
-
         try {
+            Policy policy = null;
+
             if (policyClass != null) {
                 PolicyConfiguration policyConfiguration = null;
                 if (policyConfigurationClazz != null) {
@@ -44,23 +50,35 @@ public class PolicyBuilderImpl implements PolicyBuilder {
                         LOGGER.error("A configuration is required for policy {}, returning a null policy.", policyDefinition.name());
                         return null;
                     } else {
-                        LOGGER.debug("Initializing policy configuration for policy {}", policyDefinition.name());
-                        policyConfiguration = null;
+                        LOGGER.debug("Create policy configuration for policy {}", policyDefinition.name());
+                        policyConfiguration = policyConfigurationFactory.create(policyConfigurationClazz, configuration);
                     }
                 }
 
                 policy = createInstance(policyClass);
+
+                if (policy instanceof ConfigurablePolicy) {
+                    ((ConfigurablePolicy)policy).setConfiguration(policyConfiguration);
+                }
             }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
+
+            return policy;
+        } catch (IllegalAccessException | InstantiationException ex) {
+            LOGGER.error("Unable to instantiate Policy {}", policyDefinition.policy().getName(), ex);
         }
 
-        return policy;
+        return null;
     }
 
     private <T> T createInstance(Class<T> clazz) throws IllegalAccessException, InstantiationException {
         return clazz.newInstance();
+    }
+
+    public PolicyConfigurationFactory getPolicyConfigurationFactory() {
+        return policyConfigurationFactory;
+    }
+
+    public void setPolicyConfigurationFactory(PolicyConfigurationFactory policyConfigurationFactory) {
+        this.policyConfigurationFactory = policyConfigurationFactory;
     }
 }
