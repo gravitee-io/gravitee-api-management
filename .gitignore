@@ -1,9 +1,7 @@
-!.gitignore
-
-dist/dev/
-dist/prod/
 node_modules/
-
-*.iml
-
+bower_components/
+.sass-cache/
+.idea/
+.tmp/
+dist/
 target/

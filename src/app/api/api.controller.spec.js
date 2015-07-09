@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+(function() {
+  'use strict';
 
-var gulp = require('gulp');
-var wrench = require('wrench');
+  describe('controllers', function(){
 
-wrench.readdirSyncRecursive('./gulp').filter(function(file) {
-  return (/\.(js)$/i).test(file);
-}).map(function(file) {
-  require('./gulp/' + file);
-});
+    beforeEach(module('gravitee'));
 
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+    it('should list APIs', inject(function($controller) {
+      var vm = $controller('ApiController');
+    }));
+  });
+})();

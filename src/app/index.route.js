@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+function routerConfig ($stateProvider, $urlRouterProvider) {
+  'ngInject';
+  $stateProvider
+    .state('home', {
+      url: '/',
+      templateUrl: 'app/main/main.html',
+      controller: 'MainController',
+      controllerAs: 'mainCtrl'
+    })
+    .state('api', {
+      url: '/api',
+      templateUrl: 'app/api/api.html',
+      controller: 'ApiController',
+      controllerAs: 'apiCtrl'
+    });
 
-var gulp = require('gulp');
-var wrench = require('wrench');
+  $urlRouterProvider.otherwise('/');
+}
 
-wrench.readdirSyncRecursive('./gulp').filter(function(file) {
-  return (/\.(js)$/i).test(file);
-}).map(function(file) {
-  require('./gulp/' + file);
-});
-
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+export default routerConfig;

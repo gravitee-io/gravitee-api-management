@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+function config ($logProvider, toastr) {
+  'ngInject';
+  // Enable log
+  $logProvider.debugEnabled(true);
 
-var gulp = require('gulp');
-var wrench = require('wrench');
+  // Set options third-party lib
+  toastr.options.timeOut = 3000;
+  toastr.options.positionClass = 'toast-top-right';
+  toastr.options.preventDuplicates = true;
+  toastr.options.progressBar = true;
+}
 
-wrench.readdirSyncRecursive('./gulp').filter(function(file) {
-  return (/\.(js)$/i).test(file);
-}).map(function(file) {
-  require('./gulp/' + file);
-});
-
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+export default config;

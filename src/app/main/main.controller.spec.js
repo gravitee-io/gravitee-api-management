@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+(function() {
+  'use strict';
 
-var gulp = require('gulp');
-var wrench = require('wrench');
+  describe('controllers', function(){
 
-wrench.readdirSyncRecursive('./gulp').filter(function(file) {
-  return (/\.(js)$/i).test(file);
-}).map(function(file) {
-  require('./gulp/' + file);
-});
+    beforeEach(module('gravitee'));
 
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+    it('should define more than 5 awesome things', inject(function($controller) {
+      var vm = $controller('MainController');
+
+      expect(angular.isArray(vm.awesomeThings)).toBeTruthy();
+      expect(vm.awesomeThings.length > 5).toBeTruthy();
+    }));
+  });
+})();

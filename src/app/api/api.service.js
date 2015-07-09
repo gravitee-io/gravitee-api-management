@@ -13,17 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+class ApiService {
 
-var gulp = require('gulp');
-var wrench = require('wrench');
+  constructor($http, baseURL) {
+    'ngInject';
+    this.$http = $http;
+    this.apisURL = baseURL + 'apis/';
+  }
 
-wrench.readdirSyncRecursive('./gulp').filter(function(file) {
-  return (/\.(js)$/i).test(file);
-}).map(function(file) {
-  require('./gulp/' + file);
-});
+  list() {
+    return this.$http.get(this.apisURL);
+  }
 
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+  start(name) {
+    return this.$http.post(this.apisURL + 'start/' + name);
+  }
+
+  stop(name) {
+    return this.$http.post(this.apisURL + 'stop/' + name);
+  }
+
+  reload(name) {
+    return this.$http.post(this.apisURL + 'reload/' + name);
+  }
+}
+
+export default ApiService;

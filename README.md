@@ -1,5 +1,5 @@
-[![Build Status](http://build.gravitee.io/jenkins/buildStatus/icon?job=gateway-admin-web)](http://build.gravitee.io/jenkins/view/Tous/job/gateway-admin-web/)
-# Gravitee-IO
+[![Build Status](http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-management-webui)](http://build.gravitee.io/jenkins/view/Tous/job/gravitee-management-webui/)
+# Gravitee Management Webui
 
 # Install
 
@@ -30,12 +30,32 @@ Gulp tasks are run from this base dir.
 
 If you wanna serve the built version on dev mode :
 ```
-gulp serve.dev
+gulp serve
 ```
 
 If you wanna serve the built version on production mode :
 ```
-gulp serve.prod
+gulp serve:dist
+```
+
+If you wanna launch unit tests with Karma :
+```
+gulp test
+```
+
+If you wanna launch unit tests with Karma in watch mode :
+```
+gulp test:auto
+```
+
+If you wanna launch e2e (end to end) tests with Protractor :
+```
+gulp protractor
+```
+
+If you wanna launch e2e tests with Protractor on the dist files :
+```
+gulp protractor:dist
 ```
 
 [1]: http://nodejs.org

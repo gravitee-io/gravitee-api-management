@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+class MainController {
+  constructor ($timeout, toastr) {
+    'ngInject';
+    this.classAnimation = '';
+    this.toastr = toastr;
 
-var gulp = require('gulp');
-var wrench = require('wrench');
+    this.activate($timeout);
+  }
 
-wrench.readdirSyncRecursive('./gulp').filter(function(file) {
-  return (/\.(js)$/i).test(file);
-}).map(function(file) {
-  require('./gulp/' + file);
-});
+  activate($timeout) {
+    $timeout(() => {
+      this.classAnimation = 'rubberBand';
+    }, 4000);
+  }
+}
 
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+export default MainController;

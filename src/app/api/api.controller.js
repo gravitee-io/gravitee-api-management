@@ -13,17 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+class ApiController {
+  constructor (ApiService) {
+    'ngInject';
+    this.ApiService = ApiService;
 
-var gulp = require('gulp');
-var wrench = require('wrench');
+    this.apis = [];
+    this.list();
+  }
 
-wrench.readdirSyncRecursive('./gulp').filter(function(file) {
-  return (/\.(js)$/i).test(file);
-}).map(function(file) {
-  require('./gulp/' + file);
-});
+  list() {
+    this.ApiService.list().then(response => {
+      this.apis = response.data;
+    });
+  }
 
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+  start(name) {
+    this.ApiService.start(name).then(() => {
+      this.ApiService.reload(name).then(() => {
+        this.list();
+      });
+    });
+  }
+
+  stop(name) {
+    this.ApiService.stop(name).then(() => {
+      this.ApiService.reload(name).then(() => {
+        this.list();
+      });
+    });
+  }
+}
+
+export default ApiController;

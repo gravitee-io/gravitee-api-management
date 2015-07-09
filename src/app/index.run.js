@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+function runBlock ($log) {
+  'ngInject';
+  $log.debug('runBlock end');
+}
 
-var gulp = require('gulp');
-var wrench = require('wrench');
-
-wrench.readdirSyncRecursive('./gulp').filter(function(file) {
-  return (/\.(js)$/i).test(file);
-}).map(function(file) {
-  require('./gulp/' + file);
-});
-
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+export default runBlock;

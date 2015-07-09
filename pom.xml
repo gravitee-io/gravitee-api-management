@@ -41,7 +41,6 @@
                 <version>0.4</version>
                 <configuration>
                     <bowerInstallArgs>install --no-color --allow-root</bowerInstallArgs>
-                    <buildArgs>build.prod --no-color</buildArgs>
                     <buildTool>gulp</buildTool>
                     <yeomanProjectDirectory>${project.basedir}</yeomanProjectDirectory>
                 </configuration>

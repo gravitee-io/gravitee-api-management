@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+class GraviteeContributorService {
+  constructor ($log, $http) {
+    'ngInject';
 
-var gulp = require('gulp');
-var wrench = require('wrench');
+    this.$http = $http;
+    this.apiHost = 'https://api.github.com/repos/gravitee-io/gravitee-management-webui';
+  }
 
-wrench.readdirSyncRecursive('./gulp').filter(function(file) {
-  return (/\.(js)$/i).test(file);
-}).map(function(file) {
-  require('./gulp/' + file);
-});
+  getContributors(limit) {
+    if (!limit) {
+      limit = 30;
+    }
 
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+    return this.$http.get(this.apiHost + '/contributors?per_page=' + limit)
+      .then((response) => {
+        return response.data;
+      })
+      .catch((error) => {
+        this.$log.error('XHR Failed for getContributors.\n' + angular.toJson(error.data, true));
+      });
+  }
+}
+
+export default GraviteeContributorService;

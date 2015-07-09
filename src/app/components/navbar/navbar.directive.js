@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+class NavbarDirective {
+  constructor () {
+    'ngInject';
 
-var gulp = require('gulp');
-var wrench = require('wrench');
+    let directive = {
+      restrict: 'E',
+      templateUrl: 'app/components/navbar/navbar.html',
+      controller: NavbarController,
+      controllerAs: 'vm',
+      bindToController: true
+    };
 
-wrench.readdirSyncRecursive('./gulp').filter(function(file) {
-  return (/\.(js)$/i).test(file);
-}).map(function(file) {
-  require('./gulp/' + file);
-});
+    return directive;
+  }
+}
 
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+class NavbarController {
+}
+
+export default NavbarDirective;
