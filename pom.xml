@@ -27,8 +27,8 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.admin</groupId>
-    <artifactId>gateway-admin-web</artifactId>
+    <groupId>io.gravitee.management</groupId>
+    <artifactId>gravitee-management-webui</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Gravitee IO - API Management - Admin - Web Console</name>
