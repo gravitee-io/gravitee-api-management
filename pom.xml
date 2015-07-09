@@ -27,8 +27,8 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway.repository</groupId>
-    <artifactId>gateway-mongodb</artifactId>
+    <groupId>io.gravitee.repositories</groupId>
+    <artifactId>gravitee-repository-mongodb</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>Gravitee IO - API Management - Repository MongoDB</name>
 
@@ -43,7 +43,7 @@
         <!-- Gravitee dependencies -->
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gateway-core</artifactId>
+            <artifactId>gravitee-gateway-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
