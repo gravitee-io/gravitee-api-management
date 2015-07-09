@@ -45,7 +45,7 @@ gulp test
 
 If you wanna launch unit tests with Karma in watch mode :
 ```
-gulp test:auto
+gulp test:dev
 ```
 
 If you wanna launch e2e (end to end) tests with Protractor :
