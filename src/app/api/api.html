@@ -16,19 +16,20 @@
 
 -->
 <h1>Gravitee APIs Management</h1>
-<table>
+<table class="api-container">
   <tr>
     <th>Name</th>
     <th>Public URI</th>
     <th>Target URI</th>
     <th>Status</th>
+    <th></th>
   </tr>
   <tr ng-repeat="api in apiCtrl.apis">
-    <td>{{api.name}}</td>
-    <td>{{api.public}}</td>
-    <td>{{api.target}}</td>
+    <td ng-bind="api.name"></td>
+    <td ng-bind="api.public"></td>
+    <td><a ng-bind="api.target" ng-href="{{api.target}}" target="_blank"></a></td>
+    <td ng-bind="api.state"></td>
     <td ng-switch="api.state">
-      <label>{{api.state}}</label>
       <div ng-switch-when="STARTED">
         <md-button class="md-raised md-warn" ng-click="apiCtrl.stop(api.name)">Stop</md-button>
       </div>

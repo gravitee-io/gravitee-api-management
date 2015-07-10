@@ -16,12 +16,61 @@
 (function() {
   'use strict';
 
-  describe('controllers', function(){
+  describe('Controllers : ApiController', function(){
 
-    beforeEach(module('gravitee'));
+    var ApiController, scope, mockApiService, mockApis;
 
-    it('should list APIs', inject(function($controller) {
-      var vm = $controller('ApiController');
-    }));
+    beforeEach(function () {
+      module('gravitee');
+
+      inject(function ($controller, $rootScope, $q) {
+
+        scope = $rootScope.$new();
+
+        mockApis = {
+          'name': 'My URL',
+          'public': '/myURL',
+          'target': 'http://myURL.com',
+          'state': 'STARTED',
+          'policies': []
+        };
+
+        mockApiService = {
+          list: jasmine.createSpy().and.returnValue($q.when({data: mockApis})),
+          start: jasmine.createSpy().and.returnValue($q.when()),
+          stop: jasmine.createSpy().and.returnValue($q.when()),
+          reload: jasmine.createSpy().and.returnValue($q.when())
+        };
+
+        ApiController = $controller('ApiController', {
+          ApiService: mockApiService
+        });
+      })
+    });
+
+    it('should list APIs', function() {
+      ApiController.list();
+      expect(mockApiService.list).toHaveBeenCalled();
+      scope.$apply();
+      expect(ApiController.apis).toBe(mockApis);
+    });
+
+    it('should start API', function() {
+      ApiController.start('myApi');
+      expect(mockApiService.start).toHaveBeenCalledWith('myApi');
+      scope.$apply();
+      expect(mockApiService.reload).toHaveBeenCalledWith('myApi');
+      expect(mockApiService.list).toHaveBeenCalled();
+      expect(ApiController.apis).toBe(mockApis);
+    });
+
+    it('should stop API', function() {
+      ApiController.stop('myApi');
+      expect(mockApiService.stop).toHaveBeenCalledWith('myApi');
+      scope.$apply();
+      expect(mockApiService.reload).toHaveBeenCalledWith('myApi');
+      expect(mockApiService.list).toHaveBeenCalled();
+      expect(ApiController.apis).toBe(mockApis);
+    });
   });
 })();

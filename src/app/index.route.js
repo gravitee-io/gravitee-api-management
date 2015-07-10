@@ -23,7 +23,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controllerAs: 'mainCtrl'
     })
     .state('api', {
-      url: '/api',
+      url: '/apis',
       templateUrl: 'app/api/api.html',
       controller: 'ApiController',
       controllerAs: 'apiCtrl'
