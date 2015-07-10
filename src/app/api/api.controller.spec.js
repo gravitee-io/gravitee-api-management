@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* global describe:false, beforeEach:false, it:false */
 (function() {
   'use strict';
 
@@ -28,18 +29,18 @@
         scope = $rootScope.$new();
 
         mockApis = {
-          'name': 'My URL',
-          'public': '/myURL',
-          'target': 'http://myURL.com',
-          'state': 'STARTED',
-          'policies': []
+          name: 'My URL',
+          public: '/myURL',
+          target: 'http://myURL.com',
+          state: 'STARTED',
+          policies: []
         };
 
         mockApiService = {
           list: jasmine.createSpy().and.returnValue($q.when({data: mockApis})),
-          start: jasmine.createSpy().and.returnValue($q.when()),
-          stop: jasmine.createSpy().and.returnValue($q.when()),
-          reload: jasmine.createSpy().and.returnValue($q.when())
+          start: jasmine.createSpy().and.returnValue($q.when({})),
+          stop: jasmine.createSpy().and.returnValue($q.when({})),
+          reload: jasmine.createSpy().and.returnValue($q.when({}))
         };
 
         ApiController = $controller('ApiController', {
