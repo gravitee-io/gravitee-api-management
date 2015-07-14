@@ -1,0 +1,52 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+  <md-dialog aria-label="Creation of user">
+    <form name="formUser" novalidate>
+      <md-toolbar>
+        <div class="md-toolbar-tools">
+          <h2>Creation of user</h2>
+          <span flex></span>
+          <md-button class="md-icon-button" ng-click="hide()">
+            X
+          </md-button>
+        </div>
+      </md-toolbar>
+      <md-dialog-content>
+        <div layout="" layout-sm="column">
+          <md-input-container>
+            <label>First name *</label>
+            <input ng-model="user.firstName" required>
+          </md-input-container>
+          <md-input-container>
+            <label>Last Name *</label>
+            <input ng-model="user.lastName" required>
+          </md-input-container>
+        </div>
+        <md-subheader class="md-warn" ng-bind="error.statusText || error.status"></md-subheader>
+      </md-dialog-content>
+
+      <div class="md-actions" layout="row">
+        <md-button ng-click="hide()" class="md-primary">
+          Cancel
+        </md-button>
+        <md-button ng-click="create(user)" class="md-primary" ng-disabled="formUser.$invalid">
+          Create
+        </md-button>
+      </div>
+    </form>
+  </md-dialog>

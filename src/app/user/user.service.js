@@ -13,29 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function routerConfig ($stateProvider, $urlRouterProvider) {
-  'ngInject';
-  $stateProvider
-    .state('home', {
-      url: '/',
-      templateUrl: 'app/main/main.html',
-      controller: 'MainController',
-      controllerAs: 'mainCtrl'
-    })
-    .state('api', {
-      url: '/apis',
-      templateUrl: 'app/api/api.html',
-      controller: 'ApiController',
-      controllerAs: 'apiCtrl'
-    })
-    .state('user', {
-      url: '/users',
-      templateUrl: 'app/user/user.html',
-      controller: 'UserController',
-      controllerAs: 'userCtrl'
-    });
+class UserService {
 
-  $urlRouterProvider.otherwise('/');
+  constructor($http, baseURL) {
+    'ngInject';
+    this.$http = $http;
+    this.usersURL = baseURL + 'users/';
+  }
+
+  list() {
+    return this.$http.get(this.usersURL);
+  }
+
+  get(name) {
+    return this.$http.get(this.usersURL + name);
+  }
+
+  getTeams(name) {
+    return this.$http.get(this.usersURL + name + '/teams');
+  }
+
+  create(user) {
+    return this.$http.post(this.usersURL, user);
+  }
 }
 
-export default routerConfig;
+export default UserService;
