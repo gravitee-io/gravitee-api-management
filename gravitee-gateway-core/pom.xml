@@ -104,6 +104,13 @@
             <version>${slf4j.version}</version>
         </dependency>
 
+        <!-- Reflection utils -->
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.10</version>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>

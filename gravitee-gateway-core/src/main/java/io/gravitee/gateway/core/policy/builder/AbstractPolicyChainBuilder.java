@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.policy.builder;
 
-import io.gravitee.gateway.api.Policy;
+import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.PolicyChain;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.policy.PolicyFactory;
@@ -72,7 +72,7 @@ public abstract class AbstractPolicyChainBuilder<T extends PolicyChain> implemen
     }
 
     protected Set<Policy> calculatePolicies(Request request) {
-        Set<io.gravitee.gateway.api.Policy> policies = new HashSet<>();
+        Set<Policy> policies = new HashSet<>();
 
         Map<String, io.gravitee.model.Policy> definedPolicies = getApi().getPolicies();
         if (definedPolicies != null) {

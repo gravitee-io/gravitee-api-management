@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.PolicyConfiguration;
+import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.impl.PolicyConfigurationFactoryImpl;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;

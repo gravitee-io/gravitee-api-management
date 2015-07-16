@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api;
+package io.gravitee.gateway.api.policy;
+
+import io.gravitee.gateway.api.PolicyChain;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ConfigurablePolicy<T extends PolicyConfiguration> extends Policy {
+public interface Policy {
 
-    void setConfiguration(T configuration);
+    void onRequest(final Request request, final Response response, final PolicyChain handler);
+
+    void onResponse(final Request request, final Response response, final PolicyChain handler);
 }

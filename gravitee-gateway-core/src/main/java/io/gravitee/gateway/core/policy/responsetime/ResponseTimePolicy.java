@@ -18,7 +18,6 @@ package io.gravitee.gateway.core.policy.responsetime;
 import io.gravitee.gateway.api.PolicyChain;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.policy.PolicyAdapter;
 import io.gravitee.gateway.core.policy.annotations.Policy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @Policy(
         name = "response-time",
         description = "Response Time Policy")
-public class ResponseTimePolicy implements io.gravitee.gateway.api.Policy {
+public class ResponseTimePolicy implements io.gravitee.gateway.api.policy.Policy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResponseTimePolicy.class);
 

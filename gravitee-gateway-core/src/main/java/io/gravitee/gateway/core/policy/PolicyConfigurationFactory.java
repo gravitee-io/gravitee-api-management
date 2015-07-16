@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.PolicyConfiguration;
+import io.gravitee.gateway.api.policy.PolicyConfiguration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
