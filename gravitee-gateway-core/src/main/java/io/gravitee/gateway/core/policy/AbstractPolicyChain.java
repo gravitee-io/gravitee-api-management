@@ -15,11 +15,8 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.Policy;
+import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.PolicyChain;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Iterator;
 import java.util.Set;

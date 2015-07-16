@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.Policy;
-import io.gravitee.gateway.api.PolicyConfiguration;
+import io.gravitee.gateway.api.policy.Policy;
+import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
 import org.junit.Assert;
 import org.junit.Before;
@@ -90,7 +90,7 @@ public class PolicyFactoryTest {
             }
 
             @Override
-            public Class<? extends io.gravitee.gateway.api.Policy> policy() {
+            public Class<? extends Policy> policy() {
                 return DummyPolicy.class;
             }
 
@@ -114,7 +114,7 @@ public class PolicyFactoryTest {
             }
 
             @Override
-            public Class<? extends io.gravitee.gateway.api.Policy> policy() {
+            public Class<? extends Policy> policy() {
                 return DummyPolicy.class;
             }
 

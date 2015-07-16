@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.PolicyConfiguration;
+import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.builder.ApiBuilder;
 import io.gravitee.gateway.core.policy.builder.RequestPolicyChainBuilder;
@@ -60,7 +60,7 @@ public class RequestPolicyChainBuilderTest {
             }
 
             @Override
-            public Class<? extends io.gravitee.gateway.api.Policy> policy() {
+            public Class<? extends io.gravitee.gateway.api.policy.Policy> policy() {
                 return DummyPolicy.class;
             }
 

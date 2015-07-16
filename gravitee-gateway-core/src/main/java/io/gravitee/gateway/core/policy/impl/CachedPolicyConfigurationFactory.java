@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.gateway.api.PolicyConfiguration;
+import io.gravitee.gateway.api.policy.PolicyConfiguration;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

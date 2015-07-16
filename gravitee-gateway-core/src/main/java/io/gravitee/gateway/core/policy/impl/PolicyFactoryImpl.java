@@ -15,15 +15,22 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.gateway.api.ConfigurablePolicy;
-import io.gravitee.gateway.api.Policy;
-import io.gravitee.gateway.api.PolicyConfiguration;
+import io.gravitee.gateway.api.policy.Policy;
+import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
+import io.gravitee.gateway.core.policy.PolicyFactory;
+import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
+import java.util.Set;
+
+import static org.reflections.ReflectionUtils.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -43,6 +50,8 @@ public class PolicyFactoryImpl implements PolicyFactory {
         try {
             Policy policy = null;
 
+            LOGGER.info("Trying to create a new instance of policy {}", policyClass.getName());
+
             if (policyClass != null) {
                 PolicyConfiguration policyConfiguration = null;
                 if (policyConfigurationClazz != null) {
@@ -55,15 +64,28 @@ public class PolicyFactoryImpl implements PolicyFactory {
                     }
                 }
 
-                policy = createInstance(policyClass);
+                LOGGER.info("Looking for an injectable configuration using policy constructor.");
+                Set<Constructor> constructors =
+                        ReflectionUtils.getConstructors(policyClass,
+                                withModifier(Modifier.PUBLIC),
+                                withParametersAssignableTo(PolicyConfiguration.class),
+                                withParametersCount(1));
 
-                if (policy instanceof ConfigurablePolicy) {
-                    ((ConfigurablePolicy)policy).setConfiguration(policyConfiguration);
+                Constructor<? extends Policy> constr = null;
+
+                if (constructors.isEmpty()) {
+                    LOGGER.warn("No configuration can be injected for {} because there is no valid constructor, using default constructor.", policyClass.getName());
+                    policy = createInstance(policyClass);
+                } else if (constructors.size() == 1) {
+                    constr = constructors.iterator().next();
+                    policy = constr.newInstance(policyConfiguration);
+                } else {
+                    LOGGER.warn("Too much constructor to instantiate policy {}", policyClass.getName());
                 }
             }
 
             return policy;
-        } catch (IllegalAccessException | InstantiationException ex) {
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
             LOGGER.error("Unable to instantiate Policy {}", policyDefinition.policy().getName(), ex);
         }
 
