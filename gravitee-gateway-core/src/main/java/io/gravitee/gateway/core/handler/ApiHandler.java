@@ -57,8 +57,6 @@ public class ApiHandler extends ContextHandler {
                         // TODO: How to know that something goes wrong in policy chain and skip
                         // remote service invocation...
 
-                        // TODO: remove this part from each call...
-
                         // 2_ Call remote service
                         httpClient.invoke(request, response).subscribe(new Subscriber<Response>() {
                             @Override
