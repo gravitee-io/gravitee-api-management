@@ -74,6 +74,7 @@ public class ApiHandler extends ContextHandler {
                                 getResponsePolicyChainBuilder().newPolicyChain(request).doNext(request, response);
                                 observer.onNext(response);
 
+                                // TODO: must be part of reporting system
                                 new Thread() {
                                     public void run() {
                                         accessLogWriter.path(request.path()).httpMethod(request.method().name()).apiName(api.getName())
