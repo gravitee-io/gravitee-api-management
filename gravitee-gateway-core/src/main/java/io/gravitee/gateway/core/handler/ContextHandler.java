@@ -15,11 +15,10 @@
  */
 package io.gravitee.gateway.core.handler;
 
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.policy.PolicyChainBuilder;
 import io.gravitee.gateway.core.policy.PolicyResolver;
-import io.gravitee.gateway.core.policy.RequestPolicyChain;
-import io.gravitee.gateway.core.policy.ResponsePolicyChain;
+import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

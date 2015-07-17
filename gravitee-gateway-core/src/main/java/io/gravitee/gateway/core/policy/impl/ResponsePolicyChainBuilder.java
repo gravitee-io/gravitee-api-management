@@ -17,7 +17,6 @@ package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.core.policy.ExecutablePolicy;
 import io.gravitee.gateway.core.policy.PolicyChainBuilder;
-import io.gravitee.gateway.core.policy.ResponsePolicyChain;
 
 import java.util.List;
 
