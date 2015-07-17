@@ -15,12 +15,14 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.PolicyChain;
+import io.gravitee.gateway.api.policy.PolicyChain;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyChainBuilder<T extends PolicyChain, R> {
+public interface PolicyChainBuilder<T extends PolicyChain> {
 
     /**
      * Create a new Policy chain based on the given input object.
@@ -29,5 +31,5 @@ public interface PolicyChainBuilder<T extends PolicyChain, R> {
      *
      * @return A Policy chain handler.
      */
-    T newPolicyChain(R input);
+    T newPolicyChain(List<ExecutablePolicy> policies);
 }

@@ -18,6 +18,8 @@ package io.gravitee.gateway.core.policy;
 import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 
+import java.lang.reflect.Method;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -30,4 +32,8 @@ public interface PolicyDefinition {
     Class<? extends Policy> policy();
 
     Class<? extends PolicyConfiguration> configuration();
+
+    Method onRequestMethod();
+
+    Method onResponseMethod();
 }

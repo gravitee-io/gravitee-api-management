@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.handler;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.policy.PolicyChainBuilder;
+import io.gravitee.gateway.core.policy.PolicyResolver;
 import io.gravitee.gateway.core.policy.RequestPolicyChain;
 import io.gravitee.gateway.core.policy.ResponsePolicyChain;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,16 +28,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class ContextHandler implements Handler {
 
     @Autowired
-    private PolicyChainBuilder<RequestPolicyChain, Request> requestPolicyChainBuilder;
+    private PolicyChainBuilder<RequestPolicyChain> requestPolicyChainBuilder;
 
     @Autowired
-    private PolicyChainBuilder<ResponsePolicyChain, Request> responsePolicyChainBuilder;
+    private PolicyChainBuilder<ResponsePolicyChain> responsePolicyChainBuilder;
 
-    public PolicyChainBuilder<RequestPolicyChain, Request> getRequestPolicyChainBuilder() {
+    @Autowired
+    private PolicyResolver policyResolver;
+
+    public PolicyResolver getPolicyResolver() {
+        return policyResolver;
+    }
+
+    public PolicyChainBuilder<RequestPolicyChain> getRequestPolicyChainBuilder() {
         return requestPolicyChainBuilder;
     }
 
-    public PolicyChainBuilder<ResponsePolicyChain, Request> getResponsePolicyChainBuilder() {
+    public PolicyChainBuilder<ResponsePolicyChain> getResponsePolicyChainBuilder() {
         return responsePolicyChainBuilder;
     }
 

@@ -16,16 +16,25 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.api.policy.Policy;
+import io.gravitee.gateway.api.policy.PolicyChain;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
+import io.gravitee.gateway.api.policy.annotations.OnRequest;
+import io.gravitee.gateway.api.policy.annotations.OnResponse;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
 import io.gravitee.gateway.core.policy.PolicyRegistry;
+import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
+
+import static org.reflections.ReflectionUtils.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -63,31 +72,48 @@ public class PolicyRegistryImpl implements PolicyRegistry {
                         instanceClass.getAnnotation(io.gravitee.gateway.core.policy.annotations.Policy.class);
 
                 if (annot != null) {
+                    final Method onRequestMethod = resolvePolicyMethod(instanceClass, OnRequest.class);
+                    final Method onResponseMethod = resolvePolicyMethod(instanceClass, OnResponse.class);
 
-                    PolicyDefinition definition = new PolicyDefinition() {
-                        @Override
-                        public String name() {
-                            return annot.name();
-                        }
+                    if (onRequestMethod == null && onResponseMethod == null) {
+                        LOGGER.error("No method annotated with @OnRequest or @OnResponse found, skip policy registration for {}", instanceClass.getName());
+                    } else {
 
-                        @Override
-                        public String description() {
-                            return annot.description();
-                        }
+                        PolicyDefinition definition = new PolicyDefinition() {
+                            @Override
+                            public String name() {
+                                return annot.name();
+                            }
 
-                        @Override
-                        public Class<Policy> policy() {
-                            return (Class<Policy>) instanceClass;
-                        }
+                            @Override
+                            public String description() {
+                                return annot.description();
+                            }
 
-                        @Override
-                        public Class<PolicyConfiguration> configuration() {
-                            return null;
-                        }
-                    };
+                            @Override
+                            public Class<Policy> policy() {
+                                return (Class<Policy>) instanceClass;
+                            }
 
-                    LOGGER.info("\t\tRegister policy definition: {} ({})", definition.name(), instanceClass.getName());
-                    policies.put(definition.name(), definition);
+                            @Override
+                            public Class<PolicyConfiguration> configuration() {
+                                return null;
+                            }
+
+                            @Override
+                            public Method onRequestMethod() {
+                                return onRequestMethod;
+                            }
+
+                            @Override
+                            public Method onResponseMethod() {
+                                return onResponseMethod;
+                            }
+                        };
+
+                        LOGGER.info("\t\tRegister policy definition: {} ({})", definition.name(), instanceClass.getName());
+                        policies.put(definition.name(), definition);
+                    }
                 } else {
                     LOGGER.warn("\t\tPolicy {} can't be registered since @Policy annotation is not present.", instanceClass.getName());
                 }
@@ -95,5 +121,19 @@ public class PolicyRegistryImpl implements PolicyRegistry {
                 throw new IllegalArgumentException("Cannot instantiate Policy: " + policyClasses, e);
             }
         }
+    }
+
+    private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {
+        Set<Method> methods = ReflectionUtils.getMethods(
+                clazz,
+                withModifier(Modifier.PUBLIC),
+                withAnyParameterAnnotation(annotationClass),
+                withParametersAssignableTo(PolicyChain.class));
+
+        if (methods.isEmpty()) {
+            return null;
+        }
+
+        return methods.iterator().next();
     }
 }

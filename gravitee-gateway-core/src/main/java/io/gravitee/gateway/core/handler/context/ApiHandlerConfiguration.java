@@ -21,10 +21,12 @@ import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.http.client.jetty.JettyHttpClient;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyFactory;
-import io.gravitee.gateway.core.policy.builder.RequestPolicyChainBuilder;
-import io.gravitee.gateway.core.policy.builder.ResponsePolicyChainBuilder;
+import io.gravitee.gateway.core.policy.PolicyResolver;
+import io.gravitee.gateway.core.policy.impl.RequestPolicyChainBuilder;
+import io.gravitee.gateway.core.policy.impl.ResponsePolicyChainBuilder;
 import io.gravitee.gateway.core.policy.impl.PolicyConfigurationFactoryImpl;
 import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
+import io.gravitee.gateway.core.policy.impl.PolicyResolverImpl;
 import io.gravitee.model.Api;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +40,11 @@ public class ApiHandlerConfiguration {
     @Bean
     public PolicyFactory policyFactory() {
         return new PolicyFactoryImpl();
+    }
+
+    @Bean
+    public PolicyResolver policyResolver() {
+        return new PolicyResolverImpl();
     }
 
     @Bean

@@ -15,35 +15,48 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.policy.PolicyChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ResponsePolicyChain extends AbstractPolicyChain {
+public class ResponsePolicyChain implements PolicyChain {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResponsePolicyChain.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(ResponsePolicyChain.class);
 
-    public ResponsePolicyChain(Set<Policy> policies) {
-        super(policies);
+    private final List<ExecutablePolicy> policies;
+
+    public ResponsePolicyChain(final List<ExecutablePolicy> policies) {
+        this.policies = policies;
     }
 
     @Override
     public void doNext(final Request request, final Response response) {
-        if (iterator().hasNext()) {
-            Policy policy = iterator().next();
-            policy.onResponse(request, response, this);
+        if (iterator().hasPrevious()) {
+            ExecutablePolicy policy = iterator().previous();
+            if (policy.getPolicyDefinition().onResponseMethod() != null) {
+                try {
+                    policy.onResponse(request, response, this);
+                } catch (Exception ex) {
+                    LOGGER.error("Unexpected error while running onResponse on policy", ex);
+                }
+            }
         }
     }
 
     @Override
     public void doError(Throwable throwable) {
 
+    }
+
+    public ListIterator<ExecutablePolicy> iterator() {
+        return policies.listIterator(policies.size());
     }
 }

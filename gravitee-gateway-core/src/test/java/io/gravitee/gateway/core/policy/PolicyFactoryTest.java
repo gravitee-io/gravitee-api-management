@@ -22,6 +22,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
+
 import static org.mockito.Mockito.*;
 
 
@@ -98,6 +100,16 @@ public class PolicyFactoryTest {
             public Class<? extends PolicyConfiguration> configuration() {
                 return DummyPolicyConfiguration.class;
             }
+
+            @Override
+            public Method onRequestMethod() {
+                return null;
+            }
+
+            @Override
+            public Method onResponseMethod() {
+                return null;
+            }
         };
     }
 
@@ -120,6 +132,16 @@ public class PolicyFactoryTest {
 
             @Override
             public Class<? extends PolicyConfiguration> configuration() {
+                return null;
+            }
+
+            @Override
+            public Method onRequestMethod() {
+                return null;
+            }
+
+            @Override
+            public Method onResponseMethod() {
                 return null;
             }
         };

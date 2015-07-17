@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy.builder;
+package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.core.policy.ExecutablePolicy;
+import io.gravitee.gateway.core.policy.PolicyChainBuilder;
 import io.gravitee.gateway.core.policy.ResponsePolicyChain;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ResponsePolicyChainBuilder extends AbstractPolicyChainBuilder<ResponsePolicyChain> {
+public class ResponsePolicyChainBuilder implements PolicyChainBuilder<ResponsePolicyChain> {
 
     @Override
-    public ResponsePolicyChain newPolicyChain(Request request) {
-        return new ResponsePolicyChain(calculatePolicies(request));
+    public ResponsePolicyChain newPolicyChain(List<ExecutablePolicy> policies) {
+        return new ResponsePolicyChain(policies);
     }
 }

@@ -1,6 +1,0 @@
-# Policies
-io.gravitee.gateway.api.policy.Policy=\
-io.gravitee.gateway.core.policy.accesscontrol.TokenBasedAccessControlPolicy,\
-io.gravitee.gateway.core.policy.cors.CorsPolicy,\
-io.gravitee.gateway.core.policy.ratelimiting.RateLimitPolicy,\
-io.gravitee.gateway.core.policy.responsetime.ResponseTimePolicy
