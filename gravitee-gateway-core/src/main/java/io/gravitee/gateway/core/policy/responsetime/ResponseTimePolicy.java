@@ -15,9 +15,11 @@
  */
 package io.gravitee.gateway.core.policy.responsetime;
 
-import io.gravitee.gateway.api.PolicyChain;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.policy.PolicyChain;
+import io.gravitee.gateway.api.policy.annotations.OnRequest;
+import io.gravitee.gateway.api.policy.annotations.OnResponse;
 import io.gravitee.gateway.core.policy.annotations.Policy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +38,7 @@ public class ResponseTimePolicy implements io.gravitee.gateway.api.policy.Policy
 
     private long startTime;
 
-    @Override
+    @OnRequest
     public void onRequest(Request request, Response response, PolicyChain handler) {
         LOGGER.debug("Applying {} to request {}", getClass().getSimpleName(), request.id());
 
@@ -45,7 +47,7 @@ public class ResponseTimePolicy implements io.gravitee.gateway.api.policy.Policy
         handler.doNext(request, response);
     }
 
-    @Override
+    @OnResponse
     public void onResponse(Request request, Response response, PolicyChain handler) {
         long elapsed = System.currentTimeMillis() - startTime;
 

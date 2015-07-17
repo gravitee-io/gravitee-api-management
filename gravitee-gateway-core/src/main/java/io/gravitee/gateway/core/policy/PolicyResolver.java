@@ -13,26 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy.cors;
+package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.PolicyChain;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.policy.PolicyAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class CorsPolicy extends PolicyAdapter {
+public interface PolicyResolver {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CorsPolicy.class);
-
-    @Override
-    public void onRequest(Request request, Response response, PolicyChain handler) {
-        LOGGER.debug("Applying {} to request {}", getClass().getSimpleName(), request.id());
-
-        handler.doNext(request, response);
-    }
+    List<ExecutablePolicy> resolve(Request request);
 }

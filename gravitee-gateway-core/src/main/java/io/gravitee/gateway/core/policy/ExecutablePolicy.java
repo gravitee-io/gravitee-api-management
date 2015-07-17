@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy.ip;
+package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.core.policy.PolicyAdapter;
+import io.gravitee.gateway.api.policy.Policy;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class IPWhitelistPolicy extends PolicyAdapter {
+public interface ExecutablePolicy {
 
+    Policy getPolicy();
+
+    PolicyDefinition getPolicyDefinition();
+
+    void onRequest(Object ... args) throws Exception;
+
+    void onResponse(Object ... args) throws Exception;
 }

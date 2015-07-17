@@ -15,27 +15,26 @@
  */
 package io.gravitee.gateway.core.handler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.http.client.HttpClient;
-import io.gravitee.gateway.core.logging.AccessLogWriter;
+import io.gravitee.gateway.core.policy.ExecutablePolicy;
 import io.gravitee.model.Api;
+import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 import rx.Subscriber;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class ApiHandler extends ContextHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiHandler.class);
-
+    /*
     private AccessLogWriter accessLogWriter = new AccessLogWriter();
     private long timeInMs;
+    */
 
     @Autowired
     private Api api;
@@ -45,14 +44,17 @@ public class ApiHandler extends ContextHandler {
 
     @Override
     public Observable<Response> handle(final Request request, final Response response) {
-        timeInMs = System.currentTimeMillis();
+    //    timeInMs = System.currentTimeMillis();
         return Observable.create(
                 new Observable.OnSubscribe<Response>() {
 
                     @Override
                     public void call(final Subscriber<? super Response> observer) {
-                        // 1_ Apply request policies
-                        getRequestPolicyChainBuilder().newPolicyChain(request).doNext(request, response);
+                        // 1_ Calculate policies
+                        List<ExecutablePolicy> policies = getPolicyResolver().resolve(request);
+
+                        // 2_ Apply request policies
+                        getRequestPolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
 
                         // TODO: How to know that something goes wrong in policy chain and skip
                         // remote service invocation...
@@ -71,16 +73,18 @@ public class ApiHandler extends ContextHandler {
 
                             @Override
                             public void onNext(Response response) {
-                                getResponsePolicyChainBuilder().newPolicyChain(request).doNext(request, response);
+                                getResponsePolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
                                 observer.onNext(response);
 
                                 // TODO: must be part of reporting system
+                                /*
                                 new Thread() {
                                     public void run() {
                                         accessLogWriter.path(request.path()).httpMethod(request.method().name()).apiName(api.getName())
                                             .responseSize(response.content().length).requestDuration(System.currentTimeMillis() - timeInMs).write();
                                     }
                                 }.start();
+                                */
                             }
                         });
                     }

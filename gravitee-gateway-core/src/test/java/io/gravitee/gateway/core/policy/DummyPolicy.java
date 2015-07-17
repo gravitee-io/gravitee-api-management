@@ -16,21 +16,23 @@
 package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.policy.Policy;
-import io.gravitee.gateway.api.PolicyChain;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.policy.PolicyChain;
+import io.gravitee.gateway.api.policy.annotations.OnRequest;
+import io.gravitee.gateway.api.policy.annotations.OnResponse;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class DummyPolicy implements Policy {
 
-    @Override
+    @OnRequest
     public void onRequest(Request request, Response response, PolicyChain handler) {
         // Do nothing
     }
 
-    @Override
+    @OnResponse
     public void onResponse(Request request, Response response, PolicyChain handler) {
         // Do nothing
     }

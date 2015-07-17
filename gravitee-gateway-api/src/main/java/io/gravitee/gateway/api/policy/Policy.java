@@ -15,16 +15,9 @@
  */
 package io.gravitee.gateway.api.policy;
 
-import io.gravitee.gateway.api.PolicyChain;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface Policy {
 
-    void onRequest(final Request request, final Response response, final PolicyChain handler);
-
-    void onResponse(final Request request, final Response response, final PolicyChain handler);
 }
