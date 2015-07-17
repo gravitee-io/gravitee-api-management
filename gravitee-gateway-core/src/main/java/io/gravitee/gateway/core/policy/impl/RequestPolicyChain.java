@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy;
+package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.policy.PolicyChain;
+import io.gravitee.gateway.core.policy.ExecutablePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,25 +28,25 @@ import java.util.ListIterator;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ResponsePolicyChain implements PolicyChain {
+public class RequestPolicyChain implements PolicyChain {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ResponsePolicyChain.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(RequestPolicyChain.class);
 
     private final List<ExecutablePolicy> policies;
 
-    public ResponsePolicyChain(final List<ExecutablePolicy> policies) {
+    public RequestPolicyChain(final List<ExecutablePolicy> policies) {
         this.policies = policies;
     }
 
     @Override
     public void doNext(final Request request, final Response response) {
-        if (iterator().hasPrevious()) {
-            ExecutablePolicy policy = iterator().previous();
-            if (policy.getPolicyDefinition().onResponseMethod() != null) {
+        if (iterator().hasNext()) {
+            ExecutablePolicy policy = iterator().next();
+            if (policy.getPolicyDefinition().onRequestMethod() != null) {
                 try {
-                    policy.onResponse(request, response, this);
+                    policy.onRequest(request, response, this);
                 } catch (Exception ex) {
-                    LOGGER.error("Unexpected error while running onResponse on policy", ex);
+                    LOGGER.error("Unexpected error while running onRequest on policy", ex);
                 }
             }
         }
@@ -57,6 +58,6 @@ public class ResponsePolicyChain implements PolicyChain {
     }
 
     public ListIterator<ExecutablePolicy> iterator() {
-        return policies.listIterator(policies.size());
+        return policies.listIterator();
     }
 }
