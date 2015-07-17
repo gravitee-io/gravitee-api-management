@@ -17,9 +17,9 @@ package io.gravitee.gateway.core.policy.ratelimiting;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.policy.PolicyChain;
 import io.gravitee.gateway.api.policy.annotations.OnRequest;
-import io.gravitee.gateway.core.policy.annotations.Policy;
 import io.gravitee.gateway.core.policy.ratelimiting.configuration.RateLimitConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +27,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Policy(
-        name = "rate-limit",
-        description = "Rate Limit policy"
-)
-public class RateLimitPolicy implements io.gravitee.gateway.api.policy.Policy {
+public class RateLimitPolicy implements Policy {
 
     private final Logger LOGGER = LoggerFactory.getLogger(RateLimitPolicy.class);
 

@@ -66,7 +66,7 @@
             <artifactId>logback-core</artifactId>
         </dependency>
 
-        <!-- Proxy : Jetty implementation-->
+        <!-- Proxy : Jetty policy-->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-client</artifactId>

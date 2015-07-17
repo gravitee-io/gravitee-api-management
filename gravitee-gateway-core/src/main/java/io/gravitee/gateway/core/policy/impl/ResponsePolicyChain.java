@@ -47,6 +47,7 @@ public class ResponsePolicyChain implements PolicyChain {
                     policy.onResponse(request, response, this);
                 } catch (Exception ex) {
                     LOGGER.error("Unexpected error while running onResponse on policy", ex);
+                    doNext(request, response);
                 }
             }
         }

@@ -25,9 +25,13 @@ import java.lang.reflect.Method;
  */
 public interface PolicyDefinition {
 
+    String id();
+
     String name();
 
     String description();
+
+    String version();
 
     Class<? extends Policy> policy();
 

@@ -24,5 +24,5 @@ public interface PolicyRegistry {
 
     Collection<PolicyDefinition> policies();
 
-    PolicyDefinition getPolicy(String name);
+    PolicyDefinition policy(String name);
 }
