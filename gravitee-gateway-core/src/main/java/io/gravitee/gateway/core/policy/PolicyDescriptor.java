@@ -13,32 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.service.impl;
-
-import io.gravitee.gateway.core.policy.PolicyDefinition;
-import io.gravitee.gateway.core.policy.PolicyRegistry;
-import io.gravitee.gateway.core.service.PolicyService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashSet;
-import java.util.Set;
+package io.gravitee.gateway.core.policy;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PolicyServiceImpl implements PolicyService {
+public interface PolicyDescriptor {
 
-    @Autowired
-    private PolicyRegistry policyRegistry;
+    String id();
 
-    @Override
-    public Set<PolicyDefinition> findAll() {
-        return new HashSet<>(policyRegistry.policies());
-    }
+    String name();
 
-    @Override
-    public PolicyDefinition get(String name) {
-        return policyRegistry.policy(name);
-    }
+    String description();
+
+    String version();
+
+    String policy();
 }

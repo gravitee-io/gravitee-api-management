@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy.annotations;
+package io.gravitee.gateway.core.policy;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.Collection;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Target({ ElementType.TYPE })
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Policy {
+public interface PolicyLoader {
 
-    String name();
-
-    String description();
+    Collection<PolicyDescriptor> load();
 }

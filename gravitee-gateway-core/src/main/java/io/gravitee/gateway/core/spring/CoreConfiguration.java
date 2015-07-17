@@ -20,7 +20,9 @@ import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.event.impl.EventManagerImpl;
 import io.gravitee.gateway.core.handler.ErrorHandler;
 import io.gravitee.gateway.core.handler.Handler;
+import io.gravitee.gateway.core.policy.PolicyLoader;
 import io.gravitee.gateway.core.policy.PolicyRegistry;
+import io.gravitee.gateway.core.policy.impl.PolicyPropertyDescriptorLoader;
 import io.gravitee.gateway.core.policy.impl.PolicyRegistryImpl;
 import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
 import io.gravitee.gateway.core.service.ApiService;
@@ -45,10 +47,16 @@ public class CoreConfiguration {
     }
 
     @Bean
-    public PolicyRegistry policyRegistry() {
+    public PolicyRegistry policyRegistry(PolicyLoader policyLoader) {
         PolicyRegistryImpl registry = new PolicyRegistryImpl();
+        registry.setPolicyLoader(policyLoader);
         registry.initialize();
         return registry;
+    }
+
+    @Bean
+    public PolicyLoader policyLoader() {
+        return new PolicyPropertyDescriptorLoader();
     }
 
     @Bean

@@ -82,12 +82,22 @@ public class PolicyFactoryTest {
     private PolicyDefinition getPolicyDefinitionWithConfiguration() {
         return new PolicyDefinition() {
             @Override
+            public String id() {
+                return null;
+            }
+
+            @Override
             public String name() {
                 return "my-policy";
             }
 
             @Override
             public String description() {
+                return null;
+            }
+
+            @Override
+            public String version() {
                 return null;
             }
 
@@ -116,12 +126,22 @@ public class PolicyFactoryTest {
     private PolicyDefinition getPolicyDefinitionWithoutConfiguration() {
         return new PolicyDefinition() {
             @Override
+            public String id() {
+                return null;
+            }
+
+            @Override
             public String name() {
                 return "my-policy";
             }
 
             @Override
             public String description() {
+                return null;
+            }
+
+            @Override
+            public String version() {
                 return null;
             }
 

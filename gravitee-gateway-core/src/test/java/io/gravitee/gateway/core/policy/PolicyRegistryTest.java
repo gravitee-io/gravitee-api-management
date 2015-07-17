@@ -15,33 +15,50 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.policy.PolicyConfiguration;
-import io.gravitee.gateway.core.builder.ApiBuilder;
-import io.gravitee.gateway.core.policy.impl.PolicyResolverImpl;
-import io.gravitee.model.Api;
+import io.gravitee.gateway.core.policy.impl.PolicyRegistryImpl;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import static org.mockito.Mockito.*;
 
-import java.lang.reflect.Method;
-
-import static org.mockito.Mockito.when;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PolicyResolverTest {
+public class PolicyRegistryTest {
+
+    private PolicyRegistryImpl policyRegistry;
 
     @Mock
-    private PolicyRegistry policyRegistry;
-
-    private PolicyResolverImpl policyResolver = new PolicyResolverImpl();
+    private PolicyLoader policyLoader;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        when(policyRegistry.policy("dummy-policy")).thenReturn(new PolicyDefinition() {
+        policyRegistry = new PolicyRegistryImpl();
+        policyRegistry.setPolicyLoader(policyLoader);
+    }
+
+    @Test
+    public void registerEmptyDescriptor() {
+        Collection<PolicyDescriptor> descriptors = new ArrayList<>();
+        when(policyLoader.load()).thenReturn(descriptors);
+
+        policyRegistry.initialize();
+
+        Collection<PolicyDefinition> policies = policyRegistry.policies();
+        Assert.assertTrue(policies.isEmpty());
+    }
+
+    @Test
+    public void registerInvalidDescriptor() {
+        Collection<PolicyDescriptor> descriptors = new ArrayList<>();
+        descriptors.add(new PolicyDescriptor() {
             @Override
             public String id() {
                 return null;
@@ -49,7 +66,7 @@ public class PolicyResolverTest {
 
             @Override
             public String name() {
-                return "my-policy";
+                return null;
             }
 
             @Override
@@ -63,32 +80,16 @@ public class PolicyResolverTest {
             }
 
             @Override
-            public Class<? extends io.gravitee.gateway.api.policy.Policy> policy() {
-                return DummyPolicy.class;
-            }
-
-            @Override
-            public Class<PolicyConfiguration> configuration() {
-                return null;
-            }
-
-            @Override
-            public Method onRequestMethod() {
-                return null;
-            }
-
-            @Override
-            public Method onResponseMethod() {
+            public String policy() {
                 return null;
             }
         });
+        when(policyLoader.load()).thenReturn(descriptors);
 
-        Api api = new ApiBuilder()
-                .name("my-team-api")
-                .origin("http://localhost/team")
-                .target("http://localhost:8083/myapi")
-                .build();
+        policyRegistry.initialize();
 
-        policyResolver.setApi(api);
+        Collection<PolicyDefinition> policies = policyRegistry.policies();
+        Assert.assertTrue(policies.isEmpty());
     }
+
 }

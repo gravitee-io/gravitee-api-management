@@ -17,20 +17,17 @@ package io.gravitee.gateway.core.policy.responsetime;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.policy.PolicyChain;
 import io.gravitee.gateway.api.policy.annotations.OnRequest;
 import io.gravitee.gateway.api.policy.annotations.OnResponse;
-import io.gravitee.gateway.core.policy.annotations.Policy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Policy(
-        name = "response-time",
-        description = "Response Time Policy")
-public class ResponseTimePolicy implements io.gravitee.gateway.api.policy.Policy {
+public class ResponseTimePolicy implements Policy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResponseTimePolicy.class);
 

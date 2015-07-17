@@ -48,7 +48,7 @@ public class PolicyResolverImpl implements PolicyResolver {
         Map<String, io.gravitee.model.Policy> definedPolicies = getApi().getPolicies();
         if (definedPolicies != null) {
             definedPolicies.entrySet().stream().filter(entry -> entry.getValue() != null).forEach(entry -> {
-                PolicyDefinition policyDefinition = policyRegistry.getPolicy(entry.getKey());
+                PolicyDefinition policyDefinition = policyRegistry.policy(entry.getKey());
                 if (policyDefinition == null) {
                     LOGGER.error("Policy {} can't be found in policyRegistry. Unable to apply it for request {}", entry.getKey(), request.id());
                 } else {

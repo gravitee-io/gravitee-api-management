@@ -41,7 +41,7 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        LOGGER.info("Looking for a repository {} implementation...", Repository.class.getSimpleName());
+        LOGGER.info("Looking for a repository {} policy...", Repository.class.getSimpleName());
 
         Set<String> initializerNames = new HashSet(
                 SpringFactoriesLoader.loadFactoryNames(Repository.class, beanFactory.getBeanClassLoader()));
@@ -56,7 +56,7 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
 
             switch (size) {
                 case 0:
-                    LOGGER.info("   No repository implementation found, registering default file implementation.");
+                    LOGGER.info("   No repository policy found, registering default file policy.");
                     repositoryClass = FileRepository.class.getName();
                     break;
                 case 1:
@@ -70,7 +70,7 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
                 BeanDefinition beanDefinition =
                         BeanDefinitionBuilder.rootBeanDefinition(instanceClass.getName()).getBeanDefinition();
 
-                LOGGER.info("   Registering repository implementation: {}", instanceClass.getName());
+                LOGGER.info("   Registering repository policy: {}", instanceClass.getName());
                 defaultListableBeanFactory.registerBeanDefinition("repository", beanDefinition);
             }
             catch (Exception e) {
