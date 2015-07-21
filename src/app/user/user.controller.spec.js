@@ -19,7 +19,7 @@
 
   describe('Controllers : UserController', function(){
 
-    var UserController, scope, mockUserService, mockUsers, mockUser, mockTeams;
+    var UserController, scope, mockUserService, mockUsers, mockUser, mockTeams, mockRoles;
 
     beforeEach(function () {
       module('gravitee');
@@ -31,21 +31,20 @@
         mockUser = {
           lastName: 'Toto',
           firstName: 'Titi',
-          roles: ['ROLE_ADMIN, ROLE_APIS']
+          roles: ['ROLE_ADMIN', 'ROLE_APIS']
         };
 
         mockUsers = [mockUser];
 
-        mockTeams = [
-          {
-            name: 'gravitee'
-          }
-        ];
+        mockTeams = ['Gravitee'];
+
+        mockRoles = ['ROLE_ADMIN', 'ROLE_APIS', 'ROLE_USER'];
 
         mockUserService = {
           list: jasmine.createSpy().and.returnValue($q.when({data: mockUsers})),
           get: jasmine.createSpy().and.returnValue($q.when(mockUser)),
-          getTeams: jasmine.createSpy().and.returnValue($q.when(mockTeams))
+          listTeams: jasmine.createSpy().and.returnValue($q.when(mockTeams)),
+          listRoles: jasmine.createSpy().and.returnValue($q.when(mockRoles))
         };
 
         UserController = $controller('UserController', {

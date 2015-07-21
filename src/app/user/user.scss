@@ -1,0 +1,11 @@
+ul {
+  list-style-type: none;
+}
+
+.gravitee-link {
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

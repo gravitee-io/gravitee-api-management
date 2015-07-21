@@ -25,12 +25,16 @@ class UserService {
     return this.$http.get(this.usersURL);
   }
 
-  get(name) {
-    return this.$http.get(this.usersURL + name);
+  listRoles() {
+    return this.$http.get(this.usersURL + 'roles');
   }
 
-  getTeams(name) {
-    return this.$http.get(this.usersURL + name + '/teams');
+  get(code) {
+    return this.$http.get(this.usersURL + code);
+  }
+
+  listTeams(code) {
+    return this.$http.get(this.usersURL + code + '/teams');
   }
 
   create(user) {

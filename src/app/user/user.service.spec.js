@@ -53,7 +53,7 @@
     it('should get user teams', function () {
       httpBackend.expectGET('').respond(true);
       var data = false;
-      UserService.getTeams('myUser').then(function (response) {
+      UserService.listTeams('myUser').then(function (response) {
         data = response.data;
       });
       httpBackend.flush();

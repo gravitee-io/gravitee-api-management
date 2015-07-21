@@ -16,19 +16,8 @@
 
 -->
 <h1>Gravitee Users Management</h1>
-<table class="gravitee-table">
-  <tr>
-    <th>Last name</th>
-    <th>First name</th>
-    <th>Roles</th>
-  </tr>
-  <tr ng-repeat="user in userCtrl.users">
-    <td ng-bind="user.lastName"></td>
-    <td ng-bind="user.firstName"></td>
-    <td ng-bind="user.roles"></td>
-  </tr>
-</table>
-
-<md-button class="md-primary md-raised" ng-click="userCtrl.showAddUserModal($event)">
-  Create user
-</md-button>
+<ul>
+  <li ng-repeat="user in userCtrl.users">
+    <span class="gravitee-link" ng-click="userCtrl.showAddUserModal(user)" ng-bind="user.lastName + ' ' + user.firstName"></span>
+  </li>
+</ul>

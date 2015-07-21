@@ -15,29 +15,21 @@
  */
 /* global document:false */
 class UserController {
-  constructor(UserService, $mdDialog) {
+  constructor(UserService, $mdDialog, $location) {
     'ngInject';
     this.UserService = UserService;
-
-    this.users = [
-      {
-        lastName: 'Géraud',
-        firstName: 'Nicolas',
-        roles: ['ROLE_ADMIN, ROLE_APIS']
-      },
-      {
-        lastName: 'Brassely',
-        firstName: 'David',
-        roles: ['ROLE_APIS']
-      },
-      {
-        lastName: 'Elamrani',
-        firstName: 'Azize',
-        roles: ['ROLE_USER']
-      }
-    ];
+    this.UserService.listRoles().then(response => {
+      this.roles = response.data;
+    });
     this.list();
     this.$mdDialog = $mdDialog;
+    this.$location = $location;
+  }
+
+  get(code) {
+    this.UserService.get(code).then(response => {
+      this.user = response.data;
+    });
   }
 
   list() {
@@ -46,12 +38,13 @@ class UserController {
     });
   }
 
-  showAddUserModal(ev) {
+  showAddUserModal(user) {
     this.$mdDialog.show({
       controller: DialogController,
       templateUrl: 'app/user/user.dialog.html',
       parent: angular.element(document.body),
-      targetEvent: ev,
+      user: user,
+      roles: this.roles,
     }).then(function (user) {
       if (user) {
         this.list();
@@ -60,8 +53,16 @@ class UserController {
   }
 }
 
-function DialogController($scope, $mdDialog, UserService) {
+function DialogController($scope, $mdDialog, UserService, user, roles) {
   'ngInject';
+
+  $scope.user = user;
+  $scope.roles = roles;
+
+  UserService.listTeams(user.code).then(response => {
+    $scope.teams = response.data;
+  });
+
   $scope.hide = function () {
     $mdDialog.hide();
   };

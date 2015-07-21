@@ -15,11 +15,11 @@
     limitations under the License.
 
 -->
-  <md-dialog aria-label="Creation of user">
+  <md-dialog aria-label="Modification of user">
     <form name="formUser" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
-          <h2>Creation of user</h2>
+          <h2>Modification of user {{user.code}}</h2>
           <span flex></span>
           <md-button class="md-icon-button" ng-click="hide()">
             X
@@ -27,16 +27,26 @@
         </div>
       </md-toolbar>
       <md-dialog-content>
+        <md-input-container>
+          <label>Code</label>
+          <input ng-model="user.code" required ng-disabled="true">
+        </md-input-container>
         <div layout="" layout-sm="column">
-          <md-input-container>
-            <label>First name *</label>
-            <input ng-model="user.firstName" required>
-          </md-input-container>
           <md-input-container>
             <label>Last Name *</label>
             <input ng-model="user.lastName" required>
           </md-input-container>
+          <md-input-container>
+            <label>First name *</label>
+            <input ng-model="user.firstName" required>
+          </md-input-container>
         </div>
+        <md-select placeholder="Roles" ng-model="user.roles" multiple="true">
+          <md-option ng-repeat="role in roles" value="{{role}}">{{role}}</md-option>
+        </md-select>
+        <md-select placeholder="Teams" ng-model="user.teams" multiple="true">
+          <md-option ng-repeat="team in teams" value="{{team}}">{{team}}</md-option>
+        </md-select>
         <md-subheader class="md-warn" ng-bind="error.statusText || error.status"></md-subheader>
       </md-dialog-content>
 
@@ -45,7 +55,7 @@
           Cancel
         </md-button>
         <md-button ng-click="create(user)" class="md-primary" ng-disabled="formUser.$invalid">
-          Create
+          Modify
         </md-button>
       </div>
     </form>
