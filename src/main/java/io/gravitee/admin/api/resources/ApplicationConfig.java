@@ -28,6 +28,7 @@ public class ApplicationConfig extends ResourceConfig {
         property("contextConfig", applicationContext);
 
         register(ApiResource.class);
+        register(UserResource.class);
 
         //  register(ObjectMapperProvider.class);
         register(JacksonFeature.class);
