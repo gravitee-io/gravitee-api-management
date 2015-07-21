@@ -15,13 +15,13 @@
  */
 package io.gravitee.gateway.core.repository;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-
 import org.junit.Assert;
 import org.junit.Test;
 
-import io.gravitee.gateway.api.Repository;
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Properties;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -29,11 +29,25 @@ import io.gravitee.gateway.api.Repository;
 public class FileRepositoryTest {
 
     @Test
-    public void testConfigurations() throws URISyntaxException {
+    public void testConfigurationsFromFile() throws URISyntaxException {
         URL url = FileRepositoryTest.class.getResource("/registry/conf");
 
-        Repository repository = new FileRepository(url.getPath());
-        Assert.assertTrue(repository != null);
+        FileRepository repository = new FileRepository(new File(url.getPath()));
+        repository.init();
+
+        Assert.assertTrue(repository.listAll().size()  == 1);
+    }
+
+    @Test
+    public void testConfigurations() throws URISyntaxException {
+        URL url = FileRepositoryTest.class.getResource("/registry/conf");
+        Properties config = new Properties();
+        config.put("repository.file.path", url.getPath());
+
+        FileRepository repository = new FileRepository();
+        repository.setConfiguration(config);
+        repository.init();
+
         Assert.assertTrue(repository.listAll().size()  == 1);
     }
 }
