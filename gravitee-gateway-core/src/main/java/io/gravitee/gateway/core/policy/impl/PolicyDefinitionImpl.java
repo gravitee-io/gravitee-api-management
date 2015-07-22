@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
 
@@ -33,7 +32,7 @@ public class PolicyDefinitionImpl implements PolicyDefinition {
     private String name;
     private String description;
     private String version;
-    private Class<? extends Policy> policy;
+    private Class<?> policy;
     private Class<? extends PolicyConfiguration> configuration;
     private List<URL> classPathElements = new ArrayList<>();
 
@@ -58,7 +57,7 @@ public class PolicyDefinitionImpl implements PolicyDefinition {
     }
 
     @Override
-    public Class<? extends Policy> policy() {
+    public Class<?> policy() {
         return null;
     }
 
@@ -98,7 +97,7 @@ public class PolicyDefinitionImpl implements PolicyDefinition {
         this.name = name;
     }
 
-    public void setPolicy(Class<? extends Policy> policy) {
+    public void setPolicy(Class<?> policy) {
         this.policy = policy;
     }
 

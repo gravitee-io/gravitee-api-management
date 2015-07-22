@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.api.policy.annotations.OnRequest;
 import io.gravitee.gateway.api.policy.annotations.OnResponse;
@@ -196,8 +195,8 @@ public class PolicyWorkspaceImpl implements PolicyWorkspace {
                     }
 
                     @Override
-                    public Class<Policy> policy() {
-                        return (Class<Policy>) instanceClass;
+                    public Class<?> policy() {
+                        return instanceClass;
                     }
 
                     @Override

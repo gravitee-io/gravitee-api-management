@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.policy.PolicyChain;
@@ -25,7 +24,7 @@ import io.gravitee.gateway.api.policy.annotations.OnResponse;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class DummyPolicy implements Policy {
+public class DummyPolicy {
 
     @OnRequest
     public void onRequest(Request request, Response response, PolicyChain handler) {

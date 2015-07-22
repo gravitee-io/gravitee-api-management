@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
 import org.junit.Assert;
@@ -48,7 +47,7 @@ public class PolicyFactoryTest {
     @Test
     public void createPolicyWithConfigurationAndWithoutConfigurationData() {
         PolicyDefinition definition = getPolicyDefinitionWithConfiguration();
-        Policy policy = policyFactory.create(definition, null);
+        Object policy = policyFactory.create(definition, null);
 
         verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNull(policy);
@@ -57,7 +56,7 @@ public class PolicyFactoryTest {
     @Test
     public void createPolicyWithoutConfigurationAndWithoutConfigurationData() {
         PolicyDefinition definition = getPolicyDefinitionWithoutConfiguration();
-        Policy policy = policyFactory.create(definition, null);
+        Object policy = policyFactory.create(definition, null);
 
         verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNotNull(policy);
@@ -66,7 +65,7 @@ public class PolicyFactoryTest {
     @Test
     public void createPolicyWithConfigurationAndConfigurationData() {
         PolicyDefinition definition = getPolicyDefinitionWithConfiguration();
-        Policy policy = policyFactory.create(definition, "{}");
+        Object policy = policyFactory.create(definition, "{}");
 
         verify(policyConfigurationFactory, times(1)).create(any(), anyString());
         Assert.assertNotNull(policy);
@@ -75,7 +74,7 @@ public class PolicyFactoryTest {
     @Test
     public void createPolicyWithoutConfigurationAndWithConfigurationData() {
         PolicyDefinition definition = getPolicyDefinitionWithoutConfiguration();
-        Policy policy = policyFactory.create(definition, "{}");
+        Object policy = policyFactory.create(definition, "{}");
 
         verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNotNull(policy);
@@ -104,7 +103,7 @@ public class PolicyFactoryTest {
             }
 
             @Override
-            public Class<? extends Policy> policy() {
+            public Class<?> policy() {
                 return DummyPolicy.class;
             }
 
@@ -153,7 +152,7 @@ public class PolicyFactoryTest {
             }
 
             @Override
-            public Class<? extends Policy> policy() {
+            public Class<?> policy() {
                 return DummyPolicy.class;
             }
 
