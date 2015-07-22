@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
@@ -43,12 +42,12 @@ public class PolicyFactoryImpl implements PolicyFactory {
     private PolicyConfigurationFactory policyConfigurationFactory;
 
     @Override
-    public Policy create(PolicyDefinition policyDefinition, String configuration) {
+    public Object create(PolicyDefinition policyDefinition, String configuration) {
         Class<? extends PolicyConfiguration> policyConfigurationClazz = policyDefinition.configuration();
-        Class<? extends Policy> policyClass = policyDefinition.policy();
+        Class<?> policyClass = policyDefinition.policy();
 
         try {
-            Policy policy = null;
+            Object policyInst = null;
 
             LOGGER.info("Trying to create a new instance of policy {}", policyClass.getName());
 
@@ -71,20 +70,20 @@ public class PolicyFactoryImpl implements PolicyFactory {
                                 withParametersAssignableTo(PolicyConfiguration.class),
                                 withParametersCount(1));
 
-                Constructor<? extends Policy> constr = null;
+                Constructor<?> constr = null;
 
                 if (constructors.isEmpty()) {
                     LOGGER.warn("No configuration can be injected for {} because there is no valid constructor, using default constructor.", policyClass.getName());
-                    policy = createInstance(policyClass);
+                    policyInst = createInstance(policyClass);
                 } else if (constructors.size() == 1) {
                     constr = constructors.iterator().next();
-                    policy = constr.newInstance(policyConfiguration);
+                    policyInst = constr.newInstance(policyConfiguration);
                 } else {
                     LOGGER.warn("Too much constructor to instantiate policy {}", policyClass.getName());
                 }
             }
 
-            return policy;
+            return policyInst;
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
             LOGGER.error("Unable to instantiate Policy {}", policyDefinition.policy().getName(), ex);
         }

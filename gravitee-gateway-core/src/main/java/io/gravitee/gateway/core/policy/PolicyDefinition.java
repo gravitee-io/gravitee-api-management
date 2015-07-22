@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 
 import java.lang.reflect.Method;
@@ -35,7 +34,7 @@ public interface PolicyDefinition {
 
     String version();
 
-    Class<? extends Policy> policy();
+    Class<?> policy();
 
     Class<? extends PolicyConfiguration> configuration();
 

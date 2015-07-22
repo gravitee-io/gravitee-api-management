@@ -15,14 +15,12 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.policy.Policy;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface ExecutablePolicy {
 
-    Policy getPolicy();
+    Object getPolicy();
 
     PolicyDefinition getPolicyDefinition();
 

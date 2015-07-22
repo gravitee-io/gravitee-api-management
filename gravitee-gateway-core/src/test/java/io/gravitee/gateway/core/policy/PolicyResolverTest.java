@@ -65,7 +65,7 @@ public class PolicyResolverTest {
             }
 
             @Override
-            public Class<? extends io.gravitee.gateway.api.policy.Policy> policy() {
+            public Class<?> policy() {
                 return DummyPolicy.class;
             }
 

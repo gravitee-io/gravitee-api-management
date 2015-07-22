@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.policy.Policy;
 import io.gravitee.gateway.core.policy.*;
 import io.gravitee.model.Api;
 import org.slf4j.Logger;
@@ -52,12 +51,12 @@ public class PolicyResolverImpl implements PolicyResolver {
                 if (policyDefinition == null) {
                     LOGGER.error("Policy {} can't be found in policy. Unable to apply it for request {}", entry.getKey(), request.id());
                 } else {
-                    Policy policy = policyFactory.create(policyDefinition, entry.getValue().getConfiguration());
+                    Object policyInst = policyFactory.create(policyDefinition, entry.getValue().getConfiguration());
 
-                    if (policy != null) {
+                    if (policyInst != null) {
                         LOGGER.debug("Policy {} has been added to the chain for request {}", policyDefinition.name(), request.id());
 
-                        policies.add(new ExecutablePolicyImpl(policyDefinition, policy));
+                        policies.add(new ExecutablePolicyImpl(policyDefinition, policyInst));
                     }
                 }
             });
