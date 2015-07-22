@@ -33,7 +33,7 @@ public class PolicyResolverImpl implements PolicyResolver {
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyResolverImpl.class);
 
     @Autowired
-    private PolicyRegistry policyRegistry;
+    private PolicyWorkspace policyWorkspace;
 
     @Autowired
     private Api api;
@@ -48,9 +48,9 @@ public class PolicyResolverImpl implements PolicyResolver {
         Map<String, io.gravitee.model.Policy> definedPolicies = getApi().getPolicies();
         if (definedPolicies != null) {
             definedPolicies.entrySet().stream().filter(entry -> entry.getValue() != null).forEach(entry -> {
-                PolicyDefinition policyDefinition = policyRegistry.policy(entry.getKey());
+                PolicyDefinition policyDefinition = policyWorkspace.getPolicyDefinition(entry.getKey());
                 if (policyDefinition == null) {
-                    LOGGER.error("Policy {} can't be found in policyRegistry. Unable to apply it for request {}", entry.getKey(), request.id());
+                    LOGGER.error("Policy {} can't be found in policy. Unable to apply it for request {}", entry.getKey(), request.id());
                 } else {
                     Policy policy = policyFactory.create(policyDefinition, entry.getValue().getConfiguration());
 

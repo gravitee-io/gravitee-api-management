@@ -24,7 +24,6 @@ import io.gravitee.gateway.core.handler.ContextHandler;
 import io.gravitee.gateway.core.handler.Handler;
 import io.gravitee.gateway.core.handler.context.ApiHandlerConfiguration;
 import io.gravitee.gateway.core.http.ServerResponse;
-import io.gravitee.gateway.core.policy.PolicyRegistry;
 import io.gravitee.gateway.core.service.ApiLifecycleEvent;
 import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.model.Api;

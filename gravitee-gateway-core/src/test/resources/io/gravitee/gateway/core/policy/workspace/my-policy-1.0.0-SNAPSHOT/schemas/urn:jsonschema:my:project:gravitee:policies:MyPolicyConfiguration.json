@@ -1,0 +1,12 @@
+{
+  "type" : "object",
+  "id" : "urn:jsonschema:my:project:gravitee:policies:MyPolicyConfiguration",
+  "properties" : {
+    "stringParam" : {
+      "type" : "string"
+    },
+    "integerParam" : {
+      "type" : "integer"
+    }
+  }
+}

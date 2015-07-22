@@ -20,7 +20,7 @@ import io.gravitee.gateway.api.Request;
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ *  @author David BRASSELY (brasseld at gmail.com)
  */
 public interface PolicyResolver {
 

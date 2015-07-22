@@ -26,6 +26,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
+import java.net.URL;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -34,6 +36,11 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 public abstract class AbstractCoreTest implements ApplicationContextAware {
 
     protected ApplicationContext applicationContext;
+
+    public AbstractCoreTest() {
+        URL home = AbstractCoreTest.class.getResource("/io/gravitee/gateway/core/");
+        System.setProperty("gravitee.home", home.getPath());
+    }
 
     @Configuration
     @Import({CoreConfiguration.class})

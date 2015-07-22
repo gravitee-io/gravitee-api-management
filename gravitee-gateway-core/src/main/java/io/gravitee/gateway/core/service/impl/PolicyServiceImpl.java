@@ -16,7 +16,7 @@
 package io.gravitee.gateway.core.service.impl;
 
 import io.gravitee.gateway.core.policy.PolicyDefinition;
-import io.gravitee.gateway.core.policy.PolicyRegistry;
+import io.gravitee.gateway.core.policy.PolicyWorkspace;
 import io.gravitee.gateway.core.service.PolicyService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,15 +30,15 @@ import java.util.Set;
 public class PolicyServiceImpl implements PolicyService {
 
     @Autowired
-    private PolicyRegistry policyRegistry;
+    private PolicyWorkspace policyWorkspace;
 
     @Override
     public Set<PolicyDefinition> findAll() {
-        return new HashSet<>(policyRegistry.policies());
+        return new HashSet<>(policyWorkspace.getPolicyDefinitions());
     }
 
     @Override
     public PolicyDefinition get(String name) {
-        return policyRegistry.policy(name);
+        return policyWorkspace.getPolicyDefinition(name);
     }
 }

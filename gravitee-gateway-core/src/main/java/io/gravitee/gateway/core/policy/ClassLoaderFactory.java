@@ -15,14 +15,14 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import java.util.Collection;
+import java.net.URL;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyRegistry {
+public interface ClassLoaderFactory {
 
-    Collection<PolicyDefinition> policies();
+    ClassLoader createPolicyClassLoader(String policyId, URL[] jars);
 
-    PolicyDefinition policy(String name);
+    ClassLoader getPolicyClassLoader(String policyId);
 }

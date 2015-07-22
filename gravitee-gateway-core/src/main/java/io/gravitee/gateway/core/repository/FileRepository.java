@@ -18,10 +18,8 @@ package io.gravitee.gateway.core.repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.model.Api;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
