@@ -20,16 +20,16 @@ import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.event.impl.EventManagerImpl;
 import io.gravitee.gateway.core.handler.ErrorHandler;
 import io.gravitee.gateway.core.handler.Handler;
-import io.gravitee.gateway.core.policy.PolicyLoader;
-import io.gravitee.gateway.core.policy.PolicyRegistry;
-import io.gravitee.gateway.core.policy.impl.PolicyPropertyDescriptorLoader;
-import io.gravitee.gateway.core.policy.impl.PolicyRegistryImpl;
+import io.gravitee.gateway.core.policy.ClassLoaderFactory;
+import io.gravitee.gateway.core.policy.impl.ClassLoaderFactoryImpl;
+import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
 import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.gateway.core.service.impl.ApiServiceImpl;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
@@ -39,7 +39,10 @@ import org.springframework.core.io.Resource;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
+@Import({PolicyConfiguration.class})
 public class CoreConfiguration {
+
+    private final static String GRAVITEE_CONFIGURATION = "gravitee.conf";
 
     @Bean
     public Reactor reactor() {
@@ -49,19 +52,6 @@ public class CoreConfiguration {
     @Bean
     public static RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor() {
         return new RepositoryBeanFactoryPostProcessor();
-    }
-
-    @Bean
-    public PolicyRegistry policyRegistry(PolicyLoader policyLoader) {
-        PolicyRegistryImpl registry = new PolicyRegistryImpl();
-        registry.setPolicyLoader(policyLoader);
-        registry.initialize();
-        return registry;
-    }
-
-    @Bean
-    public PolicyLoader policyLoader() {
-        return new PolicyPropertyDescriptorLoader();
     }
 
     @Bean
@@ -78,8 +68,6 @@ public class CoreConfiguration {
     public Handler errorHandler() {
         return new ErrorHandler();
     }
-
-    private final static String GRAVITEE_CONFIGURATION = "gravitee.conf";
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer properties() {
@@ -99,5 +87,10 @@ public class CoreConfiguration {
         yaml.setResources(yamlResource);
         propertySourcesPlaceholderConfigurer.setProperties(yaml.getObject());
         return propertySourcesPlaceholderConfigurer;
+    }
+
+    @Bean
+    public ClassLoaderFactory classLoaderFactory() {
+        return new ClassLoaderFactoryImpl();
     }
 }

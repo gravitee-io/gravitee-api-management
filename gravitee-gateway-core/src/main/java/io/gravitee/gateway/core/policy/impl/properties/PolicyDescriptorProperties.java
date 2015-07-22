@@ -13,35 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy;
-
-import io.gravitee.gateway.api.policy.Policy;
-import io.gravitee.gateway.api.policy.PolicyConfiguration;
-
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.List;
+package io.gravitee.gateway.core.policy.impl.properties;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyDefinition {
+public interface PolicyDescriptorProperties {
 
-    String id();
-
-    String name();
-
-    String description();
-
-    String version();
-
-    Class<? extends Policy> policy();
-
-    Class<? extends PolicyConfiguration> configuration();
-
-    List<URL> getClassPathElements();
-
-    Method onRequestMethod();
-
-    Method onResponseMethod();
+    String DESCRIPTOR_ID_PROPERTY = "id";
+    String DESCRIPTOR_NAME_PROPERTY = "name";
+    String DESCRIPTOR_VERSION_PROPERTY = "version";
+    String DESCRIPTOR_DESCRIPTION_PROPERTY = "description";
+    String DESCRIPTOR_CLASS_PROPERTY = "class";
 }

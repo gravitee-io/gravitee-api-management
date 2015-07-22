@@ -13,35 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy;
+package io.gravitee.gateway.core.policy.spring;
 
-import io.gravitee.gateway.api.policy.Policy;
-import io.gravitee.gateway.api.policy.PolicyConfiguration;
-
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.List;
+import io.gravitee.gateway.core.policy.PolicyWorkspace;
+import io.gravitee.gateway.core.policy.impl.PolicyWorkspaceImpl;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyDefinition {
+@Configuration
+public class PolicyConfiguration {
 
-    String id();
-
-    String name();
-
-    String description();
-
-    String version();
-
-    Class<? extends Policy> policy();
-
-    Class<? extends PolicyConfiguration> configuration();
-
-    List<URL> getClassPathElements();
-
-    Method onRequestMethod();
-
-    Method onResponseMethod();
+    @Bean
+    public PolicyWorkspace policyWorkspace() {
+        return new PolicyWorkspaceImpl();
+    }
 }

@@ -1,4 +1,7 @@
 
-#
-# node:
-#    name:
+
+node:
+  home: ${gravitee.home}
+
+policy:
+  workspace: ${node.home}/workspace

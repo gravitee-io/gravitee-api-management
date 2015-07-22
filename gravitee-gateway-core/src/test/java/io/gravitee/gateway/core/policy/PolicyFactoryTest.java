@@ -23,6 +23,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.List;
 
 import static org.mockito.Mockito.*;
 
@@ -112,6 +114,11 @@ public class PolicyFactoryTest {
             }
 
             @Override
+            public List<URL> getClassPathElements() {
+                return null;
+            }
+
+            @Override
             public Method onRequestMethod() {
                 return null;
             }
@@ -152,6 +159,11 @@ public class PolicyFactoryTest {
 
             @Override
             public Class<? extends PolicyConfiguration> configuration() {
+                return null;
+            }
+
+            @Override
+            public List<URL> getClassPathElements() {
                 return null;
             }
 
