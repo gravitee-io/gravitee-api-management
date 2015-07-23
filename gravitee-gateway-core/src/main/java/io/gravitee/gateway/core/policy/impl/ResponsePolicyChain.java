@@ -32,14 +32,14 @@ public class ResponsePolicyChain implements PolicyChain {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ResponsePolicyChain.class);
 
-    private final List<Policy> policies;
+    private final ListIterator<Policy> iterator;
 
     public ResponsePolicyChain(final List<Policy> policies) {
         if (policies == null) {
             throw new IllegalArgumentException("List of policies can't be null.");
         }
 
-        this.policies = policies;
+        this.iterator = policies.listIterator(policies.size());
     }
 
     @Override
@@ -61,6 +61,6 @@ public class ResponsePolicyChain implements PolicyChain {
     }
 
     public ListIterator<Policy> iterator() {
-        return policies.listIterator(policies.size());
+        return iterator;
     }
 }
