@@ -55,8 +55,7 @@ public class PolicyResolverImpl implements PolicyResolver {
 
                     if (policyInst != null) {
                         LOGGER.debug("Policy {} has been added to the chain for request {}", policyDefinition.name(), request.id());
-
-                        policies.add(new PolicyImpl(policyDefinition, policyInst));
+                        policies.add(new PolicyImpl(policyInst, policyDefinition.onRequestMethod(), policyDefinition.onResponseMethod()));
                     }
                 }
             });

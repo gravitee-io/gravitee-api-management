@@ -35,6 +35,10 @@ public class ResponsePolicyChain implements PolicyChain {
     private final List<Policy> policies;
 
     public ResponsePolicyChain(final List<Policy> policies) {
+        if (policies == null) {
+            throw new IllegalArgumentException("List of policies can't be null.");
+        }
+
         this.policies = policies;
     }
 
@@ -42,13 +46,11 @@ public class ResponsePolicyChain implements PolicyChain {
     public void doNext(final Request request, final Response response) {
         if (iterator().hasPrevious()) {
             Policy policy = iterator().previous();
-            if (policy.getPolicyDefinition().onResponseMethod() != null) {
-                try {
-                    policy.onResponse(request, response, this);
-                } catch (Exception ex) {
-                    LOGGER.error("Unexpected error while running onResponse on policy", ex);
-                    doNext(request, response);
-                }
+            try {
+                policy.onResponse(request, response, this);
+            } catch (Exception ex) {
+                LOGGER.error("Unexpected error while running onResponse on policy", ex);
+                doNext(request, response);
             }
         }
     }

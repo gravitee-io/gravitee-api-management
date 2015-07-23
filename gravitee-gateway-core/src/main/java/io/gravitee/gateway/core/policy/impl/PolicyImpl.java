@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.core.policy.Policy;
-import io.gravitee.gateway.core.policy.PolicyDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,28 +29,24 @@ public class PolicyImpl implements Policy {
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyImpl.class);
 
     private final Object policyInst;
+    private final Method onRequestMethod, onResponseMethod;
 
-    private final PolicyDefinition policyDefinition;
-
-    public PolicyImpl(PolicyDefinition policyDefinition, Object policyInst) {
-        this.policyDefinition = policyDefinition;
+    public PolicyImpl(Object policyInst, Method onRequestMethod, Method onResponseMethod) {
         this.policyInst = policyInst;
+        this.onRequestMethod = onRequestMethod;
+        this.onResponseMethod = onResponseMethod;
     }
 
     @Override
     public void onRequest(Object ... args) throws Exception {
-        LOGGER.debug("Calling onRequest method on policy {}", policyDefinition.policy().getName());
-
-        Method reqMethod = policyDefinition.onRequestMethod();
-        invoke(reqMethod, args);
+        LOGGER.debug("Calling onRequest method on policy {}", policyInst.getClass().getName());
+        invoke(onRequestMethod, args);
     }
 
     @Override
     public void onResponse(Object ... args) throws Exception {
-        LOGGER.debug("Calling onResponse method on policy {}", policyDefinition.policy().getName());
-
-        Method resMethod = policyDefinition.onResponseMethod();
-        invoke(resMethod, args);
+        LOGGER.debug("Calling onResponse method on policy {}", policyInst.getClass().getName());
+        invoke(onResponseMethod, args);
     }
 
     private void invoke(Method invokeMethod, Object ... args) throws Exception {
@@ -77,15 +72,5 @@ public class PolicyImpl implements Policy {
 
             invokeMethod.invoke(policyInst, parameters);
         }
-    }
-
-    @Override
-    public Object getPolicy() {
-        return policyInst;
-    }
-
-    @Override
-    public PolicyDefinition getPolicyDefinition() {
-        return policyDefinition;
     }
 }
