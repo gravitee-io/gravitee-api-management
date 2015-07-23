@@ -84,7 +84,7 @@ public class PolicyWorkspaceTest {
         policyWorkspace.setClassLoaderFactory(classLoaderFactory);
         policyWorkspace.init();
 
-        Assert.assertTrue(policyWorkspace.getPolicyDefinitions().size() == 1);
+        Assert.assertEquals(1, policyWorkspace.getPolicyDefinitions().size());
     }
 
     @Test
@@ -94,7 +94,7 @@ public class PolicyWorkspaceTest {
         policyWorkspace.setClassLoaderFactory(classLoaderFactory);
         policyWorkspace.init();
 
-        Assert.assertTrue(policyWorkspace.getPolicyDefinitions().size() == 1);
+        Assert.assertEquals(1, policyWorkspace.getPolicyDefinitions().size());
 
         PolicyDefinition definition = policyWorkspace.getPolicyDefinitions().iterator().next();
         Assert.assertEquals(definition.id(), "my-policy");
