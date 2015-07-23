@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.gateway.core.policy.ExecutablePolicy;
+import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.PolicyChainBuilder;
 
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.List;
 public class RequestPolicyChainBuilder implements PolicyChainBuilder<RequestPolicyChain> {
 
     @Override
-    public RequestPolicyChain newPolicyChain(List<ExecutablePolicy> policies) {
+    public RequestPolicyChain newPolicyChain(List<Policy> policies) {
         return new RequestPolicyChain(policies);
     }
 }

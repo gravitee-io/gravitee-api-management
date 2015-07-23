@@ -53,7 +53,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     }
 
     @Test
-    public void handleCorrectRequest() {
+    public void processCorrectRequest() {
         // Register new API endpoint
         reactor.onEvent(new Event<ApiLifecycleEvent, Api>() {
             @Override
@@ -80,7 +80,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     }
 
     @Test
-    public void handleNotFoundRequest() {
+    public void processNotFoundRequest() {
         // Register new API endpoint
         reactor.onEvent(new Event<ApiLifecycleEvent, Api>() {
             @Override
