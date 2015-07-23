@@ -33,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -48,7 +47,7 @@ public class CoreConfiguration {
 
     protected final static Logger LOGGER = LoggerFactory.getLogger(CoreConfiguration.class);
 
-    private final static String GRAVITEE_CONFIGURATION = "gravitee.conf";
+    public final static String GRAVITEE_CONFIGURATION = "gravitee.conf";
 
     @Bean
     public Reactor reactor() {
@@ -83,14 +82,7 @@ public class CoreConfiguration {
         YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
 
         String yamlConfiguration = System.getProperty(GRAVITEE_CONFIGURATION);
-        Resource yamlResource = null;
-
-        if (yamlConfiguration == null || yamlConfiguration.isEmpty()) {
-            // Load the default (empty) configuration just to avoid undefined bean with Spring
-            yamlResource = new ClassPathResource("/gravitee.yml");
-        } else {
-            yamlResource = new FileSystemResource(yamlConfiguration);
-        }
+        Resource yamlResource = new FileSystemResource(yamlConfiguration);
 
         LOGGER.info("\tGravitee configuration loaded from {}", yamlResource.getURL().getPath());
 
