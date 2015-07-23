@@ -89,7 +89,7 @@ public class FileRepository extends AbstractRepository {
     }
 
     private void readConfiguration(File configuration) {
-        LOGGER.info("Loading Gravitee configuration from {}", configuration.getAbsolutePath());
+        LOGGER.info("Loading repository data from {}", configuration.getAbsolutePath());
 
         Set<File> configurations = lookingForConfigurationFiles(configuration);
 
@@ -99,7 +99,7 @@ public class FileRepository extends AbstractRepository {
         // Read all configuration files
         for (File conf : configurations) {
             try {
-                LOGGER.info("Read Gravitee configuration from {}", conf.getAbsolutePath());
+                LOGGER.info("Read repository configuration from {}", conf.getAbsolutePath());
                 register(mapper.readValue(conf, Api.class));
             } catch (IOException ioe) {
                 LOGGER.error("Unable to read file : {}", conf, ioe);
