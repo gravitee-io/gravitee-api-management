@@ -32,22 +32,19 @@ public class FileRepositoryTest {
     public void testConfigurationsFromFile() throws URISyntaxException {
         URL url = FileRepositoryTest.class.getResource("/registry/conf");
 
-        FileRepository repository = new FileRepository(new File(url.getPath()));
+        FileRepository repository = new FileRepository(url.getPath());
         repository.init();
 
-        Assert.assertTrue(repository.listAll().size()  == 1);
+        Assert.assertEquals(1, repository.listAll().size());
     }
 
     @Test
     public void testConfigurations() throws URISyntaxException {
         URL url = FileRepositoryTest.class.getResource("/registry/conf");
-        Properties config = new Properties();
-        config.put("repository.file.path", url.getPath());
 
-        FileRepository repository = new FileRepository();
-        repository.setConfiguration(config);
+        FileRepository repository = new FileRepository(url.getPath());
         repository.init();
 
-        Assert.assertTrue(repository.listAll().size()  == 1);
+        Assert.assertEquals(1, repository.listAll().size());
     }
 }

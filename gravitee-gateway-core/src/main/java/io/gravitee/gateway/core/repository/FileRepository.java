@@ -17,12 +17,15 @@ package io.gravitee.gateway.core.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.model.Api;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * File API repository.
@@ -33,38 +36,56 @@ import java.util.*;
 public class FileRepository extends AbstractRepository {
 
     private final static String JSON_EXTENSION = ".json";
-    private final static String DEFAULT_FILE_REPOSITORY = "/etc/gravitee.io/conf";
+//    private final static String DEFAULT_FILE_REPOSITORY = "/etc/gravitee.io/conf";
 
-    private File workspaceDir;
+    @Value("${repository.file.path:/etc/gravitee.io/conf}")
+    private String repositoryPath;
 
+    /*
     @Autowired
     private Properties configuration;
+    */
 
     public FileRepository() {
 
     }
 
-    public FileRepository(File workspaceDir) {
-        this.workspaceDir = workspaceDir;
+    public FileRepository(String repositoryPath) {
+        this.repositoryPath = repositoryPath;
     }
 
     @PostConstruct
     public void init() {
+        if (repositoryPath == null || repositoryPath.isEmpty()) {
+            LOGGER.error("Repository path is not specified.");
+            throw new RuntimeException("Repository path is not specified.");
+        }
 
-        if (workspaceDir == null) {
+        File repositoryDir = new File(repositoryPath);
+
+        // quick sanity check on the install root
+        if (! repositoryDir.isDirectory()) {
+            LOGGER.error("Invalid repository directory, {} is not a directory.", repositoryDir.getAbsolutePath());
+            throw new RuntimeException("Invalid repository directory. Not a directory: "
+                    + repositoryDir.getAbsolutePath());
+        }
+
+        /*
+        if (repositoryPath == null) {
             // fallback to system properties
             String repositoryPath = configuration.getProperty("repository.file.path", DEFAULT_FILE_REPOSITORY);
 
             LOGGER.info("No directory set for FileRepository, fallback using property 'repository.file.path': {}", repositoryPath);
             workspaceDir = new File(repositoryPath);
         }
+        */
 
-        if (workspaceDir.exists()) {
-            LOGGER.info("Initializing file repository with directory set to {}", workspaceDir);
-            readConfiguration(workspaceDir);
+        if (repositoryDir.exists()) {
+            LOGGER.info("Initializing file repository with directory set to {}", repositoryDir);
+            readConfiguration(repositoryDir);
         } else {
             LOGGER.warn("No configuration can be read from {}",
-                    workspaceDir.getAbsolutePath());
+                    repositoryDir.getAbsolutePath());
         }
     }
 
@@ -130,7 +151,9 @@ public class FileRepository extends AbstractRepository {
         }
     }
 
+    /*
     public void setConfiguration(Properties configuration) {
         this.configuration = configuration;
     }
+    */
 }
