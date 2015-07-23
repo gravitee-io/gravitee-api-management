@@ -24,5 +24,5 @@ import java.util.List;
  */
 public interface PolicyResolver {
 
-    List<ExecutablePolicy> resolve(Request request);
+    List<Policy> resolve(Request request);
 }

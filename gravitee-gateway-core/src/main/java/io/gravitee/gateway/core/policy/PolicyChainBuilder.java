@@ -31,5 +31,5 @@ public interface PolicyChainBuilder<T extends PolicyChain> {
      *
      * @return A Policy chain handler.
      */
-    T newPolicyChain(List<ExecutablePolicy> policies);
+    T newPolicyChain(List<Policy> policies);
 }

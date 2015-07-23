@@ -18,7 +18,7 @@ package io.gravitee.gateway.core.handler;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.http.client.HttpClient;
-import io.gravitee.gateway.core.policy.ExecutablePolicy;
+import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.model.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
@@ -51,7 +51,7 @@ public class ApiHandler extends ContextHandler {
                     @Override
                     public void call(final Subscriber<? super Response> observer) {
                         // 1_ Calculate policies
-                        List<ExecutablePolicy> policies = getPolicyResolver().resolve(request);
+                        List<Policy> policies = getPolicyResolver().resolve(request);
 
                         // 2_ Apply request policies
                         getRequestPolicyChainBuilder().newPolicyChain(policies).doNext(request, response);

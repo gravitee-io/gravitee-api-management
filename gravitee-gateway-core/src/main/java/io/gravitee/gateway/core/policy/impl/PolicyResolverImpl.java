@@ -41,8 +41,8 @@ public class PolicyResolverImpl implements PolicyResolver {
     private PolicyFactory policyFactory;
 
     @Override
-    public List<ExecutablePolicy> resolve(Request request) {
-        List<ExecutablePolicy> policies = new ArrayList<>();
+    public List<Policy> resolve(Request request) {
+        List<Policy> policies = new ArrayList<>();
 
         Map<String, io.gravitee.model.Policy> definedPolicies = getApi().getPolicies();
         if (definedPolicies != null) {
@@ -56,7 +56,7 @@ public class PolicyResolverImpl implements PolicyResolver {
                     if (policyInst != null) {
                         LOGGER.debug("Policy {} has been added to the chain for request {}", policyDefinition.name(), request.id());
 
-                        policies.add(new ExecutablePolicyImpl(policyDefinition, policyInst));
+                        policies.add(new PolicyImpl(policyDefinition, policyInst));
                     }
                 }
             });

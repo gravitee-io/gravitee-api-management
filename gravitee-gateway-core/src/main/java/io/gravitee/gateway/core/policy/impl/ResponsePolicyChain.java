@@ -18,7 +18,7 @@ package io.gravitee.gateway.core.policy.impl;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.policy.PolicyChain;
-import io.gravitee.gateway.core.policy.ExecutablePolicy;
+import io.gravitee.gateway.core.policy.Policy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,16 +32,16 @@ public class ResponsePolicyChain implements PolicyChain {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ResponsePolicyChain.class);
 
-    private final List<ExecutablePolicy> policies;
+    private final List<Policy> policies;
 
-    public ResponsePolicyChain(final List<ExecutablePolicy> policies) {
+    public ResponsePolicyChain(final List<Policy> policies) {
         this.policies = policies;
     }
 
     @Override
     public void doNext(final Request request, final Response response) {
         if (iterator().hasPrevious()) {
-            ExecutablePolicy policy = iterator().previous();
+            Policy policy = iterator().previous();
             if (policy.getPolicyDefinition().onResponseMethod() != null) {
                 try {
                     policy.onResponse(request, response, this);
@@ -58,7 +58,7 @@ public class ResponsePolicyChain implements PolicyChain {
 
     }
 
-    public ListIterator<ExecutablePolicy> iterator() {
+    public ListIterator<Policy> iterator() {
         return policies.listIterator(policies.size());
     }
 }

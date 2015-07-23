@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.gateway.core.policy.ExecutablePolicy;
+import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,15 +25,15 @@ import java.lang.reflect.Method;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ExecutablePolicyImpl implements ExecutablePolicy {
+public class PolicyImpl implements Policy {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ExecutablePolicyImpl.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(PolicyImpl.class);
 
     private final Object policyInst;
 
     private final PolicyDefinition policyDefinition;
 
-    public ExecutablePolicyImpl(PolicyDefinition policyDefinition, Object policyInst) {
+    public PolicyImpl(PolicyDefinition policyDefinition, Object policyInst) {
         this.policyDefinition = policyDefinition;
         this.policyInst = policyInst;
     }
