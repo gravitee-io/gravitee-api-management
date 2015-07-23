@@ -20,10 +20,6 @@ package io.gravitee.gateway.core.policy;
  */
 public interface Policy {
 
-    Object getPolicy();
-
-    PolicyDefinition getPolicyDefinition();
-
     void onRequest(Object ... args) throws Exception;
 
     void onResponse(Object ... args) throws Exception;
