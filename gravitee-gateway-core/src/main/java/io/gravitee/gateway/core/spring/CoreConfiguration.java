@@ -26,6 +26,8 @@ import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
 import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.gateway.core.service.impl.ApiServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,12 +37,16 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
+import java.io.IOException;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
 @Import({PolicyConfiguration.class})
 public class CoreConfiguration {
+
+    protected final static Logger LOGGER = LoggerFactory.getLogger(CoreConfiguration.class);
 
     private final static String GRAVITEE_CONFIGURATION = "gravitee.conf";
 
@@ -70,7 +76,9 @@ public class CoreConfiguration {
     }
 
     @Bean
-    public static PropertySourcesPlaceholderConfigurer properties() {
+    public static PropertySourcesPlaceholderConfigurer properties() throws IOException {
+        LOGGER.info("Loading Gravitee configuration.");
+
         PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
         YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
 
@@ -84,8 +92,13 @@ public class CoreConfiguration {
             yamlResource = new FileSystemResource(yamlConfiguration);
         }
 
+        LOGGER.info("\tGravitee configuration loaded from {}", yamlResource.getURL().getPath());
+
         yaml.setResources(yamlResource);
         propertySourcesPlaceholderConfigurer.setProperties(yaml.getObject());
+
+        LOGGER.info("Loading Gravitee configuration. DONE");
+
         return propertySourcesPlaceholderConfigurer;
     }
 
