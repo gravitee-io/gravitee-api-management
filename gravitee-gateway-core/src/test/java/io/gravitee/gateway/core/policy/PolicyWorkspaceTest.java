@@ -35,13 +35,13 @@ public class PolicyWorkspaceTest {
 
     @Test(expected = RuntimeException.class)
     public void initWithInvalidWorkspace() {
-        PolicyWorkspace policyWorkspace = new PolicyWorkspaceImpl();
+        PolicyWorkspaceImpl policyWorkspace = new PolicyWorkspaceImpl();
         policyWorkspace.init();
     }
 
     @Test(expected = RuntimeException.class)
     public void initWithInexistantWorkspace() {
-        PolicyWorkspace policyWorkspace = new PolicyWorkspaceImpl(
+        PolicyWorkspaceImpl policyWorkspace = new PolicyWorkspaceImpl(
                 "/io/gravitee/gateway/core/policy/invalid/");
         policyWorkspace.init();
     }
@@ -71,7 +71,7 @@ public class PolicyWorkspaceTest {
     @Test
     public void initWithWorkspace_noJar() {
         URL dir = PolicyWorkspaceTest.class.getResource("/io/gravitee/gateway/core/policy/invalid-workspace-nojar/");
-        PolicyWorkspace policyWorkspace = new PolicyWorkspaceImpl(dir.getPath());
+        PolicyWorkspaceImpl policyWorkspace = new PolicyWorkspaceImpl(dir.getPath());
         policyWorkspace.init();
 
         Assert.assertTrue(policyWorkspace.getPolicyDefinitions().isEmpty());

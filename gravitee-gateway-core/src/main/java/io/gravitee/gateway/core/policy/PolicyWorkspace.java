@@ -22,8 +22,6 @@ import java.util.Collection;
  */
 public interface PolicyWorkspace {
 
-    void init();
-
     Collection<PolicyDefinition> getPolicyDefinitions();
 
     PolicyDefinition getPolicyDefinition(String id);
