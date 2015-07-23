@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -39,38 +41,37 @@ public class PolicyImpl implements Policy {
 
     @Override
     public void onRequest(Object ... args) throws Exception {
-        LOGGER.debug("Calling onRequest method on policy {}", policyInst.getClass().getName());
-        invoke(onRequestMethod, args);
+        if (onRequestMethod != null) {
+            invoke(onRequestMethod, args);
+        }
     }
 
     @Override
     public void onResponse(Object ... args) throws Exception {
-        LOGGER.debug("Calling onResponse method on policy {}", policyInst.getClass().getName());
-        invoke(onResponseMethod, args);
+        if (onResponseMethod != null) {
+            invoke(onResponseMethod, args);
+        }
     }
 
-    private void invoke(Method invokeMethod, Object ... args) throws Exception {
-        if (invokeMethod != null) {
-            Class<?>[] parametersType = invokeMethod.getParameterTypes();
-            Object[] parameters = new Object[parametersType.length];
-            int idx = 0;
+    private void invoke(Method invokedMethod, Object ... args) throws Exception {
+        LOGGER.debug("Calling {} method on policy {}", invokedMethod.getName(), policyInst.getClass().getName());
 
-            // Map correctly parameters according to parameter's type
-            for(Class<?> paramType : parametersType) {
-                //TODO: map data according to parameter type
-                parameters[idx] = args[idx - 1];
-                /*
-                if (paramType.equals(PolicyChain.class)) {
-                    parameters[idx++] = policyChain;
-                } else if (paramType.equals(Request.class)) {
-                    parameters[idx++] = request;
-                } else if (paramType.equals(Response.class)) {
-                    parameters[idx++] = response;
-                }
-                */
-            }
+        Class<?>[] parametersType = invokedMethod.getParameterTypes();
+        Object[] parameters = new Object[parametersType.length];
 
-            invokeMethod.invoke(policyInst, parameters);
+        Map<Class<?>, Object> argsParameters = new HashMap<>(args.length);
+
+        for(Object arg: args) {
+            argsParameters.put(arg.getClass(), arg);
         }
+
+        int idx = 0;
+
+        // Map parameters according to parameter's type
+        for(Class<?> paramType : parametersType) {
+            parameters[idx++] = argsParameters.get(paramType);
+        }
+
+        invokedMethod.invoke(policyInst, parameters);
     }
 }

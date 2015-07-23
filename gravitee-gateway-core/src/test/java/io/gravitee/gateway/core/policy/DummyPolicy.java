@@ -27,7 +27,7 @@ import io.gravitee.gateway.api.policy.annotations.OnResponse;
 public class DummyPolicy {
 
     @OnRequest
-    public void onRequest(Request request, Response response, PolicyChain handler) {
+    public void onRequest(PolicyChain handler, Request request, Response response) {
         // Do nothing
     }
 
