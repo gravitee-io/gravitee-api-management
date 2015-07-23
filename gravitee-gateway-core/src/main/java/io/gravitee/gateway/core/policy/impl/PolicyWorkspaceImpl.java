@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.ClassUtils;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -76,7 +77,7 @@ public class PolicyWorkspaceImpl implements PolicyWorkspace {
         this.workspacePath = workspacePath;
     }
 
-    @Override
+    @PostConstruct
     public void init() {
         if (! initialized) {
             LOGGER.info("Initializing policy workspace.");
@@ -99,7 +100,7 @@ public class PolicyWorkspaceImpl implements PolicyWorkspace {
 
     public void initializeFromWorkspace() {
         if (workspacePath == null || workspacePath.isEmpty()) {
-            LOGGER.error("Policy workspace directory is not valid.");
+            LOGGER.error("Policy workspace directory is not specified.");
             throw new RuntimeException("Policy workspace directory is not valid.");
         }
 
