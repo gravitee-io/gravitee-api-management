@@ -4,4 +4,8 @@ node:
   home: ${gravitee.home}
 
 policy:
-  workspace: ${node.home}/workspace
+  workspace: ${node.home}/io/gravitee/gateway/core/policy/workspace
+
+repository:
+  file:
+    path: ${node.home}/registry/conf

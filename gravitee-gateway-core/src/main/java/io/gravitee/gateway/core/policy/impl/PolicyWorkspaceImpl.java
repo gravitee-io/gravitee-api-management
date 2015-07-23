@@ -101,7 +101,7 @@ public class PolicyWorkspaceImpl implements PolicyWorkspace {
     public void initializeFromWorkspace() {
         if (workspacePath == null || workspacePath.isEmpty()) {
             LOGGER.error("Policy workspace directory is not specified.");
-            throw new RuntimeException("Policy workspace directory is not valid.");
+            throw new RuntimeException("Policy workspace directory is not specified.");
         }
 
         File workspaceDir = new File(workspacePath);

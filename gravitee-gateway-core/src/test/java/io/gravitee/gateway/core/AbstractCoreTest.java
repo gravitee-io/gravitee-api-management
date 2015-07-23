@@ -39,7 +39,7 @@ public abstract class AbstractCoreTest implements ApplicationContextAware {
 
     public AbstractCoreTest() {
         System.setProperty("gravitee.home",
-                AbstractCoreTest.class.getResource("/io/gravitee/gateway/core/policy").getPath());
+                AbstractCoreTest.class.getResource("/").getPath());
 
         System.setProperty("gravitee.conf",
                 AbstractCoreTest.class.getResource("/gravitee.yml").getPath());
