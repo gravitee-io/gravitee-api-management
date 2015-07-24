@@ -15,9 +15,14 @@
  */
 package io.gravitee.gateway.core.policy;
 
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.policy.PolicyChain;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.api.policy.annotations.OnRequest;
 import io.gravitee.gateway.api.policy.annotations.OnResponse;
+import io.gravitee.gateway.core.http.ServerRequest;
+import io.gravitee.gateway.core.http.ServerResponse;
 import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
 import io.gravitee.gateway.core.policy.impl.PolicyImpl;
 import org.junit.Before;
@@ -31,6 +36,9 @@ import java.net.URL;
 import java.util.List;
 import java.util.Set;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.isNotNull;
+import static org.mockito.Mockito.*;
 import static org.reflections.ReflectionUtils.withAnnotation;
 import static org.reflections.ReflectionUtils.withModifier;
 
@@ -39,23 +47,97 @@ import static org.reflections.ReflectionUtils.withModifier;
  */
 public class PolicyTest {
 
-    private PolicyFactory policyFactory;
+    private PolicyFactory policyFactory = new PolicyFactoryImpl();
 
     @Before
     public void setUp() {
-        policyFactory = new PolicyFactoryImpl();
+        policyFactory = spy(policyFactory);
     }
 
     @Test
-    public void test() throws Exception {
+    public void onRequest() throws Exception {
         PolicyDefinition policyDefinition = getPolicyDefinition();
 
-        Object policyInst = policyFactory.create(policyDefinition, null);
+        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(policyDefinition.policy(), OnRequest.class);
+
+        Policy policy = new PolicyImpl(policyInst, onRequestMethod, null);
+        policy.onRequest();
+
+        verify(policyInst, atLeastOnce()).onRequest(any(), any(), any());
+        verify(policyInst, never()).onResponse(any(), any(), any());
+    }
+
+    @Test
+    public void onResponse() throws Exception {
+        PolicyDefinition policyDefinition = getPolicyDefinition();
+
+        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(policyDefinition.policy(), OnResponse.class);
 
-        Policy policy = new PolicyImpl(policyInst, onRequestMethod, onResponseMethod);
+        Policy policy = new PolicyImpl(policyInst, null, onResponseMethod);
+        policy.onResponse();
+
+        verify(policyInst, never()).onRequest(any(), any(), any());
+        verify(policyInst, atLeastOnce()).onResponse(any(), any(), any());
+    }
+
+    @Test
+    public void onRequest_emptyParameters() throws Exception {
+        PolicyDefinition policyDefinition = getPolicyDefinition();
+
+        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        Method onRequestMethod = resolvePolicyMethod(policyDefinition.policy(), OnRequest.class);
+
+        Policy policy = new PolicyImpl(policyInst, onRequestMethod, null);
         policy.onRequest();
+
+        verify(policyInst, atLeastOnce()).onRequest(any(), any(), any());
+    }
+
+    @Test
+    public void onResponse_emptyParameters() throws Exception {
+        PolicyDefinition policyDefinition = getPolicyDefinition();
+
+        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        Method onResponseMethod = resolvePolicyMethod(policyDefinition.policy(), OnResponse.class);
+
+        Policy policy = new PolicyImpl(policyInst, null, onResponseMethod);
+        policy.onResponse();
+
+        verify(policyInst, atLeastOnce()).onResponse(any(), any(), any());
+    }
+
+    @Test
+    public void onRequest_mockParameters() throws Exception {
+        PolicyDefinition policyDefinition = getPolicyDefinition();
+
+        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        Method onRequestMethod = resolvePolicyMethod(policyDefinition.policy(), OnRequest.class);
+
+        Policy policy = new PolicyImpl(policyInst, onRequestMethod, null);
+        Request mockRequest = mock(Request.class);
+        Response mockResponse = mock(Response.class);
+
+        policy.onRequest(mockRequest, mockResponse);
+
+        verify(policyInst, atLeastOnce()).onRequest(any(PolicyChain.class), eq(mockRequest), eq(mockResponse));
+    }
+
+    @Test
+    public void onResponse_mockParameters() throws Exception {
+        PolicyDefinition policyDefinition = getPolicyDefinition();
+
+        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        Method onResponseMethod = resolvePolicyMethod(policyDefinition.policy(), OnResponse.class);
+
+        Policy policy = new PolicyImpl(policyInst, null, onResponseMethod);
+        Request mockRequest = new ServerRequest();
+        Response mockResponse = new ServerResponse();
+
+        policy.onResponse(mockRequest, mockResponse);
+
+        verify(policyInst, atLeastOnce()).onResponse(eq(mockRequest), eq(mockResponse), any(PolicyChain.class));
     }
 
     private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {
