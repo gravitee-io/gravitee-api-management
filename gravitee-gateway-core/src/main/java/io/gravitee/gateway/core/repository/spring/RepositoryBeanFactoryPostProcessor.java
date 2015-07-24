@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.spring;
+package io.gravitee.gateway.core.repository.spring;
 
 import io.gravitee.gateway.api.Repository;
 import io.gravitee.gateway.core.repository.FileRepository;
