@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.handler;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.model.Api;
@@ -41,6 +42,9 @@ public class ApiHandler extends ContextHandler {
 
     @Autowired
     private HttpClient httpClient;
+
+    @Autowired(required = false)
+    private List<Reporter> reporters;
 
     @Override
     public Observable<Response> handle(final Request request, final Response response) {
@@ -75,6 +79,12 @@ public class ApiHandler extends ContextHandler {
                             public void onNext(Response response) {
                                 getResponsePolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
                                 observer.onNext(response);
+
+                                if (reporters != null) {
+                                    for (Reporter reporter : reporters) {
+                                        reporter.report(request, response);
+                                    }
+                                }
 
                                 // TODO: must be part of reporting system
                                 /*

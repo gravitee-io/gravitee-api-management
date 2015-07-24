@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.spring;
+package io.gravitee.gateway.core.reporter.spring;
 
-import io.gravitee.gateway.api.Repository;
-import io.gravitee.gateway.core.repository.FileRepository;
+import io.gravitee.gateway.api.reporter.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -35,47 +34,39 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+public class ReporterBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
-    protected final Logger LOGGER = LoggerFactory.getLogger(RepositoryBeanFactoryPostProcessor.class);
+    protected final Logger LOGGER = LoggerFactory.getLogger(ReporterBeanFactoryPostProcessor.class);
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        LOGGER.info("Looking for a repository {} policy...", Repository.class.getSimpleName());
-
-        Set<String> initializerNames = new HashSet(
-                SpringFactoriesLoader.loadFactoryNames(Repository.class, beanFactory.getBeanClassLoader()));
-
-        int size = initializerNames.size();
-        LOGGER.info("\tFound {} {} implementations.", size, Repository.class.getSimpleName());
+        LOGGER.info("Loading {} implementation from classpath", Reporter.class.getName());
 
         DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
 
-        if (size == 0 || size == 1) {
-            String repositoryClass = null;
+        Set<String> initializerNames = new HashSet(
+                SpringFactoriesLoader.loadFactoryNames(Reporter.class, beanFactory.getBeanClassLoader()));
 
-            switch (size) {
-                case 0:
-                    LOGGER.info("\tNo repository policy found, registering default file policy.");
-                    repositoryClass = FileRepository.class.getName();
-                    break;
-                case 1:
-                    repositoryClass = initializerNames.iterator().next();
-            }
+        int implementations = initializerNames.size();
+        if (implementations == 0) {
+            LOGGER.info("\tNo {} implementation found.", Reporter.class.getName());
+        } else {
+            LOGGER.info("\tFound {} {} implementations.", initializerNames.size(), Reporter.class.getName());
+        }
 
+        for(String reporterClass: initializerNames) {
             try {
-                Class<?> instanceClass = ClassUtils.forName(repositoryClass, beanFactory.getBeanClassLoader());
-                Assert.isAssignable(Repository.class, instanceClass);
+                Class<?> instanceClass = ClassUtils.forName(reporterClass, beanFactory.getBeanClassLoader());
+                Assert.isAssignable(Reporter.class, instanceClass);
 
                 BeanDefinition beanDefinition =
                         BeanDefinitionBuilder.rootBeanDefinition(instanceClass.getName()).getBeanDefinition();
 
-                LOGGER.info("\tRegistering repository policy: {}", instanceClass.getName());
-                defaultListableBeanFactory.registerBeanDefinition("repository", beanDefinition);
-            }
-            catch (Exception ex) {
-                LOGGER.error("Unable to instantiate repository: {}", ex);
-                throw new IllegalStateException("Unable to instantiate repository: " + repositoryClass, ex);
+                LOGGER.info("\tRegistering a new reporter: {}", instanceClass.getName());
+                defaultListableBeanFactory.registerBeanDefinition(instanceClass.getName(), beanDefinition);
+            } catch (Exception ex) {
+                LOGGER.error("Unable to instantiate reporter: {}", ex);
+                throw new IllegalStateException("Unable to instantiate reporter: " + reporterClass, ex);
             }
         }
     }

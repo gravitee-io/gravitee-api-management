@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.policy.ClassLoaderFactory;
 import io.gravitee.gateway.core.policy.impl.ClassLoaderFactoryImpl;
 import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
+import io.gravitee.gateway.core.reporter.spring.ReporterBeanFactoryPostProcessor;
 import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.gateway.core.service.impl.ApiServiceImpl;
 import org.slf4j.Logger;
@@ -57,6 +58,11 @@ public class CoreConfiguration {
     @Bean
     public static RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor() {
         return new RepositoryBeanFactoryPostProcessor();
+    }
+
+    @Bean
+    public static ReporterBeanFactoryPostProcessor reporterBeanFactoryPostProcessor() {
+        return new ReporterBeanFactoryPostProcessor();
     }
 
     @Bean
