@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.core.policy.Policy;
+import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,19 +60,23 @@ public class PolicyImpl implements Policy {
         Class<?>[] parametersType = invokedMethod.getParameterTypes();
         Object[] parameters = new Object[parametersType.length];
 
-        Map<Class<?>, Object> argsParameters = new HashMap<>(args.length);
-
-        for(Object arg: args) {
-            argsParameters.put(arg.getClass(), arg);
-        }
-
         int idx = 0;
 
         // Map parameters according to parameter's type
         for(Class<?> paramType : parametersType) {
-            parameters[idx++] = argsParameters.get(paramType);
+            parameters[idx++] = getParameterAssignableTo(paramType, args);
         }
 
         invokedMethod.invoke(policyInst, parameters);
+    }
+
+    private Object getParameterAssignableTo(Class<?> paramType, Object ... args) {
+        for(Object arg: args) {
+            if (paramType.isAssignableFrom(arg.getClass())) {
+                return arg;
+            }
+        }
+
+        return null;
     }
 }
