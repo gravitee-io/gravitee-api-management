@@ -25,6 +25,7 @@ import io.gravitee.gateway.core.policy.impl.ClassLoaderFactoryImpl;
 import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
 import io.gravitee.gateway.core.reporter.spring.ReporterBeanFactoryPostProcessor;
+import io.gravitee.gateway.core.repository.spring.RepositoryBeanFactoryPostProcessor;
 import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.gateway.core.service.impl.ApiServiceImpl;
 import org.slf4j.Logger;
