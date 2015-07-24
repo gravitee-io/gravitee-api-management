@@ -49,7 +49,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
         try {
             Object policyInst = null;
 
-            LOGGER.info("Trying to create a new instance of policy {}", policyClass.getName());
+            LOGGER.debug("Trying to create a new instance of policy {}", policyClass.getName());
 
             if (policyClass != null) {
                 PolicyConfiguration policyConfiguration = null;
@@ -63,7 +63,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
                     }
                 }
 
-                LOGGER.info("Looking for an injectable configuration using policy constructor.");
+                LOGGER.debug("Looking for an injectable configuration using policy constructor.");
                 Set<Constructor> constructors =
                         ReflectionUtils.getConstructors(policyClass,
                                 withModifier(Modifier.PUBLIC),
@@ -73,13 +73,13 @@ public class PolicyFactoryImpl implements PolicyFactory {
                 Constructor<?> constr = null;
 
                 if (constructors.isEmpty()) {
-                    LOGGER.warn("No configuration can be injected for {} because there is no valid constructor, using default constructor.", policyClass.getName());
+                    LOGGER.debug("No configuration can be injected for {} because there is no valid constructor, using default constructor.", policyClass.getName());
                     policyInst = createInstance(policyClass);
                 } else if (constructors.size() == 1) {
                     constr = constructors.iterator().next();
                     policyInst = constr.newInstance(policyConfiguration);
                 } else {
-                    LOGGER.warn("Too much constructor to instantiate policy {}", policyClass.getName());
+                    LOGGER.info("Too much constructor to instantiate policy {}", policyClass.getName());
                 }
             }
 
