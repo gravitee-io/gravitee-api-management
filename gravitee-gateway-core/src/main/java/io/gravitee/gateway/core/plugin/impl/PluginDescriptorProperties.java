@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy;
+package io.gravitee.gateway.core.plugin.impl;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyDescriptorValidator {
+public interface PluginDescriptorProperties {
 
-    boolean validate();
+    String DESCRIPTOR_ID_PROPERTY = "id";
+    String DESCRIPTOR_NAME_PROPERTY = "name";
+    String DESCRIPTOR_VERSION_PROPERTY = "version";
+    String DESCRIPTOR_DESCRIPTION_PROPERTY = "description";
+    String DESCRIPTOR_CLASS_PROPERTY = "class";
 }

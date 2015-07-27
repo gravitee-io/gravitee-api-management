@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy.impl.properties;
+package io.gravitee.gateway.core.plugin.impl;
 
-import io.gravitee.gateway.core.policy.PolicyDescriptorValidator;
+import io.gravitee.gateway.core.plugin.PluginDescriptorValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,21 +24,21 @@ import java.util.Properties;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PropertiesBasedPolicyDescriptorValidator implements PolicyDescriptorValidator {
+public class PropertiesBasedPluginDescriptorValidator implements PluginDescriptorValidator {
 
-    protected final Logger LOGGER = LoggerFactory.getLogger(PropertiesBasedPolicyDescriptorValidator.class);
+    protected final Logger LOGGER = LoggerFactory.getLogger(PropertiesBasedPluginDescriptorValidator.class);
 
     private final Properties properties;
 
     private final static String [] DESCRIPTOR_PROPERTIES = new String [] {
-            PolicyDescriptorProperties.DESCRIPTOR_ID_PROPERTY,
-            PolicyDescriptorProperties.DESCRIPTOR_DESCRIPTION_PROPERTY,
-            PolicyDescriptorProperties.DESCRIPTOR_CLASS_PROPERTY,
-            PolicyDescriptorProperties.DESCRIPTOR_NAME_PROPERTY,
-            PolicyDescriptorProperties.DESCRIPTOR_VERSION_PROPERTY
+            PluginDescriptorProperties.DESCRIPTOR_ID_PROPERTY,
+            PluginDescriptorProperties.DESCRIPTOR_DESCRIPTION_PROPERTY,
+            PluginDescriptorProperties.DESCRIPTOR_CLASS_PROPERTY,
+            PluginDescriptorProperties.DESCRIPTOR_NAME_PROPERTY,
+            PluginDescriptorProperties.DESCRIPTOR_VERSION_PROPERTY
     };
 
-    public PropertiesBasedPolicyDescriptorValidator(Properties properties) {
+    public PropertiesBasedPluginDescriptorValidator(Properties properties) {
         this.properties = properties;
     }
 

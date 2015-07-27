@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.core.policy.spring;
 
-import io.gravitee.gateway.core.policy.PolicyWorkspace;
-import io.gravitee.gateway.core.policy.impl.PolicyWorkspaceImpl;
+import io.gravitee.gateway.core.plugin.PluginHandler;
+import io.gravitee.gateway.core.policy.impl.PolicyManagerImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,8 +26,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PolicyConfiguration {
 
-    @Bean
-    public PolicyWorkspace policyWorkspace() {
-        return new PolicyWorkspaceImpl();
+    @Bean(name = "policyPluginHandler")
+    public PluginHandler policyPluginHandler() {
+        return new PolicyManagerImpl();
     }
 }

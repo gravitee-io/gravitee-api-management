@@ -55,10 +55,10 @@ public class PolicyFactoryImpl implements PolicyFactory {
                 PolicyConfiguration policyConfiguration = null;
                 if (policyConfigurationClazz != null) {
                     if (configuration == null) {
-                        LOGGER.error("A configuration is required for policy {}, returning a null policy.", policyDefinition.name());
+                        LOGGER.error("A configuration is required for policy {}, returning a null policy.", policyDefinition.id());
                         return null;
                     } else {
-                        LOGGER.debug("Create policy configuration for policy {}", policyDefinition.name());
+                        LOGGER.debug("Create policy configuration for policy {}", policyDefinition.id());
                         policyConfiguration = policyConfigurationFactory.create(policyConfigurationClazz, configuration);
                     }
                 }

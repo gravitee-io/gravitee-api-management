@@ -13,16 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy;
+package io.gravitee.gateway.core.plugin.spring;
 
-import java.util.Collection;
+import io.gravitee.gateway.core.plugin.ClassLoaderFactory;
+import io.gravitee.gateway.core.plugin.PluginManager;
+import io.gravitee.gateway.core.plugin.impl.ClassLoaderFactoryImpl;
+import io.gravitee.gateway.core.plugin.impl.PluginManagerImpl;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyWorkspace {
+@Configuration
+public class PluginConfiguration {
 
-    Collection<PolicyDefinition> getPolicyDefinitions();
+    @Bean
+    public PluginManager pluginManager() {
+        return new PluginManagerImpl();
+    }
 
-    PolicyDefinition getPolicyDefinition(String id);
+    @Bean
+    public ClassLoaderFactory classLoaderFactory() {
+        return new ClassLoaderFactoryImpl();
+    }
 }

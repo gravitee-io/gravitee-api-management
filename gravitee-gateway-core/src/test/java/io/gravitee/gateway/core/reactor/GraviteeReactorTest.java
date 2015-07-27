@@ -17,7 +17,6 @@ package io.gravitee.gateway.core.reactor;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.AbstractCoreTest;
@@ -26,18 +25,24 @@ import io.gravitee.gateway.core.event.Event;
 import io.gravitee.gateway.core.external.ApiExternalResource;
 import io.gravitee.gateway.core.external.ApiServlet;
 import io.gravitee.gateway.core.http.ServerRequest;
+import io.gravitee.gateway.core.plugin.Plugin;
+import io.gravitee.gateway.core.plugin.PluginHandler;
+import io.gravitee.gateway.core.reporter.ConsoleReporter;
+import io.gravitee.gateway.core.reporter.ReporterManager;
 import io.gravitee.gateway.core.service.ApiLifecycleEvent;
 import io.gravitee.model.Api;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import static org.mockito.Mockito.*;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 
 import java.net.URI;
-import java.util.List;
+import java.util.Collection;
+
+import static org.mockito.Mockito.spy;
 
 
 /**
@@ -52,7 +57,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     private GraviteeReactor<Observable<Response>> reactor;
 
     @Autowired
-    private List<Reporter> reporters;
+    private ReporterManager reporterManager;
 
     @Before
     public void setUp() {
@@ -115,9 +120,21 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
     @Test
     public void reporter_checkReport() {
-        Assert.assertEquals(1, reporters.size());
+        ((PluginHandler) reporterManager).handle(new Plugin() {
+            @Override
+            public String id() {
+                return "console-reporter";
+            }
 
-        Reporter reporter = spy(reporters.iterator().next());
+            @Override
+            public Class<?> clazz() {
+                return ConsoleReporter.class;
+            }
+        });
+
+        Assert.assertEquals(1, reporterManager.getReporters().size());
+
+//        Reporter reporter = spy(reporterManager.getReporters().iterator().next());
 
         // Register new API endpoint
         reactor.onEvent(new Event<ApiLifecycleEvent, Api>() {

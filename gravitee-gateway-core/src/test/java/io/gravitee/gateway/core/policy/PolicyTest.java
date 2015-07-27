@@ -32,12 +32,9 @@ import org.reflections.ReflectionUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.util.List;
 import java.util.Set;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.isNotNull;
 import static org.mockito.Mockito.*;
 import static org.reflections.ReflectionUtils.withAnnotation;
 import static org.reflections.ReflectionUtils.withModifier;
@@ -161,32 +158,12 @@ public class PolicyTest {
             }
 
             @Override
-            public String name() {
-                return "my-policy";
-            }
-
-            @Override
-            public String description() {
-                return null;
-            }
-
-            @Override
-            public String version() {
-                return null;
-            }
-
-            @Override
             public Class<?> policy() {
                 return DummyPolicy.class;
             }
 
             @Override
             public Class<? extends PolicyConfiguration> configuration() {
-                return null;
-            }
-
-            @Override
-            public List<URL> getClassPathElements() {
                 return null;
             }
 
