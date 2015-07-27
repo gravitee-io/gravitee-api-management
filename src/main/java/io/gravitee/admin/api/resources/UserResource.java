@@ -60,6 +60,7 @@ public class UserResource {
             randomIndex = random.nextInt(11);
             final int lastNameIndex = randomIndex > lastNames.size() - 1 ? lastNames.size() - 1 : randomIndex;
             user.setLastName(lastNames.remove(lastNameIndex));
+            user.setEmail(user.getFirstName().toLowerCase() + '.' + user.getLastName().toLowerCase() + "@gravitee.io");
             users.add(user);
         }
         return Response.status(HttpStatusCode.OK_200).entity(users)
