@@ -22,8 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.List;
 
 import static org.mockito.Mockito.*;
 
@@ -88,21 +86,6 @@ public class PolicyFactoryTest {
             }
 
             @Override
-            public String name() {
-                return "my-policy";
-            }
-
-            @Override
-            public String description() {
-                return null;
-            }
-
-            @Override
-            public String version() {
-                return null;
-            }
-
-            @Override
             public Class<?> policy() {
                 return DummyPolicy.class;
             }
@@ -110,11 +93,6 @@ public class PolicyFactoryTest {
             @Override
             public Class<? extends PolicyConfiguration> configuration() {
                 return DummyPolicyConfiguration.class;
-            }
-
-            @Override
-            public List<URL> getClassPathElements() {
-                return null;
             }
 
             @Override
@@ -137,32 +115,12 @@ public class PolicyFactoryTest {
             }
 
             @Override
-            public String name() {
-                return "my-policy";
-            }
-
-            @Override
-            public String description() {
-                return null;
-            }
-
-            @Override
-            public String version() {
-                return null;
-            }
-
-            @Override
             public Class<?> policy() {
                 return DummyPolicy.class;
             }
 
             @Override
             public Class<? extends PolicyConfiguration> configuration() {
-                return null;
-            }
-
-            @Override
-            public List<URL> getClassPathElements() {
                 return null;
             }
 

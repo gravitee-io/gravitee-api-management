@@ -24,8 +24,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.List;
 
 import static org.mockito.Mockito.when;
 
@@ -35,7 +33,7 @@ import static org.mockito.Mockito.when;
 public class PolicyResolverTest {
 
     @Mock
-    private PolicyWorkspace policyWorkspace;
+    private PolicyManager policyManager;
 
     private PolicyResolverImpl policyResolver = new PolicyResolverImpl();
 
@@ -43,24 +41,9 @@ public class PolicyResolverTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        when(policyWorkspace.getPolicyDefinition("dummy-policy")).thenReturn(new PolicyDefinition() {
+        when(policyManager.getPolicyDefinition("dummy-policy")).thenReturn(new PolicyDefinition() {
             @Override
             public String id() {
-                return null;
-            }
-
-            @Override
-            public String name() {
-                return "my-policy";
-            }
-
-            @Override
-            public String description() {
-                return null;
-            }
-
-            @Override
-            public String version() {
                 return null;
             }
 
@@ -71,11 +54,6 @@ public class PolicyResolverTest {
 
             @Override
             public Class<PolicyConfiguration> configuration() {
-                return null;
-            }
-
-            @Override
-            public List<URL> getClassPathElements() {
                 return null;
             }
 

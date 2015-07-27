@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.policy.Policy;
+import io.gravitee.gateway.core.reporter.ReporterManager;
 import io.gravitee.model.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
@@ -43,12 +44,12 @@ public class ApiHandler extends ContextHandler {
     @Autowired
     private HttpClient httpClient;
 
-    @Autowired(required = false)
-    private List<Reporter> reporters;
+    @Autowired
+    private ReporterManager reporterManager;
 
     @Override
     public Observable<Response> handle(final Request request, final Response response) {
-    //    timeInMs = System.currentTimeMillis();
+        //    timeInMs = System.currentTimeMillis();
         return Observable.create(
                 new Observable.OnSubscribe<Response>() {
 
@@ -80,10 +81,8 @@ public class ApiHandler extends ContextHandler {
                                 getResponsePolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
                                 observer.onNext(response);
 
-                                if (reporters != null) {
-                                    for (Reporter reporter : reporters) {
-                                        reporter.report(request, response);
-                                    }
+                                for (Reporter reporter : reporterManager.getReporters()) {
+                                    reporter.report(request, response);
                                 }
 
                                 // TODO: must be part of reporting system

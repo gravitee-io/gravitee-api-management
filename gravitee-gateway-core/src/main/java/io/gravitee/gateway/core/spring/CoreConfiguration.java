@@ -20,11 +20,10 @@ import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.event.impl.EventManagerImpl;
 import io.gravitee.gateway.core.handler.ErrorHandler;
 import io.gravitee.gateway.core.handler.Handler;
-import io.gravitee.gateway.core.policy.ClassLoaderFactory;
-import io.gravitee.gateway.core.policy.impl.ClassLoaderFactoryImpl;
+import io.gravitee.gateway.core.plugin.spring.PluginConfiguration;
 import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
-import io.gravitee.gateway.core.reporter.spring.ReporterBeanFactoryPostProcessor;
+import io.gravitee.gateway.core.reporter.spring.ReporterConfiguration;
 import io.gravitee.gateway.core.repository.spring.RepositoryBeanFactoryPostProcessor;
 import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.gateway.core.service.impl.ApiServiceImpl;
@@ -44,7 +43,7 @@ import java.io.IOException;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@Import({PolicyConfiguration.class})
+@Import({PluginConfiguration.class, PolicyConfiguration.class, ReporterConfiguration.class})
 public class CoreConfiguration {
 
     protected final static Logger LOGGER = LoggerFactory.getLogger(CoreConfiguration.class);
@@ -59,11 +58,6 @@ public class CoreConfiguration {
     @Bean
     public static RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor() {
         return new RepositoryBeanFactoryPostProcessor();
-    }
-
-    @Bean
-    public static ReporterBeanFactoryPostProcessor reporterBeanFactoryPostProcessor() {
-        return new ReporterBeanFactoryPostProcessor();
     }
 
     @Bean
@@ -99,10 +93,5 @@ public class CoreConfiguration {
         LOGGER.info("Loading Gravitee configuration. DONE");
 
         return propertySourcesPlaceholderConfigurer;
-    }
-
-    @Bean
-    public ClassLoaderFactory classLoaderFactory() {
-        return new ClassLoaderFactoryImpl();
     }
 }

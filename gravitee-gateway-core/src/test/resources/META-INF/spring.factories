@@ -1,2 +1,0 @@
-io.gravitee.gateway.api.reporter.Reporter=\
-io.gravitee.gateway.core.reporter.ConsoleReporter

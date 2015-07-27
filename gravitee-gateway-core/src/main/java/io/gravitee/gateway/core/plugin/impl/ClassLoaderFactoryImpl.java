@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy.impl;
+package io.gravitee.gateway.core.plugin.impl;
 
-import io.gravitee.gateway.core.policy.ClassLoaderFactory;
+import io.gravitee.gateway.core.plugin.ClassLoaderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,46 +31,39 @@ public class ClassLoaderFactoryImpl implements ClassLoaderFactory {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(ClassLoaderFactoryImpl.class);
 
-    private final Map<String, ClassLoader> policyClassLoaderCache = new HashMap<>();
+    private final Map<String, ClassLoader> pluginClassLoaderCache = new HashMap<>();
 
     @Override
-    public ClassLoader createPolicyClassLoader(String policyId, URL[] urls) {
+    public ClassLoader createPluginClassLoader(String pluginId, URL[] urls) {
         ClassLoader cl;
 
         try {
-            cl = policyClassLoaderCache.get(policyId);
+            cl = pluginClassLoaderCache.get(pluginId);
             if (null == cl)  {
                 cl = new URLClassLoader(urls, ClassLoaderFactoryImpl.class.getClassLoader());
-                policyClassLoaderCache.put(policyId, cl);
+                pluginClassLoaderCache.put(pluginId, cl);
             }
 
-            LOGGER.debug("Created policy ClassLoader for {} with class path {}",
-                    policyId, urls);
+            LOGGER.debug("Created plugin ClassLoader for {} with class path {}",
+                    pluginId, urls);
 
             return cl;
         }
         catch (Throwable t) {
-            LOGGER.error("Unexpected error while creating policy classloader", t);
+            LOGGER.error("Unexpected error while creating plugin classloader", t);
             return null;
         }
     }
 
     @Override
-    public ClassLoader getPolicyClassLoader(String policyId) {
-        return policyClassLoaderCache.get(policyId);
+    public ClassLoader getPluginClassLoader(String pluginId) {
+        return pluginClassLoaderCache.get(pluginId);
     }
 
-    /**
-     * Private method to convert a List into a URL array.
-     *
-     * @param paths list of String elements representing paths and JAR file
-     * names
-     * @return java.net.URL[] array representing the URLs corresponding to the
-     * paths, or null if the list is null or if there is an exception creating
-     * the array.
-     * @throws Exception If the array creation is unsuccessful.
-     */
-    private URL[] list2URLArray (List<URL> paths) throws Exception {
-        return paths.toArray(new URL[paths.size()]);
+    @Override
+    public void removePluginClassLoader(String pluginId) {
+        pluginClassLoaderCache.remove(pluginId);
+        LOGGER.debug("ClassLoader for plugin {} has been removed from cache",
+                pluginId);
     }
 }

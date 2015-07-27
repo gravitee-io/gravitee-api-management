@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api;
+package io.gravitee.gateway.core.plugin;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface Plugin {
+
+    String id();
+
+    Class<?> clazz();
 }

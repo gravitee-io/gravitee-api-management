@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy;
+package io.gravitee.gateway.core.reporter;
 
-import java.net.URL;
+import io.gravitee.gateway.api.reporter.Reporter;
+
+import java.util.Collection;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ClassLoaderFactory {
+public interface ReporterManager {
 
-    ClassLoader createPolicyClassLoader(String policyId, URL[] jars);
-
-    ClassLoader getPolicyClassLoader(String policyId);
+    Collection<Reporter> getReporters();
 }

@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy;
-
-import java.util.Collection;
+package io.gravitee.gateway.core.plugin;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyLoader {
+public interface PluginDescriptorValidator {
 
-    Collection<PolicyDescriptor> load();
+    boolean validate();
 }

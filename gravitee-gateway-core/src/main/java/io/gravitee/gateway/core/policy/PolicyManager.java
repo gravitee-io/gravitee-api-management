@@ -15,18 +15,14 @@
  */
 package io.gravitee.gateway.core.policy;
 
+import java.util.Collection;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyDescriptor {
+public interface PolicyManager {
 
-    String id();
+    Collection<PolicyDefinition> getPolicyDefinitions();
 
-    String name();
-
-    String description();
-
-    String version();
-
-    String policy();
+    PolicyDefinition getPolicyDefinition(String id);
 }
