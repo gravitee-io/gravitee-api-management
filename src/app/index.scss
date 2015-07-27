@@ -59,6 +59,22 @@ section.jumbotron {
   padding-right: 10px;
   vertical-align: middle;
 }
+
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+
+.icon-users {
+  width: 1.125em;
+}
+
+md-icon {
+  margin: 20px;
+}
+
 /**
  *  Do not remove this comments bellow. It's the markers used by gulp-inject to inject
  *  all your sass files automatically

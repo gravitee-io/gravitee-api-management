@@ -22,15 +22,21 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'MainController',
       controllerAs: 'mainCtrl'
     })
-    .state('api', {
+    .state('apis', {
       url: '/apis',
+      templateUrl: 'app/api/apis.html',
+      controller: 'ApiController',
+      controllerAs: 'apiCtrl'
+    })
+    .state('api', {
+      url: '/api/:apiName',
       templateUrl: 'app/api/api.html',
       controller: 'ApiController',
       controllerAs: 'apiCtrl'
     })
-    .state('user', {
+    .state('users', {
       url: '/users',
-      templateUrl: 'app/user/user.html',
+      templateUrl: 'app/user/users.html',
       controller: 'UserController',
       controllerAs: 'userCtrl'
     });

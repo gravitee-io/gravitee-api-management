@@ -27,11 +27,15 @@
         </div>
       </md-toolbar>
       <md-dialog-content>
-        <md-input-container>
-          <label>Code</label>
-          <input ng-model="user.code" required ng-disabled="true">
-        </md-input-container>
-        <div layout="" layout-sm="column">
+        <div layout="">
+          <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
+          <md-input-container class="gravitee-user-input">
+            <label>Code</label>
+            <input ng-model="user.code" required ng-disabled="true">
+          </md-input-container>
+        </div>
+        <div layout="">
+          <md-icon md-svg-src="assets/images/icons/user.svg"></md-icon>
           <md-input-container>
             <label>Last Name *</label>
             <input ng-model="user.lastName" required>
@@ -41,12 +45,25 @@
             <input ng-model="user.firstName" required>
           </md-input-container>
         </div>
-        <md-select placeholder="Roles" ng-model="user.roles" multiple="true">
-          <md-option ng-repeat="role in roles" value="{{role}}">{{role}}</md-option>
-        </md-select>
-        <md-select placeholder="Teams" ng-model="user.teams" multiple="true">
-          <md-option ng-repeat="team in teams" value="{{team}}">{{team}}</md-option>
-        </md-select>
+        <div layout="">
+          <md-icon md-svg-src="assets/images/icons/envelop.svg"></md-icon>
+          <md-input-container class="gravitee-user-input">
+            <label>Email</label>
+            <input ng-model="user.email" required>
+          </md-input-container>
+        </div>
+        <div layout="">
+          <md-icon md-svg-src="assets/images/icons/key.svg"></md-icon>
+          <md-select placeholder="Roles" ng-model="user.roles" multiple="true">
+            <md-option ng-repeat="role in roles" value="{{role}}">{{role}}</md-option>
+          </md-select>
+        </div>
+        <div layout="">
+          <md-icon md-svg-src="assets/images/icons/users.svg"></md-icon>
+          <md-select placeholder="Teams" ng-model="user.teams" multiple="true">
+            <md-option ng-repeat="team in teams" value="{{team}}">{{team}}</md-option>
+          </md-select>
+        </div>
         <md-subheader class="md-warn" ng-bind="error.statusText || error.status"></md-subheader>
       </md-dialog-content>
 
