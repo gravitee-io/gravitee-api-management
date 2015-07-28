@@ -108,17 +108,18 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler, Appl
         configurer.setIgnoreUnresolvablePlaceholders(true);
         pluginContext.addBeanFactoryPostProcessor(configurer);
 
-    //    pluginContext.setParent(applicationContext);
+        if (configurations.isEmpty()) {
+            LOGGER.info("\tNo @Configuration annotated class found for plugin {}", plugin.id());
+        } else {
+            LOGGER.info("\t{} Spring @Configuration annotated class found for plugin {}", configurations.size(), plugin.id());
+            configurations.forEach(pluginContext::register);
+        }
 
-        LOGGER.info("\tNo @Configuration annotated class found for plugin {}", plugin.id());
         BeanDefinition beanDefinition =
                 BeanDefinitionBuilder.rootBeanDefinition(plugin.clazz().getName()).getBeanDefinition();
 
         LOGGER.info("\tRegistering a new reporter: {}", plugin.clazz().getName());
         pluginContext.registerBeanDefinition(plugin.clazz().getName(), beanDefinition);
-
-        LOGGER.info("\t{} Spring @Configuration annotated class found for plugin {}", configurations.size(), plugin.id());
-        configurations.forEach(pluginContext::register);
 
         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
         try {
