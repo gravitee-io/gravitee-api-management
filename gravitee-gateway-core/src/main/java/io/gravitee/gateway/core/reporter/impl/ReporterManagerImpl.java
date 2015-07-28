@@ -29,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -99,7 +101,14 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler, Appl
 
         AnnotationConfigApplicationContext pluginContext = new AnnotationConfigApplicationContext();
         pluginContext.setClassLoader(plugin.clazz().getClassLoader());
-        pluginContext.setParent(applicationContext);
+
+        PropertyPlaceholderConfigurer configurer=new PropertyPlaceholderConfigurer();
+        final Properties properties = applicationContext.getBean(Properties.class);
+        configurer.setProperties(properties);
+        configurer.setIgnoreUnresolvablePlaceholders(true);
+        pluginContext.addBeanFactoryPostProcessor(configurer);
+
+    //    pluginContext.setParent(applicationContext);
 
         LOGGER.info("\tNo @Configuration annotated class found for plugin {}", plugin.id());
         BeanDefinition beanDefinition =
