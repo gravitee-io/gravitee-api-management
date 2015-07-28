@@ -64,7 +64,7 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
-    public boolean reload(String name) {
+    public boolean reload(final String name) {
         stop(name);
         return start(name);
     }
@@ -78,6 +78,10 @@ public class ApiServiceImpl implements ApiService {
             }
         });
         LOGGER.info("Starting APIs... DONE");
+    }
+
+    public Api get(final String name) {
+        return repository.get(name);
     }
 
     @Override
