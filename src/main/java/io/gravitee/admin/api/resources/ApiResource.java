@@ -15,17 +15,26 @@
  */
 package io.gravitee.admin.api.resources;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.core.service.ApiService;
-import io.gravitee.model.Api;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import static javax.ws.rs.core.HttpHeaders.LOCATION;
 
-import javax.ws.rs.*;
+import java.util.HashMap;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static javax.ws.rs.core.HttpHeaders.LOCATION;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.core.service.ApiService;
+import io.gravitee.model.Api;
+import io.gravitee.model.Policy;
 
 /**
  * Defines the REST resources to manage {@code Api}.
@@ -41,9 +50,23 @@ public class ApiResource {
     private ApiService apiService;
 
     @GET
+    @Path("/{name}")
+    public Response get(@PathParam("name") final String name) {
+        final Api api = apiService.get(name);
+        final Policy policy = new Policy();
+        policy.setName("rate-limit");
+        policy.setConfiguration("Rate Limiting Policy");
+        final HashMap<String, Policy> policies = new HashMap<>();
+        policies.put("Request", policy);
+        api.setPolicies(policies);
+        return Response.status(HttpStatusCode.OK_200).entity(api)
+            .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
     public Response listAll() {
         return Response.status(HttpStatusCode.OK_200).entity(apiService.listAll())
-                .header("Access-Control-Allow-Origin", "*").build();
+            .header("Access-Control-Allow-Origin", "*").build();
     }
 
     @POST
