@@ -15,27 +15,60 @@
     limitations under the License.
 
 -->
-<h1>Gravitee APIs Management</h1>
-<table class="gravitee-table">
-  <tr>
-    <th>Name</th>
-    <th>Public URI</th>
-    <th>Target URI</th>
-    <th>Status</th>
-    <th></th>
-  </tr>
-  <tr ng-repeat="api in apiCtrl.apis">
-    <td ng-bind="api.name"></td>
-    <td ng-bind="api.public"></td>
-    <td><a ng-bind="api.target" ng-href="{{api.target}}" target="_blank"></a></td>
-    <td ng-bind="api.state"></td>
-    <td ng-switch="api.state">
-      <div ng-switch-when="STARTED">
-        <md-button class="md-raised md-warn" ng-click="apiCtrl.stop(api.name)">Stop</md-button>
-      </div>
-      <div ng-switch-default>
-        <md-button class="md-raised md-warn" ng-click="apiCtrl.start(api.name)">Start</md-button>
-      </div>
-    </td>
-  </tr>
-</table>
+<h1>Management of API '{{apiCtrl.api.name}}'</h1>
+
+<div>
+    <div flex layout="">
+        <div class="gravitee-policy-container" ng-repeat="(type, policies) in apiCtrl.policies" ng-include="'app/policy/policy.html'"></div>
+    </div>
+    <table class="gravitee-flow-container">
+        <tr>
+            <th></th>
+            <th>--></th>
+            <th>Request</th>
+            <th>--></th>
+            <th></th>
+        </tr>
+        <tr>
+            <td><a href="{{apiCtrl.api.public}}" target="_blank">{{apiCtrl.api.public}}</a></td>
+            <td class="gravitee-policy-container gravitee-flow-inbound">
+                <div ng-repeat="policies in apiCtrl.api.policy" ng-include="'app/policy/policy.html'"></div>
+            </td>
+            <td class="gravitee-flow-logo-container"><img class="gravitee-flow-logo" src="assets/images/logo_gravitee.png" alt="Gravitee"></td>
+            <td class="gravitee-flow-outbound">
+                <div></div>
+            </td>
+            <td><a href="{{apiCtrl.api.target}}" target="_blank">{{apiCtrl.api.target}}</a></td>
+        </tr>
+        <tr>
+            <th></th>
+            <th><--</th>
+            <th>Response</th>
+            <th><--</th>
+            <th></th>
+        </tr>
+    </table>
+
+</div>
+
+<div class="gravitee-api-container">
+    <md-input-container class="md-icon-float">
+        <label>Name</label>
+        <input ng-model="apiCtrl.api.name" type="text" ng-required="true">
+    </md-input-container>
+
+    <md-input-container class="md-icon-float">
+        <label>State</label>
+        <input ng-model="apiCtrl.api.state" type="text" ng-required="true">
+    </md-input-container>
+
+    <md-input-container class="md-icon-float">
+        <label>Public URI</label>
+        <input ng-model="apiCtrl.api.public" type="text" ng-required="true">
+    </md-input-container>
+
+    <md-input-container class="md-icon-float">
+        <label>Target URI</label>
+        <input ng-model="apiCtrl.api.target" type="text" ng-required="true">
+    </md-input-container>
+</div>

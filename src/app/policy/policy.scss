@@ -1,0 +1,43 @@
+.gravitee-policy-container {
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 10px 5px;
+  width: 33%;
+
+  .gravitee-policy-title {
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+
+  div[dnd-draggable] {
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px;
+    display: inline-block;
+
+    &.selected {
+      background-color: #dff0d8;
+      color: #3c763d;
+    }
+  }
+
+  div[dnd-list] {
+    padding: 5px;
+    cursor: pointer;
+    margin: 5px;
+    height: 100%;
+
+    .dndDraggingSource {
+      display: none;
+    }
+
+    .dndPlaceholder {
+      display: block;
+      background-color: #ddd;
+      min-height: 42px;
+    }
+  }
+}

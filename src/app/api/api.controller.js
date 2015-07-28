@@ -14,12 +14,27 @@
  * limitations under the License.
  */
 class ApiController {
-  constructor (ApiService) {
+  constructor (ApiService, $stateParams, PolicyService) {
     'ngInject';
     this.ApiService = ApiService;
+    this.PolicyService = PolicyService;
 
     this.apis = [];
-    this.list();
+    if ($stateParams.apiName) {
+      this.get($stateParams.apiName);
+      this.listPolicies($stateParams.apiName);
+    } else {
+      this.list();
+    }
+
+    this.selectedPolicy = null;
+  }
+
+  get(apiName) {
+    this.ApiService.get(apiName).then(response => {
+      this.api = response.data;
+      this.api.policy = {'Request': this.api.policy};
+    });
   }
 
   list() {
@@ -41,6 +56,17 @@ class ApiController {
       this.ApiService.reload(name).then(() => {
         this.list();
       });
+    });
+  }
+
+  listPolicies(apiName) {
+    this.PolicyService.list(apiName).then(response => {
+      // TODO filter request, response and request/response policies
+      this.policies = {
+        'Request': response.data,
+        'Response': [],
+        'Request/Response': []
+      };
     });
   }
 }

@@ -1,0 +1,12 @@
+<h3 ng-if="type">{{type}} policies</h3>
+<div dnd-list="policies" dnd-horizontal-list="true">
+     <div ng-repeat="policy in policies"
+          dnd-draggable="policy"
+          dnd-moved="policies.splice($index, 1)"
+          dnd-effect-allowed="move"
+          dnd-selected="apiCtrl.selectedPolicy = policy"
+          ng-class="{'selected': apiCtrl.selectedPolicy === policy}"
+          title="{{policy.configuration}}">
+          {{policy.name}}
+     </div>
+</div>

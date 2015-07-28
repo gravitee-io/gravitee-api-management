@@ -13,33 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ApiService {
+class PolicyService {
 
   constructor($http, baseURL) {
     'ngInject';
     this.$http = $http;
-    this.apisURL = baseURL + 'apis/';
+    this.policiesURL = baseURL + 'policies/';
   }
 
-  get(name) {
-    return this.$http.get(this.apisURL + name);
-  }
-
-  list() {
-    return this.$http.get(this.apisURL);
-  }
-
-  start(name) {
-    return this.$http.post(this.apisURL + 'start/' + name);
-  }
-
-  stop(name) {
-    return this.$http.post(this.apisURL + 'stop/' + name);
-  }
-
-  reload(name) {
-    return this.$http.post(this.apisURL + 'reload/' + name);
+  list(apiName) {
+    return this.$http.get(this.policiesURL + apiName);
   }
 }
 
-export default ApiService;
+export default PolicyService;

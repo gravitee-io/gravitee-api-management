@@ -1,0 +1,43 @@
+$flowHeight: 200px;
+$flowRadius: 120px;
+
+.gravitee-api-container {
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 0 auto;
+  width: 80%;
+}
+
+.gravitee-flow-container {
+  width: 100%;
+
+  .gravitee-flow-logo-container {
+    width: 20%;
+  }
+
+  .gravitee-flow-logo {
+    max-height: 150px;
+  }
+
+  .gravitee-flow-inbound, .gravitee-flow-outbound {
+    border-top: 1px solid;
+    border-right: 0;
+    border-bottom: 1px solid;
+    border-left: 0;
+    width: 20%;
+    vertical-align: top;
+  }
+
+  .gravitee-flow-inbound {
+    border-radius: $flowRadius 0 0 $flowRadius;
+  }
+
+  .gravitee-flow-outbound {
+    border-radius: 0 $flowRadius $flowRadius 0;
+  }
+
+  .gravitee-flow-request-title {
+    color: #333;
+  }
+}
