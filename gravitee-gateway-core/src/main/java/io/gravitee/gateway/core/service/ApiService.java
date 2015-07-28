@@ -30,5 +30,6 @@ public interface ApiService {
 
     void startAll();
     boolean create(Api api);
+    Api get(String name);
     Set<Api> listAll();
 }
