@@ -17,15 +17,15 @@ package io.gravitee.gateway.core.http.client.jetty;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.http.client.AbstractHttpClient;
-import io.gravitee.gateway.core.http.ContentRequest;
-import io.gravitee.gateway.core.http.ServerRequest;
 import io.gravitee.gateway.core.http.ServerResponse;
+import io.gravitee.gateway.core.http.client.AbstractHttpClient;
 import io.gravitee.model.Api;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.client.util.InputStreamContentProvider;
-import org.eclipse.jetty.http.*;
+import org.eclipse.jetty.http.HttpField;
+import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpHeaderValue;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.HttpCookieStore;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -38,6 +38,7 @@ import rx.Subscriber;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -68,14 +69,23 @@ public class JettyHttpClient extends AbstractHttpClient {
                                 .newRequest(rewrittenURI)
                                 .method(request.method().name());
 
-                        if (request.hasContent()) {
-                            proxyRequest.content(new ProxyInputStreamContentProvider(proxyRequest, (ContentRequest) request));
+                        copyRequestHeaders(request, proxyRequest);
+
+                        if (hasContent(request)) {
+                            proxyRequest.content(new ProxyInputStreamContentProvider(proxyRequest, request));
                         }
 
                         proxyRequest.send(new ProxyResponseListener(request, (ServerResponse) response, observer));
                     }
                 }
         );
+    }
+
+    private static boolean hasContent(Request request) {
+        return request.contentLength() > 0 ||
+                request.contentType() != null ||
+                // TODO: create an enum class for common HTTP headers
+                request.headers().get("Transfer-Encoding") != null;
     }
 
     protected URI rewriteURI(Request request) {
@@ -192,17 +202,17 @@ public class JettyHttpClient extends AbstractHttpClient {
 
     protected class ProxyInputStreamContentProvider extends InputStreamContentProvider {
         private final org.eclipse.jetty.client.api.Request proxyRequest;
-        private final ContentRequest request;
+        private final Request request;
 
-        protected ProxyInputStreamContentProvider(org.eclipse.jetty.client.api.Request proxyRequest, ContentRequest request) {
-            super(request.getInputStream());
+        protected ProxyInputStreamContentProvider(org.eclipse.jetty.client.api.Request proxyRequest, Request request) {
+            super(request.inputStream());
             this.proxyRequest = proxyRequest;
             this.request = request;
         }
 
         @Override
         public long getLength() {
-            return request.getContentLength();
+            return request.contentLength();
         }
 
         @Override
@@ -211,7 +221,7 @@ public class JettyHttpClient extends AbstractHttpClient {
             return onRequestContent(proxyRequest, request, buffer, offset, length);
         }
 
-        protected ByteBuffer onRequestContent(org.eclipse.jetty.client.api.Request proxyRequest, final ContentRequest request, byte[] buffer, int offset, int length) {
+        protected ByteBuffer onRequestContent(org.eclipse.jetty.client.api.Request proxyRequest, final Request request, byte[] buffer, int offset, int length) {
             return super.onRead(buffer, offset, length);
         }
 
@@ -221,10 +231,62 @@ public class JettyHttpClient extends AbstractHttpClient {
         }
     }
 
-    protected void onClientRequestFailure(org.eclipse.jetty.client.api.Request proxyRequest, ServerRequest request, Throwable failure) {
+    protected void onClientRequestFailure(org.eclipse.jetty.client.api.Request proxyRequest, Request request, Throwable failure) {
         LOGGER.debug(request.id() + " client request failure", failure);
         proxyRequest.abort(failure);
     }
+
+    protected void copyRequestHeaders(Request clientRequest, org.eclipse.jetty.client.api.Request proxyRequest)
+    {
+        // First clear possibly existing headers, as we are going to copy those from the client request.
+        proxyRequest.getHeaders().clear();
+
+//        Set<String> headersToRemove = findConnectionHeaders(clientRequest);
+
+        for (Map.Entry<String, String> header : clientRequest.headers().entrySet()) {
+            String headerName = header.getKey();
+            String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
+
+            /*
+            if (HttpHeader.HOST.is(headerName))
+                continue;
+            */
+
+            // Remove hop-by-hop headers.
+            if (HOP_HEADERS.contains(lowerHeaderName))
+                continue;
+
+            /*
+            if (headersToRemove != null && headersToRemove.contains(lowerHeaderName))
+                continue;
+            */
+
+            proxyRequest.header(headerName, header.getValue());
+        }
+    }
+
+    /*
+    protected Set<String> findConnectionHeaders(Request clientRequest)
+    {
+        // Any header listed by the Connection header must be removed:
+        // http://tools.ietf.org/html/rfc7230#section-6.1.
+        Set<String> hopHeaders = null;
+        Enumeration<String> connectionHeaders = clientRequest.headers().get(HttpHeader.CONNECTION.asString());
+        while (connectionHeaders.hasMoreElements())
+        {
+            String value = connectionHeaders.nextElement();
+            String[] values = value.split(",");
+            for (String name : values)
+            {
+                name = name.trim().toLowerCase(Locale.ENGLISH);
+                if (hopHeaders == null)
+                    hopHeaders = new HashSet<>();
+                hopHeaders.add(name);
+            }
+        }
+        return hopHeaders;
+    }
+    */
 
     // TODO: client should be highly configurable !
     private HttpClient construct() {
@@ -244,7 +306,7 @@ public class JettyHttpClient extends AbstractHttpClient {
         client.setExecutor(qtp);
         client.setIdleTimeout(30000);
         client.setRequestBufferSize(16384);
-        client.setResponseBufferSize(163840);
+        client.setResponseBufferSize(16384);
 
         try {
             client.start();
