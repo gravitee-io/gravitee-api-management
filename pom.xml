@@ -85,5 +85,6 @@
         <slf4j.version>1.7.12</slf4j.version>
         <spring.version>4.1.6.RELEASE</spring.version>
         <mockito.version>1.10.19</mockito.version>
+        <powermock.version>1.6.2</powermock.version>
     </properties>
 </project>
