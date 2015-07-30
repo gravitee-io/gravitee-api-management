@@ -18,6 +18,9 @@ package io.gravitee.gateway.api;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 
+import java.io.InputStream;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -59,6 +62,14 @@ public interface Request {
      */
     HttpVersion version();
 
-    //TODO: Shouldn't be manage like this... not the best way...
-    boolean hasContent();
+    long contentLength();
+
+    String contentType();
+
+    /**
+     * @return The request date.
+     */
+    Date date();
+
+    InputStream inputStream();
 }
