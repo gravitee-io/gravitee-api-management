@@ -16,7 +16,6 @@
 package io.gravitee.gateway.platforms.servlet;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.gateway.core.http.ContentRequest;
 import io.gravitee.gateway.core.http.ServerRequest;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +23,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.time.Instant;
 import java.util.Enumeration;
 
 /**
@@ -33,28 +33,19 @@ import java.util.Enumeration;
 public class RequestBuilder {
 
 	public static ServerRequest from(HttpServletRequest servletRequest) throws IOException {
-		ServerRequest request;
+		ServerRequest request = new ServerRequest();
 
-		if (hasContent(servletRequest)) {
-			request = new ContentRequest(servletRequest.getInputStream());
-		} else {
-			request = new ServerRequest();
-		}
+		request.setInputStream(servletRequest.getInputStream());
+		request.setContentLength(servletRequest.getContentLength());
+		request.setContentType(servletRequest.getContentType());
 
 		copyHeaders(request, servletRequest);
 		copyQueryParameters(request, servletRequest);
 
 		request.setMethod(HttpMethod.valueOf(servletRequest.getMethod()));
 		request.setRequestURI(URI.create(servletRequest.getRequestURL().toString()));
-		
-		return request;
-	}
 
-	private static boolean hasContent(HttpServletRequest servletRequest) {
-		return servletRequest.getContentLength() > 0 ||
-				servletRequest.getContentType() != null ||
-				// TODO: create an enum class for common HTTP headers
-				servletRequest.getHeader("Transfer-Encoding") != null;
+		return request;
 	}
 
 	private static void copyHeaders(ServerRequest request, HttpServletRequest servletRequest) {

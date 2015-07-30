@@ -19,11 +19,9 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.Request;
 
+import java.io.InputStream;
 import java.net.URI;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  *
@@ -32,6 +30,8 @@ import java.util.UUID;
 public class ServerRequest implements Request {
 
 	private final String id;
+
+	private final Date date;
 
 	private String remoteAddr;
 
@@ -43,11 +43,18 @@ public class ServerRequest implements Request {
 
 	private HttpVersion version;
 
+	private long contentLength;
+
+	private InputStream inputStream;
+
+	private String contentType;
+
 	private Map<String, String> queryParameters = new LinkedHashMap();
 
 	private Map<String, String> headers = new HashMap();
 
 	public ServerRequest() {
+		this.date = new Date();
 		this.id = UUID.randomUUID().toString();
 	}
 
@@ -66,6 +73,38 @@ public class ServerRequest implements Request {
 	@Override
 	public HttpVersion version() {
 		return version;
+	}
+
+	@Override
+	public long contentLength() {
+		return contentLength;
+	}
+
+	public void setContentLength(long contentLength) {
+		this.contentLength = contentLength;
+	}
+
+	@Override
+	public String contentType() {
+		return contentType;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
+	@Override
+	public Date date() {
+		return date;
+	}
+
+	@Override
+	public InputStream inputStream() {
+		return inputStream;
+	}
+
+	public void setInputStream(InputStream inputStream) {
+		this.inputStream = inputStream;
 	}
 
 	public void setMethod(HttpMethod method) {
