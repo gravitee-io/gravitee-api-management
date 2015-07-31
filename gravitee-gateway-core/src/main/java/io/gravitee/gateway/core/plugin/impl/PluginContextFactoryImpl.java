@@ -17,6 +17,8 @@ package io.gravitee.gateway.core.plugin.impl;
 
 import io.gravitee.gateway.core.plugin.Plugin;
 import io.gravitee.gateway.core.plugin.PluginContextFactory;
+import io.gravitee.gateway.core.spring.PropertiesConfiguration;
+
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -64,9 +66,10 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
         pluginContext.setClassLoader(plugin.clazz().getClassLoader());
 
         PropertyPlaceholderConfigurer configurer=new PropertyPlaceholderConfigurer();
-        final Properties properties = applicationContext.getBean("gravityProperties", Properties.class);
+        final Properties properties = applicationContext.getBean("graviteeProperties", Properties.class);
         configurer.setProperties(properties);
         configurer.setIgnoreUnresolvablePlaceholders(true);
+        pluginContext.register(PropertiesConfiguration.class);
         pluginContext.addBeanFactoryPostProcessor(configurer);
 
         if (configurations.isEmpty()) {
