@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.reactor;
 
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.event.Event;
 import io.gravitee.gateway.core.event.EventListener;
@@ -108,8 +109,8 @@ public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<Ap
         handlers.forEach((s, contextHandler) -> removeHandler(s));
     }
 
-    protected T handle(Request request) {
-        return (T) getHandler(request).handle(request, new ServerResponse());
+    protected T handle(Request request, Response response) {
+        return (T) getHandler(request).handle(request, response);
     }
 
     private String getHost(Request request) {

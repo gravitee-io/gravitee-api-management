@@ -18,6 +18,7 @@ package io.gravitee.gateway.core.handler.context;
 import io.gravitee.gateway.core.handler.ApiHandler;
 import io.gravitee.gateway.core.handler.ContextHandler;
 import io.gravitee.gateway.core.http.client.HttpClient;
+import io.gravitee.gateway.core.http.client.ahc.AHCHttpClient;
 import io.gravitee.gateway.core.http.client.jetty.JettyHttpClient;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyFactory;
@@ -68,6 +69,6 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public HttpClient httpClient(Api api) {
-        return new JettyHttpClient(api);
+        return new AHCHttpClient(api);
     }
 }

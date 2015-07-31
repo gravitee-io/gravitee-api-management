@@ -17,8 +17,10 @@ package io.gravitee.gateway.platforms.servlet;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.core.http.ServerRequest;
+import io.gravitee.gateway.core.http.ServerResponse;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -46,6 +48,12 @@ public class RequestBuilder {
 		request.setRequestURI(URI.create(servletRequest.getRequestURL().toString()));
 
 		return request;
+	}
+
+	public static ServerResponse from(HttpServletResponse servletResponse) throws IOException {
+		ServerResponse response = new ServerResponse();
+		response.setOutputStream(servletResponse.getOutputStream());
+		return response;
 	}
 
 	private static void copyHeaders(ServerRequest request, HttpServletRequest servletRequest) {

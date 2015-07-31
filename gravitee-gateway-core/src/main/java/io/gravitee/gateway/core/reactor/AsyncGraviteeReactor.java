@@ -29,8 +29,8 @@ public class AsyncGraviteeReactor extends GraviteeReactor<Observable<Response>> 
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncGraviteeReactor.class);
 
     @Override
-    public Observable<Response> process(Request request) {
+    public Observable<Response> process(Request request, Response response) {
         LOGGER.debug("Receiving a request {} for path {}", request.id(), request.path());
-        return super.handle(request);
+        return super.handle(request, response);
     }
 }

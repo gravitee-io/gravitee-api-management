@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.http;
 
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.core.io.ByteBufferOutputStream;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -32,7 +33,7 @@ public class ServerResponse implements Response {
 
     private Map<String, String> headers = new HashMap();
 
-    private ByteArrayOutputStream os = new ByteArrayOutputStream(5120);
+    private OutputStream os = new ByteBufferOutputStream(2056);
 
     public int status() {
         return status;
@@ -46,17 +47,24 @@ public class ServerResponse implements Response {
         return headers;
     }
 
+    @Override
+    public OutputStream outputStream() {
+        return os;
+    }
+
+    public void setOutputStream(OutputStream os) {
+        this.os = os;
+    }
+
     public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
     }
 
-    public OutputStream getOutputStream() {
-        return os;
-    }
-
+    /*
     public byte [] content() {
         return os.toByteArray();
     }
+    */
 
     @Override
     public String toString() {

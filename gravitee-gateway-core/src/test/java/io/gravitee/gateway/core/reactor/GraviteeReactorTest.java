@@ -25,6 +25,7 @@ import io.gravitee.gateway.core.event.Event;
 import io.gravitee.gateway.core.external.ApiExternalResource;
 import io.gravitee.gateway.core.external.ApiServlet;
 import io.gravitee.gateway.core.http.ServerRequest;
+import io.gravitee.gateway.core.http.ServerResponse;
 import io.gravitee.gateway.core.plugin.Plugin;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.reporter.ConsoleReporter;
@@ -39,6 +40,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.Collection;
 
@@ -84,10 +86,12 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         });
 
         ServerRequest req = new ServerRequest();
+        ServerResponse response = new ServerResponse();
+
         req.setRequestURI(URI.create("http://localhost/team"));
         req.setMethod(HttpMethod.GET);
 
-        Response resp = reactor.process(req).toBlocking().single();
+        Response resp = reactor.process(req, response).toBlocking().single();
         Assert.assertEquals(HttpStatusCode.OK_200, resp.status());
     }
 
@@ -114,7 +118,9 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         req.setRequestURI(URI.create("http://localhost/unknown_path"));
         req.setMethod(HttpMethod.GET);
 
-        Response resp = reactor.process(req).toBlocking().single();
+        ServerResponse response = new ServerResponse();
+
+        Response resp = reactor.process(req, response).toBlocking().single();
         Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
     }
 
@@ -157,7 +163,9 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         req.setRequestURI(URI.create("http://localhost/unknown_path"));
         req.setMethod(HttpMethod.GET);
 
-        reactor.process(req).toBlocking().single();
+        ServerResponse response = new ServerResponse();
+
+        reactor.process(req, response).toBlocking().single();
 
         // check that the reporter has been correctly called
 //        verify(reporter, atLeastOnce()).report(eq(req), any(Response.class));

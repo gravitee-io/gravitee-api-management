@@ -25,5 +25,5 @@ import rx.Observable;
  */
 public interface Reactor<T> {
 
-	T process(Request request);
+	T process(Request request, Response response);
 }
