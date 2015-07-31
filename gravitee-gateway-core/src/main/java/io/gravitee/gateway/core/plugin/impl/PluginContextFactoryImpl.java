@@ -64,7 +64,7 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
         pluginContext.setClassLoader(plugin.clazz().getClassLoader());
 
         PropertyPlaceholderConfigurer configurer=new PropertyPlaceholderConfigurer();
-        final Properties properties = applicationContext.getBean(Properties.class);
+        final Properties properties = applicationContext.getBean("gravityProperties", Properties.class);
         configurer.setProperties(properties);
         configurer.setIgnoreUnresolvablePlaceholders(true);
         pluginContext.addBeanFactoryPostProcessor(configurer);

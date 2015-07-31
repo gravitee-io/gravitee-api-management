@@ -34,7 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Created by david on 30/07/15.
+ * @author David BRASSELY (brasseld at gmail.com)
  */
 public class AHCHttpClient extends AbstractHttpClient {
 
@@ -43,9 +43,9 @@ public class AHCHttpClient extends AbstractHttpClient {
     private final AsyncHttpClient client;
 
     @Autowired
-    public AHCHttpClient(Api api) {
+    public AHCHttpClient(Api api, AHCHttpConfiguration configuration) {
         super(api);
-        client = construct();
+        client = construct(configuration);
     }
 
     @Override
@@ -168,16 +168,18 @@ public class AHCHttpClient extends AbstractHttpClient {
         return builder;
     }
 
-    private AsyncHttpClient construct() {
+    private AsyncHttpClient construct(AHCHttpConfiguration configuration) {
+        LOGGER.info("Use configuration: {}", configuration);
+
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
 
         builder
-                .setAllowPoolingConnections(true)
-                .setRequestTimeout(30000)
-                .setReadTimeout(30000)
-                .setConnectTimeout(2000)
-                .setMaxConnectionsPerHost(1000)
-                .setMaxConnections(1000)
+                .setAllowPoolingConnections(configuration.isAllowPoolingConnections())
+                .setRequestTimeout(configuration.getRequestTimeout())
+                .setReadTimeout(configuration.getReadTimeout())
+                .setConnectTimeout(configuration.getConnectTimeout())
+                .setMaxConnectionsPerHost(configuration.getMaxConnectionsPerHost())
+                .setMaxConnections(configuration.getMaxConnections())
                 .build();
 
         return new AsyncHttpClient(builder.build());
