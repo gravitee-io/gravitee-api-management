@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.reporter.impl;
 
 import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.plugin.Plugin;
+import io.gravitee.gateway.core.plugin.PluginContextFactory;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.reporter.ReporterManager;
 import org.reflections.Reflections;
@@ -28,6 +29,7 @@ import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
@@ -44,14 +46,15 @@ import java.util.*;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ReporterManagerImpl implements ReporterManager, PluginHandler, ApplicationContextAware {
+public class ReporterManagerImpl implements ReporterManager, PluginHandler {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(ReporterManagerImpl.class);
 
     private final Collection<Reporter> reporters = new ArrayList<>();
     private final Map<String, ApplicationContext> contexts = new HashMap<>();
 
-    private ApplicationContext applicationContext;
+    @Autowired
+    private PluginContextFactory pluginContextFactory;
 
     @Override
     public Collection<Reporter> getReporters() {
@@ -73,7 +76,7 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler, Appl
         try {
             Assert.isAssignable(Reporter.class, plugin.clazz());
 
-            ApplicationContext context = createPluginContext(plugin);
+            ApplicationContext context = pluginContextFactory.create(plugin);
             contexts.putIfAbsent(plugin.id(), context);
             reporters.add(context.getBean(Reporter.class));
         } catch (Exception iae) {
@@ -84,58 +87,5 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler, Appl
                 ((ConfigurableApplicationContext)ctx).close();
             }
         }
-    }
-
-    private ApplicationContext createPluginContext(Plugin plugin) {
-        LOGGER.info("Create plugin Spring context for {}", plugin.id());
-
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .addClassLoader(plugin.clazz().getClassLoader())
-                .setUrls(ClasspathHelper.forClass(plugin.clazz(), plugin.clazz().getClassLoader()))
-                .setScanners(new SubTypesScanner(false), new TypeAnnotationsScanner())
-                .filterInputsBy(new FilterBuilder().includePackage(plugin.clazz().getPackage().getName())));
-
-        LOGGER.info("Looking for @Configuration annotated class in {}", plugin.clazz().getPackage().getName());
-        Set<Class<?>> configurations =
-                reflections.getTypesAnnotatedWith(Configuration.class);
-
-        AnnotationConfigApplicationContext pluginContext = new AnnotationConfigApplicationContext();
-        pluginContext.setClassLoader(plugin.clazz().getClassLoader());
-
-        PropertyPlaceholderConfigurer configurer=new PropertyPlaceholderConfigurer();
-        final Properties properties = applicationContext.getBean(Properties.class);
-        configurer.setProperties(properties);
-        configurer.setIgnoreUnresolvablePlaceholders(true);
-        pluginContext.addBeanFactoryPostProcessor(configurer);
-
-        if (configurations.isEmpty()) {
-            LOGGER.info("\tNo @Configuration annotated class found for plugin {}", plugin.id());
-        } else {
-            LOGGER.info("\t{} Spring @Configuration annotated class found for plugin {}", configurations.size(), plugin.id());
-            configurations.forEach(pluginContext::register);
-        }
-
-        BeanDefinition beanDefinition =
-                BeanDefinitionBuilder.rootBeanDefinition(plugin.clazz().getName()).getBeanDefinition();
-
-        LOGGER.info("\tRegistering a new reporter: {}", plugin.clazz().getName());
-        pluginContext.registerBeanDefinition(plugin.clazz().getName(), beanDefinition);
-
-        ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader(plugin.clazz().getClassLoader());
-            pluginContext.refresh();
-        } catch (Exception ex) {
-            LOGGER.error("Unable to refresh plugin Spring context", ex);
-        } finally {
-            Thread.currentThread().setContextClassLoader(tccl);
-        }
-
-        return pluginContext;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 }

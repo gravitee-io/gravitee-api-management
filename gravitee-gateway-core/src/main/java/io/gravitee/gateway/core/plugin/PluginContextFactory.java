@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy;
+package io.gravitee.gateway.core.plugin;
 
 import org.springframework.context.ApplicationContext;
-
-import java.util.Collection;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyManager {
+public interface PluginContextFactory {
 
-    Collection<PolicyDefinition> getPolicyDefinitions();
-
-    PolicyDefinition getPolicyDefinition(String id);
-
-    ApplicationContext getApplicationContext(String id);
+    ApplicationContext create(Plugin plugin);
 }
