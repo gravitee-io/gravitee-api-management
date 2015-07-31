@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.platforms.servlet;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -47,7 +48,7 @@ public abstract class DispatcherServlet extends HttpServlet {
 		asyncContext.setTimeout(0);
 
         getReactor()
-                .process(RequestBuilder.from(req))
+                .process(RequestBuilder.from(req),RequestBuilder.from(resp))
 		        .subscribe(
 			        result -> handleResult(req, resp, result),
 			        error -> handleError(req, resp, error)
@@ -59,12 +60,15 @@ public abstract class DispatcherServlet extends HttpServlet {
 
         writeResponse(resp, response);
 
-        try {
-            final ServletOutputStream outputStream = resp.getOutputStream();
-            byte[] buffer = response.content();
-            outputStream.write(buffer, 0, buffer.length);
 
-            resp.flushBuffer();
+        try {
+			/*
+            final ServletOutputStream outputStream = resp.getOutputStream();
+			ByteArrayOutputStream baos = (ByteArrayOutputStream) response.outputStream();
+			baos.writeTo(outputStream);
+		*/
+
+			resp.flushBuffer();
         } catch (final IOException e) {
             LOGGER.error("Error while handling proxy request", e);
         }

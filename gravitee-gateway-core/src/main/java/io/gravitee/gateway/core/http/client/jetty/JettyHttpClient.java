@@ -178,7 +178,7 @@ public class JettyHttpClient extends AbstractHttpClient {
     protected void onResponseContent(Request request, ServerResponse response, org.eclipse.jetty.client.api.Response proxyResponse, byte[] buffer, int offset, int length, Callback callback) {
         try {
             LOGGER.debug("{} proxying content to downstream: {} bytes", request.id(), length);
-            response.getOutputStream().write(buffer, offset, length);
+            response.outputStream().write(buffer, offset, length);
             callback.succeeded();
         } catch (final Exception x) {
             callback.failed(x);
@@ -247,10 +247,8 @@ public class JettyHttpClient extends AbstractHttpClient {
             String headerName = header.getKey();
             String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
 
-            /*
             if (HttpHeader.HOST.is(headerName))
                 continue;
-            */
 
             // Remove hop-by-hop headers.
             if (HOP_HEADERS.contains(lowerHeaderName))

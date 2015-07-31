@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.api;
 
+import java.io.OutputStream;
 import java.util.Map;
 
 /**
@@ -26,5 +27,5 @@ public interface Response {
 
     Map<String, String> headers();
 
-    byte[] content();
+    OutputStream outputStream();
 }

@@ -18,6 +18,7 @@ package io.gravitee.gateway.core.http.client;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.model.Api;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -68,6 +69,18 @@ public abstract class AbstractHttpClient implements HttpClient {
         }
 
         return requestURI.toString();
+    }
+
+    private static boolean hasContent(Request request) {
+        return request.contentLength() > 0 ||
+                request.contentType() != null ||
+                // TODO: create an enum class for common HTTP headers
+                request.headers().get("Transfer-Encoding") != null;
+    }
+
+    protected URI rewriteURI(Request request) {
+        String newTarget = rewriteTarget(request);
+        return newTarget == null ? null : URI.create(newTarget);
     }
 
 }

@@ -79,6 +79,8 @@ public class ApiHandler extends ContextHandler {
                             @Override
                             public void onNext(Response response) {
                                 getResponsePolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
+
+                                response.headers().put("x-mykey", "x-toto");
                                 observer.onNext(response);
 
                                 for (Reporter reporter : reporterManager.getReporters()) {
