@@ -39,6 +39,11 @@ public class ServerResponse implements Response {
         return status;
     }
 
+    @Override
+    public void status(int status) {
+        this.status = status;
+    }
+
     public void setStatus(int status) {
         this.status = status;
     }
