@@ -26,5 +26,9 @@ public interface PolicyChain {
 
     void doNext(Request request, Response response);
 
-    void doError(Throwable throwable);
+    void sendError(int statusCode);
+
+    void sendError(int statusCode, Throwable throwable);
+
+    void sendError(Throwable throwable);
 }

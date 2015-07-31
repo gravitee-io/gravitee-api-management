@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.policy.Policy;
+import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
 import io.gravitee.gateway.core.reporter.ReporterManager;
 import io.gravitee.model.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +34,6 @@ import java.util.List;
  */
 public class ApiHandler extends ContextHandler {
 
-    /*
-    private AccessLogWriter accessLogWriter = new AccessLogWriter();
-    private long timeInMs;
-    */
-
     @Autowired
     private Api api;
 
@@ -49,7 +45,6 @@ public class ApiHandler extends ContextHandler {
 
     @Override
     public Observable<Response> handle(final Request request, final Response response) {
-        //    timeInMs = System.currentTimeMillis();
         return Observable.create(
                 new Observable.OnSubscribe<Response>() {
 
@@ -59,45 +54,37 @@ public class ApiHandler extends ContextHandler {
                         List<Policy> policies = getPolicyResolver().resolve(request);
 
                         // 2_ Apply request policies
-                        getRequestPolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
+                        AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(policies);
+                        requestPolicyChain.doNext(request, response);
 
-                        // TODO: How to know that something goes wrong in policy chain and skip
-                        // remote service invocation...
-
-                        // 2_ Call remote service
-                        httpClient.invoke(request, response).subscribe(new Subscriber<Response>() {
-                            @Override
-                            public void onCompleted() {
-                                observer.onCompleted();
-                            }
-
-                            @Override
-                            public void onError(Throwable throwable) {
-                                observer.onError(throwable);
-                            }
-
-                            @Override
-                            public void onNext(Response response) {
-                                getResponsePolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
-
-                                response.headers().put("x-mykey", "x-toto");
-                                observer.onNext(response);
-
-                                for (Reporter reporter : reporterManager.getReporters()) {
-                                    reporter.report(request, response);
+                        if (requestPolicyChain.isFailure()) {
+                            response.status(requestPolicyChain.statusCode());
+                        } else {
+                            // 2_ Call remote service
+                            httpClient.invoke(request, response).subscribe(new Subscriber<Response>() {
+                                @Override
+                                public void onCompleted() {
+                                    observer.onCompleted();
                                 }
 
-                                // TODO: must be part of reporting system
-                                /*
-                                new Thread() {
-                                    public void run() {
-                                        accessLogWriter.path(request.path()).httpMethod(request.method().name()).apiName(api.getName())
-                                            .responseSize(response.content().length).requestDuration(System.currentTimeMillis() - timeInMs).write();
+                                @Override
+                                public void onError(Throwable throwable) {
+                                    observer.onError(throwable);
+                                }
+
+                                @Override
+                                public void onNext(Response response) {
+                                    getResponsePolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
+
+                                    response.headers().put("x-mykey", "x-toto");
+                                    observer.onNext(response);
+
+                                    for (Reporter reporter : reporterManager.getReporters()) {
+                                        reporter.report(request, response);
                                     }
-                                }.start();
-                                */
-                            }
-                        });
+                                }
+                            });
+                        }
                     }
                 }
         );

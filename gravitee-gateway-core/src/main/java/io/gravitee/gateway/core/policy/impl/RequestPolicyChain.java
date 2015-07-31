@@ -17,7 +17,6 @@ package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.policy.PolicyChain;
 import io.gravitee.gateway.core.policy.Policy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +27,7 @@ import java.util.ListIterator;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class RequestPolicyChain implements PolicyChain {
+public class RequestPolicyChain extends AbstractPolicyChain {
 
     private final Logger LOGGER = LoggerFactory.getLogger(RequestPolicyChain.class);
 
@@ -53,11 +52,6 @@ public class RequestPolicyChain implements PolicyChain {
                 doNext(request, response);
             }
         }
-    }
-
-    @Override
-    public void doError(Throwable throwable) {
-
     }
 
     public ListIterator<Policy> iterator() {
