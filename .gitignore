@@ -18,3 +18,8 @@ hs_err_pid*
 # Node
 node_modules/
 admin/console/dist
+
+# Eclipse
+.settings/
+.classpath
+.project

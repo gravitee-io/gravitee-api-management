@@ -164,7 +164,7 @@ public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<Ap
         context.setParent(this.applicationContext);
 
         PropertyPlaceholderConfigurer configurer=new PropertyPlaceholderConfigurer();
-        final Properties properties = applicationContext.getBean("gravityProperties", Properties.class);
+        final Properties properties = applicationContext.getBean("graviteeProperties", Properties.class);
         configurer.setProperties(properties);
         configurer.setIgnoreUnresolvablePlaceholders(true);
         context.addBeanFactoryPostProcessor(configurer);
