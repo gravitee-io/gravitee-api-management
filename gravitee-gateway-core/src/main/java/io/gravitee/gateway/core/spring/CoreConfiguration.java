@@ -38,6 +38,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -75,11 +76,10 @@ public class CoreConfiguration {
         return new ErrorHandler();
     }
 
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer properties() throws IOException {
+    @Bean(name = "gravityProperties")
+    public static Properties gravityProperties() throws IOException {
         LOGGER.info("Loading Gravitee configuration.");
 
-        PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
         YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
 
         String yamlConfiguration = System.getProperty(GRAVITEE_CONFIGURATION);
@@ -88,9 +88,21 @@ public class CoreConfiguration {
         LOGGER.info("\tGravitee configuration loaded from {}", yamlResource.getURL().getPath());
 
         yaml.setResources(yamlResource);
-        propertySourcesPlaceholderConfigurer.setProperties(yaml.getObject());
-
+        Properties properties = yaml.getObject();
         LOGGER.info("Loading Gravitee configuration. DONE");
+
+        return properties;
+
+    }
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer properties() throws IOException {
+        LOGGER.info("Loading Gravitee placeholder.");
+
+        PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+        propertySourcesPlaceholderConfigurer.setProperties(gravityProperties());
+
+        LOGGER.info("Loading Gravitee placeholder. DONE");
 
         return propertySourcesPlaceholderConfigurer;
     }

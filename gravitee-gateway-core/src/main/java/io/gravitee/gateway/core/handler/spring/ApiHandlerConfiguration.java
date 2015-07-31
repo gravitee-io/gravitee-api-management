@@ -17,24 +17,20 @@ package io.gravitee.gateway.core.handler.spring;
 
 import io.gravitee.gateway.core.handler.ApiHandler;
 import io.gravitee.gateway.core.handler.ContextHandler;
-import io.gravitee.gateway.core.http.client.HttpClient;
-import io.gravitee.gateway.core.http.client.ahc.AHCHttpClient;
+import io.gravitee.gateway.core.http.spring.HttpClientConfiguration;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.gateway.core.policy.PolicyResolver;
-import io.gravitee.gateway.core.policy.impl.RequestPolicyChainBuilder;
-import io.gravitee.gateway.core.policy.impl.ResponsePolicyChainBuilder;
-import io.gravitee.gateway.core.policy.impl.PolicyConfigurationFactoryImpl;
-import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
-import io.gravitee.gateway.core.policy.impl.PolicyResolverImpl;
-import io.gravitee.model.Api;
+import io.gravitee.gateway.core.policy.impl.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
+@Import({HttpClientConfiguration.class})
 public class ApiHandlerConfiguration {
 
     @Bean
@@ -64,10 +60,5 @@ public class ApiHandlerConfiguration {
     @Bean
     public ContextHandler handler() {
         return new ApiHandler();
-    }
-
-    @Bean
-    public HttpClient httpClient(Api api) {
-        return new AHCHttpClient(api);
     }
 }

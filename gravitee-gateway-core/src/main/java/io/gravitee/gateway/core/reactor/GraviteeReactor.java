@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -42,6 +43,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -160,6 +162,13 @@ public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<Ap
     private AbstractApplicationContext buildApplicationContext(Api api) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.setParent(this.applicationContext);
+
+        PropertyPlaceholderConfigurer configurer=new PropertyPlaceholderConfigurer();
+        final Properties properties = applicationContext.getBean("gravityProperties", Properties.class);
+        configurer.setProperties(properties);
+        configurer.setIgnoreUnresolvablePlaceholders(true);
+        context.addBeanFactoryPostProcessor(configurer);
+
         context.getBeanFactory().registerSingleton("api", api);
         context.register(ApiHandlerConfiguration.class);
         context.setId("context-api-" + api.getName() + "-" + api.getVersion());
