@@ -19,12 +19,16 @@ import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.api.policy.annotations.OnRequest;
 import io.gravitee.gateway.api.policy.annotations.OnResponse;
 import io.gravitee.gateway.core.plugin.Plugin;
+import io.gravitee.gateway.core.plugin.PluginContextFactory;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
 import io.gravitee.gateway.core.policy.PolicyManager;
 import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -44,7 +48,11 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(PolicyManagerImpl.class);
 
+    @Autowired
+    private PluginContextFactory pluginContextFactory;
+
     private final Map<String, PolicyDefinition> definitions = new HashMap<>();
+    private final Map<String, ApplicationContext> contexts = new HashMap<>();
 
     @Override
     public boolean canHandle(Plugin plugin) {
@@ -58,42 +66,52 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
 
     @Override
     public void handle(Plugin plugin) {
-        final Class<?> instanceClass = plugin.clazz();
+        try {
+            final Class<?> policyClass = plugin.clazz();
+            ApplicationContext context = pluginContextFactory.create(plugin);
+            contexts.putIfAbsent(plugin.id(), context);
+            final Method onRequestMethod = resolvePolicyMethod(policyClass, OnRequest.class);
+            final Method onResponseMethod = resolvePolicyMethod(policyClass, OnResponse.class);
 
-        final Method onRequestMethod = resolvePolicyMethod(instanceClass, OnRequest.class);
-        final Method onResponseMethod = resolvePolicyMethod(instanceClass, OnResponse.class);
+            if (onRequestMethod == null && onResponseMethod == null) {
+                LOGGER.error("No method annotated with @OnRequest or @OnResponse found, skip policy registration for {}", policyClass.getName());
+            } else {
+                PolicyDefinition definition = new PolicyDefinition() {
+                    @Override
+                    public String id() {
+                        return plugin.id();
+                    }
 
-        if (onRequestMethod == null && onResponseMethod == null) {
-            LOGGER.error("No method annotated with @OnRequest or @OnResponse found, skip policy registration for {}", instanceClass.getName());
-        } else {
-            PolicyDefinition definition = new PolicyDefinition() {
-                @Override
-                public String id() {
-                    return plugin.id();
-                }
+                    @Override
+                    public Class<?> policy() {
+                        return policyClass;
+                    }
 
-                @Override
-                public Class<?> policy() {
-                    return instanceClass;
-                }
+                    @Override
+                    public Class<PolicyConfiguration> configuration() {
+                        return null;
+                    }
 
-                @Override
-                public Class<PolicyConfiguration> configuration() {
-                    return null;
-                }
+                    @Override
+                    public Method onRequestMethod() {
+                        return onRequestMethod;
+                    }
 
-                @Override
-                public Method onRequestMethod() {
-                    return onRequestMethod;
-                }
+                    @Override
+                    public Method onResponseMethod() {
+                        return onResponseMethod;
+                    }
+                };
 
-                @Override
-                public Method onResponseMethod() {
-                    return onResponseMethod;
-                }
-            };
-
-            definitions.putIfAbsent(plugin.id(), definition);
+                definitions.putIfAbsent(plugin.id(), definition);
+            }
+        } catch (Exception iae) {
+            LOGGER.error("Unexpected error while create reporter instance", iae);
+            // Be sure that the context does not exist anymore.
+            ApplicationContext ctx =  contexts.remove(plugin.id());
+            if (ctx != null) {
+                ((ConfigurableApplicationContext)ctx).close();
+            }
         }
     }
 
@@ -105,6 +123,11 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
     @Override
     public PolicyDefinition getPolicyDefinition(String id) {
         return definitions.get(id);
+    }
+
+    @Override
+    public ApplicationContext getApplicationContext(String id) {
+        return null;
     }
 
     private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {
