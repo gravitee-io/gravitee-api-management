@@ -13,18 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core;
+package io.gravitee.gateway.core.cluster.impl;
 
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.service.Service;
-import rx.Observable;
+import io.gravitee.common.component.Lifecycle;
+import io.gravitee.gateway.core.cluster.SyncService;
 
 /**
- *
- * @author David BRASSELY (brasseld at gmail.com)
+ * Created by david on 01/08/15.
  */
-public interface Reactor<T> extends Service {
+public class SyncServiceImpl implements SyncService {
 
-	T process(Request request, Response response);
+    @Override
+    public Lifecycle.State lifecycleState() {
+        return null;
+    }
+
+    @Override
+    public Object start() throws Exception {
+        return null;
+    }
+
+    @Override
+    public Object stop() throws Exception {
+        return null;
+    }
 }

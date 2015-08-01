@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core;
+package io.gravitee.gateway.core.cluster;
 
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.service.Service;
-import rx.Observable;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Reactor<T> extends Service {
-
-	T process(Request request, Response response);
+public interface SyncService extends Service {
 }

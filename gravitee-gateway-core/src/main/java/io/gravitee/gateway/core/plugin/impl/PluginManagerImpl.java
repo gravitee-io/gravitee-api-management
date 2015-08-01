@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.plugin.impl;
 
 import io.gravitee.gateway.core.plugin.*;
+import io.gravitee.gateway.core.service.AbstractService;
 import io.gravitee.gateway.core.utils.FileUtils;
 import io.gravitee.gateway.core.utils.GlobMatchingFileVisitor;
 import org.slf4j.Logger;
@@ -24,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.ClassUtils;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -35,7 +35,7 @@ import java.util.*;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PluginManagerImpl implements PluginManager {
+public class PluginManagerImpl extends AbstractService implements PluginManager {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(PluginManagerImpl.class);
 
@@ -68,8 +68,10 @@ public class PluginManagerImpl implements PluginManager {
         this.workspacePath = workspacePath;
     }
 
-    @PostConstruct
-    public void init() {
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
+
         if (! initialized) {
             LOGGER.info("Initializing plugin workspace.");
             this.initializeFromWorkspace();
