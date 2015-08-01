@@ -49,68 +49,68 @@ public class PluginManagerTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void initWithInvalidWorkspace() {
+    public void initWithInvalidWorkspace() throws Exception {
         PluginManagerImpl pluginManager = new PluginManagerImpl();
-        pluginManager.init();
+        pluginManager.start();
     }
 
     @Test(expected = RuntimeException.class)
-    public void initWithInexistantWorkspace() {
+    public void initWithInexistantWorkspace() throws Exception {
         PluginManagerImpl pluginManager = new PluginManagerImpl(
                 "/io/gravitee/gateway/core/plugin/invalid/");
-        pluginManager.init();
+        pluginManager.start();
     }
 
     @Test
-    public void initWithEmptyWorkspace() {
+    public void initWithEmptyWorkspace() throws Exception {
         URL dir = PluginManagerTest.class.getResource("/io/gravitee/gateway/core/plugin/empty-workspace/");
         PluginManagerImpl pluginManager = new PluginManagerImpl(dir.getPath());
-        pluginManager.init();
+        pluginManager.start();
 
         Assert.assertTrue(pluginManager.getPlugins().isEmpty());
     }
 
     @Test
-    public void initTwiceWorkspace() {
+    public void initTwiceWorkspace() throws Exception {
         URL dir = PluginManagerTest.class.getResource("/io/gravitee/gateway/core/plugin/workspace/");
         PluginManagerImpl pluginManager = Mockito.spy(new PluginManagerImpl(dir.getPath()));
         pluginManager.setClassLoaderFactory(classLoaderFactory);
         pluginManager.setPluginHandlers(pluginHandlers);
 
-        pluginManager.init();
+        pluginManager.start();
         verify(pluginManager, atMost(1)).initializeFromWorkspace();
 
-        pluginManager.init();
+        pluginManager.start();
         verify(pluginManager, atMost(1)).initializeFromWorkspace();
     }
 
     @Test
-    public void initWithWorkspace_noJar() {
+    public void initWithWorkspace_noJar() throws Exception {
         URL dir = PluginManagerTest.class.getResource("/io/gravitee/gateway/core/plugin/invalid-workspace-nojar/");
         PluginManagerImpl pluginManager = new PluginManagerImpl(dir.getPath());
-        pluginManager.init();
+        pluginManager.start();
 
         Assert.assertTrue(pluginManager.getPlugins().isEmpty());
     }
 
     @Test
-    public void initWithValidWorkspace_onePolicyDefinition() {
+    public void initWithValidWorkspace_onePolicyDefinition() throws Exception {
         URL dir = PluginManagerTest.class.getResource("/io/gravitee/gateway/core/plugin/workspace/");
         PluginManagerImpl pluginManager = new PluginManagerImpl(dir.getPath());
         pluginManager.setClassLoaderFactory(classLoaderFactory);
         pluginManager.setPluginHandlers(pluginHandlers);
-        pluginManager.init();
+        pluginManager.start();
 
         Assert.assertEquals(1, pluginManager.getPlugins().size());
     }
 
     @Test
-    public void initWithValidWorkspace_checkPluginDescriptor() {
+    public void initWithValidWorkspace_checkPluginDescriptor() throws Exception {
         URL dir = PluginManagerTest.class.getResource("/io/gravitee/gateway/core/plugin/workspace/");
         PluginManagerImpl pluginManager = new PluginManagerImpl(dir.getPath());
         pluginManager.setClassLoaderFactory(classLoaderFactory);
         pluginManager.setPluginHandlers(pluginHandlers);
-        pluginManager.init();
+        pluginManager.start();
 
         Assert.assertEquals(1, pluginManager.getPlugins().size());
 

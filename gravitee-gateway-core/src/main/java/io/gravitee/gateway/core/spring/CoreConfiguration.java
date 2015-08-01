@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.spring;
 
 import java.io.IOException;
 
+import io.gravitee.gateway.core.cluster.spring.ClusterConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +42,8 @@ import io.gravitee.gateway.core.service.impl.ApiServiceImpl;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@Import({PluginConfiguration.class, PolicyConfiguration.class, ReporterConfiguration.class, PropertiesConfiguration.class})
+@Import({PluginConfiguration.class, PolicyConfiguration.class, ReporterConfiguration.class,
+        PropertiesConfiguration.class, ClusterConfiguration.class})
 public class CoreConfiguration {
 
     protected final static Logger LOGGER = LoggerFactory.getLogger(CoreConfiguration.class);

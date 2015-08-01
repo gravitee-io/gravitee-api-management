@@ -18,12 +18,15 @@ package io.gravitee.gateway.core.reactor;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.Reactor;
+import io.gravitee.gateway.core.cluster.SyncService;
 import io.gravitee.gateway.core.event.Event;
 import io.gravitee.gateway.core.event.EventListener;
 import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.handler.ContextHandler;
 import io.gravitee.gateway.core.handler.Handler;
 import io.gravitee.gateway.core.handler.spring.ApiHandlerConfiguration;
+import io.gravitee.gateway.core.plugin.PluginManager;
+import io.gravitee.gateway.core.service.AbstractService;
 import io.gravitee.gateway.core.service.ApiLifecycleEvent;
 import io.gravitee.gateway.core.service.ApiService;
 import io.gravitee.model.Api;
@@ -40,7 +43,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 
-import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.util.Map;
 import java.util.Properties;
@@ -52,7 +54,8 @@ import java.util.stream.Collectors;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<ApiLifecycleEvent, Api>, ApplicationContextAware {
+public abstract class GraviteeReactor<T> extends AbstractService implements
+        Reactor<T>, EventListener<ApiLifecycleEvent, Api>, ApplicationContextAware {
 
     private final Logger LOGGER = LoggerFactory.getLogger(GraviteeReactor.class);
 
@@ -177,15 +180,28 @@ public abstract class GraviteeReactor<T> implements Reactor<T>, EventListener<Ap
         return context;
     }
 
-    @PostConstruct
-    public void init() {
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+        applicationContext.getBean(PluginManager.class).start();
+        applicationContext.getBean(SyncService.class).start();
+
         eventManager.subscribeForEvents(this, ApiLifecycleEvent.class);
+
         //TODO: Not sure it's the best place to do the following...
         apiService.startAll();
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+    protected void doStop() throws Exception {
+        clearHandlers();
+
+        applicationContext.getBean(PluginManager.class).stop();
+        applicationContext.getBean(SyncService.class).stop();
+
     }
 }
