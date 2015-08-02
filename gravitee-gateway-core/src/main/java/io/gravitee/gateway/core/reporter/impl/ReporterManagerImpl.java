@@ -20,7 +20,6 @@ import io.gravitee.gateway.core.plugin.Plugin;
 import io.gravitee.gateway.core.plugin.PluginContextFactory;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.reporter.ReporterManager;
-import io.gravitee.gateway.core.service.AbstractService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +32,9 @@ import java.util.Collection;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ReporterManagerImpl extends AbstractService implements ReporterManager, PluginHandler {
+public class ReporterManagerImpl implements ReporterManager, PluginHandler {
 
-    protected final Logger LOGGER = LoggerFactory.getLogger(ReporterManagerImpl.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(ReporterManagerImpl.class);
 
     private final Collection<Reporter> reporters = new ArrayList<>();
 
@@ -68,32 +67,6 @@ public class ReporterManagerImpl extends AbstractService implements ReporterMana
             LOGGER.error("Unexpected error while create reporter instance", iae);
             // Be sure that the context does not exist anymore.
             pluginContextFactory.remove(plugin);
-        }
-    }
-
-    @Override
-    protected void doStart() throws Exception {
-        super.doStart();
-
-        for(Reporter reporter: reporters) {
-            try {
-                reporter.start();
-            } catch (Exception ex) {
-                LOGGER.error("Unexpected error while starting reporter", ex);
-            }
-        }
-    }
-
-    @Override
-    protected void doStop() throws Exception {
-        super.doStop();
-
-        for(Reporter reporter: reporters) {
-            try {
-                reporter.stop();
-            } catch (Exception ex) {
-                LOGGER.error("Unexpected error while starting reporter", ex);
-            }
         }
     }
 }

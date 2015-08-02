@@ -15,26 +15,33 @@
  */
 package io.gravitee.gateway.core.cluster.impl;
 
-import io.gravitee.common.component.Lifecycle;
 import io.gravitee.gateway.core.cluster.SyncService;
+import io.gravitee.gateway.core.service.AbstractService;
 
 /**
- * Created by david on 01/08/15.
+ * @author David BRASSELY (brasseld at gmail.com)
  */
-public class SyncServiceImpl implements SyncService {
+public class SyncServiceImpl extends AbstractService implements SyncService {
+
 
     @Override
-    public Lifecycle.State lifecycleState() {
-        return null;
+    protected void doStart() throws Exception {
+        super.doStart();
+
+        // Initial synchronization
+        bootstrapSynchronization();
     }
 
-    @Override
-    public Object start() throws Exception {
-        return null;
-    }
+    /**
+     * Synchronization done when Gravitee node is starting.
+     * This sync phase must be done by all node before starting.
+     */
+    private void bootstrapSynchronization() {
 
-    @Override
-    public Object stop() throws Exception {
-        return null;
+        // 1_ Plugins synchronization
+
+        // 2_ Global configuration synchronization
+
+        // 3_ APIs synchronization
     }
 }

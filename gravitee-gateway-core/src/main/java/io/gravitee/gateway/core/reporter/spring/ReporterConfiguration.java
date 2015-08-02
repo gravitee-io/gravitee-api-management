@@ -16,7 +16,9 @@
 package io.gravitee.gateway.core.reporter.spring;
 
 import io.gravitee.gateway.core.plugin.PluginHandler;
+import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.reporter.impl.ReporterManagerImpl;
+import io.gravitee.gateway.core.reporter.impl.ReporterServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,5 +31,10 @@ public class ReporterConfiguration {
     @Bean(name = "reporterPluginHandler")
     public PluginHandler reporterPluginHandler() {
         return new ReporterManagerImpl();
+    }
+
+    @Bean
+    public ReporterService reporterService() {
+        return new ReporterServiceImpl();
     }
 }

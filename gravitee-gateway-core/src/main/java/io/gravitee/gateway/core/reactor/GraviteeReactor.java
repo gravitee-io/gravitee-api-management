@@ -26,7 +26,7 @@ import io.gravitee.gateway.core.handler.ContextHandler;
 import io.gravitee.gateway.core.handler.Handler;
 import io.gravitee.gateway.core.handler.spring.ApiHandlerConfiguration;
 import io.gravitee.gateway.core.plugin.PluginManager;
-import io.gravitee.gateway.core.reporter.ReporterManager;
+import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.service.AbstractService;
 import io.gravitee.gateway.core.service.ApiLifecycleEvent;
 import io.gravitee.gateway.core.service.ApiService;
@@ -191,8 +191,8 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
         super.doStart();
 
         applicationContext.getBean(PluginManager.class).start();
+        applicationContext.getBean(ReporterService.class).start();
         applicationContext.getBean(SyncService.class).start();
-        applicationContext.getBean(ReporterManager.class).start();
 
         eventManager.subscribeForEvents(this, ApiLifecycleEvent.class);
 
@@ -209,6 +209,6 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
 
         clearHandlers();
 
-        applicationContext.getBean(ReporterManager.class).stop();
+        applicationContext.getBean(ReporterService.class).stop();
     }
 }
