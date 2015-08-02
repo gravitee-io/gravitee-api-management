@@ -23,7 +23,7 @@ import io.gravitee.gateway.core.plugin.PluginContextFactory;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
 import io.gravitee.gateway.core.policy.PolicyManager;
-import org.reflections.ReflectionUtils;
+import io.gravitee.gateway.core.policy.PolicyMethodResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,14 +32,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-
-import static org.reflections.ReflectionUtils.withAnnotation;
-import static org.reflections.ReflectionUtils.withModifier;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -51,17 +46,15 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
     @Autowired
     private PluginContextFactory pluginContextFactory;
 
+    @Autowired
+    private PolicyMethodResolver policyMethodResolver;
+
     private final Map<String, PolicyDefinition> definitions = new HashMap<>();
     private final Map<String, ApplicationContext> contexts = new HashMap<>();
 
     @Override
     public boolean canHandle(Plugin plugin) {
-        final Class<?> instanceClass = plugin.clazz();
-
-        final Method onRequestMethod = resolvePolicyMethod(instanceClass, OnRequest.class);
-        final Method onResponseMethod = resolvePolicyMethod(instanceClass, OnResponse.class);
-
-        return (onRequestMethod != null || onResponseMethod != null);
+        return ! (policyMethodResolver.resolvePolicyMethods(plugin.clazz()).isEmpty());
     }
 
     @Override
@@ -70,8 +63,11 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
             final Class<?> policyClass = plugin.clazz();
             ApplicationContext context = pluginContextFactory.create(plugin);
             contexts.putIfAbsent(plugin.id(), context);
-            final Method onRequestMethod = resolvePolicyMethod(policyClass, OnRequest.class);
-            final Method onResponseMethod = resolvePolicyMethod(policyClass, OnResponse.class);
+
+            Map<Class<? extends Annotation>, Method> methods = policyMethodResolver.resolvePolicyMethods(plugin.clazz());
+
+            final Method onRequestMethod = methods.get(OnRequest.class);
+            final Method onResponseMethod = methods.get(OnResponse.class);
 
             if (onRequestMethod == null && onResponseMethod == null) {
                 LOGGER.error("No method annotated with @OnRequest or @OnResponse found, skip policy registration for {}", policyClass.getName());
@@ -127,19 +123,10 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
 
     @Override
     public ApplicationContext getApplicationContext(String id) {
-        return null;
+        return contexts.get(id);
     }
 
-    private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {
-        Set<Method> methods = ReflectionUtils.getMethods(
-                clazz,
-                withModifier(Modifier.PUBLIC),
-                withAnnotation(annotationClass));
-
-        if (methods.isEmpty()) {
-            return null;
-        }
-
-        return methods.iterator().next();
+    public void setPolicyMethodResolver(PolicyMethodResolver policyMethodResolver) {
+        this.policyMethodResolver = policyMethodResolver;
     }
 }

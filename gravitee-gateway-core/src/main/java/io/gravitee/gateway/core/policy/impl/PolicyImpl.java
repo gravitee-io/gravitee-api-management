@@ -16,13 +16,10 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.core.policy.Policy;
-import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
