@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.service;
+package io.gravitee.gateway.api.service;
 
 import io.gravitee.common.component.LifecycleComponent;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Service <T extends Service> extends LifecycleComponent<T> {
+public interface Service<T extends Service> extends LifecycleComponent<T> {
 }
