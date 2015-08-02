@@ -111,11 +111,11 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_multiplePolicy_throwError() throws Exception {
-        PolicyChain chain = new RequestPolicyChain(policies3());
+        PolicyChain chain = new ResponsePolicyChain(policies3());
         chain.doNext(null, null);
 
-        verify(policy3, atLeastOnce()).onRequest(null, null, chain);
-        verify(policy2, atLeastOnce()).onRequest(null, null, chain);
+        verify(policy3, atLeastOnce()).onResponse(null, null, chain);
+        verify(policy2, atLeastOnce()).onResponse(null, null, chain);
     }
 
     private List<Policy> policies() {
