@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.cluster;
 
-import io.gravitee.gateway.core.service.Service;
+import io.gravitee.gateway.api.service.Service;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

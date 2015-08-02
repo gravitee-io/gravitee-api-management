@@ -22,7 +22,7 @@ import java.util.Collection;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ReporterManager {
+public interface ReporterManager extends io.gravitee.common.component.LifecycleComponent {
 
     Collection<Reporter> getReporters();
 }

@@ -18,15 +18,17 @@ package io.gravitee.gateway.core.reporter;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.reporter.Reporter;
+import io.gravitee.gateway.core.service.AbstractService;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ConsoleReporter implements Reporter {
+public class ConsoleReporter extends AbstractService implements Reporter {
 
     @Override
     public void report(Request request, Response response) {
         System.out.println(request);
         System.out.println(response);
     }
+
 }
