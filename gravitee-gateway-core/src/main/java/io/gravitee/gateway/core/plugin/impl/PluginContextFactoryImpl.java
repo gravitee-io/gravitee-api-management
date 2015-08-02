@@ -33,9 +33,12 @@ import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -45,6 +48,8 @@ import java.util.Set;
 public class PluginContextFactoryImpl implements PluginContextFactory, ApplicationContextAware {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(PluginContextFactoryImpl.class);
+
+    private final Map<Plugin, ApplicationContext> contexts = new HashMap<>();
 
     private ApplicationContext applicationContext;
 
@@ -95,7 +100,22 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
             Thread.currentThread().setContextClassLoader(tccl);
         }
 
+        contexts.putIfAbsent(plugin, pluginContext);
+
         return pluginContext;
+    }
+
+    @Override
+    public ApplicationContext get(Plugin plugin) {
+        return contexts.get(plugin);
+    }
+
+    @Override
+    public void remove(Plugin plugin) {
+        ApplicationContext ctx =  contexts.remove(plugin);
+        if (ctx != null) {
+            ((ConfigurableApplicationContext)ctx).close();
+        }
     }
 
     @Override
