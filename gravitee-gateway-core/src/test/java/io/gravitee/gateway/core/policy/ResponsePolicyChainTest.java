@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.policy.PolicyChain;
+import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
 import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,10 +53,22 @@ public class ResponsePolicyChainTest {
         }
     };
 
+    private Policy policy3 = new Policy() {
+        @Override
+        public void onRequest(Object... args) throws Exception {
+        }
+
+        @Override
+        public void onResponse(Object... args) throws Exception {
+            throw new RuntimeException();
+        }
+    };
+
     @Before
     public void setUp() {
         policy = spy(policy);
         policy2 = spy(policy2);
+        policy3 = spy(policy3);
     }
 
     @Test
@@ -96,6 +109,15 @@ public class ResponsePolicyChainTest {
         inOrder.verify(policy).onResponse(anyVararg());
     }
 
+    @Test
+    public void doNext_multiplePolicy_throwError() throws Exception {
+        PolicyChain chain = new RequestPolicyChain(policies3());
+        chain.doNext(null, null);
+
+        verify(policy3, atLeastOnce()).onRequest(null, null, chain);
+        verify(policy2, atLeastOnce()).onRequest(null, null, chain);
+    }
+
     private List<Policy> policies() {
         List<Policy> policies = new ArrayList<>();
         policies.add(policy);
@@ -105,6 +127,13 @@ public class ResponsePolicyChainTest {
     private List<Policy> policies2() {
         List<Policy> policies = new ArrayList<>();
         policies.add(policy);
+        policies.add(policy2);
+        return policies;
+    }
+
+    private List<Policy> policies3() {
+        List<Policy> policies = new ArrayList<>();
+        policies.add(policy3);
         policies.add(policy2);
         return policies;
     }
