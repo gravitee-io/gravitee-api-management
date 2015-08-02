@@ -17,11 +17,10 @@ package io.gravitee.gateway.core.handler;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
-import io.gravitee.gateway.core.reporter.ReporterManager;
+import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.model.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
@@ -41,7 +40,7 @@ public class ApiHandler extends ContextHandler {
     private HttpClient httpClient;
 
     @Autowired
-    private ReporterManager reporterManager;
+    private ReporterService reporterService;
 
     @Override
     public Observable<Response> handle(final Request request, final Response response) {
@@ -79,9 +78,7 @@ public class ApiHandler extends ContextHandler {
                                     response.headers().put("x-mykey", "x-toto");
                                     observer.onNext(response);
 
-                                    for (Reporter reporter : reporterManager.getReporters()) {
-                                        reporter.report(request, response);
-                                    }
+                                    reporterService.report(request, response);
                                 }
                             });
                         }

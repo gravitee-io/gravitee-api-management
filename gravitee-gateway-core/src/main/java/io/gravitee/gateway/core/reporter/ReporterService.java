@@ -15,14 +15,14 @@
  */
 package io.gravitee.gateway.core.reporter;
 
-import io.gravitee.gateway.api.reporter.Reporter;
-
-import java.util.Collection;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.service.Service;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ReporterManager {
+public interface ReporterService extends Service {
 
-    Collection<Reporter> getReporters();
+    void report(Request request, Response response);
 }
