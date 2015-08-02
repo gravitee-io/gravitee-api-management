@@ -20,28 +20,14 @@ import io.gravitee.gateway.core.plugin.Plugin;
 import io.gravitee.gateway.core.plugin.PluginContextFactory;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.reporter.ReporterManager;
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -51,7 +37,6 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
     protected final Logger LOGGER = LoggerFactory.getLogger(ReporterManagerImpl.class);
 
     private final Collection<Reporter> reporters = new ArrayList<>();
-    private final Map<String, ApplicationContext> contexts = new HashMap<>();
 
     @Autowired
     private PluginContextFactory pluginContextFactory;
@@ -77,15 +62,11 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
             Assert.isAssignable(Reporter.class, plugin.clazz());
 
             ApplicationContext context = pluginContextFactory.create(plugin);
-            contexts.putIfAbsent(plugin.id(), context);
             reporters.add(context.getBean(Reporter.class));
         } catch (Exception iae) {
             LOGGER.error("Unexpected error while create reporter instance", iae);
             // Be sure that the context does not exist anymore.
-            ApplicationContext ctx =  contexts.remove(plugin.id());
-            if (ctx != null) {
-                ((ConfigurableApplicationContext)ctx).close();
-            }
+            pluginContextFactory.remove(plugin);
         }
     }
 }

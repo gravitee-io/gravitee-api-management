@@ -23,4 +23,8 @@ import org.springframework.context.ApplicationContext;
 public interface PluginContextFactory {
 
     ApplicationContext create(Plugin plugin);
+
+    ApplicationContext get(Plugin plugin);
+
+    void remove(Plugin plugin);
 }

@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import org.springframework.context.ApplicationContext;
-
 import java.util.Collection;
 
 /**
@@ -27,6 +25,4 @@ public interface PolicyManager {
     Collection<PolicyDefinition> getPolicyDefinitions();
 
     PolicyDefinition getPolicyDefinition(String id);
-
-    ApplicationContext getApplicationContext(String id);
 }

@@ -146,17 +146,7 @@ public class PluginManagerImpl extends AbstractService implements PluginManager 
                 ClassUtils.forName(pluginDescriptor.plugin(),
                         classLoaderFactory.getPluginClassLoader(pluginDescriptor.id()));
 
-            return new Plugin() {
-                @Override
-                public String id() {
-                    return pluginDescriptor.id();
-                }
-
-                @Override
-                public Class<?> clazz() {
-                    return pluginClass;
-                }
-            };
+            return new PluginImpl(pluginDescriptor.id(), pluginClass);
         } catch (ClassNotFoundException cnfe) {
             LOGGER.error("Unable to get plugin class with name {}", pluginDescriptor.plugin());
             throw new IllegalArgumentException("Unable to get plugin class with name " + pluginDescriptor.plugin(), cnfe);

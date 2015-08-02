@@ -27,8 +27,6 @@ import io.gravitee.gateway.core.policy.PolicyMethodResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -50,7 +48,6 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
     private PolicyMethodResolver policyMethodResolver;
 
     private final Map<String, PolicyDefinition> definitions = new HashMap<>();
-    private final Map<String, ApplicationContext> contexts = new HashMap<>();
 
     @Override
     public boolean canHandle(Plugin plugin) {
@@ -61,8 +58,7 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
     public void handle(Plugin plugin) {
         try {
             final Class<?> policyClass = plugin.clazz();
-            ApplicationContext context = pluginContextFactory.create(plugin);
-            contexts.putIfAbsent(plugin.id(), context);
+            pluginContextFactory.create(plugin);
 
             Map<Class<? extends Annotation>, Method> methods = policyMethodResolver.resolvePolicyMethods(plugin.clazz());
 
@@ -103,11 +99,8 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
             }
         } catch (Exception iae) {
             LOGGER.error("Unexpected error while create reporter instance", iae);
-            // Be sure that the context does not exist anymore.
-            ApplicationContext ctx =  contexts.remove(plugin.id());
-            if (ctx != null) {
-                ((ConfigurableApplicationContext)ctx).close();
-            }
+
+            pluginContextFactory.remove(plugin);
         }
     }
 
@@ -121,12 +114,11 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
         return definitions.get(id);
     }
 
-    @Override
-    public ApplicationContext getApplicationContext(String id) {
-        return contexts.get(id);
-    }
-
     public void setPolicyMethodResolver(PolicyMethodResolver policyMethodResolver) {
         this.policyMethodResolver = policyMethodResolver;
+    }
+
+    public void setPluginContextFactory(PluginContextFactory pluginContextFactory) {
+        this.pluginContextFactory = pluginContextFactory;
     }
 }
