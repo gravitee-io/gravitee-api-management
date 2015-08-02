@@ -18,6 +18,7 @@ package io.gravitee.gateway.core.plugin;
 import io.gravitee.gateway.core.plugin.impl.ClassLoaderFactoryImpl;
 import io.gravitee.gateway.core.plugin.impl.PluginManagerImpl;
 import io.gravitee.gateway.core.policy.impl.PolicyManagerImpl;
+import io.gravitee.gateway.core.policy.impl.PolicyMethodResolverImpl;
 import io.gravitee.gateway.core.reporter.impl.ReporterManagerImpl;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,8 +44,11 @@ public class PluginManagerTest {
     public void setUp() {
         classLoaderFactory = new ClassLoaderFactoryImpl();
 
+        PolicyManagerImpl policyManager = new PolicyManagerImpl();
+        policyManager.setPolicyMethodResolver(new PolicyMethodResolverImpl());
+
         pluginHandlers = new ArrayList<>();
-        pluginHandlers.add(new PolicyManagerImpl());
+        pluginHandlers.add(policyManager);
         pluginHandlers.add(new ReporterManagerImpl());
     }
 

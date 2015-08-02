@@ -16,7 +16,9 @@
 package io.gravitee.gateway.core.policy.spring;
 
 import io.gravitee.gateway.core.plugin.PluginHandler;
+import io.gravitee.gateway.core.policy.PolicyMethodResolver;
 import io.gravitee.gateway.core.policy.impl.PolicyManagerImpl;
+import io.gravitee.gateway.core.policy.impl.PolicyMethodResolverImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,5 +31,10 @@ public class PolicyConfiguration {
     @Bean(name = "policyPluginHandler")
     public PluginHandler policyPluginHandler() {
         return new PolicyManagerImpl();
+    }
+
+    @Bean
+    public PolicyMethodResolver policyMethodResolver() {
+        return new PolicyMethodResolverImpl();
     }
 }
