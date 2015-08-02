@@ -1,0 +1,22 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
+	xsi:schemaLocation="http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/beans	
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security
+		http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/security/oauth2 
+ 		http://www.springframework.org/schema/security/spring-security-oauth2-2.0.xsd">
+ 		
+ 	<!-- Validate your token remotely -->
+ 	<!-- TODO : create an external configuration -->
+ 	<bean id="tokenServices" class="org.springframework.security.oauth2.provider.token.RemoteTokenServices">
+ 		<property name="checkTokenEndpointUrl" value="http://localhost:8080/oauth/check_token" />
+ 		<property name="clientId" value="resource1" />
+ 		<property name="clientSecret" value="resource1" />
+ 	</bean>
+
+</beans>
