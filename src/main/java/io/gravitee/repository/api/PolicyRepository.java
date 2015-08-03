@@ -24,5 +24,11 @@ import java.util.Set;
  */
 public interface PolicyRepository {
 
-    Set<Policy> getAll();
+    Set<Policy> findAll();
+
+    Policy findById(String id);
+
+    Set<Policy> findByApi(String apiName);
+
+    String getConfigurationSchema();
 }

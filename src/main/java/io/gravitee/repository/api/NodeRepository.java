@@ -15,8 +15,14 @@
  */
 package io.gravitee.repository.api;
 
+import io.gravitee.repository.model.Node;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface NodeRepository {
+
+    void register(Node node);
+
+    void unregister(Node node);
 }

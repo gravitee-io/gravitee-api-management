@@ -24,7 +24,7 @@ import java.util.Set;
  */
 public interface TeamRepository {
 
-    Set<Team> getAll();
+    Set<Team> findAll();
 
-    Team get(String name);
+    Team findByName(String name);
 }
