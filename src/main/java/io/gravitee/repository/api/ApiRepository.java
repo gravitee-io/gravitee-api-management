@@ -24,7 +24,9 @@ import java.util.Set;
  */
 public interface ApiRepository {
 
-    Api get(String name);
+    Api findByName(String name);
 
-    Set<Api> getAll();
+    Set<Api> findAll();
+
+    Set<Api> findByTeam(String teamName);
 }
