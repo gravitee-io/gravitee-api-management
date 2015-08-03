@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.admin.api.resources;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+package io.gravitee.management.api.resources;
 
 import org.springframework.stereotype.Component;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.model.User;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
 /**
  * Defines the REST resources to manage {@code User}.
@@ -43,6 +31,7 @@ import io.gravitee.model.User;
 @Path("/users")
 public class UserResource {
 
+    /*
     @GET
     public Response listAll() {
         final List<String> firstNames = new ArrayList<>(Arrays.asList("Azize", "Nicolas", "David", "Loïc", "Aurélien", "Jeoffrey", "Emmanuel",
@@ -81,4 +70,5 @@ public class UserResource {
         return Response.status(HttpStatusCode.OK_200).entity(Arrays.asList("ROLE_ADMIN", "ROLE_USER", "ROLE_MANAGEMENT"))
             .header("Access-Control-Allow-Origin", "*").build();
     }
+    */
 }

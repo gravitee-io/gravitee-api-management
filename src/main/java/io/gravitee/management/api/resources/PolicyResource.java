@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.admin.api.resources;
+package io.gravitee.management.api.resources;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.core.service.ApiService;
-import io.gravitee.model.Api;
-import io.gravitee.model.Policy;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
 /**
  * Defines the REST resources to manage {@code Policy}.
@@ -43,6 +31,7 @@ import io.gravitee.model.Policy;
 @Path("/policies")
 public class PolicyResource {
 
+    /*
     @Autowired
     private ApiService apiService;
 
@@ -72,4 +61,5 @@ public class PolicyResource {
         return Response.status(HttpStatusCode.OK_200).entity(policies)
             .header("Access-Control-Allow-Origin", "*").build();
     }
+    */
 }
