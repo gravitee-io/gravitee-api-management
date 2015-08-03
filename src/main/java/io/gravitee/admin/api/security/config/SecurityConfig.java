@@ -19,8 +19,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter;
 
-import io.gravitee.admin.api.security.provider.BasicSecurityConfigurerAdapter;
-import io.gravitee.admin.api.security.provider.OAuth2SecurityConfigurerAdapter;
+import io.gravitee.admin.api.security.adapter.BasicSecurityConfigurerAdapter;
+import io.gravitee.admin.api.security.adapter.OAuth2SecurityConfigurerAdapter;
 
 /**
  * 
