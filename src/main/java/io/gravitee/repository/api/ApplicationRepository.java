@@ -15,28 +15,16 @@
  */
 package io.gravitee.repository.api;
 
-import io.gravitee.repository.model.Api;
+import io.gravitee.repository.model.Application;
 
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ApiRepository {
+public interface ApplicationRepository {
 
-    Api findByName(String apiName);
+    Set<Application> findAll();
 
-    Set<Api> findAll();
-
-    Set<Api> findByTeam(String teamName);
-
-    Api create(Api api);
-
-    Api update(Api api);
-
-    void delete(String apiName);
-
-    void start(String apiName);
-
-    void stop(String apiName);
+    Set<Application> findByUser(String username);
 }

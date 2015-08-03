@@ -15,28 +15,22 @@
  */
 package io.gravitee.repository.model;
 
-import java.net.URL;
 import java.util.Date;
 import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class Api {
+public class Application {
 
-    //TODO: how to store team owner and api creator ?
-
-    private String id;
     private String name;
-    private String version;
-
-    private URL publicURL;
-    private URL targetURL;
+    private String description;
+    private String type;
 
     private Date createdOn;
     private Date updatedOn;
 
-    private LifecycleState lifecycleState;
+    //TODO: how to store owner ?
 
     public Date getCreatedOn() {
         return createdOn;
@@ -46,12 +40,12 @@ public class Api {
         this.createdOn = createdOn;
     }
 
-    public LifecycleState getLifecycleState() {
-        return lifecycleState;
+    public String getDescription() {
+        return description;
     }
 
-    public void setLifecycleState(LifecycleState lifecycleState) {
-        this.lifecycleState = lifecycleState;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getName() {
@@ -62,20 +56,12 @@ public class Api {
         this.name = name;
     }
 
-    public URL getPublicURL() {
-        return publicURL;
+    public String getType() {
+        return type;
     }
 
-    public void setPublicURL(URL publicURL) {
-        this.publicURL = publicURL;
-    }
-
-    public URL getTargetURL() {
-        return targetURL;
-    }
-
-    public void setTargetURL(URL targetURL) {
-        this.targetURL = targetURL;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Date getUpdatedOn() {
@@ -86,42 +72,24 @@ public class Api {
         this.updatedOn = updatedOn;
     }
 
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Api api = (Api) o;
-        return Objects.equals(name, api.name) &&
-                Objects.equals(version, api.version);
+        Application that = (Application) o;
+        return Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, version);
+        return Objects.hash(name);
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Api{");
+        final StringBuilder sb = new StringBuilder("Application{");
         sb.append("name='").append(name).append('\'');
-        sb.append(", version='").append(version).append('\'');
-        sb.append(", lifecycleState=").append(lifecycleState);
+        sb.append(", type='").append(type).append('\'');
         sb.append('}');
         return sb.toString();
     }
