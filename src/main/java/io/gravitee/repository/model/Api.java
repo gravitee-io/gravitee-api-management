@@ -33,17 +33,17 @@ public class Api {
     private URL publicURL;
     private URL targetURL;
 
-    private Date createdOn;
-    private Date updatedOn;
+    private Date createdAt;
+    private Date updatedAt;
 
     private LifecycleState lifecycleState;
 
-    public Date getCreatedOn() {
-        return createdOn;
+    public Date getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreatedOn(Date createdOn) {
-        this.createdOn = createdOn;
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     public LifecycleState getLifecycleState() {
@@ -78,12 +78,12 @@ public class Api {
         this.targetURL = targetURL;
     }
 
-    public Date getUpdatedOn() {
-        return updatedOn;
+    public Date getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setUpdatedOn(Date updatedOn) {
-        this.updatedOn = updatedOn;
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public String getVersion() {
