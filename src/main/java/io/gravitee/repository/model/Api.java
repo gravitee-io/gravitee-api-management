@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.model;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Date;
 import java.util.Objects;
 
@@ -30,13 +30,13 @@ public class Api {
     private String name;
     private String version;
 
-    private URL publicURL;
-    private URL targetURL;
+    private URI publicURI;
+    private URI targetURI;
 
     private Date createdAt;
     private Date updatedAt;
 
-    private LifecycleState lifecycleState;
+    private LifecycleState lifecycleState = LifecycleState.STOPPED;
 
     public Date getCreatedAt() {
         return createdAt;
@@ -62,20 +62,20 @@ public class Api {
         this.name = name;
     }
 
-    public URL getPublicURL() {
-        return publicURL;
+    public URI getPublicURI() {
+        return publicURI;
     }
 
-    public void setPublicURL(URL publicURL) {
-        this.publicURL = publicURL;
+    public void setPublicURI(URI publicURI) {
+        this.publicURI = publicURI;
     }
 
-    public URL getTargetURL() {
-        return targetURL;
+    public URI getTargetURI() {
+        return targetURI;
     }
 
-    public void setTargetURL(URL targetURL) {
-        this.targetURL = targetURL;
+    public void setTargetURI(URI targetURI) {
+        this.targetURI = targetURI;
     }
 
     public Date getUpdatedAt() {
