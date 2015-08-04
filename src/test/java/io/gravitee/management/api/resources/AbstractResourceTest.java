@@ -20,6 +20,7 @@ import io.gravitee.repository.api.ApiRepository;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -33,12 +34,8 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Configuration
+    @ComponentScan("io.gravitee.management.api.resources")
     static class ContextConfiguration {
-
-        @Bean
-        public ApisResource apisResource() {
-            return new ApisResource();
-        }
 
         @Bean
         public ApiRepository apiRepository() {

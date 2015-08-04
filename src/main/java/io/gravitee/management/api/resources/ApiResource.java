@@ -67,10 +67,10 @@ public class ApiResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(final Api api) {
-        Api createdApi = apiRepository.update(api);
-        if (createdApi != null) {
+        Api updatedApi = apiRepository.update(api);
+        if (updatedApi != null) {
             return Response.status(HttpStatusCode.OK_200).header(LOCATION, "/rest/apis/" +
-                    api.getName()).entity(createdApi).build();
+                    api.getName()).entity(updatedApi).build();
         } else {
             return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
         }

@@ -18,15 +18,19 @@ package io.gravitee.management.api.resources;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.api.ApiRepository;
 import io.gravitee.repository.model.Api;
+import io.gravitee.repository.model.LifecycleState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import static javax.ws.rs.core.HttpHeaders.LOCATION;
@@ -47,13 +51,27 @@ public class ApisResource {
 
     @GET
     public Set<Api> listAll() {
-        return apiRepository.findAll();
+        Set<Api> apis = apiRepository.findAll();
+
+        if (apis == null) {
+            apis = new HashSet<>();
+        }
+
+        return apis;
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(final Api api) {
+    public Response create(@NotNull final Api api) {
+        // Update date fields
+        api.setCreatedAt(new Date());
+        api.setUpdatedAt(api.getUpdatedAt());
+
+        // Update default field
+        api.setLifecycleState(LifecycleState.STOPPED);
+
         Api createdApi = apiRepository.create(api);
+
         if (createdApi != null) {
             return Response.status(HttpStatusCode.CREATED_201).header(LOCATION, "/rest/apis/" +
                     api.getName()).entity(createdApi).build();
