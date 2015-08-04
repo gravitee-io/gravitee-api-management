@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.registry.mongodb.converters;
+package io.gravitee.repositories.mongodb.internal.model;
 
 /**
- * Defines an abstraction to convert from a source to a target type and vice versa.
- *
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author David BRASSELY (brasseld at gmail.com)
  */
-public abstract class AbstractConverter<S, T> {
+public enum LifecycleState {
 
-    public abstract T convertTo(S object);
-
-    public abstract S convertFrom(T object);
+    STARTED, STOPPED;
 }
-
