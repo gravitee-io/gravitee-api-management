@@ -27,17 +27,17 @@ public class Application {
     private String description;
     private String type;
 
-    private Date createdOn;
-    private Date updatedOn;
+    private Date createdAt;
+    private Date updatedAt;
 
     //TODO: how to store owner ?
 
-    public Date getCreatedOn() {
-        return createdOn;
+    public Date getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreatedOn(Date createdOn) {
-        this.createdOn = createdOn;
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     public String getDescription() {
@@ -64,12 +64,12 @@ public class Application {
         this.type = type;
     }
 
-    public Date getUpdatedOn() {
-        return updatedOn;
+    public Date getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setUpdatedOn(Date updatedOn) {
-        this.updatedOn = updatedOn;
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     @Override
