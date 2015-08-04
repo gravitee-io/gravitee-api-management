@@ -15,12 +15,14 @@
  */
 package io.gravitee.management.api.resources;
 
-import org.junit.Ignore;
+import io.gravitee.repository.model.Api;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -28,11 +30,12 @@ import static org.junit.Assert.assertEquals;
 public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
-    @Ignore
     public void testApis() {
         final Response response = target("apis").request().get();
+        assertEquals(200, response.getStatus());
 
-        assertEquals("Response status unexpected.", 200, response.getStatus());
-        assertEquals("Response entity unexpected.", "get", response.readEntity(String.class));
+        Set<Api> apis = response.readEntity(Set.class);
+
+        assertTrue(apis.isEmpty());
     }
 }
