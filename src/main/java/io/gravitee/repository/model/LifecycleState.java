@@ -20,5 +20,5 @@ package io.gravitee.repository.model;
  */
 public enum LifecycleState {
 
-    START, STOP;
+    STARTED, STOPPED;
 }
