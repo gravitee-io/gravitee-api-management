@@ -35,20 +35,23 @@
 	<dependencies>
 		<!-- Gravitee dependencies -->
 		<dependency>
-			<groupId>io.gravitee.gateway</groupId>
-			<artifactId>gravitee-gateway-api</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>io.gravitee.common</groupId>
 			<artifactId>gravitee-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.gravitee.repositories</groupId>
-			<artifactId>gravitee-repository-mongodb</artifactId>
+			<artifactId>gravitee-repository</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<!-- Spring dependencies -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
 		<!-- Jersey dependencies -->
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
@@ -94,14 +97,35 @@
 			<artifactId>spring-security-oauth2</artifactId>
 			<version>${spring.security.oauth2.version}</version>
 		</dependency>
+
+		<!-- Unit testing -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
+			<artifactId>jersey-test-framework-provider-jetty</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<properties>
 		<jetty.version>9.2.11.v20150529</jetty.version>
 		<jackson.version>2.5.3</jackson.version>
-		<jersey.version>2.18</jersey.version>
+		<jersey.version>2.19</jersey.version>
+		<spring.version>4.1.6.RELEASE</spring.version>
 		<spring.security.version>3.2.8.RELEASE</spring.security.version>
 		<spring.security.oauth2.version>2.0.7.RELEASE</spring.security.oauth2.version>
+		<mockito.version>1.10.19</mockito.version>
 	</properties>
 
 	<build>

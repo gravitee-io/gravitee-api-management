@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.admin.api.resources;
+package io.gravitee.management.api.resources;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.springframework.context.ApplicationContext;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApplicationConfig extends ResourceConfig {
+public class ApisResourceTest extends AbstractResourceTest {
 
-    public ApplicationConfig(ApplicationContext applicationContext) {
-        property("contextConfig", applicationContext);
+    @Test
+    @Ignore
+    public void testApis() {
+        final Response response = target("apis").request().get();
 
-        register(ApiResource.class);
-        register(UserResource.class);
-        register(PolicyResource.class);
-
-        //  register(ObjectMapperProvider.class);
-        register(JacksonFeature.class);
+        assertEquals("Response status unexpected.", 200, response.getStatus());
+        assertEquals("Response entity unexpected.", "get", response.readEntity(String.class));
     }
 }
