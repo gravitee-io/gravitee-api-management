@@ -28,7 +28,7 @@
 	
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>io.gravitee.admin.api.security.config.SecurityConfig</param-value>
+		<param-value>io.gravitee.management.api.GraviteeContextConfiguration</param-value>
 	</context-param>
 	
 	<context-param>
