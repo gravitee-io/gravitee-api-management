@@ -41,12 +41,8 @@
     	<servlet-name>restApi</servlet-name>
     	<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
     	<init-param>
-      		<param-name>jersey.config.server.provider.packages</param-name>
-      		<param-value>io.gravitee.admin.api.resources</param-value>
-    	</init-param>
-    	<init-param>
-    		<param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
-    		<param-value>true</param-value>
+      		<param-name>javax.ws.rs.Application</param-name>
+      		<param-value>io.gravitee.management.api.GraviteeApplication</param-value>
     	</init-param>
     	<load-on-startup>1</load-on-startup>
 	</servlet>
