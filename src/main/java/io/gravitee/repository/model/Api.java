@@ -36,6 +36,8 @@ public class Api {
     private Date createdAt;
     private Date updatedAt;
 
+    private boolean privateApi;
+
     private LifecycleState lifecycleState = LifecycleState.STOPPED;
 
     public Date getCreatedAt() {
@@ -100,6 +102,14 @@ public class Api {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public boolean isPrivate() {
+        return privateApi;
+    }
+
+    public void setPrivate(boolean privateApi) {
+        this.privateApi = privateApi;
     }
 
     @Override
