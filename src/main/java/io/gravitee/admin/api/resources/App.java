@@ -15,7 +15,7 @@
  */
 package io.gravitee.admin.api.resources;
 
-import io.gravitee.admin.api.security.config.SecurityConfig;
+import io.gravitee.management.api.GraviteeContextConfiguration;
 
 import java.util.EnumSet;
 
@@ -58,7 +58,7 @@ public final class App {
         System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, "basic-auth");
         context.addEventListener(new ContextLoaderListener());
         context.setInitParameter("contextClass", AnnotationConfigWebApplicationContext.class.getName());
-        context.setInitParameter("contextConfigLocation", SecurityConfig.class.getName());
+        context.setInitParameter("contextConfigLocation", GraviteeContextConfiguration.class.getName());
         // Spring Security filter
         context.addFilter(new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),"/*", EnumSet.allOf(DispatcherType.class));
         
