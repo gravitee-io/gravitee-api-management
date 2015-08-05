@@ -17,7 +17,7 @@ package io.gravitee.management.api;
 
 import io.gravitee.management.api.resources.ApisResource;
 import io.gravitee.management.api.resources.PolicyResource;
-import io.gravitee.management.api.resources.UserResource;
+import io.gravitee.management.api.resources.UsersResource;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -28,7 +28,7 @@ public class GraviteeApplication extends ResourceConfig {
 
     public GraviteeApplication() {
         register(ApisResource.class);
-        register(UserResource.class);
+        register(UsersResource.class);
         register(PolicyResource.class);
 
         //  register(ObjectMapperProvider.class);
