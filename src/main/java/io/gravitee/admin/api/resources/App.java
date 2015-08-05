@@ -15,6 +15,8 @@
  */
 package io.gravitee.admin.api.resources;
 
+import io.gravitee.admin.api.security.config.SecurityConfig;
+
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
@@ -29,8 +31,6 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-import io.gravitee.admin.api.security.config.SecurityConfig;
-
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  * @author Titouan COMPIEGNE
@@ -42,11 +42,16 @@ public final class App {
 
     public static void main(String[] args) throws Exception {
     	
-        final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
-        servletHolder.setInitParameter("jersey.config.server.provider.packages", "io.gravitee.admin.api.resources");
-        servletHolder.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
+        // Create the embedded server
         final Server server = new Server(8059);
-        final ServletContextHandler context = new ServletContextHandler(server, "/rest", ServletContextHandler.NO_SESSIONS);
+        // Create the servlet context
+        final ServletContextHandler context = new ServletContextHandler(server, "/*", ServletContextHandler.NO_SESSIONS);
+        
+        // REST configuration
+        final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
+        servletHolder.setInitParameter("javax.ws.rs.Application", "io.gravitee.management.api.GraviteeApplication");
+        servletHolder.setInitOrder(0);
+        context.addServlet(servletHolder, "/rest/*");
         
         // Spring configuration
         // You can switch according to your security implementation (Basic, OAuth2, ...)
@@ -55,9 +60,9 @@ public final class App {
         context.setInitParameter("contextClass", AnnotationConfigWebApplicationContext.class.getName());
         context.setInitParameter("contextConfigLocation", SecurityConfig.class.getName());
         // Spring Security filter
-        context.addFilter(new FilterHolder( new DelegatingFilterProxy("springSecurityFilterChain")),"/*", EnumSet.allOf(DispatcherType.class));
+        context.addFilter(new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),"/*", EnumSet.allOf(DispatcherType.class));
         
-        context.addServlet(servletHolder, "/*");
+        // start the server
         server.start();
         server.join();
     }
