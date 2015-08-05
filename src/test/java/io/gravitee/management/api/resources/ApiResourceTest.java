@@ -15,20 +15,19 @@
  */
 package io.gravitee.management.api.resources;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import io.gravitee.management.api.builder.ApiBuilder;
 import io.gravitee.repository.api.ApiRepository;
 import io.gravitee.repository.model.Api;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.ws.rs.core.Response;
 
 import java.util.Date;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import javax.ws.rs.core.Response;
+
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

@@ -17,6 +17,8 @@ package io.gravitee.management.api.resources;
 
 import io.gravitee.management.api.JerseySpringTest;
 import io.gravitee.repository.api.ApiRepository;
+import io.gravitee.repository.api.TeamRepository;
+
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +39,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @ComponentScan("io.gravitee.management.api.resources")
     static class ContextConfiguration {
 
+    	@Bean
+    	public TeamRepository teamRepository() {
+    		return Mockito.mock(TeamRepository.class);
+    	}
+    	
         @Bean
         public ApiRepository apiRepository() {
             return Mockito.mock(ApiRepository.class);
