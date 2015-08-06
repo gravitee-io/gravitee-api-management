@@ -15,22 +15,52 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import java.util.ArrayList;
+import java.util.Set;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.Assert;
 
+import io.gravitee.repositories.mongodb.internal.model.Team;
 import io.gravitee.repositories.mongodb.internal.model.User;
+import io.gravitee.repositories.mongodb.internal.team.TeamRepository;
 import io.gravitee.repositories.mongodb.internal.user.UserRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes={ RepositoryConfiguration.class})
 public class UserRepositoryTest {
 
+	private static Integer NB_USERS_TEAM = 24;
+
 	@Autowired
-    private UserRepository  repository;
-    
+    private TeamRepository teamRepository;
+   
+	@Autowired
+    private UserRepository userRepository;
+
+    @Before
+    public void init(){
+    	
+    	Team team = new Team();
+    	team.setMembers(new ArrayList<User>());
+    	team.setName("teamTest");
+    	team.setDescription("Sample team description");
+    	
+    	for(int i=0; i<NB_USERS_TEAM; i++){
+	    	User user = new User();
+	    	user.setMail("sample@gmail.com");
+	    	user.setUsername("sample");
+	    	team.getMembers().add(userRepository.save(user));
+    	}
+    	
+    	teamRepository.save(team);
+    }
+	
 	@Test 
 	public void createUserTest(){
 		
@@ -38,7 +68,15 @@ public class UserRepositoryTest {
     	user.setMail("sample@gmail.com");
     	user.setUsername("sample");
     	
-    	repository.save(user);
+    	userRepository.save(user);
+	}
+	
+	@Test 
+	public void findByTeamTest(){
+    	Set<User> users = userRepository.findByTeam("teamTest");
+    	
+    	Assert.notNull(users);
+    	Assert.isTrue(users.size() == NB_USERS_TEAM, "Invalid nb users found");
 	}
 	
  
