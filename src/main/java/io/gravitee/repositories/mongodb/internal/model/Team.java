@@ -56,5 +56,11 @@ public class Team {
         this.name = name;
     }
 
+	public List<User> getMembers() {
+		return members;
+	}
 
+	public void setMembers(List<User> members) {
+		this.members = members;
+	}
 }

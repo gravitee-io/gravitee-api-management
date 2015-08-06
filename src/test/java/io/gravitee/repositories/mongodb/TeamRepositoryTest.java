@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import io.gravitee.repositories.mongodb.internal.user.UserRepository;
 import io.gravitee.repository.api.TeamRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -27,7 +28,11 @@ import io.gravitee.repository.api.TeamRepository;
 public class TeamRepositoryTest {
 
 	@Autowired
-    private TeamRepository repository;
+    private TeamRepository teamRepository;
    
- 
+	@Autowired
+    private UserRepository userRepository;
+	
+	
+   
 }
