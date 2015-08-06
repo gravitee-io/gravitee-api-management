@@ -15,31 +15,36 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import io.gravitee.repositories.mongodb.internal.application.ApplicationRepository;
+import io.gravitee.repositories.mongodb.internal.model.Application;
 import io.gravitee.repositories.mongodb.internal.model.User;
 import io.gravitee.repositories.mongodb.internal.user.UserRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes={ RepositoryConfiguration.class})
+@ContextConfiguration(classes = { RepositoryConfiguration.class })
 public class ApplicationRepositoryTest {
 
 	@Autowired
-    private UserRepository  repository;
-    
+	private ApplicationRepository appRepository;
+
 	@Test 
-	public void createUserTest(){
-		
-    	User user = new User();
-    	user.setMail("sample@gmail.com");
-    	user.setUsername("sample");
-    	
-    	repository.save(user);
+	public void createApplicationTest(){
+		try{
+	    	Application application = new Application();
+	    	application.setName("applicationSample");
+	    	
+	    	appRepository.save(application);
+	    	
+		}catch(Exception e){
+			Assert.fail("Fail to create application");
+		}
 	}
-	
- 
+
 }
