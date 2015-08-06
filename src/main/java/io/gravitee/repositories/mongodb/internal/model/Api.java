@@ -21,10 +21,9 @@ import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-/**
- * @author David BRASSELY (brasseld at gmail.com)
- */
+@Document(collection="apis")
 public class Api {
 
 	@Id
@@ -42,6 +41,7 @@ public class Api {
     
     @DBRef 
     private Team owner;
+    
     @DBRef 
     private User creator;
 
@@ -111,8 +111,23 @@ public class Api {
         this.version = version;
     }
 
+    public Team getOwner() {
+		return owner;
+	}
 
-    @Override
+	public void setOwner(Team owner) {
+		this.owner = owner;
+	}
+
+	public User getCreator() {
+		return creator;
+	}
+
+	public void setCreator(User creator) {
+		this.creator = creator;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
