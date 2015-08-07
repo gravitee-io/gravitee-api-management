@@ -21,7 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -33,12 +36,29 @@ public class TeamResource {
 
     private String teamName;
 
+    @Context
+    private ResourceContext resourceContext;
+
     @Autowired
     private TeamRepository teamRepository;
 
     @GET
     public Team get() {
         return teamRepository.findByName(teamName);
+    }
+
+    @Path("apis")
+    public TeamApisResource getTeamApisResource() {
+        TeamApisResource teamApisResource = resourceContext.getResource(TeamApisResource.class);
+        teamApisResource.setTeamName(teamName);
+        return teamApisResource;
+    }
+
+    @Path("applications")
+    public TeamApplicationsResource getTeamApplicationsResource() {
+        TeamApplicationsResource teamApplicationsResource = resourceContext.getResource(TeamApplicationsResource.class);
+        teamApplicationsResource.setTeamName(teamName);
+        return teamApplicationsResource;
     }
 
     public void setTeamName(String teamName) {

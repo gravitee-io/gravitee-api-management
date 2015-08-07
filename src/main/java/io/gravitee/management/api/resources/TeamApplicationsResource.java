@@ -15,52 +15,36 @@
  */
 package io.gravitee.management.api.resources;
 
-import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.Application;
-import io.gravitee.repository.model.Team;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class UserResource {
+public class TeamApplicationsResource {
 
-    private String username;
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    private String teamName;
 
     /**
-     * List public APIs for the specified user.
-     * @return Public APIs for the specified user.
-     */
-    @GET
-    @Path("apis")
-    public Set<Api> getApis() {
-        return null;
-    }
-
-    /**
-     * List public teams for the specified user.
-     * @return Public teams for the specified user.
-     */
-    @GET
-    @Path("teams")
-    public Set<Team> getTeams() {
-        return null;
-    }
-
-    /**
-     * List applications for the specified user.
-     * @return Applications for the specified user.
+     * List applications for the specified team.
+     * @return Applications for the specified team.
      */
     @GET
     @Path("applications")
     public Set<Application> getApplications() {
         return null;
+    }
+
+    @POST
+    public Application createApplication() {
+        return null;
+    }
+
+    public void setTeamName(String teamName) {
+        this.teamName = teamName;
     }
 }
