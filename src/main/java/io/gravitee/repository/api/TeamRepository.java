@@ -17,6 +17,7 @@ package io.gravitee.repository.api;
 
 import io.gravitee.repository.model.Team;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -26,7 +27,7 @@ public interface TeamRepository {
 
     Set<Team> findAll();
 
-    Team findByName(String name);
+    Optional<Team> findByName(String name);
 
     Team create(Team team);
 
