@@ -13,26 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.api;
-
-import io.gravitee.repository.model.Api;
-
-import java.util.Set;
+package io.gravitee.repository.model;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ApiRepository {
-
-    Api findByName(String apiName);
-
-    Set<Api> findAll();
-
-    Set<Api> findByTeam(String teamName);
-
-    Api create(Api api);
-
-    Api update(Api api);
-
-    void delete(String apiName);
+public enum TeamRole {
+    MEMBER, ADMIN;
 }
