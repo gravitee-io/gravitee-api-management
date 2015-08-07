@@ -32,7 +32,8 @@ public class Application {
 
     private OwnerType ownerType;
     private String owner;
-    
+    private String creator;
+
     private String key;
 
     public Date getCreatedAt() {
@@ -91,7 +92,15 @@ public class Application {
 		this.owner = owner;
 	}
 
-	public String getKey() {
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getKey() {
 		return key;
 	}
 

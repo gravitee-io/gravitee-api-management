@@ -35,6 +35,7 @@ public class Api {
     
     private OwnerType ownerType;
     private String owner;
+    private String creator;
 
     private boolean privateApi;
 
@@ -120,7 +121,15 @@ public class Api {
 		this.owner = owner;
 	}
 
-	@Override
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
