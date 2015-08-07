@@ -17,6 +17,7 @@ package io.gravitee.repository.api;
 
 import io.gravitee.repository.model.Application;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -27,4 +28,16 @@ public interface ApplicationRepository {
     Set<Application> findAll();
 
     Set<Application> findByUser(String username);
+
+    Application create(Application application);
+
+    Application update(Application application);
+
+    Optional<Application> findByName(String applicationName);
+
+    void delete(String apiName);
+
+    int countByUser(String username);
+
+    int countByTeam(String teamName);
 }
