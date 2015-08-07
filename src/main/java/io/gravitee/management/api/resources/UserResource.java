@@ -21,6 +21,8 @@ import io.gravitee.repository.model.Team;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 import java.util.Set;
 
 /**
@@ -28,20 +30,13 @@ import java.util.Set;
  */
 public class UserResource {
 
+    @Context
+    private ResourceContext resourceContext;
+
     private String username;
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    /**
-     * List public APIs for the specified user.
-     * @return Public APIs for the specified user.
-     */
-    @GET
-    @Path("apis")
-    public Set<Api> getApis() {
-        return null;
     }
 
     /**
@@ -51,6 +46,16 @@ public class UserResource {
     @GET
     @Path("teams")
     public Set<Team> getTeams() {
+        return null;
+    }
+
+    /**
+     * List public APIs for the specified user.
+     * @return Public APIs for the specified user.
+     */
+    @GET
+    @Path("apis")
+    public Set<Api> getApis() {
         return null;
     }
 

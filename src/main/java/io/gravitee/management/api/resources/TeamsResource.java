@@ -15,18 +15,19 @@
  */
 package io.gravitee.management.api.resources;
 
+import io.gravitee.management.api.model.TeamCreation;
 import io.gravitee.repository.api.TeamRepository;
 import io.gravitee.repository.model.Team;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -57,6 +58,34 @@ public class TeamsResource {
         }
 
         return teams;
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response create(@NotNull TeamCreation teamCreation) {
+        Team team = teamRepository.create(null);
+        if (team != null) {
+            return Response
+                    .created(URI.create("/teams/" + team.getName()))
+                    .entity(team)
+                    .build();
+        }
+
+        return Response.serverError().build();
+    }
+
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response update(@NotNull TeamCreation teamCreation) {
+        Team team = teamRepository.update(null);
+        if (team != null) {
+            return Response
+                    .ok()
+                    .entity(team)
+                    .build();
+        }
+
+        return Response.serverError().build();
     }
 
     @Path("{teamName}")

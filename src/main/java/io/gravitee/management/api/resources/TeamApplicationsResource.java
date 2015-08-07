@@ -19,7 +19,6 @@ import io.gravitee.repository.model.Application;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.Path;
 import java.util.Set;
 
 /**
@@ -34,13 +33,17 @@ public class TeamApplicationsResource {
      * @return Applications for the specified team.
      */
     @GET
-    @Path("applications")
     public Set<Application> getApplications() {
         return null;
     }
 
+    /**
+     * Create a new application for the specified team.
+     * @param application
+     * @return
+     */
     @POST
-    public Application createApplication() {
+    public Application createApplication(Application application) {
         return null;
     }
 

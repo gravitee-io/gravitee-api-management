@@ -26,6 +26,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -43,8 +44,12 @@ public class TeamResource {
     private TeamRepository teamRepository;
 
     @GET
-    public Team get() {
-        return teamRepository.findByName(teamName);
+    public Response get() {
+        Team team = teamRepository.findByName(teamName);
+        if (team != null) {
+            return Response.ok().entity(team).build();
+        }
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 
     @Path("apis")
@@ -56,6 +61,13 @@ public class TeamResource {
 
     @Path("applications")
     public TeamApplicationsResource getTeamApplicationsResource() {
+        TeamApplicationsResource teamApplicationsResource = resourceContext.getResource(TeamApplicationsResource.class);
+        teamApplicationsResource.setTeamName(teamName);
+        return teamApplicationsResource;
+    }
+
+    @Path("members")
+    public TeamApplicationsResource getTeamMembersResource() {
         TeamApplicationsResource teamApplicationsResource = resourceContext.getResource(TeamApplicationsResource.class);
         teamApplicationsResource.setTeamName(teamName);
         return teamApplicationsResource;

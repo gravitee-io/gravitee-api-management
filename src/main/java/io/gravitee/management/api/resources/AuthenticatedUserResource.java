@@ -15,13 +15,18 @@
  */
 package io.gravitee.management.api.resources;
 
+import io.gravitee.repository.model.Api;
+import io.gravitee.repository.model.Application;
+import io.gravitee.repository.model.Team;
 import io.gravitee.repository.model.User;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.Set;
 
 /**
  *
@@ -41,4 +46,60 @@ public class AuthenticatedUserResource {
         return null;
     }
 
+    /**
+     * List teams that are accessible to the authenticated user.
+     * @return
+     */
+    @GET
+    @Path("teams")
+    public Set<Team> listTeams() {
+        return null;
+    }
+
+    /**
+     * List applications that are accessible to the authenticated user.
+     * @return
+     */
+    @GET
+    @Path("applications")
+    public Set<Application> listApplications() {
+        return null;
+    }
+
+    /**
+     * List APIs that are accessible to the authenticated user.
+     * <p>
+     * This includes APIs owned by the authenticated user and APIs that the authenticated user has access to through
+     * a team membership.
+     * </p>
+     *
+     * @return APIs that are accessible to the authenticated user.
+     */
+    @GET
+    @Path("apis")
+    public Set<Api> listApis() {
+        return null;
+    }
+
+    /**
+     * Create a new API for the authenticated user.
+     * @param api
+     * @return
+     */
+    @POST
+    @Path("apis")
+    public Api createApi(Api api) {
+        return null;
+    }
+
+    /**
+     * Create a new application for the authenticated user.
+     * @param application
+     * @return
+     */
+    @POST
+    @Path("applications")
+    public Application createApplication(Application application) {
+        return null;
+    }
 }

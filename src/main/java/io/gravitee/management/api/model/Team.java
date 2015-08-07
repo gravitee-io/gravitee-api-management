@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.model;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * Created by david on 07/08/15.
  */
-public class UserApplicationsResource {
+public class Team {
 }

@@ -19,7 +19,6 @@ import io.gravitee.repository.model.Api;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.Path;
 import java.util.Set;
 
 /**
@@ -34,13 +33,17 @@ public class TeamApisResource {
      * @return APIs for the specified team.
      */
     @GET
-    @Path("apis")
     public Set<Api> getApis() {
         return null;
     }
 
+    /**
+     * Create a new API for the team.
+     * @param api
+     * @return
+     */
     @POST
-    public Api createApi() {
+    public Api createApi(Api api) {
         return null;
     }
 

@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.api.custom.LifecycleActionParam;
 import io.gravitee.repository.api.ApiRepository;
 import io.gravitee.repository.model.Api;
+import io.gravitee.repository.model.LifecycleState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,12 +51,15 @@ public class ApiResource {
 
     @POST
     public Response doLifecycleAction(@QueryParam("action") LifecycleActionParam action) {
+        Api api = get();
         switch (action.getAction()) {
             case START:
-                apiRepository.start(apiName);
+                api.setLifecycleState(LifecycleState.STARTED);
+                apiRepository.update(api);
                 break;
             case STOP:
-                apiRepository.stop(apiName);
+                api.setLifecycleState(LifecycleState.STOPPED);
+                apiRepository.update(api);
                 break;
             default:
                 break;
