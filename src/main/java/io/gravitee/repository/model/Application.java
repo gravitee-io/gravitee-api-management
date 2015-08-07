@@ -30,7 +30,10 @@ public class Application {
     private Date createdAt;
     private Date updatedAt;
 
-    //TODO: how to store owner ?
+    private OwnerType ownerType;
+    private String owner;
+    
+    private String key;
 
     public Date getCreatedAt() {
         return createdAt;
@@ -71,8 +74,32 @@ public class Application {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
+    
+    public OwnerType getOwnerType() {
+		return ownerType;
+	}
 
-    @Override
+	public void setOwnerType(OwnerType ownerType) {
+		this.ownerType = ownerType;
+	}
+
+	public String getOwner() {
+		return owner;
+	}
+
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

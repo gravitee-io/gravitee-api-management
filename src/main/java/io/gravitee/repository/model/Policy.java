@@ -26,6 +26,7 @@ public class Policy {
     private String name;
     private String description;
     private String version;
+    private String config;
 
     public String getDescription() {
         return description;
@@ -58,8 +59,16 @@ public class Policy {
     public void setVersion(String version) {
         this.version = version;
     }
+    
+    public String getConfig() {
+		return config;
+	}
 
-    @Override
+	public void setConfig(String config) {
+		this.config = config;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
