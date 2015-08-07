@@ -27,6 +27,8 @@ public interface ApplicationRepository {
 
     Set<Application> findAll();
 
+    Set<Application> findByTeam(String teamName);
+
     Set<Application> findByUser(String username);
 
     Application create(Application application);
