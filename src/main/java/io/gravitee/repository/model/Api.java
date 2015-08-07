@@ -24,7 +24,6 @@ import java.util.Objects;
  */
 public class Api {
 
-    private String id;
     private String name;
     private String version;
 
@@ -95,14 +94,6 @@ public class Api {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public boolean isPrivate() {
