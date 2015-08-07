@@ -24,8 +24,6 @@ import java.util.Objects;
  */
 public class Api {
 
-    //TODO: how to store team owner and api creator ?
-
     private String id;
     private String name;
     private String version;
@@ -35,6 +33,9 @@ public class Api {
 
     private Date createdAt;
     private Date updatedAt;
+    
+    private OwnerType ownerType;
+    private String owner;
 
     private boolean privateApi;
 
@@ -111,8 +112,24 @@ public class Api {
     public void setPrivate(boolean privateApi) {
         this.privateApi = privateApi;
     }
+    
+    public OwnerType getOwnerType() {
+		return ownerType;
+	}
 
-    @Override
+	public void setOwnerType(OwnerType ownerType) {
+		this.ownerType = ownerType;
+	}
+
+	public String getOwner() {
+		return owner;
+	}
+
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

@@ -20,8 +20,6 @@ package io.gravitee.repository.model;
  */
 public class Team {
 
-    private String id;
-
     /**
      * The shorthand name of the team.
      */
@@ -42,20 +40,13 @@ public class Team {
      */
     private String email;
 
+    
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -65,8 +56,24 @@ public class Team {
     public void setName(String name) {
         this.name = name;
     }
+  
+    public boolean isPrivateTeam() {
+		return privateTeam;
+	}
 
-    public boolean isPrivate() {
+	public void setPrivateTeam(boolean privateTeam) {
+		this.privateTeam = privateTeam;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public boolean isPrivate() {
         return privateTeam;
     }
 
