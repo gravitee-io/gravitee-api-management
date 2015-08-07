@@ -31,6 +31,8 @@ public interface ApiRepository {
 
     Set<Api> findByTeam(String teamName);
 
+    Set<Api> findByUser(String username);
+
     Api create(Api api);
 
     Api update(Api api);
