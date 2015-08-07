@@ -13,24 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.api;
-
-import io.gravitee.repository.model.Team;
-
-import java.util.Set;
+package io.gravitee.repository.model;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface TeamRepository {
+public class Member {
 
-    Set<Team> findAll();
+    private String username;
 
-    Team findByName(String name);
+    private TeamRole role;
 
-    Team create(Team team);
+    public TeamRole getRole() {
+        return role;
+    }
 
-    Team update(Team team);
+    public void setRole(TeamRole role) {
+        this.role = role;
+    }
 
-    void delete(String name);
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 }
