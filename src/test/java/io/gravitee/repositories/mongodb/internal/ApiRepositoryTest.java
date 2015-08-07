@@ -13,82 +13,87 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repositories.mongodb;
+package io.gravitee.repositories.mongodb.internal;
 
-import java.net.URI;
-import java.util.Date;
-import java.util.UUID;
+import java.util.List;
+import java.util.Set;
 
+import org.bson.types.ObjectId;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import io.gravitee.repository.api.ApiRepository;
-import io.gravitee.repository.api.UserRepository;
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.LifecycleState;
-import io.gravitee.repository.model.OwnerType;
-import io.gravitee.repository.model.User;
+import io.gravitee.repositories.mongodb.RepositoryConfiguration;
+import io.gravitee.repositories.mongodb.internal.api.ApiMongoRepository;
+import io.gravitee.repositories.mongodb.internal.model.ApiMongo;
+import io.gravitee.repositories.mongodb.internal.model.TeamMongo;
+import io.gravitee.repositories.mongodb.internal.model.UserMongo;
+import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
+import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { RepositoryConfiguration.class })
-public class UserRepositoryTest {
+public class ApiRepositoryTest {
 
 	@Autowired
-	private ApiRepository apiRepository;
+	private ApiMongoRepository apiRepository;
+
+	@Autowired
+	private UserMongoRepository userRepository;
 	
 	@Autowired
-	private UserRepository userRepository;
-	
-	private Logger Logger = LoggerFactory.getLogger(UserRepositoryTest.class);
+	private TeamMongoRepository teamRepository;
 
-	private User createUser(String userName){
-
-		User user = new User();
-		user.setUsername(userName);
-		user.setMail(userName+"@itest.test");
-		return userRepository.create(user);
-	}
-	
 	@Test
-	public void createUserTest() {
+	public void createApiTest() {
 
 		try {
-			
-			String username = "user-"+UUID.randomUUID();
-			User user = createUser(username);
+			UserMongo creator = new UserMongo();
+			creator.setMail("sample@mail.com");
+			creator.setName("myusername");
+			userRepository.save(creator);
 
+			TeamMongo owner = new TeamMongo();
+			owner.setName("myteamname");
+			owner.setDescription("Team used for unit tests");
+			teamRepository.save(owner);
+			
+			ApiMongo api = new ApiMongo();
+			api.setName("sample");
+			api.setVersion("1");
+			api.setCreator(creator);
+			api.setOwner(owner);
+
+			apiRepository.save(api);
 		} catch (Exception e) {
-			Logger.error("Error creating api", e);
-			Assert.fail("USER_CREATION_TEST_ERROR");
+			e.printStackTrace();
+			Assert.fail();
 		}
-	}
-	
-/*
-	@Test
-	public void findByCreatorIdTest() {
-		List<ApiMongo> apis = apiRepository.findByCreatorId(new ObjectId("55c346a8d4c60e0dd348183d"));
-		System.out.println(apis);
-	
-		Assert.assertNotNull(apis);
 	}
 
 	@Test
 	public void findByCreatorNameTest() {
-		Set<ApiMongo> apis = apiRepository.findByCreator("testcaseusername");
+		List<ApiMongo> apis = apiRepository.findByCreator("testcaseusername");
+		System.out.println(apis);
+	
+		Assert.assertNotNull(apis);
+	}
+	
+	
+	@Test
+	public void findByUserTest() {
+		List<ApiMongo> apis = apiRepository.findByUser("user-350ea58f-e659-44b5-ba7a-a537900bf757");
 		System.out.println(apis);
 	
 		Assert.assertNotNull(apis);
 	}
 	
 	@Test
-	public void findByTeamNameTest() {
-		Set<ApiMongo> apis = apiRepository.findByTeam("testcaseteamname");
+	public void findByTeamTest() {
+		List<ApiMongo> apis = apiRepository.findByTeam("testcaseteamname");
 		System.out.println(apis);
 	
 		Assert.assertNotNull(apis);
@@ -104,7 +109,7 @@ public class UserRepositoryTest {
 	
 	@Test
 	public void findByNameTest() {
-		ApiMongo api = apiRepository.findByName("sample");
+		ApiMongo api = apiRepository.findOne("sample");
 		Assert.assertNotNull(api);
 	}
 
@@ -118,6 +123,6 @@ public class UserRepositoryTest {
 	@Test
 	public void deleteApiTest() {
 		apiRepository.delete("sample");
-	}*/
+	}
 
 }

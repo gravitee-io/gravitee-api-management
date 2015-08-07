@@ -1,5 +1,6 @@
 package io.gravitee.repositories.mongodb;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
@@ -8,6 +9,9 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.WriteConcern;
+
+import io.gravitee.repositories.mongodb.mapper.GraviteeDozerMapper;
+import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 
 @Configuration
 @ComponentScan
@@ -22,6 +26,11 @@ public class RepositoryConfiguration extends AbstractMongoConfiguration {
 	@Override
 	protected String getDatabaseName() {
 		return "gravitee";
+	}
+	
+	@Bean
+	public GraviteeMapper graviteeMapper(){
+		return new GraviteeDozerMapper();
 	}
 
 	@Override
