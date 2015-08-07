@@ -21,9 +21,26 @@ package io.gravitee.repository.model;
 public class Team {
 
     private String id;
+
+    /**
+     * The shorthand name of the team.
+     */
     private String name;
+
+    /**
+     * The description of the team.
+     */
     private String description;
+
+    /**
+     * The team can only be visible for members.
+     */
     private boolean privateTeam;
+
+    /**
+     * The publicly visible email address.
+     */
+    private String email;
 
     public String getDescription() {
         return description;

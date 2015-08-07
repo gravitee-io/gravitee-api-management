@@ -16,6 +16,7 @@
 package io.gravitee.repository.api;
 
 import io.gravitee.repository.model.Team;
+import io.gravitee.repository.model.TeamRole;
 
 import java.util.Set;
 
@@ -27,4 +28,12 @@ public interface TeamRepository {
     Set<Team> findAll();
 
     Team findByName(String name);
+
+    Team create(Team team);
+
+    Team update(Team team);
+
+    void delete(String name);
+
+    void addMember(String teamName, String username, TeamRole role);
 }
