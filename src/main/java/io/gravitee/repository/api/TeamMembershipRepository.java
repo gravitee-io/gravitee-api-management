@@ -15,22 +15,21 @@
  */
 package io.gravitee.repository.api;
 
-import io.gravitee.repository.model.Team;
+import io.gravitee.repository.model.Member;
+import io.gravitee.repository.model.TeamRole;
 
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface TeamRepository {
+public interface TeamMembershipRepository {
 
-    Set<Team> findAll();
+    void addMember(String teamName, String username, TeamRole role);
 
-    Team findByName(String name);
+    void updateMember(String teamName, String username, TeamRole role);
 
-    Team create(Team team);
+    void deleteMember(String teamName, String username);
 
-    Team update(Team team);
-
-    void delete(String name);
+    Set<Member> listMembers(String teamName);
 }
