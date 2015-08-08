@@ -22,9 +22,24 @@ import java.util.Date;
  */
 public class Node {
 
+	/**
+	 * The unique node name
+	 */
     private String name;
+    
+    /**
+     * The host where the node is running 
+     */
     private String host;
+    
+    /**
+     * The node start date
+     */
     private Date startedOn;
+    
+    /**
+     * The node cluster 
+     */
     private String cluster;
 
     public String getName() {

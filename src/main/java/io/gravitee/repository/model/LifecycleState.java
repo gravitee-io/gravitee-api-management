@@ -16,6 +16,8 @@
 package io.gravitee.repository.model;
 
 /**
+ * APi lifecycle states
+ * 
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public enum LifecycleState {

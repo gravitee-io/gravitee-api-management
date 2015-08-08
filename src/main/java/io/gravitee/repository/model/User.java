@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.model;
 
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -22,8 +23,26 @@ import java.util.Objects;
  */
 public class User {
 
+	/**
+	 * The user name 
+	 */
     private String username;
+    
+    /**
+     * The user email
+     */
     private String mail;
+    
+    /**
+     * The user creation date
+     */
+    private Date createdAt;
+    
+    /**
+     * The user last updated date
+     */
+    private Date updatedAt;
+    
 
     public String getMail() {
         return mail;
@@ -41,7 +60,24 @@ public class User {
         this.username = username;
     }
 
-    @Override
+    
+    public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
