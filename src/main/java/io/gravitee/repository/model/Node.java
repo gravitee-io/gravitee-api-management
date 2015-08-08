@@ -33,9 +33,19 @@ public class Node {
     private String host;
     
     /**
-     * The node start date
+     * Current node state
      */
-    private Date startedOn;
+    private NodeState state;
+    
+    /**
+     * The last node start date
+     */
+    private Date lastStartupTime;
+    
+    /**
+     * The last node stop date
+     */
+    private Date lastStopTime;
     
     /**
      * The node cluster 
@@ -66,11 +76,29 @@ public class Node {
         this.host = host;
     }
 
-    public Date getStartedOn() {
-        return startedOn;
-    }
+	public Date getLastStartupTime() {
+		return lastStartupTime;
+	}
 
-    public void setStartedOn(Date startedOn) {
-        this.startedOn = startedOn;
-    }
+	public void setLastStartupTime(Date lastStartupTime) {
+		this.lastStartupTime = lastStartupTime;
+	}
+
+	public Date getLastStopTime() {
+		return lastStopTime;
+	}
+
+	public void setLastStopTime(Date lastStopTime) {
+		this.lastStopTime = lastStopTime;
+	}
+
+	public NodeState getState() {
+		return state;
+	}
+
+	public void setState(NodeState state) {
+		this.state = state;
+	}
+	
+
 }
