@@ -32,7 +32,10 @@ public class Application {
      * The application description
      */
     private String description;
-    
+
+    /**
+     * The application type.
+     */
     private String type;
 
     /**

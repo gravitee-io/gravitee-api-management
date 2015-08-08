@@ -25,13 +25,38 @@ import java.util.Set;
  */
 public interface ApiRepository {
 
+    /**
+     * Get an API using its name.
+     *
+     * @param apiName The name of the API to retrieve.
+     * @return An {@link Optional} API.
+     */
     Optional<Api> findByName(String apiName);
 
+    /**
+     * List all public APIs.
+     *
+     * @return All public APIs.
+     */
     Set<Api> findAll();
 
-    Set<Api> findByTeam(String teamName);
+    /**
+     * List APIs (public and/or private) hold by a {@link io.gravitee.repository.model.Team}.
+     *
+     * @param teamName The name of the team.
+     * @param publicOnly List only public APIs.
+     * @return List APIs from a team.
+     */
+    Set<Api> findByTeam(String teamName, boolean publicOnly);
 
-    Set<Api> findByUser(String username);
+    /**
+     * List APIs (public and private) hold by a {@link io.gravitee.repository.model.User}.
+     *
+     * @param username The name of the user.
+     * @param publicOnly List only public APIs.
+     * @return List APIs from a user.
+     */
+    Set<Api> findByUser(String username, boolean publicOnly);
 
     Api create(Api api);
 
@@ -39,7 +64,7 @@ public interface ApiRepository {
 
     void delete(String apiName);
 
-    int countByUser(String username);
+    int countByUser(String username, boolean publicOnly);
 
-    int countByTeam(String teamName);
+    int countByTeam(String teamName, boolean publicOnly);
 }

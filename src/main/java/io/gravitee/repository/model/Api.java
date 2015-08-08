@@ -69,7 +69,6 @@ public class Api {
      */
     private String creator;
 
-
     /**
      * The api visibility (private of for all users)
      */

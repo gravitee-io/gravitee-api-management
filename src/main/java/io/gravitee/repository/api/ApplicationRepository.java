@@ -25,16 +25,39 @@ import java.util.Set;
  */
 public interface ApplicationRepository {
 
+    /**
+     * List all applications.
+     *
+     * @return All public applications.
+     */
     Set<Application> findAll();
 
+    /**
+     * List all applications hold by a {@link io.gravitee.repository.model.Team}.
+     *
+     * @param teamName The name of the team.
+     * @return All applications from a team.
+     */
     Set<Application> findByTeam(String teamName);
 
+    /**
+     * List all applications hold by a {@link io.gravitee.repository.model.User}.
+     *
+     * @param username The name of the user.
+     * @return All applications from a user.
+     */
     Set<Application> findByUser(String username);
 
     Application create(Application application);
 
     Application update(Application application);
 
+    /**
+     * Get an application using its name.
+     *
+     * @param applicationName The name of the application to retrieve.
+     * @return An {@link Optional} application.
+     */
     Optional<Application> findByName(String applicationName);
 
     void delete(String apiName);
