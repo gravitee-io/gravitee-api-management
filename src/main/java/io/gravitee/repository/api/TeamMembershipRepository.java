@@ -36,7 +36,7 @@ public interface TeamMembershipRepository {
 
     /**
      * List {@link Team} where the user is a member.
-     * 
+     *
      * @param username The name used to identify a user.
      * @return List of {@link Team}
      */
