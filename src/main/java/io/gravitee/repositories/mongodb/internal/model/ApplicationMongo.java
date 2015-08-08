@@ -22,8 +22,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import io.gravitee.repository.model.Team;
-
 /**
  * Mongo object model for application.
  * 
@@ -36,17 +34,18 @@ public class ApplicationMongo {
     private String name;
     private String description;
     private String type;
-
+    private String key;    
+    
     @DBRef
     private AbstractUserMongo owner;
     
     @DBRef
-    private Team team;
+    private UserMongo creator;
     
     private Date createdAt;
     private Date updatedAt;
 
-    private String key;
+
 
     public Date getCreatedAt() {
         return createdAt;
@@ -96,12 +95,12 @@ public class ApplicationMongo {
 		this.owner = owner;
 	}
 
-	public Team getTeam() {
-		return team;
+	public UserMongo getCreator() {
+		return creator;
 	}
 
-	public void setTeam(Team team) {
-		this.team = team;
+	public void setCreator(UserMongo creator) {
+		this.creator = creator;
 	}
 
 	public String getKey() {

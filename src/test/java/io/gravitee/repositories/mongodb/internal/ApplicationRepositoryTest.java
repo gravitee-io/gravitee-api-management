@@ -27,7 +27,7 @@ import io.gravitee.repositories.mongodb.RepositoryConfiguration;
 import io.gravitee.repositories.mongodb.internal.application.ApplicationMongoRepository;
 import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
 
-@Ignore
+//@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { RepositoryConfiguration.class })
 public class ApplicationRepositoryTest {
@@ -42,7 +42,7 @@ public class ApplicationRepositoryTest {
 	    	application.setName("applicationSample");
 	    	
 	    	appRepository.save(application);
-	    	
+	    	System.out.println("");
 		}catch(Exception e){
 			Assert.fail("Fail to create application");
 		}

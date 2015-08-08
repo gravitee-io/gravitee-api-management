@@ -33,6 +33,11 @@
     	<a>owner</a>
     	<b>owner</b>
     </field-exclude>
+     <field-exclude>
+    	<a>creator</a>
+    	<b>creator</b>
+    </field-exclude>   
+    
   </mapping>  
   
   <mapping> 

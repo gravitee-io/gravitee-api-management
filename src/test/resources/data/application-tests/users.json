@@ -1,0 +1,27 @@
+[
+   {
+      "_id":"user-b6e1b84c-3c0b-4217-b13a-914a801f901c",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "mail":"user-b6e1b84c-3c0b-4217-b13a-914a801f901c@gravitee.io"
+   },
+   {
+      "_id":"findByUser",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "mail":"findByUser@gravitee.io"
+   },
+   {
+      "_id":"findByTeam",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "mail":"findByTeam@gravitee.io"
+   },
+   {
+      "_id":"creator",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "mail":"creator@gravitee.io"
+   },
+   {
+      "_id":"updater",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "mail":"updater@gravitee.io"
+   }
+]

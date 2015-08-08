@@ -158,7 +158,7 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 			Optional<Team> optional = teamRepository.findByName(teamname);
 			int nbTeamAfter = teamRepository.findAll().size();
 			
-			Assert.assertFalse("Unable to find saved team", optional.isPresent());
+			Assert.assertFalse("Deleted team always present", optional.isPresent());
 			Assert.assertEquals("Invalid number of team after deletion", nbTeamBefore -1, nbTeamAfter);
 			
 		} catch (Exception e) {

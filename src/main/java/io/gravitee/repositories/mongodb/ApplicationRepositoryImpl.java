@@ -15,6 +15,8 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -24,12 +26,15 @@ import org.springframework.stereotype.Component;
 
 import io.gravitee.repositories.mongodb.internal.application.ApplicationMongoRepository;
 import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
+import io.gravitee.repositories.mongodb.internal.model.TeamMongo;
+import io.gravitee.repositories.mongodb.internal.model.UserMongo;
 import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
 import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.ApplicationRepository;
 import io.gravitee.repository.model.Application;
 import io.gravitee.repository.model.OwnerType;
+import io.gravitee.repository.model.Team;
 
 @Component
 public class ApplicationRepositoryImpl implements ApplicationRepository{
@@ -50,21 +55,7 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 	public Set<Application> findAll() {
 		
 		List<ApplicationMongo> applications = internalApplicationRepo.findAll();
-		return mapper.collection2set(applications, ApplicationMongo.class, Application.class);
-	}
-
-
-	//TODO externalize
-	private ApplicationMongo mapApplication(Application application) {
-
-		ApplicationMongo apiMongo = mapper.map(application, ApplicationMongo.class);
-
-		if (OwnerType.USER.equals(application.getOwnerType())) {
-			apiMongo.setOwner(internalUserRepo.findOne(application.getOwner()));
-		} else {
-			apiMongo.setOwner(internalTeamRepo.findOne(application.getOwner()));
-		}
-		return apiMongo;
+		return mapApplications(applications);
 	}
 
 
@@ -72,20 +63,37 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 	public Application create(Application application) {
 		ApplicationMongo applicationMongo = mapApplication(application);
 		ApplicationMongo applicationMongoCreated = internalApplicationRepo.insert(applicationMongo);
-		return mapper.map(applicationMongoCreated, Application.class);
+		return mapApplication(applicationMongoCreated);
 	}
 
 	@Override
 	public Application update(Application application) {
-		ApplicationMongo applicationMongo =	mapApplication(application);
+		
+    	ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application.getName());
+		
+		//Update 
+		applicationMongo.setDescription(application.getDescription());
+		applicationMongo.setKey(application.getKey());
+		applicationMongo.setUpdatedAt(application.getUpdatedAt());
+		applicationMongo.setType(application.getType());
+		
+		if (OwnerType.USER.equals(application.getOwnerType())) {
+			applicationMongo.setOwner(internalUserRepo.findOne(application.getOwner()));
+		} else {
+			applicationMongo.setOwner(internalTeamRepo.findOne(application.getOwner()));
+		}
+		
+		//Don't change invariant other creation information
+		//FIXME can i change application name ? update application references
+		
 		ApplicationMongo applicationMongoUpdated = internalApplicationRepo.save(applicationMongo);
-		return mapper.map(applicationMongoUpdated, Application.class);
+		return mapApplication(applicationMongoUpdated);
 	}
 
 	@Override
 	public Optional<Application> findByName(String applicationName) {
 		ApplicationMongo application = internalApplicationRepo.findOne(applicationName);
-		return Optional.ofNullable(mapper.map(application, Application.class));
+		return Optional.ofNullable(mapApplication(application));
 	}
 
 	@Override
@@ -96,8 +104,9 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 
 	@Override
 	public Set<Application> findByUser(String username) {
+		
 		List<ApplicationMongo> applications = internalApplicationRepo.findByUser(username);
-		return mapper.collection2set(applications, ApplicationMongo.class, Application.class);
+		return mapApplications(applications);
 	}
 
 
@@ -105,7 +114,7 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 	public Set<Application> findByTeam(String teamName) {
 	
 		List<ApplicationMongo> applications = internalApplicationRepo.findByTeam(teamName);
-		return mapper.collection2set(applications, ApplicationMongo.class, Application.class);
+		return mapApplications(applications);
 	}
 	
 	@Override
@@ -118,5 +127,56 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 	public int countByTeam(String teamName) {
 		return (int) internalApplicationRepo.countByTeam(teamName);	
 	}
+	
+	private Set<Application> mapApplications(Collection<ApplicationMongo> applications){
+		
+		Set<Application> res = new HashSet<>();
+		for (ApplicationMongo application : applications) {
+			res.add(mapApplication(application));
+		}
+		return res;
+	}
+	
+	private Application mapApplication(ApplicationMongo  applicationMongo) {
+
+		if(applicationMongo == null){
+			return null;
+		}
+		
+		Application application = mapper.map(applicationMongo, Application.class);
+
+		if(applicationMongo.getOwner() != null){
+			application.setOwner(applicationMongo.getOwner().getName());
+			if(applicationMongo.getOwner() instanceof UserMongo){
+				application.setOwnerType(OwnerType.USER);
+			}else{
+				application.setOwnerType(OwnerType.TEAM);
+			}
+		}
+		if(applicationMongo.getCreator()!= null){
+			application.setCreator(applicationMongo.getCreator().getName());
+		}
+		
+		return application;
+	}
+	
+	private ApplicationMongo mapApplication(Application application) {
+
+		if(application == null){
+			return null;
+		}
+		
+		ApplicationMongo applicationMongo = mapper.map(application, ApplicationMongo.class);
+
+		if (OwnerType.USER.equals(application.getOwnerType())) {
+			applicationMongo.setOwner(internalUserRepo.findOne(application.getOwner()));
+		} else {
+			applicationMongo.setOwner(internalTeamRepo.findOne(application.getOwner()));
+		}
+		applicationMongo.setCreator(internalUserRepo.findOne(application.getCreator()));
+		
+		return applicationMongo;
+	}
+
 	
 }
