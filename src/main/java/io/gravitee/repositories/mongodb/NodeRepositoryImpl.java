@@ -15,6 +15,10 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +27,7 @@ import io.gravitee.repositories.mongodb.internal.node.NodeMongoRepository;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.NodeRepository;
 import io.gravitee.repository.model.Node;
+import io.gravitee.repository.model.NodeState;
 
 @Component
 public class NodeRepositoryImpl implements NodeRepository{
@@ -36,12 +41,29 @@ public class NodeRepositoryImpl implements NodeRepository{
 	@Override
 	public void register(Node node) {
 		NodeMongo nodeMongo = mapper.map(node, NodeMongo.class);
+		
+		nodeMongo.setLastStartupTime(new Date());
+		nodeMongo.setState(NodeState.REGISTERED.name());
+		
 		internalNodeRepo.save(nodeMongo);
 	}
 
 	@Override
-	public void unregister(Node node) {
-		internalNodeRepo.delete(node.getName());
+	public void unregister(String nodename) {
+		
+		NodeMongo node = internalNodeRepo.findOne(nodename);
+		
+		node.setLastStopTime(new Date());
+		node.setState(NodeState.UNREGISTERED.name());
+		
+		internalNodeRepo.save(node);
+	}
+
+
+	@Override
+	public Set<Node> findAll() {
+		List<NodeMongo> nodesMongo = internalNodeRepo.findAll();
+		return mapper.collection2set(nodesMongo, NodeMongo.class, Node.class);
 	}
 
 }
