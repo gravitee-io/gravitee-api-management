@@ -31,6 +31,7 @@ import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.TeamMembershipRepository;
 import io.gravitee.repository.model.Member;
+import io.gravitee.repository.model.Team;
 import io.gravitee.repository.model.TeamRole;
 
 @Component
@@ -118,6 +119,12 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 			}
 		}
 		return res;
+	}
+
+	@Override
+	public Set<Team> findByUser(String username) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

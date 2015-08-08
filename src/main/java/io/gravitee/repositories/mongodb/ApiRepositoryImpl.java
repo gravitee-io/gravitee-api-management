@@ -89,28 +89,28 @@ public class ApiRepositoryImpl implements ApiRepository {
 
 
 	@Override
-	public Set<Api> findByUser(String username) {
-		List<ApiMongo> apis = internalApiRepo.findByUser(username);
+	public Set<Api> findByUser(String username, boolean publicOnly) {
+		List<ApiMongo> apis = internalApiRepo.findByUser(username, publicOnly);
 		return mapiApis(apis);
 	}
 
 
 	@Override
-	public Set<Api> findByTeam(String teamName) {
+	public Set<Api> findByTeam(String teamName,  boolean publicOnly) {
 	
-		List<ApiMongo> apis = internalApiRepo.findByTeam(teamName);
+		List<ApiMongo> apis = internalApiRepo.findByTeam(teamName, publicOnly);
 		return mapiApis(apis);
 	}
 	
 	@Override
-	public int countByUser(String username) {
-		return (int) internalApiRepo.countByUser(username);
+	public int countByUser(String username,  boolean publicOnly) {
+		return (int) internalApiRepo.countByUser(username, publicOnly);
 
 	}
 
 	@Override
-	public int countByTeam(String teamName) {
-		return (int) internalApiRepo.countByTeam(teamName);	
+	public int countByTeam(String teamName,  boolean publicOnly) {
+		return (int) internalApiRepo.countByTeam(teamName, publicOnly);	
 	}
 	
 

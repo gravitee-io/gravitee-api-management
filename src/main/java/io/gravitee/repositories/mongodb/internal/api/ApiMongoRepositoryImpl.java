@@ -29,65 +29,54 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	
-	@Override
-	public List<ApiMongo> findByTeam(String teamname) {
-
+	private Query getFindByOwnerQuery(String type, String name, boolean publicOnly){
 		Query query = new Query();
 
 		Criteria criteria = 
-			Criteria.where("owner.$id").is(teamname)
+			Criteria.where("owner.$id").is(name)
 				.andOperator(
-			Criteria.where("owner.$ref").is("teams"));
+			Criteria.where("owner.$ref").is(type));
+		query.addCriteria(criteria);
 		
-		query.addCriteria(criteria);				
+		if(publicOnly){
+			criteria.andOperator(Criteria.where("privateApi").is(false));	
+		}
+		return query;
+	}
+	
+
+	@Override
+	public List<ApiMongo> findByUser(String username, boolean publicOnly) {
+
+		Query query = getFindByOwnerQuery("users", username, publicOnly);
+		List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
+		
+		return apis;
+
+	}
+	
+	@Override
+	public List<ApiMongo> findByTeam(String teamname, boolean publicOnly) {
+
+		Query query = getFindByOwnerQuery("teams", teamname, publicOnly);	
 		List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
 		
 		return apis;
 
 	}
 
-	@Override
-	public List<ApiMongo> findByUser(String username) {
-
-		Query query = new Query();
-
-		Criteria criteria = 
-			Criteria.where("owner.$id").is(username)
-				.andOperator(
-			Criteria.where("owner.$ref").is("users"));
-		
-		query.addCriteria(criteria);				
-		List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
-		
-		return apis;
-
-	}
 
 	@Override
-	public long countByUser(String username) {
-		Query query = new Query();
-
-		Criteria criteria = 
-			Criteria.where("owner.$id").is(username)
-				.andOperator(
-			Criteria.where("owner.$ref").is("users"));
-		
-		query.addCriteria(criteria);				
-		return mongoTemplate.count(query, ApiMongo.class);
-		
+	public long countByUser(String username, boolean publicOnly) {
+	
+		Query query = getFindByOwnerQuery("users", username, publicOnly);
+		return mongoTemplate.count(query, ApiMongo.class);	
 	}
 	
 	@Override
-	public long countByTeam(String teamname) {
-		Query query = new Query();
-
-		Criteria criteria = 
-			Criteria.where("owner.$id").is(teamname)
-				.andOperator(
-			Criteria.where("owner.$ref").is("teams"));
+	public long countByTeam(String teamname, boolean publicOnly) {
 		
-		query.addCriteria(criteria);				
+		Query query = getFindByOwnerQuery("teams", teamname, publicOnly);				
 		return mongoTemplate.count(query, ApiMongo.class);
 		
 	}

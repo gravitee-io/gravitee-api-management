@@ -16,7 +16,6 @@
 package io.gravitee.repositories.mongodb.internal.api;
 
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -37,7 +36,15 @@ public interface ApiMongoRepository extends MongoRepository<ApiMongo, String>, A
 	@Query("{'creator.$id' : ?0}")  
 	public List<ApiMongo> findByCreator(String username);
 
-
+    /**
+     * Count api by teamname (owner)
+     * @param teamname
+     * 
+     * @param privateVisibility : true only private / false only public
+     * @return
+     */	
+	@Query(count=true, value="{'owner' : {'$ref' : 'teams', '$id' : ?0}, privateApi : ?1}")
+	public long countByTeamAndVisibily(String teamname, boolean privateVisibility);
 
 }
 

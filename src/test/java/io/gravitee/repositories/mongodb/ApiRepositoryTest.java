@@ -141,14 +141,14 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 */	
 	@Test
 	public void findByTeamTest() {
-		Set<Api> apis = apiRepository.findByTeam("findByTeamTest");
+		Set<Api> apis = apiRepository.findByTeam("findByTeamTest", false);
 		Assert.assertNotNull(apis);
 		Assert.assertEquals("Invalid api result in findByTeam",apis.size(), 2);
 	}
 	
 	@Test
 	public void findByUserTest() {
-		Set<Api> apis = apiRepository.findByUser("findByUserTest");
+		Set<Api> apis = apiRepository.findByUser("findByUserTest", false);
 		Assert.assertNotNull(apis);
 		Assert.assertEquals("Invalid api result in findByUser",apis.size(), 1);
 	}	
@@ -163,13 +163,13 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 
 	@Test
 	public void countApisByTeamTest(){
-		int nbApis = apiRepository.countByTeam("findByTeamTest");
+		int nbApis = apiRepository.countByTeam("findByTeamTest", false);
 		Assert.assertEquals("Invalid api result in countByTeam", nbApis, 2);
 	}
 	
 	@Test
 	public void countApisByUserTest(){
-		int nbApis = apiRepository.countByUser("findByUserTest");
+		int nbApis = apiRepository.countByUser("findByUserTest", false);
 		Assert.assertEquals("Invalid api result in countByUser", nbApis, 1);
 	}
 

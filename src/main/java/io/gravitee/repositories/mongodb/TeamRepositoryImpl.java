@@ -39,9 +39,14 @@ public class TeamRepositoryImpl implements TeamRepository{
 	private GraviteeMapper mapper;
 
 	@Override
-	public Set<Team> findAll() {
+	public Set<Team> findAll(boolean publicOnly) {
 		
-		List<TeamMongo> teams = internalTeamRepo.findAll();
+		List<TeamMongo> teams = null;
+		if(publicOnly){
+			teams = internalTeamRepo.findByVisibility(false);
+		}else{
+			teams = internalTeamRepo.findAll();
+		}
 		Set<Team> res = mapper.collection2set(teams, TeamMongo.class, Team.class);
 		return res;
 	}

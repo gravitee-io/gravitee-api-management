@@ -15,6 +15,8 @@
  */
 package io.gravitee.repositories.mongodb.internal.team;
 
+import java.util.List;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -26,6 +28,9 @@ public interface TeamMongoRepository extends MongoRepository<TeamMongo, String>,
 
 	@Query("{ 'name' : ?0}")
 	TeamMongo findByName(String teamName);
+
+	@Query("{ 'privateTeam' : ?0}")
+	List<TeamMongo> findByVisibility(boolean privateVisibity);
 
 }
 

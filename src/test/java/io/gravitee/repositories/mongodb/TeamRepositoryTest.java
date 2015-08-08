@@ -39,6 +39,8 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 	
 	private static final int NB_TEAMS_TESTCASES = 2; 
 	
+	private static final int NB_PUBLIC_TEAMS_TESTCASES = 1;
+	
 	@Autowired
 	private TeamRepository teamRepository;
 	
@@ -152,11 +154,11 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 		try{
 			String teamname = "team1";
 			
-			int nbTeamBefore = teamRepository.findAll().size();
+			int nbTeamBefore = teamRepository.findAll(false).size();
 			teamRepository.delete("team1");
 			
 			Optional<Team> optional = teamRepository.findByName(teamname);
-			int nbTeamAfter = teamRepository.findAll().size();
+			int nbTeamAfter = teamRepository.findAll(false).size();
 			
 			Assert.assertFalse("Deleted team always present", optional.isPresent());
 			Assert.assertEquals("Invalid number of team after deletion", nbTeamBefore -1, nbTeamAfter);
@@ -170,10 +172,18 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 
 	@Test
 	public void findAllTest() {
-		Set<Team> teams = teamRepository.findAll();
+		Set<Team> teams = teamRepository.findAll(false);
 			
 		Assert.assertNotNull(teams);
 		Assert.assertEquals("Invalid user numbers in find all", NB_TEAMS_TESTCASES, teams.size());
+	}	
+
+	@Test
+	public void findAllPublicTest() {
+		Set<Team> teams = teamRepository.findAll(true);
+			
+		Assert.assertNotNull(teams);
+		Assert.assertEquals("Invalid user numbers in find all", NB_PUBLIC_TEAMS_TESTCASES, teams.size());
 	}	
 
 }

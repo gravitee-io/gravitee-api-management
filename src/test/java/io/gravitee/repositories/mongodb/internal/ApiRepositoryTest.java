@@ -86,7 +86,7 @@ public class ApiRepositoryTest {
 	
 	@Test
 	public void findByUserTest() {
-		List<ApiMongo> apis = apiRepository.findByUser("user-350ea58f-e659-44b5-ba7a-a537900bf757");
+		List<ApiMongo> apis = apiRepository.findByUser("user-350ea58f-e659-44b5-ba7a-a537900bf757", false);
 		System.out.println(apis);
 	
 		Assert.assertNotNull(apis);
@@ -94,7 +94,7 @@ public class ApiRepositoryTest {
 	
 	@Test
 	public void findByTeamTest() {
-		List<ApiMongo> apis = apiRepository.findByTeam("testcaseteamname");
+		List<ApiMongo> apis = apiRepository.findByTeam("testcaseteamname", false);
 		System.out.println(apis);
 	
 		Assert.assertNotNull(apis);

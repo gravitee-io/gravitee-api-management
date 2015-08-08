@@ -26,26 +26,27 @@ public interface ApiMongoRepositoryCustom {
 	 * @param teamId
 	 * @return
 	 */
-    public List<ApiMongo> findByTeam(String name);
+    public List<ApiMongo> findByTeam(String name, boolean publicOnly);
     
 	/**
 	 * Find Apis by team name
 	 * @param teamId
 	 * @return
 	 */
-    public List<ApiMongo> findByUser(String name);
+    public List<ApiMongo> findByUser(String name, boolean publicOnly);
     
     /**
      * Count api by username (owner)
      * @param username
      * @return
      */
-	public long countByUser(String username);
+	public long countByUser(String username, boolean publicOnly);
     
     /**
      * Count api by username (owner)
      * @param username
      * @return
      */	
-	public long countByTeam(String teamname);
+	public long countByTeam(String teamname, boolean publicOnly);
+	
 }
