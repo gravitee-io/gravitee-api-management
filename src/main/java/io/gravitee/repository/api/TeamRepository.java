@@ -25,7 +25,13 @@ import java.util.Set;
  */
 public interface TeamRepository {
 
-    Set<Team> findAll();
+    /**
+     * List teams
+     *
+     * @param includePrivate
+     * @return
+     */
+    Set<Team> findAll(boolean includePrivate);
 
     Optional<Team> findByName(String name);
 
