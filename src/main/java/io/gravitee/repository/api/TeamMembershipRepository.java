@@ -16,6 +16,7 @@
 package io.gravitee.repository.api;
 
 import io.gravitee.repository.model.Member;
+import io.gravitee.repository.model.Team;
 import io.gravitee.repository.model.TeamRole;
 
 import java.util.Set;
@@ -32,4 +33,12 @@ public interface TeamMembershipRepository {
     void deleteMember(String teamName, String username);
 
     Set<Member> listMembers(String teamName);
+
+    /**
+     * List {@link Team} where the user is a member.
+     * 
+     * @param username The name used to identify a user.
+     * @return List of {@link Team}
+     */
+    Set<Team> findByUser(String username);
 }
