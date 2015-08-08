@@ -56,9 +56,9 @@ public class Application {
     private String owner;
     
     /**
-     * The user that create the application
+     * The user name that create the application
      */
-    private User creator;
+    private String creator;
     
     /**
      * The application key
@@ -121,7 +121,15 @@ public class Application {
 		this.owner = owner;
 	}
 
-	public String getKey() {
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getKey() {
 		return key;
 	}
 

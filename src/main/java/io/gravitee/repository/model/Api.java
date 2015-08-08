@@ -63,8 +63,12 @@ public class Api {
      * The api owner entity name (user name or team name)
      */
     private String owner;
-    
-    private User creator;
+
+    /**
+     * The api user name creator
+     */
+    private String creator;
+
 
     /**
      * The api visibility (private of for all users)
@@ -156,15 +160,15 @@ public class Api {
 		this.owner = owner;
 	}
 	
-    public User getCreator() {
-		return creator;
-	}
+    public String getCreator() {
+        return creator;
+    }
 
-	public void setCreator(User creator) {
-		this.creator = creator;
-	}
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
 
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
