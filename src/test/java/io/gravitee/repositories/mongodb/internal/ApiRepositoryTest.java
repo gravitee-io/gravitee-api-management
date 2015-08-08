@@ -16,10 +16,9 @@
 package io.gravitee.repositories.mongodb.internal;
 
 import java.util.List;
-import java.util.Set;
 
-import org.bson.types.ObjectId;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +33,7 @@ import io.gravitee.repositories.mongodb.internal.model.UserMongo;
 import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
 import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 
+@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { RepositoryConfiguration.class })
 public class ApiRepositoryTest {
@@ -46,7 +46,8 @@ public class ApiRepositoryTest {
 	
 	@Autowired
 	private TeamMongoRepository teamRepository;
-
+	
+	
 	@Test
 	public void createApiTest() {
 

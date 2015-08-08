@@ -1,0 +1,32 @@
+[
+   {
+      "_id":"user0",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "mail":"user0@gravitee.io"
+   },
+   {
+      "_id":"user1",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "mail":"user1@gravitee.io"
+   },
+   {
+      "_id":"user2",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "mail":"user2@gravitee.io"
+   },
+   {
+      "_id":"user3",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "mail":"user3@gravitee.io"
+   },
+   {
+      "_id":"user4",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "mail":"user4@gravitee.io"
+   },
+   {
+      "_id":"user5",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "mail":"user5@gravitee.io"
+   }
+]

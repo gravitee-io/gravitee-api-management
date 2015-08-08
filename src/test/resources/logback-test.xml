@@ -6,9 +6,12 @@
 		</encoder>
 	</appender>
 
-	<logger name="io.gravitee" level="INFO" />
+	<logger name="io.gravitee" level="debug" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
 
-	<root level="WARN">
+	<root level="error">
 		<appender-ref ref="STDOUT" />
 	</root>
+
 </configuration>

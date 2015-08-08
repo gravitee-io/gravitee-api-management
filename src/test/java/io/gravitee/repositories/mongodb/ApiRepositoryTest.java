@@ -17,6 +17,8 @@ package io.gravitee.repositories.mongodb;
 
 import java.net.URI;
 import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Assert;
@@ -37,16 +39,23 @@ import io.gravitee.repository.model.User;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { RepositoryConfiguration.class })
-public class ApiRepositoryTest {
+public class ApiRepositoryTest extends AbstractMongoDBTest {
 
+	private static final String APIS_DATA = "/data/api-tests/";
+
+	private Logger Logger = LoggerFactory.getLogger(ApiRepositoryTest.class);	
+	
 	@Autowired
 	private ApiRepository apiRepository;
 	
 	@Autowired
 	private UserRepository userRepository;
-	
-	private Logger Logger = LoggerFactory.getLogger(ApiRepositoryTest.class);
 
+    @Override
+    protected String getJsonDataSetResourceName() {
+        return APIS_DATA;
+    }
+	
 	private User createUser(String userName){
 
 		User user = new User();
@@ -61,35 +70,66 @@ public class ApiRepositoryTest {
 		try {
 			User owner = createUser("user-"+UUID.randomUUID());
 
+			String apiName = "sample-"+new Date().getTime();
+			
 			Api api = new Api();
-			api.setName("sample");
+			api.setName(apiName);
 			api.setVersion("1");
 			api.setLifecycleState(LifecycleState.STOPPED);
-			api.setPrivate(false);
-			api.setPublicURI(new URI("/public/sample/"));
-			api.setTargetURI(new URI("/target/sample/"));
+			api.setPrivate(true);
+			api.setPublicURI(URI.create("/public/sample/"));
+			api.setTargetURI(URI.create("/target/sample/"));
 			api.setCreatedAt(new Date());
 			api.setUpdatedAt(new Date());
 			api.setOwner(owner.getUsername());
 			api.setOwnerType(OwnerType.USER);
 			
 			apiRepository.create(api);
+					
+			Optional<Api> optional = apiRepository.findByName(apiName);
+			Assert.assertTrue("Api saved not found", optional.isPresent());
+			
+			Api apiSaved = optional.get();
+			Assert.assertEquals("Invalid saved api version.", 	api.getVersion(), apiSaved.getVersion());
+			Assert.assertEquals("Invalid api lifecycle.", 		api.getLifecycleState(), apiSaved.getLifecycleState());
+			Assert.assertEquals("Invalid api private status.", 	api.isPrivate(), apiSaved.isPrivate());
+			Assert.assertEquals("Invalid api public uri.", 		api.getPublicURI(), apiSaved.getPublicURI());
+			Assert.assertEquals("Invalid api target uri.", 		api.getTargetURI(), apiSaved.getTargetURI());
+			Assert.assertEquals("Invalid api createdAt.", 		api.getCreatedAt(), apiSaved.getCreatedAt());
+			Assert.assertEquals("Invalid api updateAt.", 		api.getUpdatedAt(), apiSaved.getUpdatedAt());
+			Assert.assertEquals("Invalid api Owner.", 			api.getOwner(), apiSaved.getOwner());
+			Assert.assertEquals("Invalid api OwnerType.", 		api.getOwnerType(), apiSaved.getOwnerType());
 			
 		} catch (Exception e) {
-			e.printStackTrace();
 			Logger.error("Error creating api", e);
 			Assert.fail("API_CREATION_TEST_ERROR");
 		}
 	}
+
+	@Test
+	public void findByNameTest() {
+		try{
+			Optional<Api> optional = apiRepository.findByName("findByNameOk");
+			Assert.assertTrue("Find api by name return no result ", optional.isPresent());
+		}catch(Exception e){
+			Logger.error("Error while calling findByName", e);
+			Assert.fail("Error while calling findByName");		
+		}
+	}
+	
+	@Test
+	public void findByNameMissingTest() {
+		try{
+			Optional<Api> optional = apiRepository.findByName("findByNameMissing");
+			Assert.assertFalse("Find api by name on missing api return a result", optional.isPresent());
+		}catch(Exception e){
+			Logger.error("Error while calling findByName on missing api", e);
+			Assert.fail("Error while calling findByName on missing api");		
+		}
+	}
+
 	
 /*
-	@Test
-	public void findByCreatorIdTest() {
-		List<ApiMongo> apis = apiRepository.findByCreatorId(new ObjectId("55c346a8d4c60e0dd348183d"));
-		System.out.println(apis);
-	
-		Assert.assertNotNull(apis);
-	}
 
 	@Test
 	public void findByCreatorNameTest() {
@@ -98,39 +138,50 @@ public class ApiRepositoryTest {
 	
 		Assert.assertNotNull(apis);
 	}
-	
+*/	
 	@Test
-	public void findByTeamNameTest() {
-		Set<ApiMongo> apis = apiRepository.findByTeam("testcaseteamname");
-		System.out.println(apis);
-	
+	public void findByTeamTest() {
+		Set<Api> apis = apiRepository.findByTeam("findByTeamTest");
 		Assert.assertNotNull(apis);
+		Assert.assertEquals("Invalid api result in findByTeam",apis.size(), 2);
 	}
 	
 	@Test
+	public void findByUserTest() {
+		Set<Api> apis = apiRepository.findByUser("findByUserTest");
+		Assert.assertNotNull(apis);
+		Assert.assertEquals("Invalid api result in findByUser",apis.size(), 1);
+	}	
+	
+	@Test
 	public void findAllTest() {
-		List<ApiMongo> apis = apiRepository.findAll();
+		Set<Api> apis = apiRepository.findAll();
 		
 		Assert.assertNotNull(apis);
 		Assert.assertFalse("Fail to resolve api in findAll", apis.isEmpty());
 	}	
+
+	@Test
+	public void countApisByTeamTest(){
+		int nbApis = apiRepository.countByTeam("findByTeamTest");
+		Assert.assertEquals("Invalid api result in countByTeam", nbApis, 2);
+	}
 	
 	@Test
-	public void findByNameTest() {
-		ApiMongo api = apiRepository.findByName("sample");
-		Assert.assertNotNull(api);
-	}
-
-
-	@Test
-	public void findAll() {
-		List<ApiMongo> apis = apiRepository.findAll();
-		Assert.assertNotNull(apis);
+	public void countApisByUserTest(){
+		int nbApis = apiRepository.countByUser("findByUserTest");
+		Assert.assertEquals("Invalid api result in countByUser", nbApis, 1);
 	}
 
 	@Test
 	public void deleteApiTest() {
-		apiRepository.delete("sample");
-	}*/
+		
+		int nbApiBefore = apiRepository.findAll().size();
+		apiRepository.delete("findByNameOk");
+		int nbApiAfter = apiRepository.findAll().size();
+
+		Assert.assertEquals(nbApiBefore -1, nbApiAfter);
+
+	}
 
 }

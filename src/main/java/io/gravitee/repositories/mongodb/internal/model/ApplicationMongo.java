@@ -23,7 +23,6 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import io.gravitee.repository.model.Team;
-import io.gravitee.repository.model.User;
 
 /**
  * Mongo object model for application.

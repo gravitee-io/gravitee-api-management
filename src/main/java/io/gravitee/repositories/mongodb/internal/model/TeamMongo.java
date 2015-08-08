@@ -15,6 +15,7 @@
  */
 package io.gravitee.repositories.mongodb.internal.model;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -36,6 +37,9 @@ public class TeamMongo extends AbstractUserMongo{
     private boolean privateTeam;
 
     private String key;
+    
+    private Date createdAt;
+    private Date updatedAt;
     
     private List<TeamMemberMongo> members;
     
@@ -88,4 +92,21 @@ public class TeamMongo extends AbstractUserMongo{
 	public void setMembers(List<TeamMemberMongo> members) {
 		this.members = members;
 	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+	
 }

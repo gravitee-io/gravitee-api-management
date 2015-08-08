@@ -1,5 +1,22 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.gravitee.repositories.mongodb;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -9,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import io.gravitee.repositories.mongodb.internal.api.ApiMongoRepository;
 import io.gravitee.repositories.mongodb.internal.model.ApiMongo;
+import io.gravitee.repositories.mongodb.internal.model.UserMongo;
 import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
 import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
@@ -36,35 +54,23 @@ public class ApiRepositoryImpl implements ApiRepository {
 	public Optional<Api> findByName(String apiName) {
 		
 		ApiMongo apiMongo =  internalApiRepo.findOne(apiName);
-		return  Optional.ofNullable(mapper.map(apiMongo, Api.class));
+		return Optional.ofNullable(mapApi(apiMongo));
 	}
 
 	@Override
 	public Set<Api> findAll() {
 		
 		List<ApiMongo> apis = internalApiRepo.findAll();
-		return mapper.collection2set(apis, ApiMongo.class, Api.class);
+		return mapiApis(apis);
 	}
 
-	//TODO externalize
-	private ApiMongo mapApi(Api api){
-		
-		ApiMongo apiMongo = mapper.map(api, ApiMongo.class);
-		
-		if(OwnerType.USER.equals(api.getOwnerType())){
-			apiMongo.setOwner(internalUserRepo.findOne(api.getOwner()));
-		}else{
-			apiMongo.setOwner(internalTeamRepo.findOne(api.getOwner()));
-		}
-		return apiMongo;
-	}
-
+	
 	@Override
 	public Api create(Api api) {
 		
 		ApiMongo apiMongo = mapApi(api);
 		ApiMongo apiMongoCreated = internalApiRepo.insert(apiMongo);
-		return mapper.map(apiMongoCreated, Api.class);
+		return mapApi(apiMongoCreated);
 	}
 
 	@Override
@@ -72,7 +78,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 		
 		ApiMongo apiMongo =	mapApi(api);
 		ApiMongo apiMongoUpdated = internalApiRepo.save(apiMongo);
-		return mapper.map(apiMongoUpdated, Api.class);
+		return mapApi(apiMongoUpdated);
 	}
 
 	@Override
@@ -85,7 +91,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	@Override
 	public Set<Api> findByUser(String username) {
 		List<ApiMongo> apis = internalApiRepo.findByUser(username);
-		return mapper.collection2set(apis, ApiMongo.class, Api.class);
+		return mapiApis(apis);
 	}
 
 
@@ -93,7 +99,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	public Set<Api> findByTeam(String teamName) {
 	
 		List<ApiMongo> apis = internalApiRepo.findByTeam(teamName);
-		return mapper.collection2set(apis, ApiMongo.class, Api.class);
+		return mapiApis(apis);
 	}
 	
 	@Override
@@ -107,5 +113,50 @@ public class ApiRepositoryImpl implements ApiRepository {
 		return (int) internalApiRepo.countByTeam(teamName);	
 	}
 	
+
+	
+	private Set<Api> mapiApis(Collection<ApiMongo> apis){
+	
+		Set<Api> res = new HashSet<>();
+		for (ApiMongo api : apis) {
+			res.add(mapApi(api));
+		}
+		return res;
+	}
+	
+
+	private ApiMongo mapApi(Api api){
+		
+		ApiMongo apiMongo = null;
+		if(api != null){
+			apiMongo = mapper.map(api, ApiMongo.class);
+			
+			if(OwnerType.USER.equals(api.getOwnerType())){
+				apiMongo.setOwner(internalUserRepo.findOne(api.getOwner()));
+			}else{
+				apiMongo.setOwner(internalTeamRepo.findOne(api.getOwner()));
+			}
+		}
+		return apiMongo;
+	}
+
+	private Api mapApi(ApiMongo apiMongo){
+		
+		Api api = null;
+		if(apiMongo != null){
+			api = mapper.map(apiMongo, Api.class);
+		
+			if(apiMongo.getOwner() != null){
+				api.setOwner(apiMongo.getOwner().getName());
+				if(apiMongo.getOwner() instanceof UserMongo){
+					api.setOwnerType(OwnerType.USER);
+				}else{
+					api.setOwnerType(OwnerType.TEAM);
+				}
+			}
+		}
+		return api;
+	}
+
 	
 }

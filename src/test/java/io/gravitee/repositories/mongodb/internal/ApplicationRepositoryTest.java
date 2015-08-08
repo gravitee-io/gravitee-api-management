@@ -16,6 +16,7 @@
 package io.gravitee.repositories.mongodb.internal;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import io.gravitee.repositories.mongodb.RepositoryConfiguration;
 import io.gravitee.repositories.mongodb.internal.application.ApplicationMongoRepository;
 import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
 
+@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { RepositoryConfiguration.class })
 public class ApplicationRepositoryTest {

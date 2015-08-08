@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
+import io.gravitee.repositories.mongodb.AbstractMongoDBTest;
 import io.gravitee.repositories.mongodb.RepositoryConfiguration;
 import io.gravitee.repositories.mongodb.internal.model.TeamMemberMongo;
 import io.gravitee.repositories.mongodb.internal.model.TeamMongo;
@@ -33,11 +35,12 @@ import io.gravitee.repositories.mongodb.internal.model.UserMongo;
 import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
 import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 
+@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes={ RepositoryConfiguration.class})
-public class UserRepositoryTest {
+public class UserRepositoryTest /*extends AbstractMongoDBTest*/{
 
-	private static Integer NB_USERS_TEAM = 24;
+	private static Integer NB_USERS_TEAM = 6;
 
 	@Autowired
     private TeamMongoRepository teamRepository;
@@ -47,16 +50,16 @@ public class UserRepositoryTest {
 
     @Before
     public void init(){
-    /*	
+    
     	TeamMongo team = new TeamMongo();
     	team.setMembers(new ArrayList<TeamMemberMongo>());
-    	team.setName("teamTest");
+    	team.setName("team1");
     	team.setDescription("Sample team description");
     	
     	for(int i=0; i<NB_USERS_TEAM; i++){
 	    	UserMongo user = new UserMongo();
-	    	user.setMail("sample@gmail.com");
-	    	user.setName("sample"+i);
+	    	user.setName(String.format("user%s", i));
+	    	user.setMail(String.format("user%s@gravitee.io", i));
 	    	UserMongo saveUser = userRepository.save(user);
 	    	TeamMemberMongo teamMemberMongo = new TeamMemberMongo();
 	    	teamMemberMongo.setMember(saveUser);
@@ -64,7 +67,7 @@ public class UserRepositoryTest {
 	    	team.getMembers().add(teamMemberMongo);
     	}
     	
-    	teamRepository.save(team);*/
+    	teamRepository.save(team);
     }
 	
 	@Test 
@@ -84,6 +87,12 @@ public class UserRepositoryTest {
     	Assert.notNull(users);
     	Assert.isTrue(users.size() == NB_USERS_TEAM, "Invalid nb users found");
 	}
-	
+
+//	@Override
+//	protected String getJsonDataSetResourceName() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//	
  
 }

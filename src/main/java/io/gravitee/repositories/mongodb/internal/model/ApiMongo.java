@@ -19,7 +19,6 @@ import java.util.Date;
 import java.util.Objects;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -30,16 +29,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Document(collection="apis")
 public class ApiMongo {
-
-	@Id
-	private String id;
     
-    @Indexed
+	@Id
     private String name;
     private String version;
 
     private String publicURI;
     private String targetURI;
+    
 	private boolean privateApi;
     
     private Date createdAt;
@@ -60,14 +57,6 @@ public class ApiMongo {
 	public void setPrivateApi(boolean privateApi) {
 		this.privateApi = privateApi;
 	}
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
     
     public Date getCreatedAt() {
         return createdAt;
