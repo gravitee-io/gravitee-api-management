@@ -15,10 +15,20 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.gravitee.repositories.mongodb.internal.model.TeamMemberMongo;
+import io.gravitee.repositories.mongodb.internal.model.TeamMongo;
+import io.gravitee.repositories.mongodb.internal.model.UserMongo;
+import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
+import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
+import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.TeamMembershipRepository;
 import io.gravitee.repository.model.Member;
 import io.gravitee.repository.model.TeamRole;
@@ -26,28 +36,88 @@ import io.gravitee.repository.model.TeamRole;
 @Component
 public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 
+	@Autowired
+	private GraviteeMapper mapper;
+
+	
+	@Autowired
+	private TeamMongoRepository internalTeamRepo;
+
+	@Autowired
+	private UserMongoRepository internalUserRepo;
+	
+	
 	@Override
 	public void addMember(String teamName, String username, TeamRole role) {
-		// TODO Auto-generated method stub
+	
+		TeamMongo team = internalTeamRepo.findByName(teamName);
+		UserMongo member = internalUserRepo.findOne(username);
+		
+		TeamMemberMongo teamMemberMongo = new TeamMemberMongo();
+		teamMemberMongo.setMember(member);
+		teamMemberMongo.setRole(String.valueOf(role));
+		
+		team.getMembers().add(teamMemberMongo);
+		internalTeamRepo.save(team);
 		
 	}
 
 	@Override
 	public void updateMember(String teamName, String username, TeamRole role) {
-		// TODO Auto-generated method stub
+		TeamMongo teamMongo = internalTeamRepo.findByName(teamName);
 		
+		//TODO deal with null / validation / mongo upset implementation
+		List<TeamMemberMongo> membersMongo = teamMongo.getMembers();
+		
+		if(membersMongo != null){
+			for (TeamMemberMongo teamMemberMongo : membersMongo) {
+				if(username.equals(teamMemberMongo.getMember().getName())){
+					teamMemberMongo.setRole(String.valueOf(role));
+				}
+			}
+			internalTeamRepo.save(teamMongo);
+		}
 	}
 
 	@Override
 	public void deleteMember(String teamName, String username) {
-		// TODO Auto-generated method stub
 		
+		TeamMongo teamMongo = internalTeamRepo.findByName(teamName);
+		
+		//TODO deal with null  / validation / mongo upset implementation
+		List<TeamMemberMongo> membersMongo = teamMongo.getMembers();
+		
+		if(membersMongo != null){
+			List<TeamMemberMongo> toRemove = new ArrayList<>();
+			for (TeamMemberMongo teamMemberMongo : membersMongo) {
+				if(username.equals(teamMemberMongo.getMember().getName())){
+					toRemove.add(teamMemberMongo);
+				}
+			}
+			teamMongo.getMembers().removeAll(toRemove);
+			internalTeamRepo.save(teamMongo);
+		}
 	}
 
 	@Override
 	public Set<Member> listMembers(String teamName) {
-		// TODO Auto-generated method stub
-		return null;
+		TeamMongo teamMongo = internalTeamRepo.findByName(teamName);
+		
+		//TODO deal with null 
+		List<TeamMemberMongo> membersMongo = teamMongo.getMembers();
+		
+		Set<Member> res = new HashSet<>();
+		if(membersMongo != null){
+			
+			for (TeamMemberMongo teamMemberMongo : membersMongo) {
+			
+				Member member = new Member();
+				member.setUsername(teamMemberMongo.getMember().getName());
+				member.setRole(TeamRole.valueOf(teamMemberMongo.getRole()));
+				res.add(member);
+			}
+		}
+		return res;
 	}
 
 }
