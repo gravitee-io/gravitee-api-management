@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.model;
 
+import java.util.Date;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -40,6 +42,15 @@ public class Team {
      */
     private String email;
 
+    /**
+     * The team creation date
+     */
+    private Date createdAt;
+    
+    /**
+     * The team last updated date
+     */
+    private Date updatedAt;
     
     public String getDescription() {
         return description;
@@ -80,4 +91,21 @@ public class Team {
     public void setPrivate(boolean privateTeam) {
         this.privateTeam = privateTeam;
     }
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+    
 }

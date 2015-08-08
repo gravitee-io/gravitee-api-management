@@ -24,20 +24,56 @@ import java.util.Objects;
  */
 public class Api {
 
+	/**
+	 * The api name.
+	 */
     private String name;
+    
+    /**
+     * The api version.
+     */
     private String version;
 
+    /**
+     * The uri used to expose api.
+     */
     private URI publicURI;
+    
+    /**
+     * The uri of consumed api.
+     */
     private URI targetURI;
 
+    /**
+     * The Api creation date
+     */
     private Date createdAt;
+    
+    /**
+     * The Api last updated date
+     */
     private Date updatedAt;
     
+    /**
+     * The api owner entity type (user or team)
+     */
     private OwnerType ownerType;
+    
+    /**
+     * The api owner entity name (user name or team name)
+     */
     private String owner;
+    
+    private User creator;
 
+    /**
+     * The api visibility (private of for all users)
+     */
     private boolean privateApi;
 
+    /**
+     * The current api life cycle state.
+     */
     private LifecycleState lifecycleState = LifecycleState.STOPPED;
 
     public Date getCreatedAt() {
@@ -119,6 +155,14 @@ public class Api {
 	public void setOwner(String owner) {
 		this.owner = owner;
 	}
+	
+    public User getCreator() {
+		return creator;
+	}
+
+	public void setCreator(User creator) {
+		this.creator = creator;
+	}
 
 	@Override
     public boolean equals(Object o) {
@@ -134,7 +178,7 @@ public class Api {
         return Objects.hash(name, version);
     }
 
-    @Override
+	@Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Api{");
         sb.append("name='").append(name).append('\'');

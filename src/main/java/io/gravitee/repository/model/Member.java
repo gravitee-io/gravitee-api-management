@@ -20,8 +20,14 @@ package io.gravitee.repository.model;
  */
 public class Member {
 
+	/**
+	 * The name of user member
+	 */
     private String username;
 
+    /**
+     * The role give to the user
+     */
     private TeamRole role;
 
     public TeamRole getRole() {

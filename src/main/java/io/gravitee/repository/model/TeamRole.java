@@ -16,6 +16,8 @@
 package io.gravitee.repository.model;
 
 /**
+ * User team roles
+ * 
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public enum TeamRole {

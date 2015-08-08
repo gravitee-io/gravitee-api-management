@@ -18,14 +18,35 @@ package io.gravitee.repository.model;
 import java.util.Objects;
 
 /**
+ * Policy apply on API
+ * 
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class Policy {
 
+	/**
+	 * The policy identifier
+	 */
     private String id;
+    
+    /**
+     * The policy name
+     */
     private String name;
+    
+    /**
+     * The policy description
+     */
     private String description;
+    
+    /**
+     * The policy version
+     */
     private String version;
+    
+    /**
+     * The json serialized policy configuration
+     */
     private String config;
 
     public String getDescription() {

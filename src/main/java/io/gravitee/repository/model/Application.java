@@ -23,16 +23,46 @@ import java.util.Objects;
  */
 public class Application {
 
+	/**
+	 * The application name
+	 */
     private String name;
+    
+    /**
+     * The application description
+     */
     private String description;
+    
     private String type;
 
+    /**
+     * The team creation date
+     */
     private Date createdAt;
+    
+    /**
+     * The team last updated date
+     */
     private Date updatedAt;
 
+    /**
+     * The owner entity (user or team)
+     */
     private OwnerType ownerType;
+    
+    /**
+     * The owner entity name (user name or team name)
+     */
     private String owner;
     
+    /**
+     * The user that create the application
+     */
+    private User creator;
+    
+    /**
+     * The application key
+     */
     private String key;
 
     public Date getCreatedAt() {

@@ -15,9 +15,10 @@
  */
 package io.gravitee.repository.api;
 
-import io.gravitee.repository.model.User;
-
+import java.util.Optional;
 import java.util.Set;
+
+import io.gravitee.repository.model.User;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -26,7 +27,7 @@ public interface UserRepository {
 
 	User create(User user);
 	
-    User findByUsername(String username);
+	Optional<User> findByUsername(String username);
 
     Set<User> findAll();
 

@@ -17,6 +17,7 @@ package io.gravitee.repository.api;
 
 import io.gravitee.repository.model.Policy;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -26,7 +27,7 @@ public interface PolicyRepository {
 
     Set<Policy> findAll();
 
-    Policy findById(String id);
+    Optional<Policy> findById(String id);
 
     Set<Policy> findByApi(String apiName);
 
