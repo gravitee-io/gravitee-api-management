@@ -17,7 +17,11 @@ package io.gravitee.repositories.mongodb;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -74,7 +78,7 @@ public abstract class AbstractMongoDBTest {
 
         LOG.info("Creating database '{}'...", DATABASE_NAME);
         mongoDatabase = ((MongoClient) mongoClient).getDatabase(DATABASE_NAME);
-      //  logConnection();
+        //logConnection();
         
         final File file = new File(AbstractMongoDBTest.class.getResource(getJsonDataSetResourceName()).toURI());
 
@@ -122,8 +126,23 @@ public abstract class AbstractMongoDBTest {
     
     private void logConnection(){
 		System.out.println(mongoClient.getAddress().getHost());
-		System.out.println(mongoClient.getAddress().getPort());
+		System.out.println("--port="+mongoClient.getAddress().getPort());
     }
+    
+    /**
+     * Par string ISO date (ex: 2015-08-08T08:20:10.883Z)
+     * @param date string date to parse
+     * @return parsed date
+     * @throws Exception
+     */
+	protected Date getIsoDate(String date) throws Exception{
+		
+		TimeZone tz = TimeZone.getTimeZone("UTC");
+	    DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	    df.setTimeZone(tz);
+	    return df.parse(date);	
+	}
+	
     
     //@After
     public void teardown() throws Exception {

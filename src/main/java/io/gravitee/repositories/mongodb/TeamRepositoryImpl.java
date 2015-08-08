@@ -63,7 +63,17 @@ public class TeamRepositoryImpl implements TeamRepository{
 	@Override
 	public Team update(Team team) {
 		
-		TeamMongo teamMongo = mapper.map(team, TeamMongo.class);
+		TeamMongo teamMongo = internalTeamRepo.findOne(team.getName());
+		
+		//Update 
+		teamMongo.setDescription(team.getDescription());
+		teamMongo.setEmail(team.getEmail());
+		//teamMongo.setName(team.getName());
+		teamMongo.setPrivateTeam(team.isPrivate());
+		teamMongo.setUpdatedAt(team.getUpdatedAt());
+		
+		//FIXME can i change team name ? update team references
+		
 		TeamMongo teamMongoUpdated = internalTeamRepo.save(teamMongo);
 		return mapper.map(teamMongoUpdated, Team.class);
 	}

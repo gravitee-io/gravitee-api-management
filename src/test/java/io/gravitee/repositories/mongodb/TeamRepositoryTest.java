@@ -1,0 +1,179 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.repositories.mongodb;
+
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import io.gravitee.repository.api.TeamRepository;
+import io.gravitee.repository.model.Team;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = { RepositoryConfiguration.class })
+public class TeamRepositoryTest extends  AbstractMongoDBTest{
+	
+	private static final String TESTCASES_PATH = "/data/team-tests/";
+	
+	private static final int NB_TEAMS_TESTCASES = 2; 
+	
+	@Autowired
+	private TeamRepository teamRepository;
+	
+	
+	private Logger Logger = LoggerFactory.getLogger(TeamRepositoryTest.class);
+
+	@Override
+	protected String getJsonDataSetResourceName() {
+		return TESTCASES_PATH;
+	}
+
+	@Test
+	public void createTeamTest() {
+
+		try {
+	
+			String teamname = "team-created";
+			
+			Team team = new Team();
+			team.setName(teamname);
+			team.setEmail(String.format("%s@gravitee.io", teamname));
+			team.setDescription("Sample description");
+			team.setPrivate(true);
+			team.setCreatedAt(new Date());
+			team.setUpdatedAt(new Date());
+			
+			Team userCreated =  teamRepository.create(team);
+			
+			Assert.assertNotNull("Team created is null", userCreated);
+			
+			Optional<Team> optional = teamRepository.findByName(teamname);
+			
+			Assert.assertTrue("Unable to find saved team", optional.isPresent());
+			Team teamFound = optional.get();
+			
+			Assert.assertEquals("Invalid saved team name.", 		team.getName(),  		teamFound.getName());
+			Assert.assertEquals("Invalid saved team mail.",			team.getEmail(), 		teamFound.getEmail());
+			Assert.assertEquals("Invalid saved team description.", 	team.getDescription(),	teamFound.getDescription());
+			Assert.assertEquals("Invalid saved team visibility.",	team.isPrivate(),		teamFound.isPrivate());
+			Assert.assertEquals("Invalid saved team creationDate.", team.getCreatedAt(),	teamFound.getCreatedAt());
+			Assert.assertEquals("Invalid saved team updateDate.",	team.getUpdatedAt(),	teamFound.getUpdatedAt());
+	
+			
+		} catch (Exception e) {
+			Logger.error("Error while testing createTeam", e);
+			Assert.fail("Error while testing createTeam");	
+		}
+	}
+
+	@Test
+	public void findByNameTest(){
+		
+		try{
+			String teamname = "team2";
+			Optional<Team> optional = teamRepository.findByName(teamname);
+			
+			Assert.assertTrue("Unable to find saved team", optional.isPresent());
+			Team teamFound = optional.get();
+			
+			Assert.assertEquals("Invalid saved team name.", 		teamname,  					teamFound.getName());
+			Assert.assertEquals("Invalid saved team mail.",			"team2@gravitee.io", 		teamFound.getEmail());
+			Assert.assertEquals("Invalid saved team description.", 	"Sample team2 description",	teamFound.getDescription());
+			Assert.assertEquals("Invalid saved team visibility.",	true,						teamFound.isPrivate());
+			Assert.assertEquals("Invalid saved team creationDate.", getIsoDate("2015-08-08T08:20:10.883Z"),	teamFound.getCreatedAt());
+			Assert.assertEquals("Invalid saved team updateDate.",	getIsoDate("2015-08-08T08:20:10.883Z"),	teamFound.getUpdatedAt());
+			
+		} catch (Exception e) {
+			Logger.error("Error while testing findByName", e);
+			Assert.fail("Error while testing findByName");	
+		}
+	}
+	
+	@Test
+	public void updateTest(){
+		try{	
+			String teamname = "team1";
+			
+			String newDescription = "updated-team1 description";
+			String newEmail = "updated-team1@gravitee.io";
+			boolean newVisibility = false;
+			Date udpatedAt = new Date();
+			
+			Team team = new Team();
+			team.setName(teamname);
+			team.setEmail(newEmail);
+			team.setDescription(newDescription);
+			team.setPrivate(newVisibility);
+			team.setUpdatedAt(udpatedAt);
+			
+			teamRepository.update(team);
+			
+			Optional<Team> optional = teamRepository.findByName(teamname);
+			Team updatedTeam = optional.get();
+			
+			Assert.assertTrue("Team modified not found", optional.isPresent());
+			
+			Assert.assertEquals("Invalid updated team description.", newDescription, updatedTeam.getDescription());
+			Assert.assertEquals("Invalid updated team email.", newEmail, updatedTeam.getEmail());
+			Assert.assertEquals("Invalid updated team visibility.", newVisibility, updatedTeam.isPrivate() );
+			Assert.assertEquals("Invalid updated team updatedAt date.", udpatedAt, updatedTeam.getUpdatedAt());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Logger.error("Error while testing update", e);
+			Assert.fail("Error while testing update");	
+		}
+	}
+
+	
+	@Test
+	public void deleteTest(){
+		try{
+			String teamname = "team1";
+			
+			int nbTeamBefore = teamRepository.findAll().size();
+			teamRepository.delete("team1");
+			
+			Optional<Team> optional = teamRepository.findByName(teamname);
+			int nbTeamAfter = teamRepository.findAll().size();
+			
+			Assert.assertFalse("Unable to find saved team", optional.isPresent());
+			Assert.assertEquals("Invalid number of team after deletion", nbTeamBefore -1, nbTeamAfter);
+			
+		} catch (Exception e) {
+			Logger.error("Error while testing delete", e);
+			Assert.fail("Error while testing delete");	
+		}
+	}
+	
+
+	@Test
+	public void findAllTest() {
+		Set<Team> teams = teamRepository.findAll();
+			
+		Assert.assertNotNull(teams);
+		Assert.assertEquals("Invalid user numbers in find all", NB_TEAMS_TESTCASES, teams.size());
+	}	
+
+}

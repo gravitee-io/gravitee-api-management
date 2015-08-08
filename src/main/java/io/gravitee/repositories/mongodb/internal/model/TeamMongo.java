@@ -35,24 +35,12 @@ public class TeamMongo extends AbstractUserMongo{
      * The team can only be visible for members.
      */
     private boolean privateTeam;
-
-    private String key;
     
     private Date createdAt;
     private Date updatedAt;
     
     private List<TeamMemberMongo> members;
-    
-
-    
-    public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
+   
 	public String getDescription() {
         return description;
     }

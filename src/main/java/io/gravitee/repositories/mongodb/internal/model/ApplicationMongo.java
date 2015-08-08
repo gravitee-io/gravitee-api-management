@@ -46,6 +46,7 @@ public class ApplicationMongo {
     private Date createdAt;
     private Date updatedAt;
 
+    private String key;
 
     public Date getCreatedAt() {
         return createdAt;
@@ -101,6 +102,14 @@ public class ApplicationMongo {
 
 	public void setTeam(Team team) {
 		this.team = team;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
 	}
 
 	@Override
