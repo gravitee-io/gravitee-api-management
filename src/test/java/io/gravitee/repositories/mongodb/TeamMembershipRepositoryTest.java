@@ -33,7 +33,7 @@ import io.gravitee.repository.model.TeamRole;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { RepositoryConfiguration.class })
-public class TeamMembersipRepositoryTest extends  AbstractMongoDBTest{
+public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 	
 	private static final String TESTCASES_PATH = "/data/team-membership-tests/";
 	
@@ -46,7 +46,7 @@ public class TeamMembersipRepositoryTest extends  AbstractMongoDBTest{
 	private TeamMembershipRepository membershipRepository;
 	
 	
-	private Logger Logger = LoggerFactory.getLogger(TeamMembersipRepositoryTest.class);
+	private Logger Logger = LoggerFactory.getLogger(TeamMembershipRepositoryTest.class);
 
 	@Override
 	protected String getJsonDataSetResourceName() {
