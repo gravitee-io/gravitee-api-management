@@ -28,10 +28,10 @@ public interface TeamRepository {
     /**
      * List teams
      *
-     * @param includePrivate
+     * @param publicOnly
      * @return
      */
-    Set<Team> findAll(boolean includePrivate);
+    Set<Team> findAll(boolean publicOnly);
 
     Optional<Team> findByName(String name);
 
