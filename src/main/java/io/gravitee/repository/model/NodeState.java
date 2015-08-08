@@ -16,11 +16,11 @@
 package io.gravitee.repository.model;
 
 /**
- * Api lifecycle states
+ * Node states
  * 
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum LifecycleState {
+public enum NodeState {
 
-    STARTED, STOPPED;
+	REGISTERED, UNREGISTERED;
 }

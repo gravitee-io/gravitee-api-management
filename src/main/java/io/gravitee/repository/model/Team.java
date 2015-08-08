@@ -52,6 +52,7 @@ public class Team {
      */
     private Date updatedAt;
     
+    
     public String getDescription() {
         return description;
     }
@@ -67,14 +68,6 @@ public class Team {
     public void setName(String name) {
         this.name = name;
     }
-  
-    public boolean isPrivateTeam() {
-		return privateTeam;
-	}
-
-	public void setPrivateTeam(boolean privateTeam) {
-		this.privateTeam = privateTeam;
-	}
 
 	public String getEmail() {
 		return email;

@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.api;
 
+import java.util.Set;
+
 import io.gravitee.repository.model.Node;
 
 /**
@@ -24,5 +26,7 @@ public interface NodeRepository {
 
     void register(Node node);
 
-    void unregister(Node node);
+    void unregister(String nodename);
+    
+    Set<Node> findAll();
 }
