@@ -74,5 +74,5 @@ public interface ApiRepository {
 
     void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfiguration);
 
-    List<PolicyConfiguration> findByApi(String apiName);
+    List<PolicyConfiguration> findPoliciesByApi(String apiName);
 }
