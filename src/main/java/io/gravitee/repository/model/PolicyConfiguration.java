@@ -13,21 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.api;
-
-import io.gravitee.repository.model.Policy;
-
-import java.util.Optional;
-import java.util.Set;
+package io.gravitee.repository.model;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyRepository {
+public class PolicyConfiguration {
 
-    Set<Policy> findAll();
+    /**
+     * ID of the policy
+     */
+    private String policy;
 
-    Optional<Policy> findById(String id);
+    /**
+     * Configuration of the policy in JSON format.
+     */
+    private String configuration;
 
-    String getConfigurationSchema();
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    public String getPolicy() {
+        return policy;
+    }
+
+    public void setPolicy(String policy) {
+        this.policy = policy;
+    }
 }

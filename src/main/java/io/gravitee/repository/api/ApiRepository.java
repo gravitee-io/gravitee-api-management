@@ -16,7 +16,9 @@
 package io.gravitee.repository.api;
 
 import io.gravitee.repository.model.Api;
+import io.gravitee.repository.model.PolicyConfiguration;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -67,4 +69,8 @@ public interface ApiRepository {
     int countByUser(String username, boolean publicOnly);
 
     int countByTeam(String teamName, boolean publicOnly);
+
+    void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigurations);
+
+    void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfiguration);
 }
