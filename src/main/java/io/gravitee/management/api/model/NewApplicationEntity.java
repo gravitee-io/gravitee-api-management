@@ -15,15 +15,17 @@
  */
 package io.gravitee.management.api.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class TeamCreation {
+@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+public class NewApplicationEntity {
 
     private String name;
     private String description;
-    private String email;
-    private boolean visible;
+    private String type;
 
     public String getDescription() {
         return description;
@@ -31,14 +33,6 @@ public class TeamCreation {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getName() {
@@ -49,11 +43,11 @@ public class TeamCreation {
         this.name = name;
     }
 
-    public boolean isVisible() {
-        return visible;
+    public String getType() {
+        return type;
     }
 
-    public void setVisible(boolean visible) {
-        this.visible = visible;
+    public void setType(String type) {
+        this.type = type;
     }
 }

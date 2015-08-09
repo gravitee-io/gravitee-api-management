@@ -1,7 +1,13 @@
 package io.gravitee.management.api.service;
 
+import io.gravitee.management.api.model.PolicyEntity;
+
+import java.util.Set;
+
 /**
- * Created by david on 09/08/15.
+ * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface PolicyService {
+
+    Set<PolicyEntity> findAll();
 }

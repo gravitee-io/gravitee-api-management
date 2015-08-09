@@ -15,12 +15,10 @@
  */
 package io.gravitee.management.api.resources;
 
-import io.gravitee.management.api.model.NewApiEntity;
-import io.gravitee.management.api.model.ApiEntity;
-import io.gravitee.management.api.model.TeamEntity;
+import io.gravitee.management.api.model.*;
 import io.gravitee.management.api.service.ApiService;
+import io.gravitee.management.api.service.ApplicationService;
 import io.gravitee.management.api.service.TeamService;
-import io.gravitee.repository.model.Application;
 import io.gravitee.repository.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,6 +46,9 @@ public class AuthenticatedUserResource {
 
     @Autowired
     private TeamService teamService;
+
+    @Autowired
+    private ApplicationService applicationService;
 
     // TODO: How to get username of the authenticated user ?
     private String username;
@@ -77,7 +78,7 @@ public class AuthenticatedUserResource {
      */
     @GET
     @Path("applications")
-    public Set<Application> listApplications() {
+    public Set<ApplicationEntity> listApplications() {
         return null;
     }
 
@@ -104,11 +105,11 @@ public class AuthenticatedUserResource {
     @POST
     @Path("apis")
     public Response createApi(NewApiEntity api) {
-        ApiEntity createdApi = apiService.createForUser(api, username);
-        if (createdApi != null) {
+        ApiEntity newApi = apiService.createForUser(api, username);
+        if (newApi != null) {
             return Response
-                    .created(URI.create("/apis/" + createdApi.getName()))
-                    .entity(createdApi)
+                    .created(URI.create("/users/" + username + "/apis/" + newApi.getName()))
+                    .entity(newApi)
                     .build();
         }
 
@@ -122,7 +123,15 @@ public class AuthenticatedUserResource {
      */
     @POST
     @Path("applications")
-    public Application createApplication(Application application) {
-        return null;
+    public Response createApplication(NewApplicationEntity application) {
+        ApplicationEntity newApplication = applicationService.createForUser(application, username);
+        if (newApplication != null) {
+            return Response
+                    .created(URI.create("/users/" + username + "/applications/" + newApplication.getName()))
+                    .entity(newApplication)
+                    .build();
+        }
+
+        return Response.serverError().build();
     }
 }

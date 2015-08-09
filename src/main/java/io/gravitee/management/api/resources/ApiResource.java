@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Optional;
@@ -36,6 +38,9 @@ import java.util.Optional;
 @Component
 @Produces(MediaType.APPLICATION_JSON)
 public class ApiResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Autowired
     private ApiService apiService;
@@ -94,6 +99,13 @@ public class ApiResource {
     public Response delete() {
         apiService.delete(apiName);
         return Response.noContent().build();
+    }
+
+    @Path("policies")
+    public PoliciesConfigurationResource getPoliciesConfigurationResource() {
+        PoliciesConfigurationResource policiesConfigurationResource = resourceContext.getResource(PoliciesConfigurationResource.class);
+        policiesConfigurationResource.setApiName(apiName);
+        return policiesConfigurationResource;
     }
 
     public void setApiName(String apiName) {

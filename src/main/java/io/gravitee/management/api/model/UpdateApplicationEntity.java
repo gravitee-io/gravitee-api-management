@@ -15,12 +15,14 @@
  */
 package io.gravitee.management.api.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApplicationCreation {
+@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+public class UpdateApplicationEntity {
 
-    private String name;
     private String description;
     private String type;
 
@@ -30,14 +32,6 @@ public class ApplicationCreation {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getType() {

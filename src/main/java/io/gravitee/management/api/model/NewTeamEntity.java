@@ -17,44 +17,16 @@ package io.gravitee.management.api.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import java.util.Date;
-import java.util.Objects;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class TeamEntity {
+public class NewTeamEntity {
 
-    /**
-     * The shorthand name of the team.
-     */
     private String name;
-
-    /**
-     * The description of the team.
-     */
     private String description;
-
-    /**
-     * The team can only be visible for members.
-     */
-    private boolean privateTeam;
-
-    /**
-     * The publicly visible email address.
-     */
     private String email;
-
-    /**
-     * The team creation date
-     */
-    private Date createdAt;
-
-    /**
-     * The team last updated date
-     */
-    private Date updatedAt;
+    private boolean visible;
 
     public String getDescription() {
         return description;
@@ -80,40 +52,11 @@ public class TeamEntity {
         this.name = name;
     }
 
-    public boolean isPrivate() {
-        return privateTeam;
+    public boolean isVisible() {
+        return visible;
     }
 
-    public void setPrivate(boolean privateTeam) {
-        this.privateTeam = privateTeam;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TeamEntity that = (TeamEntity) o;
-        return Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
+    public void setVisible(boolean visible) {
+        this.visible = visible;
     }
 }

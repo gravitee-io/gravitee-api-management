@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.api.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.net.URI;
 import java.util.Date;
 import java.util.Objects;
@@ -22,6 +24,7 @@ import java.util.Objects;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class ApiEntity {
 
     private String name;

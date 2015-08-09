@@ -21,7 +21,7 @@ import java.util.Objects;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class Application {
+public class ApplicationEntity {
 
     private String name;
     private String description;
@@ -94,7 +94,7 @@ public class Application {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Application that = (Application) o;
+        ApplicationEntity that = (ApplicationEntity) o;
         return Objects.equals(name, that.name);
     }
 

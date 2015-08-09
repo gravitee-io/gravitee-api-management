@@ -15,11 +15,9 @@
  */
 package io.gravitee.management.api.resources;
 
-import io.gravitee.management.api.model.TeamCreation;
+import io.gravitee.management.api.model.NewTeamEntity;
 import io.gravitee.management.api.model.TeamEntity;
 import io.gravitee.management.api.service.TeamService;
-import io.gravitee.repository.api.TeamRepository;
-import io.gravitee.repository.model.Team;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -64,8 +62,8 @@ public class TeamsResource {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(@NotNull TeamCreation teamCreation) {
-        TeamEntity team = teamService.create(teamCreation);
+    public Response create(@NotNull NewTeamEntity newTeamEntity) {
+        TeamEntity team = teamService.create(newTeamEntity);
         if (team != null) {
             return Response
                     .created(URI.create("/teams/" + team.getName()))
@@ -78,8 +76,8 @@ public class TeamsResource {
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@NotNull TeamCreation teamCreation) {
-        TeamEntity team = teamService.update(teamCreation);
+    public Response update(@NotNull NewTeamEntity newTeamEntity) {
+        TeamEntity team = teamService.update(newTeamEntity);
         if (team != null) {
             return Response
                     .ok()

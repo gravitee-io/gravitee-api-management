@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.api.service.impl;
 
-import io.gravitee.management.api.model.TeamCreation;
+import io.gravitee.management.api.model.NewTeamEntity;
 import io.gravitee.management.api.model.TeamEntity;
 import io.gravitee.management.api.service.TeamService;
 import io.gravitee.repository.api.TeamMembershipRepository;
@@ -46,13 +46,13 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public TeamEntity create(TeamCreation team) {
+    public TeamEntity create(NewTeamEntity team) {
         TeamEntity t = new TeamEntity();
         return t;
     }
 
     @Override
-    public TeamEntity update(TeamCreation team) {
+    public TeamEntity update(NewTeamEntity team) {
         TeamEntity t = new TeamEntity();
         return t;
     }

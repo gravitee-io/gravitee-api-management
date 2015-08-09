@@ -144,7 +144,7 @@ public class ApiServiceImpl implements ApiService {
         return convert(createdApi);
     }
 
-    private static ApiEntity convert(io.gravitee.repository.model.Api api) {
+    private static ApiEntity convert(Api api) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setName(api.getName());
