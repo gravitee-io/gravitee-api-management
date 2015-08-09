@@ -28,4 +28,10 @@ public interface PolicyRepository {
     Set<Policy> findAll();
 
     Optional<Policy> findById(String id);
+    
+    Policy create(Policy policy);
+    
+    Policy update(Policy policy);
+    
+    void delete(String id);
 }
