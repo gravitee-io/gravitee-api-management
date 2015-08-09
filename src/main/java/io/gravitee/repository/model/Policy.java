@@ -44,6 +44,11 @@ public class Policy {
      */
     private String version;
 
+    /**
+     * Configuration schema in JSON format.
+     */
+    private String configuration;
+
     public String getDescription() {
         return description;
     }
@@ -76,7 +81,15 @@ public class Policy {
         this.version = version;
     }
 
-	@Override
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
