@@ -16,7 +16,31 @@
 package io.gravitee.management.api.model;
 
 /**
- * Created by david on 07/08/15.
+ * @author David BRASSELY (brasseld at gmail.com)
  */
-public class Team {
+public class Owner {
+
+    private String login;
+
+    private OwnerType type;
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public OwnerType getType() {
+        return type;
+    }
+
+    public void setType(OwnerType type) {
+        this.type = type;
+    }
+
+    enum OwnerType {
+        User, Team;
+    }
 }

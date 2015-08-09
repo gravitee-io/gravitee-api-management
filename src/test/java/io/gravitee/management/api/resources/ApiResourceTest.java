@@ -18,10 +18,13 @@ package io.gravitee.management.api.resources;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import io.gravitee.management.api.builder.ApiBuilder;
+import io.gravitee.management.api.model.ApiEntity;
+import io.gravitee.management.api.service.ApiService;
 import io.gravitee.repository.api.ApiRepository;
 import io.gravitee.repository.model.Api;
 
 import java.util.Date;
+import java.util.Optional;
 
 import javax.ws.rs.core.Response;
 
@@ -35,20 +38,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ApiResourceTest extends AbstractResourceTest {
 
     @Autowired
-    private ApiRepository apiRepository;
+    private ApiService apiService;
 
     @Test
     public void testGetApi() {
-        Api api = new ApiBuilder()
+        Optional<ApiEntity> api = Optional.of(new ApiBuilder()
                 .name("my-api")
                 .origin("http://localhost/my-api")
                 .target("http://remote_api/context")
                 .createdAt(new Date())
-                .build();
+                .build());
 
-        Mockito.doReturn(api).when(apiRepository).findByName(api.getName());
+        Mockito.doReturn(api).when(apiService).findByName(api.get().getName());
 
-        final Response response = target("/apis/" + api.getName()).request().get();
+        final Response response = target("/apis/" + api.get().getName()).request().get();
 
         // Check HTTP response
         assertEquals(200, response.getStatus());

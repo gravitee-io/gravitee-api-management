@@ -31,7 +31,6 @@ public class GraviteeApplication extends ResourceConfig {
         register(UsersResource.class);
         register(PolicyResource.class);
 
-        //  register(ObjectMapperProvider.class);
         register(JacksonFeature.class);
     }
 }

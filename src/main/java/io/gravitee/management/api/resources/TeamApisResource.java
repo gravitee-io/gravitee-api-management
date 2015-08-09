@@ -15,16 +15,24 @@
  */
 package io.gravitee.management.api.resources;
 
-import io.gravitee.repository.model.Api;
+import io.gravitee.management.api.model.NewApiEntity;
+import io.gravitee.management.api.model.ApiEntity;
+import io.gravitee.management.api.service.ApiService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class TeamApisResource {
+
+    @Autowired
+    private ApiService apiService;
 
     private String teamName;
 
@@ -33,8 +41,8 @@ public class TeamApisResource {
      * @return APIs for the specified team.
      */
     @GET
-    public Set<Api> getApis() {
-        return null;
+    public Set<ApiEntity> getApis() {
+        return apiService.findByTeam(teamName, true);
     }
 
     /**
@@ -43,8 +51,16 @@ public class TeamApisResource {
      * @return
      */
     @POST
-    public Api createApi(Api api) {
-        return null;
+    public Response createApi(NewApiEntity api) {
+        ApiEntity createdApi = apiService.createForTeam(api, teamName);
+        if (createdApi != null) {
+            return Response
+                    .created(URI.create("/apis/" + createdApi.getName()))
+                    .entity(createdApi)
+                    .build();
+        }
+
+        return Response.serverError().build();
     }
 
     public void setTeamName(String teamName) {

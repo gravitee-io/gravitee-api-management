@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.api.builder;
 
-import io.gravitee.repository.model.Api;
+import io.gravitee.management.api.model.ApiEntity;
 
 import java.net.URI;
 import java.util.Date;
@@ -25,7 +25,7 @@ import java.util.Date;
  */
 public class ApiBuilder {
 
-    private final Api api = new Api();
+    private final ApiEntity api = new ApiEntity();
 
     public ApiBuilder name(String name) {
         this.api.setName(name);
@@ -53,7 +53,7 @@ public class ApiBuilder {
         return this;
     }
 
-    public Api build() {
+    public ApiEntity build() {
         return this.api;
     }
 }

@@ -15,29 +15,23 @@
  */
 package io.gravitee.management.api.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.net.URI;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiCreation {
+@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+public class NewApiEntity {
 
     private String name;
-    private String description;
     private String version;
 
     private URI publicURI;
     private URI targetURI;
 
     private boolean isPrivate;
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
     public boolean isPrivate() {
         return isPrivate;

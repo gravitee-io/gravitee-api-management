@@ -17,22 +17,20 @@ package io.gravitee.management.api.resources;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.api.custom.LifecycleActionParam;
-import io.gravitee.repository.api.ApiRepository;
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.LifecycleState;
+import io.gravitee.management.api.model.ApiEntity;
+import io.gravitee.management.api.model.UpdateApiEntity;
+import io.gravitee.management.api.service.ApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import static javax.ws.rs.core.HttpHeaders.LOCATION;
+import java.util.Optional;
 
 /**
- * Defines the REST resources to manage {@code Api}.
+ * Defines the REST resources to manage API.
  *
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
@@ -40,41 +38,53 @@ import static javax.ws.rs.core.HttpHeaders.LOCATION;
 public class ApiResource {
 
     @Autowired
-    private ApiRepository apiRepository;
+    private ApiService apiService;
 
     private String apiName;
 
     @GET
-    public Api get() {
-        return apiRepository.findByName(apiName);
+    public Response get() {
+        Optional<ApiEntity> api = apiService.findByName(apiName);
+
+        if (api.isPresent()) {
+            return Response
+                    .ok()
+                    .entity(api.get())
+                    .build();
+        }
+
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 
     @POST
     public Response doLifecycleAction(@QueryParam("action") LifecycleActionParam action) {
-        Api api = get();
-        switch (action.getAction()) {
-            case START:
-                api.setLifecycleState(LifecycleState.STARTED);
-                apiRepository.update(api);
-                break;
-            case STOP:
-                api.setLifecycleState(LifecycleState.STOPPED);
-                apiRepository.update(api);
-                break;
-            default:
-                break;
+        Optional<ApiEntity> optApi = apiService.findByName(apiName);
+
+        if (optApi.isPresent()) {
+            ApiEntity api = optApi.get();
+            switch (action.getAction()) {
+                case START:
+                    apiService.start(api.getName());
+                    break;
+                case STOP:
+                    apiService.stop(api.getName());
+                    break;
+                default:
+                    break;
+            }
+
+            return Response.status(HttpStatusCode.OK_200).build();
         }
 
-        return Response.status(HttpStatusCode.OK_200).build();
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(final Api api) {
-        Api updatedApi = apiRepository.update(api);
+    public Response update(final UpdateApiEntity api) {
+        ApiEntity updatedApi = apiService.update(apiName, api);
         if (updatedApi != null) {
-            return Response.status(HttpStatusCode.OK_200).header(LOCATION, "/rest/apis/" +
-                    api.getName()).entity(updatedApi).build();
+            return Response.ok().entity(updatedApi).build();
         } else {
             return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
         }
@@ -82,8 +92,8 @@ public class ApiResource {
 
     @DELETE
     public Response delete() {
-        apiRepository.delete(apiName);
-        return Response.status(HttpStatusCode.OK_200).build();
+        apiService.delete(apiName);
+        return Response.noContent().build();
     }
 
     public void setApiName(String apiName) {

@@ -15,8 +15,8 @@
  */
 package io.gravitee.management.api.resources;
 
-import io.gravitee.repository.api.TeamRepository;
-import io.gravitee.repository.model.Team;
+import io.gravitee.management.api.model.TeamEntity;
+import io.gravitee.management.api.service.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +27,7 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -41,14 +42,19 @@ public class TeamResource {
     private ResourceContext resourceContext;
 
     @Autowired
-    private TeamRepository teamRepository;
+    private TeamService teamService;
 
     @GET
     public Response get() {
-        Team team = teamRepository.findByName(teamName);
-        if (team != null) {
-            return Response.ok().entity(team).build();
+        Optional<TeamEntity> optTeam = teamService.findByName(teamName);
+
+        if (optTeam.isPresent()) {
+            return Response
+                    .ok()
+                    .entity(optTeam.get())
+                    .build();
         }
+
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 

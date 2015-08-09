@@ -16,6 +16,9 @@
 package io.gravitee.management.api.resources;
 
 import io.gravitee.management.api.JerseySpringTest;
+import io.gravitee.management.api.service.ApiService;
+import io.gravitee.management.api.service.ApplicationService;
+import io.gravitee.management.api.service.TeamService;
 import io.gravitee.repository.api.ApiRepository;
 import io.gravitee.repository.api.TeamRepository;
 
@@ -40,13 +43,29 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     static class ContextConfiguration {
 
     	@Bean
-    	public TeamRepository teamRepository() {
-    		return Mockito.mock(TeamRepository.class);
+    	public ApiService apiService() {
+    		return Mockito.mock(ApiService.class);
     	}
-    	
+
+        @Bean
+        public TeamService teamService() {
+            return Mockito.mock(TeamService.class);
+        }
+
+        @Bean
+        public ApplicationService applicationService() {
+            return Mockito.mock(ApplicationService.class);
+        }
+
+        // Repositories
         @Bean
         public ApiRepository apiRepository() {
-            return Mockito.mock(ApiRepository.class);
+            return null;
+        }
+
+        @Bean
+        public TeamRepository teamRepository() {
+            return null;
         }
     }
 }

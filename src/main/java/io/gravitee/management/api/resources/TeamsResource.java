@@ -16,6 +16,8 @@
 package io.gravitee.management.api.resources;
 
 import io.gravitee.management.api.model.TeamCreation;
+import io.gravitee.management.api.model.TeamEntity;
+import io.gravitee.management.api.service.TeamService;
 import io.gravitee.repository.api.TeamRepository;
 import io.gravitee.repository.model.Team;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,15 +45,15 @@ public class TeamsResource {
     private ResourceContext resourceContext;
 
     @Autowired
-    private TeamRepository teamRepository;
+    private TeamService teamService;
 
     /**
      * List all public teams.
      * @return
      */
     @GET
-    public Set<Team> listAll() {
-        Set<Team> teams = teamRepository.findAll();
+    public Set<TeamEntity> listAll() {
+        Set<TeamEntity> teams = teamService.findAll(true);
 
         if (teams == null) {
             teams = new HashSet<>();
@@ -63,7 +65,7 @@ public class TeamsResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@NotNull TeamCreation teamCreation) {
-        Team team = teamRepository.create(null);
+        TeamEntity team = teamService.create(teamCreation);
         if (team != null) {
             return Response
                     .created(URI.create("/teams/" + team.getName()))
@@ -77,7 +79,7 @@ public class TeamsResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@NotNull TeamCreation teamCreation) {
-        Team team = teamRepository.update(null);
+        TeamEntity team = teamService.update(teamCreation);
         if (team != null) {
             return Response
                     .ok()

@@ -13,22 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api;
+package io.gravitee.management.api.service;
 
-import io.gravitee.admin.api.security.config.SecurityConfig;
+import io.gravitee.repository.model.Application;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import java.util.Optional;
+import java.util.Set;
 
 /**
- * 
- * @author Titouan COMPIEGNE
- *
+ * @author David BRASSELY (brasseld at gmail.com)
  */
-@Configuration
-@Import(SecurityConfig.class)
-@ComponentScan({"io.gravite.management.api.resources", "io.gravitee.management.api.service.impl"})
-public class GraviteeContextConfiguration {
+public interface ApplicationService {
 
+    Optional<Application> findByName(String applicationName);
+
+    Set<Application> findByTeam(String teamName);
+
+    Set<Application> findByUser(String username);
+
+    Application createForUser(Application application, String username);
+
+    Application createForTeam(Application application, String teamName);
+
+    Application update(Application application);
+
+    void delete(String applicationName);
 }

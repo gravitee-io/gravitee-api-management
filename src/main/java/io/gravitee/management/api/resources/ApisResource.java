@@ -15,25 +15,20 @@
  */
 package io.gravitee.management.api.resources;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.repository.api.ApiRepository;
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.LifecycleState;
+import io.gravitee.management.api.model.ApiEntity;
+import io.gravitee.management.api.service.ApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
-import static javax.ws.rs.core.HttpHeaders.LOCATION;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -47,37 +42,22 @@ public class ApisResource {
     private ResourceContext resourceContext;
 
     @Autowired
-    private ApiRepository apiRepository;
+    private ApiService apiService;
 
+    /**
+     * List all APIs must return only visible API (ie. non-private API) for both users and teams.
+     *
+     * @return List all publicly visible APIs
+     */
     @GET
-    public Set<Api> listAll() {
-        Set<Api> apis = apiRepository.findAll();
+    public Set<ApiEntity> listAll() {
+        Set<ApiEntity> apis = apiService.findAll();
 
         if (apis == null) {
             apis = new HashSet<>();
         }
 
         return apis;
-    }
-
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(@NotNull final Api api) {
-        // Update date fields
-        api.setCreatedAt(new Date());
-        api.setUpdatedAt(api.getUpdatedAt());
-
-        // Update default field
-        api.setLifecycleState(LifecycleState.STOPPED);
-
-        Api createdApi = apiRepository.create(api);
-
-        if (createdApi != null) {
-            return Response.status(HttpStatusCode.CREATED_201).header(LOCATION, "/rest/apis/" +
-                    api.getName()).entity(createdApi).build();
-        } else {
-            return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
-        }
     }
 
     @Path("{apiName}")

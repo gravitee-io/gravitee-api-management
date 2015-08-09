@@ -15,10 +15,14 @@
  */
 package io.gravitee.management.api.resources;
 
-import io.gravitee.repository.model.Api;
+import io.gravitee.management.api.model.NewApiEntity;
+import io.gravitee.management.api.model.ApiEntity;
+import io.gravitee.management.api.model.TeamEntity;
+import io.gravitee.management.api.service.ApiService;
+import io.gravitee.management.api.service.TeamService;
 import io.gravitee.repository.model.Application;
-import io.gravitee.repository.model.Team;
 import io.gravitee.repository.model.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.GET;
@@ -26,6 +30,8 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.Set;
 
 /**
@@ -36,6 +42,15 @@ import java.util.Set;
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/user")
 public class AuthenticatedUserResource {
+
+    @Autowired
+    private ApiService apiService;
+
+    @Autowired
+    private TeamService teamService;
+
+    // TODO: How to get username of the authenticated user ?
+    private String username;
 
     /**
      * Get the authenticated user.
@@ -52,8 +67,8 @@ public class AuthenticatedUserResource {
      */
     @GET
     @Path("teams")
-    public Set<Team> listTeams() {
-        return null;
+    public Set<TeamEntity> listTeams() {
+        return teamService.findByUser(username);
     }
 
     /**
@@ -77,8 +92,8 @@ public class AuthenticatedUserResource {
      */
     @GET
     @Path("apis")
-    public Set<Api> listApis() {
-        return null;
+    public Set<ApiEntity> listApis() {
+        return apiService.findByUser(username, false);
     }
 
     /**
@@ -88,8 +103,16 @@ public class AuthenticatedUserResource {
      */
     @POST
     @Path("apis")
-    public Api createApi(Api api) {
-        return null;
+    public Response createApi(NewApiEntity api) {
+        ApiEntity createdApi = apiService.createForUser(api, username);
+        if (createdApi != null) {
+            return Response
+                    .created(URI.create("/apis/" + createdApi.getName()))
+                    .entity(createdApi)
+                    .build();
+        }
+
+        return Response.serverError().build();
     }
 
     /**
