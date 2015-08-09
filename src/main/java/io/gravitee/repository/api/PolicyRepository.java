@@ -28,6 +28,4 @@ public interface PolicyRepository {
     Set<Policy> findAll();
 
     Optional<Policy> findById(String id);
-
-    String getConfigurationSchema();
 }
