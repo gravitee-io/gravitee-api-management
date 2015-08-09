@@ -43,11 +43,6 @@ public class Policy {
      * The policy version
      */
     private String version;
-    
-    /**
-     * The json serialized policy configuration
-     */
-    private String config;
 
     public String getDescription() {
         return description;
@@ -80,14 +75,6 @@ public class Policy {
     public void setVersion(String version) {
         this.version = version;
     }
-    
-    public String getConfig() {
-		return config;
-	}
-
-	public void setConfig(String config) {
-		this.config = config;
-	}
 
 	@Override
     public boolean equals(Object o) {
