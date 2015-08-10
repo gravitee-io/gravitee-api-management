@@ -43,6 +43,8 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 
 	private static final String TESTCASES_PATH = "/data/api-tests/";
 
+	private static final int NB_APIS_FOR_CREATOR = 3; 
+	
 	private Logger Logger = LoggerFactory.getLogger(ApiRepositoryTest.class);	
 	
 	@Autowired
@@ -81,6 +83,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			api.setTargetURI(URI.create("/target/sample/"));
 			api.setCreatedAt(new Date());
 			api.setUpdatedAt(new Date());
+			api.setCreator("creator");
 			api.setOwner(owner.getUsername());
 			api.setOwnerType(OwnerType.USER);
 			
@@ -99,10 +102,11 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			Assert.assertEquals("Invalid api updateAt.", 		api.getUpdatedAt(), apiSaved.getUpdatedAt());
 			Assert.assertEquals("Invalid api Owner.", 			api.getOwner(), apiSaved.getOwner());
 			Assert.assertEquals("Invalid api OwnerType.", 		api.getOwnerType(), apiSaved.getOwnerType());
+			Assert.assertEquals("Invalid api creator.", 		api.getCreator(), apiSaved.getCreator());
 			
 		} catch (Exception e) {
-			Logger.error("Error creating api", e);
-			Assert.fail("API_CREATION_TEST_ERROR");
+			Logger.error("Error while testing createApi", e);
+			Assert.fail("Error while testing createApi");
 		}
 	}
 
@@ -128,17 +132,14 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 		}
 	}
 
-	
-/*
-
 	@Test
 	public void findByCreatorNameTest() {
-		Set<ApiMongo> apis = apiRepository.findByCreator("testcaseusername");
-		System.out.println(apis);
-	
+		Set<Api> apis = apiRepository.findByCreator("creator");
+		
 		Assert.assertNotNull(apis);
+		Assert.assertEquals("Invalid number of creator api found",  NB_APIS_FOR_CREATOR, apis.size());
 	}
-*/	
+
 	@Test
 	public void findByTeamTest() {
 		Set<Api> apis = apiRepository.findByTeam("findByTeamTest", false);
