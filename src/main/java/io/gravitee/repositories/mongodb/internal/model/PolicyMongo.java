@@ -17,6 +17,7 @@ package io.gravitee.repositories.mongodb.internal.model;
 
 import java.util.Objects;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -28,11 +29,31 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection="policies")
 public class PolicyMongo {
 
+	/**
+	 * Policy identifier
+	 */
 	@Id
-    private String id;
+    private ObjectId id;
+    
+    /**
+     * The policy name
+     */
     private String name;
+    
+    /**
+     * The policy description
+     */
     private String description;
+    
+    /**
+     * The policy version
+     */
     private String version;
+
+    /**
+     * Configuration schema in JSON format.
+     */
+    private String configuration;
 
 
     public String getDescription() {
@@ -43,11 +64,11 @@ public class PolicyMongo {
         this.description = description;
     }
 
-    public String getId() {
+    public ObjectId getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(ObjectId id) {
         this.id = id;
     }
 
@@ -67,6 +88,15 @@ public class PolicyMongo {
         this.version = version;
     }
  
+    
+
+	public String getConfiguration() {
+		return configuration;
+	}
+
+	public void setConfiguration(String configuration) {
+		this.configuration = configuration;
+	}
 
 	@Override
     public boolean equals(Object o) {
