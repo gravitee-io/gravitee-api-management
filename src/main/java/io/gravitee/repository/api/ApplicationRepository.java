@@ -15,10 +15,12 @@
  */
 package io.gravitee.repository.api;
 
-import io.gravitee.repository.model.Application;
-
 import java.util.Optional;
 import java.util.Set;
+
+import io.gravitee.repository.model.Application;
+import io.gravitee.repository.model.Team;
+import io.gravitee.repository.model.User;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -43,13 +45,25 @@ public interface ApplicationRepository {
     /**
      * List all applications hold by a {@link io.gravitee.repository.model.User}.
      *
-     * @param username The name of the user.
+     * @param userName The name of the user.
      * @return All applications from a user.
      */
-    Set<Application> findByUser(String username);
+    Set<Application> findByUser(String userName);
 
+    /**
+     * Create an {@link Application}
+     * 
+     * @param application Application to create
+     * @return Application created
+     */
     Application create(Application application);
 
+    /**
+     * Update an {@link Application}
+     * 
+     * @param application Application to update
+     * @return Application updated
+     */
     Application update(Application application);
 
     /**
@@ -60,9 +74,26 @@ public interface ApplicationRepository {
      */
     Optional<Application> findByName(String applicationName);
 
-    void delete(String apiName);
+    /**
+     * Delete an {@link Application}
+     * 
+     * @param applicationName Application name to delete
+     */
+    void delete(String applicationName);
 
-    int countByUser(String username);
+    /**
+     * Count {@link Application} owner by a given {@link User}
+     * 
+     * @param userName Application user owner name
+     * @return Counted application
+     */
+    int countByUser(String userName);
 
+    /**
+     * Count {@link Team} owner by a given {@link User}
+     * 
+     * @param teamName Application user owner team
+     * @return Counted application
+     */
     int countByTeam(String teamName);
 }

@@ -25,13 +25,41 @@ import java.util.Set;
  */
 public interface PolicyRepository {
 
+	/**
+	 * Find All {@link Policy} plugins.
+	 * 
+	 * @return Policies found
+	 */
     Set<Policy> findAll();
 
+    /**
+     * Find a {@link Policy} by id
+     * 
+     * @param id Searched policy id
+     * @return {@link Optional} of {@link Policy} found
+     */
     Optional<Policy> findById(String id);
     
+    /**
+     * Create a {@link Policy} plugin.
+     * 
+     * @param policy Policy to create
+     * @return Policy created
+     */
     Policy create(Policy policy);
-    
+ 
+    /**
+     * Update a {@link Policy} plugin.
+     * 
+     * @param policy Policy to update
+     * @return Policy updated
+     */   
     Policy update(Policy policy);
     
+    /**
+     * Delete a {@link Policy} by Id.
+     * 
+     * @param id Policy to delete identifier 
+     */
     void delete(String id);
 }

@@ -15,12 +15,12 @@
  */
 package io.gravitee.repository.api;
 
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.PolicyConfiguration;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import io.gravitee.repository.model.Api;
+import io.gravitee.repository.model.PolicyConfiguration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -60,19 +60,68 @@ public interface ApiRepository {
      */
     Set<Api> findByUser(String username, boolean publicOnly);
 
+    /**
+     * Create an API
+     * 
+     * @param api api to create
+     * @return api creaded
+     */
     Api create(Api api);
 
+    /**
+     * Update an API
+     * 
+     * @param api api to update
+     * @return api updated
+     */
     Api update(Api api);
 
+    /**
+     * Delete an API
+     * 
+     * @param apiName api name to delete
+     */
     void delete(String apiName);
 
+    /**
+     * Count all APIs (public and private) owned by a given {@link io.gravitee.repository.model.User}
+     * 
+     * @param username owner user name 
+     * @param publicOnly List only public APIs.
+     * @return counted APIs
+     */
     int countByUser(String username, boolean publicOnly);
-
+   
+    /**
+    * Count all APIs (public and private) owned by a given {@link io.gravitee.repository.model.Team}
+    * 
+    * @param teamName owner team name 
+    * @param publicOnly List only public APIs.
+    * @return counted APIs
+    */
     int countByTeam(String teamName, boolean publicOnly);
 
+    /**
+     * Update an API policies
+     * 
+     * @param apiName API name
+     * @param policyConfigurations Ordered list of {@link PolicyConfiguration} to set to the API
+     */
     void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigurations);
-
+  
+    /**
+     * Update a API policy
+     * 
+     * @param apiName API name
+     * @param policyConfiguration {@link PolicyConfiguration} to update
+     */
     void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfiguration);
 
+    /**
+     * Give all {@link PolicyConfiguration} for an API
+     * 
+     * @param apiName API name
+     * @return API policies configuration
+     */
     List<PolicyConfiguration> findPoliciesByApi(String apiName);
 }

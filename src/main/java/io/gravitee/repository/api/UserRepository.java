@@ -25,11 +25,34 @@ import io.gravitee.repository.model.User;
  */
 public interface UserRepository {
 
+    /**
+     * Create a {@link User}
+     * 
+     * @param usr user to create
+     * @return User created
+     */
 	User create(User user);
 	
+	/**
+	 * Find a {@link User} by name
+	 * 
+	 * @param username Name of the searched user
+	 * @return Option user found
+	 */
 	Optional<User> findByUsername(String username);
 
+	/**
+	 * Find all {@link User}s
+	 * 
+	 * @return Users found
+	 */
     Set<User> findAll();
 
+	/**
+	 * Find all {@link User} in a team
+	 * 
+	 * @param team name
+	 * @return users found
+	 */
     Set<User> findByTeam(String teamName);
 }
