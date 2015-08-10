@@ -63,7 +63,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	public Set<Api> findAll() {
 		
 		List<ApiMongo> apis = internalApiRepo.findAll();
-		return mapiApis(apis);
+		return mapApis(apis);
 	}
 
 	
@@ -93,7 +93,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	@Override
 	public Set<Api> findByUser(String username, boolean publicOnly) {
 		List<ApiMongo> apis = internalApiRepo.findByUser(username, publicOnly);
-		return mapiApis(apis);
+		return mapApis(apis);
 	}
 
 
@@ -101,7 +101,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	public Set<Api> findByTeam(String teamName,  boolean publicOnly) {
 	
 		List<ApiMongo> apis = internalApiRepo.findByTeam(teamName, publicOnly);
-		return mapiApis(apis);
+		return mapApis(apis);
 	}
 	
 
@@ -109,7 +109,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	public Set<Api> findByCreator(String userName) {
 
 		List<ApiMongo> apis = internalApiRepo.findByCreator(userName);
-		return mapiApis(apis);
+		return mapApis(apis);
 	}
 	
 	
@@ -125,7 +125,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	
 
 	
-	private Set<Api> mapiApis(Collection<ApiMongo> apis){
+	private Set<Api> mapApis(Collection<ApiMongo> apis){
 	
 		Set<Api> res = new HashSet<>();
 		for (ApiMongo api : apis) {
