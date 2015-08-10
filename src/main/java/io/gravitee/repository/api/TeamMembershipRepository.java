@@ -21,17 +21,45 @@ import io.gravitee.repository.model.TeamRole;
 
 import java.util.Set;
 
+import javax.management.relation.Role;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface TeamMembershipRepository {
 
+	/**
+	 * Add {@link Member} to a {@link Team}.
+	 * 
+	 * @param teamName Team name of the member
+	 * @param username Member user name 
+	 * @param role {@link Role} given to the member in this team
+	 */
     void addMember(String teamName, String username, TeamRole role);
 
+	/**
+	 * Update the role of a given {@link Team} {@link Member}.
+	 * 
+	 * @param teamName Team name of the member
+	 * @param username Member user name 
+	 * @param role {@link Role} given to the member in this team
+	 */
     void updateMember(String teamName, String username, TeamRole role);
 
+    /**
+     * Remove a team user {@link Member}
+     * 
+     * @param teamName Team name where the member will be removed
+     * @param username User name removed as member
+     */
     void deleteMember(String teamName, String username);
 
+    /**
+     * List all team {@link Member}s 
+     * 
+     * @param teamName Team name off members
+     * @return Team members
+     */
     Set<Member> listMembers(String teamName);
 
     /**

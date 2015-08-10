@@ -33,11 +33,34 @@ public interface TeamRepository {
      */
     Set<Team> findAll(boolean publicOnly);
 
+    /**
+     * Find a {@link Team} by name
+     * 
+     * @param name team name
+     * @return {@link Optional} {@link Team} found
+     */
     Optional<Team> findByName(String name);
 
+    /**
+     * Create a {@link Team}
+     * 
+     * @param team team to create
+     * @return Team created
+     */
     Team create(Team team);
-
+  
+    /**
+     * Update a {@link Team}
+     * 
+     * @param team team to update
+     * @return Team updated
+     */
     Team update(Team team);
 
+    /**
+     * Delete a team by name
+     * 
+     * @param name Team name.
+     */
     void delete(String name);
 }

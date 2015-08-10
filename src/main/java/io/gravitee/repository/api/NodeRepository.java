@@ -24,9 +24,21 @@ import io.gravitee.repository.model.Node;
  */
 public interface NodeRepository {
 
+	/**
+	 * Register a gateway {@link Node}
+	 * @param node Node to register
+	 */
     void register(Node node);
 
+    /**
+     * Unregister a gateway {@link Node}
+     * @param nodename Node name
+     */
     void unregister(String nodename);
     
+    /**
+     * Find all {@link Node} (registered an unregistered)
+     * @return Node found
+     */
     Set<Node> findAll();
 }
