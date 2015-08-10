@@ -104,10 +104,18 @@ public class ApiRepositoryImpl implements ApiRepository {
 		return mapiApis(apis);
 	}
 	
+
+	@Override
+	public Set<Api> findByCreator(String userName) {
+
+		List<ApiMongo> apis = internalApiRepo.findByCreator(userName);
+		return mapiApis(apis);
+	}
+	
+	
 	@Override
 	public int countByUser(String username,  boolean publicOnly) {
 		return (int) internalApiRepo.countByUser(username, publicOnly);
-
 	}
 
 	@Override
@@ -138,6 +146,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 			}else{
 				apiMongo.setOwner(internalTeamRepo.findOne(api.getOwner()));
 			}
+			apiMongo.setCreator(internalUserRepo.findOne(api.getCreator()));
 		}
 		return apiMongo;
 	}
@@ -155,6 +164,9 @@ public class ApiRepositoryImpl implements ApiRepository {
 				}else{
 					api.setOwnerType(OwnerType.TEAM);
 				}
+			}
+			if(apiMongo.getCreator() != null){
+				api.setCreator(apiMongo.getCreator().getName());
 			}
 		}
 		return api;
@@ -182,6 +194,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 		 List<PolicyConfigurationMongo>  policies = this.internalApiRepo.findPoliciesByApi(apiName);
 		 return  mapper.collection2list(policies, PolicyConfigurationMongo.class, PolicyConfiguration.class);
 	}
+
 
 	
 }
