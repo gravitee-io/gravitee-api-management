@@ -13,41 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
-import io.gravitee.repository.model.Application;
-
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class TeamApplicationsResource {
+public class PoliciesConfigurationResource {
 
-    private String teamName;
+    private String apiName;
 
-    /**
-     * List applications for the specified team.
-     * @return Applications for the specified team.
-     */
+    public void setApiName(String apiName) {
+        this.apiName = apiName;
+    }
+
     @GET
-    public Set<Application> getApplications() {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set listAll() {
         return null;
     }
 
-    /**
-     * Create a new application for the specified team.
-     * @param application
-     * @return
-     */
     @POST
-    public Application createApplication(Application application) {
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response addPolicyConfigurations(Set policiesConfiguration) {
         return null;
-    }
-
-    public void setTeamName(String teamName) {
-        this.teamName = teamName;
     }
 }

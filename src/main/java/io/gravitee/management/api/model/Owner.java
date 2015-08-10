@@ -40,7 +40,7 @@ public class Owner {
         this.type = type;
     }
 
-    enum OwnerType {
+    public enum OwnerType {
         User, Team;
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
 import io.gravitee.management.api.model.NewTeamEntity;
 import io.gravitee.management.api.model.TeamEntity;
@@ -50,6 +50,7 @@ public class TeamsResource {
      * @return
      */
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Set<TeamEntity> listAll() {
         Set<TeamEntity> teams = teamService.findAll(true);
 
@@ -61,6 +62,7 @@ public class TeamsResource {
     }
 
     @POST
+    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@NotNull NewTeamEntity newTeamEntity) {
         TeamEntity team = teamService.create(newTeamEntity);
@@ -75,6 +77,7 @@ public class TeamsResource {
     }
 
     @PUT
+    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@NotNull NewTeamEntity newTeamEntity) {
         TeamEntity team = teamService.update(newTeamEntity);

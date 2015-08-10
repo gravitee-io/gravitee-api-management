@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.api.builder.ApiBuilder;

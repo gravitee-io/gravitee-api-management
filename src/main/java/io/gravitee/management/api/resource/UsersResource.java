@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 
 /**
  * Defines the REST resources to manage {@code User}.
  *
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-@Produces(MediaType.APPLICATION_JSON)
 @Path("/users")
 public class UsersResource {
 
@@ -44,6 +41,7 @@ public class UsersResource {
 
         return userResource;
     }
+}
 
     /*
     @GET
@@ -69,20 +67,4 @@ public class UsersResource {
         return Response.status(HttpStatusCode.OK_200).entity(users)
             .header("Access-Control-Allow-Origin", "*").build();
     }
-
-    @GET
-    @Path("{id}/teams")
-    public Response listTeams(@PathParam("id") final String id) {
-        return Response.status(HttpStatusCode.OK_200).entity(Arrays.asList("Stores", "Gravitee", "Mobility", "Security"
-            , "Intranet", "Web site"))
-            .header("Access-Control-Allow-Origin", "*").build();
-    }
-
-    @GET
-    @Path("/roles")
-    public Response listRoles() {
-        return Response.status(HttpStatusCode.OK_200).entity(Arrays.asList("ROLE_ADMIN", "ROLE_USER", "ROLE_MANAGEMENT"))
-            .header("Access-Control-Allow-Origin", "*").build();
-    }
-    */
-}
+*/

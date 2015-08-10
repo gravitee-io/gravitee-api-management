@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api;
+package io.gravitee.management.api.provider;
 
-import io.gravitee.management.api.resource.ApisResource;
-import io.gravitee.management.api.resource.PolicyResource;
-import io.gravitee.management.api.resource.UsersResource;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
+import io.gravitee.management.api.exceptions.AbstractManagementException;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class GraviteeApplication extends ResourceConfig {
+@Provider
+public class ManagementExceptionMapper implements ExceptionMapper<AbstractManagementException> {
 
-    public GraviteeApplication() {
-        register(ApisResource.class);
-        register(UsersResource.class);
-        register(PolicyResource.class);
-
-        register(JacksonFeature.class);
+    @Override
+    public Response toResponse(AbstractManagementException mex) {
+        return Response
+                .status(mex.getHttpStatusCode())
+                .build();
     }
 }

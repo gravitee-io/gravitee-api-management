@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
+import io.gravitee.management.api.exceptions.UserNotFoundException;
 import io.gravitee.management.api.model.*;
 import io.gravitee.management.api.service.ApiService;
 import io.gravitee.management.api.service.ApplicationService;
 import io.gravitee.management.api.service.TeamService;
-import io.gravitee.repository.model.User;
+import io.gravitee.management.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -39,7 +38,7 @@ import java.util.Set;
 @Component
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/user")
-public class AuthenticatedUserResource {
+public class AuthenticatedUserResource extends AbstractResource {
 
     @Autowired
     private ApiService apiService;
@@ -50,16 +49,22 @@ public class AuthenticatedUserResource {
     @Autowired
     private ApplicationService applicationService;
 
-    // TODO: How to get username of the authenticated user ?
-    private String username;
+    @Autowired
+    private UserService userService;
 
     /**
      * Get the authenticated user.
      * @return The authenticated user.
      */
     @GET
-    public User authenticatedUser() {
-        return null;
+    @Produces(MediaType.APPLICATION_JSON)
+    public UserEntity authenticatedUser() throws UserNotFoundException {
+        Optional<UserEntity> user = userService.findByName(getAuthenticatedUser());
+        if (! user.isPresent()) {
+            throw new UserNotFoundException();
+        }
+
+        return user.get();
     }
 
     /**
@@ -68,8 +73,9 @@ public class AuthenticatedUserResource {
      */
     @GET
     @Path("teams")
+    @Produces(MediaType.APPLICATION_JSON)
     public Set<TeamEntity> listTeams() {
-        return teamService.findByUser(username);
+        return teamService.findByUser(getAuthenticatedUser());
     }
 
     /**
@@ -78,8 +84,9 @@ public class AuthenticatedUserResource {
      */
     @GET
     @Path("applications")
+    @Produces(MediaType.APPLICATION_JSON)
     public Set<ApplicationEntity> listApplications() {
-        return null;
+        return applicationService.findByUser(getAuthenticatedUser());
     }
 
     /**
@@ -93,8 +100,9 @@ public class AuthenticatedUserResource {
      */
     @GET
     @Path("apis")
+    @Produces(MediaType.APPLICATION_JSON)
     public Set<ApiEntity> listApis() {
-        return apiService.findByUser(username, false);
+        return apiService.findByUser(getAuthenticatedUser(), false);
     }
 
     /**
@@ -104,11 +112,13 @@ public class AuthenticatedUserResource {
      */
     @POST
     @Path("apis")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response createApi(NewApiEntity api) {
-        ApiEntity newApi = apiService.createForUser(api, username);
+        ApiEntity newApi = apiService.createForUser(api, getAuthenticatedUser());
         if (newApi != null) {
             return Response
-                    .created(URI.create("/users/" + username + "/apis/" + newApi.getName()))
+                    .created(URI.create("/apis/" + newApi.getName()))
                     .entity(newApi)
                     .build();
         }
@@ -123,11 +133,13 @@ public class AuthenticatedUserResource {
      */
     @POST
     @Path("applications")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response createApplication(NewApplicationEntity application) {
-        ApplicationEntity newApplication = applicationService.createForUser(application, username);
+        ApplicationEntity newApplication = applicationService.createForUser(application, getAuthenticatedUser());
         if (newApplication != null) {
             return Response
-                    .created(URI.create("/users/" + username + "/applications/" + newApplication.getName()))
+                    .created(URI.create("/applications/" + newApplication.getName()))
                     .entity(newApplication)
                     .build();
         }

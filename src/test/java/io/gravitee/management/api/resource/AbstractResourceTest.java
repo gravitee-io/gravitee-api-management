@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
 import io.gravitee.management.api.JerseySpringTest;
 import io.gravitee.management.api.service.ApiService;
@@ -39,7 +39,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Configuration
-    @ComponentScan("io.gravitee.management.api.resources")
+    @ComponentScan("io.gravitee.management.api.resource")
     static class ContextConfiguration {
 
     	@Bean

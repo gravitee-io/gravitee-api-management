@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
 import io.gravitee.management.api.model.NewApiEntity;
 import io.gravitee.management.api.model.ApiEntity;
 import io.gravitee.management.api.service.ApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Set;
@@ -41,6 +44,7 @@ public class TeamApisResource {
      * @return APIs for the specified team.
      */
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Set<ApiEntity> getApis() {
         return apiService.findByTeam(teamName, true);
     }
@@ -51,6 +55,8 @@ public class TeamApisResource {
      * @return
      */
     @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response createApi(NewApiEntity api) {
         ApiEntity createdApi = apiService.createForTeam(api, teamName);
         if (createdApi != null) {

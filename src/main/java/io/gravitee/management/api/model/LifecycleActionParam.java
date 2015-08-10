@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.custom;
+package io.gravitee.management.api.model;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -22,8 +22,7 @@ public class LifecycleActionParam {
 
     public enum LifecycleAction {
         START,
-        STOP,
-        SHUTDOWN
+        STOP
     }
 
     private LifecycleAction action ;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
 import io.gravitee.management.api.model.ApiEntity;
 import io.gravitee.management.api.service.ApiService;
@@ -34,7 +34,6 @@ import java.util.Set;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-@Produces(MediaType.APPLICATION_JSON)
 @Path("/apis")
 public class ApisResource {
 
@@ -50,6 +49,7 @@ public class ApisResource {
      * @return List all publicly visible APIs
      */
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Set<ApiEntity> listAll() {
         Set<ApiEntity> apis = apiService.findAll();
 

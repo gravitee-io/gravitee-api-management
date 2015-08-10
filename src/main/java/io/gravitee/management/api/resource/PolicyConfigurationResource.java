@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api;
-
-import io.gravitee.management.api.resource.ApisResource;
-import io.gravitee.management.api.resource.PolicyResource;
-import io.gravitee.management.api.resource.UsersResource;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
+package io.gravitee.management.api.resource;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class GraviteeApplication extends ResourceConfig {
+public class PolicyConfigurationResource {
 
-    public GraviteeApplication() {
-        register(ApisResource.class);
-        register(UsersResource.class);
-        register(PolicyResource.class);
+    private String apiName;
+    private String policyName;
 
-        register(JacksonFeature.class);
+
+    public void setApiName(String apiName) {
+        this.apiName = apiName;
+    }
+
+    public void setPolicyName(String policyName) {
+        this.policyName = policyName;
     }
 }

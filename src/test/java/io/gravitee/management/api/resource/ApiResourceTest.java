@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import io.gravitee.management.api.builder.ApiBuilder;
 import io.gravitee.management.api.model.ApiEntity;
 import io.gravitee.management.api.service.ApiService;
-import io.gravitee.repository.api.ApiRepository;
 import io.gravitee.repository.model.Api;
 
 import java.util.Date;

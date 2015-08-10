@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
+import io.gravitee.management.api.exceptions.UserNotFoundException;
+import io.gravitee.management.api.model.ApiEntity;
+import io.gravitee.management.api.model.ApplicationEntity;
+import io.gravitee.management.api.model.TeamEntity;
 import io.gravitee.management.api.model.UserEntity;
 import io.gravitee.management.api.service.ApiService;
 import io.gravitee.management.api.service.ApplicationService;
@@ -24,10 +28,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.MediaType;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -55,22 +61,22 @@ public class UserResource {
         this.username = username;
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public UserEntity getUserInfo() throws UserNotFoundException {
+        return getCurrentUser();
+    }
+
     /**
      * List public teams for the specified user.
      * @return Public teams for the specified user.
      */
     @GET
     @Path("teams")
-    public Response publicTeams() {
-        Optional<UserEntity> user = userService.findByName(username);
-        if (! user.isPresent()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        return Response
-                .ok()
-                .entity(teamService.findByUser(username))
-                .build();
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<TeamEntity> getUserPublicTeams() throws UserNotFoundException {
+        UserEntity user = getCurrentUser();
+        return teamService.findByUser(user.getUsername());
     }
 
     /**
@@ -79,16 +85,10 @@ public class UserResource {
      */
     @GET
     @Path("apis")
-    public Response publicApis() {
-        Optional<UserEntity> user = userService.findByName(username);
-        if (! user.isPresent()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        return Response
-                .ok()
-                .entity(apiService.findByUser(username, true))
-                .build();
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<ApiEntity> getUserPublicApis() throws UserNotFoundException {
+        UserEntity user = getCurrentUser();
+        return apiService.findByUser(user.getUsername(), true);
     }
 
     /**
@@ -97,15 +97,18 @@ public class UserResource {
      */
     @GET
     @Path("applications")
-    public Response applications() {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<ApplicationEntity> getUserApplications() throws UserNotFoundException {
+        UserEntity user = getCurrentUser();
+        return applicationService.findByUser(user.getUsername());
+    }
+
+    private UserEntity getCurrentUser() throws UserNotFoundException {
         Optional<UserEntity> user = userService.findByName(username);
         if (! user.isPresent()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            throw new UserNotFoundException();
         }
 
-        return Response
-                .ok()
-                .entity(applicationService.findByUser(username))
-                .build();
+        return user.get();
     }
 }

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.management.api.custom.LifecycleActionParam;
+import io.gravitee.management.api.exceptions.ApiNotFoundException;
+import io.gravitee.management.api.model.LifecycleActionParam;
 import io.gravitee.management.api.model.ApiEntity;
 import io.gravitee.management.api.model.UpdateApiEntity;
 import io.gravitee.management.api.service.ApiService;
@@ -36,7 +37,6 @@ import java.util.Optional;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-@Produces(MediaType.APPLICATION_JSON)
 public class ApiResource {
 
     @Context
@@ -48,7 +48,8 @@ public class ApiResource {
     private String apiName;
 
     @GET
-    public Response get() {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response get() throws ApiNotFoundException {
         Optional<ApiEntity> api = apiService.findByName(apiName);
 
         if (api.isPresent()) {
@@ -86,6 +87,7 @@ public class ApiResource {
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response update(final UpdateApiEntity api) {
         ApiEntity updatedApi = apiService.update(apiName, api);
         if (updatedApi != null) {

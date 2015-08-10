@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api;
+package io.gravitee.management.api.exceptions;
 
-import io.gravitee.management.api.resource.ApisResource;
-import io.gravitee.management.api.resource.PolicyResource;
-import io.gravitee.management.api.resource.UsersResource;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
+import javax.ws.rs.core.Response;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class GraviteeApplication extends ResourceConfig {
+public class NotAuthorizedException extends AbstractManagementException {
 
-    public GraviteeApplication() {
-        register(ApisResource.class);
-        register(UsersResource.class);
-        register(PolicyResource.class);
-
-        register(JacksonFeature.class);
+    @Override
+    public Response.Status getHttpStatusCode() {
+        return Response.Status.FORBIDDEN;
     }
 }

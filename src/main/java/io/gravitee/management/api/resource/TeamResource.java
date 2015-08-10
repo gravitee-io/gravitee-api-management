@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.resources;
+package io.gravitee.management.api.resource;
 
 import io.gravitee.management.api.model.TeamEntity;
 import io.gravitee.management.api.service.TeamService;
@@ -45,6 +45,7 @@ public class TeamResource {
     private TeamService teamService;
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Response get() {
         Optional<TeamEntity> optTeam = teamService.findByName(teamName);
 

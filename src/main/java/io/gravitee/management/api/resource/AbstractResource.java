@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api;
+package io.gravitee.management.api.resource;
 
-import io.gravitee.management.api.resource.ApisResource;
-import io.gravitee.management.api.resource.PolicyResource;
-import io.gravitee.management.api.resource.UsersResource;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.SecurityContext;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class GraviteeApplication extends ResourceConfig {
+public abstract class AbstractResource {
 
-    public GraviteeApplication() {
-        register(ApisResource.class);
-        register(UsersResource.class);
-        register(PolicyResource.class);
+    @Context
+    private SecurityContext securityContext;
 
-        register(JacksonFeature.class);
+    protected String getAuthenticatedUser() {
+        return securityContext.getUserPrincipal().getName();
     }
 }
