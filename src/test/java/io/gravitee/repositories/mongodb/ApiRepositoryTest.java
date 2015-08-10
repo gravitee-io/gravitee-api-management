@@ -41,7 +41,7 @@ import io.gravitee.repository.model.User;
 @ContextConfiguration(classes = { RepositoryConfiguration.class })
 public class ApiRepositoryTest extends AbstractMongoDBTest {
 
-	private static final String APIS_DATA = "/data/api-tests/";
+	private static final String TESTCASES_PATH = "/data/api-tests/";
 
 	private Logger Logger = LoggerFactory.getLogger(ApiRepositoryTest.class);	
 	
@@ -53,7 +53,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 
     @Override
     protected String getJsonDataSetResourceName() {
-        return APIS_DATA;
+        return TESTCASES_PATH;
     }
 	
 	private User createUser(String userName){
