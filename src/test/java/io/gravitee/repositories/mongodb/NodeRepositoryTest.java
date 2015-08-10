@@ -16,9 +16,6 @@
 package io.gravitee.repositories.mongodb;
 
 import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,9 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import io.gravitee.repository.api.NodeRepository;
-import io.gravitee.repository.model.Application;
 import io.gravitee.repository.model.Node;
-import io.gravitee.repository.model.OwnerType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { RepositoryConfiguration.class })

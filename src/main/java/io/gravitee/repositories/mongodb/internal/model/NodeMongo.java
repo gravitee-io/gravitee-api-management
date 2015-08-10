@@ -20,8 +20,6 @@ import java.util.Date;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import io.gravitee.repository.model.NodeState;
-
 /**
  * Mongo object model for cluster node
  * 

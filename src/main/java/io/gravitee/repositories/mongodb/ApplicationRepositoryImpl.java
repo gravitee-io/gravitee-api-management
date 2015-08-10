@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 
 import io.gravitee.repositories.mongodb.internal.application.ApplicationMongoRepository;
 import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
-import io.gravitee.repositories.mongodb.internal.model.TeamMongo;
 import io.gravitee.repositories.mongodb.internal.model.UserMongo;
 import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
 import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
@@ -34,7 +33,6 @@ import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.ApplicationRepository;
 import io.gravitee.repository.model.Application;
 import io.gravitee.repository.model.OwnerType;
-import io.gravitee.repository.model.Team;
 
 @Component
 public class ApplicationRepositoryImpl implements ApplicationRepository{

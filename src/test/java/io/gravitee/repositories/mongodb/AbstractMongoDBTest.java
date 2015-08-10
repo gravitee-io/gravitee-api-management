@@ -78,7 +78,7 @@ public abstract class AbstractMongoDBTest {
 
         LOG.info("Creating database '{}'...", DATABASE_NAME);
         mongoDatabase = ((MongoClient) mongoClient).getDatabase(DATABASE_NAME);
-        //logConnection();
+        //	logConnection();
         
         final File file = new File(AbstractMongoDBTest.class.getResource(getJsonDataSetResourceName()).toURI());
 

@@ -24,9 +24,6 @@ import org.springframework.data.mongodb.core.query.Query;
 
 import io.gravitee.repositories.mongodb.internal.model.ApiMongo;
 import io.gravitee.repositories.mongodb.internal.model.PolicyConfigurationMongo;
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.Policy;
-import io.gravitee.repository.model.PolicyConfiguration;
 
 public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
