@@ -18,6 +18,7 @@ package io.gravitee.repositories.mongodb.internal.api;
 import java.util.List;
 
 import io.gravitee.repositories.mongodb.internal.model.ApiMongo;
+import io.gravitee.repositories.mongodb.internal.model.PolicyConfigurationMongo;
 
 public interface ApiMongoRepositoryCustom {
 
@@ -48,5 +49,29 @@ public interface ApiMongoRepositoryCustom {
      * @return
      */	
 	public long countByTeam(String teamname, boolean publicOnly);
+	
+	/**
+	 * Update API policies configuration
+	 * 
+	 * @param apiName Api to update name 
+	 * @param policyConfigurations policies configurations
+	 */
+	public void updatePoliciesConfiguration(String apiName, List<PolicyConfigurationMongo> policyConfigurations);
+	
+	/**
+	 * Update API policy configuration
+	 * 
+	 * @param apiName Api to update name 
+	 * @param policyConfiguration policy configuration
+	 */
+	public void updatePolicyConfiguration(String apiName, PolicyConfigurationMongo policyConfiguration);
+	
+	/**
+	 * Return policies for one API
+	 * 
+	 * @param apiName  Api policy configuration owner name
+	 * @return Api Policy configuration
+	 */
+	public List<PolicyConfigurationMongo> findPoliciesByApi(String apiName);
 	
 }

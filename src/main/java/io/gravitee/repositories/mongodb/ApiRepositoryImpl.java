@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import io.gravitee.repositories.mongodb.internal.api.ApiMongoRepository;
 import io.gravitee.repositories.mongodb.internal.model.ApiMongo;
+import io.gravitee.repositories.mongodb.internal.model.PolicyConfigurationMongo;
 import io.gravitee.repositories.mongodb.internal.model.UserMongo;
 import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
 import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
@@ -33,6 +34,7 @@ import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.ApiRepository;
 import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.OwnerType;
+import io.gravitee.repository.model.PolicyConfiguration;
 
 @Component
 public class ApiRepositoryImpl implements ApiRepository {
@@ -156,6 +158,29 @@ public class ApiRepositoryImpl implements ApiRepository {
 			}
 		}
 		return api;
+	}
+
+	@Override
+	public void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigs) {
+		
+		List<PolicyConfigurationMongo> policiesConfigsMongo = mapper.collection2list(policyConfigs, PolicyConfiguration.class, PolicyConfigurationMongo.class);
+		this.internalApiRepo.updatePoliciesConfiguration(apiName, policiesConfigsMongo);
+		
+	}
+
+	@Override
+	public void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfig) {
+		
+		PolicyConfigurationMongo policyConfigMongo = mapper.map(policyConfig, PolicyConfigurationMongo.class);
+		this.internalApiRepo.updatePolicyConfiguration(apiName, policyConfigMongo);
+		
+	}
+
+	@Override
+	public List<PolicyConfiguration> findPoliciesByApi(String apiName) {
+		
+		 List<PolicyConfigurationMongo>  policies = this.internalApiRepo.findPoliciesByApi(apiName);
+		 return  mapper.collection2list(policies, PolicyConfigurationMongo.class, PolicyConfiguration.class);
 	}
 
 	

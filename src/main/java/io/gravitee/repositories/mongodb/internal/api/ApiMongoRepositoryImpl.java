@@ -23,6 +23,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 import io.gravitee.repositories.mongodb.internal.model.ApiMongo;
+import io.gravitee.repositories.mongodb.internal.model.PolicyConfigurationMongo;
+import io.gravitee.repository.model.Api;
+import io.gravitee.repository.model.Policy;
+import io.gravitee.repository.model.PolicyConfiguration;
 
 public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
@@ -62,7 +66,6 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 		List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
 		
 		return apis;
-
 	}
 
 
@@ -79,6 +82,29 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 		Query query = getFindByOwnerQuery("teams", teamname, publicOnly);				
 		return mongoTemplate.count(query, ApiMongo.class);
 		
+	}
+
+
+
+	@Override
+	public void updatePoliciesConfiguration(String apiName, List<PolicyConfigurationMongo> policyConfigurations) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void updatePolicyConfiguration(String apiName, PolicyConfigurationMongo policyConfiguration) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public List<PolicyConfigurationMongo> findPoliciesByApi(String apiName) {
+		
+		ApiMongo api = mongoTemplate.findById(apiName, ApiMongo.class);
+		return api.getPolicies();
 	}
 	
 }

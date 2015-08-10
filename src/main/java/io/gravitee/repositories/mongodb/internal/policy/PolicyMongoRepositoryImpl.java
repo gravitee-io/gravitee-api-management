@@ -15,12 +15,19 @@
  */
 package io.gravitee.repositories.mongodb.internal.policy;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+
+import io.gravitee.repositories.mongodb.internal.api.ApiMongoRepository;
+import io.gravitee.repositories.mongodb.internal.model.ApiMongo;
+import io.gravitee.repositories.mongodb.internal.model.PolicyMongo;
+import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
 
 public class PolicyMongoRepositoryImpl implements PolicyMongoRepositoryCustom {
 
 	@Autowired
-	private MongoTemplate mongoTemplate;
+	private MongoTemplate mongoTemplate;	
 
 }

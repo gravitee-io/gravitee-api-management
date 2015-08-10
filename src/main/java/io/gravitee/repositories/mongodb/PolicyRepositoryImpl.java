@@ -53,21 +53,25 @@ public class PolicyRepositoryImpl implements PolicyRepository{
 	}
 
 	@Override
-	public Set<Policy> findByApi(String apiName) {
-	
-		//List<PolicyMongo> policies = internalPolicyRepo.findByApi(apiName);
-		//Set<Policy> res = mapper.collection2set(policies, PolicyMongo.class, Policy.class);
-		//return res;
+	public Policy create(Policy policy) {
 		
-		// TODO Auto-generated method stub
-		return null;
+		PolicyMongo policyMongo = mapper.map(policy, PolicyMongo.class);
+		PolicyMongo savedPolicy = internalPolicyRepo.insert(policyMongo);
+		
+		return mapper.map(savedPolicy, Policy.class);
 	}
 
 	@Override
-	public String getConfigurationSchema() {
-		// TODO Auto-generated method stub
-		return null;
+	public Policy update(Policy policy) {
+		
+		PolicyMongo policyMongo = mapper.map(policy, PolicyMongo.class);
+		PolicyMongo savedPolicy = internalPolicyRepo.save(policyMongo);
+		
+		return mapper.map(savedPolicy, Policy.class);
 	}
 
-	
+	@Override
+	public void delete(String id) {
+		internalPolicyRepo.delete(id);
+	}
 }

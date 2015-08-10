@@ -33,7 +33,7 @@ public class PolicyMongo {
     private String name;
     private String description;
     private String version;
-    private String config;
+
 
     public String getDescription() {
         return description;
@@ -66,14 +66,7 @@ public class PolicyMongo {
     public void setVersion(String version) {
         this.version = version;
     }
-    
-    public String getConfig() {
-		return config;
-	}
-
-	public void setConfig(String config) {
-		this.config = config;
-	}
+ 
 
 	@Override
     public boolean equals(Object o) {

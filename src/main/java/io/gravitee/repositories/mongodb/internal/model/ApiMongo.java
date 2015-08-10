@@ -16,6 +16,7 @@
 package io.gravitee.repositories.mongodb.internal.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.data.annotation.Id;
@@ -36,6 +37,8 @@ public class ApiMongo {
 
     private String publicURI;
     private String targetURI;
+
+    private String lifecycleState;
     
 	private boolean privateApi;
     
@@ -48,8 +51,9 @@ public class ApiMongo {
     @DBRef 
     private UserMongo creator;
 
-    private String lifecycleState;
-
+    private List<PolicyConfigurationMongo> policies;
+    
+    
     public boolean isPrivateApi() {
 		return privateApi;
 	}
@@ -128,6 +132,14 @@ public class ApiMongo {
 
 	public void setCreator(UserMongo creator) {
 		this.creator = creator;
+	}
+	
+	public List<PolicyConfigurationMongo> getPolicies() {
+		return policies;
+	}
+
+	public void setPolicies(List<PolicyConfigurationMongo> policies) {
+		this.policies = policies;
 	}
 
 	@Override
