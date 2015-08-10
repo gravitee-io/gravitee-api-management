@@ -21,6 +21,7 @@ import java.util.Set;
 
 import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.PolicyConfiguration;
+import io.gravitee.repository.model.User;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -124,4 +125,12 @@ public interface ApiRepository {
      * @return API policies configuration
      */
     List<PolicyConfiguration> findPoliciesByApi(String apiName);
+    
+    /**
+     * Find APIs by creator
+     * 
+     * @param userName creator {@link User} name
+     * @return APIs created by the user
+     */
+    Set<Api> findByCreator(String userName);
 }
