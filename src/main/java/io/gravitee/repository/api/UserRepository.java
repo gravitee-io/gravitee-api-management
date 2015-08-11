@@ -29,7 +29,7 @@ public interface UserRepository {
     /**
      * Create a {@link User}
      * 
-     * @param usr user to create
+     * @param user user to create
      * @return User created
      */
 	User create(User user) throws TechnicalException;
@@ -60,7 +60,7 @@ public interface UserRepository {
 	/**
 	 * Find all {@link User} in a team
 	 * 
-	 * @param team name
+	 * @param teamName name of the team
 	 * @return users found
 	 */
     Set<User> findByTeam(String teamName) throws TechnicalException;
