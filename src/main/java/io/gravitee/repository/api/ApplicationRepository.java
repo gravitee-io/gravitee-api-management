@@ -18,6 +18,7 @@ package io.gravitee.repository.api;
 import java.util.Optional;
 import java.util.Set;
 
+import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.Application;
 import io.gravitee.repository.model.Team;
 import io.gravitee.repository.model.User;
@@ -96,4 +97,24 @@ public interface ApplicationRepository {
      * @return Counted application
      */
     int countByTeam(String teamName);
+    
+    /**
+     * Associate an Api with an Application.
+     * 
+     * @param applicationName Application name
+     * @param apiName Name of the Api to associate 
+     * @return true success, false otherwise
+     */
+    boolean associate(String applicationName, String apiName);
+    
+    /**
+     * Remove an association between an {@link Application} and an {@link Api}
+     * 
+     * @param applicationName Application name
+     * @param apiName Name of the Api to dissociate 
+     * @return true success, false otherwise
+     */
+    boolean dissociate(String applicationName, String apiName);
+
+
 }
