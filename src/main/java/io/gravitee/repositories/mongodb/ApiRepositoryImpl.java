@@ -195,6 +195,12 @@ public class ApiRepositoryImpl implements ApiRepository {
 		 return  mapper.collection2list(policies, PolicyConfigurationMongo.class, PolicyConfiguration.class);
 	}
 
+	@Override
+	public Set<Api> findByApplication(String application) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 	
 }

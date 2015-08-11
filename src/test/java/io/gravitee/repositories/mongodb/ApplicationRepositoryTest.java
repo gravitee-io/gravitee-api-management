@@ -70,7 +70,6 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 			
 			application.setName(name);
 			application.setDescription("Application description");
-			application.setKey(UUID.randomUUID().toString());
 			application.setCreator("creator");
 			application.setOwnerType(OwnerType.USER);
 			application.setOwner("creator");
@@ -90,7 +89,6 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 			Assert.assertEquals("Invalid application name.", 		application.getName(), 			appSaved.getName());
 			Assert.assertEquals("Invalid application description.",	application.getDescription(), 	appSaved.getDescription());
 			Assert.assertEquals("Invalid application type.", 		application.getType(), 			appSaved.getType());
-			Assert.assertEquals("Invalid application key.", 		application.getKey(), 			appSaved.getKey());
 			Assert.assertEquals("Invalid application creator.", 	application.getCreator(), 		appSaved.getCreator());
 			Assert.assertEquals("Invalid application createdAt.", 	application.getCreatedAt(), 	appSaved.getCreatedAt());
 			Assert.assertEquals("Invalid application updateAt.", 	application.getUpdatedAt(), 	appSaved.getUpdatedAt());
@@ -113,7 +111,6 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 			application.setName(applicationName);
 			application.setCreator("updater");
 			application.setDescription("Updated description");
-			application.setKey(UUID.randomUUID().toString());
 			//application.setName(name);
 			application.setOwner("updater");
 			application.setOwnerType(OwnerType.USER);
@@ -131,7 +128,6 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 			Assert.assertEquals("Invalid updated application name.", 		application.getName(), 			appUpdated.getName());
 			Assert.assertEquals("Invalid updated application description.",	application.getDescription(), 	appUpdated.getDescription());
 			Assert.assertEquals("Invalid updated application type.", 		application.getType(), 			appUpdated.getType());
-			Assert.assertEquals("Invalid updated application key.", 		application.getKey(), 			appUpdated.getKey());		
 			Assert.assertEquals("Invalid updated application updateAt.", 	application.getUpdatedAt(), 	appUpdated.getUpdatedAt());
 			Assert.assertEquals("Invalid updated application Owner.", 		application.getOwner(), 		appUpdated.getOwner());
 			Assert.assertEquals("Invalid updated application OwnerType.", 	application.getOwnerType(), 	appUpdated.getOwnerType());

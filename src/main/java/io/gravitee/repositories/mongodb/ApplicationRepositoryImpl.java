@@ -71,7 +71,6 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 		
 		//Update 
 		applicationMongo.setDescription(application.getDescription());
-		applicationMongo.setKey(application.getKey());
 		applicationMongo.setUpdatedAt(application.getUpdatedAt());
 		applicationMongo.setType(application.getType());
 		
@@ -174,6 +173,20 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 		applicationMongo.setCreator(internalUserRepo.findOne(application.getCreator()));
 		
 		return applicationMongo;
+	}
+
+
+	@Override
+	public boolean associate(String applicationName, String apiName) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+	@Override
+	public boolean dissociate(String applicationName, String apiName) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	
