@@ -31,7 +31,7 @@ public class User {
     /**
      * The user email
      */
-    private String mail;
+    private String email;
     
     /**
      * The user creation date
@@ -44,12 +44,12 @@ public class User {
     private Date updatedAt;
     
 
-    public String getMail() {
-        return mail;
+    public String getEmail() {
+        return email;
     }
 
-    public void setMail(String mail) {
-        this.mail = mail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getUsername() {
@@ -93,7 +93,7 @@ public class User {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("User{");
-        sb.append("mail='").append(mail).append('\'');
+        sb.append("mail='").append(email).append('\'');
         sb.append(", username='").append(username).append('\'');
         sb.append('}');
         return sb.toString();
