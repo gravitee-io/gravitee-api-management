@@ -133,4 +133,13 @@ public interface ApiRepository {
      * @return APIs created by the user
      */
     Set<Api> findByCreator(String userName);
+    
+    /**
+     * Find Apis associated with an application
+     * 
+     * @param application Application Name
+     * @return Apis associated
+     */
+    Set<Api> findByApplication(String application);
+
 }

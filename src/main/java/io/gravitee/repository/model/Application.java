@@ -62,12 +62,8 @@ public class Application {
      * The user name that create the application
      */
     private String creator;
-    
-    /**
-     * The application key
-     */
-    private String key;
 
+    
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -131,14 +127,6 @@ public class Application {
     public void setCreator(String creator) {
         this.creator = creator;
     }
-
-    public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
 
 	@Override
     public boolean equals(Object o) {
