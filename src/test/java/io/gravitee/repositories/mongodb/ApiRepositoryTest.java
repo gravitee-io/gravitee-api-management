@@ -62,7 +62,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 
 		User user = new User();
 		user.setUsername(userName);
-		user.setMail(userName+"@itest.test");
+		user.setEmail(userName+"@itest.test");
 		return userRepository.create(user);
 	}
 	

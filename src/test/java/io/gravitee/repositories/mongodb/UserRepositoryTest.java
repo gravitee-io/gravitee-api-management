@@ -58,7 +58,7 @@ public class UserRepositoryTest extends  AbstractMongoDBTest{
 			
 			User user = new User();
 			user.setUsername(username);
-			user.setMail(String.format("%s@gravitee.io", username));
+			user.setEmail(String.format("%s@gravitee.io", username));
 			User userCreated =  userRepository.create(user);
 			
 			Assert.assertNotNull("User created is null", userCreated);
@@ -69,7 +69,7 @@ public class UserRepositoryTest extends  AbstractMongoDBTest{
 			User userFound = optional.get();
 			
 			Assert.assertEquals("Invalid saved user name.", user.getUsername(), userFound.getUsername());
-			Assert.assertEquals("Invalid saved user mail.",	user.getMail(), userFound.getMail());
+			Assert.assertEquals("Invalid saved user mail.",	user.getEmail(), userFound.getEmail());
 		
 			
 		} catch (Exception e) {
@@ -86,6 +86,15 @@ public class UserRepositoryTest extends  AbstractMongoDBTest{
 		Assert.assertNotNull(users);
 		Assert.assertEquals("Invalid user numbers in find all", NB_USERS_TESTCASES, users.size());
 	}	
+	
+	@Test
+	public void findByEmailTest() {
+		Optional<User> user= userRepository.findByEmail("user2@gravitee.io");
+			
+		Assert.assertNotNull("Optional is null", user);
+		Assert.assertTrue("Impossible to find user by email", user.isPresent());
+	}		
+	
 	
 
 }

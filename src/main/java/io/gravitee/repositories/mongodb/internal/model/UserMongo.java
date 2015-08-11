@@ -27,15 +27,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection="users")
 public class UserMongo extends AbstractUserMongo {
 
-    private String mail;
+    private String email;
 
 	
-    public String getMail() {
-        return mail;
+    public String getEmail() {
+        return email;
     }
 
-    public void setMail(String mail) {
-        this.mail = mail;
+    public void setEmail(String mail) {
+        this.email = mail;
     }
 
 
@@ -55,7 +55,7 @@ public class UserMongo extends AbstractUserMongo {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("User{");
-        sb.append(" mail='").append(mail).append(",\'");
+        sb.append(" email='").append(email).append(",\'");
         sb.append(" username='").append(name).append("\'");
         sb.append('}');
         return sb.toString();
