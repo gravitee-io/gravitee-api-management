@@ -37,9 +37,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<UserEntity> findByName(String username) {
-        UserEntity user= new UserEntity();
-        user.setUsername("toto");
-        return Optional.of(user);
+        return userRepository.findByUsername(username).map(user -> convert(user));
     }
 
     @Override

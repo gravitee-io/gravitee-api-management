@@ -16,8 +16,9 @@
 package io.gravitee.management.api.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.hibernate.validator.constraints.Email;
 
-import java.util.Date;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -28,30 +29,14 @@ public class NewUserEntity {
     /**
      * The user name
      */
+    @NotNull
     private String username;
 
     /**
      * The user email
      */
+    @Email
     private String email;
-
-    /**
-     * The user creation date
-     */
-    private Date createdAt;
-
-    /**
-     * The user last updated date
-     */
-    private Date updatedAt;
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
 
     public String getEmail() {
         return email;
@@ -59,14 +44,6 @@ public class NewUserEntity {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     public String getUsername() {

@@ -20,6 +20,7 @@ import io.gravitee.management.api.builder.ApiBuilder;
 import io.gravitee.management.api.model.NewApiEntity;
 import io.gravitee.management.api.model.ApiEntity;
 import io.gravitee.management.api.service.ApiService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ import static org.junit.Assert.*;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@Ignore
 public class ApisResourceTest extends AbstractResourceTest {
 
     @Autowired

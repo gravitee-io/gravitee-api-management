@@ -27,6 +27,7 @@ import java.util.Optional;
 
 import javax.ws.rs.core.Response;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@Ignore
 public class ApiResourceTest extends AbstractResourceTest {
 
     @Autowired

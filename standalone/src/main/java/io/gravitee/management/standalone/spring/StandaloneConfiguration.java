@@ -15,8 +15,11 @@
  */
 package io.gravitee.management.standalone.spring;
 
+import io.gravitee.common.node.Node;
 import io.gravitee.management.api.spring.RestConfiguration;
+import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.management.standalone.jetty.JettyServerFactory;
+import io.gravitee.management.standalone.node.ManagementNode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -29,7 +32,17 @@ import org.springframework.context.annotation.Import;
 public class StandaloneConfiguration {
 
     @Bean
+    public Node node() {
+        return new ManagementNode();
+    }
+
+    @Bean
     public JettyServerFactory server() {
         return new JettyServerFactory();
+    }
+
+    @Bean
+    public JettyEmbeddedContainer container() {
+        return new JettyEmbeddedContainer();
     }
 }

@@ -46,15 +46,28 @@
 			<artifactId>javax.servlet-api</artifactId>
 			<version>${javax.servlet-api.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.gravitee.common</groupId>
+			<artifactId>gravitee-common</artifactId>
+			<version>${gravitee-common.version}</version>
+		</dependency>
 	</dependencies>
 
+	<dependencyManagement>
+		<dependencies>
+			<!-- Logging -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<properties>
-		<jetty.version>9.2.11.v20150529</jetty.version>
-		<jackson.version>2.5.3</jackson.version>
-		<jersey.version>2.19</jersey.version>
+		<gravitee-common.version>1.0.0-SNAPSHOT</gravitee-common.version>
+		<slf4j.version>1.7.12</slf4j.version>
 		<spring.version>4.1.6.RELEASE</spring.version>
-		<spring.security.version>3.2.8.RELEASE</spring.security.version>
-		<spring.security.oauth2.version>2.0.7.RELEASE</spring.security.oauth2.version>
 		<mockito.version>1.10.19</mockito.version>
 		<javax.servlet-api.version>3.1.0</javax.servlet-api.version>
 	</properties>

@@ -32,17 +32,23 @@
 
 	<name>Gravitee IO - API Management - Rest API</name>
 
+	<properties>
+		<jackson.version>2.5.3</jackson.version>
+		<jersey.version>2.19</jersey.version>
+		<gravitee-repository.version>1.0.0-SNAPSHOT</gravitee-repository.version>
+	</properties>
+
 	<dependencies>
 		<!-- Gravitee dependencies -->
 		<dependency>
 			<groupId>io.gravitee.common</groupId>
 			<artifactId>gravitee-common</artifactId>
-			<version>${project.version}</version>
+			<version>${gravitee-common.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.gravitee.repositories</groupId>
 			<artifactId>gravitee-repository</artifactId>
-			<version>${project.version}</version>
+			<version>${gravitee-repository.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.gravitee.management</groupId>
@@ -53,7 +59,7 @@
 		<!-- Spring dependencies -->
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
+			<artifactId>spring-beans</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
 
@@ -112,6 +118,7 @@
 			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
 			<artifactId>jersey-test-framework-provider-jetty</artifactId>
 			<version>${jersey.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>

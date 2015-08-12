@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.standalone.jetty;
 
+import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.management.api.resource.GraviteeApplication;
 import io.gravitee.management.standalone.jetty.handler.NoContentOutputErrorHandler;
 import io.gravitee.management.standalone.spring.StandaloneConfiguration;
@@ -24,6 +25,9 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -33,19 +37,20 @@ import javax.servlet.DispatcherType;
 import java.util.EnumSet;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
- * @author Titouan COMPIEGNE
+ * @author David BRASSELY (brasseld at gmail.com)
  */
-public final class JettyEmbeddedContainer {
+public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbeddedContainer> {
 
-    private JettyEmbeddedContainer() {
-    }
+    /**
+     * Logger.
+     */
+    private final Logger logger = LoggerFactory.getLogger(JettyEmbeddedContainer.class);
 
-    public static void main(String[] args) throws Exception {
-    	
-        // Create the embedded server
-        final Server server = new Server(8059);
+    @Autowired
+    private Server server;
 
+    @Override
+    protected void doStart() throws Exception {
         AbstractHandler noContentHandler = new NoContentOutputErrorHandler();
         // This part is needed to avoid WARN while starting container.
         noContentHandler.setServer(server);
@@ -53,13 +58,13 @@ public final class JettyEmbeddedContainer {
 
         // Create the servlet context
         final ServletContextHandler context = new ServletContextHandler(server, "/*", ServletContextHandler.SESSIONS);
-        
+
         // REST configuration
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
         servletHolder.setInitParameter("javax.ws.rs.Application", GraviteeApplication.class.getName());
         servletHolder.setInitOrder(0);
-        context.addServlet(servletHolder, "/rest/*");
-        
+        context.addServlet(servletHolder, "/*");
+
         // Spring configuration
         // You can switch according to your security implementation (Basic, OAuth2, ...)
         System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, "basic-auth");
@@ -69,9 +74,13 @@ public final class JettyEmbeddedContainer {
 
         // Spring Security filter
         context.addFilter(new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),"/*", EnumSet.allOf(DispatcherType.class));
-        
+
         // start the server
         server.start();
-        server.join();
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        server.stop();
     }
 }
