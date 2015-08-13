@@ -69,4 +69,5 @@ public interface TeamMembershipRepository {
      * @return List of {@link Team}
      */
     Set<Team> findByUser(String username);
+
 }

@@ -15,10 +15,11 @@
  */
 package io.gravitee.repository.api;
 
-import io.gravitee.repository.model.Team;
-
 import java.util.Optional;
 import java.util.Set;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.model.Team;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -55,12 +56,12 @@ public interface TeamRepository {
      * @param team team to update
      * @return Team updated
      */
-    Team update(Team team);
+    Team update(Team team) throws TechnicalException;
 
     /**
      * Delete a team by name
      * 
      * @param name Team name.
      */
-    void delete(String name);
+    void delete(String name) throws TechnicalException;
 }
