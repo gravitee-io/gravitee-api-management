@@ -15,26 +15,15 @@
  */
 package io.gravitee.repositories.mongodb;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.gravitee.repositories.mongodb.internal.application.ApplicationMongoRepository;
+import io.gravitee.repositories.mongodb.internal.model.ApiKeyMongo;
 import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
-import io.gravitee.repositories.mongodb.internal.model.UserMongo;
-import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
-import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.ApiKeyRepository;
-import io.gravitee.repository.api.ApplicationRepository;
 import io.gravitee.repository.model.ApiKey;
-import io.gravitee.repository.model.Application;
-import io.gravitee.repository.model.OwnerType;
 
 @Component
 public class ApiKeyRepositoryImpl implements ApiKeyRepository{
@@ -42,24 +31,46 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 		
 	@Autowired
 	private GraviteeMapper mapper;
-
 	
-	@Override
-	public ApiKey generateKey(String application) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ApiKey getApiKey(String apiKey, String apiName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	@Autowired
+	private ApplicationMongoRepository internalApplicationRepo;
 
 	@Override
 	public boolean invalidateKey(String applicationName) {
-		// TODO Auto-generated method stub
-		return false;
+		
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
+		applicationMongo.setKey(null);
+		
+		internalApplicationRepo.save(applicationMongo);
+		
+		return true;
+	}
+
+	@Override
+	public ApiKey createKey(String applicationName, ApiKey key) {
+		
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
+		
+		ApiKeyMongo apiKeyMongo = mapper.map(key, ApiKeyMongo.class);
+		applicationMongo.setKey(apiKeyMongo);
+		
+		internalApplicationRepo.save(applicationMongo);
+		
+		return key;
+	}
+
+
+	@Override
+	public ApiKey getKey(String apiKey, String apiName) {
+	
+		ApplicationMongo applicationMongo = internalApplicationRepo.findByKey(apiKey, apiName);
+		ApiKey key = null;
+		
+		if(applicationMongo != null){
+			key = mapper.map(applicationMongo.getKey(), ApiKey.class);
+		}
+	
+		return key;
 	}
 	
 }

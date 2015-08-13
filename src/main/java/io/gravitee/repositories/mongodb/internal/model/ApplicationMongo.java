@@ -16,11 +16,14 @@
 package io.gravitee.repositories.mongodb.internal.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import io.gravitee.repository.model.Api;
 
 /**
  * Mongo object model for application.
@@ -34,7 +37,9 @@ public class ApplicationMongo {
     private String name;
     private String description;
     private String type;
-    private String key;    
+    private Date createdAt;
+    private Date updatedAt;
+    private ApiKeyMongo key;
     
     @DBRef
     private AbstractUserMongo owner;
@@ -42,11 +47,10 @@ public class ApplicationMongo {
     @DBRef
     private UserMongo creator;
     
-    private Date createdAt;
-    private Date updatedAt;
+    @DBRef
+    private List<ApiMongo> apis;
 
-
-
+    
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -103,12 +107,20 @@ public class ApplicationMongo {
 		this.creator = creator;
 	}
 
-	public String getKey() {
+	public ApiKeyMongo getKey() {
 		return key;
 	}
 
-	public void setKey(String key) {
+	public void setKey(ApiKeyMongo key) {
 		this.key = key;
+	}
+
+	public List<ApiMongo> getApis() {
+		return apis;
+	}
+
+	public void setApis(List<ApiMongo> apis) {
+		this.apis = apis;
 	}
 
 	@Override

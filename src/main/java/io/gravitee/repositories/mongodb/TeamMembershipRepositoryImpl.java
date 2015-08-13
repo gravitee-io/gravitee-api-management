@@ -123,8 +123,10 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 
 	@Override
 	public Set<Team> findByUser(String username) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		List<TeamMongo> teams = internalTeamRepo.findByUser(username);
+		return mapper.collection2set(teams, TeamMongo.class, Team.class);
+	
 	}
 
 }

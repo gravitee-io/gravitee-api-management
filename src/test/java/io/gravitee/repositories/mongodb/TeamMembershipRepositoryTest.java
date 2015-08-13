@@ -29,6 +29,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import io.gravitee.repository.api.TeamMembershipRepository;
 import io.gravitee.repository.model.Member;
+import io.gravitee.repository.model.Team;
 import io.gravitee.repository.model.TeamRole;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -41,10 +42,10 @@ public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 	private static final int NB_ADDED_TEAM_MEMBERS_TESTCASES = 3;
 	private static final int NB_UPDATE_TEAM_MEMBERS_TESTCASES = 4;
 	private static final int NB_REMOVED_TEAM_MEMBERS_TESTCASES = 4; 
+	private static final int NB_TEAMS_USER2_TESTCASES = 4; 
 	
 	@Autowired
 	private TeamMembershipRepository membershipRepository;
-	
 	
 	private Logger Logger = LoggerFactory.getLogger(TeamMembershipRepositoryTest.class);
 
@@ -159,5 +160,20 @@ public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 			Logger.error("Error while testing deleteMember", e);
 			Assert.fail("Error while testing deleteMember");	
 		}
+	}    
+  
+	@Test
+	public void findTeamByUserTest() {
+
+		try{
+			Set<Team> teams = membershipRepository.findByUser("user2");
+			Assert.assertNotNull("No teams found for the given user", teams);
+			Assert.assertEquals("Invalid number of teams found for user",NB_TEAMS_USER2_TESTCASES, teams.size());
+			
+		} catch (Exception e) {
+			Logger.error("Error while testing deleteMember", e);
+			Assert.fail("Error while testing deleteMember");	
+		}
 	}
+	
 }

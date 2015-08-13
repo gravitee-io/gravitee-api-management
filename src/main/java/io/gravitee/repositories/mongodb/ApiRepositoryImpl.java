@@ -15,6 +15,7 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -25,7 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.gravitee.repositories.mongodb.internal.api.ApiMongoRepository;
+import io.gravitee.repositories.mongodb.internal.application.ApplicationMongoRepository;
 import io.gravitee.repositories.mongodb.internal.model.ApiMongo;
+import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
 import io.gravitee.repositories.mongodb.internal.model.PolicyConfigurationMongo;
 import io.gravitee.repositories.mongodb.internal.model.UserMongo;
 import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
@@ -38,6 +41,9 @@ import io.gravitee.repository.model.PolicyConfiguration;
 
 @Component
 public class ApiRepositoryImpl implements ApiRepository {
+	
+	@Autowired
+	private ApplicationMongoRepository internalApplicationRepo;
 
 	@Autowired
 	private ApiMongoRepository internalApiRepo;
@@ -197,8 +203,16 @@ public class ApiRepositoryImpl implements ApiRepository {
 
 	@Override
 	public Set<Api> findByApplication(String application) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application);
+		List<ApiMongo> apiMongos = new ArrayList<>();
+		
+		if(applicationMongo != null){
+			apiMongos = applicationMongo.getApis();
+		}
+		
+		return mapper.collection2set(apiMongos, ApiMongo.class, Api.class);
+		
 	}
 
 

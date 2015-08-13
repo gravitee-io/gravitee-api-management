@@ -15,6 +15,7 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -24,7 +25,9 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.gravitee.repositories.mongodb.internal.api.ApiMongoRepository;
 import io.gravitee.repositories.mongodb.internal.application.ApplicationMongoRepository;
+import io.gravitee.repositories.mongodb.internal.model.ApiMongo;
 import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
 import io.gravitee.repositories.mongodb.internal.model.UserMongo;
 import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
@@ -40,6 +43,9 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 	@Autowired
 	private ApplicationMongoRepository internalApplicationRepo;
 
+	@Autowired
+	private ApiMongoRepository internalApiRepo;
+	
 	@Autowired
 	private TeamMongoRepository internalTeamRepo;
 	
@@ -178,14 +184,36 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 
 	@Override
 	public boolean associate(String applicationName, String apiName) {
-		// TODO Auto-generated method stub
+		
+		ApiMongo apiMongo = internalApiRepo.findOne(apiName);
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
+		
+		if(applicationMongo.getApis() == null){
+			applicationMongo.setApis(new ArrayList<>());
+		}
+		
+		if(!applicationMongo.getApis().contains(apiMongo)){
+			applicationMongo.getApis().add(apiMongo);
+			internalApplicationRepo.save(applicationMongo);
+			return true;
+		}
 		return false;
 	}
 
 
 	@Override
 	public boolean dissociate(String applicationName, String apiName) {
-		// TODO Auto-generated method stub
+		
+		ApiMongo apiMongo = internalApiRepo.findOne(apiName);
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
+		
+		if(applicationMongo.getApis() != null && applicationMongo.getApis().contains(apiMongo)){
+			applicationMongo.getApis().remove(apiMongo);
+			
+			internalApplicationRepo.save(applicationMongo);
+			return true;
+		}
+
 		return false;
 	}
 

@@ -1,0 +1,27 @@
+[
+	{
+	   "_id":"application-no-key",
+	   "_class":"io.gravitee.repositories.mongodb.internal.model.ApplicationMongo",
+	   "description":"Sample application1 description",
+	   "createdAt"  : { "$date" : 1439022010883 },
+	   "updatedAt"  : { "$date" : 1439022010883 },
+	   "owner" : {"$ref" : "users", "$id" : "creator" },
+	   "creator" : {"$ref" : "users", "$id" : "creator" },
+	   "apis" : [{"$ref" : "apis", "$id" : "api1" }]
+	},
+	{
+	   "_id":"application-with-key",
+	   "_class":"io.gravitee.repositories.mongodb.internal.model.ApplicationMongo",
+	   "description":"Sample application1 description",
+	   "createdAt"  : { "$date" : 1439022010883 },
+	   "updatedAt"  : { "$date" : 1439022010883 },
+	   "owner" : {"$ref" : "users", "$id" : "creator" },
+	   "creator" : {"$ref" : "users", "$id" : "creator" },
+	   "key" : {
+			"key" : "d449098d-8c31-4275-ad59-8dd707865a33",
+			"expiration" :{ "$date" : 1439022010883 }
+		},
+		"apis" : [{"$ref" : "apis", "$id" : "api1" }]
+	}	
+]
+

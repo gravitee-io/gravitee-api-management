@@ -1,0 +1,7 @@
+[
+   {
+      "_id":"creator",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "email":"creator@gravitee.io"
+   }
+]

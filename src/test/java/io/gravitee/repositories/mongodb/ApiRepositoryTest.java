@@ -184,5 +184,13 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 		Assert.assertEquals(nbApiBefore -1, nbApiAfter);
 
 	}
+	
+	@Test
+	public void findByApplicationTest(){
+		
+		Set<Api> apis = apiRepository.findByApplication("application-sample");
+		Assert.assertNotNull(apis);
+		Assert.assertEquals(2, apis.size());
+	}
 
 }

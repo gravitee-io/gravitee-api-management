@@ -8,5 +8,10 @@
       "_id":"creator2",
       "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
       "email":"creator2@gravitee.io"
+   },
+   {
+      "_id":"creator3",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "email":"creator3@gravitee.io"
    }
 ]

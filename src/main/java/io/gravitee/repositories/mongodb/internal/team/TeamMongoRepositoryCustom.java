@@ -15,6 +15,11 @@
  */
 package io.gravitee.repositories.mongodb.internal.team;
 
+import java.util.List;
+
+import io.gravitee.repositories.mongodb.internal.model.TeamMongo;
+
 public interface TeamMongoRepositoryCustom {
 
+	public List<TeamMongo> findByUser(String username);
 }

@@ -46,11 +46,32 @@
 	   "_class":"io.gravitee.repositories.mongodb.internal.model.ApplicationMongo",
 	   "description":"Sample application updated description",
 	   "type" : "type",
-	   "key" : "29155748-a703-415b-83f2-89592c57ccb9",
+	   "createdAt"  : { "$date" : 1439022010883 },
+	   "updatedAt"  : { "$date" : 1439022010883 },
+	   "owner" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
+	   "creator" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" }
+	},
+		{
+	   "_id":"associated-app",
+	   "_class":"io.gravitee.repositories.mongodb.internal.model.ApplicationMongo",
+	   "description":"Sample application updated description",
+	   "type" : "type",
+	   "createdAt"  : { "$date" : 1439022010883 },
+	   "updatedAt"  : { "$date" : 1439022010883 },
+	   "owner" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
+	   "creator" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
+	   "apis" : [{"$ref" : "apis", "$id" : "api1" }]
+	},
+    {
+	   "_id":"dissociated-app",
+	   "_class":"io.gravitee.repositories.mongodb.internal.model.ApplicationMongo",
+	   "description":"Sample application updated description",
+	   "type" : "type",
 	   "createdAt"  : { "$date" : 1439022010883 },
 	   "updatedAt"  : { "$date" : 1439022010883 },
 	   "owner" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
 	   "creator" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" }
 	}
+	
 ]
 

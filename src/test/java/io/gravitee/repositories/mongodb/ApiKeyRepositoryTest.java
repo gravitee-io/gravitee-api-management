@@ -15,6 +15,10 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import java.util.Date;
+import java.util.UUID;
+
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -37,24 +41,48 @@ public class ApiKeyRepositoryTest extends AbstractMongoDBTest {
 	@Autowired
 	private ApiKeyRepository apiKeyRepository;
 	
-	
     @Override
     protected String getJsonDataSetResourceName() {
         return TESTCASES_PATH;
     }
 
     @Test
-    public void generateKeyTest(){
-    	//TODO
+    public void createKeyTest(){
+    	
+    	String apiName = "api1";
+    	String key = UUID.randomUUID().toString();
+    	
+    	ApiKey apiKey = new ApiKey();
+    	apiKey.setKey(key);
+    	apiKey.setExpiration(new Date());
+    	
+    	apiKeyRepository.createKey("application-no-key", apiKey);
+
+    	ApiKey keyFound = apiKeyRepository.getKey(key, apiName);	
+    	Assert.assertNotNull("ApiKey not found", keyFound);
+    	
+    	Assert.assertEquals("Key value saved doesn't match", apiKey.getKey(), keyFound.getKey());
+    	Assert.assertEquals("Key expiration doesn't match",  apiKey.getExpiration(), keyFound.getExpiration());
+    	
     }
     
     @Test
     public void getApiKey() {
-		// TODO
+    	
+    	String apiKey = "d449098d-8c31-4275-ad59-8dd707865a33";
+    	String apiName = "api1";
+    	
+    	ApiKey key = apiKeyRepository.getKey(apiKey, apiName);
+    	
+    	Assert.assertNotNull("ApiKey not found", key);
 	}
 
     @Test
     public void invalidateKey() {
-		// TODO 
+    	
+    	apiKeyRepository.invalidateKey("application-with-key");
+    	ApiKey apiKeyInvalidated = apiKeyRepository.getKey("application-with-key", "d449098d-8c31-4275-ad59-8dd707865a33");
+    	
+    	Assert.assertNull("ApiKey invalidated always exist", apiKeyInvalidated);
 	}
 }

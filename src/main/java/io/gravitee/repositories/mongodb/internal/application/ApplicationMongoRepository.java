@@ -16,6 +16,7 @@
 package io.gravitee.repositories.mongodb.internal.application;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
@@ -23,9 +24,11 @@ import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
 @Repository
 public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom{
 
-
+	@Query("{ '$and' : [ { 'key.key' : ?0 } , { 'apis.$id': ?1 } ] }")
+	ApplicationMongo findByKey(String apiKey, String apiName);
 
 
 }
+
 
 

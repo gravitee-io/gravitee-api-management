@@ -15,12 +15,31 @@
  */
 package io.gravitee.repositories.mongodb.internal.team;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+
+import io.gravitee.repositories.mongodb.internal.model.TeamMongo;
 
 public class TeamMongoRepositoryImpl implements TeamMongoRepositoryCustom {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
+
+	@Override
+	public List<TeamMongo> findByUser(String username) {
+		
+		Query query = new Query();
+		
+		Criteria criteria = Criteria.where("members.member.$id").is(username);
+		query.addCriteria(criteria);
+
+		List<TeamMongo> teams = mongoTemplate.find(query, TeamMongo.class);
+
+		return teams;
+	}
 
 }

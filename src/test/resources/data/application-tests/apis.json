@@ -1,0 +1,28 @@
+[
+	{
+		"_id" : "api1",
+		"_class" : "io.gravitee.repositories.mongodb.internal.model.ApiMongo",
+		"version" : "1",
+		"publicURI" : "/public/sample/",
+		"targetURI" : "/target/sample/",
+		"privateApi" : false,
+		"createdAt"  : { "$date" : 1439022010883 },
+		"updatedAt"  : { "$date" : 1439022010883 },
+		"lifecycleState" : "STOPPED",
+		"owner" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
+		"creator" : {"$ref" : "users",  "$id" :"creator"}
+    },	
+	{
+		"_id" : "api2",
+		"_class" : "io.gravitee.repositories.mongodb.internal.model.ApiMongo",
+		"version" : "1",
+		"publicURI" : "/public/sample/",
+		"targetURI" : "/target/sample/",
+		"privateApi" : false,
+		"createdAt"  : { "$date" : 1439022010883 },
+		"updatedAt"  : { "$date" : 1439022010883 },
+		"lifecycleState" : "STOPPED",
+		"owner" : {"$ref" : "teams", "$id" : "findByTeamTest" },
+		"creator" : {"$ref" : "users",  "$id" :"creator"}
+    }
+]

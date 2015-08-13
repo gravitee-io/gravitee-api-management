@@ -18,7 +18,6 @@ package io.gravitee.repositories.mongodb;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,7 +38,7 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 
 	private static final String TESTCASES_PATH = "/data/application-tests/";
 	
-	private static final int NB_SAMPLE_APPLICATION_TESTCASES = 6; 
+	private static final int NB_SAMPLE_APPLICATION_TESTCASES = 8; 
 	
 	private Logger Logger = LoggerFactory.getLogger(ApplicationRepositoryTest.class);	
 	
@@ -202,4 +201,19 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 		Assert.assertEquals("Invalid application result in countByUser", nbApplications, 1);
 	}
 
+	
+	@Test
+	public void associate() {
+		
+		boolean associated = applicationRepository.associate("dissociated-app", "api1");
+		Assert.assertTrue(associated);
+		
+	}
+	
+	@Test
+	public void dissociate() {
+		
+		boolean dissociated = applicationRepository.dissociate("associated-app", "api1");
+		Assert.assertTrue(dissociated);
+	}
 }
