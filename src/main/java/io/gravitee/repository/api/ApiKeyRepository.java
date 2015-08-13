@@ -24,12 +24,13 @@ import io.gravitee.repository.model.Application;
 public interface ApiKeyRepository {
 
 	/**
-	 * Generate an application Key
+	 * Create an application Key
 	 * 
 	 * @param application {@link Application} name 
+	 * 
 	 * @return ApiKey generated
 	 */
-	ApiKey generateKey(String application);
+	ApiKey createKey(String application, ApiKey key);
 
 	/**
 	 * Give the application Key detail for a given API
@@ -38,7 +39,7 @@ public interface ApiKeyRepository {
 	 * @param apiName Api name
 	 * @return Full ApiKey
 	 */
-    ApiKey getApiKey(String apiKey, String apiName);
+    ApiKey getKey(String apiKey, String apiName);
 
     /**
      * Invalidate a key 
