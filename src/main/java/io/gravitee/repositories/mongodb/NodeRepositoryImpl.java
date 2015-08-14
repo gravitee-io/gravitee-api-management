@@ -26,6 +26,7 @@ import io.gravitee.repositories.mongodb.internal.model.NodeMongo;
 import io.gravitee.repositories.mongodb.internal.node.NodeMongoRepository;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.NodeRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Node;
 import io.gravitee.repository.model.NodeState;
 
@@ -39,7 +40,7 @@ public class NodeRepositoryImpl implements NodeRepository{
 	private GraviteeMapper mapper;
 
 	@Override
-	public void register(Node node) {
+	public void register(Node node) throws TechnicalException {
 		NodeMongo nodeMongo = mapper.map(node, NodeMongo.class);
 		
 		nodeMongo.setLastStartupTime(new Date());
@@ -49,7 +50,7 @@ public class NodeRepositoryImpl implements NodeRepository{
 	}
 
 	@Override
-	public void unregister(String nodename) {
+	public void unregister(String nodename) throws TechnicalException {
 		
 		NodeMongo node = internalNodeRepo.findOne(nodename);
 		
@@ -61,7 +62,8 @@ public class NodeRepositoryImpl implements NodeRepository{
 
 
 	@Override
-	public Set<Node> findAll() {
+	public Set<Node> findAll() throws TechnicalException {
+		
 		List<NodeMongo> nodesMongo = internalNodeRepo.findAll();
 		return mapper.collection2set(nodesMongo, NodeMongo.class, Node.class);
 	}

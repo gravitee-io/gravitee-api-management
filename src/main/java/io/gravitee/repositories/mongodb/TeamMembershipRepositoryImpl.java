@@ -30,6 +30,7 @@ import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
 import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.TeamMembershipRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Member;
 import io.gravitee.repository.model.Team;
 import io.gravitee.repository.model.TeamRole;
@@ -49,7 +50,7 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	
 	
 	@Override
-	public void addMember(String teamName, String username, TeamRole role) {
+	public void addMember(String teamName, String username, TeamRole role) throws TechnicalException {
 	
 		TeamMongo team = internalTeamRepo.findByName(teamName);
 		UserMongo member = internalUserRepo.findOne(username);
@@ -64,7 +65,7 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	}
 
 	@Override
-	public void updateMember(String teamName, String username, TeamRole role) {
+	public void updateMember(String teamName, String username, TeamRole role) throws TechnicalException {
 		TeamMongo teamMongo = internalTeamRepo.findByName(teamName);
 		
 		//TODO deal with null / validation / mongo upset implementation
@@ -81,7 +82,7 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	}
 
 	@Override
-	public void deleteMember(String teamName, String username) {
+	public void deleteMember(String teamName, String username) throws TechnicalException {
 		
 		TeamMongo teamMongo = internalTeamRepo.findByName(teamName);
 		
@@ -101,7 +102,7 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	}
 
 	@Override
-	public Set<Member> listMembers(String teamName) {
+	public Set<Member> listMembers(String teamName) throws TechnicalException {
 		TeamMongo teamMongo = internalTeamRepo.findByName(teamName);
 		
 		//TODO deal with null 
@@ -122,7 +123,7 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	}
 
 	@Override
-	public Set<Team> findByUser(String username) {
+	public Set<Team> findByUser(String username) throws TechnicalException {
 		
 		List<TeamMongo> teams = internalTeamRepo.findByUser(username);
 		return mapper.collection2set(teams, TeamMongo.class, Team.class);

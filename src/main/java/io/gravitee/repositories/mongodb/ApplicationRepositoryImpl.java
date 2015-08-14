@@ -34,6 +34,7 @@ import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
 import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.ApplicationRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Application;
 import io.gravitee.repository.model.OwnerType;
 
@@ -56,7 +57,7 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 	private GraviteeMapper mapper;
 
 	@Override
-	public Set<Application> findAll() {
+	public Set<Application> findAll() throws TechnicalException {
 		
 		List<ApplicationMongo> applications = internalApplicationRepo.findAll();
 		return mapApplications(applications);
@@ -64,14 +65,14 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 
 
 	@Override
-	public Application create(Application application) {
+	public Application create(Application application) throws TechnicalException {
 		ApplicationMongo applicationMongo = mapApplication(application);
 		ApplicationMongo applicationMongoCreated = internalApplicationRepo.insert(applicationMongo);
 		return mapApplication(applicationMongoCreated);
 	}
 
 	@Override
-	public Application update(Application application) {
+	public Application update(Application application) throws TechnicalException {
 		
     	ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application.getName());
 		
@@ -94,19 +95,19 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 	}
 
 	@Override
-	public Optional<Application> findByName(String applicationName) {
+	public Optional<Application> findByName(String applicationName) throws TechnicalException {
 		ApplicationMongo application = internalApplicationRepo.findOne(applicationName);
 		return Optional.ofNullable(mapApplication(application));
 	}
 
 	@Override
-	public void delete(String apiName) {
+	public void delete(String apiName) throws TechnicalException {
 		internalApplicationRepo.delete(apiName);
 	}
 	
 
 	@Override
-	public Set<Application> findByUser(String username) {
+	public Set<Application> findByUser(String username) throws TechnicalException {
 		
 		List<ApplicationMongo> applications = internalApplicationRepo.findByUser(username);
 		return mapApplications(applications);
@@ -114,20 +115,20 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 
 
 	@Override
-	public Set<Application> findByTeam(String teamName) {
+	public Set<Application> findByTeam(String teamName) throws TechnicalException {
 	
 		List<ApplicationMongo> applications = internalApplicationRepo.findByTeam(teamName);
 		return mapApplications(applications);
 	}
 	
 	@Override
-	public int countByUser(String username) {
+	public int countByUser(String username) throws TechnicalException {
 		return (int) internalApplicationRepo.countByUser(username);
 
 	}
 
 	@Override
-	public int countByTeam(String teamName) {
+	public int countByTeam(String teamName) throws TechnicalException {
 		return (int) internalApplicationRepo.countByTeam(teamName);	
 	}
 	
@@ -183,7 +184,7 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 
 
 	@Override
-	public boolean associate(String applicationName, String apiName) {
+	public boolean associate(String applicationName, String apiName) throws TechnicalException {
 		
 		ApiMongo apiMongo = internalApiRepo.findOne(apiName);
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
@@ -202,7 +203,7 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 
 
 	@Override
-	public boolean dissociate(String applicationName, String apiName) {
+	public boolean dissociate(String applicationName, String apiName) throws TechnicalException {
 		
 		ApiMongo apiMongo = internalApiRepo.findOne(apiName);
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);

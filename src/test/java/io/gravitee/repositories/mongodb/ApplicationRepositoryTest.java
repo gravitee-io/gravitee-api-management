@@ -40,22 +40,28 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 	
 	private static final int NB_SAMPLE_APPLICATION_TESTCASES = 8; 
 	
-	private Logger Logger = LoggerFactory.getLogger(ApplicationRepositoryTest.class);	
+	private Logger logger = LoggerFactory.getLogger(ApplicationRepositoryTest.class);	
 	
 	@Autowired
 	private ApplicationRepository applicationRepository;
 
     @Override
-    protected String getJsonDataSetResourceName() {
+    protected String getTestCasesPath() {
         return TESTCASES_PATH;
     }
     
 	@Test
 	public void findAllTest() {
-		Set<Application> applications = applicationRepository.findAll();
-		
-		Assert.assertNotNull(applications);
-		Assert.assertEquals("Fail to resolve application in findAll", NB_SAMPLE_APPLICATION_TESTCASES, applications.size());
+		try{
+			Set<Application> applications = applicationRepository.findAll();
+			
+			Assert.assertNotNull(applications);
+			Assert.assertEquals("Fail to resolve application in findAll", NB_SAMPLE_APPLICATION_TESTCASES, applications.size());
+			
+		}catch(Exception e){
+			logger.error("Error while finding all application",e);
+			Assert.fail("Error while finding all application");
+		}
 	}
 
 
@@ -96,7 +102,7 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 
 			
 		}catch(Exception e){
-			Logger.error("Error while calling findByName", e);
+			logger.error("Error while calling findByName", e);
 			Assert.fail("Error while calling findByName");		
 		}
 	}
@@ -136,7 +142,7 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 
 			
 		}catch(Exception e){
-			Logger.error("Error while calling updating application", e);
+			logger.error("Error while calling updating application", e);
 			Assert.fail("Error while calling updating application");		
 		}
 	}
@@ -157,7 +163,7 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 
 			
 		}catch(Exception e){
-			Logger.error("Error while calling delete application", e);
+			logger.error("Error while calling delete application", e);
 			Assert.fail("Error while calling delete application");		
 		}
 	}
@@ -169,51 +175,90 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 			Optional<Application> optional = applicationRepository.findByName("findByNameOk");
 			Assert.assertTrue("Find application by name return no result ", optional.isPresent());
 		}catch(Exception e){
-			Logger.error("Error while calling findByName", e);
+			logger.error("Error while calling findByName", e);
 			Assert.fail("Error while calling findByName");		
 		}
 	}
 
 	@Test
 	public void findByTeamTest() {
-		Set<Application> applications = applicationRepository.findByTeam("findByTeamTest");
-		Assert.assertNotNull(applications);
-		Assert.assertEquals("Invalid application result in findByTeam",applications.size(), 2);
+		try{
+			Set<Application> applications = applicationRepository.findByTeam("findByTeamTest");
+			Assert.assertNotNull(applications);
+			Assert.assertEquals("Invalid application result in findByTeam",applications.size(), 2);
+			
+		}catch(Exception e){
+			logger.error("Error while finding application by team",e);
+			Assert.fail("Error while finding application by team");
+		}
 	}
 	
 	@Test
 	public void findByUserTest() {
-		Set<Application> applications = applicationRepository.findByUser("findByUserTest");
-		Assert.assertNotNull(applications);
-		Assert.assertEquals("Invalid application result in findByUser",applications.size(), 1);
+		try{
+			
+			Set<Application> applications = applicationRepository.findByUser("findByUserTest");
+			Assert.assertNotNull(applications);
+			Assert.assertEquals("Invalid application result in findByUser",applications.size(), 1);
+
+		}catch(Exception e){
+			logger.error("Error while finding application by user",e);
+			Assert.fail("Error while finding application by user");
+		}
 	}	
 
 
 	@Test
 	public void countByTeamTest(){
-		int nbApplications = applicationRepository.countByTeam("findByTeamTest");
-		Assert.assertEquals("Invalid application result in countByTeam", nbApplications, 2);
+		try{
+			
+			int nbApplications = applicationRepository.countByTeam("findByTeamTest");
+			Assert.assertEquals("Invalid application result in countByTeam", nbApplications, 2);
+	
+		}catch(Exception e){
+			logger.error("Error while counting application by team",e);
+			Assert.fail("Error while counting application by team");
+		}
 	}
 	
 	@Test
 	public void countByUserTest(){
-		int nbApplications = applicationRepository.countByUser("findByUserTest");
-		Assert.assertEquals("Invalid application result in countByUser", nbApplications, 1);
+		try{
+			
+			int nbApplications = applicationRepository.countByUser("findByUserTest");
+			Assert.assertEquals("Invalid application result in countByUser", nbApplications, 1);
+		
+		}catch(Exception e){
+			logger.error("Error while counting application by user",e);
+			Assert.fail("Error while counting application by user");
+		}
 	}
 
 	
 	@Test
 	public void associate() {
-		
-		boolean associated = applicationRepository.associate("dissociated-app", "api1");
-		Assert.assertTrue(associated);
+		try{
+			
+			boolean associated = applicationRepository.associate("dissociated-app", "api1");
+			Assert.assertTrue(associated);
+			
+		}catch(Exception e){
+			logger.error("Error while associating application and api",e);
+			Assert.fail("Error while associating application and api");
+		}
 		
 	}
 	
 	@Test
 	public void dissociate() {
-		
-		boolean dissociated = applicationRepository.dissociate("associated-app", "api1");
-		Assert.assertTrue(dissociated);
+		try{
+			
+			boolean dissociated = applicationRepository.dissociate("associated-app", "api1");
+			Assert.assertTrue(dissociated);
+			
+		}catch(Exception e){
+			logger.error("Error while dissociating application and api",e);
+			Assert.fail("Error while dissociating application and api");
+		}
 	}
 }

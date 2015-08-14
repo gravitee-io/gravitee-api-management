@@ -35,6 +35,7 @@ import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
 import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.ApiRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.OwnerType;
 import io.gravitee.repository.model.PolicyConfiguration;
@@ -59,14 +60,14 @@ public class ApiRepositoryImpl implements ApiRepository {
 	
 	
 	@Override
-	public Optional<Api> findByName(String apiName) {
+	public Optional<Api> findByName(String apiName) throws TechnicalException {
 		
 		ApiMongo apiMongo =  internalApiRepo.findOne(apiName);
 		return Optional.ofNullable(mapApi(apiMongo));
 	}
 
 	@Override
-	public Set<Api> findAll() {
+	public Set<Api> findAll() throws TechnicalException {
 		
 		List<ApiMongo> apis = internalApiRepo.findAll();
 		return mapApis(apis);
@@ -74,7 +75,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 
 	
 	@Override
-	public Api create(Api api) {
+	public Api create(Api api) throws TechnicalException {
 		
 		ApiMongo apiMongo = mapApi(api);
 		ApiMongo apiMongoCreated = internalApiRepo.insert(apiMongo);
@@ -82,7 +83,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	}
 
 	@Override
-	public Api update(Api api) {
+	public Api update(Api api) throws TechnicalException {
 		
 		ApiMongo apiMongo =	mapApi(api);
 		ApiMongo apiMongoUpdated = internalApiRepo.save(apiMongo);
@@ -90,21 +91,21 @@ public class ApiRepositoryImpl implements ApiRepository {
 	}
 
 	@Override
-	public void delete(String apiName) {
+	public void delete(String apiName) throws TechnicalException {
 		internalApiRepo.delete(apiName);
 	}
 
 
 
 	@Override
-	public Set<Api> findByUser(String username, boolean publicOnly) {
+	public Set<Api> findByUser(String username, boolean publicOnly) throws TechnicalException {
 		List<ApiMongo> apis = internalApiRepo.findByUser(username, publicOnly);
 		return mapApis(apis);
 	}
 
 
 	@Override
-	public Set<Api> findByTeam(String teamName,  boolean publicOnly) {
+	public Set<Api> findByTeam(String teamName,  boolean publicOnly) throws TechnicalException {
 	
 		List<ApiMongo> apis = internalApiRepo.findByTeam(teamName, publicOnly);
 		return mapApis(apis);
@@ -112,7 +113,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	
 
 	@Override
-	public Set<Api> findByCreator(String userName) {
+	public Set<Api> findByCreator(String userName) throws TechnicalException {
 
 		List<ApiMongo> apis = internalApiRepo.findByCreator(userName);
 		return mapApis(apis);
@@ -120,12 +121,12 @@ public class ApiRepositoryImpl implements ApiRepository {
 	
 	
 	@Override
-	public int countByUser(String username,  boolean publicOnly) {
+	public int countByUser(String username,  boolean publicOnly) throws TechnicalException {
 		return (int) internalApiRepo.countByUser(username, publicOnly);
 	}
 
 	@Override
-	public int countByTeam(String teamName,  boolean publicOnly) {
+	public int countByTeam(String teamName,  boolean publicOnly) throws TechnicalException {
 		return (int) internalApiRepo.countByTeam(teamName, publicOnly);	
 	}
 	
@@ -179,7 +180,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	}
 
 	@Override
-	public void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigs) {
+	public void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigs) throws TechnicalException {
 		
 		List<PolicyConfigurationMongo> policiesConfigsMongo = mapper.collection2list(policyConfigs, PolicyConfiguration.class, PolicyConfigurationMongo.class);
 		this.internalApiRepo.updatePoliciesConfiguration(apiName, policiesConfigsMongo);
@@ -187,7 +188,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	}
 
 	@Override
-	public void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfig) {
+	public void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfig) throws TechnicalException {
 		
 		PolicyConfigurationMongo policyConfigMongo = mapper.map(policyConfig, PolicyConfigurationMongo.class);
 		this.internalApiRepo.updatePolicyConfiguration(apiName, policyConfigMongo);
@@ -195,14 +196,14 @@ public class ApiRepositoryImpl implements ApiRepository {
 	}
 
 	@Override
-	public List<PolicyConfiguration> findPoliciesByApi(String apiName) {
+	public List<PolicyConfiguration> findPoliciesByApi(String apiName) throws TechnicalException {
 		
 		 List<PolicyConfigurationMongo>  policies = this.internalApiRepo.findPoliciesByApi(apiName);
 		 return  mapper.collection2list(policies, PolicyConfigurationMongo.class, PolicyConfiguration.class);
 	}
 
 	@Override
-	public Set<Api> findByApplication(String application) {
+	public Set<Api> findByApplication(String application) throws TechnicalException {
 		
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application);
 		List<ApiMongo> apiMongos = new ArrayList<>();

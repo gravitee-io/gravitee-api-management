@@ -69,7 +69,7 @@ public abstract class AbstractMongoDBTest {
     private Mongo mongoClient;
     private MongoDatabase mongoDatabase;
 
-    protected abstract String getJsonDataSetResourceName();
+    protected abstract String getTestCasesPath();
 
     private static final String JSON_EXTENSION = "json";
     
@@ -80,7 +80,7 @@ public abstract class AbstractMongoDBTest {
         mongoDatabase = ((MongoClient) mongoClient).getDatabase(DATABASE_NAME);
         //logConnection();
         
-        final File file = new File(AbstractMongoDBTest.class.getResource(getJsonDataSetResourceName()).toURI());
+        final File file = new File(AbstractMongoDBTest.class.getResource(getTestCasesPath()).toURI());
 
         File[] collectionsDumps = file.listFiles(new FileFilter() {
 			@Override

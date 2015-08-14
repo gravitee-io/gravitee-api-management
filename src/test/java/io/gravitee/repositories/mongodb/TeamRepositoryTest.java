@@ -44,11 +44,10 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 	@Autowired
 	private TeamRepository teamRepository;
 	
-	
-	private Logger Logger = LoggerFactory.getLogger(TeamRepositoryTest.class);
+	private Logger logger = LoggerFactory.getLogger(TeamRepositoryTest.class);
 
 	@Override
-	protected String getJsonDataSetResourceName() {
+	protected String getTestCasesPath() {
 		return TESTCASES_PATH;
 	}
 
@@ -85,7 +84,7 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 	
 			
 		} catch (Exception e) {
-			Logger.error("Error while testing createTeam", e);
+			logger.error("Error while testing createTeam", e);
 			Assert.fail("Error while testing createTeam");	
 		}
 	}
@@ -108,7 +107,7 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 			Assert.assertEquals("Invalid saved team updateDate.",	getIsoDate("2015-08-08T08:20:10.883Z"),	teamFound.getUpdatedAt());
 			
 		} catch (Exception e) {
-			Logger.error("Error while testing findByName", e);
+			logger.error("Error while testing findByName", e);
 			Assert.fail("Error while testing findByName");	
 		}
 	}
@@ -143,7 +142,7 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 			Assert.assertEquals("Invalid updated team updatedAt date.", udpatedAt, updatedTeam.getUpdatedAt());
 		} catch (Exception e) {
 			e.printStackTrace();
-			Logger.error("Error while testing update", e);
+			logger.error("Error while testing update", e);
 			Assert.fail("Error while testing update");	
 		}
 	}
@@ -164,7 +163,7 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 			Assert.assertEquals("Invalid number of team after deletion", nbTeamBefore -1, nbTeamAfter);
 			
 		} catch (Exception e) {
-			Logger.error("Error while testing delete", e);
+			logger.error("Error while testing delete", e);
 			Assert.fail("Error while testing delete");	
 		}
 	}
@@ -172,18 +171,30 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 
 	@Test
 	public void findAllTest() {
-		Set<Team> teams = teamRepository.findAll(false);
+		try{
+			Set<Team> teams = teamRepository.findAll(false);
+				
+			Assert.assertNotNull(teams);
+			Assert.assertEquals("Invalid user numbers in find all", NB_TEAMS_TESTCASES, teams.size());
 			
-		Assert.assertNotNull(teams);
-		Assert.assertEquals("Invalid user numbers in find all", NB_TEAMS_TESTCASES, teams.size());
+		}catch(Exception e){
+			logger.error("Error while finding all team",e);
+			Assert.fail("Error while finding all team");
+		}
 	}	
 
 	@Test
 	public void findAllPublicTest() {
-		Set<Team> teams = teamRepository.findAll(true);
+		try{
+			Set<Team> teams = teamRepository.findAll(true);
+				
+			Assert.assertNotNull(teams);
+			Assert.assertEquals("Invalid user numbers in find all", NB_PUBLIC_TEAMS_TESTCASES, teams.size());
 			
-		Assert.assertNotNull(teams);
-		Assert.assertEquals("Invalid user numbers in find all", NB_PUBLIC_TEAMS_TESTCASES, teams.size());
+		}catch(Exception e){
+			logger.error("Error while finding all public team",e);
+			Assert.fail("Error while finding all public team");
+		}
 	}	
 
 }

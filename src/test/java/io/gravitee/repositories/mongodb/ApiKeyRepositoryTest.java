@@ -36,53 +36,69 @@ public class ApiKeyRepositoryTest extends AbstractMongoDBTest {
 
 	private static final String TESTCASES_PATH = "/data/apikey-tests/";
 	
-	private Logger Logger = LoggerFactory.getLogger(ApiKeyRepositoryTest.class);	
+	private Logger logger = LoggerFactory.getLogger(ApiKeyRepositoryTest.class);	
 	
 	@Autowired
 	private ApiKeyRepository apiKeyRepository;
 	
     @Override
-    protected String getJsonDataSetResourceName() {
+    protected String getTestCasesPath() {
         return TESTCASES_PATH;
     }
 
     @Test
     public void createKeyTest(){
     	
-    	String apiName = "api1";
-    	String key = UUID.randomUUID().toString();
-    	
-    	ApiKey apiKey = new ApiKey();
-    	apiKey.setKey(key);
-    	apiKey.setExpiration(new Date());
-    	
-    	apiKeyRepository.createKey("application-no-key", apiKey);
-
-    	ApiKey keyFound = apiKeyRepository.getKey(key, apiName);	
-    	Assert.assertNotNull("ApiKey not found", keyFound);
-    	
-    	Assert.assertEquals("Key value saved doesn't match", apiKey.getKey(), keyFound.getKey());
-    	Assert.assertEquals("Key expiration doesn't match",  apiKey.getExpiration(), keyFound.getExpiration());
-    	
+    	try{
+	    	String apiName = "api1";
+	    	String key = UUID.randomUUID().toString();
+	    	
+	    	ApiKey apiKey = new ApiKey();
+	    	apiKey.setKey(key);
+	    	apiKey.setExpiration(new Date());
+	    	
+	    	apiKeyRepository.createKey("application-no-key", apiKey);
+	
+	    	ApiKey keyFound = apiKeyRepository.getKey(key, apiName);	
+	    	Assert.assertNotNull("ApiKey not found", keyFound);
+	    	
+	    	Assert.assertEquals("Key value saved doesn't match", apiKey.getKey(), keyFound.getKey());
+	    	Assert.assertEquals("Key expiration doesn't match",  apiKey.getExpiration(), keyFound.getExpiration());
+   
+    	}catch(Exception e){
+    		logger.error("Error while creating key",e);
+    		Assert.fail("Error while creating key");
+    	}
     }
     
     @Test
     public void getApiKey() {
-    	
-    	String apiKey = "d449098d-8c31-4275-ad59-8dd707865a33";
-    	String apiName = "api1";
-    	
-    	ApiKey key = apiKeyRepository.getKey(apiKey, apiName);
-    	
-    	Assert.assertNotNull("ApiKey not found", key);
+	    try{
+	    	
+	    	String apiKey = "d449098d-8c31-4275-ad59-8dd707865a33";
+	    	String apiName = "api1";
+	    	
+	    	ApiKey key = apiKeyRepository.getKey(apiKey, apiName);
+	    	
+	    	Assert.assertNotNull("ApiKey not found", key);
+	    	
+	    }catch(Exception e){
+			logger.error("Error while getting key",e);
+			Assert.fail("Error while getting key");
+		}
 	}
 
     @Test
     public void invalidateKey() {
-    	
-    	apiKeyRepository.invalidateKey("application-with-key");
-    	ApiKey apiKeyInvalidated = apiKeyRepository.getKey("application-with-key", "d449098d-8c31-4275-ad59-8dd707865a33");
-    	
-    	Assert.assertNull("ApiKey invalidated always exist", apiKeyInvalidated);
+	    try{	
+	    	apiKeyRepository.invalidateKey("application-with-key");
+	    	ApiKey apiKeyInvalidated = apiKeyRepository.getKey("application-with-key", "d449098d-8c31-4275-ad59-8dd707865a33");
+	    	
+	    	Assert.assertNull("ApiKey invalidated always exist", apiKeyInvalidated);
+	    	
+	    }catch(Exception e){
+			logger.error("Error while invalidating key",e);
+			Assert.fail("Error while invalidating key");
+		}
 	}
 }

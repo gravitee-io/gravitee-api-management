@@ -38,14 +38,14 @@ public class PolicyRepositoryTest extends AbstractMongoDBTest {
 	
 	private static final int NB_POLICIES_TESTCASES = 3;
 
-	private Logger Logger = LoggerFactory.getLogger(PolicyRepositoryTest.class);	
+	private Logger logger = LoggerFactory.getLogger(PolicyRepositoryTest.class);	
 	
 	@Autowired
 	private PolicyRepository policyRepository;
 
 
     @Override
-    protected String getJsonDataSetResourceName() {
+    protected String getTestCasesPath() {
         return TESTCASES_PATH;
     }
 	
@@ -74,7 +74,7 @@ public class PolicyRepositoryTest extends AbstractMongoDBTest {
 
 			
 		} catch (Exception e) {
-			Logger.error("Error while creating policy", e);
+			logger.error("Error while creating policy", e);
 			Assert.fail("Error while creating policy");
 		}
 	}
@@ -85,7 +85,7 @@ public class PolicyRepositoryTest extends AbstractMongoDBTest {
 			Optional<Policy> optional = policyRepository.findById("55c8f340bc51bd82a7cb16ed");
 			Assert.assertTrue("Find policy by id return no result ", optional.isPresent());
 		}catch(Exception e){
-			Logger.error("Error while calling findById", e);
+			logger.error("Error while calling findById", e);
 			Assert.fail("Error while calling findById");		
 		}
 	}
@@ -113,7 +113,7 @@ public class PolicyRepositoryTest extends AbstractMongoDBTest {
 			Assert.assertEquals("Invalid user numbers in find all", NB_POLICIES_TESTCASES, policies.size());
 	
 		}catch(Exception e){
-			Logger.error("Error while testing policies with findAll", e);
+			logger.error("Error while testing policies with findAll", e);
 			Assert.fail("Error while testing policies with findAll");			
 		}
 	}	
@@ -128,7 +128,7 @@ public class PolicyRepositoryTest extends AbstractMongoDBTest {
 	
 			Assert.assertEquals(nbApiBefore -1, nbApiAfter);
 		}catch(Exception e){
-			Logger.error("Error while testing policies with findAll", e);
+			logger.error("Error while testing policies with findAll", e);
 			Assert.fail("Error while testing policies with findAll");			
 		}
 	}
@@ -155,7 +155,7 @@ public class PolicyRepositoryTest extends AbstractMongoDBTest {
 
 			
 		}catch(Exception e){
-			Logger.error("Error while testing policies with findAll", e);
+			logger.error("Error while testing policies with findAll", e);
 			Assert.fail("Error while testing policies with findAll");			
 		}
 	}

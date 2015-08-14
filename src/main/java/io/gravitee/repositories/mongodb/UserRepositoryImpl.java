@@ -30,6 +30,7 @@ import io.gravitee.repositories.mongodb.internal.model.UserMongo;
 import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.UserRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.User;
 
 @Component
@@ -44,7 +45,7 @@ public class UserRepositoryImpl implements UserRepository {
 	private GraviteeMapper mapper;
 
 	@Override
-	public Optional<User> findByUsername(String username) {
+	public Optional<User> findByUsername(String username) throws TechnicalException {
 
 		logger.debug("Find user by name user [{}]", username);
 
@@ -57,7 +58,7 @@ public class UserRepositoryImpl implements UserRepository {
 	}
 
 	@Override
-	public Set<User> findAll() {
+	public Set<User> findAll() throws TechnicalException {
 
 		logger.debug("Find all users");
 
@@ -69,7 +70,7 @@ public class UserRepositoryImpl implements UserRepository {
 	}
 
 	@Override
-	public Set<User> findByTeam(String teamName) {
+	public Set<User> findByTeam(String teamName) throws TechnicalException {
 
 		logger.debug("Find users by team [{}]", teamName);
 
@@ -86,7 +87,7 @@ public class UserRepositoryImpl implements UserRepository {
 	}
 
 	@Override
-	public User create(User user) {
+	public User create(User user) throws TechnicalException {
 
 		logger.debug("Create user [{}]", user.getUsername());
 		
@@ -101,7 +102,7 @@ public class UserRepositoryImpl implements UserRepository {
 	}
 
 	@Override
-	public Optional<User> findByEmail(String email) {
+	public Optional<User> findByEmail(String email) throws TechnicalException {
 	
 		logger.debug("Find users by email [{}]", email);
 

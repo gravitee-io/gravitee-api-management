@@ -45,7 +45,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 
 	private static final int NB_APIS_FOR_CREATOR = 3; 
 	
-	private Logger Logger = LoggerFactory.getLogger(ApiRepositoryTest.class);	
+	private Logger logger = LoggerFactory.getLogger(ApiRepositoryTest.class);	
 	
 	@Autowired
 	private ApiRepository apiRepository;
@@ -54,12 +54,12 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	private UserRepository userRepository;
 
     @Override
-    protected String getJsonDataSetResourceName() {
+    protected String getTestCasesPath() {
         return TESTCASES_PATH;
     }
 	
-	private User createUser(String userName){
-
+	private User createUser(String userName) throws Exception{
+			
 		User user = new User();
 		user.setUsername(userName);
 		user.setEmail(userName+"@itest.test");
@@ -105,7 +105,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			Assert.assertEquals("Invalid api creator.", 		api.getCreator(), apiSaved.getCreator());
 			
 		} catch (Exception e) {
-			Logger.error("Error while testing createApi", e);
+			logger.error("Error while testing createApi", e);
 			Assert.fail("Error while testing createApi");
 		}
 	}
@@ -116,7 +116,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			Optional<Api> optional = apiRepository.findByName("findByNameOk");
 			Assert.assertTrue("Find api by name return no result ", optional.isPresent());
 		}catch(Exception e){
-			Logger.error("Error while calling findByName", e);
+			logger.error("Error while calling findByName", e);
 			Assert.fail("Error while calling findByName");		
 		}
 	}
@@ -124,73 +124,125 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	@Test
 	public void findByNameMissingTest() {
 		try{
+		
 			Optional<Api> optional = apiRepository.findByName("findByNameMissing");
 			Assert.assertFalse("Find api by name on missing api return a result", optional.isPresent());
+	
 		}catch(Exception e){
-			Logger.error("Error while calling findByName on missing api", e);
+			logger.error("Error while calling findByName on missing api", e);
 			Assert.fail("Error while calling findByName on missing api");		
 		}
 	}
 
 	@Test
 	public void findByCreatorNameTest() {
-		Set<Api> apis = apiRepository.findByCreator("creator");
-		
-		Assert.assertNotNull(apis);
-		Assert.assertEquals("Invalid number of creator api found",  NB_APIS_FOR_CREATOR, apis.size());
+		try{
+			Set<Api> apis = apiRepository.findByCreator("creator");
+			
+			Assert.assertNotNull(apis);
+			Assert.assertEquals("Invalid number of creator api found",  NB_APIS_FOR_CREATOR, apis.size());
+	
+		}catch(Exception e){
+			logger.error("Error while finding apis by creator",e);
+			Assert.fail("Error while finding apis by creator");
+		}
 	}
 
 	@Test
 	public void findByTeamTest() {
-		Set<Api> apis = apiRepository.findByTeam("findByTeamTest", false);
-		Assert.assertNotNull(apis);
-		Assert.assertEquals("Invalid api result in findByTeam",apis.size(), 2);
+		try{
+	
+			Set<Api> apis = apiRepository.findByTeam("findByTeamTest", false);
+			Assert.assertNotNull(apis);
+			Assert.assertEquals("Invalid api result in findByTeam",apis.size(), 2);
+	
+		}catch(Exception e){
+			logger.error("Error while finding api by name",e);
+			Assert.fail("Error while finding api by name");
+		}
 	}
 	
 	@Test
 	public void findByUserTest() {
-		Set<Api> apis = apiRepository.findByUser("findByUserTest", false);
-		Assert.assertNotNull(apis);
-		Assert.assertEquals("Invalid api result in findByUser",apis.size(), 1);
+		try{
+			
+			Set<Api> apis = apiRepository.findByUser("findByUserTest", false);
+			Assert.assertNotNull(apis);
+			Assert.assertEquals("Invalid api result in findByUser",apis.size(), 1);
+			
+		}catch(Exception e){
+			logger.error("Error while finding api by user",e);
+			Assert.fail("Error while finding api by user");
+		}
 	}	
 	
 	@Test
 	public void findAllTest() {
-		Set<Api> apis = apiRepository.findAll();
-		
-		Assert.assertNotNull(apis);
-		Assert.assertFalse("Fail to resolve api in findAll", apis.isEmpty());
+		try{
+			Set<Api> apis = apiRepository.findAll();
+			
+			Assert.assertNotNull(apis);
+			Assert.assertFalse("Fail to resolve api in findAll", apis.isEmpty());
+			
+		}catch(Exception e){
+			logger.error("Error while finding all apis",e);
+			Assert.fail("Error while finding all apise");
+		}
 	}	
 
 	@Test
 	public void countApisByTeamTest(){
-		int nbApis = apiRepository.countByTeam("findByTeamTest", false);
-		Assert.assertEquals("Invalid api result in countByTeam", nbApis, 2);
+		try{
+			
+			int nbApis = apiRepository.countByTeam("findByTeamTest", false);
+			Assert.assertEquals("Invalid api result in countByTeam", nbApis, 2);
+			
+		}catch(Exception e){
+			logger.error("Error while counting api by team",e);
+			Assert.fail("Error while counting api by team");
+		}
 	}
 	
 	@Test
 	public void countApisByUserTest(){
-		int nbApis = apiRepository.countByUser("findByUserTest", false);
-		Assert.assertEquals("Invalid api result in countByUser", nbApis, 1);
+		try{
+			
+			int nbApis = apiRepository.countByUser("findByUserTest", false);
+			Assert.assertEquals("Invalid api result in countByUser", nbApis, 1);
+			
+		}catch(Exception e){
+			logger.error("Error while counting api by user",e);
+			Assert.fail("Error while counting api by user");
+		}
 	}
 
 	@Test
 	public void deleteApiTest() {
-		
-		int nbApiBefore = apiRepository.findAll().size();
-		apiRepository.delete("findByNameOk");
-		int nbApiAfter = apiRepository.findAll().size();
-
-		Assert.assertEquals(nbApiBefore -1, nbApiAfter);
+		try{
+			int nbApiBefore = apiRepository.findAll().size();
+			apiRepository.delete("findByNameOk");
+			int nbApiAfter = apiRepository.findAll().size();
+	
+			Assert.assertEquals(nbApiBefore -1, nbApiAfter);
+			
+		}catch(Exception e){
+			logger.error("Error while deleting api",e);
+			Assert.fail("Error while deleting api");
+		}
 
 	}
 	
 	@Test
 	public void findByApplicationTest(){
-		
-		Set<Api> apis = apiRepository.findByApplication("application-sample");
-		Assert.assertNotNull(apis);
-		Assert.assertEquals(2, apis.size());
+		try{
+			Set<Api> apis = apiRepository.findByApplication("application-sample");
+			Assert.assertNotNull(apis);
+			Assert.assertEquals(2, apis.size());
+			
+		}catch(Exception e){
+			logger.error("Error while finding api by application",e);
+			Assert.fail("Error while finding api by application");
+		}
 	}
 
 }

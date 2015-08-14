@@ -23,6 +23,7 @@ import io.gravitee.repositories.mongodb.internal.model.ApiKeyMongo;
 import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.ApiKeyRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.ApiKey;
 
 @Component
@@ -36,7 +37,7 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 	private ApplicationMongoRepository internalApplicationRepo;
 
 	@Override
-	public boolean invalidateKey(String applicationName) {
+	public boolean invalidateKey(String applicationName) throws TechnicalException{
 		
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
 		applicationMongo.setKey(null);
@@ -47,7 +48,7 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 	}
 
 	@Override
-	public ApiKey createKey(String applicationName, ApiKey key) {
+	public ApiKey createKey(String applicationName, ApiKey key) throws TechnicalException {
 		
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
 		
@@ -61,7 +62,7 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 
 
 	@Override
-	public ApiKey getKey(String apiKey, String apiName) {
+	public ApiKey getKey(String apiKey, String apiName) throws TechnicalException {
 	
 		ApplicationMongo applicationMongo = internalApplicationRepo.findByKey(apiKey, apiName);
 		ApiKey key = null;

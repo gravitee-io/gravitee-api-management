@@ -42,10 +42,10 @@ public class UserRepositoryTest extends  AbstractMongoDBTest{
 	private UserRepository userRepository;
 	
 	
-	private Logger Logger = LoggerFactory.getLogger(UserRepositoryTest.class);
+	private Logger logger = LoggerFactory.getLogger(UserRepositoryTest.class);
 
 	@Override
-	protected String getJsonDataSetResourceName() {
+	protected String getTestCasesPath() {
 		return TESTCASES_PATH;
 	}
 
@@ -73,7 +73,7 @@ public class UserRepositoryTest extends  AbstractMongoDBTest{
 		
 			
 		} catch (Exception e) {
-			Logger.error("Error while calling createUser", e);
+			logger.error("Error while calling createUser", e);
 			Assert.fail("Error while calling createUser");	
 		}
 	}
@@ -81,18 +81,30 @@ public class UserRepositoryTest extends  AbstractMongoDBTest{
 
 	@Test
 	public void findAllTest() {
-		Set<User> users= userRepository.findAll();
+		try{
+			Set<User> users= userRepository.findAll();
+				
+			Assert.assertNotNull(users);
+			Assert.assertEquals("Invalid user numbers in find all", NB_USERS_TESTCASES, users.size());
 			
-		Assert.assertNotNull(users);
-		Assert.assertEquals("Invalid user numbers in find all", NB_USERS_TESTCASES, users.size());
+		}catch(Exception e){
+			logger.error("Error while finding all users",e);
+			Assert.fail("Error while finding all users");
+		}
 	}	
 	
 	@Test
 	public void findByEmailTest() {
-		Optional<User> user= userRepository.findByEmail("user2@gravitee.io");
+		try{
+			Optional<User> user= userRepository.findByEmail("user2@gravitee.io");
+				
+			Assert.assertNotNull("Optional is null", user);
+			Assert.assertTrue("Impossible to find user by email", user.isPresent());
 			
-		Assert.assertNotNull("Optional is null", user);
-		Assert.assertTrue("Impossible to find user by email", user.isPresent());
+		}catch(Exception e){
+			logger.error("Error while finding user by email",e);
+			Assert.fail("Error while finding user by email");
+		}
 	}		
 	
 	

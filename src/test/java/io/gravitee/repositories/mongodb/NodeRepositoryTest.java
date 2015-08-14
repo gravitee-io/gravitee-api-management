@@ -35,14 +35,13 @@ public class NodeRepositoryTest extends AbstractMongoDBTest {
 
 	private static final String TESTCASES_PATH = "/data/node-tests/";
 	
-	
-	private Logger Logger = LoggerFactory.getLogger(NodeRepositoryTest.class);	
+	private Logger logger = LoggerFactory.getLogger(NodeRepositoryTest.class);	
 	
 	@Autowired
 	private NodeRepository nodeRepository;
 
     @Override
-    protected String getJsonDataSetResourceName() {
+    protected String getTestCasesPath() {
         return TESTCASES_PATH;
     }
 
@@ -59,7 +58,7 @@ public class NodeRepositoryTest extends AbstractMongoDBTest {
 			nodeRepository.register(node);
 
 		} catch (Exception e) {
-			Logger.error("Error while testing registering node", e);
+			logger.error("Error while testing registering node", e);
 			Assert.fail("Error while testing registering node");
 		}
 	}
@@ -72,7 +71,7 @@ public class NodeRepositoryTest extends AbstractMongoDBTest {
 			nodeRepository.unregister("node-to-unregister");
 			
 		}catch(Exception e){
-			Logger.error("Error while calling findByName", e);
+			logger.error("Error while calling findByName", e);
 			Assert.fail("Error while calling findByName");		
 		}
 	}

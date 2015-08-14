@@ -47,10 +47,10 @@ public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 	@Autowired
 	private TeamMembershipRepository membershipRepository;
 	
-	private Logger Logger = LoggerFactory.getLogger(TeamMembershipRepositoryTest.class);
+	private Logger logger = LoggerFactory.getLogger(TeamMembershipRepositoryTest.class);
 
 	@Override
-	protected String getJsonDataSetResourceName() {
+	protected String getTestCasesPath() {
 		return TESTCASES_PATH;
 	}
 
@@ -65,7 +65,7 @@ public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 			Assert.assertEquals("Invalid number of member user name.", NB_SAMPLE_TEAM_MEMBERS_TESTCASES, members.size());
 			
 		} catch (Exception e) {
-			Logger.error("Error while testing listMembers", e);
+			logger.error("Error while testing listMembers", e);
 			Assert.fail("Error while testing listMembers");	
 		}
 	}
@@ -97,7 +97,7 @@ public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 				
 			
 		} catch (Exception e) {
-			Logger.error("Error while testing listMembers", e);
+			logger.error("Error while testing listMembers", e);
 			Assert.fail("Error while testing listMembers");	
 		}
 	}
@@ -127,7 +127,7 @@ public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 			Assert.assertEquals("Invalid added member count found", 1, validMembers);
 			
 		} catch (Exception e) {
-			Logger.error("Error while testing listMembers", e);
+			logger.error("Error while testing listMembers", e);
 			Assert.fail("Error while testing listMembers");	
 		}
 	}
@@ -157,7 +157,7 @@ public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 			Assert.assertEquals("Invalid added member count found", 0, validMembers);
 			
 		} catch (Exception e) {
-			Logger.error("Error while testing deleteMember", e);
+			logger.error("Error while testing deleteMember", e);
 			Assert.fail("Error while testing deleteMember");	
 		}
 	}    
@@ -171,7 +171,7 @@ public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 			Assert.assertEquals("Invalid number of teams found for user",NB_TEAMS_USER2_TESTCASES, teams.size());
 			
 		} catch (Exception e) {
-			Logger.error("Error while testing deleteMember", e);
+			logger.error("Error while testing deleteMember", e);
 			Assert.fail("Error while testing deleteMember");	
 		}
 	}

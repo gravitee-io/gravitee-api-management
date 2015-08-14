@@ -22,9 +22,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 import io.gravitee.repositories.mongodb.internal.model.TeamMongo;
@@ -47,7 +44,7 @@ public class TeamRepositoryImpl implements TeamRepository{
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Override
-	public Set<Team> findAll(boolean publicOnly) {
+	public Set<Team> findAll(boolean publicOnly) throws TechnicalException {
 		
 		List<TeamMongo> teams = null;
 		if(publicOnly){
@@ -60,13 +57,13 @@ public class TeamRepositoryImpl implements TeamRepository{
 	}
 
 	@Override
-	public Optional<Team> findByName(String name) {
+	public Optional<Team> findByName(String name) throws TechnicalException {
 		TeamMongo team = internalTeamRepo.findOne(name);
 		return Optional.ofNullable(mapper.map(team, Team.class));
 	}
 
 	@Override
-	public Team create(Team team) {
+	public Team create(Team team) throws TechnicalException {
 		
 		TeamMongo teamMongo = mapper.map(team, TeamMongo.class);
 		TeamMongo teamMongoCreated = internalTeamRepo.insert(teamMongo);
