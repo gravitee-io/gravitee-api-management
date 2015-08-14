@@ -76,7 +76,7 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 		
     	ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application.getName());
 		
-		//Update 
+		//Update, but don't change invariant other creation information 
 		applicationMongo.setDescription(application.getDescription());
 		applicationMongo.setUpdatedAt(application.getUpdatedAt());
 		applicationMongo.setType(application.getType());
@@ -86,9 +86,6 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 		} else {
 			applicationMongo.setOwner(internalTeamRepo.findOne(application.getOwner()));
 		}
-		
-		//Don't change invariant other creation information
-		//FIXME can i change application name ? update application references
 		
 		ApplicationMongo applicationMongoUpdated = internalApplicationRepo.save(applicationMongo);
 		return mapApplication(applicationMongoUpdated);
@@ -123,8 +120,11 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 	
 	@Override
 	public int countByUser(String username) throws TechnicalException {
-		return (int) internalApplicationRepo.countByUser(username);
-
+		try{
+			return (int) internalApplicationRepo.countByUser(username);
+		}catch(Exception e){
+			throw new TechnicalException("Coun't by user failed", e);
+		}
 	}
 
 	@Override

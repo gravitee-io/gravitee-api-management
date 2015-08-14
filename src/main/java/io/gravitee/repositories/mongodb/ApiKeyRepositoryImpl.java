@@ -15,6 +15,8 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,19 +38,31 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 	@Autowired
 	private ApplicationMongoRepository internalApplicationRepo;
 
+	private Logger logger = LoggerFactory.getLogger(ApiRepositoryImpl.class);
+	
 	@Override
 	public boolean invalidateKey(String applicationName) throws TechnicalException{
 		
+		logger.debug("Invalidate application key [{}]", applicationName);
+		
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
+		
+		if(applicationMongo == null){
+			throw new IllegalArgumentException(String.format("Invalid application name [%s]", applicationName));
+		}
 		applicationMongo.setKey(null);
 		
 		internalApplicationRepo.save(applicationMongo);
+		
+		logger.debug("Invalidate application key [{}] - Done", applicationName);
 		
 		return true;
 	}
 
 	@Override
 	public ApiKey createKey(String applicationName, ApiKey key) throws TechnicalException {
+		
+		logger.debug("Create application key [{}]", applicationName);
 		
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
 		
@@ -57,6 +71,7 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 		
 		internalApplicationRepo.save(applicationMongo);
 		
+		logger.debug("Create application key [{}] - Done", applicationName);
 		return key;
 	}
 
@@ -64,13 +79,19 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 	@Override
 	public ApiKey getKey(String apiKey, String apiName) throws TechnicalException {
 	
+		logger.debug("Get api key [{}]", apiName);
+		
 		ApplicationMongo applicationMongo = internalApplicationRepo.findByKey(apiKey, apiName);
 		ApiKey key = null;
 		
-		if(applicationMongo != null){
-			key = mapper.map(applicationMongo.getKey(), ApiKey.class);
+		if(applicationMongo == null){
+			return null;
+			//throw new IllegalArgumentException(String.format("Invalid key for api [%s]", apiName));
 		}
-	
+		key = mapper.map(applicationMongo.getKey(), ApiKey.class);
+
+		logger.debug("Get api key [{}] - Done", apiName);
+		
 		return key;
 	}
 	

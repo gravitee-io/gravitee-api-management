@@ -93,7 +93,6 @@ public class ApiKeyRepositoryTest extends AbstractMongoDBTest {
 	    try{	
 	    	apiKeyRepository.invalidateKey("application-with-key");
 	    	ApiKey apiKeyInvalidated = apiKeyRepository.getKey("application-with-key", "d449098d-8c31-4275-ad59-8dd707865a33");
-	    	
 	    	Assert.assertNull("ApiKey invalidated always exist", apiKeyInvalidated);
 	    	
 	    }catch(Exception e){

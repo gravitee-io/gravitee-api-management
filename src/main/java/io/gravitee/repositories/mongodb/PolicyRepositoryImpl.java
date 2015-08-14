@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,13 +39,26 @@ public class PolicyRepositoryImpl implements PolicyRepository{
 
 	@Autowired
 	private GraviteeMapper mapper;
+	
+	private Logger logger = LoggerFactory.getLogger(ApiRepositoryImpl.class);
 
 	@Override
 	public Set<Policy> findAll() throws TechnicalException {
-	
-		List<PolicyMongo> policies = internalPolicyRepo.findAll();
-		Set<Policy> res = mapper.collection2set(policies, PolicyMongo.class, Policy.class);
-		return res;
+		
+		try{
+			logger.error("Find all policy");
+			
+			List<PolicyMongo> policies = internalPolicyRepo.findAll();
+			Set<Policy> res = mapper.collection2set(policies, PolicyMongo.class, Policy.class);
+			
+			logger.error("Find all policy - Done");
+			return res;
+			
+		}catch(Exception e){
+			
+			logger.error("Find all policy - Error", e);
+			throw new TechnicalException(e);
+		}
 	}
 
 	@Override
