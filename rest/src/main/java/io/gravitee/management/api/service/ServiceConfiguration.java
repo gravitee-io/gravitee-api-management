@@ -22,6 +22,6 @@ import org.springframework.context.annotation.Configuration;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@ComponentScan({"io.gravitee.management.api.service", "io.gravitee.repositories"})
+@ComponentScan({"io.gravitee.management.api.service"})
 public class ServiceConfiguration {
 }

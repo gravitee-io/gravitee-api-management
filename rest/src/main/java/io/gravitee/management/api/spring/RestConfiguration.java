@@ -15,17 +15,37 @@
  */
 package io.gravitee.management.api.spring;
 
+import io.gravitee.management.api.repository.RepositoryConfiguration;
 import io.gravitee.management.api.service.ServiceConfiguration;
 import io.gravitee.management.security.config.SecurityConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+
+import java.io.IOException;
 
 /**
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@Import({ServiceConfiguration.class, SecurityConfig.class})
+@Import({PropertiesConfiguration.class, RepositoryConfiguration.class, ServiceConfiguration.class, SecurityConfig.class})
 public class RestConfiguration {
 
+    protected final static Logger LOGGER = LoggerFactory.getLogger(RestConfiguration.class);
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer properties() throws IOException {
+        LOGGER.info("Loading Gravitee Management placeholder.");
+
+        PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+        propertySourcesPlaceholderConfigurer.setProperties(PropertiesConfiguration.graviteeProperties());
+
+        LOGGER.info("Loading Gravitee Management placeholder. DONE");
+
+        return propertySourcesPlaceholderConfigurer;
+    }
 }
