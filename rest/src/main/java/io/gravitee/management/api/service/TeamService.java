@@ -15,8 +15,8 @@
  */
 package io.gravitee.management.api.service;
 
-import io.gravitee.management.api.model.TeamEntity;
 import io.gravitee.management.api.model.NewTeamEntity;
+import io.gravitee.management.api.model.TeamEntity;
 
 import java.util.Optional;
 import java.util.Set;

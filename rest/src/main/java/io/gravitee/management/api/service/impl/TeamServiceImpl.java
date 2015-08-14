@@ -15,12 +15,16 @@
  */
 package io.gravitee.management.api.service.impl;
 
+import io.gravitee.management.api.exceptions.TechnicalManagementException;
 import io.gravitee.management.api.model.NewTeamEntity;
 import io.gravitee.management.api.model.TeamEntity;
 import io.gravitee.management.api.service.TeamService;
 import io.gravitee.repository.api.TeamMembershipRepository;
 import io.gravitee.repository.api.TeamRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Team;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +38,11 @@ import java.util.Set;
 @Component
 public class TeamServiceImpl implements TeamService {
 
+    /**
+     * Logger.
+     */
+    private final Logger LOGGER = LoggerFactory.getLogger(TeamServiceImpl.class);
+
     @Autowired
     private TeamRepository teamRepository;
 
@@ -42,7 +51,13 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public Optional<TeamEntity> findByName(String teamName) {
-        return teamRepository.findByName(teamName).map(team -> convert(team));
+        try {
+            LOGGER.debug("Find team by name: {}", teamName);
+            return teamRepository.findByName(teamName).map(TeamServiceImpl::convert);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find a team using its name {}", teamName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find a team using its name " + teamName, ex);
+        }
     }
 
     @Override
@@ -59,26 +74,38 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public Set<TeamEntity> findByUser(String username) {
-        Set<Team> teams = teamMembershipRepository.findByUser(username);
-        Set<TeamEntity> publicTeams = new HashSet<>(teams.size());
+        try {
+            LOGGER.debug("Find teams for user {}", username);
+            Set<Team> teams = teamMembershipRepository.findByUser(username);
+            Set<TeamEntity> publicTeams = new HashSet<>(teams.size());
 
-        for(Team team : teams) {
-            publicTeams.add(convert(team));
+            for(Team team : teams) {
+                publicTeams.add(convert(team));
+            }
+
+            return publicTeams;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find teams for user {}", username, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find teams for user " + username, ex);
         }
-
-        return publicTeams;
     }
 
     @Override
     public Set<TeamEntity> findAll(boolean publicOnly) {
-        Set<Team> teams = teamRepository.findAll(publicOnly);
-        Set<TeamEntity> publicTeams = new HashSet<>(teams.size());
+        try {
+            LOGGER.debug("Find all teams");
+            Set<Team> teams = teamRepository.findAll(publicOnly);
+            Set<TeamEntity> publicTeams = new HashSet<>(teams.size());
 
-        for(Team team : teams) {
-            publicTeams.add(convert(team));
+            for(Team team : teams) {
+                publicTeams.add(convert(team));
+            }
+
+            return publicTeams;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find all teams", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all teams", ex);
         }
-
-        return publicTeams;
     }
 
     private static TeamEntity convert(Team team) {

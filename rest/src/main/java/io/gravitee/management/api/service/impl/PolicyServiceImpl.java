@@ -15,10 +15,14 @@
  */
 package io.gravitee.management.api.service.impl;
 
+import io.gravitee.management.api.exceptions.TechnicalManagementException;
 import io.gravitee.management.api.model.PolicyEntity;
 import io.gravitee.management.api.service.PolicyService;
 import io.gravitee.repository.api.PolicyRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Policy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
@@ -29,19 +33,30 @@ import java.util.Set;
  */
 public class PolicyServiceImpl implements PolicyService {
 
+    /**
+     * Logger.
+     */
+    private final Logger LOGGER = LoggerFactory.getLogger(PolicyServiceImpl.class);
+
     @Autowired
     private PolicyRepository policyRepository;
 
     @Override
     public Set<PolicyEntity> findAll() {
-        Set<Policy> policies = policyRepository.findAll();
-        Set<PolicyEntity> policyEntities = new HashSet<>(policies.size());
+        try {
+            LOGGER.debug("Find all policies");
+            Set<Policy> policies = policyRepository.findAll();
+            Set<PolicyEntity> policyEntities = new HashSet<>(policies.size());
 
-        for(Policy policy : policies) {
-            policyEntities.add(convert(policy));
+            for(Policy policy : policies) {
+                policyEntities.add(convert(policy));
+            }
+
+            return policyEntities;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find all policies", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all policies", ex);
         }
-
-        return policyEntities;
     }
 
     private PolicyEntity convert(Policy policy) {

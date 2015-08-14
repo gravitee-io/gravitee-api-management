@@ -35,6 +35,6 @@ public class ApiAlreadyExistsException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "An api named " + apiName + " already exists.";
+        return "An api [" + apiName + "] already exists.";
     }
 }

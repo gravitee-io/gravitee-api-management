@@ -82,4 +82,16 @@ public class NewApiEntity {
     public void setVersion(String version) {
         this.version = version;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Api{");
+        sb.append("isPrivate=").append(isPrivate);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", version='").append(version).append('\'');
+        sb.append(", publicURI=").append(publicURI);
+        sb.append(", targetURI=").append(targetURI);
+        sb.append('}');
+        return sb.toString();
+    }
 }

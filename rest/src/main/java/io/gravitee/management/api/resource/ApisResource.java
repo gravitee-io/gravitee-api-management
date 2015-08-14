@@ -62,9 +62,12 @@ public class ApisResource {
 
     @Path("{apiName}")
     public ApiResource getApiResource(@PathParam("apiName") String apiName) {
+        return resourceContext.getResource(ApiResource.class);
+        /*
         ApiResource apiResource = resourceContext.getResource(ApiResource.class);
         apiResource.setApiName(apiName);
 
         return apiResource;
+        */
     }
 }

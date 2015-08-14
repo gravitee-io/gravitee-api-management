@@ -54,6 +54,4 @@ public abstract class AbstractManagementException extends RuntimeException {
     }
 
     public abstract Response.Status getHttpStatusCode();
-
-    public abstract String getMessage();
 }

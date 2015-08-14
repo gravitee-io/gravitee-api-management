@@ -16,14 +16,19 @@
 package io.gravitee.management.api.service.impl;
 
 import io.gravitee.management.api.exceptions.ApiAlreadyExistsException;
+import io.gravitee.management.api.exceptions.ApiNotFoundException;
+import io.gravitee.management.api.exceptions.TechnicalManagementException;
 import io.gravitee.management.api.model.ApiEntity;
 import io.gravitee.management.api.model.NewApiEntity;
 import io.gravitee.management.api.model.UpdateApiEntity;
 import io.gravitee.management.api.service.ApiService;
 import io.gravitee.repository.api.ApiRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.LifecycleState;
 import io.gravitee.repository.model.OwnerType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,86 +43,169 @@ import java.util.Set;
 @Component
 public class ApiServiceImpl implements ApiService {
 
+    /**
+     * Logger.
+     */
+    private final Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
+
     @Autowired
     private ApiRepository apiRepository;
 
     @Override
     public ApiEntity createForUser(NewApiEntity api, String username) throws ApiAlreadyExistsException {
-        return create(api, OwnerType.USER, username);
+        try {
+            LOGGER.debug("Create {} for user {}", api, username);
+            return create(api, OwnerType.USER, username);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to create {} for user {}", api, username, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + username, ex);
+        }
     }
 
     @Override
     public ApiEntity createForTeam(NewApiEntity api, String teamName) throws ApiAlreadyExistsException {
-        return create(api, OwnerType.TEAM, teamName);
+        try {
+            LOGGER.debug("Create {} for team {}", api, teamName);
+            return create(api, OwnerType.TEAM, teamName);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to create {} for team {}", api, teamName, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + api + " for team " + teamName, ex);
+        }
     }
 
     @Override
     public Optional<ApiEntity> findByName(String apiName) {
-        return apiRepository.findByName(apiName).map(api -> convert(api));
+        try {
+            LOGGER.debug("Find API by name: {}", apiName);
+            return apiRepository.findByName(apiName).map(ApiServiceImpl::convert);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find an API using its name {}", apiName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find an API using its name " + apiName, ex);
+        }
     }
 
     @Override
     public Set<ApiEntity> findAll() {
-        Set<Api> apis = apiRepository.findAll();
-        Set<ApiEntity> publicApis = new HashSet<>(apis.size());
+        try {
+            LOGGER.debug("Find all APIs");
+            Set<Api> apis = apiRepository.findAll();
+            Set<ApiEntity> publicApis = new HashSet<>(apis.size());
 
-        for(Api api : apis) {
-            publicApis.add(convert(api));
+            for (Api api : apis) {
+                publicApis.add(convert(api));
+            }
+
+            return publicApis;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find all APIs", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
         }
-
-        return publicApis;
     }
 
     @Override
     public Set<ApiEntity> findByTeam(String teamName, boolean publicOnly) {
-        Set<Api> apis = apiRepository.findByTeam(teamName, publicOnly);
-        Set<ApiEntity> teamApis = new HashSet<>(apis.size());
+        try {
+            LOGGER.debug("Find APIs for team {} (public: {})", teamName, publicOnly);
 
-        for(Api api : apis) {
-            teamApis.add(convert(api));
+            Set<Api> apis = apiRepository.findByTeam(teamName, publicOnly);
+            Set<ApiEntity> teamApis = new HashSet<>(apis.size());
+
+            for(Api api : apis) {
+                teamApis.add(convert(api));
+            }
+
+            return teamApis;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find APIs for team {} (public: {})", teamName, publicOnly, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find APIs for team " + teamName +
+                    " (public: " + publicOnly + ")", ex);
         }
-
-        return teamApis;
     }
 
     @Override
     public Set<ApiEntity> findByUser(String username, boolean publicOnly) {
-        Set<Api> apis = apiRepository.findByUser(username, publicOnly);
-        Set<ApiEntity> userApis = new HashSet<>(apis.size());
+        try {
+            LOGGER.debug("Find APIs for user {} (public: {})", username, publicOnly);
+            Set<Api> apis = apiRepository.findByUser(username, publicOnly);
+            Set<ApiEntity> userApis = new HashSet<>(apis.size());
 
-        for(Api api : apis) {
-            userApis.add(convert(api));
+            for(Api api : apis) {
+                userApis.add(convert(api));
+            }
+
+            return userApis;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find APIs for user {} (public: {})", username, publicOnly, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + username +
+                    " (public: " + publicOnly + ")", ex);
         }
-
-        return userApis;
     }
 
     @Override
-    public ApiEntity update(String apiName, UpdateApiEntity apiCreation) {
-        Api api = convert(apiCreation);
+    public ApiEntity update(String apiName, UpdateApiEntity updateApiEntity) {
+        try {
+            LOGGER.debug("Update API {}", apiName);
 
-        api.setUpdatedAt(new Date());
+            Optional<Api> optApiToUpdate = apiRepository.findByName(apiName);
+            if (! optApiToUpdate.isPresent()) {
+                throw new ApiNotFoundException(apiName);
+            }
 
-        Api updatedApi =  apiRepository.update(api);
-        return convert(updatedApi);
+            Api apiToUpdate = optApiToUpdate.get();
+            Api api = convert(updateApiEntity);
+
+            api.setName(apiName);
+            api.setUpdatedAt(new Date());
+
+            // Copy fields from existing values
+            api.setCreatedAt(apiToUpdate.getCreatedAt());
+            api.setLifecycleState(LifecycleState.STOPPED);
+            api.setOwner(apiToUpdate.getOwner());
+            api.setOwnerType(apiToUpdate.getOwnerType());
+            api.setCreator(apiToUpdate.getCreator());
+
+            Api updatedApi =  apiRepository.update(api);
+            return convert(updatedApi);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to update API {}", apiName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to update API " + apiName, ex);
+        }
     }
 
     @Override
     public void delete(String apiName) {
-        apiRepository.delete(apiName);
+        try {
+            LOGGER.debug("Delete API {}", apiName);
+            apiRepository.delete(apiName);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete API {}", apiName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete API " + apiName, ex);
+        }
     }
 
     @Override
     public void start(String apiName) {
-        updateLifecycle(apiName, LifecycleState.STARTED);
+        try {
+            LOGGER.debug("Start API {}", apiName);
+            updateLifecycle(apiName, LifecycleState.STARTED);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to start API {}", apiName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to start API " + apiName, ex);
+        }
     }
 
     @Override
     public void stop(String apiName) {
-        updateLifecycle(apiName, LifecycleState.STOPPED);
+        try {
+            LOGGER.debug("Stop API {}", apiName);
+            updateLifecycle(apiName, LifecycleState.STOPPED);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to stop API {}", apiName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to stop API " + apiName, ex);
+        }
     }
 
-    private void updateLifecycle(String apiName, LifecycleState lifecycleState) {
+    private void updateLifecycle(String apiName, LifecycleState lifecycleState) throws TechnicalException {
         Optional<Api> optApi = apiRepository.findByName(apiName);
         if (optApi.isPresent()) {
             Api api = optApi.get();
@@ -127,7 +215,7 @@ public class ApiServiceImpl implements ApiService {
         }
     }
 
-    private ApiEntity create(NewApiEntity newApiEntity, OwnerType ownerType, String owner) throws ApiAlreadyExistsException {
+    private ApiEntity create(NewApiEntity newApiEntity, OwnerType ownerType, String owner) throws ApiAlreadyExistsException, TechnicalException {
         Optional<ApiEntity> checkApi = findByName(newApiEntity.getName());
         if (checkApi.isPresent()) {
             throw new ApiAlreadyExistsException(newApiEntity.getName());

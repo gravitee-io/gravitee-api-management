@@ -15,15 +15,20 @@
  */
 package io.gravitee.management.api.service.impl;
 
+import io.gravitee.management.api.exceptions.TechnicalManagementException;
 import io.gravitee.management.api.exceptions.UsernameAlreadyExistsException;
 import io.gravitee.management.api.model.NewUserEntity;
 import io.gravitee.management.api.model.UserEntity;
 import io.gravitee.management.api.service.UserService;
 import io.gravitee.repository.api.UserRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -32,28 +37,51 @@ import java.util.Optional;
 @Component
 public class UserServiceImpl implements UserService {
 
+    /**
+     * Logger.
+     */
+    private final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
+
     @Autowired
     private UserRepository userRepository;
 
     @Override
     public Optional<UserEntity> findByName(String username) {
-        return userRepository.findByUsername(username).map(user -> convert(user));
+        try {
+            LOGGER.debug("Find user by name: {}", username);
+            return userRepository.findByUsername(username).map(UserServiceImpl::convert);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find a user using its name {}", username, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find a user using its name " + username, ex);
+        }
     }
 
     @Override
     public UserEntity create(NewUserEntity newUserEntity) throws UsernameAlreadyExistsException {
-        Optional<UserEntity> checkUser = findByName(newUserEntity.getUsername());
-        if (checkUser.isPresent()) {
-            throw new UsernameAlreadyExistsException(newUserEntity.getUsername());
-        }
+        try {
+            LOGGER.debug("Create {}", newUserEntity);
+            Optional<UserEntity> checkUser = findByName(newUserEntity.getUsername());
+            if (checkUser.isPresent()) {
+                throw new UsernameAlreadyExistsException(newUserEntity.getUsername());
+            }
 
-        checkUser = userRepository.findByEmail(newUserEntity.getEmail()).map(user -> convert(user));
-        if (checkUser.isPresent()) {
-            throw new UsernameAlreadyExistsException(newUserEntity.getUsername());
-        }
+            checkUser = userRepository.findByEmail(newUserEntity.getEmail()).map(UserServiceImpl::convert);
+            if (checkUser.isPresent()) {
+                throw new UsernameAlreadyExistsException(newUserEntity.getUsername());
+            }
 
-        User createdUser = userRepository.create(convert(newUserEntity));
-        return convert(createdUser);
+            User user = convert(newUserEntity);
+
+            // Set date fields
+            user.setCreatedAt(new Date());
+            user.setUpdatedAt(user.getCreatedAt());
+
+            User createdUser = userRepository.create(user);
+            return convert(createdUser);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to create {}", newUserEntity, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + newUserEntity, ex);
+        }
     }
 
     private static User convert(NewUserEntity newUserEntity) {

@@ -20,4 +20,14 @@ package io.gravitee.management.api.exceptions;
  */
 public class ApiNotFoundException extends AbstractNotFoundException {
 
+    private final String apiName;
+
+    public ApiNotFoundException(String apiName) {
+        this.apiName = apiName;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Api [" + apiName + "] can not be found.";
+    }
 }

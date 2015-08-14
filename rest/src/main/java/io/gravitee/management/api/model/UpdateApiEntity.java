@@ -15,8 +15,10 @@
  */
 package io.gravitee.management.api.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import javax.validation.constraints.NotNull;
 import java.net.URI;
 
 /**
@@ -25,9 +27,15 @@ import java.net.URI;
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class UpdateApiEntity {
 
+    @NotNull
     private String version;
 
+    @NotNull
+    @JsonProperty("public")
     private URI publicURI;
+
+    @NotNull
+    @JsonProperty("target")
     private URI targetURI;
 
     private boolean isPrivate;

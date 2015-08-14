@@ -15,12 +15,9 @@
  */
 package io.gravitee.management.api.resource;
 
+import io.gravitee.management.api.mapper.ObjectMapperResolver;
 import io.gravitee.management.api.provider.ManagementExceptionMapper;
 import io.gravitee.management.api.provider.UnrecognizedPropertyExceptionMapper;
-import io.gravitee.management.api.resource.ApisResource;
-import io.gravitee.management.api.resource.AuthenticatedUserResource;
-import io.gravitee.management.api.resource.PolicyResource;
-import io.gravitee.management.api.resource.UsersResource;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -35,6 +32,7 @@ public class GraviteeApplication extends ResourceConfig {
         register(UsersResource.class);
         register(PolicyResource.class);
 
+        register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);
         register(UnrecognizedPropertyExceptionMapper.class);
 

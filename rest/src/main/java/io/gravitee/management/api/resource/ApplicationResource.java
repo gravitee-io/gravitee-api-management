@@ -64,7 +64,7 @@ public class ApplicationResource extends AbstractResource {
                 break;
         }
 
-        ApplicationEntity updatedApplicationEntity = applicationService.update(application);
+        ApplicationEntity updatedApplicationEntity = applicationService.update(applicationName, application);
         if (updatedApplicationEntity != null) {
             return Response.ok().entity(updatedApplicationEntity).build();
         } else {

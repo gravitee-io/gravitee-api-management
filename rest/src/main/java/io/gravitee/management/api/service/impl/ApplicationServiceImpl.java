@@ -15,13 +15,17 @@
  */
 package io.gravitee.management.api.service.impl;
 
+import io.gravitee.management.api.exceptions.TechnicalManagementException;
 import io.gravitee.management.api.model.ApplicationEntity;
 import io.gravitee.management.api.model.NewApplicationEntity;
 import io.gravitee.management.api.model.UpdateApplicationEntity;
 import io.gravitee.management.api.service.ApplicationService;
 import io.gravitee.repository.api.ApplicationRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Application;
 import io.gravitee.repository.model.OwnerType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,78 +40,128 @@ import java.util.Set;
 @Component
 public class ApplicationServiceImpl implements ApplicationService {
 
+    /**
+     * Logger.
+     */
+    private final Logger LOGGER = LoggerFactory.getLogger(ApplicationServiceImpl.class);
+
     @Autowired
     private ApplicationRepository applicationRepository;
 
     @Override
     public Optional<ApplicationEntity> findByName(String applicationName) {
-        return applicationRepository.findByName(applicationName).map(application -> convert(application));
+        try {
+            LOGGER.debug("Find application by name: {}", applicationName);
+            return applicationRepository.findByName(applicationName).map(ApplicationServiceImpl::convert);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find an application using its name {}", applicationName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find an application using its name " + applicationName, ex);
+        }
     }
 
     @Override
     public Set<ApplicationEntity> findByTeam(String teamName) {
-        Set<Application> applications = applicationRepository.findByTeam(teamName);
-        Set<ApplicationEntity> applicationEntities = new HashSet<>(applications.size());
+        try {
+            LOGGER.debug("Find applications for team {}", teamName);
 
-        for(Application application : applications) {
-            applicationEntities.add(convert(application));
+            Set<Application> applications = applicationRepository.findByTeam(teamName);
+            Set<ApplicationEntity> applicationEntities = new HashSet<>(applications.size());
+
+            for(Application application : applications) {
+                applicationEntities.add(convert(application));
+            }
+
+            return applicationEntities;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find applications for team {}", teamName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find applications for team " + teamName, ex);
         }
-
-        return applicationEntities;
     }
 
     @Override
     public Set<ApplicationEntity> findByUser(String username) {
-        Set<Application> applications = applicationRepository.findByUser(username);
-        Set<ApplicationEntity> applicationEntities = new HashSet<>(applications.size());
+        try {
+            LOGGER.debug("Find applications for user {}", username);
 
-        for(Application application : applications) {
-            applicationEntities.add(convert(application));
+            Set<Application> applications = applicationRepository.findByUser(username);
+            Set<ApplicationEntity> applicationEntities = new HashSet<>(applications.size());
+
+            for(Application application : applications) {
+                applicationEntities.add(convert(application));
+            }
+
+            return applicationEntities;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find applications for user {}", username, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find applications for user " + username, ex);
         }
-
-        return applicationEntities;
     }
 
     @Override
     public ApplicationEntity createForUser(NewApplicationEntity newApplicationEntity, String username) {
-        Application application = convert(newApplicationEntity);
+        try {
+            LOGGER.debug("Create {} for user {}", newApplicationEntity, username);
+            Application application = convert(newApplicationEntity);
 
-        // Set owner and owner type
-        application.setOwner(username);
-        application.setOwnerType(OwnerType.USER);
+            // Set owner and owner type
+            application.setOwner(username);
+            application.setOwnerType(OwnerType.USER);
 
-        Application createdApplication = create(application);
-        return convert(createdApplication);
+            Application createdApplication = create(application);
+            return convert(createdApplication);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, username, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for user " + username, ex);
+        }
     }
 
     @Override
     public ApplicationEntity createForTeam(NewApplicationEntity newApplicationEntity, String teamName) {
-        Application application = convert(newApplicationEntity);
+        try {
+            LOGGER.debug("Create {} for team {}", newApplicationEntity, teamName);
 
-        // Set owner and owner type
-        application.setOwner(teamName);
-        application.setOwnerType(OwnerType.TEAM);
+            Application application = convert(newApplicationEntity);
 
-        Application createdApplication = create(application);
-        return convert(createdApplication);
+            // Set owner and owner type
+            application.setOwner(teamName);
+            application.setOwnerType(OwnerType.TEAM);
+
+            Application createdApplication = create(application);
+            return convert(createdApplication);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to create {} for team {}", newApplicationEntity, teamName, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for team " + teamName, ex);
+        }
     }
 
     @Override
-    public ApplicationEntity update(UpdateApplicationEntity updateApplicationEntity) {
-        Application application = convert(updateApplicationEntity);
+    public ApplicationEntity update(String applicationName, UpdateApplicationEntity updateApplicationEntity) {
+        try {
+            LOGGER.debug("Update application {}", applicationName);
+            Application application = convert(updateApplicationEntity);
+            application.setName(applicationName);
+            application.setUpdatedAt(new Date());
 
-        application.setUpdatedAt(new Date());
-
-        Application updatedApplication =  applicationRepository.update(application);
-        return convert(updatedApplication);
+            Application updatedApplication =  applicationRepository.update(application);
+            return convert(updatedApplication);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to update application {}", applicationName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to update application " + applicationName, ex);
+        }
     }
 
     @Override
     public void delete(String applicationName) {
-        applicationRepository.delete(applicationName);
+        try {
+            LOGGER.debug("Delete application {}", applicationName);
+            applicationRepository.delete(applicationName);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete application {}", applicationName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete application " + applicationName, ex);
+        }
     }
 
-    private Application create(Application application) {
+    private Application create(Application application) throws TechnicalException {
         // Update date fields
         application.setCreatedAt(new Date());
         application.setUpdatedAt(application.getCreatedAt());

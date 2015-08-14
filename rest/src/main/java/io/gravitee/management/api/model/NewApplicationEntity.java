@@ -50,4 +50,14 @@ public class NewApplicationEntity {
     public void setType(String type) {
         this.type = type;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Application{");
+        sb.append("description='").append(description).append('\'');
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", type='").append(type).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

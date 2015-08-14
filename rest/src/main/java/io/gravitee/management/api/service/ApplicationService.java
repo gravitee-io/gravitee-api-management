@@ -18,7 +18,6 @@ package io.gravitee.management.api.service;
 import io.gravitee.management.api.model.ApplicationEntity;
 import io.gravitee.management.api.model.NewApplicationEntity;
 import io.gravitee.management.api.model.UpdateApplicationEntity;
-import io.gravitee.repository.model.Application;
 
 import java.util.Optional;
 import java.util.Set;
@@ -38,7 +37,7 @@ public interface ApplicationService {
 
     ApplicationEntity createForTeam(NewApplicationEntity application, String teamName);
 
-    ApplicationEntity update(UpdateApplicationEntity application);
+    ApplicationEntity update(String applicationName, UpdateApplicationEntity application);
 
     void delete(String applicationName);
 }
