@@ -18,6 +18,7 @@ package io.gravitee.repository.api;
 import java.util.Optional;
 import java.util.Set;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.Application;
 import io.gravitee.repository.model.Team;
@@ -33,7 +34,7 @@ public interface ApplicationRepository {
      *
      * @return All public applications.
      */
-    Set<Application> findAll();
+    Set<Application> findAll() throws TechnicalException;
 
     /**
      * List all applications hold by a {@link io.gravitee.repository.model.Team}.
@@ -41,7 +42,7 @@ public interface ApplicationRepository {
      * @param teamName The name of the team.
      * @return All applications from a team.
      */
-    Set<Application> findByTeam(String teamName);
+    Set<Application> findByTeam(String teamName) throws TechnicalException;
 
     /**
      * List all applications hold by a {@link io.gravitee.repository.model.User}.
@@ -49,7 +50,7 @@ public interface ApplicationRepository {
      * @param userName The name of the user.
      * @return All applications from a user.
      */
-    Set<Application> findByUser(String userName);
+    Set<Application> findByUser(String userName) throws TechnicalException;
 
     /**
      * Create an {@link Application}
@@ -57,7 +58,7 @@ public interface ApplicationRepository {
      * @param application Application to create
      * @return Application created
      */
-    Application create(Application application);
+    Application create(Application application) throws TechnicalException;
 
     /**
      * Update an {@link Application}
@@ -65,7 +66,7 @@ public interface ApplicationRepository {
      * @param application Application to update
      * @return Application updated
      */
-    Application update(Application application);
+    Application update(Application application) throws TechnicalException;
 
     /**
      * Get an application using its name.
@@ -73,14 +74,14 @@ public interface ApplicationRepository {
      * @param applicationName The name of the application to retrieve.
      * @return An {@link Optional} application.
      */
-    Optional<Application> findByName(String applicationName);
+    Optional<Application> findByName(String applicationName) throws TechnicalException;
 
     /**
      * Delete an {@link Application}
      * 
      * @param applicationName Application name to delete
      */
-    void delete(String applicationName);
+    void delete(String applicationName) throws TechnicalException;
 
     /**
      * Count {@link Application} owner by a given {@link User}
@@ -88,7 +89,7 @@ public interface ApplicationRepository {
      * @param userName Application user owner name
      * @return Counted application
      */
-    int countByUser(String userName);
+    int countByUser(String userName) throws TechnicalException;
 
     /**
      * Count {@link Team} owner by a given {@link User}
@@ -96,7 +97,7 @@ public interface ApplicationRepository {
      * @param teamName Application user owner team
      * @return Counted application
      */
-    int countByTeam(String teamName);
+    int countByTeam(String teamName) throws TechnicalException;
     
     /**
      * Associate an Api with an Application.
@@ -105,7 +106,7 @@ public interface ApplicationRepository {
      * @param apiName Name of the Api to associate 
      * @return true success, false otherwise
      */
-    boolean associate(String applicationName, String apiName);
+    boolean associate(String applicationName, String apiName) throws TechnicalException;
     
     /**
      * Remove an association between an {@link Application} and an {@link Api}
@@ -114,7 +115,7 @@ public interface ApplicationRepository {
      * @param apiName Name of the Api to dissociate 
      * @return true success, false otherwise
      */
-    boolean dissociate(String applicationName, String apiName);
+    boolean dissociate(String applicationName, String apiName) throws TechnicalException;
 
 
 }

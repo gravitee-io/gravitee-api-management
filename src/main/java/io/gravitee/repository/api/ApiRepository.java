@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.PolicyConfiguration;
 import io.gravitee.repository.model.User;
@@ -34,14 +35,14 @@ public interface ApiRepository {
      * @param apiName The name of the API to retrieve.
      * @return An {@link Optional} API.
      */
-    Optional<Api> findByName(String apiName);
+    Optional<Api> findByName(String apiName) throws TechnicalException;
 
     /**
      * List all public APIs.
      *
      * @return All public APIs.
      */
-    Set<Api> findAll();
+    Set<Api> findAll() throws TechnicalException;
 
     /**
      * List APIs (public and/or private) hold by a {@link io.gravitee.repository.model.Team}.
@@ -50,7 +51,7 @@ public interface ApiRepository {
      * @param publicOnly List only public APIs.
      * @return List APIs from a team.
      */
-    Set<Api> findByTeam(String teamName, boolean publicOnly);
+    Set<Api> findByTeam(String teamName, boolean publicOnly) throws TechnicalException;
 
     /**
      * List APIs (public and private) hold by a {@link io.gravitee.repository.model.User}.
@@ -59,7 +60,7 @@ public interface ApiRepository {
      * @param publicOnly List only public APIs.
      * @return List APIs from a user.
      */
-    Set<Api> findByUser(String username, boolean publicOnly);
+    Set<Api> findByUser(String username, boolean publicOnly) throws TechnicalException;
 
     /**
      * Create an API
@@ -67,7 +68,7 @@ public interface ApiRepository {
      * @param api api to create
      * @return api creaded
      */
-    Api create(Api api);
+    Api create(Api api) throws TechnicalException;
 
     /**
      * Update an API
@@ -75,14 +76,14 @@ public interface ApiRepository {
      * @param api api to update
      * @return api updated
      */
-    Api update(Api api);
+    Api update(Api api) throws TechnicalException;
 
     /**
      * Delete an API
      * 
      * @param apiName api name to delete
      */
-    void delete(String apiName);
+    void delete(String apiName) throws TechnicalException;
 
     /**
      * Count all APIs (public and private) owned by a given {@link io.gravitee.repository.model.User}
@@ -91,7 +92,7 @@ public interface ApiRepository {
      * @param publicOnly List only public APIs.
      * @return counted APIs
      */
-    int countByUser(String username, boolean publicOnly);
+    int countByUser(String username, boolean publicOnly) throws TechnicalException;
    
     /**
     * Count all APIs (public and private) owned by a given {@link io.gravitee.repository.model.Team}
@@ -100,7 +101,7 @@ public interface ApiRepository {
     * @param publicOnly List only public APIs.
     * @return counted APIs
     */
-    int countByTeam(String teamName, boolean publicOnly);
+    int countByTeam(String teamName, boolean publicOnly) throws TechnicalException;
 
     /**
      * Update an API policies
@@ -108,7 +109,7 @@ public interface ApiRepository {
      * @param apiName API name
      * @param policyConfigurations Ordered list of {@link PolicyConfiguration} to set to the API
      */
-    void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigurations);
+    void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigurations) throws TechnicalException;
   
     /**
      * Update a API policy
@@ -116,7 +117,7 @@ public interface ApiRepository {
      * @param apiName API name
      * @param policyConfiguration {@link PolicyConfiguration} to update
      */
-    void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfiguration);
+    void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfiguration) throws TechnicalException;
 
     /**
      * Give all {@link PolicyConfiguration} for an API
@@ -124,7 +125,7 @@ public interface ApiRepository {
      * @param apiName API name
      * @return API policies configuration
      */
-    List<PolicyConfiguration> findPoliciesByApi(String apiName);
+    List<PolicyConfiguration> findPoliciesByApi(String apiName) throws TechnicalException;
     
     /**
      * Find APIs by creator
@@ -132,7 +133,7 @@ public interface ApiRepository {
      * @param userName creator {@link User} name
      * @return APIs created by the user
      */
-    Set<Api> findByCreator(String userName);
+    Set<Api> findByCreator(String userName) throws TechnicalException;
     
     /**
      * Find Apis associated with an application
@@ -140,6 +141,6 @@ public interface ApiRepository {
      * @param application Application Name
      * @return Apis associated
      */
-    Set<Api> findByApplication(String application);
+    Set<Api> findByApplication(String application) throws TechnicalException;
 
 }

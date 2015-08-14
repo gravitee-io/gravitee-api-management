@@ -15,10 +15,11 @@
  */
 package io.gravitee.repository.api;
 
-import io.gravitee.repository.model.Policy;
-
 import java.util.Optional;
 import java.util.Set;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.model.Policy;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -30,7 +31,7 @@ public interface PolicyRepository {
 	 * 
 	 * @return Policies found
 	 */
-    Set<Policy> findAll();
+    Set<Policy> findAll() throws TechnicalException;
 
     /**
      * Find a {@link Policy} by id
@@ -38,7 +39,7 @@ public interface PolicyRepository {
      * @param id Searched policy id
      * @return {@link Optional} of {@link Policy} found
      */
-    Optional<Policy> findById(String id);
+    Optional<Policy> findById(String id) throws TechnicalException;
     
     /**
      * Create a {@link Policy} plugin.
@@ -46,7 +47,7 @@ public interface PolicyRepository {
      * @param policy Policy to create
      * @return Policy created
      */
-    Policy create(Policy policy);
+    Policy create(Policy policy) throws TechnicalException;
  
     /**
      * Update a {@link Policy} plugin.
@@ -54,12 +55,12 @@ public interface PolicyRepository {
      * @param policy Policy to update
      * @return Policy updated
      */   
-    Policy update(Policy policy);
+    Policy update(Policy policy) throws TechnicalException;
     
     /**
      * Delete a {@link Policy} by Id.
      * 
      * @param id Policy to delete identifier 
      */
-    void delete(String id);
+    void delete(String id) throws TechnicalException;
 }

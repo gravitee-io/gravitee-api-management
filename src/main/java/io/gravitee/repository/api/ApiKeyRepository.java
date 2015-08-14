@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.api;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.ApiKey;
 import io.gravitee.repository.model.Application;
 
@@ -30,7 +31,7 @@ public interface ApiKeyRepository {
 	 * 
 	 * @return ApiKey generated
 	 */
-	ApiKey createKey(String application, ApiKey key);
+	ApiKey createKey(String application, ApiKey key) throws TechnicalException;
 
 	/**
 	 * Give the application Key detail for a given API
@@ -39,7 +40,7 @@ public interface ApiKeyRepository {
 	 * @param apiName Api name
 	 * @return Full ApiKey
 	 */
-    ApiKey getKey(String apiKey, String apiName);
+    ApiKey getKey(String apiKey, String apiName) throws TechnicalException;
 
     /**
      * Invalidate a key 
@@ -47,7 +48,7 @@ public interface ApiKeyRepository {
      * @param applicationName Key owner Application 
      * @return true success, false otherwise
      */
-	boolean invalidateKey(String applicationName);
+	boolean invalidateKey(String applicationName) throws TechnicalException;
 
 
 }
