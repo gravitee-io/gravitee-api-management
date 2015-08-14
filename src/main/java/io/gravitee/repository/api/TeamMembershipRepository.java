@@ -15,13 +15,14 @@
  */
 package io.gravitee.repository.api;
 
-import io.gravitee.repository.model.Member;
-import io.gravitee.repository.model.Team;
-import io.gravitee.repository.model.TeamRole;
-
 import java.util.Set;
 
 import javax.management.relation.Role;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.model.Member;
+import io.gravitee.repository.model.Team;
+import io.gravitee.repository.model.TeamRole;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -35,7 +36,7 @@ public interface TeamMembershipRepository {
 	 * @param username Member user name 
 	 * @param role {@link Role} given to the member in this team
 	 */
-    void addMember(String teamName, String username, TeamRole role);
+    void addMember(String teamName, String username, TeamRole role) throws TechnicalException;
 
 	/**
 	 * Update the role of a given {@link Team} {@link Member}.
@@ -44,7 +45,7 @@ public interface TeamMembershipRepository {
 	 * @param username Member user name 
 	 * @param role {@link Role} given to the member in this team
 	 */
-    void updateMember(String teamName, String username, TeamRole role);
+    void updateMember(String teamName, String username, TeamRole role) throws TechnicalException;
 
     /**
      * Remove a team user {@link Member}
@@ -52,7 +53,7 @@ public interface TeamMembershipRepository {
      * @param teamName Team name where the member will be removed
      * @param username User name removed as member
      */
-    void deleteMember(String teamName, String username);
+    void deleteMember(String teamName, String username) throws TechnicalException;
 
     /**
      * List all team {@link Member}s 
@@ -60,7 +61,7 @@ public interface TeamMembershipRepository {
      * @param teamName Team name off members
      * @return Team members
      */
-    Set<Member> listMembers(String teamName);
+    Set<Member> listMembers(String teamName) throws TechnicalException;
 
     /**
      * List {@link Team} where the user is a member.
@@ -68,6 +69,6 @@ public interface TeamMembershipRepository {
      * @param username The name used to identify a user.
      * @return List of {@link Team}
      */
-    Set<Team> findByUser(String username);
+    Set<Team> findByUser(String username) throws TechnicalException;
 
 }

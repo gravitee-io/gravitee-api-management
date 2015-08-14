@@ -18,6 +18,7 @@ package io.gravitee.repository.api;
 import java.util.Optional;
 import java.util.Set;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.User;
 
 /**
@@ -31,7 +32,7 @@ public interface UserRepository {
      * @param usr user to create
      * @return User created
      */
-	User create(User user);
+	User create(User user) throws TechnicalException;
 	
 	/**
 	 * Find a {@link User} by name
@@ -39,7 +40,7 @@ public interface UserRepository {
 	 * @param username Name of the searched user
 	 * @return Option user found
 	 */
-	Optional<User> findByUsername(String username);
+	Optional<User> findByUsername(String username) throws TechnicalException;
 
 	/**
 	 * Find a {@link User} by email
@@ -47,14 +48,14 @@ public interface UserRepository {
 	 * @param email Mail of the searched user
 	 * @return Option user found
 	 */
-	Optional<User> findByEmail(String email);
+	Optional<User> findByEmail(String email) throws TechnicalException;
 
 	/**
 	 * Find all {@link User}s
 	 * 
 	 * @return Users found
 	 */
-    Set<User> findAll();
+    Set<User> findAll() throws TechnicalException;
 
 	/**
 	 * Find all {@link User} in a team
@@ -62,5 +63,5 @@ public interface UserRepository {
 	 * @param team name
 	 * @return users found
 	 */
-    Set<User> findByTeam(String teamName);
+    Set<User> findByTeam(String teamName) throws TechnicalException;
 }

@@ -32,7 +32,7 @@ public interface TeamRepository {
      * @param publicOnly
      * @return
      */
-    Set<Team> findAll(boolean publicOnly);
+    Set<Team> findAll(boolean publicOnly) throws TechnicalException;
 
     /**
      * Find a {@link Team} by name
@@ -40,7 +40,7 @@ public interface TeamRepository {
      * @param name team name
      * @return {@link Optional} {@link Team} found
      */
-    Optional<Team> findByName(String name);
+    Optional<Team> findByName(String name) throws TechnicalException;
 
     /**
      * Create a {@link Team}
@@ -48,7 +48,7 @@ public interface TeamRepository {
      * @param team team to create
      * @return Team created
      */
-    Team create(Team team);
+    Team create(Team team) throws TechnicalException;
   
     /**
      * Update a {@link Team}

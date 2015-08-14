@@ -17,6 +17,7 @@ package io.gravitee.repository.api;
 
 import java.util.Set;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Node;
 
 /**
@@ -28,17 +29,17 @@ public interface NodeRepository {
 	 * Register a gateway {@link Node}
 	 * @param node Node to register
 	 */
-    void register(Node node);
+    void register(Node node) throws TechnicalException;
 
     /**
      * Unregister a gateway {@link Node}
      * @param nodename Node name
      */
-    void unregister(String nodename);
+    void unregister(String nodename) throws TechnicalException;
     
     /**
      * Find all {@link Node} (registered an unregistered)
      * @return Node found
      */
-    Set<Node> findAll();
+    Set<Node> findAll() throws TechnicalException;
 }
