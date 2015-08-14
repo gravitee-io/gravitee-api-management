@@ -28,7 +28,7 @@
 	
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>io.gravitee.management.api.spring.GraviteeContextConfiguration</param-value>
+		<param-value>io.gravitee.management.api.spring.RestConfiguration</param-value>
 	</context-param>
 	
 	<context-param>

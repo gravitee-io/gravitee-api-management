@@ -7,17 +7,17 @@ Administrative Rest API to manage the Gateway
 ## Building
 
 ```
-$ git clone https://github.com/gravitee-io/gravitee-oauth2-server.git
-$ cd gravitee-oauth2-server
-$ mvn -Djetty.port=8059 jetty:run
+$ git clone https://github.com/gravitee-io/gravitee-management-rest-api.git
+$ cd gravitee-management-rest-api/war
+$ mvn -Djetty.port=8082 jetty:run
 ...
-<app starts and listens on port 8059>
+<app starts and listens on port 8082>
 ```
 The application can be package and deploy as web application (war file)
 ```
 $ git clone https://github.com/gravitee-io/gravitee-management-rest-api.git
-$ cd gravitee-management-rest-api
-$ mvn package -Pwebapp
+$ cd gravitee-management-rest-api/war
+$ mvn package
 ...
 <app war file can be find inside target/ folder>
 <deploy it inside web container to get ready>
@@ -25,13 +25,13 @@ $ mvn package -Pwebapp
 and also as a executable jar (embedded web application)
 ```
 $ git clone https://github.com/gravitee-io/gravitee-management-rest-api.git
-$ cd gravitee-management-rest-api
-$ mvn package -Pembedded-webapp
+$ cd gravitee-management-rest-api/standalone
+$ mvn package
 ...
 <app jar file can be find inside target/ folder>
 <you can start the application with the following command line>
 $ java -jar target/<app_name>-executable.jar
 ...
-<app starts and listens on port 8059>
+<app starts and listens on port 8082>
 ```
 
