@@ -15,6 +15,7 @@
  */
 package io.gravitee.repositories.mongodb.internal.model;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class TeamMongo extends AbstractUserMongo{
     private Date createdAt;
     private Date updatedAt;
     
-    private List<TeamMemberMongo> members;
+    private List<TeamMemberMongo> members = new ArrayList<>();
    
 	public String getDescription() {
         return description;
