@@ -16,12 +16,15 @@
 package io.gravitee.repositories.mongodb.internal.team;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
+import io.gravitee.repositories.mongodb.internal.model.TeamMemberMongo;
 import io.gravitee.repositories.mongodb.internal.model.TeamMongo;
 
 public class TeamMongoRepositoryImpl implements TeamMongoRepositoryCustom {
@@ -40,6 +43,36 @@ public class TeamMongoRepositoryImpl implements TeamMongoRepositoryCustom {
 		List<TeamMongo> teams = mongoTemplate.find(query, TeamMongo.class);
 
 		return teams;
+	}
+
+	@Override
+	public TeamMemberMongo getMember(String username, String teamname) {
+		Query query = new Query();
+		
+		Criteria criteriaMember = Criteria.where("members.member.$id").is(username);
+		Criteria criteriaTeam = Criteria.where("name").is(teamname);
+		
+		query.addCriteria(criteriaMember);	
+		query.addCriteria(criteriaTeam);	
+		
+		TeamMongo team = mongoTemplate.findOne(query, TeamMongo.class);
+		
+		if(team == null){
+			return null;
+		}
+		
+		Optional<TeamMemberMongo> optional = team.getMembers().stream().filter(new Predicate<TeamMemberMongo>() {
+
+			@Override
+			public boolean test(TeamMemberMongo t) {
+				return username.equalsIgnoreCase(t.getMember().getName());
+			}
+		}).findFirst();
+		
+		if(optional.isPresent()){
+			return optional.get();
+		}
+		return null;
 	}
 
 }

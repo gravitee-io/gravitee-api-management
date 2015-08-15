@@ -15,6 +15,8 @@
  */
 package io.gravitee.repositories.mongodb.internal.model;
 
+import java.util.Date;
+
 import org.springframework.data.mongodb.core.mapping.DBRef;
 
 /**
@@ -29,6 +31,10 @@ public class TeamMemberMongo {
 
     @DBRef
     private UserMongo member;
+    
+    private Date createdAt;
+    
+    private Date updatedAt;
 
 	public String getRole() {
 		return role;
@@ -44,5 +50,22 @@ public class TeamMemberMongo {
 
 	public void setMember(UserMongo member) {
 		this.member = member;
+	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
 	}  
+
 }

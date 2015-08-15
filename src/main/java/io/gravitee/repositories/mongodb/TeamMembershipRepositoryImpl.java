@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +42,6 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 
 	@Autowired
 	private GraviteeMapper mapper;
-
 	
 	@Autowired
 	private TeamMongoRepository internalTeamRepo;
@@ -48,6 +49,7 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	@Autowired
 	private UserMongoRepository internalUserRepo;
 	
+	private Logger logger = LoggerFactory.getLogger(TeamMembershipRepositoryImpl.class);
 	
 	@Override
 	public void addMember(String teamName, String username, TeamRole role) throws TechnicalException {
@@ -128,6 +130,31 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 		List<TeamMongo> teams = internalTeamRepo.findByUser(username);
 		return mapper.collection2set(teams, TeamMongo.class, Team.class);
 	
+	}
+
+	@Override
+	public Member getMember(String teamName, String memberName) throws TechnicalException {
+		try{
+			TeamMemberMongo memberMongo = internalTeamRepo.getMember(memberName, teamName);
+			return map(memberMongo);
+		}catch(Exception e){
+			logger.error("Fail to get team member", e);
+			throw new TechnicalException(String.format("Failed to get member [%s] from team [%s]", memberName, teamName),e);
+		}
+	}
+	
+	
+	protected Member map(TeamMemberMongo memberMongo){
+		if(memberMongo == null){
+			return null;
+		}
+		
+		Member member = new Member();
+		member.setUsername(memberMongo.getMember().getName());
+		member.setRole(TeamRole.valueOf(memberMongo.getRole()));
+		member.setCreatedAt(memberMongo.getCreatedAt());
+		member.setUpdatedAt(memberMongo.getUpdatedAt());
+		return member;
 	}
 
 }

@@ -171,9 +171,22 @@ public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 			Assert.assertEquals("Invalid number of teams found for user",NB_TEAMS_USER2_TESTCASES, teams.size());
 			
 		} catch (Exception e) {
-			logger.error("Error while testing deleteMember", e);
-			Assert.fail("Error while testing deleteMember");	
+			logger.error("Error while testing findTeamByUser", e);
+			Assert.fail("Error while testing findTeamByUser");	
 		}
 	}
 	
+	
+	@Test
+	public void getMemberTest() {
+
+		try{
+			Member member = membershipRepository.getMember("team1", "user1");
+			Assert.assertNotNull("No team member found for the given user and team", member);
+			
+		} catch (Exception e) {
+			logger.error("Error while testing getMember", e);
+			Assert.fail("Error while testing getMember");	
+		}
+	}
 }

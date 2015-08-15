@@ -17,9 +17,13 @@ package io.gravitee.repositories.mongodb.internal.team;
 
 import java.util.List;
 
+import io.gravitee.repositories.mongodb.internal.model.TeamMemberMongo;
 import io.gravitee.repositories.mongodb.internal.model.TeamMongo;
 
 public interface TeamMongoRepositoryCustom {
 
 	public List<TeamMongo> findByUser(String username);
+	
+	public TeamMemberMongo getMember(String username, String teamname);
+	
 }

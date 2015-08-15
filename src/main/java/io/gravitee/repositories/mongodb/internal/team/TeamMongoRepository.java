@@ -31,7 +31,6 @@ public interface TeamMongoRepository extends MongoRepository<TeamMongo, String>,
 
 	@Query("{ 'privateTeam' : ?0}")
 	List<TeamMongo> findByVisibility(boolean privateVisibity);
-
 }
 
 
