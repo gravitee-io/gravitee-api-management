@@ -42,7 +42,7 @@ public interface ApiKeyRepository {
 	 * @param apiName Name of the Api to associate
 	 * @return New API Key
 	 */
-	ApiKey generate(String applicationName, String apiName) throws TechnicalException;
+	ApiKey generate(String applicationName, String apiName, ApiKey newKey) throws TechnicalException;
 
 	/**
 	 * Remove an association between an {@link Application} and an {@link Api}
