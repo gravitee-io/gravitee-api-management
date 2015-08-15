@@ -17,12 +17,10 @@ package io.gravitee.management.api.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.api.exceptions.ApiNotFoundException;
-import io.gravitee.management.api.model.LifecycleActionParam;
 import io.gravitee.management.api.model.ApiEntity;
+import io.gravitee.management.api.model.LifecycleActionParam;
 import io.gravitee.management.api.model.UpdateApiEntity;
 import io.gravitee.management.api.service.ApiService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -106,14 +104,6 @@ public class ApiResource {
 
     @Path("policies")
     public PoliciesConfigurationResource getPoliciesConfigurationResource() {
-        PoliciesConfigurationResource policiesConfigurationResource = resourceContext.getResource(PoliciesConfigurationResource.class);
-        policiesConfigurationResource.setApiName(apiName);
-        return policiesConfigurationResource;
+        return resourceContext.getResource(PoliciesConfigurationResource.class);
     }
-
-    /*
-    public void setApiName(String apiName) {
-        this.apiName = apiName;
-    }
-    */
 }

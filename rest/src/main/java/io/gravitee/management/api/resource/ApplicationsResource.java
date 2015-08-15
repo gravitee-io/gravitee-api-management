@@ -15,17 +15,13 @@
  */
 package io.gravitee.management.api.resource;
 
-import org.springframework.stereotype.Component;
-
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Component
 @Path("/applications")
 public class ApplicationsResource {
 
@@ -33,10 +29,7 @@ public class ApplicationsResource {
     private ResourceContext resourceContext;
 
     @Path("{applicationName}")
-    public ApplicationResource getApplicationResource(@PathParam("applicationName") String applicationName) {
-        ApplicationResource applicationResource = resourceContext.getResource(ApplicationResource.class);
-        applicationResource.setApplicationName(applicationName);
-
-        return applicationResource;
+    public ApplicationResource getApplicationResource() {
+        return resourceContext.getResource(ApplicationResource.class);
     }
 }

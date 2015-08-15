@@ -22,9 +22,8 @@ import io.gravitee.management.api.service.ApiService;
 import io.gravitee.management.api.service.ApplicationService;
 import io.gravitee.management.api.service.TeamService;
 import io.gravitee.management.api.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -37,21 +36,19 @@ import java.util.Set;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Component
-@Produces(MediaType.APPLICATION_JSON)
 @Path("/user")
 public class AuthenticatedUserResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private ApiService apiService;
 
-    @Autowired
+    @Inject
     private TeamService teamService;
 
-    @Autowired
+    @Inject
     private ApplicationService applicationService;
 
-    @Autowired
+    @Inject
     private UserService userService;
 
     /**

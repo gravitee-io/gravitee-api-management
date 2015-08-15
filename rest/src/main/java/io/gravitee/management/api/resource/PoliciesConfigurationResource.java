@@ -15,10 +15,7 @@
  */
 package io.gravitee.management.api.resource;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Set;
@@ -28,11 +25,8 @@ import java.util.Set;
  */
 public class PoliciesConfigurationResource {
 
+    @PathParam("apiName")
     private String apiName;
-
-    public void setApiName(String apiName) {
-        this.apiName = apiName;
-    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

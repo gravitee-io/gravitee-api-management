@@ -15,15 +15,12 @@
  */
 package io.gravitee.management.api.resource;
 
-import io.gravitee.management.api.model.NewApiEntity;
 import io.gravitee.management.api.model.ApiEntity;
+import io.gravitee.management.api.model.NewApiEntity;
 import io.gravitee.management.api.service.ApiService;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Produces;
+import javax.inject.Inject;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
@@ -34,9 +31,10 @@ import java.util.Set;
  */
 public class TeamApisResource {
 
-    @Autowired
+    @Inject
     private ApiService apiService;
 
+    @PathParam("teamName")
     private String teamName;
 
     /**
@@ -67,9 +65,5 @@ public class TeamApisResource {
         }
 
         return Response.serverError().build();
-    }
-
-    public void setTeamName(String teamName) {
-        this.teamName = teamName;
     }
 }

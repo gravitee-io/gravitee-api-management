@@ -18,9 +18,8 @@ package io.gravitee.management.api.resource;
 import io.gravitee.management.api.model.NewTeamEntity;
 import io.gravitee.management.api.model.TeamEntity;
 import io.gravitee.management.api.service.TeamService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
@@ -34,15 +33,13 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Component
-@Produces(MediaType.APPLICATION_JSON)
 @Path("/teams")
 public class TeamsResource {
 
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private TeamService teamService;
 
     /**
@@ -92,10 +89,7 @@ public class TeamsResource {
     }
 
     @Path("{teamName}")
-    public TeamResource getTeamResource(@PathParam("teamName") String teamName) {
-        TeamResource teamResource = resourceContext.getResource(TeamResource.class);
-        teamResource.setTeamName(teamName);
-
-        return teamResource;
+    public TeamResource getTeamResource() {
+        return resourceContext.getResource(TeamResource.class);
     }
 }

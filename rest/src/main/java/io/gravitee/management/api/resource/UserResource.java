@@ -24,10 +24,11 @@ import io.gravitee.management.api.service.ApiService;
 import io.gravitee.management.api.service.ApplicationService;
 import io.gravitee.management.api.service.TeamService;
 import io.gravitee.management.api.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -43,23 +44,20 @@ public class UserResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private TeamService teamService;
 
-    @Autowired
+    @Inject
     private UserService userService;
 
-    @Autowired
+    @Inject
     private ApiService apiService;
 
-    @Autowired
+    @Inject
     private ApplicationService applicationService;
 
+    @PathParam("username")
     private String username;
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

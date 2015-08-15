@@ -15,19 +15,13 @@
  */
 package io.gravitee.management.api.resource;
 
-import org.springframework.stereotype.Component;
-
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 /**
  * Defines the REST resources to manage {@code Policy}.
  *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-@Component
-@Produces(MediaType.APPLICATION_JSON)
 @Path("/policies")
 public class PolicyResource {
 

@@ -17,11 +17,11 @@ package io.gravitee.management.api.resource;
 
 import io.gravitee.management.api.model.TeamEntity;
 import io.gravitee.management.api.service.TeamService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -32,17 +32,16 @@ import java.util.Optional;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Component
-@Produces(MediaType.APPLICATION_JSON)
 public class TeamResource {
-
-    private String teamName;
 
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private TeamService teamService;
+
+    @PathParam("teamName")
+    private String teamName;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -61,26 +60,16 @@ public class TeamResource {
 
     @Path("apis")
     public TeamApisResource getTeamApisResource() {
-        TeamApisResource teamApisResource = resourceContext.getResource(TeamApisResource.class);
-        teamApisResource.setTeamName(teamName);
-        return teamApisResource;
+        return resourceContext.getResource(TeamApisResource.class);
     }
 
     @Path("applications")
     public TeamApplicationsResource getTeamApplicationsResource() {
-        TeamApplicationsResource teamApplicationsResource = resourceContext.getResource(TeamApplicationsResource.class);
-        teamApplicationsResource.setTeamName(teamName);
-        return teamApplicationsResource;
+        return resourceContext.getResource(TeamApplicationsResource.class);
     }
 
     @Path("members")
     public TeamApplicationsResource getTeamMembersResource() {
-        TeamApplicationsResource teamApplicationsResource = resourceContext.getResource(TeamApplicationsResource.class);
-        teamApplicationsResource.setTeamName(teamName);
-        return teamApplicationsResource;
-    }
-
-    public void setTeamName(String teamName) {
-        this.teamName = teamName;
+        return resourceContext.getResource(TeamApplicationsResource.class);
     }
 }

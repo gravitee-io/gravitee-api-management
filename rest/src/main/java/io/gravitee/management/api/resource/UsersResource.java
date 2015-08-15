@@ -18,11 +18,13 @@ package io.gravitee.management.api.resource;
 import io.gravitee.management.api.model.NewUserEntity;
 import io.gravitee.management.api.model.UserEntity;
 import io.gravitee.management.api.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -34,14 +36,13 @@ import java.net.URI;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Component
 @Path("/users")
 public class UsersResource {
 
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private UserService userService;
 
     /**
@@ -65,10 +66,7 @@ public class UsersResource {
     }
 
     @Path("{username}")
-    public UserResource getUserResource(@PathParam("username") String username) {
-        UserResource userResource = resourceContext.getResource(UserResource.class);
-        userResource.setUsername(username);
-
-        return userResource;
+    public UserResource getUserResource() {
+        return resourceContext.getResource(UserResource.class);
     }
 }

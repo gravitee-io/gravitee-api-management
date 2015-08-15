@@ -17,12 +17,10 @@ package io.gravitee.management.api.resource;
 
 import io.gravitee.management.api.model.ApiEntity;
 import io.gravitee.management.api.service.ApiService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -33,14 +31,13 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Component
 @Path("/apis")
 public class ApisResource {
 
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private ApiService apiService;
 
     /**
@@ -61,13 +58,7 @@ public class ApisResource {
     }
 
     @Path("{apiName}")
-    public ApiResource getApiResource(@PathParam("apiName") String apiName) {
+    public ApiResource getApiResource() {
         return resourceContext.getResource(ApiResource.class);
-        /*
-        ApiResource apiResource = resourceContext.getResource(ApiResource.class);
-        apiResource.setApiName(apiName);
-
-        return apiResource;
-        */
     }
 }
