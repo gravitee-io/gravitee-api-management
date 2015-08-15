@@ -71,4 +71,6 @@ public interface TeamMembershipRepository {
      */
     Set<Team> findByUser(String username) throws TechnicalException;
 
+    Member getMember(String teamName, String memberName) throws TechnicalException;
+
 }
