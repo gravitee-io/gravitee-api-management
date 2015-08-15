@@ -23,6 +23,7 @@ import io.gravitee.management.api.model.UpdateApiEntity;
 import io.gravitee.management.api.service.ApiService;
 
 import javax.inject.Inject;
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -87,7 +88,7 @@ public class ApiResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(final UpdateApiEntity api) {
+    public Response update(@Valid final UpdateApiEntity api) {
         ApiEntity updatedApi = apiService.update(apiName, api);
         if (updatedApi != null) {
             return Response.ok().entity(updatedApi).build();

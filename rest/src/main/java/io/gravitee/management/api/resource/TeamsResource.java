@@ -20,7 +20,7 @@ import io.gravitee.management.api.model.TeamEntity;
 import io.gravitee.management.api.service.TeamService;
 
 import javax.inject.Inject;
-import javax.validation.constraints.NotNull;
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -34,7 +34,7 @@ import java.util.Set;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Path("/teams")
-public class TeamsResource {
+public class TeamsResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -61,8 +61,8 @@ public class TeamsResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(@NotNull NewTeamEntity newTeamEntity) {
-        TeamEntity team = teamService.create(newTeamEntity);
+    public Response create(@Valid NewTeamEntity newTeamEntity) {
+        TeamEntity team = teamService.create(newTeamEntity, getAuthenticatedUser());
         if (team != null) {
             return Response
                     .created(URI.create("/teams/" + team.getName()))
@@ -76,7 +76,7 @@ public class TeamsResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@NotNull NewTeamEntity newTeamEntity) {
+    public Response update(@Valid NewTeamEntity newTeamEntity) {
         TeamEntity team = teamService.update(newTeamEntity);
         if (team != null) {
             return Response

@@ -23,11 +23,13 @@ import io.gravitee.repository.api.TeamMembershipRepository;
 import io.gravitee.repository.api.TeamRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Team;
+import io.gravitee.repository.model.TeamRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -61,9 +63,29 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public TeamEntity create(NewTeamEntity team) {
-        TeamEntity t = new TeamEntity();
-        return t;
+        public TeamEntity create(NewTeamEntity newTeamEntity, String owner) {
+        try {
+            LOGGER.debug("Create {} by user {}", newTeamEntity, owner);
+            Team team = convert(newTeamEntity);
+
+            // Set date fields
+            team.setCreatedAt(new Date());
+            team.setUpdatedAt(team.getCreatedAt());
+
+            // Private by default
+            team.setPrivate(true);
+
+            // Create the team
+            Team createdTeam = teamRepository.create(team);
+
+            // Create default admin member
+            teamMembershipRepository.addMember(createdTeam.getName(), owner, TeamRole.ADMIN);
+
+            return convert(createdTeam);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to create {} by user {}", newTeamEntity, owner, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + newTeamEntity + " by user " + owner, ex);
+        }
     }
 
     @Override
@@ -120,5 +142,15 @@ public class TeamServiceImpl implements TeamService {
         teamEntity.setCreatedAt(team.getCreatedAt());
 
         return teamEntity;
+    }
+
+    private static Team convert(NewTeamEntity newTeamEntity) {
+        Team team = new Team();
+
+        team.setName(newTeamEntity.getName());
+        team.setDescription(newTeamEntity.getDescription());
+        team.setEmail(newTeamEntity.getEmail());
+
+        return team;
     }
 }

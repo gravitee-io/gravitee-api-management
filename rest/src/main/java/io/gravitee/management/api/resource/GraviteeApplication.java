@@ -20,6 +20,7 @@ import io.gravitee.management.api.provider.ManagementExceptionMapper;
 import io.gravitee.management.api.provider.UnrecognizedPropertyExceptionMapper;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -30,12 +31,15 @@ public class GraviteeApplication extends ResourceConfig {
         register(AuthenticatedUserResource.class);
         register(ApisResource.class);
         register(UsersResource.class);
-        register(PolicyResource.class);
+        register(PoliciesResource.class);
+        register(TeamsResource.class);
 
         register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);
         register(UnrecognizedPropertyExceptionMapper.class);
 
         register(JacksonFeature.class);
+
+        property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
     }
 }

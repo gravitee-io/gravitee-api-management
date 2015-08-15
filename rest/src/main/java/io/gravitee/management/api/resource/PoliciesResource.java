@@ -23,7 +23,7 @@ import javax.ws.rs.Path;
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 @Path("/policies")
-public class PolicyResource {
+public class PoliciesResource {
 
     /*
     @Autowired

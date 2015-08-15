@@ -41,16 +41,6 @@ public class NewApiEntity {
     @JsonProperty("target")
     private URI targetURI;
 
-    private boolean isPrivate;
-
-    public boolean isPrivate() {
-        return isPrivate;
-    }
-
-    public void setPrivate(boolean isPrivate) {
-        this.isPrivate = isPrivate;
-    }
-
     public String getName() {
         return name;
     }
@@ -86,8 +76,7 @@ public class NewApiEntity {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Api{");
-        sb.append("isPrivate=").append(isPrivate);
-        sb.append(", name='").append(name).append('\'');
+        sb.append("name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", publicURI=").append(publicURI);
         sb.append(", targetURI=").append(targetURI);

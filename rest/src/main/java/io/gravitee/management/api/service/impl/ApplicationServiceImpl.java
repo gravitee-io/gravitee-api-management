@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.api.service.impl;
 
+import io.gravitee.management.api.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.api.exceptions.TechnicalManagementException;
 import io.gravitee.management.api.model.ApplicationEntity;
 import io.gravitee.management.api.model.NewApplicationEntity;
@@ -98,39 +99,24 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public ApplicationEntity createForUser(NewApplicationEntity newApplicationEntity, String username) {
+    public ApplicationEntity createForUser(NewApplicationEntity newApplicationEntity, String owner) {
         try {
-            LOGGER.debug("Create {} for user {}", newApplicationEntity, username);
-            Application application = convert(newApplicationEntity);
-
-            // Set owner and owner type
-            application.setOwner(username);
-            application.setOwnerType(OwnerType.USER);
-
-            Application createdApplication = create(application);
-            return convert(createdApplication);
+            LOGGER.debug("Create {} for user {}", newApplicationEntity, owner);
+            return create(newApplicationEntity, OwnerType.USER, owner);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, username, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for user " + username, ex);
+            LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, owner, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for user " + owner, ex);
         }
     }
 
     @Override
-    public ApplicationEntity createForTeam(NewApplicationEntity newApplicationEntity, String teamName) {
+    public ApplicationEntity createForTeam(NewApplicationEntity newApplicationEntity, String owner) {
         try {
-            LOGGER.debug("Create {} for team {}", newApplicationEntity, teamName);
-
-            Application application = convert(newApplicationEntity);
-
-            // Set owner and owner type
-            application.setOwner(teamName);
-            application.setOwnerType(OwnerType.TEAM);
-
-            Application createdApplication = create(application);
-            return convert(createdApplication);
+            LOGGER.debug("Create {} for team {}", newApplicationEntity, owner);
+            return create(newApplicationEntity, OwnerType.TEAM, owner);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {} for team {}", newApplicationEntity, teamName, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for team " + teamName, ex);
+            LOGGER.error("An error occurs while trying to create {} for team {}", newApplicationEntity, owner, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for team " + owner, ex);
         }
     }
 
@@ -161,12 +147,25 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
     }
 
-    private Application create(Application application) throws TechnicalException {
-        // Update date fields
+    private ApplicationEntity create(NewApplicationEntity newApplicationEntity, OwnerType ownerType, String owner) throws ApplicationAlreadyExistsException, TechnicalException {
+        Optional<ApplicationEntity> checkApplication = findByName(newApplicationEntity.getName());
+        if (checkApplication.isPresent()) {
+            throw new ApplicationAlreadyExistsException(newApplicationEntity.getName());
+        }
+
+        Application application = convert(newApplicationEntity);
+
+        // Set owner and owner type
+        application.setOwner(owner);
+        application.setOwnerType(ownerType);
+        application.setCreator(owner);
+
+        // Set date fields
         application.setCreatedAt(new Date());
         application.setUpdatedAt(application.getCreatedAt());
 
-        return applicationRepository.create(application);
+        Application createdApplication = applicationRepository.create(application);
+        return convert(createdApplication);
     }
 
     private static ApplicationEntity convert(Application application) {

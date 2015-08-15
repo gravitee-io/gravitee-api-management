@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.api.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.net.URI;
@@ -30,7 +31,10 @@ public class ApiEntity {
     private String name;
     private String version;
 
+    @JsonProperty("public")
     private URI publicURI;
+
+    @JsonProperty("target")
     private URI targetURI;
 
     private Date createdAt;

@@ -17,13 +17,18 @@ package io.gravitee.management.api.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class UpdateApplicationEntity {
 
+    @NotNull
     private String description;
+
+    @NotNull
     private String type;
 
     public String getDescription() {

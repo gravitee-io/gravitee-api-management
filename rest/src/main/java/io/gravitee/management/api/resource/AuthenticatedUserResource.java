@@ -113,7 +113,7 @@ public class AuthenticatedUserResource extends AbstractResource {
     @Path("apis")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createApi(@Valid NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
+    public Response createApi(@Valid final NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
         ApiEntity newApi = apiService.createForUser(newApiEntity, getAuthenticatedUser());
         if (newApi != null) {
             return Response
@@ -134,7 +134,7 @@ public class AuthenticatedUserResource extends AbstractResource {
     @Path("applications")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createApplication(NewApplicationEntity application) {
+    public Response createApplication(@Valid final NewApplicationEntity application) {
         ApplicationEntity newApplication = applicationService.createForUser(application, getAuthenticatedUser());
         if (newApplication != null) {
             return Response

@@ -235,6 +235,9 @@ public class ApiServiceImpl implements ApiService {
         api.setOwnerType(ownerType);
         api.setCreator(owner);
 
+        // Private by default
+        api.setPrivate(true);
+
         Api createdApi =  apiRepository.create(api);
         return convert(createdApi);
     }
@@ -257,7 +260,6 @@ public class ApiServiceImpl implements ApiService {
         Api api = new Api();
 
         api.setName(newApiEntity.getName());
-        api.setPrivate(newApiEntity.isPrivate());
         api.setPublicURI(newApiEntity.getPublicURI());
         api.setTargetURI(newApiEntity.getTargetURI());
         api.setVersion(newApiEntity.getVersion());

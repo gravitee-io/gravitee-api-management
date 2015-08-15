@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.service;
+package io.gravitee.management.api.exceptions;
 
-import io.gravitee.management.api.model.NewTeamEntity;
-import io.gravitee.management.api.model.TeamEntity;
-
-import java.util.Optional;
-import java.util.Set;
+import javax.ws.rs.core.Response;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface TeamService {
+public class ApplicationAlreadyExistsException extends AbstractManagementException {
 
-    Optional<TeamEntity> findByName(String teamName);
+    private final String applicationName;
 
-    TeamEntity create(NewTeamEntity team, String owner);
+    public ApplicationAlreadyExistsException(String applicationName) {
+        this.applicationName = applicationName;
+    }
 
-    TeamEntity update(NewTeamEntity team);
+    @Override
+    public Response.Status getHttpStatusCode() {
+        return Response.Status.BAD_REQUEST;
+    }
 
-    Set<TeamEntity> findByUser(String username);
-
-    Set<TeamEntity> findAll(boolean publicOnly);
+    @Override
+    public String getMessage() {
+        return "An application [" + applicationName + "] already exists.";
+    }
 }
