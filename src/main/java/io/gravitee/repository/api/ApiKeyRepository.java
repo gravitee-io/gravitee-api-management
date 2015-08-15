@@ -20,6 +20,7 @@ import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.ApiKey;
 import io.gravitee.repository.model.Application;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -33,24 +34,24 @@ public interface ApiKeyRepository {
 	 * @param apiKey API key
 	 * @return API Key Details
 	 */
-    ApiKey retrieve(String apiKey) throws TechnicalException;
+    Optional<ApiKey> retrieve(String apiKey) throws TechnicalException;
 
 	/**
-	 * Associate an {@link Api} with an {@link Application}.
+	 * Create a new API Key for an {@link Application} and an {@link Api}
 	 *
 	 * @param applicationName Application name
 	 * @param apiName Name of the Api to associate
-	 * @return New API Key
+	 * @return Newly created API Key
 	 */
-	ApiKey generate(String applicationName, String apiName, ApiKey newKey) throws TechnicalException;
+	ApiKey create(String applicationName, String apiName, ApiKey key) throws TechnicalException;
 
 	/**
-	 * Remove an association between an {@link Application} and an {@link Api}
+	 * Update an API Key
 	 *
-	 * @param key API Key
-	 * @return Update API key
+	 * @param key The API Key to update
+	 * @return Updated API key
 	 */
-	ApiKey revoke(String key) throws TechnicalException;
+	ApiKey update(ApiKey key) throws TechnicalException;
 
 	/**
 	 * Provide an history of all API Keys generated for an {@link Application} and an {@link Api}
