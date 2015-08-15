@@ -98,24 +98,4 @@ public interface ApplicationRepository {
      * @return Counted application
      */
     int countByTeam(String teamName) throws TechnicalException;
-    
-    /**
-     * Associate an Api with an Application.
-     * 
-     * @param applicationName Application name
-     * @param apiName Name of the Api to associate 
-     * @return true success, false otherwise
-     */
-    boolean associate(String applicationName, String apiName) throws TechnicalException;
-    
-    /**
-     * Remove an association between an {@link Application} and an {@link Api}
-     * 
-     * @param applicationName Application name
-     * @param apiName Name of the Api to dissociate 
-     * @return true success, false otherwise
-     */
-    boolean dissociate(String applicationName, String apiName) throws TechnicalException;
-
-
 }
