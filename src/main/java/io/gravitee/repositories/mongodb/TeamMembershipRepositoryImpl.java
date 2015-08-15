@@ -130,4 +130,10 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	
 	}
 
+	@Override
+	public Member getMember(String s, String s1) throws TechnicalException {
+		//TODO
+		return null;
+	}
+
 }
