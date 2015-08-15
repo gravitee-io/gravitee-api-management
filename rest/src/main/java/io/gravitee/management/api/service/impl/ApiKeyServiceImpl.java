@@ -27,8 +27,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -71,8 +73,18 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     public Optional<ApiKeyEntity> getCurrentApiKey(String applicationName, String apiName) {
         try {
             LOGGER.debug("Generate a new key for {} - {}", applicationName, apiName);
-            // Current Api Key is the key with the latest createdAt value.
-            return apiKeyRepository.findByApplicationAndApi(applicationName, apiName).stream().max((o1, o2) -> o1.getCreatedAt().compareTo(o2.getCreatedAt())).map(ApiKeyServiceImpl::convert);
+            // Current Api Key is the key with the latest createdAt value and which is not revoked
+            return apiKeyRepository.findByApplicationAndApi(applicationName, apiName).stream().filter(new Predicate<ApiKey>() {
+                @Override
+                public boolean test(ApiKey apiKey) {
+                    return ! apiKey.isRevoked();
+                }
+            }).max(new Comparator<ApiKey>() {
+                @Override
+                public int compare(ApiKey o1, ApiKey o2) {
+                    return o1.getCreatedAt().compareTo(o2.getCreatedAt());
+                }
+            }).map(ApiKeyServiceImpl::convert);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while getting current API key for {} - {}", applicationName, apiName, ex);
             throw new TechnicalManagementException("An error occurs while getting current API key for " + applicationName + " - " + apiName, ex);

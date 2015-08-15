@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.api.resource;
 
+import io.gravitee.management.api.exceptions.ApiKeyNotFoundException;
 import io.gravitee.management.api.model.ApiKeyEntity;
 import io.gravitee.management.api.service.ApiKeyService;
 
@@ -25,6 +26,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -42,8 +44,13 @@ public class ApiKeyResource {
 
     @GET
     public ApiKeyEntity getCurrentApiKeyEntity() {
-        // TODO: check if no key has been generated
-        return apiKeyService.getCurrentApiKey(applicationName, apiName).get();
+        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrentApiKey(applicationName, apiName);
+
+        if (! apiKeyEntity.isPresent()) {
+            throw new ApiKeyNotFoundException();
+        }
+
+        return apiKeyEntity.get();
     }
 
     @POST
