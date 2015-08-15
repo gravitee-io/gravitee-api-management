@@ -26,11 +26,24 @@ public class ApiKey {
 	 * Api Key
 	 */
 	private String key;
+
+	/**
+	 * Is the key revoked ?
+	 */
+	private boolean revoked;
 	
 	/**
 	 * Token expiration date
 	 */
 	private Date expiration;
+
+	public boolean isRevoked() {
+		return revoked;
+	}
+
+	public void setRevoked(boolean revoked) {
+		this.revoked = revoked;
+	}
 
 	public String getKey() {
 		return key;

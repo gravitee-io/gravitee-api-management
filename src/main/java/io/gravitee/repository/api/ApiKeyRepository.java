@@ -16,8 +16,11 @@
 package io.gravitee.repository.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.ApiKey;
 import io.gravitee.repository.model.Application;
+
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -25,30 +28,38 @@ import io.gravitee.repository.model.Application;
 public interface ApiKeyRepository {
 
 	/**
-	 * Create an application Key
+	 * Give the API Key detail from the given key
 	 * 
-	 * @param application {@link Application} name 
-	 * 
-	 * @return ApiKey generated
+	 * @param apiKey API key
+	 * @return API Key Details
 	 */
-	ApiKey createKey(String application, ApiKey key) throws TechnicalException;
+    ApiKey retrieve(String apiKey) throws TechnicalException;
 
 	/**
-	 * Give the application Key detail for a given API
-	 * 
-	 * @param apiKey Application key 
-	 * @param apiName Api name
-	 * @return Full ApiKey
+	 * Associate an {@link Api} with an {@link Application}.
+	 *
+	 * @param applicationName Application name
+	 * @param apiName Name of the Api to associate
+	 * @return New API Key
 	 */
-    ApiKey getKey(String apiKey, String apiName) throws TechnicalException;
+	ApiKey generate(String applicationName, String apiName) throws TechnicalException;
 
-    /**
-     * Invalidate a key 
-     * 
-     * @param applicationName Key owner Application 
-     * @return true success, false otherwise
-     */
-	boolean invalidateKey(String applicationName) throws TechnicalException;
+	/**
+	 * Remove an association between an {@link Application} and an {@link Api}
+	 *
+	 * @param key API Key
+	 * @return Update API key
+	 */
+	ApiKey revoke(String key) throws TechnicalException;
 
+	/**
+	 * Provide an history of all API Keys generated for an {@link Application} and an {@link Api}
+	 *
+	 * @param applicatioName Application name
+	 * @param apiName Name of the Api
+	 * @return List of generated keys for an {@link Application} and an {@link Api}
+	 * @throws TechnicalException
+	 */
+	Set<ApiKey> findAll(String applicatioName, String apiName) throws TechnicalException;
 
 }
