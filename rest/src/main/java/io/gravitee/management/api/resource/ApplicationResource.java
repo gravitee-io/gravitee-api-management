@@ -25,10 +25,10 @@ import io.gravitee.management.api.service.ApplicationService;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.util.Optional;
 
 /**
@@ -36,14 +36,26 @@ import java.util.Optional;
  */
 public class ApplicationResource extends AbstractResource {
 
+    @Context
+    private ResourceContext resourceContext;
+
     @Inject
     private ApplicationService applicationService;
 
-    @Context
-    private SecurityContext securityContext;
-
     @PathParam("applicationName")
     private String applicationName;
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public ApplicationEntity get() {
+        Optional<ApplicationEntity> applicationEntity = applicationService.findByName(applicationName);
+
+        if (! applicationEntity.isPresent()) {
+            throw new ApplicationNotFoundException(applicationName);
+        }
+
+        return applicationEntity.get();
+    }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
@@ -78,10 +90,15 @@ public class ApplicationResource extends AbstractResource {
         return Response.noContent().build();
     }
 
+    @Path("{apiName}")
+    public ApiKeyResource getApiKey() {
+        return resourceContext.getResource(ApiKeyResource.class);
+    }
+
     private ApplicationEntity getCurrentApplication() throws UserNotFoundException {
         Optional<ApplicationEntity> application = applicationService.findByName(applicationName);
         if (! application.isPresent()) {
-            throw new ApplicationNotFoundException();
+            throw new ApplicationNotFoundException(applicationName);
         }
 
         return application.get();

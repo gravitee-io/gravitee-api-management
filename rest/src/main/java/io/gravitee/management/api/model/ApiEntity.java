@@ -37,7 +37,10 @@ public class ApiEntity {
     @JsonProperty("target")
     private URI targetURI;
 
+    @JsonProperty("created_at")
     private Date createdAt;
+
+    @JsonProperty("updated_at")
     private Date updatedAt;
 
     private boolean isPrivate;

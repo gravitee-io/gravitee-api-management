@@ -30,6 +30,7 @@ public class GraviteeApplication extends ResourceConfig {
     public GraviteeApplication() {
         register(AuthenticatedUserResource.class);
         register(ApisResource.class);
+        register(ApplicationsResource.class);
         register(UsersResource.class);
         register(PoliciesResource.class);
         register(TeamsResource.class);

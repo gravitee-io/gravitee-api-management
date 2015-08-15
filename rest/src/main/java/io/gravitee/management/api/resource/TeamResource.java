@@ -69,7 +69,7 @@ public class TeamResource {
     }
 
     @Path("members")
-    public TeamApplicationsResource getTeamMembersResource() {
-        return resourceContext.getResource(TeamApplicationsResource.class);
+    public TeamMembershipsResource getTeamMembersResource() {
+        return resourceContext.getResource(TeamMembershipsResource.class);
     }
 }

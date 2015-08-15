@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.exceptions;
+package io.gravitee.management.api.service.impl;
+
+import io.gravitee.management.api.service.TeamMembershipService;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApplicationNotFoundException extends AbstractNotFoundException {
-
-    private final String applicationName;
-
-    public ApplicationNotFoundException(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
+@Component
+public class TeamMembershipServiceImpl implements TeamMembershipService {
     @Override
-    public String getMessage() {
-        return "Application [" + applicationName + "] can not be found.";
+    public void createMembership(String username, String teamName, String role) {
+
     }
 }

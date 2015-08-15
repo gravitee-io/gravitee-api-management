@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.exceptions;
+package io.gravitee.management.api.service;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApplicationNotFoundException extends AbstractNotFoundException {
+public interface ApiKeyGenerator {
 
-    private final String applicationName;
-
-    public ApplicationNotFoundException(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
-    @Override
-    public String getMessage() {
-        return "Application [" + applicationName + "] can not be found.";
-    }
+    String generate();
 }

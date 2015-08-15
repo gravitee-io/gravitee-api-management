@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.api.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Date;
 import java.util.Objects;
 
@@ -27,12 +29,13 @@ public class ApplicationEntity {
     private String description;
     private String type;
 
+    @JsonProperty("created_at")
     private Date createdAt;
+
+    @JsonProperty("updated_at")
     private Date updatedAt;
 
     private Owner owner;
-
-    private String key;
 
     public Date getCreatedAt() {
         return createdAt;
@@ -48,14 +51,6 @@ public class ApplicationEntity {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
     }
 
     public String getName() {

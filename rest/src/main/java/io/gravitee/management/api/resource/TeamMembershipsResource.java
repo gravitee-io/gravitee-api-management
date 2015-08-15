@@ -15,27 +15,20 @@
  */
 package io.gravitee.management.api.resource;
 
-import io.gravitee.management.api.model.ApplicationEntity;
-import io.gravitee.management.api.model.NewApplicationEntity;
-import io.gravitee.management.api.service.ApplicationService;
+import io.gravitee.repository.model.Application;
 
-import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class TeamApplicationsResource {
+public class TeamMembershipsResource {
 
     @PathParam("teamName")
     private String teamName;
-
-    @Inject
-    private ApplicationService applicationService;
 
     /**
      * List applications for the specified team.
@@ -43,27 +36,21 @@ public class TeamApplicationsResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApplicationEntity> getApplications() {
-        return applicationService.findByTeam(teamName);
+    public Set<Application> getApplications() {
+        return null;
     }
 
-    /**
-     * Create a new application for the specified team.
-     * @param newApplicationEntity
-     * @return
-     */
-    @POST
+    @Path("{username}")
+    @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response createApplication(NewApplicationEntity newApplicationEntity) {
-        ApplicationEntity applicationEntity = applicationService.createForTeam(newApplicationEntity, teamName);
-        if (applicationEntity != null) {
-            return Response
-                    .created(URI.create("/applications/" + applicationEntity.getName()))
-                    .entity(applicationEntity)
-                    .build();
-        }
+    public Response addMember(@PathParam("username") String username, @QueryParam("role") String role) {
+        return null;
+    }
 
-        return Response.serverError().build();
+    @Path("{username}")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeMember(@PathParam("username") String username) {
+        return null;
     }
 }

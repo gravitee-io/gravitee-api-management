@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.api.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Date;
@@ -49,11 +50,13 @@ public class TeamEntity {
     /**
      * The team creation date
      */
+    @JsonProperty("created_at")
     private Date createdAt;
 
     /**
      * The team last updated date
      */
+    @JsonProperty("updated_at")
     private Date updatedAt;
 
     public String getDescription() {
