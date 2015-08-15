@@ -55,11 +55,12 @@ public interface ApiKeyRepository {
 	/**
 	 * Provide an history of all API Keys generated for an {@link Application} and an {@link Api}
 	 *
-	 * @param applicatioName Application name
+	 * @param applicationName Application name
 	 * @param apiName Name of the Api
 	 * @return List of generated keys for an {@link Application} and an {@link Api}
 	 * @throws TechnicalException
 	 */
-	Set<ApiKey> findAll(String applicatioName, String apiName) throws TechnicalException;
+	Set<ApiKey> findByApplicationAndApi(String applicationName, String apiName) throws TechnicalException;
 
+	Set<ApiKey> findByApplication(String applicationName) throws TechnicalException;
 }

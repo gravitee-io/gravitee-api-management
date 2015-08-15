@@ -37,6 +37,11 @@ public class ApiKey {
 	 */
 	private Date expiration;
 
+	/**
+	 * The API key creation date
+	 */
+	private Date createdAt;
+
 	public boolean isRevoked() {
 		return revoked;
 	}
@@ -60,6 +65,12 @@ public class ApiKey {
 	public void setExpiration(Date expiration) {
 		this.expiration = expiration;
 	}
-	
-	
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
 }
