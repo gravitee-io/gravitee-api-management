@@ -17,6 +17,7 @@ package io.gravitee.management.api.service;
 
 import io.gravitee.management.api.model.NewTeamEntity;
 import io.gravitee.management.api.model.TeamEntity;
+import io.gravitee.management.api.model.UpdateTeamEntity;
 
 import java.util.Optional;
 import java.util.Set;
@@ -30,7 +31,7 @@ public interface TeamService {
 
     TeamEntity create(NewTeamEntity team, String owner);
 
-    TeamEntity update(NewTeamEntity team);
+    TeamEntity update(String teamName, UpdateTeamEntity team);
 
     Set<TeamEntity> findByUser(String username);
 

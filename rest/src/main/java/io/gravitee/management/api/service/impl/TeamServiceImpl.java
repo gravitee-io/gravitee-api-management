@@ -15,9 +15,11 @@
  */
 package io.gravitee.management.api.service.impl;
 
+import io.gravitee.management.api.exceptions.TeamNotFoundException;
 import io.gravitee.management.api.exceptions.TechnicalManagementException;
 import io.gravitee.management.api.model.NewTeamEntity;
 import io.gravitee.management.api.model.TeamEntity;
+import io.gravitee.management.api.model.UpdateTeamEntity;
 import io.gravitee.management.api.service.TeamService;
 import io.gravitee.repository.api.TeamMembershipRepository;
 import io.gravitee.repository.api.TeamRepository;
@@ -89,9 +91,32 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public TeamEntity update(NewTeamEntity team) {
-        TeamEntity t = new TeamEntity();
-        return t;
+    public TeamEntity update(String teamName, UpdateTeamEntity updateTeamEntity) {
+        try {
+            LOGGER.debug("Update Team {}", teamName);
+
+            Optional<Team> optTeamToUpdate = teamRepository.findByName(teamName);
+            if (! optTeamToUpdate.isPresent()) {
+                throw new TeamNotFoundException(teamName);
+            }
+
+            Team teamToUpdate = optTeamToUpdate.get();
+            Team team = convert(updateTeamEntity);
+
+            team.setName(teamName);
+            team.setUpdatedAt(new Date());
+            team.setPrivate(updateTeamEntity.isPrivate());
+
+            // Copy fields from existing values
+            team.setCreatedAt(teamToUpdate.getCreatedAt());
+
+            Team updatedTeam =  teamRepository.update(team);
+            return convert(updatedTeam);
+
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to update team {}", teamName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to update team " + teamName, ex);
+        }
     }
 
     @Override
@@ -134,7 +159,7 @@ public class TeamServiceImpl implements TeamService {
         TeamEntity teamEntity = new TeamEntity();
 
         teamEntity.setName(team.getName());
-        teamEntity.setPrivate(team.isPrivate());
+        teamEntity.setIsPrivate(team.isPrivate());
         teamEntity.setDescription(team.getDescription());
         teamEntity.setEmail(team.getEmail());
 
@@ -151,6 +176,16 @@ public class TeamServiceImpl implements TeamService {
         team.setDescription(newTeamEntity.getDescription());
         team.setEmail(newTeamEntity.getEmail());
 
+        return team;
+    }
+
+    private static Team convert(UpdateTeamEntity updateTeamEntity) {
+        Team team = new Team();
+
+        team.setDescription(updateTeamEntity.getDescription());
+        team.setEmail(updateTeamEntity.getEmail());
+        team.setPrivate(updateTeamEntity.isPrivate());
+        
         return team;
     }
 }

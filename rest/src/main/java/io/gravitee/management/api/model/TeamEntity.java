@@ -40,7 +40,7 @@ public class TeamEntity {
     /**
      * The team can only be visible for members.
      */
-    private boolean privateTeam;
+    private boolean isPrivate;
 
     /**
      * The publicly visible email address.
@@ -84,11 +84,11 @@ public class TeamEntity {
     }
 
     public boolean isPrivate() {
-        return privateTeam;
+        return isPrivate;
     }
 
-    public void setPrivate(boolean privateTeam) {
-        this.privateTeam = privateTeam;
+    public void setIsPrivate(boolean isPrivate) {
+        this.isPrivate = isPrivate;
     }
 
     public Date getCreatedAt() {

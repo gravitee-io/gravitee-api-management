@@ -57,13 +57,10 @@ public class TeamApisResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createApi(NewApiEntity api) {
         ApiEntity createdApi = apiService.createForTeam(api, teamName);
-        if (createdApi != null) {
-            return Response
-                    .created(URI.create("/apis/" + createdApi.getName()))
-                    .entity(createdApi)
-                    .build();
-        }
 
-        return Response.serverError().build();
+        return Response
+                .created(URI.create("/apis/" + createdApi.getName()))
+                .entity(createdApi)
+                .build();
     }
 }

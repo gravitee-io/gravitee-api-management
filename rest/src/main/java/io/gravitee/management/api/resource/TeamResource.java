@@ -15,14 +15,14 @@
  */
 package io.gravitee.management.api.resource;
 
+import io.gravitee.management.api.model.NewTeamEntity;
 import io.gravitee.management.api.model.TeamEntity;
+import io.gravitee.management.api.model.UpdateTeamEntity;
 import io.gravitee.management.api.service.TeamService;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.validation.Valid;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -56,6 +56,13 @@ public class TeamResource {
         }
 
         return Response.status(Response.Status.NOT_FOUND).build();
+    }
+
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public TeamEntity update(@Valid UpdateTeamEntity updateTeamEntity) {
+        return teamService.update(teamName, updateTeamEntity);
     }
 
     @Path("apis")

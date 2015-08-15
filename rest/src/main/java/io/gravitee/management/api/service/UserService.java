@@ -15,7 +15,6 @@
  */
 package io.gravitee.management.api.service;
 
-import io.gravitee.management.api.exceptions.TechnicalManagementException;
 import io.gravitee.management.api.exceptions.UsernameAlreadyExistsException;
 import io.gravitee.management.api.model.NewUserEntity;
 import io.gravitee.management.api.model.UserEntity;

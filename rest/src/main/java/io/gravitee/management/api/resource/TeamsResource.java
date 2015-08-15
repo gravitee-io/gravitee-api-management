@@ -63,29 +63,10 @@ public class TeamsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid NewTeamEntity newTeamEntity) {
         TeamEntity team = teamService.create(newTeamEntity, getAuthenticatedUser());
-        if (team != null) {
-            return Response
-                    .created(URI.create("/teams/" + team.getName()))
-                    .entity(team)
-                    .build();
-        }
-
-        return Response.serverError().build();
-    }
-
-    @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@Valid NewTeamEntity newTeamEntity) {
-        TeamEntity team = teamService.update(newTeamEntity);
-        if (team != null) {
-            return Response
-                    .ok()
-                    .entity(team)
-                    .build();
-        }
-
-        return Response.serverError().build();
+        return Response
+                .created(URI.create("/teams/" + team.getName()))
+                .entity(team)
+                .build();
     }
 
     @Path("{teamName}")

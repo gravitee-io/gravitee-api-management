@@ -57,13 +57,10 @@ public class TeamApplicationsResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createApplication(NewApplicationEntity newApplicationEntity) {
         ApplicationEntity applicationEntity = applicationService.createForTeam(newApplicationEntity, teamName);
-        if (applicationEntity != null) {
-            return Response
-                    .created(URI.create("/applications/" + applicationEntity.getName()))
-                    .entity(applicationEntity)
-                    .build();
-        }
 
-        return Response.serverError().build();
+        return Response
+                .created(URI.create("/applications/" + applicationEntity.getName()))
+                .entity(applicationEntity)
+                .build();
     }
 }
