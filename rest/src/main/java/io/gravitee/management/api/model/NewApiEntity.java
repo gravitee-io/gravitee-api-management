@@ -34,6 +34,9 @@ public class NewApiEntity {
     private String version;
 
     @NotNull
+    private String description;
+
+    @NotNull
     @JsonProperty("public")
     private URI publicURI;
 
@@ -71,6 +74,14 @@ public class NewApiEntity {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

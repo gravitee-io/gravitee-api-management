@@ -30,6 +30,7 @@ public class ApiEntity {
 
     private String name;
     private String version;
+    private String description;
 
     @JsonProperty("public")
     private URI publicURI;
@@ -109,6 +110,14 @@ public class ApiEntity {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

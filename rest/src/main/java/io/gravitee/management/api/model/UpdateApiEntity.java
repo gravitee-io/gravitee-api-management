@@ -31,6 +31,9 @@ public class UpdateApiEntity {
     private String version;
 
     @NotNull
+    private String description;
+
+    @NotNull
     @JsonProperty("public")
     private URI publicURI;
 
@@ -70,5 +73,13 @@ public class UpdateApiEntity {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

@@ -252,6 +252,7 @@ public class ApiServiceImpl implements ApiService {
         apiEntity.setTargetURI(api.getTargetURI());
         apiEntity.setUpdatedAt(api.getUpdatedAt());
         apiEntity.setVersion(api.getVersion());
+        apiEntity.setDescription(api.getDescription());
 
         return apiEntity;
     }
@@ -263,6 +264,7 @@ public class ApiServiceImpl implements ApiService {
         api.setPublicURI(newApiEntity.getPublicURI());
         api.setTargetURI(newApiEntity.getTargetURI());
         api.setVersion(newApiEntity.getVersion());
+        api.setDescription(newApiEntity.getDescription());
 
         return api;
     }
@@ -274,6 +276,7 @@ public class ApiServiceImpl implements ApiService {
         api.setPublicURI(updateApiEntity.getPublicURI());
         api.setTargetURI(updateApiEntity.getTargetURI());
         api.setVersion(updateApiEntity.getVersion());
+        api.setDescription(updateApiEntity.getDescription());
 
         return api;
     }
