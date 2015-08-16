@@ -18,6 +18,7 @@ package io.gravitee.management.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -64,5 +65,18 @@ public class ApiKeyEntity {
 
     public void setRevoked(boolean revoked) {
         this.revoked = revoked;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApiKeyEntity that = (ApiKeyEntity) o;
+        return Objects.equals(key, that.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key);
     }
 }

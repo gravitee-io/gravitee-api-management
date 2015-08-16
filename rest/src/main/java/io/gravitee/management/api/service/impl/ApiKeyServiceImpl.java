@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.api.service.impl;
 
+import io.gravitee.management.api.exceptions.ApiKeyNotFoundException;
 import io.gravitee.management.api.exceptions.TechnicalManagementException;
 import io.gravitee.management.api.model.ApiKeyEntity;
 import io.gravitee.management.api.service.ApiKeyGenerator;
@@ -27,9 +28,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Optional;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -59,13 +60,47 @@ public class ApiKeyServiceImpl implements ApiKeyService {
             apiKey.setKey(apiKeyGenerator.generate());
             apiKey.setRevoked(false);
 
-            apiKey = apiKeyRepository.create(applicationName, apiName, apiKey);
+            // Previously generated keys should be set with an expiration date or set as revoked
 
-            // TODO: Previously generated keys should be set with an expiration date or set as revoked
+            // TODO: put rules in configuration
+            Instant expirationInst = apiKey.getCreatedAt().toInstant().plus(Duration.ofHours(12));
+            Date expirationDate = Date.from(expirationInst);
+
+            Set<ApiKey> oldKeys = apiKeyRepository.findByApplicationAndApi(applicationName, apiName);
+            for(ApiKey oldKey : oldKeys) {
+                if (! oldKey.isRevoked() && oldKey.getExpiration() == null) {
+                    oldKey.setExpiration(expirationDate);
+                    apiKeyRepository.update(oldKey);
+                }
+            }
+
+            apiKey = apiKeyRepository.create(applicationName, apiName, apiKey);
             return convert(apiKey);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to generate a key for {} - {}", applicationName, apiName, ex);
             throw new TechnicalManagementException("An error occurs while trying to generate a key for " + applicationName + " - " + apiName, ex);
+        }
+    }
+
+    @Override
+    public void revoke(String apiKey) {
+        try {
+            LOGGER.debug("Revoke key {}", apiKey);
+            Optional<ApiKey> optKey = apiKeyRepository.retrieve(apiKey);
+            if (! optKey.isPresent()) {
+                throw new ApiKeyNotFoundException();
+            }
+
+            ApiKey key = optKey.get();
+            if (! key.isRevoked()) {
+                key.setRevoked(true);
+                key.setExpiration(new Date());
+
+                apiKeyRepository.update(key);
+            }
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to revoke a key {}", apiKey, ex);
+            throw new TechnicalManagementException("An error occurs while trying to revoke a key " + apiKey, ex);
         }
     }
 
@@ -92,14 +127,21 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     @Override
-    public Optional<ApiKeyEntity> getApiKey(String apiKey) {
+    public Set<ApiKeyEntity> findAll(String applicationName, String apiName) {
         try {
-            LOGGER.debug("Get API Key using key: {}", apiKey);
+            LOGGER.debug("Find all API Keys for {} - {}", applicationName, apiName);
 
-            return apiKeyRepository.retrieve(apiKey).map(ApiKeyServiceImpl::convert);
+            Set<ApiKey> apiKeys = apiKeyRepository.findByApplicationAndApi(applicationName, apiName);
+            Set<ApiKeyEntity> apiKeyEntities = new HashSet<>(apiKeys.size());
+
+            for(ApiKey apiKey : apiKeys) {
+                apiKeyEntities.add(convert(apiKey));
+            }
+
+            return apiKeyEntities;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find an API Key using its key {}", apiKey, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an API Key using its key " + apiKey, ex);
+            LOGGER.error("An error occurs while trying to find all API Keys for {} - {}", applicationName, apiName);
+            throw new TechnicalManagementException("An error occurs while trying to find find all API Keys for " + applicationName + " - " + apiName, ex);
         }
     }
 

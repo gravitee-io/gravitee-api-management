@@ -15,18 +15,16 @@
  */
 package io.gravitee.management.api.resource;
 
-import io.gravitee.management.api.exceptions.ApiKeyNotFoundException;
+import io.gravitee.management.api.exceptions.NoValidApiKeyException;
 import io.gravitee.management.api.model.ApiKeyEntity;
 import io.gravitee.management.api.service.ApiKeyService;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -43,14 +41,22 @@ public class ApiKeyResource {
     private ApiKeyService apiKeyService;
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public ApiKeyEntity getCurrentApiKeyEntity() {
         Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrentApiKey(applicationName, apiName);
 
         if (! apiKeyEntity.isPresent()) {
-            throw new ApiKeyNotFoundException();
+            throw new NoValidApiKeyException();
         }
 
         return apiKeyEntity.get();
+    }
+
+    @GET
+    @Path("all")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<ApiKeyEntity> findAllApiKeys() {
+        return apiKeyService.findAll(applicationName, apiName);
     }
 
     @POST
@@ -61,6 +67,17 @@ public class ApiKeyResource {
         return Response
                 .status(Response.Status.CREATED)
                 .entity(apiKeyEntity)
+                .build();
+    }
+
+    @DELETE
+    @Path("{apiKey}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response revokeApiKey(@PathParam("apiKey") String apiKey) {
+        apiKeyService.revoke(apiKey);
+
+        return Response
+                .status(Response.Status.NO_CONTENT)
                 .build();
     }
 }

@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.api.service;
-
-import io.gravitee.management.api.model.ApiKeyEntity;
-
-import java.util.Optional;
-import java.util.Set;
+package io.gravitee.management.api.exceptions;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ApiKeyService {
+public class NoValidApiKeyException extends AbstractNotFoundException {
 
-    ApiKeyEntity generate(String applicationName, String apiName);
-
-    void revoke(String apiKey);
-
-    Optional<ApiKeyEntity> getCurrentApiKey(String applicationName, String apiName);
-
-    Set<ApiKeyEntity> findAll(String applicationName, String apiName);
+    @Override
+    public String getMessage() {
+        return "No valid API Key can be found.";
+    }
 }

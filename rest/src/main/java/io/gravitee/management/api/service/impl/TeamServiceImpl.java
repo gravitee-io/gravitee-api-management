@@ -185,7 +185,7 @@ public class TeamServiceImpl implements TeamService {
         team.setDescription(updateTeamEntity.getDescription());
         team.setEmail(updateTeamEntity.getEmail());
         team.setPrivate(updateTeamEntity.isPrivate());
-        
+
         return team;
     }
 }
