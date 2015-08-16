@@ -15,8 +15,11 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import static org.junit.Assert.*;
+
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Assert;
@@ -78,7 +81,7 @@ public class ApiKeyRepositoryTest extends AbstractMongoDBTest {
     }
     
     @Test
-    public void getApiKey() {
+    public void retrieveKeyTest() {
 	    try{
 	    	
 	    	String key = "d449098d-8c31-4275-ad59-8dd707865a33";
@@ -94,6 +97,58 @@ public class ApiKeyRepositoryTest extends AbstractMongoDBTest {
 			logger.error("Error while getting key",e);
 			Assert.fail("Error while getting key");
 		}
+	} 
+    
+    @Test
+    public void retrieveMissingKeyTest() {
+	    try{
+	    	
+	    	String key = "d449098d-8c31-4275-ad59-000000000";
+	    	
+	    	Optional<ApiKey> optional = apiKeyRepository.retrieve(key);
+	    	
+	    	Assert.assertFalse("Invalid ApiKey found", optional.isPresent());
+	    	
+	    }catch(Exception e){
+			logger.error("Error while retrieving missing key",e);
+			Assert.fail("Error while retrieving missing key");
+		}
+	}
+    
+    @Test
+	public void findByApplicationTest() throws Exception {
+    	try{
+    		
+    		Set<ApiKey> apiKeys = apiKeyRepository.findByApplication("application1");
+    		
+    		Assert.assertNotNull("ApiKey not found", apiKeys);
+    		Assert.assertEquals("Invalid number of ApiKey found", 2, apiKeys.size());
+    		
+    	}catch(Exception e){
+ 			logger.error("Error while testing findByApplication",e);
+ 			Assert.fail("Error while testing findByApplication");
+ 		}
+	}
+    
+    @Test
+	public void findByApplicationNoResult() throws Exception {
+    	try{
+    		
+    		Set<ApiKey> apiKeys = apiKeyRepository.findByApplication("application-no-api-key");
+    		Assert.assertNotNull("ApiKey Set is null", apiKeys);
+    		
+    		Assert.assertTrue("Api found on application with no api", apiKeys.isEmpty());
+    	}catch(Exception e){
+ 			logger.error("Error while testing findByApplication",e);
+ 			Assert.fail("Error while testing findByApplication");
+ 		}
 	}
 
+    @Test
+	public void findByApplicationAndApi() throws Exception {
+    	Set<ApiKey> apiKeys = apiKeyRepository.findByApplicationAndApi("application1", "api1");
+    	
+    	Assert.assertNotNull("ApiKey Set is null", apiKeys);
+    	Assert.assertEquals("Invalid number of ApiKey found", 1, apiKeys.size());
+    }
 }

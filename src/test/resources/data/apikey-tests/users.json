@@ -3,5 +3,10 @@
       "_id":"creator",
       "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
       "email":"creator@gravitee.io"
+   },
+   {
+      "_id":"creator2",
+      "_class":"io.gravitee.repositories.mongodb.internal.model.UserMongo",
+      "email":"creator2@gravitee.io"
    }
 ]

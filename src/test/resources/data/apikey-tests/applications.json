@@ -16,6 +16,24 @@
 	   "updatedAt"  : { "$date" : 1439022010883 },
 	   "owner" : {"$ref" : "users", "$id" : "creator" },
 	   "creator" : {"$ref" : "users", "$id" : "creator" }
-	}	
+	},
+	{
+	   "_id":"application3",
+	   "_class":"io.gravitee.repositories.mongodb.internal.model.ApplicationMongo",
+	   "description":"Sample application1 description",
+	   "createdAt"  : { "$date" : 1439022010883 },
+	   "updatedAt"  : { "$date" : 1439022010883 },
+	   "owner" : {"$ref" : "users", "$id" : "creator2" },
+	   "creator" : {"$ref" : "users", "$id" : "creator2" }
+	},
+	{
+	   "_id":"application-no-api-key",
+	   "_class":"io.gravitee.repositories.mongodb.internal.model.ApplicationMongo",
+	   "description":"Sample application with no api description",
+	   "createdAt"  : { "$date" : 1439022010883 },
+	   "updatedAt"  : { "$date" : 1439022010883 },
+	   "owner" : {"$ref" : "users", "$id" : "creator2" },
+	   "creator" : {"$ref" : "users", "$id" : "creator2" }
+	}		
 ]
 
