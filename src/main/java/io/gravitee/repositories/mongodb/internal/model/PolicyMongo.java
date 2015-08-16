@@ -50,12 +50,6 @@ public class PolicyMongo {
      */
     private String version;
 
-    /**
-     * Configuration schema in JSON format.
-     */
-    private String configuration;
-
-
     public String getDescription() {
         return description;
     }
@@ -87,16 +81,7 @@ public class PolicyMongo {
     public void setVersion(String version) {
         this.version = version;
     }
- 
-    
 
-	public String getConfiguration() {
-		return configuration;
-	}
-
-	public void setConfiguration(String configuration) {
-		this.configuration = configuration;
-	}
 
 	@Override
     public boolean equals(Object o) {

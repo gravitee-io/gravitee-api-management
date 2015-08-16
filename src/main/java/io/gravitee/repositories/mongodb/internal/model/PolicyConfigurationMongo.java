@@ -19,8 +19,6 @@ import java.util.Objects;
 
 import org.springframework.data.mongodb.core.mapping.DBRef;
 
-import io.gravitee.repository.model.Policy;
-
 /**
  * Mongo object model for policy configuration
  * 
@@ -32,7 +30,7 @@ public class PolicyConfigurationMongo {
      * ID of the policy
      */
 	@DBRef
-    private Policy policy;
+    private PolicyMongo policy;
 
     /**
      * Configuration of the policy in JSON format.
@@ -40,11 +38,11 @@ public class PolicyConfigurationMongo {
     private String configuration;
    
 
-	public Policy getPolicy() {
+	public PolicyMongo getPolicy() {
 		return policy;
 	}
 
-	public void setPolicy(Policy policy) {
+	public void setPolicy(PolicyMongo policy) {
 		this.policy = policy;
 	}
 

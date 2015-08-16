@@ -16,7 +16,10 @@
 package io.gravitee.repositories.mongodb.internal.api;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
 
+import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -82,15 +85,32 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
 	@Override
 	public void updatePoliciesConfiguration(String apiName, List<PolicyConfigurationMongo> policyConfigurations) {
-		// TODO Auto-generated method stub
+
+		ApiMongo apiMongo = mongoTemplate.findById(apiName, ApiMongo.class);
+		
+		apiMongo.setPolicies(policyConfigurations);
+		mongoTemplate.save(apiMongo);
 		
 	}
 
 
 	@Override
 	public void updatePolicyConfiguration(String apiName, PolicyConfigurationMongo policyConfiguration) {
-		// TODO Auto-generated method stub
+
+		ApiMongo apiMongo = mongoTemplate.findById(apiName, ApiMongo.class);
 		
+		Optional<PolicyConfigurationMongo> optionnal = apiMongo.getPolicies().stream().filter(new Predicate<PolicyConfigurationMongo>() {
+
+			@Override
+			public boolean test(PolicyConfigurationMongo t) {
+				return t.getPolicy().getName().equals(policyConfiguration.getPolicy().getName());
+			}
+		}).findFirst();
+		
+		PolicyConfigurationMongo configurationMongo = optionnal.get();
+		configurationMongo.setConfiguration(policyConfiguration.getConfiguration());
+		
+		mongoTemplate.save(apiMongo);
 	}
 
 

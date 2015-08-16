@@ -88,6 +88,16 @@
 		"updatedAt"  : { "$date" : 1439022010883 },
 		"lifecycleState" : "STOPPED",
 		"owner" : {"$ref" : "users", "$id" : "creator3" },
-		"creator" : {"$ref" : "users",  "$id" :"creator3"}
+		"creator" : {"$ref" : "users",  "$id" :"creator3"},
+		"policies" : [
+			{
+				"configuration" : "{ 'update:'configuration1' }",
+				"policy" : {"$ref" : "policies",  "$id" : { "$oid" : "55c8f340bc51bd82a7cb16ee" } }
+			},
+			{
+				"configuration" : "{ 'update:'configuration2' }",
+				"policy" : {"$ref" : "policies",  "$id" : { "$oid" : "55c8f340bc51bd82a7cb16ef" } }
+			}
+		]
     }
 ]

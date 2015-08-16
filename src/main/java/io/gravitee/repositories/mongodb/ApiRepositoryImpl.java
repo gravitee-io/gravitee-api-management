@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +29,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.gravitee.repositories.mongodb.internal.api.ApiMongoRepository;
-import io.gravitee.repositories.mongodb.internal.application.ApplicationMongoRepository;
 import io.gravitee.repositories.mongodb.internal.key.ApiKeyMongoRepository;
 import io.gravitee.repositories.mongodb.internal.model.ApiAssociationMongo;
 import io.gravitee.repositories.mongodb.internal.model.ApiMongo;
 import io.gravitee.repositories.mongodb.internal.model.PolicyConfigurationMongo;
+import io.gravitee.repositories.mongodb.internal.model.PolicyMongo;
 import io.gravitee.repositories.mongodb.internal.model.UserMongo;
+import io.gravitee.repositories.mongodb.internal.policy.PolicyMongoRepository;
 import io.gravitee.repositories.mongodb.internal.team.TeamMongoRepository;
 import io.gravitee.repositories.mongodb.internal.user.UserMongoRepository;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
@@ -60,6 +60,9 @@ public class ApiRepositoryImpl implements ApiRepository {
 	
 	@Autowired
 	private UserMongoRepository internalUserRepo;
+	
+	@Autowired
+	private PolicyMongoRepository internalPolicyRepo;
 	
 	@Autowired
 	private GraviteeMapper mapper;
@@ -186,11 +189,42 @@ public class ApiRepositoryImpl implements ApiRepository {
 		}
 		return api;
 	}
+	
+	private PolicyConfigurationMongo map(PolicyConfiguration policyConfiguration){
+		PolicyConfigurationMongo res = null;
+		
+		List<PolicyMongo> policiesMongo =  internalPolicyRepo.findByName(policyConfiguration.getPolicy());
+		
+		if(policiesMongo == null || policiesMongo.isEmpty()){
+			throw new IllegalArgumentException(String.format("No policy found with name [%s]", policyConfiguration.getPolicy()));
+		}
+		
+		res = new PolicyConfigurationMongo();
+		//FIXME deal with multiple policy version
+		res.setPolicy(policiesMongo.get(0));
+		res.setConfiguration(policyConfiguration.getConfiguration());
+		
+		return res;
+	}
+//	private PolicyConfiguration mapPolicy(PolicyConfigurationMongo apiMongo){
+//		PolicyConfiguration res = null;
+//		//TODO
+//		
+//		return res;
+//	}
+//	
 
 	@Override
 	public void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigs) throws TechnicalException {
 		
-		List<PolicyConfigurationMongo> policiesConfigsMongo = mapper.collection2list(policyConfigs, PolicyConfiguration.class, PolicyConfigurationMongo.class);
+		List<PolicyConfigurationMongo> policiesConfigsMongo = policyConfigs.stream().map(new Function<PolicyConfiguration,PolicyConfigurationMongo>() {
+
+			@Override
+			public PolicyConfigurationMongo apply(PolicyConfiguration policy) {
+				return map(policy);
+			}
+		}).collect(Collectors.toList());
+		
 		this.internalApiRepo.updatePoliciesConfiguration(apiName, policiesConfigsMongo);
 		
 	}
@@ -198,7 +232,7 @@ public class ApiRepositoryImpl implements ApiRepository {
 	@Override
 	public void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfig) throws TechnicalException {
 		
-		PolicyConfigurationMongo policyConfigMongo = mapper.map(policyConfig, PolicyConfigurationMongo.class);
+		PolicyConfigurationMongo policyConfigMongo = map(policyConfig);
 		this.internalApiRepo.updatePolicyConfiguration(apiName, policyConfigMongo);
 		
 	}

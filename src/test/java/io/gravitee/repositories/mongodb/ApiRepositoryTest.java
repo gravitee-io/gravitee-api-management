@@ -16,10 +16,13 @@
 package io.gravitee.repositories.mongodb;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,10 +34,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import io.gravitee.repository.api.ApiRepository;
+import io.gravitee.repository.api.PolicyRepository;
 import io.gravitee.repository.api.UserRepository;
 import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.LifecycleState;
 import io.gravitee.repository.model.OwnerType;
+import io.gravitee.repository.model.Policy;
+import io.gravitee.repository.model.PolicyConfiguration;
 import io.gravitee.repository.model.User;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -46,6 +52,9 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	private static final int NB_APIS_FOR_CREATOR = 4; 
 	
 	private Logger logger = LoggerFactory.getLogger(ApiRepositoryTest.class);	
+
+	@Autowired
+	private PolicyRepository policyRepository;
 	
 	@Autowired
 	private ApiRepository apiRepository;
@@ -70,6 +79,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	public void createApiTest() {
 
 		try {
+
 			User owner = createUser("user-"+UUID.randomUUID());
 
 			String apiName = "sample-"+new Date().getTime();
@@ -88,6 +98,63 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			api.setOwnerType(OwnerType.USER);
 			
 			apiRepository.create(api);
+					
+			Optional<Api> optional = apiRepository.findByName(apiName);
+			Assert.assertTrue("Api saved not found", optional.isPresent());
+			
+			Api apiSaved = optional.get();
+			Assert.assertEquals("Invalid saved api version.", 	api.getVersion(), apiSaved.getVersion());
+			Assert.assertEquals("Invalid api lifecycle.", 		api.getLifecycleState(), apiSaved.getLifecycleState());
+			Assert.assertEquals("Invalid api private status.", 	api.isPrivate(), apiSaved.isPrivate());
+			Assert.assertEquals("Invalid api public uri.", 		api.getPublicURI(), apiSaved.getPublicURI());
+			Assert.assertEquals("Invalid api target uri.", 		api.getTargetURI(), apiSaved.getTargetURI());
+			Assert.assertEquals("Invalid api createdAt.", 		api.getCreatedAt(), apiSaved.getCreatedAt());
+			Assert.assertEquals("Invalid api updateAt.", 		api.getUpdatedAt(), apiSaved.getUpdatedAt());
+			Assert.assertEquals("Invalid api Owner.", 			api.getOwner(), apiSaved.getOwner());
+			Assert.assertEquals("Invalid api OwnerType.", 		api.getOwnerType(), apiSaved.getOwnerType());
+			Assert.assertEquals("Invalid api creator.", 		api.getCreator(), apiSaved.getCreator());
+			
+		} catch (Exception e) {
+			logger.error("Error while testing createApi", e);
+			Assert.fail("Error while testing createApi");
+		}
+	}
+
+	@Test
+	public void createApiWithPolicyTest() {
+
+		try {
+			Policy policy = new Policy();
+			policy.setConfiguration("config");
+			policy.setDescription("desc");
+			policy.setName("policyName");
+			policy.setVersion("v1");
+			Policy policySaved = policyRepository.create(policy);
+			
+			User owner = createUser("user-"+UUID.randomUUID());
+
+			String apiName = "sample-"+new Date().getTime();
+			
+			Api api = new Api();
+			api.setName(apiName);
+			api.setVersion("1");
+			api.setLifecycleState(LifecycleState.STOPPED);
+			api.setPrivate(true);
+			api.setPublicURI(URI.create("/public/sample/"));
+			api.setTargetURI(URI.create("/target/sample/"));
+			api.setCreatedAt(new Date());
+			api.setUpdatedAt(new Date());
+			api.setCreator("creator");
+			api.setOwner(owner.getUsername());
+			api.setOwnerType(OwnerType.USER);
+			apiRepository.create(api);
+			
+			PolicyConfiguration configuration = new PolicyConfiguration();
+			configuration.setConfiguration("test");
+			configuration.setPolicy(policySaved.getName());
+			apiRepository.updatePoliciesConfiguration(apiName, Arrays.asList(configuration));
+			
+			
 					
 			Optional<Api> optional = apiRepository.findByName(apiName);
 			Assert.assertTrue("Api saved not found", optional.isPresent());
@@ -262,6 +329,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	}
 	
 	//@Test
+	//TODO test correction
 	public void findByApplicationTest(){
 		try{
 			Set<Api> apis = apiRepository.findByApplication("application-sample");
@@ -274,4 +342,50 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 		}
 	}
 
+	@Test
+	public void updatePoliciesConfigurationTest() throws Exception {
+		
+		PolicyConfiguration policyConfiguration = new PolicyConfiguration();
+		policyConfiguration.setPolicy("policy1");
+		policyConfiguration.setConfiguration("{ 'update:'configuration1' }");
+		
+		PolicyConfiguration policyConfiguration2 = new PolicyConfiguration();
+		policyConfiguration2.setPolicy("policy2");
+		policyConfiguration2.setConfiguration("{ 'update:'configuration2' }");
+		
+		List<PolicyConfiguration> configs = Arrays.asList(policyConfiguration, policyConfiguration2);
+			
+		apiRepository.updatePoliciesConfiguration("api1", configs);
+
+	}
+	
+	
+	@Test
+	public void updatePolicyConfigurationTest() throws Exception {
+		try{
+			String apiName = "api2";
+			PolicyConfiguration policyConfiguration = new PolicyConfiguration();
+			policyConfiguration.setPolicy("policy1");
+			policyConfiguration.setConfiguration("{ 'update:'configuration' }");
+			
+			apiRepository.updatePolicyConfiguration(apiName, policyConfiguration);
+			
+			List<PolicyConfiguration> configurations = apiRepository.findPoliciesByApi(apiName);
+			
+			Optional<PolicyConfiguration> optional = configurations.stream().filter(new Predicate<PolicyConfiguration>() {
+
+				@Override
+				public boolean test(PolicyConfiguration t) {
+					return t.getPolicy().equalsIgnoreCase(policyConfiguration.getPolicy());
+				}
+			}).findFirst();
+			
+			Assert.assertTrue(optional.isPresent());
+			Assert.assertEquals(optional.get().getConfiguration(), policyConfiguration.getConfiguration());
+			
+		}catch(Exception e){
+			logger.error("Error while finding api by application",e);
+			Assert.fail("Error while finding api by application");
+		}
+	}
 }
