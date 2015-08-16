@@ -33,14 +33,11 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 	private Query getFindByOwnerQuery(String type, String name, boolean publicOnly){
 		Query query = new Query();
 
-		Criteria criteria = 
-			Criteria.where("owner.$id").is(name)
-				.andOperator(
-			Criteria.where("owner.$ref").is(type));
-		query.addCriteria(criteria);
+		query.addCriteria(Criteria.where("owner.$id").is(name));
+		query.addCriteria(Criteria.where("owner.$ref").is(type));
 		
 		if(publicOnly){
-			criteria.andOperator(Criteria.where("privateApi").is(false));	
+			query.addCriteria(Criteria.where("privateApi").is(false));	
 		}
 		return query;
 	}

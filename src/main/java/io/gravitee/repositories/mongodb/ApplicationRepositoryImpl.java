@@ -182,41 +182,5 @@ public class ApplicationRepositoryImpl implements ApplicationRepository{
 		return applicationMongo;
 	}
 
-
-	@Override
-	public boolean associate(String applicationName, String apiName) throws TechnicalException {
-		
-		ApiMongo apiMongo = internalApiRepo.findOne(apiName);
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
-		
-		if(applicationMongo.getApis() == null){
-			applicationMongo.setApis(new ArrayList<>());
-		}
-		
-		if(!applicationMongo.getApis().contains(apiMongo)){
-			applicationMongo.getApis().add(apiMongo);
-			internalApplicationRepo.save(applicationMongo);
-			return true;
-		}
-		return false;
-	}
-
-
-	@Override
-	public boolean dissociate(String applicationName, String apiName) throws TechnicalException {
-		
-		ApiMongo apiMongo = internalApiRepo.findOne(apiName);
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
-		
-		if(applicationMongo.getApis() != null && applicationMongo.getApis().contains(apiMongo)){
-			applicationMongo.getApis().remove(apiMongo);
-			
-			internalApplicationRepo.save(applicationMongo);
-			return true;
-		}
-
-		return false;
-	}
-
 	
 }

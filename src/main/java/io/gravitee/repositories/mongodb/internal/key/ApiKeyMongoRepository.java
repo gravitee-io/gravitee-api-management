@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repositories.mongodb.internal.application;
+package io.gravitee.repositories.mongodb.internal.key;
+
+import java.util.List;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
+import io.gravitee.repositories.mongodb.internal.model.ApiAssociationMongo;
 
 @Repository
-public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom{
+public interface ApiKeyMongoRepository extends MongoRepository<ApiAssociationMongo, String>, ApiKeyRepositoryCustom{
 
+	@Query("{ 'application.$id' : ?0 ,  'api.$id': ?1 }")
+	List<ApiAssociationMongo> findByApplicationAndApi(String applicationName, String apiName);
 
+	@Query("{ 'application.$id' : ?0 }")
+	List<ApiAssociationMongo> findByApplication(String applicationName);
+
+	@Query("{ 'key.key' : ?0 }")
+	ApiAssociationMongo retrieve(String apiKey);
 }
 
 

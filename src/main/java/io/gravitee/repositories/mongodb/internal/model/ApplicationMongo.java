@@ -39,16 +39,12 @@ public class ApplicationMongo {
     private String type;
     private Date createdAt;
     private Date updatedAt;
-    private ApiKeyMongo key;
     
     @DBRef
     private AbstractUserMongo owner;
     
     @DBRef
     private UserMongo creator;
-    
-    @DBRef
-    private List<ApiMongo> apis;
 
     
     public Date getCreatedAt() {
@@ -105,22 +101,6 @@ public class ApplicationMongo {
 
 	public void setCreator(UserMongo creator) {
 		this.creator = creator;
-	}
-
-	public ApiKeyMongo getKey() {
-		return key;
-	}
-
-	public void setKey(ApiKeyMongo key) {
-		this.key = key;
-	}
-
-	public List<ApiMongo> getApis() {
-		return apis;
-	}
-
-	public void setApis(List<ApiMongo> apis) {
-		this.apis = apis;
 	}
 
 	@Override

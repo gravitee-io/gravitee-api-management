@@ -16,6 +16,7 @@
 package io.gravitee.repositories.mongodb;
 
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.Assert;
@@ -51,15 +52,20 @@ public class ApiKeyRepositoryTest extends AbstractMongoDBTest {
     	
     	try{
 	    	String apiName = "api1";
+	    	String applicationName = "application1";
 	    	String key = UUID.randomUUID().toString();
 	    	
 	    	ApiKey apiKey = new ApiKey();
 	    	apiKey.setKey(key);
 	    	apiKey.setExpiration(new Date());
-	    	
-	    	apiKeyRepository.createKey("application-no-key", apiKey);
+
+	    	apiKeyRepository.create(applicationName, apiName, apiKey);
 	
-	    	ApiKey keyFound = apiKeyRepository.getKey(key, apiName);	
+	    	Optional<ApiKey> optional = apiKeyRepository.retrieve(key);	
+	    	Assert.assertTrue("ApiKey not found", optional.isPresent());
+	    	
+	    	ApiKey keyFound = optional.get();
+	    	
 	    	Assert.assertNotNull("ApiKey not found", keyFound);
 	    	
 	    	Assert.assertEquals("Key value saved doesn't match", apiKey.getKey(), keyFound.getKey());
@@ -75,12 +81,14 @@ public class ApiKeyRepositoryTest extends AbstractMongoDBTest {
     public void getApiKey() {
 	    try{
 	    	
-	    	String apiKey = "d449098d-8c31-4275-ad59-8dd707865a33";
-	    	String apiName = "api1";
+	    	String key = "d449098d-8c31-4275-ad59-8dd707865a33";
 	    	
-	    	ApiKey key = apiKeyRepository.getKey(apiKey, apiName);
+	    	Optional<ApiKey> optional = apiKeyRepository.retrieve(key);
 	    	
-	    	Assert.assertNotNull("ApiKey not found", key);
+	    	Assert.assertTrue("ApiKey not found", optional.isPresent());
+	    	
+	    	ApiKey keyFound = optional.get();
+	    	Assert.assertNotNull("ApiKey not found", keyFound);
 	    	
 	    }catch(Exception e){
 			logger.error("Error while getting key",e);
@@ -88,16 +96,4 @@ public class ApiKeyRepositoryTest extends AbstractMongoDBTest {
 		}
 	}
 
-    @Test
-    public void invalidateKey() {
-	    try{	
-	    	apiKeyRepository.invalidateKey("application-with-key");
-	    	ApiKey apiKeyInvalidated = apiKeyRepository.getKey("application-with-key", "d449098d-8c31-4275-ad59-8dd707865a33");
-	    	Assert.assertNull("ApiKey invalidated always exist", apiKeyInvalidated);
-	    	
-	    }catch(Exception e){
-			logger.error("Error while invalidating key",e);
-			Assert.fail("Error while invalidating key");
-		}
-	}
 }

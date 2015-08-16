@@ -15,14 +15,23 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.gravitee.repositories.mongodb.internal.api.ApiMongoRepository;
 import io.gravitee.repositories.mongodb.internal.application.ApplicationMongoRepository;
+import io.gravitee.repositories.mongodb.internal.key.ApiKeyMongoRepository;
+import io.gravitee.repositories.mongodb.internal.model.ApiAssociationMongo;
 import io.gravitee.repositories.mongodb.internal.model.ApiKeyMongo;
-import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import io.gravitee.repository.api.ApiKeyRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -34,65 +43,89 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 		
 	@Autowired
 	private GraviteeMapper mapper;
+
+	@Autowired
+	private ApiKeyMongoRepository internalApiKeyRepo;
 	
 	@Autowired
-	private ApplicationMongoRepository internalApplicationRepo;
-
-	private Logger logger = LoggerFactory.getLogger(ApiRepositoryImpl.class);
+	private ApiMongoRepository internalApiRepo;	
 	
-	@Override
-	public boolean invalidateKey(String applicationName) throws TechnicalException{
+	@Autowired
+	private ApplicationMongoRepository internalApplicationRepo;	
+	
+	
+	private Logger logger = LoggerFactory.getLogger(ApiKeyRepositoryImpl.class);
+
+	private Set<ApiKey> map(List<ApiAssociationMongo> apiAssociationMongos){
 		
-		logger.debug("Invalidate application key [{}]", applicationName);
-		
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
-		
-		if(applicationMongo == null){
-			throw new IllegalArgumentException(String.format("Invalid application name [%s]", applicationName));
+		if(apiAssociationMongos == null){
+			return new HashSet<>();
 		}
-		applicationMongo.setKey(null);
 		
-		internalApplicationRepo.save(applicationMongo);
-		
-		logger.debug("Invalidate application key [{}] - Done", applicationName);
-		
-		return true;
+		return apiAssociationMongos.stream().map(new Function<ApiAssociationMongo, ApiKey>() {
+
+			@Override
+			public ApiKey apply(ApiAssociationMongo t) {
+				return mapper.map(t.getKey(), ApiKey.class);
+			}
+		}).collect(Collectors.toSet());
 	}
 
 	@Override
-	public ApiKey createKey(String applicationName, ApiKey key) throws TechnicalException {
+	public Set<ApiKey> findByApplicationAndApi(String applicationName, String apiName) throws TechnicalException {
 		
-		logger.debug("Create application key [{}]", applicationName);
+		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplicationAndApi(applicationName, apiName);
 		
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationName);
+		return map(apiAssociationMongos);
+
+	}
+
+	@Override
+	public Set<ApiKey> findByApplication(String applicationName) throws TechnicalException {
+		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplication(applicationName);
 		
-		ApiKeyMongo apiKeyMongo = mapper.map(key, ApiKeyMongo.class);
-		applicationMongo.setKey(apiKeyMongo);
+		return map(apiAssociationMongos);
+	}
+
+
+	@Override
+	public ApiKey create(String applicationName, String apiName, ApiKey key) throws TechnicalException {
 		
-		internalApplicationRepo.save(applicationMongo);
+		ApiAssociationMongo apiAssociationMongo = new ApiAssociationMongo();
+		apiAssociationMongo.setApi(internalApiRepo.findOne(apiName));
+		apiAssociationMongo.setApplication(internalApplicationRepo.findOne(applicationName));
+		apiAssociationMongo.setKey(mapper.map(key, ApiKeyMongo.class));
 		
-		logger.debug("Create application key [{}] - Done", applicationName);
+		internalApiKeyRepo.insert(apiAssociationMongo);
+		
 		return key;
 	}
 
 
 	@Override
-	public ApiKey getKey(String apiKey, String apiName) throws TechnicalException {
-	
-		logger.debug("Get api key [{}]", apiName);
+	public ApiKey update(ApiKey key) throws TechnicalException {
 		
-		ApplicationMongo applicationMongo = internalApplicationRepo.findByKey(apiKey, apiName);
-		ApiKey key = null;
+		ApiAssociationMongo associationMongo = internalApiKeyRepo.retrieve(key.getKey());
+		associationMongo.getKey().setCreatedAt(key.getCreatedAt());
+		associationMongo.getKey().setExpiration(key.getExpiration());
+		associationMongo.getKey().setRevoked(key.isRevoked());
 		
-		if(applicationMongo == null){
-			return null;
-			//throw new IllegalArgumentException(String.format("Invalid key for api [%s]", apiName));
-		}
-		key = mapper.map(applicationMongo.getKey(), ApiKey.class);
-
-		logger.debug("Get api key [{}] - Done", apiName);
+		internalApiKeyRepo.save(associationMongo);
 		
 		return key;
 	}
+
+	@Override
+	public Optional<ApiKey> retrieve(String apiKey) throws TechnicalException {
+
+		ApiAssociationMongo apiAssociationMongo = internalApiKeyRepo.retrieve(apiKey);
+
+		if(apiAssociationMongo != null){
+			return Optional.ofNullable(mapper.map(apiAssociationMongo.getKey(), ApiKey.class));
+		}
+		
+		return Optional.empty();
+	}
+
 	
 }

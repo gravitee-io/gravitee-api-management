@@ -43,7 +43,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 
 	private static final String TESTCASES_PATH = "/data/api-tests/";
 
-	private static final int NB_APIS_FOR_CREATOR = 3; 
+	private static final int NB_APIS_FOR_CREATOR = 4; 
 	
 	private Logger logger = LoggerFactory.getLogger(ApiRepositoryTest.class);	
 	
@@ -168,6 +168,20 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			
 			Set<Api> apis = apiRepository.findByUser("findByUserTest", false);
 			Assert.assertNotNull(apis);
+			Assert.assertEquals("Invalid api result in findByUser",apis.size(), 2);
+			
+		}catch(Exception e){
+			logger.error("Error while finding api by user",e);
+			Assert.fail("Error while finding api by user");
+		}
+	}	
+	
+	@Test
+	public void findPublicByUserTest() {
+		try{
+			
+			Set<Api> apis = apiRepository.findByUser("findByUserTest", true);
+			Assert.assertNotNull(apis);
 			Assert.assertEquals("Invalid api result in findByUser",apis.size(), 1);
 			
 		}catch(Exception e){
@@ -175,6 +189,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			Assert.fail("Error while finding api by user");
 		}
 	}	
+	
 	
 	@Test
 	public void findAllTest() {
@@ -208,6 +223,20 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 		try{
 			
 			int nbApis = apiRepository.countByUser("findByUserTest", false);
+			Assert.assertEquals("Invalid api result in countByUser", nbApis, 2);
+			
+		}catch(Exception e){
+			logger.error("Error while counting api by user",e);
+			Assert.fail("Error while counting api by user");
+		}
+	}
+	
+	
+	@Test
+	public void countPublicApisByUserTest(){
+		try{
+			
+			int nbApis = apiRepository.countByUser("findByUserTest", true);
 			Assert.assertEquals("Invalid api result in countByUser", nbApis, 1);
 			
 		}catch(Exception e){
@@ -232,7 +261,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 
 	}
 	
-	@Test
+	//@Test
 	public void findByApplicationTest(){
 		try{
 			Set<Api> apis = apiRepository.findByApplication("application-sample");

@@ -36,12 +36,9 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
 		Query query = new Query();
 
-		Criteria criteria = 
-			Criteria.where("owner.$id").is(teamname)
-				.andOperator(
-			Criteria.where("owner.$ref").is("teams"));
+		query.addCriteria(Criteria.where("owner.$id").is(teamname));	
+		query.addCriteria(Criteria.where("owner.$ref").is("teams"));
 		
-		query.addCriteria(criteria);				
 		List<ApplicationMongo> applications = mongoTemplate.find(query, ApplicationMongo.class);
 		
 		return applications;
@@ -53,12 +50,8 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
 		Query query = new Query();
 
-		Criteria criteria = 
-			Criteria.where("owner.$id").is(username)
-				.andOperator(
-			Criteria.where("owner.$ref").is("users"));
-		
-		query.addCriteria(criteria);				
+		query.addCriteria(Criteria.where("owner.$id").is(username));	
+		query.addCriteria(Criteria.where("owner.$ref").is("users"));				
 		List<ApplicationMongo> applications = mongoTemplate.find(query, ApplicationMongo.class);
 		
 		return applications;
@@ -69,12 +62,8 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 	public long countByUser(String username) {
 		Query query = new Query();
 
-		Criteria criteria = 
-			Criteria.where("owner.$id").is(username)
-				.andOperator(
-			Criteria.where("owner.$ref").is("users"));
-		
-		query.addCriteria(criteria);				
+		query.addCriteria(Criteria.where("owner.$id").is(username));	
+		query.addCriteria(Criteria.where("owner.$ref").is("users"));	
 		return mongoTemplate.count(query, ApplicationMongo.class);
 		
 	}
@@ -83,12 +72,9 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 	public long countByTeam(String teamname) {
 		Query query = new Query();
 
-		Criteria criteria = 
-			Criteria.where("owner.$id").is(teamname)
-				.andOperator(
-			Criteria.where("owner.$ref").is("teams"));
-		
-		query.addCriteria(criteria);				
+		query.addCriteria(Criteria.where("owner.$id").is(teamname));	
+		query.addCriteria(Criteria.where("owner.$ref").is("teams"));
+				
 		return mongoTemplate.count(query, ApplicationMongo.class);
 		
 	}

@@ -52,6 +52,19 @@
 		"creator" : {"$ref" : "users",  "$id" :"creator"}
 	},
 	{
+		"_id" : "findByUserApiTest2",
+		"_class" : "io.gravitee.repositories.mongodb.internal.model.ApiMongo",
+		"version" : "1",
+		"publicURI" : "/public/sample/",
+		"targetURI" : "/target/sample/",
+		"privateApi" : true,
+		"createdAt"  : { "$date" : 1439022010883 },
+		"updatedAt"  : { "$date" : 1439022010883 },
+		"lifecycleState" : "STOPPED",
+		"owner" : {"$ref" : "users", "$id" : "findByUserTest" },
+		"creator" : {"$ref" : "users",  "$id" :"creator"}
+	},
+	{
 		"_id" : "api1",
 		"_class" : "io.gravitee.repositories.mongodb.internal.model.ApiMongo",
 		"version" : "1",

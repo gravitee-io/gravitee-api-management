@@ -234,31 +234,4 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 		}
 	}
 
-	
-	@Test
-	public void associate() {
-		try{
-			
-			boolean associated = applicationRepository.associate("dissociated-app", "api1");
-			Assert.assertTrue(associated);
-			
-		}catch(Exception e){
-			logger.error("Error while associating application and api",e);
-			Assert.fail("Error while associating application and api");
-		}
-		
-	}
-	
-	@Test
-	public void dissociate() {
-		try{
-			
-			boolean dissociated = applicationRepository.dissociate("associated-app", "api1");
-			Assert.assertTrue(dissociated);
-			
-		}catch(Exception e){
-			logger.error("Error while dissociating application and api",e);
-			Assert.fail("Error while dissociating application and api");
-		}
-	}
 }

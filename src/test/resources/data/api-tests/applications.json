@@ -7,14 +7,6 @@
 	   "updatedAt"  : { "$date" : 1439022010883 },
 	   "owner" : {"$ref" : "users", "$id" : "creator3" },
 	   "creator" : {"$ref" : "users", "$id" : "creator3" },
-	   "key" : {
-			"key" : "d449098d-8c31-4275-ad59-8dd707865a33",
-			"expiration" :{ "$date" : 1439022010883 }
-		},
-		"apis" : [
-			{"$ref" : "apis", "$id" : "api1" },
-			{"$ref" : "apis", "$id" : "api2" }
-		]
 	}	
 ]
 

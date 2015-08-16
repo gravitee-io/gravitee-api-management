@@ -13,18 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repositories.mongodb.internal.application;
+package io.gravitee.repositories.mongodb.internal.key;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
-
-import io.gravitee.repositories.mongodb.internal.model.ApplicationMongo;
-
-@Repository
-public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom{
+public interface ApiKeyRepositoryCustom {
 
 
 }
-
-
-

@@ -24,17 +24,28 @@ import java.util.Objects;
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  */
 public class ApiKeyMongo {
-    
+  
 	/**
 	 * Api Key
 	 */
 	private String key;
+
+	/**
+	 * Is the key revoked ?
+	 */
+	private boolean revoked;
 	
 	/**
 	 * Token expiration date
 	 */
-	private Date expiration;	
+	private Date expiration;
 
+	/**
+	 * The API key creation date
+	 */
+	private Date createdAt;
+	
+	
 	public String getKey() {
 		return key;
 	}
@@ -49,6 +60,22 @@ public class ApiKeyMongo {
 
 	public void setExpiration(Date expiration) {
 		this.expiration = expiration;
+	}
+	
+	public boolean isRevoked() {
+		return revoked;
+	}
+
+	public void setRevoked(boolean revoked) {
+		this.revoked = revoked;
+	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
 	}
 
 	@Override
