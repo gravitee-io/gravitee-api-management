@@ -28,7 +28,12 @@ public class Api {
 	 * The api name.
 	 */
     private String name;
-    
+
+    /**
+     * the api description.
+     */
+    private String description;
+
     /**
      * The api version.
      */
@@ -165,6 +170,14 @@ public class Api {
 
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override
