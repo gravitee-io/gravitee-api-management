@@ -34,6 +34,7 @@ public class ApiMongo {
 	@Id
     private String name;
     private String version;
+    private String description;
 
     private String publicURI;
     private String targetURI;
@@ -142,7 +143,15 @@ public class ApiMongo {
 		this.policies = policies;
 	}
 
-	@Override
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
