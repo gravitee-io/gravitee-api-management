@@ -50,6 +50,11 @@ public class PolicyMongo {
      */
     private String version;
 
+    /**
+     * Policy install configuration
+     */
+    private String configuration;
+    
     public String getDescription() {
         return description;
     }
@@ -82,6 +87,13 @@ public class PolicyMongo {
         this.version = version;
     }
 
+	public String getConfiguration() {
+		return configuration;
+	}
+
+	public void setConfiguration(String configuration) {
+		this.configuration = configuration;
+	}
 
 	@Override
     public boolean equals(Object o) {
