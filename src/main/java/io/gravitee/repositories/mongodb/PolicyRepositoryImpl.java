@@ -31,6 +31,12 @@ import io.gravitee.repository.api.PolicyRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Policy;
 
+/**
+ * Mongo policy repository. Provide services for policy plugins.
+ * 
+ * @author Loic DASSONVILLE (loic dot dassonville at gmail dot com)
+ *
+ */
 @Component
 public class PolicyRepositoryImpl implements PolicyRepository{
 
@@ -42,6 +48,9 @@ public class PolicyRepositoryImpl implements PolicyRepository{
 	
 	private Logger logger = LoggerFactory.getLogger(ApiRepositoryImpl.class);
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Set<Policy> findAll() throws TechnicalException {
 		
@@ -57,37 +66,76 @@ public class PolicyRepositoryImpl implements PolicyRepository{
 		}catch(Exception e){
 			
 			logger.error("Find all policy - Error", e);
-			throw new TechnicalException(e);
+			throw new TechnicalException("Error while finding all policies",e);
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Optional<Policy> findById(String id) throws TechnicalException {
-
-		PolicyMongo policy = internalPolicyRepo.findOne(id);
-		return Optional.ofNullable(mapper.map(policy, Policy.class));
+		try{
+			PolicyMongo policy = internalPolicyRepo.findOne(id);
+			return Optional.ofNullable(mapper.map(policy, Policy.class));
+		}catch(Exception e){
+			
+			logger.error("find policy by id [{}] - error", id, e);
+			throw new TechnicalException(String.format("Error while finding policy by id [%s]", id), e);
+		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Policy create(Policy policy) throws TechnicalException {
 		
-		PolicyMongo policyMongo = mapper.map(policy, PolicyMongo.class);
-		PolicyMongo savedPolicy = internalPolicyRepo.insert(policyMongo);
-		
-		return mapper.map(savedPolicy, Policy.class);
+		try{
+			PolicyMongo policyMongo = mapper.map(policy, PolicyMongo.class);
+			PolicyMongo savedPolicy = internalPolicyRepo.insert(policyMongo);
+			
+			return mapper.map(savedPolicy, Policy.class);
+			
+		}catch(Exception e){
+			
+			logger.error("create policy - error", e);
+			throw new TechnicalException("Error while creating policy", e);
+		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Policy update(Policy policy) throws TechnicalException {
 		
-		PolicyMongo policyMongo = mapper.map(policy, PolicyMongo.class);
-		PolicyMongo savedPolicy = internalPolicyRepo.save(policyMongo);
-		
-		return mapper.map(savedPolicy, Policy.class);
+		try{
+			PolicyMongo policyMongo = mapper.map(policy, PolicyMongo.class);
+			PolicyMongo savedPolicy = internalPolicyRepo.save(policyMongo);
+			
+			return mapper.map(savedPolicy, Policy.class);
+			
+		}catch(Exception e){
+			
+			logger.error("Update policy - Error", e);
+			throw new TechnicalException("Error while updating policy", e);
+		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void delete(String id) throws TechnicalException {
-		internalPolicyRepo.delete(id);
+		
+		try{
+			internalPolicyRepo.delete(id);
+		
+		}catch(Exception e){
+			
+			logger.error("Delete policy - Error", e);
+			throw new TechnicalException("Error while deleting policy", e);
+		}
 	}
 }
