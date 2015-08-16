@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * Mongo model for Api
+ * Mongo model for Api.
  * 
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  */
