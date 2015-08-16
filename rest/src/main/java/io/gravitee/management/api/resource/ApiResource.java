@@ -15,7 +15,6 @@
  */
 package io.gravitee.management.api.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.api.exceptions.ApiNotFoundException;
 import io.gravitee.management.api.model.ApiEntity;
 import io.gravitee.management.api.model.LifecycleActionParam;
@@ -49,56 +48,54 @@ public class ApiResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response get() throws ApiNotFoundException {
-        Optional<ApiEntity> api = apiService.findByName(apiName);
+    public ApiEntity get() throws ApiNotFoundException {
+        Optional<ApiEntity> optApi = apiService.findByName(apiName);
 
-        if (api.isPresent()) {
-            return Response
-                    .ok()
-                    .entity(api.get())
-                    .build();
+        if (! optApi.isPresent()) {
+            throw new ApiNotFoundException(apiName);
         }
 
-        return Response.status(Response.Status.NOT_FOUND).build();
+        return optApi.get();
     }
 
     @POST
     public Response doLifecycleAction(@QueryParam("action") LifecycleActionParam action) {
         Optional<ApiEntity> optApi = apiService.findByName(apiName);
 
-        if (optApi.isPresent()) {
-            ApiEntity api = optApi.get();
-            switch (action.getAction()) {
-                case START:
-                    apiService.start(api.getName());
-                    break;
-                case STOP:
-                    apiService.stop(api.getName());
-                    break;
-                default:
-                    break;
-            }
-
-            return Response.status(HttpStatusCode.OK_200).build();
+        if (! optApi.isPresent()) {
+            throw new ApiNotFoundException(apiName);
         }
 
-        return Response.status(Response.Status.NOT_FOUND).build();
+        ApiEntity api = optApi.get();
+        switch (action.getAction()) {
+            case START:
+                apiService.start(api.getName());
+                break;
+            case STOP:
+                apiService.stop(api.getName());
+                break;
+            default:
+                break;
+        }
+
+        return Response.noContent().build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(@Valid final UpdateApiEntity api) {
-        ApiEntity updatedApi = apiService.update(apiName, api);
-        if (updatedApi != null) {
-            return Response.ok().entity(updatedApi).build();
-        } else {
-            return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
-        }
+    public ApiEntity update(@Valid final UpdateApiEntity api) {
+        return apiService.update(apiName, api);
     }
 
     @DELETE
     public Response delete() {
+        Optional<ApiEntity> optApi = apiService.findByName(apiName);
+
+        if (! optApi.isPresent()) {
+            throw new ApiNotFoundException(apiName);
+        }
+
         apiService.delete(apiName);
         return Response.noContent().build();
     }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.management.api.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.api.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.api.exceptions.UserNotFoundException;
 import io.gravitee.management.api.model.ApplicationEntity;
@@ -60,7 +59,7 @@ public class ApplicationResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(final UpdateApplicationEntity application) {
+    public ApplicationEntity update(final UpdateApplicationEntity application) {
         ApplicationEntity applicationEntity = getCurrentApplication();
 
         String authenticatedUser = getAuthenticatedUser();
@@ -74,12 +73,7 @@ public class ApplicationResource extends AbstractResource {
                 break;
         }
 
-        ApplicationEntity updatedApplicationEntity = applicationService.update(applicationName, application);
-        if (updatedApplicationEntity != null) {
-            return Response.ok().entity(updatedApplicationEntity).build();
-        } else {
-            return Response.status(HttpStatusCode.BAD_REQUEST_400).build();
-        }
+        return applicationService.update(applicationName, application);
     }
 
     @DELETE

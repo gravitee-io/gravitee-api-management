@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.api.resource;
 
-import io.gravitee.management.api.model.NewTeamEntity;
+import io.gravitee.management.api.exceptions.TeamNotFoundException;
 import io.gravitee.management.api.model.TeamEntity;
 import io.gravitee.management.api.model.UpdateTeamEntity;
 import io.gravitee.management.api.service.TeamService;
@@ -26,7 +26,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.Optional;
 
 /**
@@ -45,17 +44,14 @@ public class TeamResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response get() {
+    public TeamEntity get() {
         Optional<TeamEntity> optTeam = teamService.findByName(teamName);
 
-        if (optTeam.isPresent()) {
-            return Response
-                    .ok()
-                    .entity(optTeam.get())
-                    .build();
+        if (! optTeam.isPresent()) {
+            throw new TeamNotFoundException(teamName);
         }
 
-        return Response.status(Response.Status.NOT_FOUND).build();
+        return optTeam.get();
     }
 
     @PUT
