@@ -15,6 +15,7 @@
  */
 package io.gravitee.repositories.mongodb.internal.model;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -24,7 +25,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * Mongo model for Api.
+ * Mongo model for Api
  * 
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  */
@@ -52,7 +53,7 @@ public class ApiMongo {
     @DBRef 
     private UserMongo creator;
 
-    private List<PolicyConfigurationMongo> policies;
+    private List<PolicyConfigurationMongo> policies = new ArrayList<>();
     
     
     public boolean isPrivateApi() {
