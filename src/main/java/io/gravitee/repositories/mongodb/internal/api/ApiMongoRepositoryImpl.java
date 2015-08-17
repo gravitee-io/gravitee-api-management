@@ -103,7 +103,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
 			@Override
 			public boolean test(PolicyConfigurationMongo t) {
-				return t.getPolicy().getName().equals(policyConfiguration.getPolicy().getName());
+				return t.getPolicy().equals(policyConfiguration.getPolicy());
 			}
 		}).findFirst();
 		

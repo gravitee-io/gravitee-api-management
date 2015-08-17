@@ -92,11 +92,11 @@
 		"policies" : [
 			{
 				"configuration" : "{ 'update:'configuration1' }",
-				"policy" : {"$ref" : "policies",  "$id" : { "$oid" : "55c8f340bc51bd82a7cb16ee" } }
+				"policy" :  "policy1"
 			},
 			{
 				"configuration" : "{ 'update:'configuration2' }",
-				"policy" : {"$ref" : "policies",  "$id" : { "$oid" : "55c8f340bc51bd82a7cb16ef" } }
+				"policy" : "policy2"
 			}
 		]
     }

@@ -33,11 +33,7 @@
   <mapping> 
     <class-a>io.gravitee.repository.model.PolicyConfiguration</class-a>
     <class-b>io.gravitee.repositories.mongodb.internal.model.PolicyConfigurationMongo</class-b>   
-  	<field>
-  		<a>policy</a>
-  		<b>policy.name</b>
-  	</field>
-  
+  	
     <!-- field-exclude>
     	<a>policy</a>
     	<b>policy</b>

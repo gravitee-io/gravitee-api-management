@@ -29,20 +29,19 @@ public class PolicyConfigurationMongo {
     /**
      * ID of the policy
      */
-	@DBRef
-    private PolicyMongo policy;
+    private String policy;
 
     /**
      * Configuration of the policy in JSON format.
      */
     private String configuration;
    
-
-	public PolicyMongo getPolicy() {
+    
+	public String getPolicy() {
 		return policy;
 	}
 
-	public void setPolicy(PolicyMongo policy) {
+	public void setPolicy(String policy) {
 		this.policy = policy;
 	}
 

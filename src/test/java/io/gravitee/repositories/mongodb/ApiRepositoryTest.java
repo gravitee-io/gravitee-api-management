@@ -34,12 +34,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import io.gravitee.repository.api.ApiRepository;
-import io.gravitee.repository.api.PolicyRepository;
 import io.gravitee.repository.api.UserRepository;
 import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.LifecycleState;
 import io.gravitee.repository.model.OwnerType;
-import io.gravitee.repository.model.Policy;
 import io.gravitee.repository.model.PolicyConfiguration;
 import io.gravitee.repository.model.User;
 
@@ -53,8 +51,6 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	
 	private Logger logger = LoggerFactory.getLogger(ApiRepositoryTest.class);	
 
-	@Autowired
-	private PolicyRepository policyRepository;
 	
 	@Autowired
 	private ApiRepository apiRepository;
@@ -98,63 +94,6 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			api.setOwnerType(OwnerType.USER);
 			
 			apiRepository.create(api);
-					
-			Optional<Api> optional = apiRepository.findByName(apiName);
-			Assert.assertTrue("Api saved not found", optional.isPresent());
-			
-			Api apiSaved = optional.get();
-			Assert.assertEquals("Invalid saved api version.", 	api.getVersion(), apiSaved.getVersion());
-			Assert.assertEquals("Invalid api lifecycle.", 		api.getLifecycleState(), apiSaved.getLifecycleState());
-			Assert.assertEquals("Invalid api private status.", 	api.isPrivate(), apiSaved.isPrivate());
-			Assert.assertEquals("Invalid api public uri.", 		api.getPublicURI(), apiSaved.getPublicURI());
-			Assert.assertEquals("Invalid api target uri.", 		api.getTargetURI(), apiSaved.getTargetURI());
-			Assert.assertEquals("Invalid api createdAt.", 		api.getCreatedAt(), apiSaved.getCreatedAt());
-			Assert.assertEquals("Invalid api updateAt.", 		api.getUpdatedAt(), apiSaved.getUpdatedAt());
-			Assert.assertEquals("Invalid api Owner.", 			api.getOwner(), apiSaved.getOwner());
-			Assert.assertEquals("Invalid api OwnerType.", 		api.getOwnerType(), apiSaved.getOwnerType());
-			Assert.assertEquals("Invalid api creator.", 		api.getCreator(), apiSaved.getCreator());
-			
-		} catch (Exception e) {
-			logger.error("Error while testing createApi", e);
-			Assert.fail("Error while testing createApi");
-		}
-	}
-
-	@Test
-	public void createApiWithPolicyTest() {
-
-		try {
-			Policy policy = new Policy();
-			policy.setConfiguration("config");
-			policy.setDescription("desc");
-			policy.setName("policyName");
-			policy.setVersion("v1");
-			Policy policySaved = policyRepository.create(policy);
-			
-			User owner = createUser("user-"+UUID.randomUUID());
-
-			String apiName = "sample-"+new Date().getTime();
-			
-			Api api = new Api();
-			api.setName(apiName);
-			api.setVersion("1");
-			api.setLifecycleState(LifecycleState.STOPPED);
-			api.setPrivate(true);
-			api.setPublicURI(URI.create("/public/sample/"));
-			api.setTargetURI(URI.create("/target/sample/"));
-			api.setCreatedAt(new Date());
-			api.setUpdatedAt(new Date());
-			api.setCreator("creator");
-			api.setOwner(owner.getUsername());
-			api.setOwnerType(OwnerType.USER);
-			apiRepository.create(api);
-			
-			PolicyConfiguration configuration = new PolicyConfiguration();
-			configuration.setConfiguration("test");
-			configuration.setPolicy(policySaved.getName());
-			apiRepository.updatePoliciesConfiguration(apiName, Arrays.asList(configuration));
-			
-			
 					
 			Optional<Api> optional = apiRepository.findByName(apiName);
 			Assert.assertTrue("Api saved not found", optional.isPresent());
