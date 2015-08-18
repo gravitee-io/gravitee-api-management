@@ -22,16 +22,21 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.Set;
 
 /**
- * Defines the REST resources to manage {@code Policy}.
+ * Defines the REST resources to manage Policy.
  *
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author David BRASSELY (brasseld at gmail.com)
  */
 @Path("/policies")
 public class PoliciesResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private PolicyService policyService;
@@ -42,33 +47,8 @@ public class PoliciesResource {
         return policyService.findAll();
     }
 
-    /*
-
-    @GET
-    @Path("/{apiName}")
-    public Response listAll(@PathParam("apiName") final String apiName) {
-        final Api api = apiService.get(apiName);
-
-        final List<Policy> policies = new ArrayList<>();
-        Policy policy = new Policy();
-        policy.setName("rate-limit");
-        policy.setConfiguration("Rate Limiting Policy");
-        policies.add(policy);
-        policy = new Policy();
-        policy.setName("access-control");
-        policy.setConfiguration("Access control");
-        policies.add(policy);
-        policy = new Policy();
-        policy.setName("response-time");
-        policy.setConfiguration("Response time");
-        policies.add(policy);
-
-        if (api.getPolicies() != null) {
-            policies.removeAll(api.getPolicies().values());
-        }
-
-        return Response.status(HttpStatusCode.OK_200).entity(policies)
-            .header("Access-Control-Allow-Origin", "*").build();
+    @Path("{policyName}")
+    public PolicyResource getPolicyResource() {
+        return resourceContext.getResource(PolicyResource.class);
     }
-    */
 }

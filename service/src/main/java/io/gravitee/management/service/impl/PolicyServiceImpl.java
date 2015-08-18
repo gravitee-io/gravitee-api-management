@@ -17,8 +17,9 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.PolicyEntity;
 import io.gravitee.management.service.PolicyService;
-import io.gravitee.plugin.PluginContext;
-import io.gravitee.plugin.PluginRegistry;
+import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginRegistry;
+import io.gravitee.plugin.core.api.PluginType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,17 +45,17 @@ public class PolicyServiceImpl implements PolicyService {
 
     @Override
     public Set<PolicyEntity> findAll() {
-        Collection<PluginContext> plugins = pluginRegistry.plugins();
+        Collection<Plugin> plugins = pluginRegistry.plugins(PluginType.POLICY);
         Set<PolicyEntity> policies = new HashSet<>(plugins.size());
 
-        for(PluginContext plugin : plugins) {
+        for(Plugin plugin : plugins) {
             policies.add(convert(plugin));
         }
 
         return policies;
     }
 
-    private PolicyEntity convert(PluginContext plugin) {
+    private PolicyEntity convert(Plugin plugin) {
         PolicyEntity entity = new PolicyEntity();
 
         entity.setId(plugin.manifest().id());
