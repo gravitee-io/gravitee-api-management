@@ -21,6 +21,8 @@ import io.gravitee.management.service.PolicyService;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import java.util.Set;
 
 /**
@@ -35,6 +37,7 @@ public class PoliciesResource {
     private PolicyService policyService;
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Set<PolicyEntity> listAll() {
         return policyService.findAll();
     }

@@ -17,13 +17,15 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.PolicyEntity;
 import io.gravitee.management.service.PolicyService;
+import io.gravitee.plugin.PluginContext;
 import io.gravitee.plugin.PluginRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -42,35 +44,24 @@ public class PolicyServiceImpl implements PolicyService {
 
     @Override
     public Set<PolicyEntity> findAll() {
-        pluginRegistry.init();
-        return null;
-        /*
-        try {
-            LOGGER.debug("Find all policies");
-            Set<Policy> policies = policyRepository.findAll();
-            Set<PolicyEntity> policyEntities = new HashSet<>(policies.size());
+        Collection<PluginContext> plugins = pluginRegistry.plugins();
+        Set<PolicyEntity> policies = new HashSet<>(plugins.size());
 
-            for(Policy policy : policies) {
-                policyEntities.add(convert(policy));
-            }
-
-            return policyEntities;
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all policies", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all policies", ex);
+        for(PluginContext plugin : plugins) {
+            policies.add(convert(plugin));
         }
-        */
+
+        return policies;
     }
 
-    /*
-    private PolicyEntity convert(Policy policy) {
+    private PolicyEntity convert(PluginContext plugin) {
         PolicyEntity entity = new PolicyEntity();
 
-        entity.setId(policy.getId());
-        entity.setName(policy.getName());
-        entity.setDescription(policy.getDescription());
-        entity.setVersion(policy.getVersion());
+        entity.setId(plugin.manifest().id());
+        entity.setName(plugin.manifest().name());
+        entity.setDescription(plugin.manifest().description());
+        entity.setVersion(plugin.manifest().version());
 
         return entity;
-    }*/
+    }
 }
