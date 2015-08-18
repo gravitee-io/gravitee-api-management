@@ -28,7 +28,7 @@
 	
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>io.gravitee.management.api.spring.RestConfiguration</param-value>
+		<param-value>io.gravitee.management.rest.spring.RestConfiguration</param-value>
 	</context-param>
 	
 	<context-param>
@@ -42,7 +42,7 @@
     	<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
     	<init-param>
       		<param-name>javax.ws.rs.Application</param-name>
-      		<param-value>io.gravitee.management.api.resource.GraviteeApplication</param-value>
+      		<param-value>io.gravitee.management.rest.resource.GraviteeApplication</param-value>
     	</init-param>
     	<load-on-startup>1</load-on-startup>
 	</servlet>

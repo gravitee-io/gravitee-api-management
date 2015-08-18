@@ -16,7 +16,7 @@
 package io.gravitee.management.standalone.spring;
 
 import io.gravitee.common.node.Node;
-import io.gravitee.management.api.spring.RestConfiguration;
+import io.gravitee.management.rest.spring.RestConfiguration;
 import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.management.standalone.jetty.JettyServerFactory;
 import io.gravitee.management.standalone.node.ManagementNode;

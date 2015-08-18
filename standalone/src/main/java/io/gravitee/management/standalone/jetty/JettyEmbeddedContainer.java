@@ -16,7 +16,7 @@
 package io.gravitee.management.standalone.jetty;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.management.api.resource.GraviteeApplication;
+import io.gravitee.management.rest.resource.GraviteeApplication;
 import io.gravitee.management.standalone.jetty.handler.NoContentOutputErrorHandler;
 import io.gravitee.management.standalone.spring.StandaloneConfiguration;
 import org.eclipse.jetty.server.Server;

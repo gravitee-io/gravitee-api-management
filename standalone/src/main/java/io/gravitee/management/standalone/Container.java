@@ -20,6 +20,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import io.gravitee.common.node.Node;
+import io.gravitee.management.rest.spring.PropertiesConfiguration;
 import io.gravitee.management.standalone.spring.StandaloneConfiguration;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.StaticLoggerBinder;
@@ -45,12 +46,11 @@ public class Container {
     }
 
     private void initialize() {
-    //    initializeEnvironment();
+        initializeEnvironment();
         initializeLogging();
         initializeContext();
     }
 
-    /*
     private void initializeEnvironment() {
         // Set system properties if needed
         String graviteeConfiguration = System.getProperty(PropertiesConfiguration.GRAVITEE_CONFIGURATION);
@@ -60,7 +60,6 @@ public class Container {
                     graviteeHome + File.separator + "config" + File.separator + "gravitee.yml");
         }
     }
-    */
 
     private void initializeLogging() {
         String graviteeHome = System.getProperty("gravitee.home");
@@ -128,6 +127,8 @@ public class Container {
     }
 
     public static void main(String[] args) {
+        // If you want to run Gravitee standalone from your IDE, please do not forget
+        // to specify -Dgravitee.home=/path/to/gravitee/home in order to make it works.
         Container container = new Container();
         container.start();
     }
