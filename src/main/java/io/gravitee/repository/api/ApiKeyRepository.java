@@ -63,5 +63,12 @@ public interface ApiKeyRepository {
 	 */
 	Set<ApiKey> findByApplicationAndApi(String applicationName, String apiName) throws TechnicalException;
 
+	/**
+	 * Provide Api Keys for a given application
+	 * 
+	 * @param applicationName
+	 * @return
+	 * @throws TechnicalException
+	 */
 	Set<ApiKey> findByApplication(String applicationName) throws TechnicalException;
 }
