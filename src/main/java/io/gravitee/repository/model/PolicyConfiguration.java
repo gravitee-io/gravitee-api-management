@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.model;
 
+import java.util.Date;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -30,6 +32,11 @@ public class PolicyConfiguration {
      */
     private String configuration;
 
+    /**
+     * The Api creation date
+     */
+    private Date createdAt;
+
     public String getConfiguration() {
         return configuration;
     }
@@ -44,5 +51,13 @@ public class PolicyConfiguration {
 
     public void setPolicy(String policy) {
         this.policy = policy;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }
