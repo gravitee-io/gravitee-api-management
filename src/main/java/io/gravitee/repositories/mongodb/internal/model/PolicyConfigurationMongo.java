@@ -15,9 +15,8 @@
  */
 package io.gravitee.repositories.mongodb.internal.model;
 
+import java.util.Date;
 import java.util.Objects;
-
-import org.springframework.data.mongodb.core.mapping.DBRef;
 
 /**
  * Mongo object model for policy configuration
@@ -35,7 +34,8 @@ public class PolicyConfigurationMongo {
      * Configuration of the policy in JSON format.
      */
     private String configuration;
-   
+
+    private Date createdAt;
     
 	public String getPolicy() {
 		return policy;
@@ -53,7 +53,15 @@ public class PolicyConfigurationMongo {
 		this.configuration = configuration;
 	}
 
-	@Override
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
