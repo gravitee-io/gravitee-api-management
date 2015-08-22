@@ -26,101 +26,16 @@
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 
-	<groupId>io.gravitee.management</groupId>
+	<groupId>io.gravitee.management.standalone</groupId>
 	<artifactId>gravitee-management-api-standalone</artifactId>
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
 
 	<name>Gravitee IO - Management - Standalone</name>
 	<description>Gravitee IO Manager in Standalone mode (based on Jetty).</description>
 
-	<dependencies>
-		<!-- Gravitee Management dependencies -->
-		<dependency>
-			<groupId>io.gravitee.management</groupId>
-			<artifactId>gravitee-management-api-rest</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<!-- Gravitee Repository dependencies -->
-		<dependency>
-			<groupId>io.gravitee.repositories</groupId>
-			<artifactId>gravitee-repository-mongodb</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-log4j12</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-expression</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<!-- Jetty dependencies -->
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-webapp</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
-
-		<!-- Logging -->
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>${logback.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-core</artifactId>
-			<version>${logback.version}</version>
-		</dependency>
-	</dependencies>
-
-	<properties>
-		<logback.version>1.1.3</logback.version>
-		<jetty.version>9.2.11.v20150529</jetty.version>
-	</properties>
-	
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>io.gravitee.management.standalone.Container</mainClass>
-								</transformer>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-									<resource>META-INF/spring.handlers</resource>
-								</transformer>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-									<resource>META-INF/spring.schemas</resource>
-								</transformer>
-							</transformers>
-							<shadedArtifactAttached>true</shadedArtifactAttached>
-							<!-- configures the suffix name for the executable jar here it will be 
-								'<project.artifact>-<project.version>-executable.jar' -->
-							<shadedClassifierName>executable</shadedClassifierName>
-						</configuration>
-					</execution>
-				</executions>
-	           </plugin>
-		</plugins>
-	</build>
+	<modules>
+		<module>bootstrap</module>
+		<module>container</module>
+		<module>distribution</module>
+	</modules>
 </project>

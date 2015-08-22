@@ -1,0 +1,79 @@
+#!/bin/sh
+
+DIRNAME=`dirname $0`
+PROGNAME=`basename $0`
+
+# OS specific support (must be 'true' or 'false').
+cygwin=false;
+darwin=false;
+linux=false;
+case "`uname`" in
+    CYGWIN*)
+        cygwin=true
+        ;;
+
+    Darwin*)
+        darwin=true
+        ;;
+
+    Linux)
+        linux=true
+        ;;
+esac
+
+# Force IPv4 on Linux systems since IPv6 doesn't work correctly with jdk5 and lower
+if [ "$linux" = "true" ]; then
+   JAVA_OPTS="$JAVA_OPTS -Djava.net.preferIPv4Stack=true"
+fi
+
+# Setup GRAVITEE_HOME
+if [ "x$GRAVITEE_HOME" = "x" ]; then
+    # get the full path (without any relative bits)
+    GRAVITEE_HOME=`cd $DIRNAME/..; pwd -P`
+fi
+
+export GRAVITEE_HOME
+
+export JAVA_OPTS
+
+# Setup the JVM
+if [ "x$JAVA" = "x" ]; then
+    if [ "x$JAVA_HOME" != "x" ]; then
+    JAVA="$JAVA_HOME/bin/java"
+    else
+    JAVA="java"
+    fi
+fi
+
+# Setup the classpath
+runjar=`find $GRAVITEE_HOME -name "gravitee-management-api-standalone-bootstrap-*.jar"`
+if [ ! -f "$runjar" ]; then
+    die "Missing required file: $runjar"
+fi
+GRAVITEE_BOOT_CLASSPATH="$runjar"
+
+
+# Display our environment
+echo "========================================================================="
+echo ""
+echo "  Gravitee.IO Management Standalone Runtime Bootstrap Environment"
+echo ""
+echo "  GRAVITEE_HOME: $GRAVITEE_HOME"
+echo ""
+echo "  JAVA: $JAVA"
+echo ""
+echo "  JAVA_OPTS: $JAVA_OPTS"
+echo ""
+echo "  CLASSPATH: $GRAVITEE_BOOT_CLASSPATH"
+echo ""
+echo "========================================================================="
+echo ""
+
+# Execute the JVM in the foreground
+"$JAVA" $JAVA_OPTS \
+        -cp "$GRAVITEE_BOOT_CLASSPATH" \
+        -Dgravitee.home=$GRAVITEE_HOME \
+        io.gravitee.management.standalone.boostrap.Bootstrap \
+        "$@"
+
+GRAVITEE_STATUS=$?

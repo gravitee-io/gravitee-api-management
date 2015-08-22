@@ -1,0 +1,10 @@
+
+node:
+  home: ${gravitee.home}
+
+plugin:
+  workspace: ${node.home}/plugins
+
+repository:
+  file:
+    path: ${node.home}/apis
