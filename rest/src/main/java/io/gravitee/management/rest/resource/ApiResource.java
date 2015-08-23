@@ -103,4 +103,9 @@ public class ApiResource {
     public PoliciesConfigurationResource getPoliciesConfigurationResource() {
         return resourceContext.getResource(PoliciesConfigurationResource.class);
     }
+
+    @Path("applications")
+    public ApplicationsApiResource getApplicationsApiResource() {
+        return resourceContext.getResource(ApplicationsApiResource.class);
+    }
 }

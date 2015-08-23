@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UserMailAlreadyExistsException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
@@ -67,7 +68,7 @@ public class UserServiceImpl implements UserService {
 
             checkUser = userRepository.findByEmail(newUserEntity.getEmail()).map(UserServiceImpl::convert);
             if (checkUser.isPresent()) {
-                throw new UsernameAlreadyExistsException(newUserEntity.getUsername());
+                throw new UserMailAlreadyExistsException(newUserEntity.getEmail());
             }
 
             User user = convert(newUserEntity);

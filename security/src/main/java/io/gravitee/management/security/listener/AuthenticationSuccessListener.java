@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.security.listener;
 
-import io.gravitee.management.model.MembershipEntity;
-import io.gravitee.management.model.TeamRole;
-
-import java.util.Set;
+import org.springframework.context.ApplicationListener;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface TeamMembershipService {
+public class AuthenticationSuccessListener implements ApplicationListener<AuthenticationSuccessEvent> {
 
-    void addOrUpdateMember(String teamName, String username, TeamRole teamRole);
-
-    void deleteMember(String teamName, String username);
-
-    Set<MembershipEntity> findMembers(String teamName, TeamRole teamRole);
+    @Override
+    public void onApplicationEvent(AuthenticationSuccessEvent event) {
+        System.out.println("User Logged In: " + event.getAuthentication());
+    }
 }

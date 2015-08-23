@@ -13,21 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.MembershipEntity;
-import io.gravitee.management.model.TeamRole;
+import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.exceptions.ApiNotFoundException;
 
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface TeamMembershipService {
+public class ApplicationsApiResource {
 
-    void addOrUpdateMember(String teamName, String username, TeamRole teamRole);
+    @Inject
+    private ApiService apiService;
 
-    void deleteMember(String teamName, String username);
+    @PathParam("apiName")
+    private String apiName;
 
-    Set<MembershipEntity> findMembers(String teamName, TeamRole teamRole);
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<ApplicationEntity> associatedApplications() throws ApiNotFoundException {
+        return null;
+    }
+
 }

@@ -13,21 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.MembershipEntity;
 import io.gravitee.management.model.TeamRole;
-
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface TeamMembershipService {
+public class TeamRoleParam {
 
-    void addOrUpdateMember(String teamName, String username, TeamRole teamRole);
+    private TeamRole teamRole;
 
-    void deleteMember(String teamName, String username);
+    public TeamRoleParam(String input) {
+        try {
+            if (input != null) {
+                teamRole = TeamRole.valueOf(input.toUpperCase());
+            }
+        } catch (IllegalArgumentException iae) {
 
-    Set<MembershipEntity> findMembers(String teamName, TeamRole teamRole);
+        }
+    }
+
+    public TeamRole getTeamRole() {
+        return this.teamRole;
+    }
 }

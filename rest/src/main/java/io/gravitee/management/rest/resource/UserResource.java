@@ -74,7 +74,7 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Set<TeamEntity> getUserPublicTeams() throws UserNotFoundException {
         UserEntity user = getCurrentUser();
-        return teamService.findByUser(user.getUsername());
+        return teamService.findByUser(user.getUsername(), true);
     }
 
     /**

@@ -13,21 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.MembershipEntity;
-import io.gravitee.management.model.TeamRole;
-
-import java.util.Set;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface TeamMembershipService {
+public class UnknownMemberException extends AbstractManagementException {
 
-    void addOrUpdateMember(String teamName, String username, TeamRole teamRole);
+    private final String username;
 
-    void deleteMember(String teamName, String username);
+    public UnknownMemberException(String username) {
+        this.username = username;
+    }
 
-    Set<MembershipEntity> findMembers(String teamName, TeamRole teamRole);
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.NOT_FOUND_404;
+    }
+
+    @Override
+    public String getMessage() {
+        return "User [" + username + "] is not a member of this team.";
+    }
 }

@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -68,6 +69,8 @@ public class PolicyConfigurationServiceImpl implements PolicyConfigurationServic
             List<PolicyConfiguration> policyConfigurations = new ArrayList<>(policyConfigurationEntities.size());
 
             for(PolicyConfigurationEntity policyConfigurationEntity : policyConfigurationEntities) {
+                PolicyConfiguration singleConfiguration = convert(policyConfigurationEntity);
+                singleConfiguration.setCreatedAt(new Date());
                 policyConfigurations.add(convert(policyConfigurationEntity));
             }
 
@@ -83,6 +86,7 @@ public class PolicyConfigurationServiceImpl implements PolicyConfigurationServic
 
         policyConfigurationEntity.setPolicy(policyConfiguration.getPolicy());
         policyConfigurationEntity.setConfiguration(policyConfiguration.getConfiguration());
+        policyConfigurationEntity.setCreatedAt(policyConfiguration.getCreatedAt());
 
         return policyConfigurationEntity;
     }

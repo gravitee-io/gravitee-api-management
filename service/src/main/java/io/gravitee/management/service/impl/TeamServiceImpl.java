@@ -15,12 +15,13 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.service.exceptions.TeamNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.model.NewTeamEntity;
 import io.gravitee.management.model.TeamEntity;
 import io.gravitee.management.model.UpdateTeamEntity;
 import io.gravitee.management.service.TeamService;
+import io.gravitee.management.service.exceptions.TeamAlreadyExistsException;
+import io.gravitee.management.service.exceptions.TeamNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.api.TeamMembershipRepository;
 import io.gravitee.repository.api.TeamRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -35,6 +36,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -68,6 +71,12 @@ public class TeamServiceImpl implements TeamService {
         public TeamEntity create(NewTeamEntity newTeamEntity, String owner) {
         try {
             LOGGER.debug("Create {} by user {}", newTeamEntity, owner);
+
+            Optional<TeamEntity> checkTeam = findByName(newTeamEntity.getName());
+            if (checkTeam.isPresent()) {
+                throw new TeamAlreadyExistsException(newTeamEntity.getName());
+            }
+
             Team team = convert(newTeamEntity);
 
             // Set date fields
@@ -120,17 +129,24 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public Set<TeamEntity> findByUser(String username) {
+    public Set<TeamEntity> findByUser(String username, boolean publicOnly) {
         try {
             LOGGER.debug("Find teams for user {}", username);
             Set<Team> teams = teamMembershipRepository.findByUser(username);
-            Set<TeamEntity> publicTeams = new HashSet<>(teams.size());
+            Set<TeamEntity> teamEntities = new HashSet<>(teams.size());
 
-            for(Team team : teams) {
-                publicTeams.add(convert(team));
+            if (publicOnly) {
+                teamEntities.addAll(teams.stream().filter(new Predicate<Team>() {
+                    @Override
+                    public boolean test(Team team) {
+                        return !team.isPrivate();
+                    }
+                }).map(TeamServiceImpl::convert).collect(Collectors.toSet()));
+            } else {
+                teamEntities.addAll(teams.stream().map(TeamServiceImpl::convert).collect(Collectors.toSet()));
             }
 
-            return publicTeams;
+            return teamEntities;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find teams for user {}", username, ex);
             throw new TechnicalManagementException("An error occurs while trying to find teams for user " + username, ex);

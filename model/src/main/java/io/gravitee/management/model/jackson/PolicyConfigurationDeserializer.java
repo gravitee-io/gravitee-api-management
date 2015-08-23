@@ -35,7 +35,7 @@ public class PolicyConfigurationDeserializer extends JsonDeserializer<PolicyConf
 
         PolicyConfigurationEntity policy = new PolicyConfigurationEntity();
         policy.setPolicy(node.get("policy").asText());
-        policy.setConfiguration(node.toString());
+        policy.setConfiguration(node.get("configuration").toString());
 
         return policy;
     }

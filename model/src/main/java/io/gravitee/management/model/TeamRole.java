@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.MembershipEntity;
-import io.gravitee.management.model.TeamRole;
-
-import java.util.Set;
+package io.gravitee.management.model;
 
 /**
+ * User team roles
+ * 
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface TeamMembershipService {
-
-    void addOrUpdateMember(String teamName, String username, TeamRole teamRole);
-
-    void deleteMember(String teamName, String username);
-
-    Set<MembershipEntity> findMembers(String teamName, TeamRole teamRole);
+public enum TeamRole {
+    MEMBER, ADMIN;
 }

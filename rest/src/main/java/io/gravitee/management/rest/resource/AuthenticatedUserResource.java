@@ -74,7 +74,7 @@ public class AuthenticatedUserResource extends AbstractResource {
     @Path("teams")
     @Produces(MediaType.APPLICATION_JSON)
     public Set<TeamEntity> listTeams() {
-        return teamService.findByUser(getAuthenticatedUser());
+        return teamService.findByUser(getAuthenticatedUser(), false);
     }
 
     /**

@@ -33,7 +33,7 @@ public interface TeamService {
 
     TeamEntity update(String teamName, UpdateTeamEntity team);
 
-    Set<TeamEntity> findByUser(String username);
+    Set<TeamEntity> findByUser(String username, boolean publicOnly);
 
     Set<TeamEntity> findAll(boolean publicOnly);
 }

@@ -15,11 +15,13 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.gravitee.management.model.jackson.PolicyConfigurationDeserializer;
 
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -33,6 +35,9 @@ public class PolicyConfigurationEntity {
 
     @NotNull
     private String configuration;
+
+    @JsonProperty("created_at")
+    private Date createdAt;
 
     public String getConfiguration() {
         return configuration;
@@ -48,5 +53,13 @@ public class PolicyConfigurationEntity {
 
     public void setPolicy(String policy) {
         this.policy = policy;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }

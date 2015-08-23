@@ -15,7 +15,6 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.model.UpdateApiEntity;
@@ -36,9 +35,9 @@ public interface ApiService {
 
     Set<ApiEntity> findByUser(String username, boolean publicOnly);
 
-    ApiEntity createForUser(NewApiEntity api, String username) throws ApiAlreadyExistsException;
+    ApiEntity createForUser(NewApiEntity api, String username);
 
-    ApiEntity createForTeam(NewApiEntity api, String teamName) throws ApiAlreadyExistsException;
+    ApiEntity createForTeam(NewApiEntity api, String teamName);
 
     ApiEntity update(String apiName, UpdateApiEntity api);
 

@@ -13,21 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.model;
 
-import io.gravitee.management.model.MembershipEntity;
-import io.gravitee.management.model.TeamRole;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Set;
+import java.util.Date;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface TeamMembershipService {
+public class MembershipEntity {
 
-    void addOrUpdateMember(String teamName, String username, TeamRole teamRole);
+    private String member;
 
-    void deleteMember(String teamName, String username);
+    private String role;
 
-    Set<MembershipEntity> findMembers(String teamName, TeamRole teamRole);
+    @JsonProperty("since")
+    private Date memberSince;
+
+    public String getMember() {
+        return member;
+    }
+
+    public void setMember(String member) {
+        this.member = member;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public Date getMemberSince() {
+        return memberSince;
+    }
+
+    public void setMemberSince(Date memberSince) {
+        this.memberSince = memberSince;
+    }
 }

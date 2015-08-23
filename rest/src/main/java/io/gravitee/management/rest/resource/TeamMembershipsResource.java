@@ -15,8 +15,10 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.repository.model.Application;
+import io.gravitee.management.model.MembershipEntity;
+import io.gravitee.management.service.TeamMembershipService;
 
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -30,27 +32,30 @@ public class TeamMembershipsResource {
     @PathParam("teamName")
     private String teamName;
 
-    /**
-     * List applications for the specified team.
-     * @return Applications for the specified team.
-     */
+    @Inject
+    private TeamMembershipService teamMembershipService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<Application> getApplications() {
-        return null;
+    public Set<MembershipEntity> listMembers(@DefaultValue("") @QueryParam("role") TeamRoleParam role) {
+        return teamMembershipService.findMembers(teamName, role.getTeamRole());
     }
 
     @Path("{username}")
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addMember(@PathParam("username") String username, @QueryParam("role") String role) {
-        return null;
+    public Response addOrUpdateMember(@PathParam("username") String username, @DefaultValue("MEMBER") @QueryParam("role") TeamRoleParam role) {
+        teamMembershipService.addOrUpdateMember(teamName, username, role.getTeamRole());
+
+        return Response.noContent().build();
     }
 
     @Path("{username}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response removeMember(@PathParam("username") String username) {
-        return null;
+        teamMembershipService.deleteMember(teamName, username);
+
+        return Response.noContent().build();
     }
 }

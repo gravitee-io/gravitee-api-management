@@ -15,12 +15,13 @@
  */
 package io.gravitee.management.security.config;
 
+import io.gravitee.management.security.adapter.BasicSecurityConfigurerAdapter;
+import io.gravitee.management.security.adapter.OAuth2SecurityConfigurerAdapter;
+import io.gravitee.management.security.listener.AuthenticationSuccessListener;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter;
-
-import io.gravitee.management.security.adapter.BasicSecurityConfigurerAdapter;
-import io.gravitee.management.security.adapter.OAuth2SecurityConfigurerAdapter;
 
 /**
  * 
@@ -30,5 +31,9 @@ import io.gravitee.management.security.adapter.OAuth2SecurityConfigurerAdapter;
 @Configuration
 @Import({BasicSecurityConfigurerAdapter.class, OAuth2SecurityConfigurerAdapter.class})
 public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
-	
+
+    @Bean
+    public AuthenticationSuccessListener authenticationSuccessListener() {
+        return new AuthenticationSuccessListener();
+    }
 }

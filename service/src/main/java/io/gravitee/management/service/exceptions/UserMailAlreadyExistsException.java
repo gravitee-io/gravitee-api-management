@@ -13,21 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.MembershipEntity;
-import io.gravitee.management.model.TeamRole;
-
-import java.util.Set;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface TeamMembershipService {
+public class UserMailAlreadyExistsException extends AbstractManagementException {
 
-    void addOrUpdateMember(String teamName, String username, TeamRole teamRole);
+    private final String userMail;
 
-    void deleteMember(String teamName, String username);
+    public UserMailAlreadyExistsException(String userMail) {
+        this.userMail = userMail;
+    }
 
-    Set<MembershipEntity> findMembers(String teamName, TeamRole teamRole);
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getMessage() {
+        return "A user with mail " + userMail + " already exists.";
+    }
 }
