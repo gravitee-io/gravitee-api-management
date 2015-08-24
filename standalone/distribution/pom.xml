@@ -27,10 +27,21 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.management.standalone</groupId>
     <artifactId>gravitee-management-api-standalone-distribution</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+
+	  
+ 	<properties>
+        <!-- Properties used for building RPM & DEB package-->
+        <packaging.gravitee.management.home.dir>/usr/share/gravitee-management</packaging.gravitee.management.home.dir>
+        <packaging.gravitee.management.bin.dir>${packaging.gravitee.management.home.dir}/bin</packaging.gravitee.management.bin.dir>
+        <packaging.gravitee.management.plugins.dir>${packaging.gravitee.management.home.dir}/plugins</packaging.gravitee.management.plugins.dir>
+        <packaging.gravitee.management.conf.dir>/etc/gravitee-management</packaging.gravitee.management.conf.dir>
+        <packaging.gravitee.management.log.dir>/var/log/gravitee-management</packaging.gravitee.management.log.dir>
+		<packaging.gravitee.management.user>gravitee</packaging.gravitee.management.user>
+        <packaging.gravitee.management.group>gravitee</packaging.gravitee.management.group>
+	</properties>
+
 
     <name>Gravitee IO - Management - Standalone - Distribution</name>
 
@@ -50,7 +61,7 @@
     </dependencies>
 
     <build>
-        <finalName>gravitee-management-standalone-${project.version}</finalName>
+        <finalName>distribution</finalName>
 
         <plugins>
             <plugin>
@@ -74,4 +85,8 @@
             </plugin>
         </plugins>
     </build>
+    <modules>
+    	<module>zip</module>
+    	<module>rpm</module>
+    </modules>
 </project>
