@@ -15,14 +15,11 @@
  */
 package io.gravitee.repository.api;
 
-import java.util.Set;
-
-import javax.management.relation.Role;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Member;
 import io.gravitee.repository.model.Team;
-import io.gravitee.repository.model.TeamRole;
+
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -33,19 +30,17 @@ public interface TeamMembershipRepository {
 	 * Add {@link Member} to a {@link Team}.
 	 * 
 	 * @param teamName Team name of the member
-	 * @param username Member user name 
-	 * @param role {@link Role} given to the member in this team
+	 * @param member Member
 	 */
-    void addMember(String teamName, String username, TeamRole role) throws TechnicalException;
+    void addMember(String teamName, Member member) throws TechnicalException;
 
 	/**
 	 * Update the role of a given {@link Team} {@link Member}.
 	 * 
 	 * @param teamName Team name of the member
-	 * @param username Member user name 
-	 * @param role {@link Role} given to the member in this team
+	 * @param member Member
 	 */
-    void updateMember(String teamName, String username, TeamRole role) throws TechnicalException;
+    void updateMember(String teamName, Member member) throws TechnicalException;
 
     /**
      * Remove a team user {@link Member}
