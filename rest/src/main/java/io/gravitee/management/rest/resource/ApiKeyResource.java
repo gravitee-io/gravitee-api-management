@@ -43,7 +43,7 @@ public class ApiKeyResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ApiKeyEntity getCurrentApiKeyEntity() {
-        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrentApiKey(applicationName, apiName);
+        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.current(applicationName, apiName);
 
         if (! apiKeyEntity.isPresent()) {
             throw new NoValidApiKeyException();

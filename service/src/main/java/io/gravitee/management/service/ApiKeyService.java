@@ -29,7 +29,7 @@ public interface ApiKeyService {
 
     void revoke(String apiKey);
 
-    Optional<ApiKeyEntity> getCurrentApiKey(String applicationName, String apiName);
+    Optional<ApiKeyEntity> current(String applicationName, String apiName);
 
     Set<ApiKeyEntity> findAll(String applicationName, String apiName);
 }
