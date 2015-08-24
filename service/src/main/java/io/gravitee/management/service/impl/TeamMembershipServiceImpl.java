@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -62,9 +63,17 @@ public class TeamMembershipServiceImpl implements TeamMembershipService {
             // Check if user is not already registered
             Member member = teamMembershipRepository.getMember(teamName, username);
             if (member == null) {
-                teamMembershipRepository.addMember(teamName, username, convert(teamRole));
+                member = new Member();
+                member.setCreatedAt(new Date());
+                member.setUpdatedAt(member.getCreatedAt());
+                member.setUsername(username);
+                member.setRole(convert(teamRole));
+
+                teamMembershipRepository.addMember(teamName, member);
             } else {
-                teamMembershipRepository.updateMember(teamName, username, convert(teamRole));
+                member.setUpdatedAt(new Date());
+                member.setRole(convert(teamRole));
+                teamMembershipRepository.updateMember(teamName, member);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to add member {} in team {}", username, teamName, ex);

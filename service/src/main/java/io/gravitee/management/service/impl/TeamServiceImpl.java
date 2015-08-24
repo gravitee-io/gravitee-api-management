@@ -25,6 +25,7 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.api.TeamMembershipRepository;
 import io.gravitee.repository.api.TeamRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.model.Member;
 import io.gravitee.repository.model.Team;
 import io.gravitee.repository.model.TeamRole;
 import org.slf4j.Logger;
@@ -90,7 +91,13 @@ public class TeamServiceImpl implements TeamService {
             Team createdTeam = teamRepository.create(team);
 
             // Create default admin member
-            teamMembershipRepository.addMember(createdTeam.getName(), owner, TeamRole.ADMIN);
+            Member ownerMember = new Member();
+            ownerMember.setCreatedAt(new Date());
+            ownerMember.setUpdatedAt(ownerMember.getCreatedAt());
+            ownerMember.setUsername(owner);
+            ownerMember.setRole(TeamRole.ADMIN);
+
+            teamMembershipRepository.addMember(createdTeam.getName(), ownerMember);
 
             return convert(createdTeam);
         } catch (TechnicalException ex) {
@@ -133,7 +140,7 @@ public class TeamServiceImpl implements TeamService {
         try {
             LOGGER.debug("Find teams for user {}", username);
             Set<Team> teams = teamMembershipRepository.findByUser(username);
-            Set<TeamEntity> teamEntities = new HashSet<>(teams.size());
+            Set<TeamEntity> teamEntities = new HashSet<>();
 
             if (publicOnly) {
                 teamEntities.addAll(teams.stream().filter(new Predicate<Team>() {
