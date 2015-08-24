@@ -16,11 +16,9 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.TeamEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.TeamService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
@@ -53,15 +51,12 @@ public class UserResource {
     @Inject
     private ApiService apiService;
 
-    @Inject
-    private ApplicationService applicationService;
-
     @PathParam("username")
     private String username;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public UserEntity getUserInfo() throws UserNotFoundException {
+    public UserEntity user() throws UserNotFoundException {
         return getCurrentUser();
     }
 
@@ -72,7 +67,7 @@ public class UserResource {
     @GET
     @Path("teams")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<TeamEntity> getUserPublicTeams() throws UserNotFoundException {
+    public Set<TeamEntity> publicTeams() throws UserNotFoundException {
         UserEntity user = getCurrentUser();
         return teamService.findByUser(user.getUsername(), true);
     }
@@ -84,7 +79,7 @@ public class UserResource {
     @GET
     @Path("apis")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApiEntity> getUserPublicApis() throws UserNotFoundException {
+    public Set<ApiEntity> publicApis() throws UserNotFoundException {
         UserEntity user = getCurrentUser();
         return apiService.findByUser(user.getUsername(), true);
     }
@@ -92,7 +87,7 @@ public class UserResource {
     /**
      * List applications for the specified user.
      * @return Applications for the specified user.
-     */
+     *
     @GET
     @Path("applications")
     @Produces(MediaType.APPLICATION_JSON)
@@ -100,6 +95,7 @@ public class UserResource {
         UserEntity user = getCurrentUser();
         return applicationService.findByUser(user.getUsername());
     }
+    */
 
     private UserEntity getCurrentUser() throws UserNotFoundException {
         Optional<UserEntity> user = userService.findByName(username);

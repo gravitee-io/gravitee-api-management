@@ -15,8 +15,12 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.rest.annotation.Role;
+import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 
 import javax.inject.Inject;
@@ -24,12 +28,17 @@ import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.Optional;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApplicationsApiResource {
+@Role(RoleType.OWNER)
+public class ApplicationsApiResource extends AbstractResource {
+
+    @Inject
+    private ApplicationService applicationService;
 
     @Inject
     private ApiService apiService;
@@ -40,7 +49,15 @@ public class ApplicationsApiResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ApplicationEntity> associatedApplications() throws ApiNotFoundException {
-        return null;
+        // Check that the API exists
+        Optional<ApiEntity> api = apiService.findByName(apiName);
+        if (! api.isPresent()) {
+            throw new ApiNotFoundException(apiName);
+        }
+
+        // Validate user rights : only the owner of the API
+
+        return applicationService.findByApi(apiName);
     }
 
 }

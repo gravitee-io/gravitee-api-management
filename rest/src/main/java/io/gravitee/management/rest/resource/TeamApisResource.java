@@ -17,7 +17,11 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.management.rest.annotation.Role;
+import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.PermissionType;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -29,10 +33,13 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class TeamApisResource {
+public class TeamApisResource extends AbstractResource {
 
     @Inject
     private ApiService apiService;
+
+    @Inject
+    private PermissionService permissionService;
 
     @PathParam("teamName")
     private String teamName;
@@ -43,7 +50,10 @@ public class TeamApisResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApiEntity> getApis() {
+    @Role({RoleType.TEAM_MEMBER, RoleType.TEAM_OWNER})
+    public Set<ApiEntity> apis() {
+        permissionService.hasPermission(getAuthenticatedUser(), teamName, PermissionType.VIEW_TEAM);
+
         return apiService.findByTeam(teamName, true);
     }
 
@@ -55,7 +65,10 @@ public class TeamApisResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createApi(NewApiEntity api) {
+    @Role(RoleType.TEAM_OWNER)
+    public Response create(NewApiEntity api) {
+        permissionService.hasPermission(getAuthenticatedUser(), teamName, PermissionType.EDIT_TEAM);
+
         ApiEntity createdApi = apiService.createForTeam(api, teamName);
 
         return Response

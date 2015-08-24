@@ -17,6 +17,8 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApiKeyEntity;
 import io.gravitee.management.service.ApiKeyService;
+import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.NoValidApiKeyException;
 
 import javax.inject.Inject;
@@ -29,7 +31,7 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiKeyResource {
+public class ApiKeyResource extends AbstractResource {
 
     @PathParam("applicationName")
     private String applicationName;
@@ -40,9 +42,14 @@ public class ApiKeyResource {
     @Inject
     private ApiKeyService apiKeyService;
 
+    @Inject
+    private PermissionService permissionService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ApiKeyEntity getCurrentApiKeyEntity() {
+        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_APPLICATION);
+
         Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.current(applicationName, apiName);
 
         if (! apiKeyEntity.isPresent()) {
@@ -56,12 +63,17 @@ public class ApiKeyResource {
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ApiKeyEntity> findAllApiKeys() {
+        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_APPLICATION);
+
         return apiKeyService.findAll(applicationName, apiName);
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response generateApiKey() {
+        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.EDIT_APPLICATION);
+        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_API);
+
         ApiKeyEntity apiKeyEntity = apiKeyService.generate(applicationName, apiName);
 
         return Response
@@ -74,6 +86,8 @@ public class ApiKeyResource {
     @Path("{apiKey}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response revokeApiKey(@PathParam("apiKey") String apiKey) {
+        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.EDIT_APPLICATION);
+
         apiKeyService.revoke(apiKey);
 
         return Response

@@ -17,7 +17,11 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.UpdateApiEntity;
+import io.gravitee.management.rest.annotation.Role;
+import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 
 import javax.inject.Inject;
@@ -34,7 +38,7 @@ import java.util.Optional;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiResource {
+public class ApiResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -42,28 +46,36 @@ public class ApiResource {
     @Inject
     private ApiService apiService;
 
+    @Inject
+    private PermissionService permissionService;
+
     @PathParam("apiName")
     private String apiName;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ApiEntity get() throws ApiNotFoundException {
-        Optional<ApiEntity> optApi = apiService.findByName(apiName);
+        Optional<ApiEntity> api = apiService.findByName(apiName);
 
-        if (! optApi.isPresent()) {
+        if (! api.isPresent()) {
             throw new ApiNotFoundException(apiName);
         }
 
-        return optApi.get();
+        permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.VIEW_API);
+
+        return api.get();
     }
 
     @POST
+    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     public Response doLifecycleAction(@QueryParam("action") LifecycleActionParam action) {
         Optional<ApiEntity> optApi = apiService.findByName(apiName);
 
         if (! optApi.isPresent()) {
             throw new ApiNotFoundException(apiName);
         }
+
+        permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.EDIT_API);
 
         ApiEntity api = optApi.get();
         switch (action.getAction()) {
@@ -83,17 +95,23 @@ public class ApiResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     public ApiEntity update(@Valid final UpdateApiEntity api) {
+        permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.EDIT_API);
+
         return apiService.update(apiName, api);
     }
 
     @DELETE
+    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     public Response delete() {
         Optional<ApiEntity> optApi = apiService.findByName(apiName);
 
         if (! optApi.isPresent()) {
             throw new ApiNotFoundException(apiName);
         }
+
+        permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.EDIT_API);
 
         apiService.delete(apiName);
         return Response.noContent().build();

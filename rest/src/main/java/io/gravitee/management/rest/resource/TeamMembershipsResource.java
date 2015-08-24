@@ -16,6 +16,10 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.MembershipEntity;
+import io.gravitee.management.rest.annotation.Role;
+import io.gravitee.management.rest.annotation.RoleType;
+import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.TeamMembershipService;
 
 import javax.inject.Inject;
@@ -27,7 +31,7 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class TeamMembershipsResource {
+public class TeamMembershipsResource extends AbstractResource {
 
     @PathParam("teamName")
     private String teamName;
@@ -35,16 +39,25 @@ public class TeamMembershipsResource {
     @Inject
     private TeamMembershipService teamMembershipService;
 
+    @Inject
+    private PermissionService permissionService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<MembershipEntity> listMembers(@DefaultValue("") @QueryParam("role") TeamRoleParam role) {
+    @Role({RoleType.TEAM_MEMBER, RoleType.TEAM_OWNER})
+    public Set<MembershipEntity> members(@DefaultValue("") @QueryParam("role") TeamRoleParam role) {
+        permissionService.hasPermission(getAuthenticatedUser(), teamName, PermissionType.VIEW_TEAM);
+
         return teamMembershipService.findMembers(teamName, role.getTeamRole());
     }
 
     @Path("{username}")
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
+    @Role(RoleType.TEAM_OWNER)
     public Response addOrUpdateMember(@PathParam("username") String username, @DefaultValue("MEMBER") @QueryParam("role") TeamRoleParam role) {
+        permissionService.hasPermission(getAuthenticatedUser(), teamName, PermissionType.EDIT_TEAM);
+
         teamMembershipService.addOrUpdateMember(teamName, username, role.getTeamRole());
 
         return Response.noContent().build();
@@ -53,7 +66,10 @@ public class TeamMembershipsResource {
     @Path("{username}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
+    @Role(RoleType.TEAM_OWNER)
     public Response removeMember(@PathParam("username") String username) {
+        permissionService.hasPermission(getAuthenticatedUser(), teamName, PermissionType.EDIT_TEAM);
+
         teamMembershipService.deleteMember(teamName, username);
 
         return Response.noContent().build();

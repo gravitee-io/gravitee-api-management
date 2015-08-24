@@ -17,7 +17,11 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
+import io.gravitee.management.rest.annotation.Role;
+import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.PermissionType;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -29,7 +33,7 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class TeamApplicationsResource {
+public class TeamApplicationsResource extends AbstractResource {
 
     @PathParam("teamName")
     private String teamName;
@@ -37,13 +41,19 @@ public class TeamApplicationsResource {
     @Inject
     private ApplicationService applicationService;
 
+    @Inject
+    private PermissionService permissionService;
+
     /**
      * List applications for the specified team.
      * @return Applications for the specified team.
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApplicationEntity> getApplications() {
+    @Role({RoleType.TEAM_MEMBER, RoleType.TEAM_OWNER})
+    public Set<ApplicationEntity> applications() {
+        permissionService.hasPermission(getAuthenticatedUser(), teamName, PermissionType.VIEW_TEAM);
+
         return applicationService.findByTeam(teamName);
     }
 
@@ -55,7 +65,10 @@ public class TeamApplicationsResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createApplication(NewApplicationEntity newApplicationEntity) {
+    @Role(RoleType.TEAM_OWNER)
+    public Response create(NewApplicationEntity newApplicationEntity) {
+        permissionService.hasPermission(getAuthenticatedUser(), teamName, PermissionType.EDIT_TEAM);
+
         ApplicationEntity applicationEntity = applicationService.createForTeam(newApplicationEntity, teamName);
 
         return Response

@@ -25,7 +25,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -47,14 +46,8 @@ public class ApisResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApiEntity> listAll() {
-        Set<ApiEntity> apis = apiService.findAll();
-
-        if (apis == null) {
-            apis = new HashSet<>();
-        }
-
-        return apis;
+    public Set<ApiEntity> all() {
+        return apiService.findAll();
     }
 
     @Path("{apiName}")
