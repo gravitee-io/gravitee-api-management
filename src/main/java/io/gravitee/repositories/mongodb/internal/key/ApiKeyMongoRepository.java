@@ -34,6 +34,9 @@ public interface ApiKeyMongoRepository extends MongoRepository<ApiAssociationMon
 
 	@Query("{ 'key.key' : ?0 }")
 	ApiAssociationMongo retrieve(String apiKey);
+	
+	@Query("{ 'api.$id': ?0 }")
+	List<ApiAssociationMongo> findByApi(String apiName);
 }
 
 

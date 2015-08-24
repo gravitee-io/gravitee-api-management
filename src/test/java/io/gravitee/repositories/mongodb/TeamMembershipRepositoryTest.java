@@ -15,6 +15,7 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -77,8 +78,12 @@ public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 		String memberName = "added-member";
 		
 		try {
+			Member member = new Member();
+			member.setUsername(memberName);
+			member.setRole(TeamRole.MEMBER);
+			member.setUpdatedAt(new Date());
 	
-			membershipRepository.addMember(teamName, memberName, TeamRole.MEMBER);
+			membershipRepository.addMember(teamName, member);
 			
 			Set<Member> membersUpdated = membershipRepository.listMembers(teamName);
 			
@@ -110,7 +115,12 @@ public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 		
 		try {
 	
-			membershipRepository.updateMember(teamName, memberName, TeamRole.ADMIN);
+			Member member = new Member();
+			member.setUsername(memberName);
+			member.setRole(TeamRole.ADMIN);
+			member.setUpdatedAt(new Date());
+			
+			membershipRepository.updateMember(teamName, member);
 			
 			Set<Member> membersUpdated = membershipRepository.listMembers(teamName);
 			

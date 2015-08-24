@@ -15,6 +15,7 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +57,7 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 	
 	private Logger logger = LoggerFactory.getLogger(ApiKeyRepositoryImpl.class);
 
-	private Set<ApiKey> map(List<ApiAssociationMongo> apiAssociationMongos){
+	private Set<ApiKey> map(Collection<ApiAssociationMongo> apiAssociationMongos){
 		
 		if(apiAssociationMongos == null){
 			return new HashSet<>();
@@ -125,6 +126,13 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 		}
 		
 		return Optional.empty();
+	}
+
+	@Override
+	public Set<ApiKey> findByApi(String apiName) throws TechnicalException {
+		
+		Collection<ApiAssociationMongo> apiAssociationsMongo = internalApiKeyRepo.findByApi(apiName);
+		return map(apiAssociationsMongo);
 	}
 
 	

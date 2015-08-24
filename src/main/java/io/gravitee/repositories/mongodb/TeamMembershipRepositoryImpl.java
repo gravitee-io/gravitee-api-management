@@ -52,14 +52,16 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	private Logger logger = LoggerFactory.getLogger(TeamMembershipRepositoryImpl.class);
 	
 	@Override
-	public void addMember(String teamName, String username, TeamRole role) throws TechnicalException {
+	public void addMember(String teamName,  Member member) throws TechnicalException {
 	
 		TeamMongo team = internalTeamRepo.findByName(teamName);
-		UserMongo member = internalUserRepo.findOne(username);
+		UserMongo user = internalUserRepo.findOne(member.getUsername());
 		
 		TeamMemberMongo teamMemberMongo = new TeamMemberMongo();
-		teamMemberMongo.setMember(member);
-		teamMemberMongo.setRole(String.valueOf(role));
+		teamMemberMongo.setMember(user);
+		teamMemberMongo.setRole(String.valueOf(member.getRole()));
+		teamMemberMongo.setCreatedAt(member.getCreatedAt());
+		teamMemberMongo.setUpdatedAt(member.getUpdatedAt());
 		
 		team.getMembers().add(teamMemberMongo);
 		internalTeamRepo.save(team);
@@ -67,7 +69,7 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	}
 
 	@Override
-	public void updateMember(String teamName, String username, TeamRole role) throws TechnicalException {
+	public void updateMember(String teamName,  Member member) throws TechnicalException {
 		TeamMongo teamMongo = internalTeamRepo.findByName(teamName);
 		
 		//TODO deal with null / validation / mongo upset implementation
@@ -75,8 +77,9 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 		
 		if(membersMongo != null){
 			for (TeamMemberMongo teamMemberMongo : membersMongo) {
-				if(username.equals(teamMemberMongo.getMember().getName())){
-					teamMemberMongo.setRole(String.valueOf(role));
+				if(member.getUsername().equals(teamMemberMongo.getMember().getName())){
+					teamMemberMongo.setRole(String.valueOf(member.getRole()));
+					teamMemberMongo.setUpdatedAt(member.getUpdatedAt());
 				}
 			}
 			internalTeamRepo.save(teamMongo);
@@ -156,5 +159,6 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 		member.setUpdatedAt(memberMongo.getUpdatedAt());
 		return member;
 	}
+
 
 }
