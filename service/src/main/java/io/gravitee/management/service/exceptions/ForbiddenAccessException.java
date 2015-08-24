@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource;
+package io.gravitee.management.service.exceptions;
+
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PolicyConfigurationResource {
+public class ForbiddenAccessException extends AbstractManagementException {
 
-    private String apiName;
-    private String policyName;
-
-
-    public void setApiName(String apiName) {
-        this.apiName = apiName;
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.FORBIDDEN_403;
     }
 
-    public void setPolicyName(String policyName) {
-        this.policyName = policyName;
+    @Override
+    public String getMessage() {
+        return "You do not have sufficient rights to access this ressource";
     }
 }

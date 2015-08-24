@@ -40,4 +40,6 @@ public interface ApplicationService {
     ApplicationEntity update(String applicationName, UpdateApplicationEntity application);
 
     void delete(String applicationName);
+
+    Set<ApplicationEntity> findByApi(String apiName);
 }

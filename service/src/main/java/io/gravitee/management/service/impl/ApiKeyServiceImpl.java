@@ -105,7 +105,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     @Override
-    public Optional<ApiKeyEntity> getCurrentApiKey(String applicationName, String apiName) {
+    public Optional<ApiKeyEntity> current(String applicationName, String apiName) {
         try {
             LOGGER.debug("Generate a new key for {} - {}", applicationName, apiName);
             // Current Api Key is the key with the latest createdAt value and which is not revoked

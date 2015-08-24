@@ -48,7 +48,7 @@ public class TeamsResource extends AbstractResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<TeamEntity> listAll() {
+    public Set<TeamEntity> all() {
         Set<TeamEntity> teams = teamService.findAll(true);
 
         if (teams == null) {

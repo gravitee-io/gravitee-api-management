@@ -15,21 +15,17 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApiKeyEntity;
-
-import java.util.Optional;
-import java.util.Set;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ApiKeyService {
+public enum PermissionType {
 
-    ApiKeyEntity generate(String applicationName, String apiName);
+    VIEW_API,
+    EDIT_API,
 
-    void revoke(String apiKey);
+    VIEW_APPLICATION,
+    EDIT_APPLICATION,
 
-    Optional<ApiKeyEntity> current(String applicationName, String apiName);
-
-    Set<ApiKeyEntity> findAll(String applicationName, String apiName);
+    VIEW_TEAM,
+    EDIT_TEAM;
 }

@@ -13,23 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.ApiKeyEntity;
-
-import java.util.Optional;
-import java.util.Set;
+package io.gravitee.management.rest.annotation;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ApiKeyService {
+public enum RoleType {
 
-    ApiKeyEntity generate(String applicationName, String apiName);
-
-    void revoke(String apiKey);
-
-    Optional<ApiKeyEntity> current(String applicationName, String apiName);
-
-    Set<ApiKeyEntity> findAll(String applicationName, String apiName);
+    OWNER, TEAM_MEMBER, TEAM_OWNER, ADMIN;
 }

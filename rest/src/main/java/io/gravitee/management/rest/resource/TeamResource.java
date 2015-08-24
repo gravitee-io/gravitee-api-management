@@ -17,6 +17,10 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.TeamEntity;
 import io.gravitee.management.model.UpdateTeamEntity;
+import io.gravitee.management.rest.annotation.Role;
+import io.gravitee.management.rest.annotation.RoleType;
+import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.TeamService;
 import io.gravitee.management.service.exceptions.TeamNotFoundException;
 
@@ -31,7 +35,7 @@ import java.util.Optional;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class TeamResource {
+public class TeamResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -39,11 +43,15 @@ public class TeamResource {
     @Inject
     private TeamService teamService;
 
+    @Inject
+    private PermissionService permissionService;
+
     @PathParam("teamName")
     private String teamName;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Role({RoleType.TEAM_MEMBER, RoleType.TEAM_OWNER})
     public TeamEntity get() {
         Optional<TeamEntity> optTeam = teamService.findByName(teamName);
 
@@ -51,13 +59,18 @@ public class TeamResource {
             throw new TeamNotFoundException(teamName);
         }
 
+        permissionService.hasPermission(getAuthenticatedUser(), teamName, PermissionType.VIEW_TEAM);
+
         return optTeam.get();
     }
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Role(RoleType.TEAM_OWNER)
     public TeamEntity update(@Valid UpdateTeamEntity updateTeamEntity) {
+        permissionService.hasPermission(getAuthenticatedUser(), teamName, PermissionType.EDIT_TEAM);
+
         return teamService.update(teamName, updateTeamEntity);
     }
 

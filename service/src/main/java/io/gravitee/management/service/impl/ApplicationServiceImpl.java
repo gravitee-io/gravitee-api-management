@@ -147,6 +147,11 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
     }
 
+    @Override
+    public Set<ApplicationEntity> findByApi(String apiName) {
+        return null;
+    }
+
     private ApplicationEntity create(NewApplicationEntity newApplicationEntity, OwnerType ownerType, String owner) throws ApplicationAlreadyExistsException, TechnicalException {
         Optional<ApplicationEntity> checkApplication = findByName(newApplicationEntity.getName());
         if (checkApplication.isPresent()) {

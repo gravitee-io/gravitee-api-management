@@ -16,6 +16,8 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.rest.annotation.Role;
+import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.TeamService;
@@ -37,6 +39,7 @@ import java.util.Set;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Path("/user")
+@Role(RoleType.OWNER)
 public class AuthenticatedUserResource extends AbstractResource {
 
     @Inject
@@ -57,7 +60,7 @@ public class AuthenticatedUserResource extends AbstractResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public UserEntity authenticatedUser() throws UserNotFoundException {
+    public UserEntity user() throws UserNotFoundException {
         Optional<UserEntity> user = userService.findByName(getAuthenticatedUser());
         if (! user.isPresent()) {
             throw new UserNotFoundException();
@@ -73,7 +76,7 @@ public class AuthenticatedUserResource extends AbstractResource {
     @GET
     @Path("teams")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<TeamEntity> listTeams() {
+    public Set<TeamEntity> teams() {
         return teamService.findByUser(getAuthenticatedUser(), false);
     }
 
@@ -84,7 +87,7 @@ public class AuthenticatedUserResource extends AbstractResource {
     @GET
     @Path("applications")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApplicationEntity> listApplications() {
+    public Set<ApplicationEntity> applications() {
         return applicationService.findByUser(getAuthenticatedUser());
     }
 
@@ -100,7 +103,7 @@ public class AuthenticatedUserResource extends AbstractResource {
     @GET
     @Path("apis")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApiEntity> listApis() {
+    public Set<ApiEntity> apis() {
         return apiService.findByUser(getAuthenticatedUser(), false);
     }
 

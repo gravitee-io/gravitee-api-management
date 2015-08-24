@@ -16,9 +16,10 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.Owner;
 import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 
@@ -41,6 +42,9 @@ public class ApplicationResource extends AbstractResource {
     @Inject
     private ApplicationService applicationService;
 
+    @Inject
+    private PermissionService permissionService;
+
     @PathParam("applicationName")
     private String applicationName;
 
@@ -53,6 +57,8 @@ public class ApplicationResource extends AbstractResource {
             throw new ApplicationNotFoundException(applicationName);
         }
 
+        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_APPLICATION);
+
         return applicationEntity.get();
     }
 
@@ -62,18 +68,9 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationEntity update(final UpdateApplicationEntity application) {
         ApplicationEntity applicationEntity = getCurrentApplication();
 
-        String authenticatedUser = getAuthenticatedUser();
-        Owner owner = applicationEntity.getOwner();
-        String ownerLogin = owner.getLogin();
+        permissionService.hasPermission(getAuthenticatedUser(), applicationEntity.getName(), PermissionType.EDIT_APPLICATION);
 
-        switch (owner.getType()) {
-            case User:
-                break;
-            case Team:
-                break;
-        }
-
-        return applicationService.update(applicationName, application);
+        return applicationService.update(applicationEntity.getName(), application);
     }
 
     @DELETE
