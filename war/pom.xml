@@ -53,6 +53,12 @@
 			<groupId>io.gravitee.repositories</groupId>
 			<artifactId>gravitee-repository-mongodb</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+		        <exclusion>
+        	    	<groupId>org.springframework</groupId>
+            		<artifactId>spring-expression</artifactId>
+        		</exclusion>
+    		</exclusions>
 		</dependency>
 	</dependencies>
 	
