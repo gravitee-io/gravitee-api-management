@@ -53,5 +53,8 @@ plugins:
 repository:
   file:
     path: ${node.home}/apis
+
+security:
+  implementation: basic-auth
 ```
 Subfolders (plugins, apis, ...) must be created before start the application.
