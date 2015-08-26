@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -44,8 +45,12 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.httpBasic().realmName("Gravitee Management API").and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-				.authorizeRequests().antMatchers("/**").hasRole("USER").and().csrf().disable();
+		http.httpBasic().realmName("Gravitee Management API")
+			.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+			.and().authorizeRequests()
+			.antMatchers(HttpMethod.OPTIONS, "**").permitAll()
+			.anyRequest().hasRole("USER")
+			.and().csrf().disable();
 
 	}
 }
