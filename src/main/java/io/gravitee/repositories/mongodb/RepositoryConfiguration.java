@@ -49,6 +49,7 @@ public class RepositoryConfiguration extends AbstractMongoConfiguration {
 	@Value("${repository.password:#{null}}")
 	private String password;
 
+	@Bean
 	@Override
 	public Mongo mongo() throws Exception {
 		List<MongoCredential> credentials = null;
