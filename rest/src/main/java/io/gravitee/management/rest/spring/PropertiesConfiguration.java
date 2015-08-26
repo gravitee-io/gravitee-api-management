@@ -52,6 +52,5 @@ public class PropertiesConfiguration {
         LOGGER.info("Loading Gravitee Management configuration. DONE");
 
         return properties;
-
     }
 }

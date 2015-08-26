@@ -15,13 +15,23 @@
  */
 package io.gravitee.management.rest.repository;
 
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@ComponentScan({"io.gravitee.repositories"})
 public class RepositoryConfiguration {
+
+    @Bean
+    public static RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor(
+            @Value("${repository.type}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
+        RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor = new RepositoryBeanFactoryPostProcessor();
+        repositoryBeanFactoryPostProcessor.setRepositoryType(repositoryType);
+        repositoryBeanFactoryPostProcessor.setConfigurationClassPostProcessor(configurationClassPostProcessor);
+        return repositoryBeanFactoryPostProcessor;
+    }
 }
