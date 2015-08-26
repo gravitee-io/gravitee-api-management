@@ -35,7 +35,7 @@ import io.gravitee.repository.api.ApiKeyRepository;
 import io.gravitee.repository.model.ApiKey;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { RepositoryConfiguration.class })
+@ContextConfiguration(classes = { TestRepositoryConfiguration.class })
 public class ApiKeyRepositoryTest extends AbstractMongoDBTest {
 
 	private static final String TESTCASES_PATH = "/data/apikey-tests/";

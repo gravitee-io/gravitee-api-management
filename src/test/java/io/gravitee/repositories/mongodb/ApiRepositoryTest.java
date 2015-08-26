@@ -42,7 +42,7 @@ import io.gravitee.repository.model.PolicyConfiguration;
 import io.gravitee.repository.model.User;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { RepositoryConfiguration.class })
+@ContextConfiguration(classes = { TestRepositoryConfiguration.class })
 public class ApiRepositoryTest extends AbstractMongoDBTest {
 
 	private static final String TESTCASES_PATH = "/data/api-tests/";

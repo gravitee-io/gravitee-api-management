@@ -15,23 +15,83 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import com.mongodb.*;
+import com.mongodb.MongoClientOptions.Builder;
+import io.gravitee.repositories.mongodb.mapper.GraviteeDozerMapper;
+import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
-import com.mongodb.WriteConcern;
-
-import io.gravitee.repositories.mongodb.mapper.GraviteeDozerMapper;
-import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @ComponentScan
 @EnableMongoRepositories
 public class RepositoryConfiguration extends AbstractMongoConfiguration {
+
+	@Value("${repository.dbname:gravitee}")
+	private String databaseName;
+
+	@Value("${repository.host:localhost}")
+	private String host;
+
+	@Value("${repository.port:27017}")
+	private Integer port;
+
+	@Value("${repository.username:#{null}}")
+	private String userName;
+
+	@Value("${repository.password:#{null}}")
+	private String password;
+
+	@Override
+	public Mongo mongo() throws Exception {
+		List<MongoCredential> credentials = null;
+		if (userName != null || password != null) {
+			credentials = Arrays.asList(MongoCredential.createMongoCRCredential(
+					userName, databaseName, password.toCharArray()));
+		}
+		String sHost = host == null ? "localhost" : host;
+		int iPort = port == null ? 27017 : port;
+
+		MongoClientOptions options = builder().build();
+
+		if (credentials == null) {
+			return new MongoClient(Arrays.asList(new ServerAddress(sHost, iPort)), options);
+		}
+
+		return new MongoClient(Arrays.asList(new ServerAddress(sHost, iPort)),
+				credentials, options);
+	}
+
+	private Builder builder() {
+		Builder builder = MongoClientOptions.builder();
+
+		builder.writeConcern(WriteConcern.SAFE);
+
+		//TODO: we have to provide more configuration options for these properties
+		/*
+			builder.alwaysUseMBeans(options.isAlwaysUseMBeans());
+			builder.connectionsPerHost(options.getConnectionsPerHost());
+			builder.connectTimeout(options.getConnectTimeout());
+			builder.cursorFinalizerEnabled(options.isCursorFinalizerEnabled());
+			builder.dbDecoderFactory(options.getDbDecoderFactory());
+			builder.dbEncoderFactory(options.getDbEncoderFactory());
+			builder.description(options.getDescription());
+			builder.maxWaitTime(options.getMaxWaitTime());
+			builder.readPreference(options.getReadPreference());
+			builder.socketFactory(options.getSocketFactory());
+			builder.socketKeepAlive(options.isSocketKeepAlive());
+			builder.socketTimeout(options.getSocketTimeout());
+			builder.threadsAllowedToBlockForConnectionMultiplier(options.getThreadsAllowedToBlockForConnectionMultiplier());
+		*/
+		return builder;
+	}
 
 	@Override
 	protected String getMappingBasePackage() {
@@ -40,19 +100,11 @@ public class RepositoryConfiguration extends AbstractMongoConfiguration {
 
 	@Override
 	protected String getDatabaseName() {
-		return "gravitee";
+		return databaseName;
 	}
 	
 	@Bean
 	public GraviteeMapper graviteeMapper(){
 		return new GraviteeDozerMapper();
-	}
-
-	@Override
-	public Mongo mongo() throws Exception {
-
-		Mongo mongo = new MongoClient();
-		mongo.setWriteConcern(WriteConcern.SAFE);
-		return mongo;
 	}
 }

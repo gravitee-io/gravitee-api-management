@@ -34,7 +34,7 @@ import io.gravitee.repository.model.Team;
 import io.gravitee.repository.model.TeamRole;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { RepositoryConfiguration.class })
+@ContextConfiguration(classes = { TestRepositoryConfiguration.class })
 public class TeamMembershipRepositoryTest extends  AbstractMongoDBTest{
 	
 	private static final String TESTCASES_PATH = "/data/team-membership-tests/";

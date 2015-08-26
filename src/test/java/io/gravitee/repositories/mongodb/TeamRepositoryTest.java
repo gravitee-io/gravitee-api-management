@@ -32,7 +32,7 @@ import io.gravitee.repository.api.TeamRepository;
 import io.gravitee.repository.model.Team;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { RepositoryConfiguration.class })
+@ContextConfiguration(classes = { TestRepositoryConfiguration.class })
 public class TeamRepositoryTest extends  AbstractMongoDBTest{
 	
 	private static final String TESTCASES_PATH = "/data/team-tests/";

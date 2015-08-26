@@ -15,15 +15,20 @@
  */
 package io.gravitee.repositories.mongodb;
 
+import com.mongodb.Mongo;
+import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
-import com.mongodb.Mongo;
-
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
+import java.io.IOException;
+import java.util.Properties;
 
 @Configuration
 @ComponentScan
@@ -36,7 +41,28 @@ public class TestRepositoryConfiguration extends RepositoryConfiguration {
 	}
 	
 	@Bean
+	@Override
 	public Mongo mongo() throws Exception {
         return factory().newMongo();
+	}
+
+	@Bean
+	public static PropertySourcesPlaceholderConfigurer properties() throws IOException {
+		PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+		propertySourcesPlaceholderConfigurer.setProperties(graviteeProperties());
+
+		return propertySourcesPlaceholderConfigurer;
+	}
+
+	@Bean(name = "graviteeProperties")
+	public static Properties graviteeProperties() throws IOException {
+		YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
+
+		Resource yamlResource = new ClassPathResource("gravitee.yml");
+
+		yaml.setResources(yamlResource);
+		Properties properties = yaml.getObject();
+
+		return properties;
 	}
 }
