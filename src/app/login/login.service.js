@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function runBlock () {
-  'ngInject';
+class LoginService {
+
+  constructor($http, baseURL) {
+    'ngInject';
+    this.$http = $http;
+    this.loginURL = baseURL + 'login/';
+  }
+
+  login(user) {
+    return this.$http.post(this.loginURL, user);
+  }
 }
 
-export default runBlock;
+export default LoginService;

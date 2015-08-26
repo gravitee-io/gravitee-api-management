@@ -13,8 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function runBlock () {
+function interceptorConfig ($httpProvider) {
   'ngInject';
+
+  var interceptorUnauthorized = ['$location', '$q', function($location, $q) {
+    return {
+      responseError: function (response) {
+        if (!response || response.status === 401) {
+          //$location.path('/login');
+        }
+        return $q.reject(response);
+      }
+    };
+  }];
+  if ($httpProvider.interceptors) {
+    $httpProvider.interceptors.push(interceptorUnauthorized);
+  }
 }
 
-export default runBlock;
+export default interceptorConfig;

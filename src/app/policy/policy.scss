@@ -1,9 +1,12 @@
+.gravitee-policies-container {
+  display: inline-flex;
+}
+
 .gravitee-policy-container {
   border: 1px solid;
   border-radius: 10px;
   padding: 20px;
   margin: 10px 5px;
-  width: 33%;
 
   .gravitee-policy-title {
     font-weight: bold;

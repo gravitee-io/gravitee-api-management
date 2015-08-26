@@ -15,7 +15,7 @@
  */
 /* global document:false */
 class UserController {
-  constructor(UserService, $mdDialog, $location) {
+  constructor(UserService, $mdDialog) {
     'ngInject';
     this.UserService = UserService;
     this.UserService.listRoles().then(response => {
@@ -23,7 +23,6 @@ class UserController {
     });
     this.list();
     this.$mdDialog = $mdDialog;
-    this.$location = $location;
   }
 
   get(code) {

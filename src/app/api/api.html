@@ -18,27 +18,34 @@
 <h1>Management of API '{{apiCtrl.api.name}}'</h1>
 
 <div>
-    <div flex layout="">
+    <div class="gravitee-policies-container" layout="">
         <div class="gravitee-policy-container" ng-repeat="(type, policies) in apiCtrl.policies" ng-include="'app/policy/policy.html'"></div>
     </div>
     <table class="gravitee-flow-container">
         <tr>
-            <th></th>
+            <th>Public URI</th>
             <th>--></th>
             <th>Request</th>
             <th>--></th>
-            <th></th>
+            <th>Target URI</th>
         </tr>
         <tr>
-            <td><a href="{{apiCtrl.api.public}}" target="_blank">{{apiCtrl.api.public}}</a></td>
-            <td class="gravitee-policy-container gravitee-flow-inbound">
-                <div ng-repeat="policies in apiCtrl.api.policy" ng-include="'app/policy/policy.html'"></div>
+            <td class="gravitee-flow-link-container">
+                <div class="gravitee-flow-link">
+                    <a href="{{apiCtrl.api.public}}" target="_blank">{{apiCtrl.api.public}}</a>
+                </div>
             </td>
-            <td class="gravitee-flow-logo-container"><img class="gravitee-flow-logo" src="assets/images/logo_gravitee.png" alt="Gravitee"></td>
+            <td class="gravitee-flow-inbound">
+            </td>
+            <td class="gravitee-policy-container">
+                <div ng-repeat="policies in apiCtrl.api.policies" ng-include="'app/policy/policy.html'"></div></td>
             <td class="gravitee-flow-outbound">
-                <div></div>
             </td>
-            <td><a href="{{apiCtrl.api.target}}" target="_blank">{{apiCtrl.api.target}}</a></td>
+            <td class="gravitee-flow-link-container">
+                <div class="gravitee-flow-link">
+                    <a href="{{apiCtrl.api.target}}" target="_blank">{{apiCtrl.api.target}}</a>
+                </div>
+            </td>
         </tr>
         <tr>
             <th></th>

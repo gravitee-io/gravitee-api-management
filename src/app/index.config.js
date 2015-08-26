@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function config ($logProvider, toastr) {
+function config ($logProvider, toastr, $httpProvider) {
   'ngInject';
   // Enable log
   $logProvider.debugEnabled(true);
@@ -23,6 +23,8 @@ function config ($logProvider, toastr) {
   toastr.options.positionClass = 'toast-top-right';
   toastr.options.preventDuplicates = true;
   toastr.options.progressBar = true;
+
+  $httpProvider.defaults.headers.common.Authorization = 'Basic dXNlcjpwYXNzd29yZA==';
 }
 
 export default config;

@@ -40,4 +40,14 @@ $flowRadius: 120px;
   .gravitee-flow-request-title {
     color: #333;
   }
+
+  .gravitee-flow-link-container {
+    width: 20%;
+  }
+
+  .gravitee-flow-link {
+    font-size: 15px;
+    max-width: 300px;
+    word-wrap: break-word;
+  }
 }

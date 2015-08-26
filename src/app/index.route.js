@@ -22,6 +22,12 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'MainController',
       controllerAs: 'mainCtrl'
     })
+    .state('login', {
+      url: '/login',
+      templateUrl: 'app/login/login.html',
+      controller: 'LoginController',
+      controllerAs: 'loginCtrl'
+    })
     .state('apis', {
       url: '/apis',
       templateUrl: 'app/api/apis.html',

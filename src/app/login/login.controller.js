@@ -13,8 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function runBlock () {
-  'ngInject';
+class LoginController {
+  constructor (LoginService, $location) {
+    'ngInject';
+    this.LoginService = LoginService;
+    this.$location = $location;
+    this.user = {username:'user', password:'password'};
+  }
+
+  login() {
+    var that = this;
+    this.LoginService.login(this.user).then(function() {
+      that.$location.path('/');
+    }).catch(function () {
+      //TODO popup
+    });
+  }
 }
 
-export default runBlock;
+export default LoginController;

@@ -33,7 +33,7 @@ class ApiController {
   get(apiName) {
     this.ApiService.get(apiName).then(response => {
       this.api = response.data;
-      this.api.policy = {'Request': this.api.policy};
+      this.api.policies = [this.api.onRequestPolicies, this.api.onResponsePolicies];
     });
   }
 
@@ -63,9 +63,9 @@ class ApiController {
     this.PolicyService.list(apiName).then(response => {
       // TODO filter request, response and request/response policies
       this.policies = {
-        'Request': response.data,
-        'Response': [],
-        'Request/Response': []
+        'OnRequest': response.data,
+        'OnResponse': [],
+        'OnRequest/OnResponse': []
       };
     });
   }
