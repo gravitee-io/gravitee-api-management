@@ -28,6 +28,10 @@
 	<artifactId>gravitee-management-api-standalone-distribution-rpm</artifactId>
 	<name>Gravitee IO - Management - Standalone - Distribution rpm</name>
 	<packaging>rpm</packaging>
+	
+	<properties>
+		<gravitee.management.log.dir>${packaging.gravitee.management.log.dir}</gravitee.management.log.dir>
+	</properties>
 
 	<dependencies>
 
@@ -95,6 +99,7 @@
 										<include>*.yml</include>
 										<include>*.xml</include>
 									</includes>
+									<filter>true</filter>
 								</source>
 							</sources>
 						</mapping>

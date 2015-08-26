@@ -31,6 +31,10 @@
 	<name>Gravitee IO - Management - Standalone - Distribution zip</name>
 	<packaging>pom</packaging>
 
+	<properties>
+		<gravitee.management.log.dir>${gravitee.home}/logs</gravitee.management.log.dir>
+	</properties>
+	
 	<dependencies>
 
 		<!-- Gravitee dependencies on distribution -->

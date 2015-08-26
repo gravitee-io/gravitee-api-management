@@ -27,7 +27,7 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${gravitee.home}/logs/gravitee.log</file>
+        <file>${gravitee.management.log.dir}/gravitee.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
             <fileNamePattern>gravitee_%d{yyyy-MM-dd}.log</fileNamePattern>
