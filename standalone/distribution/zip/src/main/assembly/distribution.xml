@@ -51,6 +51,13 @@
 		</fileSet>
 
 		<fileSet>
+			<directory>../target/distribution/plugins</directory>
+			<outputDirectory>/plugins</outputDirectory>
+			<fileMode>644</fileMode>
+		</fileSet>
+
+
+		<fileSet>
 			<directory>../target/distribution/bin</directory>
 			<outputDirectory>/bin</outputDirectory>
 			<includes>

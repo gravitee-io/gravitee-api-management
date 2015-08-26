@@ -49,9 +49,10 @@ plugins:
 
 repository:
   type: mongodb
-  dbname: gravitee
-  host: localhost
-  port: 27017
+  mongodb:
+    dbname: gravitee
+    host: localhost
+    port: 27017
 
 security:
   implementation: basic-auth

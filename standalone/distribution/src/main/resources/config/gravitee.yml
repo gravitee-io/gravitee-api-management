@@ -1,10 +1,16 @@
-
 node:
   home: ${gravitee.home}
 
-plugin:
-  workspace: ${node.home}/plugins
+plugins:
+  registry:
+    path: ${gravitee.home}/plugins
 
 repository:
-  file:
-    path: ${node.home}/apis
+  type: mongodb
+  mongodb:
+    dbname: gravitee
+    host: localhost
+    port: 27017
+
+security:
+  implementation: basic-auth
