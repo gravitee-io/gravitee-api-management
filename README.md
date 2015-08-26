@@ -43,16 +43,15 @@ A minimal configuration file (gravitee.yml) :
 node:
   home: ${gravitee.home}
 
-plugin:
-  workspace: ${node.home}/plugins
-
 plugins:
   registry:
-    path: ${node.home}/plugins
+    path: ${gravitee.home}/plugins
 
 repository:
-  file:
-    path: ${node.home}/apis
+  type: mongodb
+  dbname: gravitee
+  host: localhost
+  port: 27017
 
 security:
   implementation: basic-auth
