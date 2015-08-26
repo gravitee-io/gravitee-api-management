@@ -20,6 +20,7 @@ import io.gravitee.management.service.PolicyConfigurationService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.api.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.PolicyConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +76,9 @@ public class PolicyConfigurationServiceImpl implements PolicyConfigurationServic
             }
 
             apiRepository.updatePoliciesConfiguration(apiName, policyConfigurations);
+            Api api = apiRepository.findByName(apiName).get();
+            api.setUpdatedAt(new Date());
+            apiRepository.update(api);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update policies for API: {}", apiName, ex);
             throw new TechnicalManagementException("An error occurs while trying to update policies for API: " + apiName, ex);
