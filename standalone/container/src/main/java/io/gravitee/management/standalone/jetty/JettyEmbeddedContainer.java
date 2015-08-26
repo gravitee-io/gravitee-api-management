@@ -19,6 +19,11 @@ import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.management.rest.resource.GraviteeApplication;
 import io.gravitee.management.standalone.jetty.handler.NoContentOutputErrorHandler;
 import io.gravitee.management.standalone.spring.StandaloneConfiguration;
+
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -28,13 +33,11 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
-
-import javax.servlet.DispatcherType;
-import java.util.EnumSet;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -48,6 +51,9 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
     @Autowired
     private Server server;
+    
+    @Value("${security.implementation:basic-auth}")
+    private String securityImplementation;
 
     @Override
     protected void doStart() throws Exception {
@@ -66,8 +72,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         context.addServlet(servletHolder, "/*");
 
         // Spring configuration
-        // You can switch according to your security implementation (Basic, OAuth2, ...)
-        System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, "basic-auth");
+        System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, securityImplementation);
         context.addEventListener(new ContextLoaderListener());
         context.setInitParameter("contextClass", AnnotationConfigWebApplicationContext.class.getName());
         context.setInitParameter("contextConfigLocation", StandaloneConfiguration.class.getName());
