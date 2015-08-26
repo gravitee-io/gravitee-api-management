@@ -34,19 +34,19 @@ import java.util.List;
 @EnableMongoRepositories
 public class RepositoryConfiguration extends AbstractMongoConfiguration {
 
-	@Value("${repository.dbname:gravitee}")
+	@Value("${repository.mongodb.dbname:gravitee}")
 	private String databaseName;
 
-	@Value("${repository.host:localhost}")
+	@Value("${repository.mongodb.host:localhost}")
 	private String host;
 
-	@Value("${repository.port:27017}")
+	@Value("${repository.mongodb.port:27017}")
 	private Integer port;
 
-	@Value("${repository.username:#{null}}")
+	@Value("${repository.mongodb.username:#{null}}")
 	private String userName;
 
-	@Value("${repository.password:#{null}}")
+	@Value("${repository.mongodb.password:#{null}}")
 	private String password;
 
 	@Bean
