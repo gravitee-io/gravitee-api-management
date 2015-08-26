@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.provider;
 
+import io.gravitee.management.rest.model.ErrorEntity;
 import io.gravitee.management.service.exceptions.AbstractManagementException;
 
 import javax.ws.rs.core.MediaType;
@@ -33,9 +34,16 @@ public class ManagementExceptionMapper implements ExceptionMapper<AbstractManage
         return Response
                 .status(mex.getHttpStatusCode())
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(mex.getMessage())
+                .entity(convert(mex))
                 .build();
     }
 
+    private ErrorEntity convert(AbstractManagementException mex) {
+        ErrorEntity errorEntity = new ErrorEntity();
 
+        errorEntity.setHttpCode(mex.getHttpStatusCode());
+        errorEntity.setMessage(mex.getMessage());
+
+        return errorEntity;
+    }
 }
