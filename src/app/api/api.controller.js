@@ -46,17 +46,13 @@ class ApiController {
 
   start(name) {
     this.ApiService.start(name).then(() => {
-      this.ApiService.reload(name).then(() => {
-        this.list();
-      });
+      this.list();
     });
   }
 
   stop(name) {
     this.ApiService.stop(name).then(() => {
-      this.ApiService.reload(name).then(() => {
-        this.list();
-      });
+      this.list();
     });
   }
 

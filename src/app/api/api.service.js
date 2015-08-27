@@ -35,7 +35,7 @@ class ApiService {
   }
 
   stop(name) {
-    return this.$http.post(this.apisURL + 'stop/' + name);
+    return this.$http.post(this.apisURL + name + '?action=STOP');
   }
 
   reload(name) {
