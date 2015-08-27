@@ -58,7 +58,7 @@ public class ApiServiceImpl implements ApiService {
     public ApiEntity createForUser(NewApiEntity api, String username) throws ApiAlreadyExistsException {
         try {
             LOGGER.debug("Create {} for user {}", api, username);
-            return create(api, OwnerType.USER, username);
+            return create(api, OwnerType.USER, username, username);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", api, username, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + username, ex);
@@ -66,10 +66,10 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
-    public ApiEntity createForTeam(NewApiEntity api, String teamName) throws ApiAlreadyExistsException {
+    public ApiEntity createForTeam(NewApiEntity api, String teamName, String currentUser) throws ApiAlreadyExistsException {
         try {
             LOGGER.debug("Create {} for team {}", api, teamName);
-            return create(api, OwnerType.TEAM, teamName);
+            return create(api, OwnerType.TEAM, teamName, currentUser);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for team {}", api, teamName, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + api + " for team " + teamName, ex);
@@ -218,7 +218,7 @@ public class ApiServiceImpl implements ApiService {
         }
     }
 
-    private ApiEntity create(NewApiEntity newApiEntity, OwnerType ownerType, String owner) throws ApiAlreadyExistsException, TechnicalException {
+    private ApiEntity create(NewApiEntity newApiEntity, OwnerType ownerType, String owner, String currentUser) throws ApiAlreadyExistsException, TechnicalException {
         Optional<ApiEntity> checkApi = findByName(newApiEntity.getName());
         if (checkApi.isPresent()) {
             throw new ApiAlreadyExistsException(newApiEntity.getName());
@@ -236,7 +236,8 @@ public class ApiServiceImpl implements ApiService {
         // Set owner and owner type
         api.setOwner(owner);
         api.setOwnerType(ownerType);
-        api.setCreator(owner);
+
+        api.setCreator(currentUser);
 
         // Private by default
         api.setPrivate(true);

@@ -69,7 +69,7 @@ public class TeamApisResource extends AbstractResource {
     public Response create(NewApiEntity api) {
         permissionService.hasPermission(getAuthenticatedUser(), teamName, PermissionType.EDIT_TEAM);
 
-        ApiEntity createdApi = apiService.createForTeam(api, teamName);
+        ApiEntity createdApi = apiService.createForTeam(api, teamName, getAuthenticatedUser());
 
         return Response
                 .created(URI.create("/apis/" + createdApi.getName()))

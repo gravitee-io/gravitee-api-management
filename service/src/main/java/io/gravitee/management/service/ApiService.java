@@ -15,12 +15,12 @@
  */
 package io.gravitee.management.service;
 
+import java.util.Optional;
+import java.util.Set;
+
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.model.UpdateApiEntity;
-
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -37,7 +37,7 @@ public interface ApiService {
 
     ApiEntity createForUser(NewApiEntity api, String username);
 
-    ApiEntity createForTeam(NewApiEntity api, String teamName);
+    ApiEntity createForTeam(NewApiEntity api, String teamName, String currentUser);
 
     ApiEntity update(String apiName, UpdateApiEntity api);
 
