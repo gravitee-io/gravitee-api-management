@@ -31,7 +31,7 @@ class ApiService {
   }
 
   start(name) {
-    return this.$http.post(this.apisURL + name + '?action={action: START}');
+    return this.$http.post(this.apisURL + name + '?action=START');
   }
 
   stop(name) {
