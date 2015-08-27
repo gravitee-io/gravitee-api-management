@@ -13,23 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.service;
+package io.gravitee.gateway.core.sync.impl;
 
-import java.util.Set;
+import io.gravitee.gateway.core.model.Api;
 
-import io.gravitee.model.Api;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ApiService {
+public class SyncStateManager {
 
-    boolean start(String name);
-    boolean stop(String name);
-    boolean reload(String name);
+    private final Map<String, Api> cacheApis = new HashMap<>();
 
-    void startAll();
-    boolean create(Api api);
-    Api get(String name);
-    Set<Api> listAll();
+    public void handle(io.gravitee.repository.model.Api api) {
+        Api cachedApi = cacheApis.get(api.getName());
+
+        if (cachedApi != null) {
+            // We already know this API
+            if (! cachedApi.getUpdatedAt().equals(api.getUpdatedAt())) {
+                // The API has been updated between two sync
+            }
+        } else {
+            // A new API has been defined
+
+        }
+    }
 }

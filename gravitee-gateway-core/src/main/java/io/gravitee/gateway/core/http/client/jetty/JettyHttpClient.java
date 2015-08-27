@@ -19,7 +19,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.http.ServerResponse;
 import io.gravitee.gateway.core.http.client.AbstractHttpClient;
-import io.gravitee.model.Api;
+import io.gravitee.gateway.core.model.Api;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.client.util.InputStreamContentProvider;

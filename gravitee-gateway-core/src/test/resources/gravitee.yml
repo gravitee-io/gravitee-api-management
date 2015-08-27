@@ -7,5 +7,7 @@ plugin:
   workspace: ${node.home}/io/gravitee/gateway/core/plugin/workspace
 
 repository:
-  file:
-    path: ${node.home}/registry/conf
+  type: mock
+
+sync:
+  cron: '*/5 * * * * *'

@@ -13,32 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.service.impl;
+package io.gravitee.gateway.core.handler.spring;
 
-import io.gravitee.gateway.core.policy.PolicyDefinition;
-import io.gravitee.gateway.core.policy.PolicyManager;
-import io.gravitee.gateway.core.service.PolicyService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashSet;
-import java.util.Set;
+import io.gravitee.gateway.core.handler.HandlerFactory;
+import io.gravitee.gateway.core.handler.impl.ApiHandlerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PolicyServiceImpl implements PolicyService {
+@Configuration
+public class HandlerConfiguration {
 
-    @Autowired
-    private PolicyManager policyManager;
-
-    @Override
-    public Set<PolicyDefinition> findAll() {
-        return new HashSet<>(policyManager.getPolicyDefinitions());
-    }
-
-    @Override
-    public PolicyDefinition get(String name) {
-        return policyManager.getPolicyDefinition(name);
+    @Bean
+    public HandlerFactory handlerFactory() {
+        return new ApiHandlerFactory();
     }
 }

@@ -34,13 +34,6 @@
     <name>Gravitee IO - API Management - Gateway API</name>
 
     <dependencies>
-        <!-- Gravitee internal dependencies -->
-        <dependency>
-            <groupId>io.gravitee.model</groupId>
-            <artifactId>gravitee-model</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>

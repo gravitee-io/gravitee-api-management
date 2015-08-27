@@ -13,28 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.spring;
+package io.gravitee.gateway.core.sync.spring;
 
-import io.gravitee.gateway.core.http.client.HttpClient;
-import io.gravitee.gateway.core.http.client.ahc.AHCHttpClient;
-import io.gravitee.gateway.core.http.client.ahc.AHCHttpConfiguration;
-import io.gravitee.gateway.core.model.Api;
+import io.gravitee.gateway.core.sync.SyncService;
+import io.gravitee.gateway.core.sync.impl.SyncServiceImpl;
+import io.gravitee.gateway.core.sync.impl.SyncStateManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-public class HttpClientConfiguration {
+@EnableScheduling
+public class SyncConfiguration {
 
     @Bean
-    public HttpClient httpClient(Api api, AHCHttpConfiguration configuration) {
-        return new AHCHttpClient(api, configuration);
+    public SyncService syncService() {
+        return new SyncServiceImpl();
     }
 
     @Bean
-    public AHCHttpConfiguration ahcHttpConfiguration() {
-        return new AHCHttpConfiguration();
+    public SyncStateManager syncStateManager() {
+        return new SyncStateManager();
+    }
+
+    @Bean
+    public TaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(10);
+        return scheduler;
     }
 }

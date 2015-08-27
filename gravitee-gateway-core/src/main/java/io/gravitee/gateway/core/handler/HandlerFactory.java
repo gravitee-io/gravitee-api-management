@@ -13,28 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.spring;
+package io.gravitee.gateway.core.handler;
 
-import io.gravitee.gateway.core.http.client.HttpClient;
-import io.gravitee.gateway.core.http.client.ahc.AHCHttpClient;
-import io.gravitee.gateway.core.http.client.ahc.AHCHttpConfiguration;
 import io.gravitee.gateway.core.model.Api;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Configuration
-public class HttpClientConfiguration {
+public interface HandlerFactory {
 
-    @Bean
-    public HttpClient httpClient(Api api, AHCHttpConfiguration configuration) {
-        return new AHCHttpClient(api, configuration);
-    }
-
-    @Bean
-    public AHCHttpConfiguration ahcHttpConfiguration() {
-        return new AHCHttpConfiguration();
-    }
+    Handler create(Api api);
 }

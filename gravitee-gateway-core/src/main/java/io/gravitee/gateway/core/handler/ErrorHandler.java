@@ -26,7 +26,7 @@ import rx.Observable;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ErrorHandler implements Handler {
+public class ErrorHandler extends AbstractHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ErrorHandler.class);
 

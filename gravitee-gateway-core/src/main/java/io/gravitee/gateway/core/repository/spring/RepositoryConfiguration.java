@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.cluster.spring;
+package io.gravitee.gateway.core.repository.spring;
 
-import io.gravitee.gateway.core.cluster.SyncService;
-import io.gravitee.gateway.core.cluster.impl.SyncServiceImpl;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-public class ClusterConfiguration {
+public class RepositoryConfiguration {
 
     @Bean
-    public SyncService syncService() {
-        return new SyncServiceImpl();
+    public static RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor(
+            @Value("${repository.type}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
+        RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor = new RepositoryBeanFactoryPostProcessor();
+        repositoryBeanFactoryPostProcessor.setRepositoryType(repositoryType);
+        repositoryBeanFactoryPostProcessor.setConfigurationClassPostProcessor(configurationClassPostProcessor);
+        return repositoryBeanFactoryPostProcessor;
     }
 }
