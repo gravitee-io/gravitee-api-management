@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 class ApiController {
-  constructor (ApiService, $stateParams, PolicyService) {
+  constructor (ApiService, $stateParams, PolicyService, $mdDialog) {
     'ngInject';
     this.ApiService = ApiService;
     this.PolicyService = PolicyService;
+    this.$mdDialog = $mdDialog;
 
     this.apis = [];
     if ($stateParams.apiName) {
@@ -59,6 +60,12 @@ class ApiController {
     });
   }
 
+  delete(name) {
+    this.ApiService.delete(name).then(() => {
+      this.list();
+    });
+  }
+
   listPolicies(apiName) {
     this.PolicyService.list(apiName).then(response => {
       // TODO filter request, response and request/response policies
@@ -69,6 +76,40 @@ class ApiController {
       };
     });
   }
+
+  showAddApiModal() {
+    var that = this;
+    this.$mdDialog.show({
+      controller: DialogApiController,
+      templateUrl: 'app/api/api.dialog.html',
+      parent: angular.element(document.body)
+    }).then(function (api) {
+      if (api) {
+        that.list();
+      }
+    });
+  }
+}
+
+function DialogApiController($scope, $mdDialog, ApiService, TeamService) {
+  'ngInject';
+
+  TeamService.list().then(response => {
+    $scope.teams = response.data;
+  });
+
+  $scope.hide = function () {
+    $mdDialog.hide();
+  };
+
+  $scope.create = function (api) {
+    ApiService.create(api, $scope.team).then(function () {
+      $mdDialog.hide(api);
+    }).catch(function (error) {
+      console.log(error)
+      $scope.error = error;
+    });
+  };
 }
 
 export default ApiController;

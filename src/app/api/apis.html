@@ -34,8 +34,17 @@
         <md-button class="md-raised md-warn" ng-click="apiCtrl.stop(api.name)">Stop</md-button>
       </div>
       <div ng-switch-default>
-        <md-button class="md-raised md-warn" ng-click="apiCtrl.start(api.name)">Start</md-button>
+        <md-button class="md-raised md-success" ng-click="apiCtrl.start(api.name)">Start</md-button>
+      </div>
+    </td>
+    <td>
+      <div>
+        <md-button class="md-raised md-warn" ng-click="apiCtrl.delete(api.name)">Delete</md-button>
       </div>
     </td>
   </tr>
 </table>
+
+<md-button ng-click="apiCtrl.showAddApiModal()" class="md-primary">
+  Add a new API
+</md-button>

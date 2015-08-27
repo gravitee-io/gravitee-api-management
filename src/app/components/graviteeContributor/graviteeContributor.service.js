@@ -18,6 +18,7 @@ class GraviteeContributorService {
     'ngInject';
 
     this.$http = $http;
+    this.$log = $log;
     this.apiHost = 'https://api.github.com/repos/gravitee-io/gravitee-management-webui';
   }
 

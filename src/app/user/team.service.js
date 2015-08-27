@@ -13,29 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class UserService {
+class TeamService {
 
   constructor($http, baseURL) {
     'ngInject';
     this.$http = $http;
-    this.usersURL = baseURL + 'users/';
+    this.teamsURL = baseURL + 'teams/';
+    this.userURL = baseURL + 'user/';
   }
 
   list() {
-    return this.$http.get(this.usersURL);
+    return this.$http.get(this.userURL + 'teams');
   }
 
-  get(code) {
-    return this.$http.get(this.usersURL + code);
-  }
-
-  listTeams(code) {
-    return this.$http.get(this.usersURL + code + '/teams');
-  }
-
-  create(user) {
-    return this.$http.post(this.usersURL, user);
+  create(team) {
+    return this.$http.post(this.teamsURL, team);
   }
 }
 
-export default UserService;
+export default TeamService;

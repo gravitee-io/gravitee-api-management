@@ -15,19 +15,23 @@
  */
 /* global document:false */
 class UserController {
-  constructor(UserService, $mdDialog) {
+  constructor(UserService, TeamService, $mdDialog) {
     'ngInject';
     this.UserService = UserService;
-    this.UserService.listRoles().then(response => {
-      this.roles = response.data;
-    });
-    this.list();
+    this.TeamService = TeamService;
+    this.listTeams();
     this.$mdDialog = $mdDialog;
   }
 
   get(code) {
     this.UserService.get(code).then(response => {
       this.user = response.data;
+    });
+  }
+
+  listTeams() {
+    this.TeamService.list().then(response => {
+      this.teams = response.data;
     });
   }
 
@@ -39,7 +43,7 @@ class UserController {
 
   showAddUserModal(user) {
     this.$mdDialog.show({
-      controller: DialogController,
+      controller: DialogUserController,
       templateUrl: 'app/user/user.dialog.html',
       parent: angular.element(document.body),
       user: user,
@@ -50,9 +54,41 @@ class UserController {
       }
     });
   }
+
+  showAddTeamModal() {
+    this.$mdDialog.show({
+      controller: DialogTeamController,
+      templateUrl: 'app/user/team.dialog.html',
+      parent: angular.element(document.body),
+    }).then(function (team) {
+      if (team) {
+        this.listTeams();
+      }
+    });
+  }
 }
 
-function DialogController($scope, $mdDialog, UserService, user, roles) {
+function DialogTeamController($scope, $mdDialog, TeamService) {
+  'ngInject';
+
+  TeamService.list().then(response => {
+    $scope.teams = response.data;
+  });
+
+  $scope.hide = function () {
+    $mdDialog.hide();
+  };
+
+  $scope.create = function (team) {
+    TeamService.create(team).then(function () {
+      $mdDialog.hide(team);
+    }).catch(function (error) {
+      $scope.error = error;
+    });
+  };
+}
+
+function DialogUserController($scope, $mdDialog, UserService, user, roles) {
   'ngInject';
 
   $scope.user = user;

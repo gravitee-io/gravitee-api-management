@@ -19,6 +19,7 @@ class ApiService {
     'ngInject';
     this.$http = $http;
     this.apisURL = baseURL + 'apis/';
+    this.teamsURL = baseURL + 'teams/';
   }
 
   get(name) {
@@ -30,7 +31,7 @@ class ApiService {
   }
 
   start(name) {
-    return this.$http.post(this.apisURL + 'start/' + name);
+    return this.$http.post(this.apisURL + name + '?action={action: START}');
   }
 
   stop(name) {
@@ -39,6 +40,14 @@ class ApiService {
 
   reload(name) {
     return this.$http.post(this.apisURL + 'reload/' + name);
+  }
+
+  create(api, team) {
+    return this.$http.post(this.teamsURL + team + '/apis', api);
+  }
+
+  delete(name) {
+    return this.$http.delete(this.apisURL + name);
   }
 }
 

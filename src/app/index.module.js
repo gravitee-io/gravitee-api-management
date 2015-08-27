@@ -25,6 +25,7 @@ import MainController from './main/main.controller';
 import ApiService from './api/api.service';
 import ApiController from './api/api.controller';
 import PolicyService from './policy/policy.service.js';
+import TeamService from './user/team.service';
 import UserService from './user/user.service';
 import UserController from './user/user.controller';
 import LoginService from './login/login.service';
@@ -37,7 +38,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists'])
   .constant('malarkey', malarkey)
   .constant('toastr', toastr)
   .constant('moment', moment)
-  .constant('baseURL', 'http://localhost:8082/rest/')
+  .constant('baseURL', 'http://localhost:8082/')
   .config(config)
 
   .config(routerConfig)
@@ -50,6 +51,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists'])
   .service('ApiService', ApiService)
   .controller('ApiController', ApiController)
   .service('PolicyService', PolicyService)
+  .service('TeamService', TeamService)
   .service('UserService', UserService)
   .controller('UserController', UserController)
   .service('LoginService', LoginService)

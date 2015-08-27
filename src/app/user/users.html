@@ -16,8 +16,15 @@
 
 -->
 <h1>Gravitee Users Management</h1>
+
 <ul>
-  <li ng-repeat="user in userCtrl.users">
-    <span class="gravitee-link" ng-click="userCtrl.showAddUserModal(user)" ng-bind="user.lastName + ' ' + user.firstName"></span>
+  <li ng-repeat="team in userCtrl.teams">
+    <span class="gravitee-link" ng-click="userCtrl.showAddUserModal(team)" ng-bind="team.name"></span>
+    <span class="gravitee-link" ng-click="userCtrl.showAddUserModal(team)" ng-bind="team.description"></span>
+    <span class="gravitee-link" ng-click="userCtrl.showAddUserModal(team)" ng-bind="team.email"></span>
   </li>
 </ul>
+
+<md-button ng-click="userCtrl.showAddTeamModal()" class="md-primary">
+  Add a new team
+</md-button>
