@@ -41,6 +41,6 @@ public class Owner {
     }
 
     public enum OwnerType {
-        User, Team;
+        USER, TEAM;
     }
 }

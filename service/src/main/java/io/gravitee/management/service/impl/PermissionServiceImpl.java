@@ -15,6 +15,11 @@
  */
 package io.gravitee.management.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.Owner;
@@ -28,10 +33,6 @@ import io.gravitee.repository.api.TeamMembershipRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Member;
 import io.gravitee.repository.model.TeamRole;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -71,7 +72,7 @@ public class PermissionServiceImpl implements PermissionService {
 
             if (permissionType == PermissionType.VIEW_API) {
                 if (api.isPrivate()) {
-                    if (api.getOwner().getType() == Owner.OwnerType.Team) {
+                    if (api.getOwner().getType() == Owner.OwnerType.TEAM) {
                         // Check if the user is a member of the team
                         Member member = teamMembershipRepository.getMember(api.getOwner().getLogin(), username);
                         if (member == null) {
@@ -87,7 +88,7 @@ public class PermissionServiceImpl implements PermissionService {
                     }
                 }
             } else {
-                if (api.getOwner().getType() == Owner.OwnerType.Team) {
+                if (api.getOwner().getType() == Owner.OwnerType.TEAM) {
                     // Check if the user is an admin member of the team
                     Member member = teamMembershipRepository.getMember(api.getOwner().getLogin(), username);
                     if (member == null || member.getRole() != TeamRole.ADMIN) {
@@ -114,7 +115,7 @@ public class PermissionServiceImpl implements PermissionService {
 
             ApplicationEntity application = applicationService.findByName(applicationName).get();
             if (permissionType == PermissionType.VIEW_API) {
-                    if (application.getOwner().getType() == Owner.OwnerType.Team) {
+                    if (application.getOwner().getType() == Owner.OwnerType.TEAM) {
                         // Check if the user is a member of the team
                         Member member = teamMembershipRepository.getMember(application.getOwner().getLogin(), username);
                         if (member == null) {
@@ -129,7 +130,7 @@ public class PermissionServiceImpl implements PermissionService {
                         }
                     }
             } else {
-                if (application.getOwner().getType() == Owner.OwnerType.Team) {
+                if (application.getOwner().getType() == Owner.OwnerType.TEAM) {
                     // Check if the user is an admin member of the team
                     Member member = teamMembershipRepository.getMember(application.getOwner().getLogin(), username);
                     if (member == null || member.getRole() != TeamRole.ADMIN) {

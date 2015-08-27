@@ -15,27 +15,30 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.NewApiEntity;
-import io.gravitee.management.model.UpdateApiEntity;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.repository.api.ApiRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.LifecycleState;
-import io.gravitee.repository.model.OwnerType;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.management.model.Owner;
+import io.gravitee.management.model.UpdateApiEntity;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
+import io.gravitee.management.service.exceptions.ApiNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.repository.api.ApiRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.model.Api;
+import io.gravitee.repository.model.LifecycleState;
+import io.gravitee.repository.model.OwnerType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -89,7 +92,7 @@ public class ApiServiceImpl implements ApiService {
         try {
             LOGGER.debug("Find all APIs");
             Set<Api> apis = apiRepository.findAll();
-            Set<ApiEntity> publicApis = new HashSet<>(apis.size());
+            Set<ApiEntity> publicApis = new LinkedHashSet<>(apis.size());
 
             for (Api api : apis) {
                 publicApis.add(convert(api));
@@ -253,6 +256,11 @@ public class ApiServiceImpl implements ApiService {
         apiEntity.setUpdatedAt(api.getUpdatedAt());
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
+
+        final Owner owner = new Owner();
+        owner.setLogin(api.getOwner());
+        owner.setType(Owner.OwnerType.valueOf(api.getOwnerType().toString()));
+        apiEntity.setOwner(owner);
 
         return apiEntity;
     }

@@ -15,20 +15,25 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.NewTeamEntity;
-import io.gravitee.management.model.TeamEntity;
-import io.gravitee.management.service.TeamService;
+import java.net.URI;
+import java.util.Collections;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.HashSet;
-import java.util.Set;
+
+import io.gravitee.management.model.NewTeamEntity;
+import io.gravitee.management.model.TeamEntity;
+import io.gravitee.management.service.TeamService;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -52,7 +57,7 @@ public class TeamsResource extends AbstractResource {
         Set<TeamEntity> teams = teamService.findAll(true);
 
         if (teams == null) {
-            teams = new HashSet<>();
+            teams = Collections.emptySet();
         }
 
         return teams;
