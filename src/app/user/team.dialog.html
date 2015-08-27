@@ -19,7 +19,7 @@
     <form name="formTeam" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
-          <h2>Creation of a new team</h2>
+          <h2>{{creationMode?'Creation of a new team' : 'Modification of team "' + team.name + '"'}}</h2>
           <span flex></span>
           <md-button class="md-icon-button" ng-click="hide()">
             X
@@ -31,7 +31,7 @@
           <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
           <md-input-container>
             <label>Name *</label>
-            <input ng-model="team.name" required>
+            <input ng-model="team.name" required ng-disabled="!creationMode">
           </md-input-container>
         </div>
         <div layout="">
@@ -55,8 +55,8 @@
         <md-button ng-click="hide()" class="md-primary">
           Cancel
         </md-button>
-        <md-button ng-click="create(team)" class="md-primary" ng-disabled="formTeam.$invalid">
-          Create
+        <md-button ng-click="save(team)" class="md-primary" ng-disabled="formTeam.$invalid">
+          Save
         </md-button>
       </div>
     </form>

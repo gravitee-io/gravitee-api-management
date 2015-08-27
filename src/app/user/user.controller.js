@@ -55,21 +55,26 @@ class UserController {
     });
   }
 
-  showAddTeamModal() {
+  showSaveTeamModal(team) {
+    var that = this;
     this.$mdDialog.show({
       controller: DialogTeamController,
       templateUrl: 'app/user/team.dialog.html',
       parent: angular.element(document.body),
+      team: team
     }).then(function (team) {
       if (team) {
-        this.listTeams();
+        that.listTeams();
       }
     });
   }
 }
 
-function DialogTeamController($scope, $mdDialog, TeamService) {
+function DialogTeamController($scope, $mdDialog, TeamService, team) {
   'ngInject';
+
+  $scope.team = team;
+  $scope.creationMode = !team;
 
   TeamService.list().then(response => {
     $scope.teams = response.data;
@@ -79,8 +84,9 @@ function DialogTeamController($scope, $mdDialog, TeamService) {
     $mdDialog.hide();
   };
 
-  $scope.create = function (team) {
-    TeamService.create(team).then(function () {
+  $scope.save = function (team) {
+    var save = $scope.creationMode ? TeamService.create(team) : TeamService.update(team);
+    save.then(function () {
       $mdDialog.hide(team);
     }).catch(function (error) {
       $scope.error = error;

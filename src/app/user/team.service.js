@@ -29,6 +29,10 @@ class TeamService {
   create(team) {
     return this.$http.post(this.teamsURL, team);
   }
+
+  update(team) {
+    return this.$http.put(this.teamsURL + team.name, {description: team.description, email: team.email});
+  }
 }
 
 export default TeamService;
