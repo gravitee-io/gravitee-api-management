@@ -15,6 +15,10 @@
  */
 package io.gravitee.management.security.adapter;
 
+import io.gravitee.management.security.filter.CORSFilter;
+
+import javax.servlet.Filter;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
@@ -25,6 +29,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 /**
  * 
@@ -42,15 +47,26 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 	public AuthenticationManager authenticationManagerBean() throws Exception {
 		return super.authenticationManagerBean();
 	}
-
+	
+	/*
+     * TODO : fix filter order between Jersey Filter (CORSResponseFilter) and Spring Security Filter
+     * TODO : remove this filter or CORSResponseFilter when the problem will be solved
+     */
+    @Bean
+	public Filter corsFilter() {
+		return new CORSFilter();
+	}
+	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.httpBasic().realmName("Gravitee Management API")
 			.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 			.and().authorizeRequests()
 			.antMatchers(HttpMethod.OPTIONS, "**").permitAll()
+			.antMatchers("/login").permitAll()
 			.anyRequest().hasRole("USER")
-			.and().csrf().disable();
+			.and().csrf().disable()
+			.addFilterAfter(corsFilter(), AbstractPreAuthenticatedProcessingFilter.class);
 
 	}
 }
