@@ -15,6 +15,19 @@
  */
 package io.gravitee.management.service.impl;
 
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import io.gravitee.management.model.NewTeamEntity;
 import io.gravitee.management.model.TeamEntity;
 import io.gravitee.management.model.UpdateTeamEntity;
@@ -28,17 +41,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Member;
 import io.gravitee.repository.model.Team;
 import io.gravitee.repository.model.TeamRole;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -165,7 +167,7 @@ public class TeamServiceImpl implements TeamService {
         try {
             LOGGER.debug("Find all teams");
             Set<Team> teams = teamRepository.findAll(publicOnly);
-            Set<TeamEntity> publicTeams = new HashSet<>(teams.size());
+            Set<TeamEntity> publicTeams = new LinkedHashSet<>(teams.size());
 
             for(Team team : teams) {
                 publicTeams.add(convert(team));

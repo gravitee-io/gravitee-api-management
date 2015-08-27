@@ -15,12 +15,13 @@
  */
 package io.gravitee.management.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import java.net.URI;
 import java.util.Date;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.gravitee.common.component.Lifecycle;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -47,6 +48,8 @@ public class ApiEntity {
     private boolean isPrivate;
 
     private Owner owner;
+
+    private Lifecycle.State state;
 
     public Date getCreatedAt() {
         return createdAt;
@@ -120,6 +123,14 @@ public class ApiEntity {
         this.description = description;
     }
 
+    public Lifecycle.State getState() {
+        return state;
+    }
+
+    public void setState(Lifecycle.State state) {
+        this.state = state;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -140,6 +151,7 @@ public class ApiEntity {
         sb.append(", name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", privateApi=").append(isPrivate);
+        sb.append(", state=").append(state);
         sb.append('}');
         return sb.toString();
     }
