@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.service;
+package io.gravitee.gateway.core.sync;
 
-import io.gravitee.gateway.core.policy.PolicyDefinition;
-
-import java.util.Set;
+import io.gravitee.gateway.api.service.Service;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyService {
-
-    Set<PolicyDefinition> findAll();
-
-    PolicyDefinition get(String name);
+public interface SyncService extends Service {
 }

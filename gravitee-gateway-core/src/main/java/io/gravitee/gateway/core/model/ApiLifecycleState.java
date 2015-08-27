@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.cluster;
-
-import io.gravitee.gateway.api.service.Service;
+package io.gravitee.gateway.core.model;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface SyncService extends Service {
+public enum ApiLifecycleState {
+
+    START, STOP;
 }

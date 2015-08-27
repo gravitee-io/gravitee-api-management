@@ -16,8 +16,9 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.core.model.Api;
+import io.gravitee.gateway.core.model.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.*;
-import io.gravitee.model.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,14 +45,14 @@ public class PolicyResolverImpl implements PolicyResolver {
     public List<Policy> resolve(Request request) {
         List<Policy> policies = new ArrayList<>();
 
-        Map<String, io.gravitee.model.Policy> definedPolicies = getApi().getPolicies();
+        List<PolicyConfiguration> definedPolicies = getApi().getPolicies();
         if (definedPolicies != null) {
-            definedPolicies.entrySet().stream().filter(entry -> entry.getValue() != null).forEach(entry -> {
-                PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(entry.getKey());
+            definedPolicies.stream().forEach(policy -> {
+                PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(policy.getPolicy());
                 if (policyDefinition == null) {
-                    LOGGER.error("Policy {} can't be found in policy. Unable to apply it for request {}", entry.getKey(), request.id());
+                    LOGGER.error("Policy {} can't be found in policy. Unable to apply it for request {}", policy.getPolicy(), request.id());
                 } else {
-                    Object policyInst = policyFactory.create(policyDefinition, entry.getValue().getConfiguration());
+                    Object policyInst = policyFactory.create(policyDefinition, policy.getConfiguration());
 
                     if (policyInst != null) {
                         LOGGER.debug("Policy {} has been added to the chain for request {}", policyDefinition.id(), request.id());

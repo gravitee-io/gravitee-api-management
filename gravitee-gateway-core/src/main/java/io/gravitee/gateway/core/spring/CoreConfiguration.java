@@ -15,9 +15,18 @@
  */
 package io.gravitee.gateway.core.spring;
 
-import java.io.IOException;
-
-import io.gravitee.gateway.core.cluster.spring.ClusterConfiguration;
+import io.gravitee.gateway.core.Reactor;
+import io.gravitee.gateway.core.event.EventManager;
+import io.gravitee.gateway.core.event.impl.EventManagerImpl;
+import io.gravitee.gateway.core.handler.ErrorHandler;
+import io.gravitee.gateway.core.handler.Handler;
+import io.gravitee.gateway.core.handler.spring.HandlerConfiguration;
+import io.gravitee.gateway.core.plugin.spring.PluginConfiguration;
+import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
+import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
+import io.gravitee.gateway.core.reporter.spring.ReporterConfiguration;
+import io.gravitee.gateway.core.repository.spring.RepositoryConfiguration;
+import io.gravitee.gateway.core.sync.spring.SyncConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -25,25 +34,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
-import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.event.EventManager;
-import io.gravitee.gateway.core.event.impl.EventManagerImpl;
-import io.gravitee.gateway.core.handler.ErrorHandler;
-import io.gravitee.gateway.core.handler.Handler;
-import io.gravitee.gateway.core.plugin.spring.PluginConfiguration;
-import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
-import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
-import io.gravitee.gateway.core.reporter.spring.ReporterConfiguration;
-import io.gravitee.gateway.core.repository.spring.RepositoryBeanFactoryPostProcessor;
-import io.gravitee.gateway.core.service.ApiService;
-import io.gravitee.gateway.core.service.impl.ApiServiceImpl;
+import java.io.IOException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@Import({PluginConfiguration.class, PolicyConfiguration.class, ReporterConfiguration.class,
-        PropertiesConfiguration.class, ClusterConfiguration.class})
+@Import({RepositoryConfiguration.class, PluginConfiguration.class, PolicyConfiguration.class, ReporterConfiguration.class,
+        PropertiesConfiguration.class, SyncConfiguration.class, HandlerConfiguration.class})
 public class CoreConfiguration {
 
     protected final static Logger LOGGER = LoggerFactory.getLogger(CoreConfiguration.class);
@@ -55,18 +53,8 @@ public class CoreConfiguration {
     }
 
     @Bean
-    public static RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor() {
-        return new RepositoryBeanFactoryPostProcessor();
-    }
-
-    @Bean
     public EventManager eventManager() {
         return new EventManagerImpl();
-    }
-
-    @Bean
-    public ApiService apiService() {
-        return new ApiServiceImpl();
     }
 
     @Bean(name = "errorHandler")

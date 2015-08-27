@@ -19,8 +19,9 @@ import io.gravitee.gateway.core.AbstractCoreTest;
 import io.gravitee.gateway.core.builder.ApiBuilder;
 import io.gravitee.gateway.core.event.Event;
 import io.gravitee.gateway.core.event.impl.SimpleEvent;
+import io.gravitee.gateway.core.handler.impl.ApiHandlerFactory;
+import io.gravitee.gateway.core.model.Api;
 import io.gravitee.gateway.core.service.ApiLifecycleEvent;
-import io.gravitee.model.Api;
 import org.junit.Test;
 
 import static org.mockito.Matchers.eq;
@@ -34,6 +35,10 @@ public class GraviteeReactorLifecycleEventTest extends AbstractCoreTest {
     @Test
     public void handleStartApiEvent() {
         GraviteeReactor reactor = spy(new AsyncGraviteeReactor());
+
+        ApiHandlerFactory handlerFactory = new ApiHandlerFactory();
+        handlerFactory.setApplicationContext(applicationContext);
+        reactor.setHandlerFactory(handlerFactory);
         reactor.setApplicationContext(applicationContext);
 
         Api api = new ApiBuilder().name("my-api").origin("http://localhost/team").build();

@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.handler.spring;
+package io.gravitee.gateway.core.handler.impl;
 
-import io.gravitee.gateway.core.handler.ApiHandler;
 import io.gravitee.gateway.core.handler.ContextHandler;
 import io.gravitee.gateway.core.http.spring.HttpClientConfiguration;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;

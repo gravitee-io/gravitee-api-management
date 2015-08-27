@@ -18,35 +18,29 @@ package io.gravitee.gateway.core.reactor;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.cluster.SyncService;
 import io.gravitee.gateway.core.event.Event;
 import io.gravitee.gateway.core.event.EventListener;
 import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.handler.ContextHandler;
 import io.gravitee.gateway.core.handler.Handler;
-import io.gravitee.gateway.core.handler.spring.ApiHandlerConfiguration;
+import io.gravitee.gateway.core.handler.HandlerFactory;
+import io.gravitee.gateway.core.model.Api;
 import io.gravitee.gateway.core.plugin.PluginManager;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.service.AbstractService;
 import io.gravitee.gateway.core.service.ApiLifecycleEvent;
-import io.gravitee.gateway.core.service.ApiService;
-import io.gravitee.model.Api;
+import io.gravitee.gateway.core.sync.SyncService;
 import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.AbstractApplicationContext;
 
 import java.net.URI;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -63,19 +57,18 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
     @Autowired
     private EventManager eventManager;
 
-    @Autowired
-    private ApiService apiService;
-
     private ApplicationContext applicationContext;
 
     @Autowired
     @Qualifier("errorHandler")
     private Handler errorHandler;
 
-    private final ConcurrentMap<String, ContextHandler> handlers = new ConcurrentHashMap();
-    private final ConcurrentMap<String, ConfigurableApplicationContext> contexts = new ConcurrentHashMap();
+    @Autowired
+    private HandlerFactory handlerFactory;
 
-    protected Handler getHandler(Request request) {
+    private final ConcurrentMap<String, ContextHandler> handlers = new ConcurrentHashMap();
+
+    protected Handler bestHandler(Request request) {
         String path = request.path();
 
         Set<ContextHandler> mapHandlers = handlers.entrySet().stream().filter(
@@ -110,12 +103,8 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
         return errorHandler;
     }
 
-    public void clearHandlers() {
-        handlers.forEach((s, contextHandler) -> removeHandler(s));
-    }
-
     protected T handle(Request request, Response response) {
-        return (T) getHandler(request).handle(request, response);
+        return (T) bestHandler(request).handle(request, response);
     }
 
     private String getHost(Request request) {
@@ -140,50 +129,42 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
     }
 
     public void addHandler(Api api) {
-        LOGGER.info("API {} ({}) has been enabled in reactor", api.getName(), api.getVersion());
+        LOGGER.info("API {} has been enabled in reactor", api.getName());
 
-        AbstractApplicationContext internalApplicationContext = buildApplicationContext(api);
-        ContextHandler handler = internalApplicationContext.getBean(ContextHandler.class);
-
+        ContextHandler handler = (ContextHandler) handlerFactory.create(api);
         handlers.putIfAbsent(handler.getContextPath(), handler);
-        contexts.putIfAbsent(handler.getContextPath(), internalApplicationContext);
     }
 
     public void removeHandler(Api api) {
-        LOGGER.info("API {} ({}) has been disabled (or removed) from reactor", api.getName(), api.getVersion());
-        removeHandler(api.getPublicURI().getPath());
-    }
+        LOGGER.info("API {} has been disabled (or removed) from reactor", api.getName());
 
-    public void removeHandler(String contextPath) {
-        handlers.remove(contextPath);
-
-        ConfigurableApplicationContext internalApplicationContext = contexts.remove(contextPath);
-        if (internalApplicationContext != null) {
-            internalApplicationContext.close();
+        Handler handler = handlers.remove(api.getPublicURI().getPath());
+        try {
+            handler.stop();
+            handlers.remove(api.getPublicURI().getPath());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    private AbstractApplicationContext buildApplicationContext(Api api) {
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-        context.setParent(this.applicationContext);
-
-        PropertyPlaceholderConfigurer configurer=new PropertyPlaceholderConfigurer();
-        final Properties properties = applicationContext.getBean("graviteeProperties", Properties.class);
-        configurer.setProperties(properties);
-        configurer.setIgnoreUnresolvablePlaceholders(true);
-        context.addBeanFactoryPostProcessor(configurer);
-
-        context.getBeanFactory().registerSingleton("api", api);
-        context.register(ApiHandlerConfiguration.class);
-        context.setId("context-api-" + api.getName() + "-" + api.getVersion());
-        context.refresh();
-
-        return context;
+    public void clearHandlers() {
+        handlers.forEach((s, handler) -> {
+            try {
+                handler.stop();
+                handlers.remove(handler.getContextPath());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    public void setHandlerFactory(HandlerFactory handlerFactory) {
+        this.handlerFactory = handlerFactory;
     }
 
     @Override
@@ -192,12 +173,10 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
 
         applicationContext.getBean(PluginManager.class).start();
         applicationContext.getBean(ReporterService.class).start();
-        applicationContext.getBean(SyncService.class).start();
 
         eventManager.subscribeForEvents(this, ApiLifecycleEvent.class);
 
-        //TODO: Not sure it's the best place to do the following...
-        apiService.startAll();
+        applicationContext.getBean(SyncService.class).start();
     }
 
     @Override

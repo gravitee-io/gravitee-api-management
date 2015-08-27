@@ -17,8 +17,8 @@ package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.builder.ApiBuilder;
+import io.gravitee.gateway.core.model.Api;
 import io.gravitee.gateway.core.policy.impl.PolicyResolverImpl;
-import io.gravitee.model.Api;
 import org.junit.Before;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;

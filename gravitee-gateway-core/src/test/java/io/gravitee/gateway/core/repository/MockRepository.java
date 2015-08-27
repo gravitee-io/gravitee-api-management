@@ -13,35 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.cluster.impl;
+package io.gravitee.gateway.core.repository;
 
-import io.gravitee.gateway.core.cluster.SyncService;
-import io.gravitee.gateway.core.service.AbstractService;
+import io.gravitee.repository.Repository;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class SyncServiceImpl extends AbstractService implements SyncService {
-
+public class MockRepository implements Repository {
 
     @Override
-    protected void doStart() throws Exception {
-        super.doStart();
-
-        // Initial synchronization
-        bootstrapSynchronization();
+    public String type() {
+        return "mock";
     }
 
-    /**
-     * Synchronization done when Gravitee node is starting.
-     * This sync phase must be done by all node before starting.
-     */
-    private void bootstrapSynchronization() {
-
-        // 1_ Plugins synchronization
-
-        // 2_ Global configuration synchronization
-
-        // 3_ APIs synchronization
+    @Override
+    public Class<?>[] configurations() {
+        return new Class<?>[] {
+                RepositoryConfiguration.class
+        };
     }
 }

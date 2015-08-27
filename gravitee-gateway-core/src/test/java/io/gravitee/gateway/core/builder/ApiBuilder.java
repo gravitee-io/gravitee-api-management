@@ -17,8 +17,8 @@ package io.gravitee.gateway.core.builder;
 
 import java.net.URI;
 
-import io.gravitee.model.Api;
-import io.gravitee.model.ApiState;
+import io.gravitee.gateway.core.model.Api;
+import io.gravitee.gateway.core.model.ApiLifecycleState;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -43,7 +43,7 @@ public class ApiBuilder {
     }
 
     public ApiBuilder start() {
-        this.api.setState(ApiState.STARTED);
+        this.api.setState(ApiLifecycleState.START);
         return this;
     }
 

@@ -55,7 +55,7 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
 
     @Override
     public ApplicationContext create(Plugin plugin) {
-        LOGGER.info("Create plugin Spring context for {}", plugin.id());
+        LOGGER.info("Create Spring context for plugin: {}", plugin.id());
 
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .addClassLoader(plugin.clazz().getClassLoader())
@@ -63,7 +63,7 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
                 .setScanners(new SubTypesScanner(false), new TypeAnnotationsScanner())
                 .filterInputsBy(new FilterBuilder().includePackage(plugin.clazz().getPackage().getName())));
 
-        LOGGER.info("Looking for @Configuration annotated class in {}", plugin.clazz().getPackage().getName());
+        LOGGER.info("Looking for @Configuration annotated class in package {}", plugin.clazz().getPackage().getName());
         Set<Class<?>> configurations =
                 reflections.getTypesAnnotatedWith(Configuration.class);
 

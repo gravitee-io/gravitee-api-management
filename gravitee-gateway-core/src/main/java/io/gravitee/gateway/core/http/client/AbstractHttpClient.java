@@ -16,7 +16,7 @@
 package io.gravitee.gateway.core.http.client;
 
 import io.gravitee.gateway.api.Request;
-import io.gravitee.model.Api;
+import io.gravitee.gateway.core.model.Api;
 
 import java.net.URI;
 import java.util.Collections;

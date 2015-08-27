@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.handler;
+package io.gravitee.gateway.core.handler.impl;
 
-import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import rx.Observable;
+import io.gravitee.gateway.core.handler.HandlerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Handler extends LifecycleComponent<Handler> {
+public abstract class AbstractHandlerFactory implements HandlerFactory, ApplicationContextAware {
 
-    Observable<Response> handle(Request request, Response response);
+    protected ApplicationContext applicationContext;
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
 }
