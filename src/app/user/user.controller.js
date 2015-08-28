@@ -70,7 +70,7 @@ class UserController {
   }
 }
 
-function DialogTeamController($scope, $mdDialog, TeamService, team) {
+function DialogTeamController($scope, $mdDialog, TeamService, team, NotificationService) {
   'ngInject';
 
   $scope.team = team;
@@ -86,10 +86,11 @@ function DialogTeamController($scope, $mdDialog, TeamService, team) {
 
   $scope.save = function (team) {
     var save = $scope.creationMode ? TeamService.create(team) : TeamService.update(team);
-    save.then(function () {
+    save.then(function (team) {
+      NotificationService.show($scope.creationMode ? 'Team created with success!' : 'Team updated with success!');
       $mdDialog.hide(team);
     }).catch(function (error) {
-      $scope.error = error;
+      NotificationService.show(error.data.message);
     });
   };
 }

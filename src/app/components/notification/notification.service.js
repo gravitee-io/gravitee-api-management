@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function config ($logProvider, $httpProvider) {
-  'ngInject';
-  // Enable log
-  $logProvider.debugEnabled(true);
+class NotificationService {
+  constructor ($mdToast) {
+    'ngInject';
 
-  $httpProvider.defaults.headers.common.Authorization = 'Basic dXNlcjpwYXNzd29yZA==';
+    this.show = function (message) {
+      $mdToast.show(
+        $mdToast.simple()
+          .content(message)
+          .position('bottom right')
+          .hideDelay(3000)
+      );
+    };
+  }
 }
 
-export default config;
+export default NotificationService;
