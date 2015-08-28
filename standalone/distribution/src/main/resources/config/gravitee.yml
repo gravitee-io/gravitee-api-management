@@ -13,4 +13,4 @@ repository:
     port: 27017
 
 security:
-  implementation: basic-auth
+  type: basic-auth

@@ -74,7 +74,7 @@ public class WebAppInitializer implements WebApplicationInitializer {
 		servletRegistration.setInitParameter("javax.ws.rs.Application", GraviteeApplication.class.getName());
 
 		// Spring configuration
-		System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, prop.getProperty("security.implementation", "basic-auth"));
+		System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, prop.getProperty("security.type", "basic-auth"));
 		context.addListener(new ContextLoaderListener());
 		context.setInitParameter("contextClass", AnnotationConfigWebApplicationContext.class.getName());
 		context.setInitParameter("contextConfigLocation", RestConfiguration.class.getName());

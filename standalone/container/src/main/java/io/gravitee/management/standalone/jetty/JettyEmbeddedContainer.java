@@ -52,7 +52,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     @Autowired
     private Server server;
     
-    @Value("${security.implementation:basic-auth}")
+    @Value("${security.type:basic-auth}")
     private String securityImplementation;
 
     @Override
