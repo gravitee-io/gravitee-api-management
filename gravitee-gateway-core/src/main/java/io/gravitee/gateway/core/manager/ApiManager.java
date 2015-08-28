@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.service;
+package io.gravitee.gateway.core.manager;
+
+import io.gravitee.gateway.core.model.Api;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum ApiLifecycleEvent {
-    START,
-    STOP
+public interface ApiManager {
+
+    void add(Api api);
+
+    void update(Api api);
+
+    void remove(Api api);
 }

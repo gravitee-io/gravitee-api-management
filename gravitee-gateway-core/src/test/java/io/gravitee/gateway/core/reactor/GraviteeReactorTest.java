@@ -21,20 +21,18 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.AbstractCoreTest;
 import io.gravitee.gateway.core.builder.ApiBuilder;
 import io.gravitee.gateway.core.event.Event;
+import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.external.ApiExternalResource;
 import io.gravitee.gateway.core.external.ApiServlet;
 import io.gravitee.gateway.core.http.ServerRequest;
 import io.gravitee.gateway.core.http.ServerResponse;
+import io.gravitee.gateway.core.manager.ApiEvent;
 import io.gravitee.gateway.core.model.Api;
 import io.gravitee.gateway.core.plugin.Plugin;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.reporter.ConsoleReporter;
 import io.gravitee.gateway.core.reporter.ReporterManager;
-import io.gravitee.gateway.core.service.ApiLifecycleEvent;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 
@@ -55,29 +53,29 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     @Autowired
     private ReporterManager reporterManager;
 
+    @Autowired
+    private EventManager eventManager;
+
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
+        reactor.doStart();
+    }
+
+    @After
+    public void tearDown() throws Exception {
         reactor.clearHandlers();
+        reactor.doStop();
     }
 
     @Test
-    public void processCorrectRequest() {
-        // Register new API endpoint
-        reactor.onEvent(new Event<ApiLifecycleEvent, Api>() {
-            @Override
-            public Api content() {
-                return new ApiBuilder()
-                        .name("my-team-api")
-                        .origin("http://localhost/team")
-                        .target("http://localhost:8083/myapi")
-                        .build();
-            }
-
-            @Override
-            public ApiLifecycleEvent type() {
-                return ApiLifecycleEvent.START;
-            }
-        });
+    public void processRequest_startedApi() {
+        // Register API endpoint
+        eventManager.publishEvent(ApiEvent.CREATE, new ApiBuilder()
+                .name("my-team-api")
+                .origin("http://localhost/team")
+                .target("http://localhost:8083/myapi")
+                .start()
+                .build());
 
         ServerRequest req = new ServerRequest();
         ServerResponse response = new ServerResponse();
@@ -90,23 +88,32 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     }
 
     @Test
-    public void processNotFoundRequest() {
-        // Register new API endpoint
-        reactor.onEvent(new Event<ApiLifecycleEvent, Api>() {
-            @Override
-            public Api content() {
-                return new ApiBuilder()
-                        .name("my-team-api")
-                        .origin("http://localhost/team")
-                        .target("http://localhost/myapi")
-                        .build();
-            }
+    public void processRequest_notYetStartedApi() {
+        // Register API endpoint
+        eventManager.publishEvent(ApiEvent.CREATE, new ApiBuilder()
+                .name("my-team-api")
+                .origin("http://localhost/team")
+                .target("http://localhost:8083/myapi")
+                .build());
 
-            @Override
-            public ApiLifecycleEvent type() {
-                return ApiLifecycleEvent.START;
-            }
-        });
+        ServerRequest req = new ServerRequest();
+        ServerResponse response = new ServerResponse();
+
+        req.setRequestURI(URI.create("http://localhost/team"));
+        req.setMethod(HttpMethod.GET);
+
+        Response resp = reactor.process(req, response).toBlocking().single();
+        Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
+    }
+
+    @Test
+    public void processNotFoundRequest() {
+        // Register API endpoint
+        eventManager.publishEvent(ApiEvent.CREATE, new ApiBuilder()
+                .name("my-team-api")
+                .origin("http://localhost/team")
+                .target("http://localhost/myapi")
+                .build());
 
         ServerRequest req = new ServerRequest();
         req.setRequestURI(URI.create("http://localhost/unknown_path"));
@@ -136,22 +143,12 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
 //        Reporter reporter = spy(reporterManager.getReporters().iterator().next());
 
-        // Register new API endpoint
-        reactor.onEvent(new Event<ApiLifecycleEvent, Api>() {
-            @Override
-            public Api content() {
-                return new ApiBuilder()
-                        .name("my-team-api")
-                        .origin("http://localhost/team")
-                        .target("http://localhost/myapi")
-                        .build();
-            }
-
-            @Override
-            public ApiLifecycleEvent type() {
-                return ApiLifecycleEvent.START;
-            }
-        });
+        // Register API endpoint
+        eventManager.publishEvent(ApiEvent.CREATE, new ApiBuilder()
+                .name("my-team-api")
+                .origin("http://localhost/team")
+                .target("http://localhost/myapi")
+                .build());
 
         ServerRequest req = new ServerRequest();
         req.setRequestURI(URI.create("http://localhost/unknown_path"));

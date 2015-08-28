@@ -175,6 +175,17 @@ public class SyncManagerTest {
         verify(syncManager, never()).remove(any(io.gravitee.gateway.core.model.Api.class));
     }
 
+    @Test
+    public void test_throwTechnicalException() throws TechnicalException {
+        when(apiRepository.findAll()).thenThrow(TechnicalException.class);
+
+        syncManager.refresh();
+
+        verify(syncManager, never()).add(any(io.gravitee.gateway.core.model.Api.class));
+        verify(syncManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
+        verify(syncManager, never()).remove(any(io.gravitee.gateway.core.model.Api.class));
+    }
+
     private io.gravitee.gateway.core.model.Api convert(io.gravitee.repository.model.Api remoteApi) {
         io.gravitee.gateway.core.model.Api api = new io.gravitee.gateway.core.model.Api();
 
