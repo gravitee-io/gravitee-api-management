@@ -36,7 +36,7 @@ public class SyncManager {
     /**
      * Logger.
      */
-    private final Logger LOGGER = LoggerFactory.getLogger(SyncManager.class);
+    private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
 
     @Autowired
     private ApiRepository apiRepository;
@@ -69,7 +69,7 @@ public class SyncManager {
                         Api remoteApi = apisMap.get(apiName);
 
                         if (cachedApi.getUpdatedAt().before(remoteApi.getUpdatedAt())) {
-                            update(cachedApi);
+                            update(remoteApi);
                         }
                     });
 
@@ -79,24 +79,32 @@ public class SyncManager {
                     .forEach(apiName -> add(apisMap.get(apiName)));
 
         } catch (TechnicalException te) {
-            te.printStackTrace();
+            logger.error("Unable to sync instance", te);
         }
     }
 
     public void remove(Api api) {
-        LOGGER.info("{} has been removed.", api);
+        logger.info("{} has been removed.", api);
 
         cache.remove(api.getName());
     }
 
     public void add(Api api) {
-        LOGGER.info("{} has been added.", api);
+        logger.info("{} has been added.", api);
 
         cache.put(api.getName(), api);
     }
 
     public void update(Api api) {
-        LOGGER.info("{} has been updated.", api);
+        logger.info("{} has been updated.", api);
+
+        Api cachedApi = cache.get(api.getName());
+
+        // Update only if certain fields has been updated:
+        // - Lifecycle
+        // - TargetURL
+        // - PublicURL
+
     }
 
     private Api convert(io.gravitee.repository.model.Api remoteApi) {

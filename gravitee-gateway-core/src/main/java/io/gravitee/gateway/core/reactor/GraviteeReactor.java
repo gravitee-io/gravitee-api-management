@@ -24,11 +24,12 @@ import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.handler.ContextHandler;
 import io.gravitee.gateway.core.handler.Handler;
 import io.gravitee.gateway.core.handler.HandlerFactory;
+import io.gravitee.gateway.core.manager.ApiEvent;
 import io.gravitee.gateway.core.model.Api;
+import io.gravitee.gateway.core.model.ApiLifecycleState;
 import io.gravitee.gateway.core.plugin.PluginManager;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.service.AbstractService;
-import io.gravitee.gateway.core.service.ApiLifecycleEvent;
 import io.gravitee.gateway.core.sync.SyncService;
 import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
@@ -50,9 +51,9 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public abstract class GraviteeReactor<T> extends AbstractService implements
-        Reactor<T>, EventListener<ApiLifecycleEvent, Api>, ApplicationContextAware {
+        Reactor<T>, EventListener<ApiEvent, Api>, ApplicationContextAware {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(GraviteeReactor.class);
+    private final Logger logger = LoggerFactory.getLogger(GraviteeReactor.class);
 
     @Autowired
     private EventManager eventManager;
@@ -117,33 +118,43 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
     }
 
     @Override
-    public void onEvent(Event<ApiLifecycleEvent, Api> event) {
+    public void onEvent(Event<ApiEvent, Api> event) {
         switch(event.type()) {
-            case START:
+            case CREATE:
                 addHandler(event.content());
                 break;
-            case STOP:
+            case UPDATE:
+                removeHandler(event.content());
+                addHandler(event.content());
+                break;
+            case REMOVE:
                 removeHandler(event.content());
                 break;
         }
     }
 
     public void addHandler(Api api) {
-        LOGGER.info("API {} has been enabled in reactor", api.getName());
+        if (api.getState() == ApiLifecycleState.START) {
+            logger.info("API {} has been enabled in reactor", api.getName());
 
-        ContextHandler handler = (ContextHandler) handlerFactory.create(api);
-        handlers.putIfAbsent(handler.getContextPath(), handler);
+            ContextHandler handler = (ContextHandler) handlerFactory.create(api);
+            handlers.putIfAbsent(handler.getContextPath(), handler);
+        } else {
+            logger.warn("Api {} is settled has disable in reactor !", api.getName());
+        }
     }
 
     public void removeHandler(Api api) {
-        LOGGER.info("API {} has been disabled (or removed) from reactor", api.getName());
+        logger.info("API {} has been disabled (or removed) from reactor", api.getName());
 
         Handler handler = handlers.remove(api.getPublicURI().getPath());
-        try {
-            handler.stop();
-            handlers.remove(api.getPublicURI().getPath());
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (handler != null) {
+            try {
+                handler.stop();
+                handlers.remove(api.getPublicURI().getPath());
+            } catch (Exception e) {
+                logger.error("Unable to remove reactor handler", e);
+            }
         }
     }
 
@@ -153,7 +164,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
                 handler.stop();
                 handlers.remove(handler.getContextPath());
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Unable to remove reactor handler", e);
             }
         });
     }
@@ -174,7 +185,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
         applicationContext.getBean(PluginManager.class).start();
         applicationContext.getBean(ReporterService.class).start();
 
-        eventManager.subscribeForEvents(this, ApiLifecycleEvent.class);
+        eventManager.subscribeForEvents(this, ApiEvent.class);
 
         applicationContext.getBean(SyncService.class).start();
     }

@@ -37,7 +37,7 @@ public class ScheduledSyncService extends AbstractService implements SyncService
     /**
      * Logger.
      */
-    private final Logger LOGGER = LoggerFactory.getLogger(ScheduledSyncService.class);
+    private final Logger logger = LoggerFactory.getLogger(ScheduledSyncService.class);
 
     @Autowired
     private TaskScheduler scheduler;
@@ -56,7 +56,7 @@ public class ScheduledSyncService extends AbstractService implements SyncService
 
         // Sync must start only when doStart() is invoked, that's the reason why we are not
         // using @Scheduled annotation on doSync() method.
-        LOGGER.info("Sync service has been initialized with cron [{}]", cronTrigger);
+        logger.info("Sync service has been initialized with cron [{}]", cronTrigger);
         scheduler.schedule(this, new CronTrigger(cronTrigger));
     }
 
@@ -70,10 +70,10 @@ public class ScheduledSyncService extends AbstractService implements SyncService
      * This sync phase must be done by all node before starting.
      */
     private void doSync() {
-        LOGGER.info("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
+        logger.info("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
 
         syncStateManager.refresh();
 
-        LOGGER.info("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
+        logger.info("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
     }
 }
