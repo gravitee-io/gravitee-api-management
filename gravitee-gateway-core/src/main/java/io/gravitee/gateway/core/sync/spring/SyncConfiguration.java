@@ -16,8 +16,8 @@
 package io.gravitee.gateway.core.sync.spring;
 
 import io.gravitee.gateway.core.sync.SyncService;
-import io.gravitee.gateway.core.sync.impl.SyncServiceImpl;
-import io.gravitee.gateway.core.sync.impl.SyncStateManager;
+import io.gravitee.gateway.core.sync.impl.ScheduledSyncService;
+import io.gravitee.gateway.core.sync.impl.SyncManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
@@ -33,12 +33,12 @@ public class SyncConfiguration {
 
     @Bean
     public SyncService syncService() {
-        return new SyncServiceImpl();
+        return new ScheduledSyncService();
     }
 
     @Bean
-    public SyncStateManager syncStateManager() {
-        return new SyncStateManager();
+    public SyncManager syncStateManager() {
+        return new SyncManager();
     }
 
     @Bean

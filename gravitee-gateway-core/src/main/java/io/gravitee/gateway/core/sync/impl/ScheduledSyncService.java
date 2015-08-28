@@ -17,9 +17,6 @@ package io.gravitee.gateway.core.sync.impl;
 
 import io.gravitee.gateway.core.service.AbstractService;
 import io.gravitee.gateway.core.sync.SyncService;
-import io.gravitee.repository.api.ApiRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,23 +25,19 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
 import java.time.Instant;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Polling sync service.
+ * Scheduled sync service.
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class SyncServiceImpl extends AbstractService implements SyncService, Runnable {
+public class ScheduledSyncService extends AbstractService implements SyncService, Runnable {
 
     /**
-     * Logger
+     * Logger.
      */
-    private final Logger LOGGER = LoggerFactory.getLogger(SyncServiceImpl.class);
-
-    @Autowired
-    private ApiRepository apiRepository;
+    private final Logger LOGGER = LoggerFactory.getLogger(ScheduledSyncService.class);
 
     @Autowired
     private TaskScheduler scheduler;
@@ -53,7 +46,7 @@ public class SyncServiceImpl extends AbstractService implements SyncService, Run
     private String cronTrigger;
 
     @Autowired
-    private SyncStateManager syncStateManager;
+    private SyncManager syncStateManager;
 
     private final AtomicLong counter = new AtomicLong(0);
 
@@ -77,17 +70,10 @@ public class SyncServiceImpl extends AbstractService implements SyncService, Run
      * This sync phase must be done by all node before starting.
      */
     private void doSync() {
-        long count = counter.incrementAndGet();
+        LOGGER.info("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
 
-        LOGGER.info("Synchronization #{} started at {}", count, Instant.now().toString());
+        syncStateManager.refresh();
 
-        try {
-            Set<Api> apis = apiRepository.findAll();
-            apis.stream().forEach(api -> syncStateManager.handle(api));
-        } catch (TechnicalException te) {
-            te.printStackTrace();
-        }
-
-        LOGGER.info("Synchronization #{} ended at {}", count, Instant.now().toString());
+        LOGGER.info("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
     }
 }
