@@ -16,6 +16,9 @@
 package io.gravitee.gateway.core.sync;
 
 import io.gravitee.gateway.core.builder.RepositoryApiBuilder;
+import io.gravitee.gateway.core.event.EventManager;
+import io.gravitee.gateway.core.manager.ApiManager;
+import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.core.model.ApiLifecycleState;
 import io.gravitee.gateway.core.sync.impl.SyncManager;
 import io.gravitee.repository.api.ApiRepository;
@@ -34,7 +37,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.never;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -44,15 +46,21 @@ public class SyncManagerTest {
     @Mock
     private ApiRepository apiRepository;
 
+    private ApiManager apiManager;
+
     private SyncManager syncManager;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        syncManager = new SyncManager();
-        syncManager.setApiRepository(apiRepository);
 
-        syncManager = spy(syncManager);
+        apiManager = spy(new ApiManagerImpl());
+        ((ApiManagerImpl)apiManager).setEventManager(mock(EventManager.class));
+        doNothing().when((ApiManagerImpl) apiManager).enhance(any(io.gravitee.gateway.core.model.Api.class));
+
+        syncManager = spy(new SyncManager());
+        syncManager.setApiRepository(apiRepository);
+        syncManager.setApiManager(apiManager);
     }
 
     @Test
@@ -61,9 +69,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(syncManager, never()).add(any(io.gravitee.gateway.core.model.Api.class));
-        verify(syncManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
-        verify(syncManager, never()).remove(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager, never()).add(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager, never()).remove(any(String.class));
     }
 
     @Test
@@ -74,9 +82,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(syncManager).add(convert(api));
-        verify(syncManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
-        verify(syncManager, never()).remove(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager).add(convert(api));
+        verify(apiManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager, never()).remove(any(String.class));
     }
 
     @Test
@@ -89,9 +97,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(syncManager).add(convert(api));
-        verify(syncManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
-        verify(syncManager, never()).remove(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager).add(convert(api));
+        verify(apiManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager, never()).remove(any(String.class));
     }
 
     @Test
@@ -111,10 +119,10 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(syncManager).add(convert(api));
-        verify(syncManager).add(convert(api2));
-        verify(syncManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
-        verify(syncManager, never()).remove(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager).add(convert(api));
+        verify(apiManager).add(convert(api2));
+        verify(apiManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager, never()).remove(any(String.class));
     }
 
     @Test
@@ -130,11 +138,11 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(syncManager).add(convert(api));
-        verify(syncManager).add(convert(api2));
-        verify(syncManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
-        verify(syncManager).remove(convert(api));
-        verify(syncManager, never()).remove(convert(api2));
+        verify(apiManager).add(convert(api));
+        verify(apiManager).add(convert(api2));
+        verify(apiManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager).remove(api.getName());
+        verify(apiManager, never()).remove(api2.getName());
     }
 
     @Test
@@ -152,9 +160,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(syncManager).add(convert(api));
-        verify(syncManager).update(convert(api));
-        verify(syncManager, never()).remove(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager).add(convert(api));
+        verify(apiManager).update(convert(api));
+        verify(apiManager, never()).remove(any(String.class));
     }
 
     @Test
@@ -170,9 +178,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(syncManager).add(convert(api));
-        verify(syncManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
-        verify(syncManager, never()).remove(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager).add(convert(api));
+        verify(apiManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager, never()).remove(any(String.class));
     }
 
     @Test
@@ -181,9 +189,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(syncManager, never()).add(any(io.gravitee.gateway.core.model.Api.class));
-        verify(syncManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
-        verify(syncManager, never()).remove(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager, never()).add(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager, never()).update(any(io.gravitee.gateway.core.model.Api.class));
+        verify(apiManager, never()).remove(any(String.class));
     }
 
     private io.gravitee.gateway.core.model.Api convert(io.gravitee.repository.model.Api remoteApi) {

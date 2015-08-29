@@ -26,7 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -42,24 +44,44 @@ public class ApiManagerImpl implements ApiManager {
     @Autowired
     private ApiRepository apiRepository;
 
+    private final Map<String, Api> apis = new HashMap<>();
+
     @Override
     public void add(Api api) {
+        logger.debug("{} has been added", api);
         enhance(api);
+        apis.put(api.getName(), api);
         eventManager.publishEvent(ApiEvent.CREATE, api);
     }
 
     @Override
     public void update(Api api) {
+        logger.debug("{} has been updated", api);
+        Api cachedApi = apis.get(api.getName());
+
+        // Update only if certain fields has been updated:
+        // - Lifecycle
+        // - TargetURL
+        // - PublicURL
+
         enhance(api);
+        apis.put(api.getName(), api);
         eventManager.publishEvent(ApiEvent.UPDATE, api);
     }
 
     @Override
-    public void remove(Api api) {
-        eventManager.publishEvent(ApiEvent.REMOVE, api);
+    public void remove(String apiName) {
+        logger.debug("{} has been removed", apiName);
+        apis.remove(apiName);
+        eventManager.publishEvent(ApiEvent.REMOVE, apis.get(apiName));
     }
 
-    private void enhance(Api api) {
+    @Override
+    public Map<String, Api> apis() {
+        return apis;
+    }
+
+    public void enhance(Api api) {
         try {
             List<PolicyConfiguration> policies = apiRepository.findPoliciesByApi(api.getName());
             policies.stream().forEach(new Consumer<PolicyConfiguration>() {
@@ -76,5 +98,13 @@ public class ApiManagerImpl implements ApiManager {
         } catch (TechnicalException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setApiRepository(ApiRepository apiRepository) {
+        this.apiRepository = apiRepository;
+    }
+
+    public void setEventManager(EventManager eventManager) {
+        this.eventManager = eventManager;
     }
 }

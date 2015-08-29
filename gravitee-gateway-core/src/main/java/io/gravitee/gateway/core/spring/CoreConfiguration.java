@@ -18,6 +18,8 @@ package io.gravitee.gateway.core.spring;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.event.impl.EventManagerImpl;
+import io.gravitee.gateway.core.manager.ApiManager;
+import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.ErrorHandler;
 import io.gravitee.gateway.core.reactor.handler.Handler;
@@ -58,6 +60,11 @@ public class CoreConfiguration {
     @Bean
     public EventManager eventManager() {
         return new EventManagerImpl();
+    }
+
+    @Bean
+    public ApiManager apiManager() {
+        return new ApiManagerImpl();
     }
 
     @Bean(name = "errorHandler")
