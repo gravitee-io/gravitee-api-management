@@ -22,7 +22,6 @@ import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.ErrorHandler;
 import io.gravitee.gateway.core.reactor.handler.Handler;
 import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
-import io.gravitee.gateway.core.reactor.handler.spring.HandlerConfiguration;
 import io.gravitee.gateway.core.plugin.spring.PluginConfiguration;
 import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
@@ -31,12 +30,14 @@ import io.gravitee.gateway.core.repository.spring.RepositoryConfiguration;
 import io.gravitee.gateway.core.sync.spring.SyncConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -70,11 +71,11 @@ public class CoreConfiguration {
     }
 
     @Bean
-    public static PropertySourcesPlaceholderConfigurer properties() throws IOException {
+    public static PropertySourcesPlaceholderConfigurer properties(@Qualifier("graviteeProperties") Properties graviteeProperties) throws IOException {
         LOGGER.info("Loading Gravitee placeholder.");
 
         PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-        propertySourcesPlaceholderConfigurer.setProperties(PropertiesConfiguration.graviteeProperties());
+        propertySourcesPlaceholderConfigurer.setProperties(graviteeProperties);
 
         LOGGER.info("Loading Gravitee placeholder. DONE");
 

@@ -44,7 +44,7 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        LOGGER.info("Looking for a repository implementation");
+        LOGGER.info("Looking for a repository implementation: {}", repositoryType);
 
         if (repositoryType == null || repositoryType.isEmpty()) {
             LOGGER.error("No repository.type defined in configuration");
@@ -59,7 +59,7 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
         }
 
         int size = repositories.size();
-        LOGGER.info("\tFound {} {} implementations", size, Repository.class.getSimpleName());
+        LOGGER.info("\tFound {} {} implementation(s)", size, Repository.class.getSimpleName());
 
         DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
         Repository repository  = null;
