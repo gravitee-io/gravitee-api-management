@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global malarkey:false, toastr:false, moment:false */
+/* global malarkey:false, moment:false */
 import config from './index.config';
 
 import routerConfig from './index.route';
