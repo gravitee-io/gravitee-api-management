@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 class LoginController {
-  constructor (LoginService, $location) {
+  constructor (LoginService, $location, $window, $rootScope) {
     'ngInject';
     this.LoginService = LoginService;
     this.$location = $location;
+		this.$window = $window;
+		this.$rootScope = $rootScope;
     this.user = {username:'user', password:'password'};
   }
 
   login() {
     var that = this;
     this.LoginService.login(this.user).then(function() {
+			that.$window.sessionStorage.setItem('GraviteeAuthentication', btoa(that.user.username + ":" + that.user.password));			
+			that.user = {};
+			that.$rootScope.authenticated = true;
       that.$location.path('/');
     }).catch(function () {
+			that.user = {};
+			that.$rootScope.authenticated = false;
       //TODO popup
     });
   }
