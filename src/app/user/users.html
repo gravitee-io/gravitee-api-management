@@ -17,13 +17,19 @@
 -->
 <h1>Gravitee Users Management</h1>
 
-<ul>
-  <li ng-repeat="team in userCtrl.teams">
-    <span class="gravitee-link" ng-click="userCtrl.showSaveTeamModal(team)" ng-bind="team.name"></span>
-    <span class="gravitee-link" ng-click="userCtrl.showSaveTeamModal(team)" ng-bind="team.description"></span>
-    <span class="gravitee-link" ng-click="userCtrl.showSaveTeamModal(team)" ng-bind="team.email"></span>
-  </li>
-</ul>
+
+<table class="gravitee-table">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Email</th>
+  </tr>
+  <tr ng-repeat="team in userCtrl.teams">
+    <td><a ng-bind="team.name" ng-click="userCtrl.showSaveTeamModal(team)" href></a></td>
+    <td ng-bind="team.description"></td>
+    <td ng-bind="team.email"></td>
+  </tr>
+</table>
 
 <md-button ng-click="userCtrl.showSaveTeamModal()" class="md-primary">
   Add a new team
