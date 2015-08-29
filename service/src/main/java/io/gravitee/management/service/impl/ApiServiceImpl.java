@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.model.Owner;
@@ -257,6 +258,7 @@ public class ApiServiceImpl implements ApiService {
         apiEntity.setUpdatedAt(api.getUpdatedAt());
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
+        apiEntity.setState(Lifecycle.State.valueOf(api.getLifecycleState().name()));
 
         final Owner owner = new Owner();
         owner.setLogin(api.getOwner());
