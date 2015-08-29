@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.handler;
+package io.gravitee.gateway.core.reactor.handler;
+
+import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
+import rx.Observable;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiHandlerTest {
+public interface Handler extends LifecycleComponent<Handler> {
+
+    Observable<Response> handle(Request request, Response response);
 }

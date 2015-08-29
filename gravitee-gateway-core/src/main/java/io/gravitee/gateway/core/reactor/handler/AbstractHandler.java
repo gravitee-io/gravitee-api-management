@@ -13,19 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.handler.impl;
+package io.gravitee.gateway.core.reactor.handler;
 
-import io.gravitee.gateway.core.handler.HandlerFactory;
+import io.gravitee.common.component.AbstractLifecycleComponent;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public abstract class AbstractHandlerFactory implements HandlerFactory, ApplicationContextAware {
+public abstract class AbstractHandler extends AbstractLifecycleComponent<Handler> implements Handler, ApplicationContextAware {
 
-    protected ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;
+
+    @Override
+    protected void doStart() throws Exception {
+        // Nothing to do there
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        if (applicationContext != null) {
+            ((ConfigurableApplicationContext)applicationContext).close();
+        }
+    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

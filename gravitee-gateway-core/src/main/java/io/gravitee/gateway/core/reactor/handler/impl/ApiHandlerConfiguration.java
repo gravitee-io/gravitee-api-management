@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.handler.impl;
+package io.gravitee.gateway.core.reactor.handler.impl;
 
-import io.gravitee.gateway.core.handler.ContextHandler;
 import io.gravitee.gateway.core.http.spring.HttpClientConfiguration;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.gateway.core.policy.PolicyResolver;
 import io.gravitee.gateway.core.policy.impl.*;
+import io.gravitee.gateway.core.reactor.handler.ContextHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -46,6 +46,7 @@ public class ApiHandlerConfiguration {
     public PolicyConfigurationFactory policyConfigurationFactory() {
         return new PolicyConfigurationFactoryImpl();
     }
+
     @Bean
     public RequestPolicyChainBuilder requestPolicyChainBuilder() {
         return new RequestPolicyChainBuilder();

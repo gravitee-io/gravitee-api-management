@@ -18,9 +18,11 @@ package io.gravitee.gateway.core.spring;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.event.impl.EventManagerImpl;
-import io.gravitee.gateway.core.handler.ErrorHandler;
-import io.gravitee.gateway.core.handler.Handler;
-import io.gravitee.gateway.core.handler.spring.HandlerConfiguration;
+import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
+import io.gravitee.gateway.core.reactor.handler.ErrorHandler;
+import io.gravitee.gateway.core.reactor.handler.Handler;
+import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
+import io.gravitee.gateway.core.reactor.handler.spring.HandlerConfiguration;
 import io.gravitee.gateway.core.plugin.spring.PluginConfiguration;
 import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
@@ -41,7 +43,7 @@ import java.io.IOException;
  */
 @Configuration
 @Import({RepositoryConfiguration.class, PluginConfiguration.class, PolicyConfiguration.class, ReporterConfiguration.class,
-        PropertiesConfiguration.class, SyncConfiguration.class, HandlerConfiguration.class})
+        PropertiesConfiguration.class, SyncConfiguration.class})
 public class CoreConfiguration {
 
     protected final static Logger LOGGER = LoggerFactory.getLogger(CoreConfiguration.class);
@@ -62,6 +64,10 @@ public class CoreConfiguration {
         return new ErrorHandler();
     }
 
+    @Bean
+    public ContextHandlerFactory handlerFactory() {
+        return new ApiContextHandlerFactory();
+    }
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer properties() throws IOException {

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.handler.impl;
+package io.gravitee.gateway.core.reactor.handler.impl;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.handler.ContextHandler;
+import io.gravitee.gateway.core.reactor.handler.ContextHandler;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.model.Api;
 import io.gravitee.gateway.core.policy.Policy;

@@ -21,9 +21,9 @@ import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.event.Event;
 import io.gravitee.gateway.core.event.EventListener;
 import io.gravitee.gateway.core.event.EventManager;
-import io.gravitee.gateway.core.handler.ContextHandler;
-import io.gravitee.gateway.core.handler.Handler;
-import io.gravitee.gateway.core.handler.HandlerFactory;
+import io.gravitee.gateway.core.reactor.handler.ContextHandler;
+import io.gravitee.gateway.core.reactor.handler.Handler;
+import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.manager.ApiEvent;
 import io.gravitee.gateway.core.model.Api;
 import io.gravitee.gateway.core.model.ApiLifecycleState;
@@ -65,7 +65,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
     private Handler errorHandler;
 
     @Autowired
-    private HandlerFactory handlerFactory;
+    private ContextHandlerFactory contextHandlerFactory;
 
     private final ConcurrentMap<String, ContextHandler> handlers = new ConcurrentHashMap();
 
@@ -137,7 +137,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
         if (api.getState() == ApiLifecycleState.START) {
             logger.info("API {} has been enabled in reactor", api.getName());
 
-            ContextHandler handler = (ContextHandler) handlerFactory.create(api);
+            ContextHandler handler = contextHandlerFactory.create(api);
             handlers.putIfAbsent(handler.getContextPath(), handler);
         } else {
             logger.warn("Api {} is settled has disable in reactor !", api.getName());
@@ -174,8 +174,8 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
         this.applicationContext = applicationContext;
     }
 
-    public void setHandlerFactory(HandlerFactory handlerFactory) {
-        this.handlerFactory = handlerFactory;
+    public void setContextHandlerFactory(ContextHandlerFactory contextHandlerFactory) {
+        this.contextHandlerFactory = contextHandlerFactory;
     }
 
     @Override
