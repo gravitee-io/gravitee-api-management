@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* global document:false */
 class ApiController {
   constructor (ApiService, $stateParams, PolicyService, $mdDialog) {
     'ngInject';
@@ -102,7 +103,6 @@ function DialogApiController($scope, $mdDialog, ApiService, TeamService) {
     ApiService.create(api, $scope.team).then(function () {
       $mdDialog.hide(api);
     }).catch(function (error) {
-      console.log(error)
       $scope.error = error;
     });
   };

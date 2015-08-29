@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global malarkey:false, toastr:false, moment:false */
+/* global malarkey:false, moment:false */
 import config from './index.config';
 
 import routerConfig from './index.route';
@@ -33,10 +33,10 @@ import LoginController from './login/login.controller';
 import GraviteeContributorService from './components/graviteeContributor/graviteeContributor.service';
 import NavbarDirective from './components/navbar/navbar.directive';
 import GraviteeContributorDirective from './components/graviteeContributor/graviteeContributor.directive';
+import NotificationService from './components/notification/notification.service';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists'])
   .constant('malarkey', malarkey)
-  .constant('toastr', toastr)
   .constant('moment', moment)
   .constant('baseURL', 'http://localhost:8082/')
   .config(config)
@@ -55,6 +55,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists'])
   .service('UserService', UserService)
   .controller('UserController', UserController)
   .service('LoginService', LoginService)
+  .service('NotificationService', NotificationService)
   .controller('LoginController', LoginController)
   .directive('graviteeNavbar', () => new NavbarDirective())
   .directive('graviteeContributor', () => new GraviteeContributorDirective(malarkey));

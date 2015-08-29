@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 class MainController {
-  constructor ($timeout, toastr) {
+  constructor ($timeout) {
     'ngInject';
     this.classAnimation = '';
-    this.toastr = toastr;
 
     this.activate($timeout);
   }
