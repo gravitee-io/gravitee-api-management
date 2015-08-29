@@ -30,9 +30,7 @@ import UserService from './user/user.service';
 import UserController from './user/user.controller';
 import LoginService from './login/login.service';
 import LoginController from './login/login.controller';
-import GraviteeContributorService from './components/graviteeContributor/graviteeContributor.service';
 import NavbarDirective from './components/navbar/navbar.directive';
-import GraviteeContributorDirective from './components/graviteeContributor/graviteeContributor.directive';
 import NotificationService from './components/notification/notification.service';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists'])
@@ -46,7 +44,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists'])
   .config(interceptorConfig)
 
   .run(runBlock)
-  .service('graviteeContributorService', GraviteeContributorService)
   .controller('MainController', MainController)
   .service('ApiService', ApiService)
   .controller('ApiController', ApiController)
@@ -57,5 +54,4 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists'])
   .service('LoginService', LoginService)
   .service('NotificationService', NotificationService)
   .controller('LoginController', LoginController)
-  .directive('graviteeNavbar', () => new NavbarDirective())
-  .directive('graviteeContributor', () => new GraviteeContributorDirective(malarkey));
+  .directive('graviteeNavbar', () => new NavbarDirective());

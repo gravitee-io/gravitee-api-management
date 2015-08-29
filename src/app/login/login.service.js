@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* global btoa:false */
 class LoginService {
 
-  constructor($http, $rootScope, baseURL) {
+  constructor($http, baseURL) {
     'ngInject';
     this.$http = $http;
-		this.$rootScope = $rootScope;
     this.loginURL = baseURL + 'login/';
   }
 
@@ -29,7 +29,7 @@ class LoginService {
 		  headers: {
 			  'Authorization': "Basic " + btoa(user.username + ":" + user.password)
 		  }
-		}
+		};
 		return this.$http(req);
   }
 }

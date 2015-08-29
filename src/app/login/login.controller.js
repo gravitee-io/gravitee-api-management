@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* global btoa:false */
 class LoginController {
-  constructor (LoginService, $location, $window, $rootScope) {
+  constructor (LoginService, $location, $window, $rootScope, NotificationService) {
     'ngInject';
     this.LoginService = LoginService;
+    this.NotificationService = NotificationService;
     this.$location = $location;
 		this.$window = $window;
 		this.$rootScope = $rootScope;
@@ -33,7 +35,7 @@ class LoginController {
     }).catch(function () {
 			that.user = {};
 			that.$rootScope.authenticated = false;
-      //TODO popup
+      that.NotificationService.show("Wrong user or password!");
     });
   }
 }
