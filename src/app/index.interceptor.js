@@ -20,7 +20,7 @@ function interceptorConfig ($httpProvider) {
     return {
       responseError: function (response) {
         if (!response || response.status === 401) {
-          //$location.path('/login');
+          $location.path('/login');
         }
         return $q.reject(response);
       }

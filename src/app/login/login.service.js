@@ -15,14 +15,22 @@
  */
 class LoginService {
 
-  constructor($http, baseURL) {
+  constructor($http, $rootScope, baseURL) {
     'ngInject';
     this.$http = $http;
+		this.$rootScope = $rootScope;
     this.loginURL = baseURL + 'login/';
   }
 
   login(user) {
-    return this.$http.post(this.loginURL, user);
+		var req = {
+		  method: 'POST',
+		  url: this.loginURL,
+		  headers: {
+			  'Authorization': "Basic " + btoa(user.username + ":" + user.password)
+		  }
+		}
+		return this.$http(req);
   }
 }
 
