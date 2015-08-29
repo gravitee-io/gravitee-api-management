@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.handler.spring;
+package io.gravitee.gateway.core.reactor.handler;
 
-import io.gravitee.gateway.core.handler.HandlerFactory;
-import io.gravitee.gateway.core.handler.impl.ApiHandlerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.gravitee.gateway.core.model.Api;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Configuration
-public class HandlerConfiguration {
+public interface ContextHandlerFactory {
 
-    @Bean
-    public HandlerFactory handlerFactory() {
-        return new ApiHandlerFactory();
-    }
+    ContextHandler create(Api api);
 }

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.handler.impl;
+package io.gravitee.gateway.core.reactor.handler.impl;
 
-import io.gravitee.gateway.core.handler.ContextHandler;
-import io.gravitee.gateway.core.handler.Handler;
+import io.gravitee.gateway.core.reactor.handler.ContextHandler;
+import io.gravitee.gateway.core.reactor.handler.Handler;
 import io.gravitee.gateway.core.model.Api;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -27,10 +27,10 @@ import java.util.Properties;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiHandlerFactory extends AbstractHandlerFactory {
+public class ApiContextHandlerFactory extends AbstractContextHandlerFactory {
 
     @Override
-    public Handler create(Api api) {
+    public ContextHandler create(Api api) {
         AbstractApplicationContext internalApplicationContext = createApplicationContext(api);
         return internalApplicationContext.getBean(ContextHandler.class);
     }

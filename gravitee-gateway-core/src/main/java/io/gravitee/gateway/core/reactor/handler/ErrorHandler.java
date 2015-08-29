@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.handler;
+package io.gravitee.gateway.core.reactor.handler;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;

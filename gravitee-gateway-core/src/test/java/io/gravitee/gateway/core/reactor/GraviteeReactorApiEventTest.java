@@ -19,7 +19,7 @@ import io.gravitee.gateway.core.AbstractCoreTest;
 import io.gravitee.gateway.core.builder.ApiBuilder;
 import io.gravitee.gateway.core.event.Event;
 import io.gravitee.gateway.core.event.impl.SimpleEvent;
-import io.gravitee.gateway.core.handler.impl.ApiHandlerFactory;
+import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
 import io.gravitee.gateway.core.manager.ApiEvent;
 import io.gravitee.gateway.core.model.Api;
 import org.junit.Before;
@@ -33,15 +33,15 @@ import static org.mockito.Mockito.*;
 public class GraviteeReactorApiEventTest extends AbstractCoreTest {
 
     private GraviteeReactor reactor;
-    private ApiHandlerFactory handlerFactory;
+    private ApiContextHandlerFactory handlerFactory;
 
     @Before
     public void setUp() {
         reactor = spy(new AsyncGraviteeReactor());
 
-        handlerFactory = spy(new ApiHandlerFactory());
+        handlerFactory = spy(new ApiContextHandlerFactory());
         handlerFactory.setApplicationContext(applicationContext);
-        reactor.setHandlerFactory(handlerFactory);
+        reactor.setContextHandlerFactory(handlerFactory);
         reactor.setApplicationContext(applicationContext);
     }
 

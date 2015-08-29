@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.handler;
-
-import io.gravitee.gateway.core.model.Api;
+package io.gravitee.gateway.core.reactor.handler;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface HandlerFactory {
-
-    Handler create(Api api);
+public class ApiHandlerTest {
 }
