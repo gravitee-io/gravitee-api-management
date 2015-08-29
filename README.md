@@ -55,6 +55,30 @@ repository:
     port: 27017
 
 security:
-  implementation: basic-auth
+  type: basic-auth
+  authentication-manager:
+    authentication-providers:
+      size: 2
+      authentication-provider-1:
+        type: ldap
+        managerDn: test
+        managerPassword: test
+        url: ldap://localhost:389
+      authentication-provider-2:
+        type: memory
+        users:
+          size: 2
+          user-1:
+            username: user
+            password: password
+            roles: USER
+          user-2:
+            username: admin
+            password: admin
+            roles: USER
 ```
 Subfolders (plugins, apis, ...) must be created before start the application.
+
+LDAP Embedded Server :
+
+User account : ben/benspassword

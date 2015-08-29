@@ -15,19 +15,13 @@
  */
 package io.gravitee.management.rest.resource;
 
-import javax.inject.Inject;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.apache.commons.codec.binary.Base64;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.AuthorityUtils;
+import javax.ws.rs.core.SecurityContext;
 
 /**
  * 
@@ -37,23 +31,12 @@ import org.springframework.security.core.authority.AuthorityUtils;
 @Path("/login")
 public class LoginResource extends AbstractResource {
 
-	@Inject
-	private AuthenticationManager authenticationManager;
+	@Context
+	private SecurityContext securityContext;
 
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response login(@HeaderParam("Authorization") String authorization) {
-		try {
-			String base64Credentials = authorization.substring("Basic".length()).trim();
-			String authorizationDecode = new String(Base64.decodeBase64(base64Credentials));
-			String[] auth = authorizationDecode.split(":");
-			String username = auth[0];
-			String password = auth[1];
-
-			Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password, AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER")));
-			return Response.ok(authentication.getPrincipal(), MediaType.APPLICATION_JSON).build();
-		} catch (Exception e) {
-			return Response.status(Response.Status.UNAUTHORIZED).entity("Bad credentials").build();
-		}
+	public Response login() {
+			return Response.ok(securityContext.getUserPrincipal(), MediaType.APPLICATION_JSON).build();
 	}
 }

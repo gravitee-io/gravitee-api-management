@@ -15,21 +15,24 @@
  */
 package io.gravitee.management.security.adapter;
 
-import io.gravitee.management.security.filter.CORSFilter;
+import java.util.Properties;
 
 import javax.servlet.Filter;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+
+import io.gravitee.management.security.filter.CORSFilter;
 
 /**
  * 
@@ -39,13 +42,44 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 @Configuration
 @Profile("basic-auth")
 @EnableWebSecurity
-@ImportResource("classpath:/spring/gravitee-io-management-rest-api-security-context.xml")
+//@ImportResource("classpath:/spring/gravitee-io-management-rest-api-security-context.xml")
 public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-
-	@Bean(name = "graviteeAuthenticationManager")
-	@Override
+	
+	@Autowired
+	private Properties graviteeProperties;
+	
+	@Bean(name="authenticationManager")
+    @Override
 	public AuthenticationManager authenticationManagerBean() throws Exception {
 		return super.authenticationManagerBean();
+	}
+	
+	@Autowired
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		int authenticationProviderSize = (int) graviteeProperties.get("security.authentication-manager.authentication-providers.size");
+		for (int i = 1; i <= authenticationProviderSize; i++) {
+			String authenticationProviderType = (String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".type");
+			switch (authenticationProviderType) {
+				case "memory" :
+					int userSize = (int) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.size");
+					for (int j = 1; j <= userSize; j++) {
+						String username = (String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.user-"+j+".username");
+						String password = (String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.user-"+j+".password");
+						String roles = (String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.user-"+j+".roles");
+						auth.inMemoryAuthentication().withUser(username).password(password).roles(roles);
+					}
+					break;
+				case "ldap" :
+					auth
+					.ldapAuthentication()
+						.userDnPatterns("uid={0},ou=people")
+						.groupSearchBase("ou=groups")
+						.contextSource().ldif("classpath:/spring/gravitee-io-management-rest-api-ldap-test.ldif");
+					break;
+				default:
+			}
+		}
 	}
 	
 	/*
@@ -68,7 +102,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 			.and()
 				.authorizeRequests()
 					.antMatchers(HttpMethod.OPTIONS, "**").permitAll()
-					.anyRequest().hasRole("USER")
+					.anyRequest().authenticated()
 			.and()
 				.csrf()
 					.disable()
