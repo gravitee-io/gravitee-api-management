@@ -59,14 +59,19 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.httpBasic().realmName("Gravitee Management API")
-			.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			.and().authorizeRequests()
-			.antMatchers(HttpMethod.OPTIONS, "**").permitAll()
-			.antMatchers("/login").permitAll()
-			.anyRequest().hasRole("USER")
-			.and().csrf().disable()
+		http
+			.httpBasic()
+				.realmName("Gravitee Management API")
+			.and()
+				.sessionManagement()
+					.sessionCreationPolicy(SessionCreationPolicy.NEVER)
+			.and()
+				.authorizeRequests()
+					.antMatchers(HttpMethod.OPTIONS, "**").permitAll()
+					.anyRequest().hasRole("USER")
+			.and()
+				.csrf()
+					.disable()
 			.addFilterAfter(corsFilter(), AbstractPreAuthenticatedProcessingFilter.class);
-
 	}
 }
