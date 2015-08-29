@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.sync.impl;
 
+import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.gateway.core.model.Api;
 import io.gravitee.gateway.core.model.ApiLifecycleState;
 import io.gravitee.repository.api.ApiRepository;
@@ -23,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,9 +41,11 @@ public class SyncManager {
     @Autowired
     private ApiRepository apiRepository;
 
-    private final Map<String, Api> cache = new HashMap<>();
+    @Autowired
+    private ApiManager apiManager;
 
     public void refresh() {
+        logger.debug("Refreshing gateway state...");
         try {
             Set<io.gravitee.repository.model.Api> apis = apiRepository.findAll();
 
@@ -52,59 +54,35 @@ public class SyncManager {
                     .collect(Collectors.toMap(Api::getName, api -> api));
 
             // Determine APIs to remove
-            Set<String> apiToRemove = cache.keySet().stream()
+            Set<String> apiToRemove = apiManager.apis().keySet().stream()
                     .filter(apiName -> !apisMap.containsKey(apiName))
                     .collect(Collectors.toSet());
 
-            apiToRemove.stream().forEach(apiName -> remove(cache.get(apiName)));
+            apiToRemove.stream().forEach(apiName -> apiManager.remove(apiName));
 
             // Determine APIs to update
             apisMap.keySet().stream()
-                    .filter(apiName -> cache.containsKey(apiName))
+                    .filter(apiName -> apiManager.apis().containsKey(apiName))
                     .forEach(apiName -> {
                         // Get local cached API
-                        Api cachedApi = cache.get(apiName);
+                        Api cachedApi = apiManager.apis().get(apiName);
 
                         // Get API from store
                         Api remoteApi = apisMap.get(apiName);
 
                         if (cachedApi.getUpdatedAt().before(remoteApi.getUpdatedAt())) {
-                            update(remoteApi);
+                            apiManager.update(remoteApi);
                         }
                     });
 
             // Determine APIs to create
             apisMap.keySet().stream()
-                    .filter(apiName -> !cache.containsKey(apiName))
-                    .forEach(apiName -> add(apisMap.get(apiName)));
+                    .filter(apiName -> !apiManager.apis().containsKey(apiName))
+                    .forEach(apiName -> apiManager.add(apisMap.get(apiName)));
 
         } catch (TechnicalException te) {
             logger.error("Unable to sync instance", te);
         }
-    }
-
-    public void remove(Api api) {
-        logger.info("{} has been removed.", api);
-
-        cache.remove(api.getName());
-    }
-
-    public void add(Api api) {
-        logger.info("{} has been added.", api);
-
-        cache.put(api.getName(), api);
-    }
-
-    public void update(Api api) {
-        logger.info("{} has been updated.", api);
-
-        Api cachedApi = cache.get(api.getName());
-
-        // Update only if certain fields has been updated:
-        // - Lifecycle
-        // - TargetURL
-        // - PublicURL
-
     }
 
     private Api convert(io.gravitee.repository.model.Api remoteApi) {
@@ -122,5 +100,9 @@ public class SyncManager {
 
     public void setApiRepository(ApiRepository apiRepository) {
         this.apiRepository = apiRepository;
+    }
+
+    public void setApiManager(ApiManager apiManager) {
+        this.apiManager = apiManager;
     }
 }

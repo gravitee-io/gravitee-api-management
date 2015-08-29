@@ -17,6 +17,8 @@ package io.gravitee.gateway.core.manager;
 
 import io.gravitee.gateway.core.model.Api;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -26,5 +28,7 @@ public interface ApiManager {
 
     void update(Api api);
 
-    void remove(Api api);
+    void remove(String apiName);
+
+    Map<String, Api> apis();
 }
