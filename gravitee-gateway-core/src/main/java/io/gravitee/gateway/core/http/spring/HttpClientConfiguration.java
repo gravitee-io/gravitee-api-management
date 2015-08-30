@@ -37,4 +37,11 @@ public class HttpClientConfiguration {
     public AHCHttpConfiguration ahcHttpConfiguration() {
         return new AHCHttpConfiguration();
     }
+
+    /*
+    @Bean
+    public HttpClient httpClient(Api api) {
+        return new JettyHttpClient(api);
+    }
+    */
 }
