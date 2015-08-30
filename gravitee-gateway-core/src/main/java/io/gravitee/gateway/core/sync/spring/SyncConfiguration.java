@@ -44,7 +44,8 @@ public class SyncConfiguration {
     @Bean
     public TaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setPoolSize(10);
+        scheduler.setThreadNamePrefix("sync-");
+        scheduler.setPoolSize(2);
         return scheduler;
     }
 }
