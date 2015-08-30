@@ -202,7 +202,7 @@ public class SyncManagerTest {
         api.setTargetURI(remoteApi.getTargetURI());
         api.setCreatedAt(remoteApi.getCreatedAt());
         api.setUpdatedAt(remoteApi.getUpdatedAt());
-        api.setState(ApiLifecycleState.START);
+        api.setState(ApiLifecycleState.STARTED);
 
         return api;
     }

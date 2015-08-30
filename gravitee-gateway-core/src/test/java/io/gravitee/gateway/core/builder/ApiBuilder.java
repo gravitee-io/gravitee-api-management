@@ -43,7 +43,7 @@ public class ApiBuilder {
     }
 
     public ApiBuilder start() {
-        this.api.setState(ApiLifecycleState.START);
+        this.api.setState(ApiLifecycleState.STARTED);
         return this;
     }
 

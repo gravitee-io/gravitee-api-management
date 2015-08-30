@@ -134,7 +134,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
     }
 
     public void addHandler(Api api) {
-        if (api.getState() == ApiLifecycleState.START) {
+        if (api.getState() == ApiLifecycleState.STARTED) {
             logger.info("API {} has been enabled in reactor", api.getName());
 
             ContextHandler handler = contextHandlerFactory.create(api);

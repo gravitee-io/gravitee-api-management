@@ -20,5 +20,5 @@ package io.gravitee.gateway.core.model;
  */
 public enum ApiLifecycleState {
 
-    START, STOP;
+    STARTED, STOPPED;
 }
