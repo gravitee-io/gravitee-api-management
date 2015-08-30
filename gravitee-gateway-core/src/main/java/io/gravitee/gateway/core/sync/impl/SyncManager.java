@@ -93,7 +93,7 @@ public class SyncManager {
         api.setTargetURI(remoteApi.getTargetURI());
         api.setCreatedAt(remoteApi.getCreatedAt());
         api.setUpdatedAt(remoteApi.getUpdatedAt());
-        api.setState(ApiLifecycleState.START);
+        api.setState(ApiLifecycleState.valueOf(remoteApi.getLifecycleState().name()));
 
         return api;
     }
