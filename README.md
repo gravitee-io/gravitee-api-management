@@ -61,9 +61,11 @@ security:
       size: 2
       authentication-provider-1:
         type: ldap
-        managerDn: test
-        managerPassword: test
-        url: ldap://localhost:389
+        embedded: true
+        # if embedded is false set the following values 
+        # managerDn: test
+        # managerPassword: test
+        # url: ldap://localhost:389/dc=gravitee,dc=io
       authentication-provider-2:
         type: memory
         users:
@@ -81,4 +83,4 @@ Subfolders (plugins, apis, ...) must be created before start the application.
 
 LDAP Embedded Server :
 
-User account : ben/benspassword
+User accounts : see gravitee-io-management-rest-api-ldap-test.ldif file to get your credentials
