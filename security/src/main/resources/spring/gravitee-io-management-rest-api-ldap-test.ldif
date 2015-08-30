@@ -1,109 +1,103 @@
-dn: ou=groups,dc=springframework,dc=org
+dn: ou=groups,dc=gravitee,dc=io
 objectclass: top
 objectclass: organizationalUnit
 ou: groups
 
-dn: ou=subgroups,ou=groups,dc=springframework,dc=org
+dn: ou=subgroups,ou=groups,dc=gravitee,dc=io
 objectclass: top
 objectclass: organizationalUnit
 ou: subgroups
 
-dn: ou=people,dc=springframework,dc=org
+dn: ou=people,dc=gravitee,dc=io
 objectclass: top
 objectclass: organizationalUnit
 ou: people
 
-dn: ou=space cadets,dc=springframework,dc=org
-objectclass: top
-objectclass: organizationalUnit
-ou: space cadets
-
-dn: ou=\"quoted people\",dc=springframework,dc=org
-objectclass: top
-objectclass: organizationalUnit
-ou: "quoted people"
-
-dn: ou=otherpeople,dc=springframework,dc=org
+dn: ou=otherpeople,dc=gravitee,dc=io
 objectclass: top
 objectclass: organizationalUnit
 ou: otherpeople
 
-dn: uid=ben,ou=people,dc=springframework,dc=org
+dn: uid=abourdon,ou=people,dc=gravitee,dc=io
 objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
-cn: Ben Alex
-sn: Alex
-uid: ben
-userPassword: {SHA}nFCebWjxfaLbHHG1Qk5UU4trbvQ=
+cn: Aurélien Bourdon
+sn: Aurélien
+uid: abourdon
+userPassword: abourdonspassword
 
-dn: uid=bob,ou=people,dc=springframework,dc=org
+dn: uid=aelamrani,ou=people,dc=graviee,dc=io
 objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
-cn: Bob Hamilton
-sn: Hamilton
-uid: bob
-userPassword: bobspassword
+cn: Azize Elamrani
+sn: Azize
+uid: aelamrani
+userPassword: aelamranispassword
 
-dn: uid=joe,ou=otherpeople,dc=springframework,dc=org
+dn: uid=brasseld,ou=people,dc=gravitee,dc=io
 objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
-cn: Joe Smeth
-sn: Smeth
-uid: joe
-userPassword: joespassword
+cn: David Brassely
+sn: David
+uid: brasseld
+userPassword: brasseldspassword
 
-dn: cn=mouse\, jerry,ou=people,dc=springframework,dc=org
+dn: uid=ldassonville,ou=people,dc=gravitee,dc=io
 objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
-cn: Mouse, Jerry
-sn: Mouse
-uid: jerry
-userPassword: jerryspassword
+cn: Loïc Dassonville
+sn: Loïc
+uid: ldassonville
+userPassword: ldassonvillespassword
 
-dn: cn=slash/guy,ou=people,dc=springframework,dc=org
+dn: uid=nfourre,ou=people,dc=gravitee,dc=io
 objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
-cn: slash/guy
-sn: Slash
-uid: slashguy
-userPassword: slashguyspassword
+cn: Nicolas Fourre
+sn: Nicolas F
+uid: nfourre
+userPassword: nfourrespassword
 
-dn: cn=quote\"guy,ou=\"quoted people\",dc=springframework,dc=org
+dn: uid=NicolasGerraud,ou=people,dc=gravitee,dc=io
 objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
-cn: quote\"guy
-sn: Quote
-uid: quoteguy
-userPassword: quoteguyspassword
+cn: Nicolas Geraud
+sn: Nicolas G
+uid: NicolasGerraud
+userPassword: NicolasGerraudspassword
 
-dn: uid=space cadet,ou=space cadets,dc=springframework,dc=org
+dn: uid=tcompiegne,ou=people,dc=gravitee,dc=io
 objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
-cn: Space Cadet
-sn: Cadet
-uid: space cadet
-userPassword: spacecadetspassword
+cn: Titouan Compiegne
+sn: Titouan
+uid: tcompiegne
+userPassword: tcompiegnespassword
 
 
-
-dn: cn=developers,ou=groups,dc=springframework,dc=org
+dn: cn=developers,ou=groups,dc=gravitee,dc=io
 objectclass: top
 objectclass: groupOfNames
-cn: users
-ou: ROLE_USER
-uniqueMember: uid=ben,ou=people,dc=springframework,dc=org
-uniqueMember: uid=bob,ou=people,dc=springframework,dc=org
+cn: developers
+ou: developer
+uniqueMember: uid=abourdon,ou=people,dc=gravitee,dc=io
+uniqueMember: uid=aelamrani,ou=people,dc=gravitee,dc=io
+uniqueMember: uid=brasseld,ou=people,dc=gravitee,dc=io
+uniqueMember: uid=ldassonville,ou=people,dc=gravitee,dc=io
+uniqueMember: uid=nfourre,ou=people,dc=gravitee,dc=io
+uniqueMember: uid=NicolasGerraud,ou=people,dc=gravitee,dc=io
+uniqueMember: uid=tcompiegne,ou=people,dc=gravitee,dc=io

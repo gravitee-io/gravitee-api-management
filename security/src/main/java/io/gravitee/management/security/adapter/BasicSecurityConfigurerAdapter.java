@@ -71,11 +71,21 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 					}
 					break;
 				case "ldap" :
-					auth
-					.ldapAuthentication()
-						.userDnPatterns("uid={0},ou=people")
-						.groupSearchBase("ou=groups")
-						.contextSource().ldif("classpath:/spring/gravitee-io-management-rest-api-ldap-test.ldif");
+					if ((boolean) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".embedded")) {
+						auth
+						.ldapAuthentication()
+							.userDnPatterns("uid={0},ou=people")
+							.groupSearchBase("ou=groups")
+							.contextSource().root("dc=gravitee,dc=io").ldif("classpath:/spring/gravitee-io-management-rest-api-ldap-test.ldif");
+					} else {
+						auth
+						.ldapAuthentication()
+							.userDnPatterns("uid={0},ou=people")
+							.contextSource()
+								.managerDn((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".managerDn"))
+								.managerPassword((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".managerPassword"))
+								.url((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".url"));
+					}
 					break;
 				default:
 			}
