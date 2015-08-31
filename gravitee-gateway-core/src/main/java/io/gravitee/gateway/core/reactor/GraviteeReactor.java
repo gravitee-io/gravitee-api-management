@@ -138,7 +138,12 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
             logger.info("API {} has been enabled in reactor", api.getName());
 
             ContextHandler handler = contextHandlerFactory.create(api);
-            handlers.putIfAbsent(handler.getContextPath(), handler);
+            try {
+                handler.start();
+                handlers.putIfAbsent(handler.getContextPath(), handler);
+            } catch (Exception ex) {
+                logger.error("Unable to add reactor handler", ex);
+            }
         } else {
             logger.warn("Api {} is settled has disable in reactor !", api.getName());
         }

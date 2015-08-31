@@ -97,4 +97,16 @@ public class ApiHandler extends ContextHandler {
     public String getVirtualHost() {
         return api.getPublicURI().getAuthority();
     }
+
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
+        httpClient.start();
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        super.doStop();
+        httpClient.stop();
+    }
 }

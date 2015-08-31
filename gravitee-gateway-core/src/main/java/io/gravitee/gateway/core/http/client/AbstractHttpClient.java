@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.http.client;
 
+import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.model.Api;
 
@@ -27,7 +28,7 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public abstract class AbstractHttpClient implements HttpClient {
+public abstract class AbstractHttpClient extends AbstractLifecycleComponent<HttpClient> implements HttpClient {
 
     protected static final Set<String> HOP_HEADERS;
 
@@ -83,4 +84,13 @@ public abstract class AbstractHttpClient implements HttpClient {
         return newTarget == null ? null : URI.create(newTarget);
     }
 
+    @Override
+    protected void doStart() throws Exception {
+
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+
+    }
 }
