@@ -15,13 +15,11 @@
  */
 package io.gravitee.gateway.platforms.servlet;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,9 +37,10 @@ import rx.Observable;
  */
 public abstract class DispatcherServlet extends HttpServlet {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DispatcherServlet.class);
+	private final Logger logger = LoggerFactory.getLogger(DispatcherServlet.class);
 
 	protected void handle(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+		logger.info("receive request {}", req);
 		// Initialize async processing.
 		final AsyncContext asyncContext = req.startAsync();
 		// We do not timeout the continuation, but the proxy request
@@ -56,7 +55,7 @@ public abstract class DispatcherServlet extends HttpServlet {
 	}
 
     private void handleResult(final HttpServletRequest req, final HttpServletResponse resp, Response response) {
-        LOGGER.debug("Return response: {}", response);
+        logger.debug("Return response: {}", response);
 
         writeResponse(resp, response);
 
@@ -70,14 +69,14 @@ public abstract class DispatcherServlet extends HttpServlet {
 
 			resp.flushBuffer();
         } catch (final IOException e) {
-            LOGGER.error("Error while handling proxy request", e);
+            logger.error("Error while handling proxy request", e);
         }
 
 	    req.getAsyncContext().complete();
     }
 
     private void handleError(final HttpServletRequest req, final HttpServletResponse resp, Throwable throwable) {
-        LOGGER.error("An error occurs: ", throwable);
+        logger.error("An error occurs: ", throwable);
 
         req.getAsyncContext().complete();
     }

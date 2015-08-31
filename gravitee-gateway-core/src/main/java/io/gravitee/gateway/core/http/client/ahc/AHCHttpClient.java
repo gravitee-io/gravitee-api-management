@@ -28,10 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 import rx.Subscriber;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.List;
 import java.util.Locale;
@@ -44,12 +40,14 @@ public class AHCHttpClient extends AbstractHttpClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AHCHttpClient.class);
 
-    private final AsyncHttpClient client;
+    private AsyncHttpClient client;
+
+    private AHCHttpConfiguration configuration;
 
     @Autowired
     public AHCHttpClient(Api api, AHCHttpConfiguration configuration) {
         super(api);
-        client = construct(configuration);
+        this.configuration = configuration;
     }
 
     @Override
@@ -76,7 +74,7 @@ public class AHCHttpClient extends AbstractHttpClient {
 
                                 @Override
                                 public void onThrowable(Throwable t) {
-                                    ((ServerResponse)response).setStatus(502);
+                                    ((ServerResponse) response).setStatus(502);
                                 }
 
                                 @Override
@@ -87,7 +85,7 @@ public class AHCHttpClient extends AbstractHttpClient {
 
                                 @Override
                                 public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
-                                    for(Map.Entry<String, List<String>> header : headers.getHeaders().entrySet()) {
+                                    for (Map.Entry<String, List<String>> header : headers.getHeaders().entrySet()) {
                                         response.headers().put(header.getKey(), header.getValue().iterator().next());
                                     }
 
@@ -96,7 +94,7 @@ public class AHCHttpClient extends AbstractHttpClient {
 
                                 @Override
                                 public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
-                                    ((ServerResponse)response).setStatus(status.getStatusCode());
+                                    ((ServerResponse) response).setStatus(status.getStatusCode());
                                     return STATE.CONTINUE;
                                 }
 
@@ -175,8 +173,6 @@ public class AHCHttpClient extends AbstractHttpClient {
     }
 
     private AsyncHttpClient construct(AHCHttpConfiguration configuration) {
-        LOGGER.info("Use configuration: {}", configuration);
-
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
 
         builder
@@ -191,32 +187,19 @@ public class AHCHttpClient extends AbstractHttpClient {
         return new AsyncHttpClient(builder.build());
     }
 
-    public static String copy(InputStream is) {
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
 
-        BufferedReader br = null;
-        StringBuilder sb = new StringBuilder();
+        LOGGER.info("Initializing AsyncHttpClient for {} with configuration {}", configuration);
+        client = construct(configuration);
+    }
 
-        String line;
-        try {
+    @Override
+    protected void doStop() throws Exception {
+        super.doStop();
 
-            br = new BufferedReader(new InputStreamReader(is));
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return sb.toString();
-
+        LOGGER.info("Close AsyncHttpClient for {}", api);
+        client.close();
     }
 }
