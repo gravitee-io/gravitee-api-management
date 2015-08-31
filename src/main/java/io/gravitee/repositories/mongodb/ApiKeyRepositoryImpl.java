@@ -129,7 +129,7 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 	}
 
 	@Override
-	public Set<ApiKey> findByApi(String apiName) throws TechnicalException {
+	public Set<ApiKey> findByApi(String apiName) {
 		
 		Collection<ApiAssociationMongo> apiAssociationsMongo = internalApiKeyRepo.findByApi(apiName);
 		return map(apiAssociationsMongo);
