@@ -20,14 +20,23 @@ import com.mongodb.MongoClientOptions.Builder;
 import io.gravitee.repositories.mongodb.mapper.GraviteeDozerMapper;
 import io.gravitee.repositories.mongodb.mapper.GraviteeMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Configuration
 @ComponentScan
@@ -107,5 +116,26 @@ public class RepositoryConfiguration extends AbstractMongoConfiguration {
 	@Bean
 	public GraviteeMapper graviteeMapper(){
 		return new GraviteeDozerMapper();
+	}
+
+
+	protected Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {
+
+		String basePackage = getMappingBasePackage();
+		Set<Class<?>> initialEntitySet = new HashSet<Class<?>>();
+
+		if (StringUtils.hasText(basePackage)) {
+			ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(
+					false);
+			componentProvider.addIncludeFilter(new AnnotationTypeFilter(Document.class));
+			componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
+
+			for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
+				initialEntitySet.add(ClassUtils.forName(candidate.getBeanClassName(),
+						this.getClass().getClassLoader()));
+			}
+		}
+
+		return initialEntitySet;
 	}
 }
