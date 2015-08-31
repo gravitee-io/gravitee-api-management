@@ -28,6 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 import rx.Subscriber;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.List;
 import java.util.Locale;
@@ -61,7 +65,9 @@ public class AHCHttpClient extends AbstractHttpClient {
 
                         if (hasContent(request)) {
                             builder.setContentLength((int) request.contentLength());
-                            builder.setBody(request.inputStream());
+                            InputStreamBodyGenerator bodyGenerator = new InputStreamBodyGenerator(
+                                    request.inputStream());
+                            builder.setBody(bodyGenerator);
                         }
 
                         com.ning.http.client.Request proxyRequest = builder.build();
@@ -183,5 +189,34 @@ public class AHCHttpClient extends AbstractHttpClient {
                 .build();
 
         return new AsyncHttpClient(builder.build());
+    }
+
+    public static String copy(InputStream is) {
+
+        BufferedReader br = null;
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        try {
+
+            br = new BufferedReader(new InputStreamReader(is));
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return sb.toString();
+
     }
 }
