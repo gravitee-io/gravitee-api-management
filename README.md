@@ -62,10 +62,20 @@ security:
       authentication-provider-1:
         type: ldap
         embedded: true
+        role-mapping: true		
+        # if embedded is true set the following role mapper LDAP values
+        role-mapper: {
+                ROLE_DEVELOPERS: ROLE_USER,
+                ROLE_MEMBERS: ROLE_USER,
+                ROLE_OWNERS: ROLE_ADMIN
+               }
+        user-dn-patterns: uid={0},ou=people
+        group-search-base: ou=groups
+        context-source-base: dc=gravitee,dc=io
         # if embedded is false set the following values 
-        # managerDn: test
-        # managerPassword: test
-        # url: ldap://localhost:389/dc=gravitee,dc=io
+        # context-source-username: test
+        # context-source-password: test
+        # context-source-url: ldap://localhost:389/dc=gravitee,dc=io
       authentication-provider-2:
         type: memory
         users:
@@ -77,7 +87,7 @@ security:
           user-2:
             username: admin
             password: admin
-            roles: USER
+            roles: ADMIN
 ```
 Subfolders (plugins, apis, ...) must be created before start the application.
 

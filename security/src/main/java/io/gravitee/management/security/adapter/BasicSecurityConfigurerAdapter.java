@@ -15,6 +15,10 @@
  */
 package io.gravitee.management.security.adapter;
 
+import io.gravitee.management.security.authentication.AuthenticationProviderType;
+import io.gravitee.management.security.filter.CORSFilter;
+import io.gravitee.management.security.ldap.UserDetailsContextPropertiesMapper;
+
 import java.util.Properties;
 
 import javax.servlet.Filter;
@@ -24,15 +28,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
-
-import io.gravitee.management.security.filter.CORSFilter;
 
 /**
  * 
@@ -42,17 +45,10 @@ import io.gravitee.management.security.filter.CORSFilter;
 @Configuration
 @Profile("basic-auth")
 @EnableWebSecurity
-//@ImportResource("classpath:/spring/gravitee-io-management-rest-api-security-context.xml")
 public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 	
 	@Autowired
 	private Properties graviteeProperties;
-	
-	@Bean(name="authenticationManager")
-    @Override
-	public AuthenticationManager authenticationManagerBean() throws Exception {
-		return super.authenticationManagerBean();
-	}
 	
 	@Autowired
 	@Override
@@ -60,8 +56,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 		int authenticationProviderSize = (int) graviteeProperties.get("security.authentication-manager.authentication-providers.size");
 		for (int i = 1; i <= authenticationProviderSize; i++) {
 			String authenticationProviderType = (String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".type");
-			switch (authenticationProviderType) {
-				case "memory" :
+			switch (AuthenticationProviderType.valueOf(authenticationProviderType.toUpperCase())) {
+				case MEMORY :
 					int userSize = (int) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.size");
 					for (int j = 1; j <= userSize; j++) {
 						String username = (String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.user-"+j+".username");
@@ -70,21 +66,28 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 						auth.inMemoryAuthentication().withUser(username).password(password).roles(roles);
 					}
 					break;
-				case "ldap" :
+				case LDAP :
+					LdapAuthenticationProviderConfigurer<AuthenticationManagerBuilder> ldapAuthenticationProviderConfigurer = auth.ldapAuthentication();
+					ldapAuthenticationProviderConfigurer.userDnPatterns((String) graviteeProperties.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".user-dn-patterns","uid={0},ou=people"));
+					ldapAuthenticationProviderConfigurer.groupSearchBase((String) graviteeProperties.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".group-search-base","ou=groups"));
+					// set up embedded mode
 					if ((boolean) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".embedded")) {
-						auth
-						.ldapAuthentication()
-							.userDnPatterns("uid={0},ou=people")
-							.groupSearchBase("ou=groups")
-							.contextSource().root("dc=gravitee,dc=io").ldif("classpath:/spring/gravitee-io-management-rest-api-ldap-test.ldif");
+						ldapAuthenticationProviderConfigurer.contextSource()
+							.root((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-base"))
+							.ldif("classpath:/spring/gravitee-io-management-rest-api-ldap-test.ldif");
 					} else {
-						auth
-						.ldapAuthentication()
-							.userDnPatterns("uid={0},ou=people")
-							.contextSource()
-								.managerDn((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".managerDn"))
-								.managerPassword((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".managerPassword"))
-								.url((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".url"));
+						ldapAuthenticationProviderConfigurer.contextSource()
+							.root((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-base"))
+							.managerDn((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-username"))
+							.managerPassword((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-url"))
+							.url((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".url"));
+					}
+					// set up roles mapper
+					if ((boolean) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".role-mapping")) {
+						UserDetailsContextMapper userDetailsContextPropertiesMapper = new UserDetailsContextPropertiesMapper();
+						((UserDetailsContextPropertiesMapper) userDetailsContextPropertiesMapper).setAuthenticationProviderId(i);
+						((UserDetailsContextPropertiesMapper) userDetailsContextPropertiesMapper).setProperties(graviteeProperties);
+						ldapAuthenticationProviderConfigurer.userDetailsContextMapper(userDetailsContextPropertiesMapper);
 					}
 					break;
 				default:
