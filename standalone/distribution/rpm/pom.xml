@@ -42,8 +42,8 @@
 			<version>${project.version}</version>
 			<type>pom</type>
 		</dependency>
-
 	</dependencies>
+	
 	<profiles>
 		<profile>
 			<id>dist</id>
@@ -86,6 +86,7 @@
 										<!-- Add binaries -->
 										<mapping>
 											<directory>${packaging.gravitee.management.bin.dir}/</directory>
+											<filemode>555</filemode>
 											<configuration>noreplace</configuration>
 											<sources>
 												<source>
