@@ -63,7 +63,7 @@ security:
         type: ldap
         embedded: true
         role-mapping: true		
-        # if embedded is true set the following role mapper LDAP values
+        # if role-mapping is true set the following role mapper LDAP values
         role-mapper: {
                 ROLE_DEVELOPERS: ROLE_USER,
                 ROLE_MEMBERS: ROLE_USER,
