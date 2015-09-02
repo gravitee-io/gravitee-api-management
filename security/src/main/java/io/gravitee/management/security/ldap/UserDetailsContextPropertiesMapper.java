@@ -23,7 +23,6 @@ import java.util.Properties;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
@@ -49,7 +48,6 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 	
 	private int authenticationProviderId;
 	
-	@Autowired
 	private Properties graviteeProperties;
 
 	@Override
