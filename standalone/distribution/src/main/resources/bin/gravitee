@@ -26,6 +26,13 @@ if [ "$linux" = "true" ]; then
    JAVA_OPTS="$JAVA_OPTS -Djava.net.preferIPv4Stack=true"
 fi
 
+# Searching for configuration 
+GRAVITEE_OPTS=""
+if [ -f "/etc/gravitee-management/gravitee.yml" ]
+then
+	GRAVITEE_OPTS="-Dgravitee.conf=/etc/gravitee-management/gravitee.yml"
+fi
+
 # Setup GRAVITEE_HOME
 if [ "x$GRAVITEE_HOME" = "x" ]; then
     # get the full path (without any relative bits)
@@ -62,6 +69,8 @@ echo ""
 echo "  Gravitee.IO Management Standalone Runtime Bootstrap Environment"
 echo ""
 echo "  GRAVITEE_HOME: $GRAVITEE_HOME"
+echo ""
+echo "  GRAVITEE_OPTS: $GRAVITEE_OPTS"
 echo ""
 echo "  JAVA: $JAVA"
 echo ""
