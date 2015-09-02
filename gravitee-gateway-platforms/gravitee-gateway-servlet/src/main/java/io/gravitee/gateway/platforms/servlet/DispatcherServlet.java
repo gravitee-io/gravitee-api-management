@@ -40,7 +40,8 @@ public abstract class DispatcherServlet extends HttpServlet {
 	private final Logger logger = LoggerFactory.getLogger(DispatcherServlet.class);
 
 	protected void handle(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-		logger.info("receive request {}", req);
+		logger.debug("Receive request {}", req);
+		
 		// Initialize async processing.
 		final AsyncContext asyncContext = req.startAsync();
 		// We do not timeout the continuation, but the proxy request
