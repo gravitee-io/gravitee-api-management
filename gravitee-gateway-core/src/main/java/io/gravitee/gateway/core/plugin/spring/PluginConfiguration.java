@@ -15,12 +15,8 @@
  */
 package io.gravitee.gateway.core.plugin.spring;
 
-import io.gravitee.gateway.core.plugin.ClassLoaderFactory;
 import io.gravitee.gateway.core.plugin.PluginContextFactory;
-import io.gravitee.gateway.core.plugin.PluginManager;
-import io.gravitee.gateway.core.plugin.impl.ClassLoaderFactoryImpl;
 import io.gravitee.gateway.core.plugin.impl.PluginContextFactoryImpl;
-import io.gravitee.gateway.core.plugin.impl.PluginManagerImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PluginConfiguration {
 
+    /*
     @Bean
     public PluginManager pluginManager() {
         return new PluginManagerImpl();
@@ -39,6 +36,7 @@ public class PluginConfiguration {
     public ClassLoaderFactory classLoaderFactory() {
         return new ClassLoaderFactoryImpl();
     }
+    */
 
     @Bean
     public PluginContextFactory pluginContextFactory() {

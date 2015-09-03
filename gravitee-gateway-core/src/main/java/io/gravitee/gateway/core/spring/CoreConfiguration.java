@@ -24,12 +24,12 @@ import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.ErrorHandler;
 import io.gravitee.gateway.core.reactor.handler.Handler;
 import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
-import io.gravitee.gateway.core.plugin.spring.PluginConfiguration;
 import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
 import io.gravitee.gateway.core.reporter.spring.ReporterConfiguration;
 import io.gravitee.gateway.core.repository.spring.RepositoryConfiguration;
 import io.gravitee.gateway.core.sync.spring.SyncConfiguration;
+import io.gravitee.plugin.spring.PluginConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,7 +45,7 @@ import java.util.Properties;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@Import({RepositoryConfiguration.class, PluginConfiguration.class, PolicyConfiguration.class, ReporterConfiguration.class,
+@Import({RepositoryConfiguration.class, PluginConfiguration.class, io.gravitee.gateway.core.plugin.spring.PluginConfiguration.class, PolicyConfiguration.class, ReporterConfiguration.class,
         PropertiesConfiguration.class, SyncConfiguration.class})
 public class CoreConfiguration {
 
