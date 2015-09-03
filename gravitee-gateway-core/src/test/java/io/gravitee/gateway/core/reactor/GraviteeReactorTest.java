@@ -15,19 +15,17 @@
  */
 package io.gravitee.gateway.core.reactor;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.AbstractCoreTest;
 import io.gravitee.gateway.core.builder.ApiBuilder;
-import io.gravitee.gateway.core.event.Event;
-import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.external.ApiExternalResource;
 import io.gravitee.gateway.core.external.ApiServlet;
 import io.gravitee.gateway.core.http.ServerRequest;
 import io.gravitee.gateway.core.http.ServerResponse;
 import io.gravitee.gateway.core.manager.ApiEvent;
-import io.gravitee.gateway.core.model.Api;
 import io.gravitee.gateway.core.plugin.Plugin;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.reporter.ConsoleReporter;

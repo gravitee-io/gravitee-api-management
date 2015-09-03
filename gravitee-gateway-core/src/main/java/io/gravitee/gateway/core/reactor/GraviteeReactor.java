@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.core.reactor;
 
+import io.gravitee.common.event.Event;
+import io.gravitee.common.event.EventListener;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.event.Event;
-import io.gravitee.gateway.core.event.EventListener;
-import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.manager.ApiEvent;
 import io.gravitee.gateway.core.model.Api;
 import io.gravitee.gateway.core.model.ApiLifecycleState;
@@ -30,7 +30,7 @@ import io.gravitee.gateway.core.reactor.handler.Handler;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.service.AbstractService;
 import io.gravitee.gateway.core.sync.SyncService;
-import io.gravitee.plugin.core.api.PluginRegistry;
+import io.gravitee.plugin.api.PluginRegistry;
 import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

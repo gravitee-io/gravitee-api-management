@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.core.reactor;
 
+import io.gravitee.common.event.Event;
+import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.gateway.core.AbstractCoreTest;
 import io.gravitee.gateway.core.builder.ApiBuilder;
-import io.gravitee.gateway.core.event.Event;
-import io.gravitee.gateway.core.event.impl.SimpleEvent;
 import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
 import io.gravitee.gateway.core.manager.ApiEvent;
 import io.gravitee.gateway.core.model.Api;

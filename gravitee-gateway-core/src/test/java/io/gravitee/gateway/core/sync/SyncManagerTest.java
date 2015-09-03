@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.core.sync;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.core.builder.RepositoryApiBuilder;
-import io.gravitee.gateway.core.event.EventManager;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.core.model.ApiLifecycleState;
