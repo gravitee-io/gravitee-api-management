@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.sync;
 
-import io.gravitee.gateway.api.service.Service;
+import io.gravitee.common.service.Service;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

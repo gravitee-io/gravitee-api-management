@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.plugin;
 
-import io.gravitee.gateway.api.service.Service;
+import io.gravitee.common.service.Service;
 
 import java.util.Collection;
 
