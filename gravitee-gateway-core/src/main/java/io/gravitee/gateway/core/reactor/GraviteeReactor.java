@@ -21,16 +21,16 @@ import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.event.Event;
 import io.gravitee.gateway.core.event.EventListener;
 import io.gravitee.gateway.core.event.EventManager;
-import io.gravitee.gateway.core.reactor.handler.ContextHandler;
-import io.gravitee.gateway.core.reactor.handler.Handler;
-import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.manager.ApiEvent;
 import io.gravitee.gateway.core.model.Api;
 import io.gravitee.gateway.core.model.ApiLifecycleState;
-import io.gravitee.gateway.core.plugin.PluginManager;
+import io.gravitee.gateway.core.reactor.handler.ContextHandler;
+import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
+import io.gravitee.gateway.core.reactor.handler.Handler;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.service.AbstractService;
 import io.gravitee.gateway.core.sync.SyncService;
+import io.gravitee.plugin.core.api.PluginRegistry;
 import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -187,7 +187,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
     protected void doStart() throws Exception {
         super.doStart();
 
-        applicationContext.getBean(PluginManager.class).start();
+        applicationContext.getBean(PluginRegistry.class).start();
         applicationContext.getBean(ReporterService.class).start();
 
         eventManager.subscribeForEvents(this, ApiEvent.class);
@@ -199,7 +199,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
     protected void doStop() throws Exception {
         super.doStop();
 
-        applicationContext.getBean(PluginManager.class).stop();
+        applicationContext.getBean(PluginRegistry.class).stop();
         applicationContext.getBean(SyncService.class).stop();
 
         clearHandlers();

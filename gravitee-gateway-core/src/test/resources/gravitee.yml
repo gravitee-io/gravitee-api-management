@@ -3,8 +3,9 @@
 node:
   home: ${gravitee.home}
 
-plugin:
-  workspace: ${node.home}/io/gravitee/gateway/core/plugin/workspace
+plugins:
+  registry:
+    path: ${node.home}/io/gravitee/gateway/core/plugin/workspace
 
 repository:
   type: mock
