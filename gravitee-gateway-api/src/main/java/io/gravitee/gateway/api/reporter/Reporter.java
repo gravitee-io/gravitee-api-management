@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.api.reporter;
 
+import io.gravitee.common.service.Service;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.service.Service;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
