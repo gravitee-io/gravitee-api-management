@@ -83,6 +83,25 @@
 									<defaultGroupname>root</defaultGroupname>
 									<description>Gravitee Management.</description>
 									<mappings>
+									
+										<!-- Add services script -->
+										<mapping>
+											<directory>${packaging.gravitee.management.services.dir}</directory>
+											<filemode>555</filemode>
+											<directoryIncluded>false</directoryIncluded>
+										 	<username>root</username>
+        									<groupname>root</groupname>
+											<sources>
+												<source>
+													<location>src/main/resources/etc/init.d/</location>
+													<includes>
+														<include>gravitee-management</include>
+													</includes>
+													<filter>true</filter>
+												</source>
+											</sources>
+										</mapping>
+										
 										<!-- Add binaries -->
 										<mapping>
 											<directory>${packaging.gravitee.management.bin.dir}/</directory>
@@ -122,6 +141,14 @@
 													<location>../target/distribution/lib/</location>
 												</source>
 											</sources>
+										</mapping>
+										
+										<!-- Add pid directory -->
+										<mapping>
+											<directory>${packaging.gravitee.management.pid.dir}</directory>
+											<filemode>755</filemode>
+											<username>${packaging.gravitee.management.user}</username>
+											<groupname>${packaging.gravitee.management.group}</groupname>
 										</mapping>
 
 										<!-- Add log directory -->
