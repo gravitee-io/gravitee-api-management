@@ -50,7 +50,7 @@ public class PolicyResolverImpl implements PolicyResolver {
             definedPolicies.stream().forEach(policy -> {
                 PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(policy.getPolicy());
                 if (policyDefinition == null) {
-                    LOGGER.error("Policy {} can't be found in policy. Unable to apply it for request {}", policy.getPolicy(), request.id());
+                    LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}", policy.getPolicy(), request.id());
                 } else {
                     Object policyInst = policyFactory.create(policyDefinition, policy.getConfiguration());
 

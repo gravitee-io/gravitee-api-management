@@ -26,15 +26,19 @@ import io.gravitee.gateway.core.external.ApiServlet;
 import io.gravitee.gateway.core.http.ServerRequest;
 import io.gravitee.gateway.core.http.ServerResponse;
 import io.gravitee.gateway.core.manager.ApiEvent;
-import io.gravitee.gateway.core.plugin.Plugin;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.reporter.ConsoleReporter;
 import io.gravitee.gateway.core.reporter.ReporterManager;
+import io.gravitee.plugin.api.Plugin;
+import io.gravitee.plugin.api.PluginManifest;
+import io.gravitee.plugin.api.PluginType;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
 
 
 /**
@@ -134,6 +138,26 @@ public class GraviteeReactorTest extends AbstractCoreTest {
             @Override
             public Class<?> clazz() {
                 return ConsoleReporter.class;
+            }
+
+            @Override
+            public PluginType type() {
+                return null;
+            }
+
+            @Override
+            public Path path() {
+                return null;
+            }
+
+            @Override
+            public PluginManifest manifest() {
+                return null;
+            }
+
+            @Override
+            public URL[] dependencies() {
+                return new URL[0];
             }
         });
 

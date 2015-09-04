@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.plugin;
 
+import io.gravitee.plugin.api.Plugin;
 import org.springframework.context.ApplicationContext;
 
 /**
