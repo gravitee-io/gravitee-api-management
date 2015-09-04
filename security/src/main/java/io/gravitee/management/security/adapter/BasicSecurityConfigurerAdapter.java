@@ -16,6 +16,7 @@
 package io.gravitee.management.security.adapter;
 
 import io.gravitee.management.security.authentication.AuthenticationProviderType;
+import io.gravitee.management.security.authentication.GraviteeAccountAuthenticationProvider;
 import io.gravitee.management.security.filter.CORSFilter;
 import io.gravitee.management.security.ldap.UserDetailsContextPropertiesMapper;
 
@@ -23,6 +24,8 @@ import java.util.Properties;
 
 import javax.servlet.Filter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,10 +50,11 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 @EnableWebSecurity
 public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 	
+	private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
+	
 	@Autowired
 	private Properties graviteeProperties;
 	
-	@Autowired
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		int authenticationProviderSize = (int) graviteeProperties.get("security.authentication-manager.authentication-providers.size");
@@ -90,7 +94,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 						ldapAuthenticationProviderConfigurer.userDetailsContextMapper(userDetailsContextPropertiesMapper);
 					}
 					break;
+				case GRAVITEE :
+					auth.authenticationProvider(graviteeAccountAuthenticationProvider());
+					break;
 				default:
+					LOGGER.info("No AuthenticationProviderType found for {}", authenticationProviderType);
 			}
 		}
 	}
@@ -103,6 +111,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 	public Filter corsFilter() {
 		return new CORSFilter();
 	}
+    
+    @Bean
+    public GraviteeAccountAuthenticationProvider graviteeAccountAuthenticationProvider() {
+    	return new GraviteeAccountAuthenticationProvider();
+    }
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {

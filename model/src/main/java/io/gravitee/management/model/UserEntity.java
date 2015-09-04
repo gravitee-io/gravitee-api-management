@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -27,15 +28,36 @@ import java.util.Objects;
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class UserEntity {
 
+	/**
+	 * The user first name
+	 */
+	private String firstname;
+	
+	/**
+	 * The user last name
+	 */
+	private String lastname;
+	
     /**
      * The user name
      */
     private String username;
+    
+    /**
+     * The user password
+     */
+    private String password;
 
     /**
      * The user email
      */
     private String mail;
+    
+    /**
+     * The user roles
+     */
+    private List<String> roles;
+    
 
     /**
      * The user creation date
@@ -48,6 +70,22 @@ public class UserEntity {
      */
     @JsonProperty("updated_at")
     private Date updatedAt;
+    
+    public String getFirstname() {
+  		return firstname;
+  	}
+
+  	public void setFirstname(String firstname) {
+  		this.firstname = firstname;
+  	}
+
+  	public String getLastname() {
+  		return lastname;
+  	}
+
+  	public void setLastname(String lastname) {
+  		this.lastname = lastname;
+  	}
 
     public Date getCreatedAt() {
         return createdAt;
@@ -80,6 +118,22 @@ public class UserEntity {
     public void setUsername(String username) {
         this.username = username;
     }
+    
+    public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public List<String> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(List<String> roles) {
+		this.roles = roles;
+	}
 
     @Override
     public boolean equals(Object o) {
@@ -97,7 +151,11 @@ public class UserEntity {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("UserEntity{");
-        sb.append("username='").append(username).append('\'');
+        sb.append("firstname='").append(firstname).append('\'');
+        sb.append(", lastname='").append(lastname).append('\'');
+        sb.append(", mail='").append(mail).append('\'');
+        sb.append(", username='").append(username).append('\'');
+        sb.append(", roles='").append(roles).append('\'');
         sb.append('}');
         return sb.toString();
     }

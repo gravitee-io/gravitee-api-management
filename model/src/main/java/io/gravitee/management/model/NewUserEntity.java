@@ -15,9 +15,11 @@
  */
 package io.gravitee.management.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.util.List;
 
 import javax.validation.constraints.NotNull;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -25,16 +27,37 @@ import javax.validation.constraints.NotNull;
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class NewUserEntity {
 
+	/**
+	 * The user first name
+	 */
+	private String firstname;
+	
+	/**
+	 * The user last name
+	 */
+	private String lastname;
+	
     /**
      * The user name
      */
     @NotNull
     private String username;
+    
+    /**
+     * The user password
+     */
+    @NotNull
+    private String password;
 
     /**
      * The user email
      */
     private String email;
+    
+    /**
+     * The user roles
+     */
+    private List<String> roles;
 
     public String getEmail() {
         return email;
@@ -51,8 +74,40 @@ public class NewUserEntity {
     public void setUsername(String username) {
         this.username = username;
     }
+    
+    public String getFirstname() {
+		return firstname;
+	}
 
-    @Override
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+
+	public String getLastname() {
+		return lastname;
+	}
+
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public List<String> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(List<String> roles) {
+		this.roles = roles;
+	}
+
+	@Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("User{");
         sb.append("email='").append(email).append('\'');

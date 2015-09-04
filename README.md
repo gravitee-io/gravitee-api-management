@@ -58,7 +58,7 @@ security:
   type: basic-auth
   authentication-manager:
     authentication-providers:
-      size: 2
+      size: 3
       authentication-provider-1:
         type: ldap
         embedded: true
@@ -88,6 +88,8 @@ security:
             username: admin
             password: admin
             roles: ADMIN
+      authentication-provider-3:
+        type: gravitee
 ```
 Subfolders (plugins, apis, ...) must be created before start the application.
 

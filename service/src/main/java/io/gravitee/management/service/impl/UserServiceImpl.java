@@ -90,7 +90,10 @@ public class UserServiceImpl implements UserService {
 
         user.setUsername(newUserEntity.getUsername());
         user.setEmail(newUserEntity.getEmail());
-
+        user.setFirstname(newUserEntity.getFirstname());
+        user.setLastname(newUserEntity.getLastname());
+        user.setPassword(newUserEntity.getPassword());
+        user.setRoles(newUserEntity.getRoles());
         return user;
     }
 
@@ -99,6 +102,10 @@ public class UserServiceImpl implements UserService {
 
         userEntity.setUsername(user.getUsername());
         userEntity.setMail(user.getEmail());
+        userEntity.setFirstname(user.getFirstname());
+        userEntity.setLastname(user.getLastname());
+        userEntity.setPassword(user.getPassword());
+        userEntity.setRoles(user.getRoles());
         userEntity.setCreatedAt(user.getCreatedAt());
         userEntity.setUpdatedAt(user.getUpdatedAt());
 
