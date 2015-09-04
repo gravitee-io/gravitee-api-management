@@ -16,6 +16,7 @@
 package io.gravitee.repositories.mongodb.internal.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -29,6 +30,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class UserMongo extends AbstractUserMongo {
 
     private String email;
+    private String password;
+    private String firstname;
+    private String lastname;
+    private List<String> roles;
     private Date createdAt;
     private Date updatedAt;
 	
@@ -40,7 +45,39 @@ public class UserMongo extends AbstractUserMongo {
         this.email = mail;
     }
 
-    public Date getCreatedAt() {
+    public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getFirstname() {
+		return firstname;
+	}
+
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+
+	public String getLastname() {
+		return lastname;
+	}
+
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
+
+	public List<String> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(List<String> roles) {
+		this.roles = roles;
+	}
+
+	public Date getCreatedAt() {
         return createdAt;
     }
 
