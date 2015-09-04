@@ -90,6 +90,7 @@ security:
             roles: ADMIN
       authentication-provider-3:
         type: gravitee
+        password-encoding: true
 ```
 Subfolders (plugins, apis, ...) must be created before start the application.
 

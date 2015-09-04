@@ -19,6 +19,8 @@ import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
 
+import java.net.URI;
+
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -29,7 +31,10 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Defines the REST resources to manage Users.
@@ -44,7 +49,10 @@ public class UsersResource {
 
     @Inject
     private UserService userService;
-
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
     /**
      * Create a new user.
      * @param newUserEntity
@@ -54,7 +62,13 @@ public class UsersResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createUser(@Valid NewUserEntity newUserEntity) {
-        UserEntity newUser = userService.create(newUserEntity);
+    	// encode password
+    	if(passwordEncoder == null) {
+    		passwordEncoder = NoOpPasswordEncoder.getInstance();
+    	}
+    	newUserEntity.setPassword(passwordEncoder.encode(newUserEntity.getPassword()));
+        
+    	UserEntity newUser = userService.create(newUserEntity);
         if (newUser != null) {
             return Response
                     .created(URI.create("/users/" + newUser.getUsername()))

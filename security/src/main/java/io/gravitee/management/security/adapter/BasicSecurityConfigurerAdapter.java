@@ -37,6 +37,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
@@ -95,7 +97,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 					}
 					break;
 				case GRAVITEE :
-					auth.authenticationProvider(graviteeAccountAuthenticationProvider());
+					GraviteeAccountAuthenticationProvider graviteeAccountAuthenticationProvider = graviteeAccountAuthenticationProvider();
+					if ((boolean) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".password-encoding")) {
+						graviteeAccountAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+					}
+					auth.authenticationProvider(graviteeAccountAuthenticationProvider);
 					break;
 				default:
 					LOGGER.info("No AuthenticationProviderType found for {}", authenticationProviderType);
@@ -117,6 +123,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     	return new GraviteeAccountAuthenticationProvider();
     }
 	
+    @Bean
+	public PasswordEncoder passwordEncoder(){
+		return new BCryptPasswordEncoder();
+    }
+    
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
