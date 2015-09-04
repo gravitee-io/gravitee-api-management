@@ -78,7 +78,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 					if ((boolean) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".embedded")) {
 						ldapAuthenticationProviderConfigurer.contextSource()
 							.root((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-base"))
-							.ldif("classpath:/spring/gravitee-io-management-rest-api-ldap-test.ldif");
+							.ldif("classpath:/ldap/gravitee-io-management-rest-api-ldap-test.ldif");
 					} else {
 						ldapAuthenticationProviderConfigurer.contextSource()
 							.root((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-base"))

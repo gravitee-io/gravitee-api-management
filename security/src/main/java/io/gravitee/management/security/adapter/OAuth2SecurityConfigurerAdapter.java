@@ -16,14 +16,16 @@
 package io.gravitee.management.security.adapter;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.RemoteTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 
 /**
@@ -35,10 +37,18 @@ import org.springframework.security.oauth2.provider.token.ResourceServerTokenSer
 @Profile("oauth2-auth")
 @EnableWebSecurity
 @EnableResourceServer
-@ImportResource("classpath:/spring/gravitee-io-management-rest-api-oauth2-context.xml")
 public class OAuth2SecurityConfigurerAdapter extends ResourceServerConfigurerAdapter {
 	
 	private static final String RESOURCE_ID = "openid";
+	
+	@Value("${oauth.endpoint.check_token}")
+	private String oauthEndpointCheckToken;
+	
+	@Value("{oauth.client.id}")
+	private String oauthClientId;
+	
+	@Value("{oauth.client.secret}")
+	private String oauthClientSecret;
 	
 	@Autowired
 	private ResourceServerTokenServices tokenServices;
@@ -51,5 +61,14 @@ public class OAuth2SecurityConfigurerAdapter extends ResourceServerConfigurerAda
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests().antMatchers("/**").access("#oauth2.hasScope('read')");	
+	}
+	
+	@Bean
+	public RemoteTokenServices remoteTokenServices() {
+		RemoteTokenServices s = new RemoteTokenServices();
+		s.setCheckTokenEndpointUrl(oauthEndpointCheckToken);
+		s.setClientId(oauthClientId);
+		s.setClientSecret(oauthClientSecret);
+		return s;
 	}
 }

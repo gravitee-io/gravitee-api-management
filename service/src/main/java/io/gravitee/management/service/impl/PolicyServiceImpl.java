@@ -17,17 +17,18 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.PolicyEntity;
 import io.gravitee.management.service.PolicyService;
-import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.plugin.core.api.PluginRegistry;
-import io.gravitee.plugin.core.api.PluginType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import io.gravitee.plugin.api.Plugin;
+import io.gravitee.plugin.api.PluginRegistry;
+import io.gravitee.plugin.api.PluginType;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
