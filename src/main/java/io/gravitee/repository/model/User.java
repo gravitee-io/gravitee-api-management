@@ -16,12 +16,23 @@
 package io.gravitee.repository.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class User {
+	
+	/**
+	 * The user first name
+	 */
+	private String firstname;
+	
+	/**
+	 * The user last name
+	 */
+	private String lastname;
 
 	/**
 	 * The user name 
@@ -29,9 +40,19 @@ public class User {
     private String username;
     
     /**
+     * The user password
+     */
+    private String password;
+    
+    /**
      * The user email
      */
     private String email;
+    
+    /**
+     * The user roles
+     */
+    private List<String> roles;
     
     /**
      * The user creation date
@@ -43,8 +64,23 @@ public class User {
      */
     private Date updatedAt;
     
+    public String getFirstname() {
+		return firstname;
+	}
 
-    public String getEmail() {
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+
+	public String getLastname() {
+		return lastname;
+	}
+
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
+
+	public String getEmail() {
         return email;
     }
 
@@ -59,9 +95,24 @@ public class User {
     public void setUsername(String username) {
         this.username = username;
     }
-
     
-    public Date getCreatedAt() {
+    public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public List<String> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(List<String> roles) {
+		this.roles = roles;
+	}
+
+	public Date getCreatedAt() {
 		return createdAt;
 	}
 
@@ -93,9 +144,13 @@ public class User {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("User{");
-        sb.append("mail='").append(email).append('\'');
+        sb.append("firstname='").append(firstname).append('\'');
+        sb.append(", lastname='").append(lastname).append('\'');
+        sb.append(", mail='").append(email).append('\'');
         sb.append(", username='").append(username).append('\'');
+        sb.append(", roles='").append(roles).append('\'');
         sb.append('}');
         return sb.toString();
     }
+    
 }
