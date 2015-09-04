@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function runBlock () {
+function runBlock ($rootScope, $window, $http) {
   'ngInject';
+	
+	$rootScope.$on('authenticationSuccess', function(event, args) {
+  	$http.defaults.headers.common.Authorization = 'Basic ' + $window.sessionStorage.getItem('GraviteeAuthentication');
+	});
 }
 
 export default runBlock;

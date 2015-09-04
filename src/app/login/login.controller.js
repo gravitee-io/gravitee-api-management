@@ -31,6 +31,7 @@ class LoginController {
 			that.$window.sessionStorage.setItem('GraviteeAuthentication', btoa(that.user.username + ":" + that.user.password));			
 			that.user = {};
 			that.$rootScope.authenticated = true;
+			that.$rootScope.$broadcast('authenticationSuccess');
       that.$location.path('/');
     }).catch(function () {
 			that.user = {};

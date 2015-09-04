@@ -18,8 +18,6 @@ function config ($logProvider, $httpProvider) {
   'ngInject';
   // Enable log
   $logProvider.debugEnabled(true);
-
-  $httpProvider.defaults.headers.common.Authorization = 'Basic ' + window.sessionStorage.getItem('GraviteeAuthentication');
 }
 
 export default config;
