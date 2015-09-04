@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.plugin;
 
+import io.gravitee.plugin.api.Plugin;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */

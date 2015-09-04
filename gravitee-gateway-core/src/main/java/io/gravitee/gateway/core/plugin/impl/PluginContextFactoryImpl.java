@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.core.plugin.impl;
 
-import io.gravitee.gateway.core.plugin.Plugin;
 import io.gravitee.gateway.core.plugin.PluginContextFactory;
 import io.gravitee.gateway.core.spring.PropertiesConfiguration;
 
+import io.gravitee.plugin.api.Plugin;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
