@@ -135,7 +135,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 				.realmName("Gravitee Management API")
 			.and()
 				.sessionManagement()
-					.sessionCreationPolicy(SessionCreationPolicy.NEVER)
+					.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 			.and()
 				.authorizeRequests()
 					.antMatchers(HttpMethod.OPTIONS, "**").permitAll()
