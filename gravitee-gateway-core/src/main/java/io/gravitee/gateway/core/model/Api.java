@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.model;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +33,7 @@ public class Api {
     private Date updatedAt;
     private ApiLifecycleState state;
 
-    private List<PolicyConfiguration> policies;
+    private List<PolicyConfiguration> policies = new ArrayList();
 
     public Date getCreatedAt() {
         return createdAt;
