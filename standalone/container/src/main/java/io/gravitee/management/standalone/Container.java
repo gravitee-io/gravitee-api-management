@@ -15,6 +15,13 @@
  */
 package io.gravitee.management.standalone;
 
+import java.io.File;
+
+import org.slf4j.LoggerFactory;
+import org.slf4j.impl.StaticLoggerBinder;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
@@ -22,12 +29,6 @@ import ch.qos.logback.core.util.StatusPrinter;
 import io.gravitee.common.node.Node;
 import io.gravitee.management.rest.spring.PropertiesConfiguration;
 import io.gravitee.management.standalone.spring.StandaloneConfiguration;
-import org.slf4j.LoggerFactory;
-import org.slf4j.impl.StaticLoggerBinder;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-
-import java.io.File;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -46,6 +47,7 @@ public class Container {
     }
 
     private void initialize() {
+        
         initializeEnvironment();
         initializeLogging();
         initializeContext();
