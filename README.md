@@ -7,8 +7,8 @@ Mongo repository based on MongoDB
 ## Requirement
 
 The minimum requirement is :
--maven3 
--jdk8
+ * Maven3 
+ * Jdk8
 
 For user gravitee snapshot, You need the declare the following repository in you maven settings :
 
