@@ -15,13 +15,14 @@
  */
 package io.gravitee.management.rest.resource;
 
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
+
 import io.gravitee.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.management.rest.provider.CorsResponseFilter;
 import io.gravitee.management.rest.provider.ManagementExceptionMapper;
 import io.gravitee.management.rest.provider.UnrecognizedPropertyExceptionMapper;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.ServerProperties;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -36,6 +37,7 @@ public class GraviteeApplication extends ResourceConfig {
         register(PoliciesResource.class);
         register(TeamsResource.class);
         register(LoginResource.class);
+        register(DocumentationResource.class);
 
         register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);
