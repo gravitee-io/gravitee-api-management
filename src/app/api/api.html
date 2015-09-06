@@ -15,67 +15,69 @@
     limitations under the License.
 
 -->
-<h1>Management of API '{{apiCtrl.api.name}}'</h1>
+<section class="jumbotron">
+    <h1>Management of API '{{apiCtrl.api.name}}'</h1>
 
-<div>
-    <div class="gravitee-policies-container" layout="">
-        <div class="gravitee-policy-container" ng-repeat="(type, policies) in apiCtrl.policies" ng-include="'app/policy/policy.html'"></div>
+    <div>
+        <div class="gravitee-policies-container" layout="">
+            <div class="gravitee-policy-container" ng-repeat="(type, policies) in apiCtrl.policies" ng-include="'app/policy/policy.html'"></div>
+        </div>
+        <table class="gravitee-flow-container">
+            <tr>
+                <th>Public URI</th>
+                <th>--></th>
+                <th>Request</th>
+                <th>--></th>
+                <th>Target URI</th>
+            </tr>
+            <tr>
+                <td class="gravitee-flow-link-container">
+                    <div class="gravitee-flow-link">
+                        <a href="{{apiCtrl.api.public}}" target="_blank">{{apiCtrl.api.public}}</a>
+                    </div>
+                </td>
+                <td class="gravitee-flow-inbound">
+                </td>
+                <td class="gravitee-policy-container">
+                    <div ng-repeat="policies in apiCtrl.api.policies" ng-include="'app/policy/policy.html'"></div></td>
+                <td class="gravitee-flow-outbound">
+                </td>
+                <td class="gravitee-flow-link-container">
+                    <div class="gravitee-flow-link">
+                        <a href="{{apiCtrl.api.target}}" target="_blank">{{apiCtrl.api.target}}</a>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th></th>
+                <th><--</th>
+                <th>Response</th>
+                <th><--</th>
+                <th></th>
+            </tr>
+        </table>
+
     </div>
-    <table class="gravitee-flow-container">
-        <tr>
-            <th>Public URI</th>
-            <th>--></th>
-            <th>Request</th>
-            <th>--></th>
-            <th>Target URI</th>
-        </tr>
-        <tr>
-            <td class="gravitee-flow-link-container">
-                <div class="gravitee-flow-link">
-                    <a href="{{apiCtrl.api.public}}" target="_blank">{{apiCtrl.api.public}}</a>
-                </div>
-            </td>
-            <td class="gravitee-flow-inbound">
-            </td>
-            <td class="gravitee-policy-container">
-                <div ng-repeat="policies in apiCtrl.api.policies" ng-include="'app/policy/policy.html'"></div></td>
-            <td class="gravitee-flow-outbound">
-            </td>
-            <td class="gravitee-flow-link-container">
-                <div class="gravitee-flow-link">
-                    <a href="{{apiCtrl.api.target}}" target="_blank">{{apiCtrl.api.target}}</a>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <th></th>
-            <th><--</th>
-            <th>Response</th>
-            <th><--</th>
-            <th></th>
-        </tr>
-    </table>
 
-</div>
+    <div class="gravitee-api-container">
+        <md-input-container class="md-icon-float">
+            <label>Name</label>
+            <input ng-model="apiCtrl.api.name" type="text" ng-required="true">
+        </md-input-container>
 
-<div class="gravitee-api-container">
-    <md-input-container class="md-icon-float">
-        <label>Name</label>
-        <input ng-model="apiCtrl.api.name" type="text" ng-required="true">
-    </md-input-container>
+        <md-input-container class="md-icon-float">
+            <label>State</label>
+            <input ng-model="apiCtrl.api.state" type="text" ng-required="true">
+        </md-input-container>
 
-    <md-input-container class="md-icon-float">
-        <label>State</label>
-        <input ng-model="apiCtrl.api.state" type="text" ng-required="true">
-    </md-input-container>
+        <md-input-container class="md-icon-float">
+            <label>Public URI</label>
+            <input ng-model="apiCtrl.api.public" type="text" ng-required="true">
+        </md-input-container>
 
-    <md-input-container class="md-icon-float">
-        <label>Public URI</label>
-        <input ng-model="apiCtrl.api.public" type="text" ng-required="true">
-    </md-input-container>
-
-    <md-input-container class="md-icon-float">
-        <label>Target URI</label>
-        <input ng-model="apiCtrl.api.target" type="text" ng-required="true">
-    </md-input-container>
-</div>
+        <md-input-container class="md-icon-float">
+            <label>Target URI</label>
+            <input ng-model="apiCtrl.api.target" type="text" ng-required="true">
+        </md-input-container>
+    </div>
+</section>

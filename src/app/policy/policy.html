@@ -15,14 +15,16 @@
     limitations under the License.
 
 -->
-<h3 ng-if="type">{{type}} policies</h3>
-<div dnd-list="policies" dnd-horizontal-list="true">
-     <div ng-repeat="policy in policies"
-          dnd-draggable="policy"
-          dnd-moved="policies.splice($index, 1)"
-          dnd-selected="apiCtrl.selectedPolicy = policy"
-          ng-class="{'selected': apiCtrl.selectedPolicy === policy}"
-          title="{{policy.description}}">
-          {{policy.name}}
-     </div>
-</div>
+<section class="jumbotron">
+  <h3 ng-if="type">{{type}} policies</h3>
+  <div dnd-list="policies" dnd-horizontal-list="true">
+       <div ng-repeat="policy in policies"
+            dnd-draggable="policy"
+            dnd-moved="policies.splice($index, 1)"
+            dnd-selected="apiCtrl.selectedPolicy = policy"
+            ng-class="{'selected': apiCtrl.selectedPolicy === policy}"
+            title="{{policy.description}}">
+            {{policy.name}}
+       </div>
+  </div>
+</section>

@@ -15,20 +15,22 @@
     limitations under the License.
 
 -->
-<h1>Login page</h1>
+<section class="jumbotron">
+    <h1>Login page</h1>
 
-<form name="formUser" class="gravitee-login-container">
-    <md-input-container class="md-icon-float">
-        <label>Login</label>
-        <input ng-model="loginCtrl.user.username" type="text" ng-required="true">
-    </md-input-container>
+    <form name="formUser" class="gravitee-login-container">
+        <md-input-container class="md-icon-float">
+            <label>Login</label>
+            <input ng-model="loginCtrl.user.username" type="text" ng-required="true">
+        </md-input-container>
 
-    <md-input-container class="md-icon-float">
-        <label>Password</label>
-        <input ng-model="loginCtrl.user.password" type="text" ng-required="true">
-    </md-input-container>
+        <md-input-container class="md-icon-float">
+            <label>Password</label>
+            <input ng-model="loginCtrl.user.password" type="text" ng-required="true">
+        </md-input-container>
 
-    <md-button ng-click="loginCtrl.login()" class="md-primary" ng-disabled="formUser.$invalid">
-        Login
-    </md-button>
-</form>
+        <md-button ng-click="loginCtrl.login()" class="md-primary" ng-disabled="formUser.$invalid">
+            Login
+        </md-button>
+    </form>
+</section>

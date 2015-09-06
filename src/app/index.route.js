@@ -45,6 +45,12 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/user/users.html',
       controller: 'UserController',
       controllerAs: 'userCtrl'
+    })
+    .state('documentation', {
+      url: '/documentation',
+      templateUrl: 'app/documentation/documentation.html',
+      controller: 'DocumentationController',
+      controllerAs: 'documentationCtrl'
     });
 
   $urlRouterProvider.otherwise('/');

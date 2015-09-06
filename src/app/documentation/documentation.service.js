@@ -13,14 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function runBlock ($rootScope, $window, $http) {
-  'ngInject';
-	
-  $rootScope.$on('authenticationSuccess', function(event, args) {
-  	$http.defaults.headers.common.Authorization = 'Basic ' + $window.sessionStorage.getItem('GraviteeAuthentication');
-  });
+ class DocumentationService {
 
-  $http.defaults.headers.common.Authorization = 'Basic ' + $window.sessionStorage.getItem('GraviteeAuthentication');
+  constructor($http, baseURL) {
+    'ngInject';
+    this.$http = $http;
+    this.documentationURL = baseURL + 'documentation/';
+  }
+
+  list(apiName) {
+  	return this.$http.get(this.documentationURL + "pages/" + apiName);
+  }
+
+  createPage(newPage) {
+    return this.$http.post(this.documentationURL, newPage);
+  }
+
+  deletePage(name) {
+    return this.$http.post(this.documentationURL + "pages/" + name + "/delete");
+  }
+
+  editPage(name, editPage) {
+  	return this.$http.post(this.documentationURL + "pages/" + name + "/edit", editPage);
+  }
 }
 
-export default runBlock;
+export default DocumentationService;

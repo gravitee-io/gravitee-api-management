@@ -15,22 +15,24 @@
     limitations under the License.
 
 -->
-<h1>Gravitee Users Management</h1>
+<section class="jumbotron">
+  <h1>Gravitee Users Management</h1>
 
 
-<table class="gravitee-table">
-  <tr>
-    <th>Name</th>
-    <th>Description</th>
-    <th>Email</th>
-  </tr>
-  <tr ng-repeat="team in userCtrl.teams">
-    <td><a ng-bind="team.name" ng-click="userCtrl.showSaveTeamModal(team)" href></a></td>
-    <td ng-bind="team.description"></td>
-    <td ng-bind="team.email"></td>
-  </tr>
-</table>
+  <table class="gravitee-table">
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Email</th>
+    </tr>
+    <tr ng-repeat="team in userCtrl.teams">
+      <td><a ng-bind="team.name" ng-click="userCtrl.showSaveTeamModal(team)" href></a></td>
+      <td ng-bind="team.description"></td>
+      <td ng-bind="team.email"></td>
+    </tr>
+  </table>
 
-<md-button ng-click="userCtrl.showSaveTeamModal()" class="md-primary">
-  Add a new team
-</md-button>
+  <md-button ng-click="userCtrl.showSaveTeamModal()" class="md-primary">
+    Add a new team
+  </md-button>
+</section>

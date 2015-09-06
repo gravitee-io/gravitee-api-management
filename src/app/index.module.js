@@ -32,6 +32,8 @@ import LoginService from './login/login.service';
 import LoginController from './login/login.controller';
 import NavbarDirective from './components/navbar/navbar.directive';
 import NotificationService from './components/notification/notification.service';
+import DocumentationController from './documentation/documentation.controller';
+import DocumentationService from './documentation/documentation.service';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists'])
   .constant('malarkey', malarkey)
@@ -54,4 +56,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists'])
   .service('LoginService', LoginService)
   .service('NotificationService', NotificationService)
   .controller('LoginController', LoginController)
+  .controller('DocumentationController', DocumentationController)
+  .service('DocumentationService', DocumentationService)
   .directive('graviteeNavbar', () => new NavbarDirective());

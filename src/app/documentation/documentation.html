@@ -1,0 +1,53 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div flex layout="row">
+
+  <md-sidenav md-is-locked-open="$mdMedia('gt-sm')" class="md-whiteframe-z2" md-component-id="left" layout="column">
+    <md-toolbar>
+      <h1 class="md-toolbar-tools">API Documentation</h1>
+    </md-toolbar>
+    <md-list layout="column">
+      <md-list-item ng-repeat="p in documentationCtrl.pages">
+          <md-button ng-click="documentationCtrl.selectPage(p)" ng-class="{'selected' : p === documentationCtrl.selected }">
+            <md-icon class="avatar"></md-icon>
+            {{p.title}}
+          </md-button>
+      </md-list-item>
+    </md-list>
+  </md-sidenav>
+
+  <md-content flex id="content">
+    <md-toolbar>
+      <section flex="" layout="row" layout-align="left center">
+        <md-button class="md-primary" ng-click="documentationCtrl.showNewPageDialog($event)">New</md-button>
+      </section>
+    </md-toolbar>
+    
+    <div style="padding:0 20px;">
+      <h2>{{documentationCtrl.selected.title}}</h2>
+      <textarea ng-model="documentationCtrl.selected.content" cols="190" rows="37">{{documentationCtrl.selected.content}}</textarea>
+      <md-button ng-click="documentationCtrl.editPage()">Save</md-button>
+      <md-button>Cancel</md-button>
+      <md-button>Preview</md-button>
+      <md-button ng-click="documentationCtrl.deletePage()">Delete</md-button>
+    </div>
+  </md-content>
+
+</div>
+
