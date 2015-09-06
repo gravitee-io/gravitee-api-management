@@ -31,26 +31,34 @@ case "$1" in
     if is_running; then
         echo "Already started"
     else
-        echo "Starting $name"
+        echo -n "Starting $name.."
         cd "$dir"
         if [ -z "$user" ]; then
             sudo $cmd >> "$stdout_log" 2>> "$stderr_log" &
         else
             sudo -u "$user" $cmd >> "$stdout_log" 2>> "$stderr_log" &
         fi
-        parent_pid=$!
+        SHELL_PID=$!
         
-        #Waiting child process creation
-        sleep 1;
-        java_pid=$(ps -ax | grep java | grep gravitee-management | awk '{ print $1}')
-        
-        echo $java_pid > "$pid_file"
-		# sudo sh -c "echo $java_pid > $pid_file"
+        # Waiting java process creation
+        for i in {1..10}
+        do
+            JAVA_PID=$(ps -ax | grep java | grep gravitee-management | awk '{ print $1}')
+            if [ "x$JAVA_PID" != "x" ]; then
+                echo $JAVA_PID > "$pid_file"
+                break
+            fi
+
+            echo -n "."
+            sleep 1
+        done
+        echo
         
         if ! is_running; then
             echo "Unable to start, see $stdout_log and $stderr_log"
             exit 1
         fi
+        echo "started"
     fi
     ;;
     stop)

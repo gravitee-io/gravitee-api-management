@@ -14,3 +14,38 @@ repository:
 
 security:
   type: basic-auth
+  authentication-manager:
+    authentication-providers:
+      size: 3
+      authentication-provider-1:
+        type: ldap
+        embedded: true
+        role-mapping: true
+        # if role-mapping is true set the following role mapper LDAP values
+        role-mapper: {
+                ROLE_DEVELOPERS: ROLE_USER,
+                ROLE_MEMBERS: ROLE_USER,
+                ROLE_OWNERS: ROLE_ADMIN
+               }
+        user-dn-patterns: uid={0},ou=people
+        group-search-base: ou=groups
+        context-source-base: dc=gravitee,dc=io
+        # if embedded is false set the following values 
+        # context-source-username: test
+        # context-source-password: test
+        # context-source-url: ldap://localhost:389/dc=gravitee,dc=io
+      authentication-provider-2:
+        type: memory
+        users:
+          size: 2
+          user-1:
+            username: user
+            password: password
+            roles: USER
+          user-2:
+            username: admin
+            password: admin
+            roles: ADMIN
+      authentication-provider-3:
+        type: gravitee
+        password-encoding: true

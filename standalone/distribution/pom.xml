@@ -16,80 +16,112 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>io.gravitee.management.standalone</groupId>
-        <artifactId>gravitee-management-api-standalone</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-    </parent>
+	<parent>
+		<groupId>io.gravitee.management.standalone</groupId>
+		<artifactId>gravitee-management-api-standalone</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
 
-    <artifactId>gravitee-management-api-standalone-distribution</artifactId>
-    <packaging>pom</packaging>
+	<artifactId>gravitee-management-api-standalone-distribution</artifactId>
+	<packaging>pom</packaging>
 
-	  
- 	<properties>
-        <!-- Properties used for building RPM & DEB package-->
-        <packaging.gravitee.management.home.dir>/usr/share/gravitee-management</packaging.gravitee.management.home.dir>
-        <packaging.gravitee.management.bin.dir>${packaging.gravitee.management.home.dir}/bin</packaging.gravitee.management.bin.dir>
-        <packaging.gravitee.management.plugins.dir>${packaging.gravitee.management.home.dir}/plugins</packaging.gravitee.management.plugins.dir>
-        <packaging.gravitee.management.conf.dir>/etc/gravitee-management</packaging.gravitee.management.conf.dir>
-        <packaging.gravitee.management.log.dir>/var/log/gravitee-management</packaging.gravitee.management.log.dir>
-        <packaging.gravitee.management.pid.dir>/var/run/gravitee-management</packaging.gravitee.management.pid.dir>
-        <packaging.gravitee.management.services.dir>/etc/init.d</packaging.gravitee.management.services.dir>
+
+	<properties>
+		<!-- Properties used for building RPM & DEB package -->
+		<packaging.gravitee.management.home.dir>/usr/share/gravitee-management</packaging.gravitee.management.home.dir>
+		<packaging.gravitee.management.bin.dir>${packaging.gravitee.management.home.dir}/bin</packaging.gravitee.management.bin.dir>
+		<packaging.gravitee.management.plugins.dir>${packaging.gravitee.management.home.dir}/plugins</packaging.gravitee.management.plugins.dir>
+		<packaging.gravitee.management.conf.dir>/etc/gravitee-management</packaging.gravitee.management.conf.dir>
+		<packaging.gravitee.management.log.dir>/var/log/gravitee-management</packaging.gravitee.management.log.dir>
+		<packaging.gravitee.management.pid.dir>/var/run/gravitee-management</packaging.gravitee.management.pid.dir>
+		<packaging.gravitee.management.services.dir>/etc/init.d</packaging.gravitee.management.services.dir>
 		<packaging.gravitee.management.user>gravitee</packaging.gravitee.management.user>
-        <packaging.gravitee.management.group>gravitee</packaging.gravitee.management.group>
+		<packaging.gravitee.management.group>gravitee</packaging.gravitee.management.group>
 	</properties>
 
 
-    <name>Gravitee IO - Management - Standalone - Distribution</name>
+	<name>Gravitee IO - Management - Standalone - Distribution</name>
 
-    <dependencies>
-        <!-- Gravitee dependencies -->
-        <dependency>
-            <groupId>io.gravitee.management.standalone</groupId>
-            <artifactId>gravitee-management-api-standalone-container</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+	<dependencies>
+		<!-- Gravitee dependencies -->
+		<dependency>
+			<groupId>io.gravitee.management.standalone</groupId>
+			<artifactId>gravitee-management-api-standalone-container</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-        <dependency>
-            <groupId>io.gravitee.management.standalone</groupId>
-            <artifactId>gravitee-management-api-standalone-bootstrap</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>io.gravitee.management.standalone</groupId>
+			<artifactId>gravitee-management-api-standalone-bootstrap</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 
-    <build>
-        <finalName>distribution</finalName>
+	<build>
+		<finalName>distribution</finalName>
 
-        <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
-                <inherited>false</inherited>
-                <executions>
-                    <execution>
-                        <id>bin</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <descriptors>
-                                <descriptor>src/main/assembly/distribution.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-    <modules>
-    	<module>zip</module>
-    	<module>rpm</module>
-    </modules>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<inherited>false</inherited>
+				<executions>
+					<execution>
+						<id>bin</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>src/main/assembly/distribution.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<modules>
+		<module>zip</module>
+	</modules>
+
+	<profiles>
+		<!-- We include automatically RPM module when it's available in common 
+			locations. If your rpmbuild is in another location (but in path), run maven 
+			with rpm profile: mvn deploy -Prpm -->
+		<profile>
+			<id>macos_brew</id>
+			<activation>
+				<file>
+					<!-- Folks having /usr/local/bin/rpmbuild available will be able to 
+						build the rpm module -->
+					<exists>/usr/local/bin/rpmbuild</exists>
+				</file>
+			</activation>
+			<modules>
+				<module>rpm</module>
+			</modules>
+		</profile>
+
+		<profile>
+			<id>rpm</id>
+			<activation>
+				<file>
+					<!-- Folks having /usr/bin/rpmbuild available will be able to build 
+						the rpm module -->
+					<exists>/usr/bin/rpmbuild</exists>
+				</file>
+			</activation>
+			<modules>
+				<module>rpm</module>
+			</modules>
+		</profile>
+	</profiles>
+
 </project>
