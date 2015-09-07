@@ -40,7 +40,7 @@ public class HttpClientConfiguration {
 
     /*
     @Bean
-    public HttpClient httpClient(Api api) {
+    public HttpClient httpClient(ApiDefinition api) {
         return new JettyHttpClient(api);
     }
     */

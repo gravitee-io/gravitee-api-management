@@ -184,6 +184,7 @@ public class AHCHttpClient extends AbstractHttpClient {
                 .setMaxConnections(configuration.getMaxConnections())
                 .build();
 
+
         return new AsyncHttpClient(builder.build());
     }
 
