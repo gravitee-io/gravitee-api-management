@@ -29,7 +29,7 @@ public class PathDefinition {
 
     private String path;
 
-    private List<SubPathDefinition> subPaths = new ArrayList();
+    private List<MethodDefinition> methods = new ArrayList();
 
     public String getPath() {
         return path;
@@ -39,11 +39,11 @@ public class PathDefinition {
         this.path = path;
     }
 
-    public List<SubPathDefinition> getSubPaths() {
-        return subPaths;
+    public List<MethodDefinition> getMethods() {
+        return methods;
     }
 
-    public void setSubPaths(List<SubPathDefinition> subPaths) {
-        this.subPaths = subPaths;
+    public void setMethods(List<MethodDefinition> methods) {
+        this.methods = methods;
     }
 }

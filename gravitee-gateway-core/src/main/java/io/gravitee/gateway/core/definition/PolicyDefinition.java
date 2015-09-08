@@ -15,16 +15,12 @@
  */
 package io.gravitee.gateway.core.definition;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.gravitee.gateway.core.definition.jackson.PolicyDeserializer;
-
 import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@JsonDeserialize(using = PolicyDeserializer.class)
-public class Policy {
+public class PolicyDefinition {
 
     private boolean enabled = true;
 
@@ -60,7 +56,7 @@ public class Policy {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Policy policy = (Policy) o;
+        PolicyDefinition policy = (PolicyDefinition) o;
         return Objects.equals(name, policy.name);
     }
 

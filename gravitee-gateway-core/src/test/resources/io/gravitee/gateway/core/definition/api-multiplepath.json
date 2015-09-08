@@ -27,24 +27,14 @@
     "/users/{id}": [
       {
         "methods": ["GET"],
-        "transform": [
-          {
-            "delete_headers": [
-              "authorization"
-            ],
-            "add_headers": {
-              "x-widgets-secret": "th-secret-widget-key-is-secret"
-            }
-          },
-          {
-            "delete_headers": [
-              "authorization"
-            ],
-            "add_headers": {
-              "x-widgets-secret": "th-secret-widget-key-is-secret"
-            }
+        "transform": {
+          "delete_headers": [
+            "authorization"
+          ],
+          "add_headers": {
+            "x-widgets-secret": "th-secret-widget-key-is-secret"
           }
-        ]
+        }
       }
     ]
   }
