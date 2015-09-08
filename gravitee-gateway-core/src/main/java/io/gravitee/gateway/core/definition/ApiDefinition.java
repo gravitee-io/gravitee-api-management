@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.definition;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -25,13 +26,14 @@ import java.util.Objects;
  */
 public class ApiDefinition {
 
+    @JsonProperty(required = true)
     private String name;
 
-    @JsonProperty("proxy")
+    @JsonProperty(value = "proxy", required = true)
     private ProxyDefinition proxy;
 
-    @JsonProperty("paths")
-    private Map<String, Object> paths;
+    @JsonProperty(value = "paths", required = true)
+    private Map<String, PathDefinition> paths = new HashMap();
 
     public String getName() {
         return name;
@@ -49,11 +51,11 @@ public class ApiDefinition {
         this.proxy = proxy;
     }
 
-    public Map<String, Object> getPaths() {
+    public Map<String, PathDefinition> getPaths() {
         return paths;
     }
 
-    public void setPaths(Map<String, Object> paths) {
+    public void setPaths(Map<String, PathDefinition> paths) {
         this.paths = paths;
     }
 

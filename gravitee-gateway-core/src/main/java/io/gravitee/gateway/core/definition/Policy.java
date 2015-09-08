@@ -15,12 +15,18 @@
  */
 package io.gravitee.gateway.core.definition;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.gravitee.gateway.core.definition.jackson.PolicyDeserializer;
+
 import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@JsonDeserialize(using = PolicyDeserializer.class)
 public class Policy {
+
+    private boolean enabled = true;
 
     private String name;
 
@@ -40,6 +46,14 @@ public class Policy {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     @Override
