@@ -1,0 +1,25 @@
+{
+  "name": "my-api",
+
+  "proxy": {
+    "context_path": "/my-api",
+    "target": "http://localhost:1234",
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+      {
+        "methods": ["GET", "POST"],
+        "access-control": {
+          "enabled": true
+        },
+        "rate-limit": {
+          "rate": 1000,
+          "per": 60,
+          "unit": "SECOND"
+        }
+      }
+    ]
+  }
+}

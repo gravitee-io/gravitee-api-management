@@ -25,18 +25,18 @@ import java.net.URI;
  */
 public class ProxyDefinition {
 
-    @JsonProperty("context_path")
+    @JsonProperty(value = "context_path", required = true)
     private String contextPath;
 
-    @JsonProperty("target")
+    @JsonProperty(value = "target", required = true)
     private URI target;
 
     @JsonProperty("strip_context_path")
-    private boolean stripContextPath;
+    private boolean stripContextPath = false;
 
     @JsonProperty("http_client")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private HttpClientDefinition httpClient;
+    private HttpClientDefinition httpClient = new HttpClientDefinition();
 
     public String getContextPath() {
         return contextPath;

@@ -41,7 +41,7 @@ public class HttpClientDefinition {
     private boolean useProxy = false;
 
     @JsonProperty("http_proxy")
-    private HttpProxyDefinition httpProxy;
+    private HttpProxyDefinition httpProxy = new HttpProxyDefinition();
 
     public int getConnectTimeout() {
         return connectTimeout;
