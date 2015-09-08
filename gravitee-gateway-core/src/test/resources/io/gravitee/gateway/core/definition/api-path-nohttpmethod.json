@@ -10,9 +10,8 @@
   "paths": {
     "/*": [
       {
-        "methods": ["GET", "POST"],
         "access-control": {
-          "enabled": false
+          "enabled": true
         },
         "rate-limit": {
           "rate": 1000,

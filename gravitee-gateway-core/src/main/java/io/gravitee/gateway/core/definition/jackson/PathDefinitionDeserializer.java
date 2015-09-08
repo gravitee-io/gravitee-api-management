@@ -16,19 +16,13 @@
 package io.gravitee.gateway.core.definition.jackson;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.core.definition.PathDefinition;
-import io.gravitee.gateway.core.definition.Policy;
-import io.gravitee.gateway.core.definition.SubPathDefinition;
+import io.gravitee.gateway.core.definition.MethodDefinition;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -50,12 +44,11 @@ public class PathDefinitionDeserializer extends JsonDeserializer<PathDefinition>
                 @Override
                 public void accept(JsonNode jsonNode) {
                     try {
-                        SubPathDefinition spd = jsonNode.traverse(jp.getCodec()).readValueAs(SubPathDefinition.class);
-                        pathDefinition.getSubPaths().add(spd);
+                        MethodDefinition spd = jsonNode.traverse(jp.getCodec()).readValueAs(MethodDefinition.class);
+                        pathDefinition.getMethods().add(spd);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                 }
             });
         }

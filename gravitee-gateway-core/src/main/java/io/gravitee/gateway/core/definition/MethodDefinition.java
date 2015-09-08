@@ -17,21 +17,23 @@ package io.gravitee.gateway.core.definition;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.gateway.core.definition.jackson.PathDefinitionDeserializer;
-import io.gravitee.gateway.core.definition.jackson.SubPathDefinitionDeserializer;
+import io.gravitee.gateway.core.definition.jackson.MethodDefinitionDeserializer;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@JsonDeserialize(using = SubPathDefinitionDeserializer.class)
-public class SubPathDefinition {
+@JsonDeserialize(using = MethodDefinitionDeserializer.class)
+public class MethodDefinition {
 
-    private HttpMethod [] methods;
+    private HttpMethod [] methods = new HttpMethod[] {
+            HttpMethod.CONNECT, HttpMethod.DELETE, HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS,
+            HttpMethod.PATCH, HttpMethod.POST, HttpMethod.PUT, HttpMethod.TRACE
+    };
 
-    private Map<String, Policy> policies = new HashMap<>();
+    private List<PolicyDefinition> policies = new ArrayList<>();
 
     public HttpMethod[] getMethods() {
         return methods;
@@ -41,11 +43,11 @@ public class SubPathDefinition {
         this.methods = methods;
     }
 
-    public Map<String, Policy> getPolicies() {
+    public List<PolicyDefinition> getPolicies() {
         return policies;
     }
 
-    public void setPolicies(Map<String, Policy> policies) {
+    public void setPolicies(List<PolicyDefinition> policies) {
         this.policies = policies;
     }
 }

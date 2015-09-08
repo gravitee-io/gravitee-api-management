@@ -16,11 +16,13 @@
 package io.gravitee.gateway.core.definition;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.http.HttpMethod;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -72,7 +74,7 @@ public class DefinitionTest {
         Map<String, PathDefinition> paths = api.getPaths();
         Assert.assertEquals("/*", paths.keySet().iterator().next());
 
-        List<SubPathDefinition> subPaths = paths.get("/*").getSubPaths();
+        List<MethodDefinition> subPaths = paths.get("/*").getMethods();
         Assert.assertEquals(1, subPaths.size());
     }
 
@@ -82,6 +84,73 @@ public class DefinitionTest {
 
         Assert.assertNotNull(api.getPaths());
         Assert.assertEquals(2, api.getPaths().size());
+    }
+
+    @Test
+    public void definition_pathwithmethods() throws Exception {
+        ApiDefinition api = getDefinition("/io/gravitee/gateway/core/definition/api-defaultpath.json");
+
+        Assert.assertNotNull(api.getPaths());
+        Assert.assertEquals(1, api.getPaths().size());
+
+        Map<String, PathDefinition> paths = api.getPaths();
+
+        List<MethodDefinition> methodDefinitions = paths.get("/*").getMethods();
+        Assert.assertEquals(1, methodDefinitions.size());
+
+        HttpMethod[] methods = methodDefinitions.iterator().next().getMethods();
+        Assert.assertEquals(2, methods.length);
+    }
+
+    @Test
+    public void definition_pathwithoutmethods() throws Exception {
+        ApiDefinition api = getDefinition("/io/gravitee/gateway/core/definition/api-path-nohttpmethod.json");
+
+        Assert.assertNotNull(api.getPaths());
+        Assert.assertEquals(1, api.getPaths().size());
+
+        Map<String, PathDefinition> paths = api.getPaths();
+
+        List<MethodDefinition> methodDefinitions = paths.get("/*").getMethods();
+        Assert.assertEquals(1, methodDefinitions.size());
+
+        HttpMethod[] methods = methodDefinitions.iterator().next().getMethods();
+        Assert.assertEquals(9, methods.length);
+    }
+
+    @Test
+    public void definition_pathwithpolicies() throws Exception {
+        ApiDefinition api = getDefinition("/io/gravitee/gateway/core/definition/api-defaultpath.json");
+        Map<String, PathDefinition> paths = api.getPaths();
+        List<MethodDefinition> methodDefinitions = paths.get("/*").getMethods();
+
+        List<PolicyDefinition> policies = methodDefinitions.iterator().next().getPolicies();
+        Assert.assertEquals(2, policies.size());
+
+        Iterator<PolicyDefinition> policyNames = policies.iterator();
+        Assert.assertEquals("access-control", policyNames.next().getName());
+        Assert.assertEquals("rate-limit", policyNames.next().getName());
+    }
+
+    @Test
+    public void definition_pathwithpolicies_disabled() throws Exception {
+        ApiDefinition api = getDefinition("/io/gravitee/gateway/core/definition/api-defaultpath.json");
+        Map<String, PathDefinition> paths = api.getPaths();
+        List<MethodDefinition> methodDefinitions = paths.get("/*").getMethods();
+
+        List<PolicyDefinition> policies = methodDefinitions.iterator().next().getPolicies();
+        Assert.assertEquals(2, policies.size());
+
+        Iterator<PolicyDefinition> policyNames = policies.iterator();
+
+        PolicyDefinition accessControlPolicy = policyNames.next();
+        PolicyDefinition rateLimitPolicy = policyNames.next();
+
+        Assert.assertEquals("access-control", accessControlPolicy.getName());
+        Assert.assertFalse(accessControlPolicy.isEnabled());
+
+        Assert.assertEquals("rate-limit", rateLimitPolicy.getName());
+        Assert.assertTrue(rateLimitPolicy.isEnabled());
     }
 
     private ApiDefinition getDefinition(String resource) throws Exception {
