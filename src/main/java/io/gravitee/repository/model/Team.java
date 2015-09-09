@@ -77,15 +77,15 @@ public class Team {
 		this.email = email;
 	}
 
-	public boolean isPrivate() {
+    public boolean isPrivateTeam() {
         return privateTeam;
     }
 
-    public void setPrivate(boolean privateTeam) {
+    public void setPrivateTeam(boolean privateTeam) {
         this.privateTeam = privateTeam;
     }
 
-	public Date getCreatedAt() {
+    public Date getCreatedAt() {
 		return createdAt;
 	}
 
