@@ -27,6 +27,7 @@ import io.gravitee.gateway.core.plugin.PluginEventListener;
 import io.gravitee.gateway.core.reactor.handler.ContextHandler;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.Handler;
+import io.gravitee.gateway.core.registry.LocalApiDefinitionRegistry;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.service.AbstractService;
 import io.gravitee.gateway.core.sync.SyncService;
@@ -199,6 +200,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
 
         eventManager.subscribeForEvents(this, ApiEvent.class);
 
+        applicationContext.getBean(LocalApiDefinitionRegistry.class).init();
         applicationContext.getBean(SyncService.class).start();
     }
 
