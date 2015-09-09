@@ -62,7 +62,7 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 			team.setName(teamname);
 			team.setEmail(String.format("%s@gravitee.io", teamname));
 			team.setDescription("Sample description");
-			team.setPrivate(true);
+			team.setPrivateTeam(true);
 			team.setCreatedAt(new Date());
 			team.setUpdatedAt(new Date());
 			
@@ -78,7 +78,7 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 			Assert.assertEquals("Invalid saved team name.", 		team.getName(),  		teamFound.getName());
 			Assert.assertEquals("Invalid saved team mail.",			team.getEmail(), 		teamFound.getEmail());
 			Assert.assertEquals("Invalid saved team description.", 	team.getDescription(),	teamFound.getDescription());
-			Assert.assertEquals("Invalid saved team visibility.",	team.isPrivate(),		teamFound.isPrivate());
+			Assert.assertEquals("Invalid saved team visibility.",	team.isPrivateTeam(),		teamFound.isPrivateTeam());
 			Assert.assertEquals("Invalid saved team creationDate.", team.getCreatedAt(),	teamFound.getCreatedAt());
 			Assert.assertEquals("Invalid saved team updateDate.",	team.getUpdatedAt(),	teamFound.getUpdatedAt());
 	
@@ -102,7 +102,7 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 			Assert.assertEquals("Invalid saved team name.", 		teamname,  					teamFound.getName());
 			Assert.assertEquals("Invalid saved team mail.",			"team2@gravitee.io", 		teamFound.getEmail());
 			Assert.assertEquals("Invalid saved team description.", 	"Sample team2 description",	teamFound.getDescription());
-			Assert.assertEquals("Invalid saved team visibility.",	true,						teamFound.isPrivate());
+			Assert.assertEquals("Invalid saved team visibility.",	true,						teamFound.isPrivateTeam());
 			Assert.assertEquals("Invalid saved team creationDate.", getIsoDate("2015-08-08T08:20:10.883Z"),	teamFound.getCreatedAt());
 			Assert.assertEquals("Invalid saved team updateDate.",	getIsoDate("2015-08-08T08:20:10.883Z"),	teamFound.getUpdatedAt());
 			
@@ -126,7 +126,7 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 			team.setName(teamname);
 			team.setEmail(newEmail);
 			team.setDescription(newDescription);
-			team.setPrivate(newVisibility);
+			team.setPrivateTeam(newVisibility);
 			team.setUpdatedAt(udpatedAt);
 			
 			teamRepository.update(team);
@@ -138,7 +138,7 @@ public class TeamRepositoryTest extends  AbstractMongoDBTest{
 			
 			Assert.assertEquals("Invalid updated team description.", newDescription, updatedTeam.getDescription());
 			Assert.assertEquals("Invalid updated team email.", newEmail, updatedTeam.getEmail());
-			Assert.assertEquals("Invalid updated team visibility.", newVisibility, updatedTeam.isPrivate() );
+			Assert.assertEquals("Invalid updated team visibility.", newVisibility, updatedTeam.isPrivateTeam() );
 			Assert.assertEquals("Invalid updated team updatedAt date.", udpatedAt, updatedTeam.getUpdatedAt());
 		} catch (Exception e) {
 			e.printStackTrace();
