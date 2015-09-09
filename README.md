@@ -25,6 +25,34 @@ $ mvn clean package
 
 ## Installing
 
-TODO
+Unzip the gravitee-repository-mongodb-1.0.0-SNAPSHOT.zip in the gravitee home directory.
+ 
 
 
+## Configuration
+
+repository.mongodb options : 
+
+| Parameter                                        |   default  |
+| ------------------------------------------------ | ---------: |
+| host                                             |  localhost |
+| port                                             |      9200  |
+| username                                         |            |
+| password                                         |            |
+| connectionPerHost                                |            |
+| connectTimeout                                   |            |
+| maxWaitTime                                      |            |
+| socketTimeout                                    |            |
+| socketKeepAlive                                  |            |
+| maxConnectionLifeTime                            |            |
+| maxConnectionIdleTime                            |            |
+| minHeartbeatFrequency                            |            |
+| description                                      |            |
+| heartbeatConnectTimeout                          |            |
+| heartbeatFrequency 	                           |            |
+| heartbeatsocketTimeout                           |            |
+| localThreshold 	                               |            |
+| minConnectionsPerHost                            |            |
+| sslEnabled 		                               |            |
+| threadsAllowedToBlockForConnectionMultiplier     |            |
+| cursorFinalizerEnabled                           |            |
