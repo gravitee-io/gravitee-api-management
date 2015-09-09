@@ -16,10 +16,6 @@
   <mapping> 
     <class-a>io.gravitee.repository.model.Api</class-a>
     <class-b>io.gravitee.repositories.mongodb.internal.model.ApiMongo</class-b>   
-    <field>
-		<a set-method="setPrivate" get-method="isPrivate">privateApi</a>
-  		<b set-method="setPrivateApi" get-method="isPrivateApi">privateApi</b>
-    </field>
     <field-exclude>
     	<a>owner</a>
     	<b>owner</b>
