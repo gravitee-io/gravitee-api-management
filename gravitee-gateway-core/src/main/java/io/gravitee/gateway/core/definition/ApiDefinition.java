@@ -35,6 +35,8 @@ public class ApiDefinition {
     @JsonProperty(value = "paths", required = true)
     private Map<String, PathDefinition> paths = new HashMap();
 
+    private boolean enabled = true;
+
     public String getName() {
         return name;
     }
@@ -57,6 +59,14 @@ public class ApiDefinition {
 
     public void setPaths(Map<String, PathDefinition> paths) {
         this.paths = paths;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     @Override

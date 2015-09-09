@@ -18,9 +18,10 @@ package io.gravitee.gateway.core.http.client.ahc;
 import com.ning.http.client.*;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.HttpClientDefinition;
 import io.gravitee.gateway.core.http.ServerResponse;
 import io.gravitee.gateway.core.http.client.AbstractHttpClient;
-import io.gravitee.gateway.core.model.Api;
 import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,12 +43,9 @@ public class AHCHttpClient extends AbstractHttpClient {
 
     private AsyncHttpClient client;
 
-    private AHCHttpConfiguration configuration;
-
     @Autowired
-    public AHCHttpClient(Api api, AHCHttpConfiguration configuration) {
-        super(api);
-        this.configuration = configuration;
+    public AHCHttpClient(ApiDefinition apiDefinition) {
+        super(apiDefinition);
     }
 
     @Override
@@ -130,7 +128,7 @@ public class AHCHttpClient extends AbstractHttpClient {
             requestBuilder.addHeader(headerName, header.getValue());
         }
 
-        requestBuilder.setHeader(HttpHeader.HOST.toString(), api.getTargetURI().getHost());
+        requestBuilder.setHeader(HttpHeader.HOST.toString(), apiDefinition.getProxy().getTarget().getHost());
     }
 
     private AsyncHttpClient.BoundRequestBuilder requestBuilder(Request request) {
@@ -172,16 +170,16 @@ public class AHCHttpClient extends AbstractHttpClient {
         return builder;
     }
 
-    private AsyncHttpClient construct(AHCHttpConfiguration configuration) {
+    private AsyncHttpClient construct(HttpClientDefinition httpClientDefinition) {
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
 
         builder
-                .setAllowPoolingConnections(configuration.isAllowPoolingConnections())
-                .setRequestTimeout(configuration.getRequestTimeout())
-                .setReadTimeout(configuration.getReadTimeout())
-                .setConnectTimeout(configuration.getConnectTimeout())
-                .setMaxConnectionsPerHost(configuration.getMaxConnectionsPerHost())
-                .setMaxConnections(configuration.getMaxConnections())
+                .setAllowPoolingConnections(true)
+                .setRequestTimeout(httpClientDefinition.getRequestTimeout())
+                .setReadTimeout(httpClientDefinition.getReadTimeout())
+                .setConnectTimeout(httpClientDefinition.getConnectTimeout())
+                .setMaxConnectionsPerHost(httpClientDefinition.getMaxConnectionsPerHost())
+                .setMaxConnections(httpClientDefinition.getMaxConnections())
                 .build();
 
 
@@ -192,15 +190,15 @@ public class AHCHttpClient extends AbstractHttpClient {
     protected void doStart() throws Exception {
         super.doStart();
 
-        LOGGER.info("Initializing AsyncHttpClient for {} with configuration {}", configuration);
-        client = construct(configuration);
+        LOGGER.info("Initializing AsyncHttpClient for {} with configuration {}", apiDefinition.getProxy().getHttpClient());
+        client = construct(apiDefinition.getProxy().getHttpClient());
     }
 
     @Override
     protected void doStop() throws Exception {
         super.doStop();
 
-        LOGGER.info("Close AsyncHttpClient for {}", api);
+        LOGGER.info("Close AsyncHttpClient for {}", apiDefinition);
         client.close();
     }
 }

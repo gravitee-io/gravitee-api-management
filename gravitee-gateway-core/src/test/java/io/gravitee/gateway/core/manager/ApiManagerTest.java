@@ -16,22 +16,14 @@
 package io.gravitee.gateway.core.manager;
 
 import io.gravitee.common.event.EventManager;
-import io.gravitee.gateway.core.builder.ApiBuilder;
+import io.gravitee.gateway.core.builder.ApiDefinitionBuilder;
+import io.gravitee.gateway.core.builder.ProxyDefinitionBuilder;
+import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
-import io.gravitee.gateway.core.model.Api;
-import io.gravitee.gateway.core.policy.PolicyDefinition;
-import io.gravitee.gateway.core.policy.PolicyManager;
-import io.gravitee.repository.api.ApiRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.PolicyConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
-import java.lang.reflect.Method;
-import java.util.Collections;
-
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
@@ -40,77 +32,25 @@ import static org.mockito.Mockito.*;
 public class ApiManagerTest {
 
     private ApiManager apiManager;
-
-    private ApiRepository apiRepository;
     private EventManager eventManager;
-    private PolicyManager policyManager;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        apiRepository = mock(ApiRepository.class);
         eventManager = mock(EventManager.class);
-        policyManager = mock(PolicyManager.class);
 
         apiManager = spy(new ApiManagerImpl());
-        ((ApiManagerImpl)apiManager).setApiRepository(apiRepository);
         ((ApiManagerImpl)apiManager).setEventManager(eventManager);
-        ((ApiManagerImpl)apiManager).setPolicyManager(policyManager);
     }
 
     @Test
     public void add_simpleApi() {
-        Api api = new ApiBuilder().name("api-test").origin("http://localhost/team").target("http://localhost/target").build();
-        apiManager.add(api);
+        ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("api-test")
+                .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("http://localhost/target").build()).build();
 
-        assertEquals(0, apiManager.apis().get(api.getName()).getPolicies().size());
-        verify(eventManager, only()).publishEvent(ApiEvent.CREATE, api);
-    }
+        apiManager.add(apiDefinition);
 
-    @Test
-    public void add_apiWithPolicy_technicalException() throws TechnicalException {
-        Api api = new ApiBuilder().name("api-test").origin("http://localhost/team").target("http://localhost/target").build();
-
-        // Prepare policy
-        when(apiRepository.findPoliciesByApi(api.getName())).thenThrow(TechnicalException.class);
-
-        apiManager.add(api);
-
-        verify(eventManager, never()).publishEvent(ApiEvent.CREATE, api);
-    }
-
-    @Test
-    public void add_apiWithPolicy_notFound() throws TechnicalException {
-        Api api = new ApiBuilder().name("api-test").origin("http://localhost/team").target("http://localhost/target").build();
-
-        // Prepare policy
-        PolicyConfiguration policy = new PolicyConfiguration();
-        policy.setPolicy("my-policy");
-
-        when(apiRepository.findPoliciesByApi(api.getName())).thenReturn(Collections.singletonList(policy));
-
-        // Run tests
-        apiManager.add(api);
-
-        verify(eventManager, never()).publishEvent(ApiEvent.CREATE, api);
-    }
-
-    @Test
-    public void add_apiWithPolicy() throws TechnicalException {
-        Api api = new ApiBuilder().name("api-test").origin("http://localhost/team").target("http://localhost/target").build();
-
-        // Prepare policy
-        PolicyConfiguration policy = new PolicyConfiguration();
-        policy.setPolicy("my-policy");
-
-        when(apiRepository.findPoliciesByApi(api.getName())).thenReturn(Collections.singletonList(policy));
-        when(policyManager.getPolicyDefinition("my-policy")).thenReturn(mock(PolicyDefinition.class));
-
-        // Run tests
-        apiManager.add(api);
-
-        assertEquals(0, apiManager.apis().get(api.getName()).getPolicies().size());
-        verify(eventManager, only()).publishEvent(ApiEvent.CREATE, api);
+        verify(eventManager, only()).publishEvent(ApiEvent.CREATE, apiDefinition);
     }
 }

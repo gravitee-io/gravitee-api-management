@@ -98,4 +98,18 @@ public class HttpClientDefinition {
     public void setUseProxy(boolean useProxy) {
         this.useProxy = useProxy;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("HttpClient{");
+        sb.append("connectTimeout=").append(connectTimeout);
+        sb.append(", readTimeout=").append(readTimeout);
+        sb.append(", requestTimeout=").append(requestTimeout);
+        sb.append(", maxConnections=").append(maxConnections);
+        sb.append(", maxConnectionsPerHost=").append(maxConnectionsPerHost);
+        sb.append(", useProxy=").append(useProxy);
+        sb.append(", httpProxy=").append(httpProxy);
+        sb.append('}');
+        return sb.toString();
+    }
 }

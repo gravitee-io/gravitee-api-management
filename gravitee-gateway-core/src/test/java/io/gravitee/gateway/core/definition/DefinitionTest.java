@@ -153,6 +153,15 @@ public class DefinitionTest {
         Assert.assertTrue(rateLimitPolicy.isEnabled());
     }
 
+    @Test
+    public void definition_pathwithoutpolicy() throws Exception {
+        ApiDefinition api = getDefinition("/io/gravitee/gateway/core/definition/api-path-withoutpolicy.json");
+        Map<String, PathDefinition> paths = api.getPaths();
+        List<MethodDefinition> methodDefinitions = paths.get("/*").getMethods();
+
+        Assert.assertEquals(1, methodDefinitions.size());
+    }
+
     private ApiDefinition getDefinition(String resource) throws Exception {
         URL jsonFile = DefinitionTest.class.getResource(resource);
         return objectMapper().readValue(jsonFile, ApiDefinition.class);

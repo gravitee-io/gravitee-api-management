@@ -17,11 +17,11 @@ package io.gravitee.gateway.core.reactor.handler.impl;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.reactor.handler.ContextHandler;
+import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.http.client.HttpClient;
-import io.gravitee.gateway.core.model.Api;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
+import io.gravitee.gateway.core.reactor.handler.ContextHandler;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
@@ -35,7 +35,7 @@ import java.util.List;
 public class ApiHandler extends ContextHandler {
 
     @Autowired
-    private Api api;
+    private ApiDefinition apiDefinition;
 
     @Autowired
     private HttpClient httpClient;
@@ -90,12 +90,12 @@ public class ApiHandler extends ContextHandler {
 
     @Override
     public String getContextPath() {
-        return api.getPublicURI().getPath();
+        return apiDefinition.getProxy().getContextPath();
     }
 
     @Override
     public String getVirtualHost() {
-        return api.getPublicURI().getAuthority();
+        return apiDefinition.getProxy().getTarget().getAuthority();
     }
 
     @Override

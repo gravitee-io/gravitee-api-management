@@ -16,14 +16,14 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.core.model.Api;
-import io.gravitee.gateway.core.model.PolicyConfiguration;
+import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.policy.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -36,7 +36,7 @@ public class PolicyResolverImpl implements PolicyResolver {
     private PolicyManager policyManager;
 
     @Autowired
-    private Api api;
+    private ApiDefinition apiDefinition;
 
     @Autowired
     private PolicyFactory policyFactory;
@@ -45,12 +45,14 @@ public class PolicyResolverImpl implements PolicyResolver {
     public List<Policy> resolve(Request request) {
         List<Policy> policies = new ArrayList<>();
 
-        List<PolicyConfiguration> definedPolicies = getApi().getPolicies();
+        List<io.gravitee.gateway.core.definition.PolicyDefinition> definedPolicies = getApiDefinition().getPaths()
+                .get("/*").getMethods().iterator().next().getPolicies();
+
         if (definedPolicies != null) {
             definedPolicies.stream().forEach(policy -> {
-                PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(policy.getPolicy());
+                PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(policy.getName());
                 if (policyDefinition == null) {
-                    LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}", policy.getPolicy(), request.id());
+                    LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}", policy.getName(), request.id());
                 } else {
                     Object policyInst = policyFactory.create(policyDefinition, policy.getConfiguration());
 
@@ -65,11 +67,11 @@ public class PolicyResolverImpl implements PolicyResolver {
         return policies;
     }
 
-    public Api getApi() {
-        return api;
+    public ApiDefinition getApiDefinition() {
+        return apiDefinition;
     }
 
-    public void setApi(Api api) {
-        this.api = api;
+    public void setApiDefinition(ApiDefinition apiDefinition) {
+        this.apiDefinition = apiDefinition;
     }
 }

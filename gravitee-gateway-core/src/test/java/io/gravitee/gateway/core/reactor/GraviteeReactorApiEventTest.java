@@ -18,10 +18,11 @@ package io.gravitee.gateway.core.reactor;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.gateway.core.AbstractCoreTest;
-import io.gravitee.gateway.core.builder.ApiBuilder;
-import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
+import io.gravitee.gateway.core.builder.ApiDefinitionBuilder;
+import io.gravitee.gateway.core.builder.ProxyDefinitionBuilder;
+import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.manager.ApiEvent;
-import io.gravitee.gateway.core.model.Api;
+import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,60 +48,70 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
 
     @Test
     public void handleApiEvent_create_started() {
-        Api api = new ApiBuilder().name("my-api").origin("http://localhost/team").start().build();
-        Event<ApiEvent, Api> evt = new SimpleEvent<>(ApiEvent.CREATE, api);
+        ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("my-api")
+                .proxy(new ProxyDefinitionBuilder().contextPath("/team").build()).build();
+
+        Event<ApiEvent, ApiDefinition> evt = new SimpleEvent<>(ApiEvent.CREATE, apiDefinition);
 
         reactor.onEvent(evt);
 
-        verify(reactor).addHandler(api);
-        verify(handlerFactory).create(api);
-        verify(reactor, never()).removeHandler(api);
+        verify(reactor).addHandler(apiDefinition);
+        verify(handlerFactory).create(apiDefinition);
+        verify(reactor, never()).removeHandler(apiDefinition);
     }
 
     @Test
     public void handleApiEvent_create_stopped() {
-        Api api = new ApiBuilder().name("my-api").origin("http://localhost/team").build();
-        Event<ApiEvent, Api> evt = new SimpleEvent<>(ApiEvent.CREATE, api);
+        ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("my-api")
+                .proxy(new ProxyDefinitionBuilder().contextPath("/team").build()).enabled(false).build();
+
+        Event<ApiEvent, ApiDefinition> evt = new SimpleEvent<>(ApiEvent.CREATE, apiDefinition);
 
         reactor.onEvent(evt);
 
-        verify(reactor).addHandler(api);
-        verify(handlerFactory, never()).create(api);
-        verify(reactor, never()).removeHandler(api);
+        verify(reactor).addHandler(apiDefinition);
+        verify(handlerFactory, never()).create(apiDefinition);
+        verify(reactor, never()).removeHandler(apiDefinition);
     }
 
     @Test
     public void handleApiEvent_update_stopped() {
-        Api api = new ApiBuilder().name("my-api").origin("http://localhost/team").build();
-        Event<ApiEvent, Api> evt = new SimpleEvent<>(ApiEvent.UPDATE, api);
+        ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("my-api")
+                .proxy(new ProxyDefinitionBuilder().contextPath("/team").build()).enabled(false).build();
+
+        Event<ApiEvent, ApiDefinition> evt = new SimpleEvent<>(ApiEvent.UPDATE, apiDefinition);
 
         reactor.onEvent(evt);
 
-        verify(reactor).removeHandler(api);
-        verify(reactor).addHandler(api);
-        verify(handlerFactory, never()).create(api);
+        verify(reactor).removeHandler(apiDefinition);
+        verify(reactor).addHandler(apiDefinition);
+        verify(handlerFactory, never()).create(apiDefinition);
     }
 
     @Test
     public void handleApiEvent_update_started() {
-        Api api = new ApiBuilder().name("my-api").origin("http://localhost/team").start().build();
-        Event<ApiEvent, Api> evt = new SimpleEvent<>(ApiEvent.UPDATE, api);
+        ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("my-api")
+                .proxy(new ProxyDefinitionBuilder().contextPath("/team").build()).build();
+
+        Event<ApiEvent, ApiDefinition> evt = new SimpleEvent<>(ApiEvent.UPDATE, apiDefinition);
 
         reactor.onEvent(evt);
 
-        verify(reactor).removeHandler(api);
-        verify(reactor).addHandler(api);
-        verify(handlerFactory).create(api);
+        verify(reactor).removeHandler(apiDefinition);
+        verify(reactor).addHandler(apiDefinition);
+        verify(handlerFactory).create(apiDefinition);
     }
 
     @Test
     public void handleApiEvent_remove() {
-        Api api = new ApiBuilder().name("my-api").origin("http://localhost/team").build();
-        Event<ApiEvent, Api> evt = new SimpleEvent<>(ApiEvent.REMOVE, api);
+        ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("my-api")
+                .proxy(new ProxyDefinitionBuilder().contextPath("/team").build()).build();
+
+        Event<ApiEvent, ApiDefinition> evt = new SimpleEvent<>(ApiEvent.REMOVE, apiDefinition);
 
         reactor.onEvent(evt);
 
-        verify(reactor).removeHandler(api);
-        verify(reactor, never()).addHandler(api);
+        verify(reactor).removeHandler(apiDefinition);
+        verify(reactor, never()).addHandler(apiDefinition);
     }
 }

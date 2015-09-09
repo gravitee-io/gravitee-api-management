@@ -26,6 +26,7 @@ import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.ErrorHandler;
 import io.gravitee.gateway.core.reactor.handler.Handler;
 import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
+import io.gravitee.gateway.core.registry.LocalApiDefinitionRegistry;
 import io.gravitee.gateway.core.reporter.spring.ReporterConfiguration;
 import io.gravitee.gateway.core.repository.spring.RepositoryConfiguration;
 import io.gravitee.gateway.core.sync.spring.SyncConfiguration;
@@ -60,6 +61,11 @@ public class CoreConfiguration {
     @Bean
     public EventManager eventManager() {
         return new EventManagerImpl();
+    }
+
+    @Bean
+    public LocalApiDefinitionRegistry localApiDefinitionRegistry() {
+        return new LocalApiDefinitionRegistry();
     }
 
     @Bean

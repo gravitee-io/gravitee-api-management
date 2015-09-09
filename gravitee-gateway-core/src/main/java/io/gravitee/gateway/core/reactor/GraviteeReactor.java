@@ -21,9 +21,8 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.Reactor;
+import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.manager.ApiEvent;
-import io.gravitee.gateway.core.model.Api;
-import io.gravitee.gateway.core.model.ApiLifecycleState;
 import io.gravitee.gateway.core.plugin.PluginEventListener;
 import io.gravitee.gateway.core.reactor.handler.ContextHandler;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
@@ -52,7 +51,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public abstract class GraviteeReactor<T> extends AbstractService implements
-        Reactor<T>, EventListener<ApiEvent, Api>, ApplicationContextAware {
+        Reactor<T>, EventListener<ApiEvent, ApiDefinition>, ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(GraviteeReactor.class);
 
@@ -75,6 +74,8 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
 
         Set<ContextHandler> mapHandlers = handlers.entrySet().stream().filter(
                 entry -> path.startsWith(entry.getKey())).map(Map.Entry::getValue).collect(Collectors.toSet());
+
+        logger.trace("Found {} handlers to handle request {}", mapHandlers.size(), path);
 
         if (! mapHandlers.isEmpty()) {
 
@@ -100,6 +101,10 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
                     return handler;
                 }
             }
+
+            ContextHandler handler = mapHandlers.iterator().next();
+            logger.trace("Returning the first handler matching path {} : {}", path, handler);
+            return handler;
         }
 
         return errorHandler;
@@ -119,7 +124,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
     }
 
     @Override
-    public void onEvent(Event<ApiEvent, Api> event) {
+    public void onEvent(Event<ApiEvent, ApiDefinition> event) {
         switch(event.type()) {
             case CREATE:
                 addHandler(event.content());
@@ -134,11 +139,11 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
         }
     }
 
-    public void addHandler(Api api) {
-        if (api.getState() == ApiLifecycleState.STARTED) {
-            logger.info("API {} has been enabled in reactor", api.getName());
+    public void addHandler(ApiDefinition apiDefinition) {
+        if (apiDefinition.isEnabled()) {
+            logger.info("API {} has been enabled in reactor", apiDefinition.getName());
 
-            ContextHandler handler = contextHandlerFactory.create(api);
+            ContextHandler handler = contextHandlerFactory.create(apiDefinition);
             try {
                 handler.start();
                 handlers.putIfAbsent(handler.getContextPath(), handler);
@@ -146,18 +151,18 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
                 logger.error("Unable to add reactor handler", ex);
             }
         } else {
-            logger.warn("Api {} is settled has disable in reactor !", api.getName());
+            logger.warn("Api {} is settled has disable in reactor !", apiDefinition.getName());
         }
     }
 
-    public void removeHandler(Api api) {
-        logger.info("API {} has been disabled (or removed) from reactor", api.getName());
+    public void removeHandler(ApiDefinition apiDefinition) {
+        logger.info("API {} has been disabled (or removed) from reactor", apiDefinition.getName());
 
-        Handler handler = handlers.remove(api.getPublicURI().getPath());
+        Handler handler = handlers.remove(apiDefinition.getProxy().getContextPath());
         if (handler != null) {
             try {
                 handler.stop();
-                handlers.remove(api.getPublicURI().getPath());
+                handlers.remove(apiDefinition.getProxy().getContextPath());
             } catch (Exception e) {
                 logger.error("Unable to remove reactor handler", e);
             }
