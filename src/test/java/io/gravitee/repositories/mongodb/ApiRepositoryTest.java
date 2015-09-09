@@ -84,7 +84,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			api.setName(apiName);
 			api.setVersion("1");
 			api.setLifecycleState(LifecycleState.STOPPED);
-			api.setPrivate(true);
+			api.setPrivateApi(true);
 			api.setPublicURI(URI.create("/public/sample/"));
 			api.setTargetURI(URI.create("/target/sample/"));
 			api.setCreatedAt(new Date());
@@ -101,7 +101,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			Api apiSaved = optional.get();
 			Assert.assertEquals("Invalid saved api version.", 	api.getVersion(), apiSaved.getVersion());
 			Assert.assertEquals("Invalid api lifecycle.", 		api.getLifecycleState(), apiSaved.getLifecycleState());
-			Assert.assertEquals("Invalid api private status.", 	api.isPrivate(), apiSaved.isPrivate());
+			Assert.assertEquals("Invalid api private status.", 	api.isPrivateApi(), apiSaved.isPrivateApi());
 			Assert.assertEquals("Invalid api public uri.", 		api.getPublicURI(), apiSaved.getPublicURI());
 			Assert.assertEquals("Invalid api target uri.", 		api.getTargetURI(), apiSaved.getTargetURI());
 			Assert.assertEquals("Invalid api createdAt.", 		api.getCreatedAt(), apiSaved.getCreatedAt());

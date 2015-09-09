@@ -88,7 +88,7 @@ public class TeamRepositoryImpl implements TeamRepository{
 			//Update 
 			teamMongo.setDescription(team.getDescription());
 			teamMongo.setEmail(team.getEmail());
-			teamMongo.setPrivateTeam(team.isPrivate());
+			teamMongo.setPrivateTeam(team.isPrivateTeam());
 			teamMongo.setUpdatedAt(team.getUpdatedAt());
 			
 			TeamMongo teamMongoUpdated = internalTeamRepo.save(teamMongo);
