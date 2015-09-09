@@ -17,9 +17,9 @@ package io.gravitee.gateway.core.http.client.jetty;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.http.ServerResponse;
 import io.gravitee.gateway.core.http.client.AbstractHttpClient;
-import io.gravitee.gateway.core.model.Api;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.client.util.InputStreamContentProvider;
@@ -51,8 +51,8 @@ public class JettyHttpClient extends AbstractHttpClient {
     private final HttpClient client;
 
     @Autowired
-    public JettyHttpClient(final Api api) {
-        super(api);
+    public JettyHttpClient(final ApiDefinition apiDefinition) {
+        super(apiDefinition);
         this.client = construct();
     }
 
@@ -299,7 +299,7 @@ public class JettyHttpClient extends AbstractHttpClient {
         // Be careful : max threads can't be less than 2 -> deadlock
         QueuedThreadPool qtp = new QueuedThreadPool(200);
 
-        qtp.setName("dispatcher-" + api.getName());
+        qtp.setName("dispatcher-" + apiDefinition.getName());
 
         client.setExecutor(qtp);
         client.setIdleTimeout(30000);

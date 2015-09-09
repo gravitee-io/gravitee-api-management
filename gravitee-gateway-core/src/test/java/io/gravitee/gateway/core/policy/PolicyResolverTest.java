@@ -16,8 +16,9 @@
 package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
-import io.gravitee.gateway.core.builder.ApiBuilder;
-import io.gravitee.gateway.core.model.Api;
+import io.gravitee.gateway.core.builder.ApiDefinitionBuilder;
+import io.gravitee.gateway.core.builder.ProxyDefinitionBuilder;
+import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.policy.impl.PolicyResolverImpl;
 import org.junit.Before;
 import org.mockito.Mock;
@@ -68,12 +69,9 @@ public class PolicyResolverTest {
             }
         });
 
-        Api api = new ApiBuilder()
-                .name("my-team-api")
-                .origin("http://localhost/team")
-                .target("http://localhost:8083/myapi")
-                .build();
+        ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("my-team-api")
+                .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("http://localhost:8083/myapi").build()).build();
 
-        policyResolver.setApi(api);
+        policyResolver.setApiDefinition(apiDefinition);
     }
 }

@@ -15,12 +15,13 @@
  */
 package io.gravitee.gateway.core.reactor;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.AbstractCoreTest;
-import io.gravitee.gateway.core.builder.ApiBuilder;
+import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.external.ApiExternalResource;
 import io.gravitee.gateway.core.external.ApiServlet;
 import io.gravitee.gateway.core.http.ServerRequest;
@@ -36,6 +37,7 @@ import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
@@ -70,14 +72,11 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     }
 
     @Test
-    public void processRequest_startedApi() {
+    public void processRequest_startedApi() throws IOException {
         // Register API endpoint
-        eventManager.publishEvent(ApiEvent.CREATE, new ApiBuilder()
-                .name("my-team-api")
-                .origin("http://localhost/team")
-                .target("http://localhost:8083/myapi")
-                .start()
-                .build());
+        ApiDefinition apiDefinition = getApiDefinition();
+
+        eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
 
         ServerRequest req = new ServerRequest();
         ServerResponse response = new ServerResponse();
@@ -90,13 +89,12 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     }
 
     @Test
-    public void processRequest_notYetStartedApi() {
+    public void processRequest_notYetStartedApi() throws IOException {
         // Register API endpoint
-        eventManager.publishEvent(ApiEvent.CREATE, new ApiBuilder()
-                .name("my-team-api")
-                .origin("http://localhost/team")
-                .target("http://localhost:8083/myapi")
-                .build());
+        ApiDefinition apiDefinition = getApiDefinition();
+        apiDefinition.setEnabled(false);
+
+        eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
 
         ServerRequest req = new ServerRequest();
         ServerResponse response = new ServerResponse();
@@ -109,13 +107,11 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     }
 
     @Test
-    public void processNotFoundRequest() {
+    public void processNotFoundRequest() throws IOException {
         // Register API endpoint
-        eventManager.publishEvent(ApiEvent.CREATE, new ApiBuilder()
-                .name("my-team-api")
-                .origin("http://localhost/team")
-                .target("http://localhost/myapi")
-                .build());
+        ApiDefinition apiDefinition = getApiDefinition();
+
+        eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
 
         ServerRequest req = new ServerRequest();
         req.setRequestURI(URI.create("http://localhost/unknown_path"));
@@ -128,7 +124,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     }
 
     @Test
-    public void reporter_checkReport() {
+    public void reporter_checkReport() throws IOException {
         ((PluginHandler) reporterManager).handle(new Plugin() {
             @Override
             public String id() {
@@ -166,11 +162,9 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 //        Reporter reporter = spy(reporterManager.getReporters().iterator().next());
 
         // Register API endpoint
-        eventManager.publishEvent(ApiEvent.CREATE, new ApiBuilder()
-                .name("my-team-api")
-                .origin("http://localhost/team")
-                .target("http://localhost/myapi")
-                .build());
+        ApiDefinition apiDefinition = getApiDefinition();
+
+        eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
 
         ServerRequest req = new ServerRequest();
         req.setRequestURI(URI.create("http://localhost/unknown_path"));
@@ -182,5 +176,10 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
         // check that the reporter has been correctly called
 //        verify(reporter, atLeastOnce()).report(eq(req), any(Response.class));
+    }
+
+    private ApiDefinition getApiDefinition() throws IOException {
+        URL jsonFile = GraviteeReactorTest.class.getResource("/io/gravitee/gateway/core/reactor/api.json");
+        return new ObjectMapper().readValue(jsonFile, ApiDefinition.class);
     }
 }

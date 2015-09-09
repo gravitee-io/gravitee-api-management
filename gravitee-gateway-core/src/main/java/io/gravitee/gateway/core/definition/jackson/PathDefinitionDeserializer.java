@@ -19,8 +19,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.gravitee.gateway.core.definition.PathDefinition;
 import io.gravitee.gateway.core.definition.MethodDefinition;
+import io.gravitee.gateway.core.definition.PathDefinition;
 
 import java.io.IOException;
 import java.util.function.Consumer;
@@ -40,17 +40,22 @@ public class PathDefinitionDeserializer extends JsonDeserializer<PathDefinition>
         pathDefinition.setPath(jp.getParsingContext().getCurrentName());
 
         if (node.isArray()) {
-            node.elements().forEachRemaining(new Consumer<JsonNode>() {
-                @Override
-                public void accept(JsonNode jsonNode) {
-                    try {
-                        MethodDefinition spd = jsonNode.traverse(jp.getCodec()).readValueAs(MethodDefinition.class);
-                        pathDefinition.getMethods().add(spd);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+            if (node.elements().hasNext()) {
+                node.elements().forEachRemaining(new Consumer<JsonNode>() {
+                    @Override
+                    public void accept(JsonNode jsonNode) {
+                        try {
+                            MethodDefinition spd = jsonNode.traverse(jp.getCodec()).readValueAs(MethodDefinition.class);
+                            pathDefinition.getMethods().add(spd);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                // register default handler /* with no policy
+                pathDefinition.getMethods().add(new MethodDefinition());
+            }
         }
 
         return pathDefinition;

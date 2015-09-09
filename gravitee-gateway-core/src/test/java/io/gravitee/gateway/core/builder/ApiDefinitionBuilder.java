@@ -15,39 +15,32 @@
  */
 package io.gravitee.gateway.core.builder;
 
-import java.net.URI;
-
-import io.gravitee.gateway.core.model.Api;
-import io.gravitee.gateway.core.model.ApiLifecycleState;
+import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.ProxyDefinition;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiBuilder {
+public class ApiDefinitionBuilder {
 
-    private final Api api = new Api();
+    private final ApiDefinition apiDefinition = new ApiDefinition();
 
-    public ApiBuilder name(String name) {
-        this.api.setName(name);
+    public ApiDefinitionBuilder name(String name) {
+        this.apiDefinition.setName(name);
         return this;
     }
 
-    public ApiBuilder target(String target) {
-        this.api.setTargetURI(URI.create(target));
+    public ApiDefinitionBuilder enabled(boolean enabled) {
+        this.apiDefinition.setEnabled(enabled);
         return this;
     }
 
-    public ApiBuilder origin(String origin) {
-        this.api.setPublicURI(URI.create(origin));
+    public ApiDefinitionBuilder proxy(ProxyDefinition proxyDefinition) {
+        this.apiDefinition.setProxy(proxyDefinition);
         return this;
     }
 
-    public ApiBuilder start() {
-        this.api.setState(ApiLifecycleState.STARTED);
-        return this;
-    }
-
-    public Api build() {
-        return this.api;
+    public ApiDefinition build() {
+        return this.apiDefinition;
     }
 }

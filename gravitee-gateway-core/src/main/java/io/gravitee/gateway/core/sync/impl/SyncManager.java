@@ -60,12 +60,13 @@ public class SyncManager {
 
             apiToRemove.stream().forEach(apiName -> apiManager.remove(apiName));
 
+            /*
             // Determine APIs to update
             apisMap.keySet().stream()
                     .filter(apiName -> apiManager.apis().containsKey(apiName))
                     .forEach(apiName -> {
                         // Get local cached API
-                        Api cachedApi = apiManager.apis().get(apiName);
+                        ApiDefinition cachedApi = apiManager.apis().get(apiName);
 
                         // Get API from store
                         Api remoteApi = apisMap.get(apiName);
@@ -79,6 +80,7 @@ public class SyncManager {
             apisMap.keySet().stream()
                     .filter(apiName -> !apiManager.apis().containsKey(apiName))
                     .forEach(apiName -> apiManager.add(apisMap.get(apiName)));
+            */
 
         } catch (TechnicalException te) {
             logger.error("Unable to sync instance", te);

@@ -26,7 +26,7 @@
         </encoder>
     </appender>
 
-    <logger name="io.gravitee" level="DEBUG" additivity="false">
+    <logger name="io.gravitee" level="TRACE" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 
