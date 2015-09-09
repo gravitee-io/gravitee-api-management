@@ -140,14 +140,14 @@ public class Api {
         this.version = version;
     }
 
-    public boolean isPrivate() {
+    public boolean isPrivateApi() {
         return privateApi;
     }
 
-    public void setPrivate(boolean privateApi) {
+    public void setPrivateApi(boolean privateApi) {
         this.privateApi = privateApi;
     }
-    
+
     public OwnerType getOwnerType() {
 		return ownerType;
 	}
