@@ -241,7 +241,7 @@ public class ApiServiceImpl implements ApiService {
         api.setCreator(currentUser);
 
         // Private by default
-        api.setPrivate(true);
+        api.setPrivateApi(true);
 
         Api createdApi =  apiRepository.create(api);
         return convert(createdApi);
@@ -252,7 +252,7 @@ public class ApiServiceImpl implements ApiService {
 
         apiEntity.setName(api.getName());
         apiEntity.setCreatedAt(api.getCreatedAt());
-        apiEntity.setPrivate(api.isPrivate());
+        apiEntity.setPrivate(api.isPrivateApi());
         apiEntity.setPublicURI(api.getPublicURI());
         apiEntity.setTargetURI(api.getTargetURI());
         apiEntity.setUpdatedAt(api.getUpdatedAt());
@@ -283,7 +283,7 @@ public class ApiServiceImpl implements ApiService {
     private static Api convert(UpdateApiEntity updateApiEntity) {
         Api api = new Api();
 
-        api.setPrivate(updateApiEntity.isPrivate());
+        api.setPrivateApi(updateApiEntity.isPrivate());
         api.setPublicURI(updateApiEntity.getPublicURI());
         api.setTargetURI(updateApiEntity.getTargetURI());
         api.setVersion(updateApiEntity.getVersion());
