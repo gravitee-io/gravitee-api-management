@@ -76,10 +76,10 @@ public class ScheduledSyncService extends AbstractService implements SyncService
      * This sync phase must be done by all node before starting.
      */
     private void doSync() {
-        logger.info("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
+        logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
 
         syncStateManager.refresh();
 
-        logger.info("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
+        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
     }
 }
