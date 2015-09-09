@@ -87,7 +87,7 @@ public class TeamServiceImpl implements TeamService {
             team.setUpdatedAt(team.getCreatedAt());
 
             // Private by default
-            team.setPrivate(true);
+            team.setPrivateTeam(true);
 
             // Create the team
             Team createdTeam = teamRepository.create(team);
@@ -123,7 +123,7 @@ public class TeamServiceImpl implements TeamService {
 
             team.setName(teamName);
             team.setUpdatedAt(new Date());
-            team.setPrivate(updateTeamEntity.isPrivate());
+            team.setPrivateTeam(updateTeamEntity.isPrivate());
 
             // Copy fields from existing values
             team.setCreatedAt(teamToUpdate.getCreatedAt());
@@ -148,7 +148,7 @@ public class TeamServiceImpl implements TeamService {
                 teamEntities.addAll(teams.stream().filter(new Predicate<Team>() {
                     @Override
                     public boolean test(Team team) {
-                        return !team.isPrivate();
+                        return !team.isPrivateTeam();
                     }
                 }).map(TeamServiceImpl::convert).collect(Collectors.toSet()));
             } else {
@@ -184,7 +184,7 @@ public class TeamServiceImpl implements TeamService {
         TeamEntity teamEntity = new TeamEntity();
 
         teamEntity.setName(team.getName());
-        teamEntity.setIsPrivate(team.isPrivate());
+        teamEntity.setIsPrivate(team.isPrivateTeam());
         teamEntity.setDescription(team.getDescription());
         teamEntity.setEmail(team.getEmail());
 
@@ -209,7 +209,7 @@ public class TeamServiceImpl implements TeamService {
 
         team.setDescription(updateTeamEntity.getDescription());
         team.setEmail(updateTeamEntity.getEmail());
-        team.setPrivate(updateTeamEntity.isPrivate());
+        team.setPrivateTeam(updateTeamEntity.isPrivate());
 
         return team;
     }
