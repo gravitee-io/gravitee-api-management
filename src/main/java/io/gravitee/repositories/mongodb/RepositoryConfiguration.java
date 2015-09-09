@@ -57,6 +57,58 @@ public class RepositoryConfiguration extends AbstractMongoConfiguration {
 
 	@Value("${repository.mongodb.password:#{null}}")
 	private String password;
+	
+	@Value("${repository.mongodb.connectionPerHost:#{null}}")
+	Integer connectionPerHost = 10;
+	
+	@Value("${repository.mongodb.connectTimeout:#{null}}")
+	Integer connectTimeout = 0;
+	
+	@Value("${repository.mongodb.maxWaitTime:#{null}}")
+	Integer maxWaitTime = 120000;
+	
+	@Value("${repository.mongodb.socketTimeout:#{null}}")
+	Integer socketTimeout = 0;
+	
+	@Value("${repository.mongodb.socketKeepAlive:#{null}}")
+	Boolean socketKeepAlive = false;
+	
+	@Value("${repository.mongodb.maxConnectionLifeTime:#{null}}")
+	Integer maxConnectionLifeTime = null;
+	
+	@Value("${repository.mongodb.maxConnectionIdleTime:#{null}}")
+	Integer maxConnectionIdleTime = null;
+	
+	@Value("${repository.mongodb.minHeartbeatFrequency:#{null}}")	
+	Integer minHeartbeatFrequency = null;
+	
+	@Value("${repository.mongodb.description:#{null}}")
+	String description = null;
+	
+	@Value("${repository.mongodb.heartbeatConnectTimeout:#{null}}")
+	Integer heartbeatConnectTimeout = null;
+	
+	@Value("${repository.mongodb.heartbeatFrequency:#{null}}")	
+	Integer heartbeatFrequency = null;
+	
+	@Value("${repository.mongodb.heartbeatsocketTimeout:#{null}}")		
+	Integer heartbeatsocketTimeout = null;
+	
+	@Value("${repository.mongodb.localThreshold:#{null}}")		
+	Integer localThreshold = null;
+	
+	@Value("${repository.mongodb.minConnectionsPerHost:#{null}}")	
+	Integer minConnectionsPerHost = null;
+	
+	@Value("${repository.mongodb.sslEnabled:#{null}}")		
+	Boolean sslEnabled = false;
+	
+	@Value("${repository.mongodb.threadsAllowedToBlockForConnectionMultiplier:#{null}}")
+	Integer threadsAllowedToBlockForConnectionMultiplier = null;
+	
+	@Value("${repository.mongodb.cursorFinalizerEnabled:#{null}}")
+	Boolean cursorFinalizerEnabled = false;
+	
 
 	@Bean
 	@Override
@@ -83,26 +135,31 @@ public class RepositoryConfiguration extends AbstractMongoConfiguration {
 		Builder builder = MongoClientOptions.builder();
 
 		builder.writeConcern(WriteConcern.SAFE);
-
-		//TODO: we have to provide more configuration options for these properties
-		/*
-			builder.alwaysUseMBeans(options.isAlwaysUseMBeans());
-			builder.connectionsPerHost(options.getConnectionsPerHost());
-			builder.connectTimeout(options.getConnectTimeout());
-			builder.cursorFinalizerEnabled(options.isCursorFinalizerEnabled());
-			builder.dbDecoderFactory(options.getDbDecoderFactory());
-			builder.dbEncoderFactory(options.getDbEncoderFactory());
-			builder.description(options.getDescription());
-			builder.maxWaitTime(options.getMaxWaitTime());
-			builder.readPreference(options.getReadPreference());
-			builder.socketFactory(options.getSocketFactory());
-			builder.socketKeepAlive(options.isSocketKeepAlive());
-			builder.socketTimeout(options.getSocketTimeout());
-			builder.threadsAllowedToBlockForConnectionMultiplier(options.getThreadsAllowedToBlockForConnectionMultiplier());
-		*/
+		
+		if(connectionPerHost != null) builder.connectionsPerHost(connectionPerHost);
+		if(maxWaitTime != null) builder.maxWaitTime(maxWaitTime);
+		if(connectTimeout != null) builder.connectTimeout(connectTimeout);
+		if(socketTimeout != null) builder.socketTimeout(socketTimeout);
+		if(socketKeepAlive != null) builder.socketKeepAlive(socketKeepAlive);
+		
+		if(maxConnectionLifeTime != null) builder.maxConnectionLifeTime(maxConnectionLifeTime);
+		if(maxConnectionIdleTime != null) builder.maxConnectionIdleTime(maxConnectionIdleTime);
+		if(minHeartbeatFrequency != null) builder.minHeartbeatFrequency(minHeartbeatFrequency);
+		if(description != null) builder.description(description);
+		if(heartbeatConnectTimeout != null) builder.heartbeatConnectTimeout(heartbeatConnectTimeout);
+		if(heartbeatFrequency != null) builder.heartbeatFrequency(heartbeatFrequency);
+		if(heartbeatsocketTimeout != null) builder.heartbeatSocketTimeout(heartbeatsocketTimeout);
+		
+		if(localThreshold != null) builder.localThreshold(localThreshold);
+		if(minConnectionsPerHost != null) builder.minConnectionsPerHost(minConnectionsPerHost);
+		if(sslEnabled != null) builder.sslEnabled(sslEnabled);
+		if(threadsAllowedToBlockForConnectionMultiplier != null) builder.threadsAllowedToBlockForConnectionMultiplier(threadsAllowedToBlockForConnectionMultiplier);
+		if(cursorFinalizerEnabled != null) builder.cursorFinalizerEnabled(cursorFinalizerEnabled);
+			
 		return builder;
 	}
 
+	
 	@Override
 	protected String getMappingBasePackage() {
 		return getClass().getPackage().getName();
