@@ -45,6 +45,9 @@ public class ScheduledSyncService extends AbstractService implements SyncService
     @Value("${sync.cron:*/5 * * * * *}")
     private String cronTrigger;
 
+    @Value("${sync.enabled:true}")
+    private boolean enabled;
+
     @Autowired
     private SyncManager syncStateManager;
 
@@ -52,12 +55,15 @@ public class ScheduledSyncService extends AbstractService implements SyncService
 
     @Override
     protected void doStart() throws Exception {
-        super.doStart();
-
-        logger.info("Sync service has been initialized with cron [{}]", cronTrigger);
-        // Sync must start only when doStart() is invoked, that's the reason why we are not
-        // using @Scheduled annotation on doSync() method.
-        scheduler.schedule(this, new CronTrigger(cronTrigger));
+        if (enabled) {
+            super.doStart();
+            logger.info("Sync service has been initialized with cron [{}]", cronTrigger);
+            // Sync must start only when doStart() is invoked, that's the reason why we are not
+            // using @Scheduled annotation on doSync() method.
+            scheduler.schedule(this, new CronTrigger(cronTrigger));
+        } else {
+            logger.warn("Sync service has been disabled");
+        }
     }
 
     @Override
