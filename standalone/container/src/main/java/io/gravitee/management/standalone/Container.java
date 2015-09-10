@@ -96,7 +96,7 @@ public class Container {
     }
 
     /**
-     * Stop a new GraviteeIO Management Standalone node.
+     * Start a new GraviteeIO Management Standalone node.
      */
     public void start() {
         LoggerFactory.getLogger(Container.class).info("Start Gravitee Management Standalone...");
