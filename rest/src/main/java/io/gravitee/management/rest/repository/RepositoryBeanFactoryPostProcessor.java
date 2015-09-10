@@ -15,7 +15,9 @@
  */
 package io.gravitee.management.rest.repository;
 
-import io.gravitee.repository.Repository;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -28,8 +30,7 @@ import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
-import java.util.HashSet;
-import java.util.Set;
+import io.gravitee.repository.Repository;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -59,7 +60,7 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
         }
 
         int size = repositories.size();
-        LOGGER.info("\tFound {} {} implementations", size, Repository.class.getSimpleName());
+        LOGGER.info("\tFound {} {} implementation(s):{}", size, Repository.class.getSimpleName(), repositories);
 
         DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
         Repository repository  = null;
