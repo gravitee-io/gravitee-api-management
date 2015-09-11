@@ -80,6 +80,9 @@ if [ "$REMOVE_DIRS" = "true" ]; then
 
 fi
 
+# Don't remove users and groups for this moment
+REMOVE_USER_AND_GROUP=false
+
 if [ "$REMOVE_USER_AND_GROUP" = "true" ]; then
     if id "$GRAVITEE_USER" > /dev/null 2>&1 ; then
         userdel "$GRAVITEE_USER"
