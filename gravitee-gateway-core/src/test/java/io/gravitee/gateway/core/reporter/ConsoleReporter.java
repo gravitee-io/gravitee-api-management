@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.core.reporter;
 
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.reporter.Reporter;
-import io.gravitee.gateway.core.service.AbstractService;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
