@@ -54,6 +54,15 @@ repository:
     host: localhost
     port: 27017
 
+#  type: jpa
+#  jpa:
+#    hibernateDialect: org.hibernate.dialect.PostgreSQL9Dialect
+#    driverClassName: org.postgresql.Driver
+#    url: jdbc:postgresql://localhost/gravitee
+#    hbm2ddlAuto: validate | update | create | create-drop
+#    username: user
+#    password: password
+
 security:
   type: basic-auth
   authentication-manager:
