@@ -20,7 +20,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.definition.HttpClientDefinition;
-import io.gravitee.gateway.core.http.ServerResponse;
+import io.gravitee.gateway.core.http.HttpServerResponse;
 import io.gravitee.gateway.core.http.client.AbstractHttpClient;
 import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
@@ -72,7 +72,6 @@ public class AHCHttpClient extends AbstractHttpClient {
 
                                 @Override
                                 public void onThrowable(Throwable t) {
-                                    ((ServerResponse) response).setStatus(502);
                                 }
 
                                 @Override
@@ -92,7 +91,7 @@ public class AHCHttpClient extends AbstractHttpClient {
 
                                 @Override
                                 public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
-                                    ((ServerResponse) response).setStatus(status.getStatusCode());
+                                    ((HttpServerResponse) response).setStatus(status.getStatusCode());
                                     return STATE.CONTINUE;
                                 }
 

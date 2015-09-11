@@ -18,6 +18,7 @@ package io.gravitee.gateway.api;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.Date;
@@ -62,14 +63,47 @@ public interface Request {
      */
     HttpVersion version();
 
+    /**
+     * Returns the length, in bytes, of the request body and made available by the input stream, or -1 if the length is
+     * not known.
+     *
+     * @return a long containing the length of the request body or -1L if the length is not known.
+     */
     long contentLength();
 
+    /**
+     * Returns the MIME type of the body of the request, or <code>null</code> if the type is not known.
+     *
+     * @return a <code>String</code> containing the name of the MIME type of the request, or null if the type is not
+     * known.
+     */
     String contentType();
 
     /**
-     * @return The request date.
+     * Returns the Request TimeStamp.
+     *
+     * @return The time that the request was received.
      */
-    Date date();
+    Date timestamp();
 
+    /**
+     * Retrieves the body of the request as binary data.
+     *
+     * @return an {@link InputStream} object containing the body of the request.
+     */
     InputStream inputStream();
+
+    /**
+     * Returns the Internet Protocol (IP) address of the client or last proxy that sent the request.
+     *
+     * @return a <code>String</code> containing the IP address of the client that sent the request.
+     */
+    String remoteAddress();
+
+    /**
+     * Returns the Internet Protocol (IP) address of the interface on which the request was received.
+     *
+     * @return a <code>String</code> containing the IP address on which the request was received.
+     */
+    String localAddress();
 }
