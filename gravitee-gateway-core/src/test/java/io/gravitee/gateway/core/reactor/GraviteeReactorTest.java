@@ -24,8 +24,8 @@ import io.gravitee.gateway.core.AbstractCoreTest;
 import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.external.ApiExternalResource;
 import io.gravitee.gateway.core.external.ApiServlet;
-import io.gravitee.gateway.core.http.HttpServerRequest2;
-import io.gravitee.gateway.core.http.HttpServerResponse2;
+import io.gravitee.gateway.core.http.HttpServerRequest;
+import io.gravitee.gateway.core.http.HttpServerResponse;
 import io.gravitee.gateway.core.manager.ApiEvent;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.reporter.ConsoleReporter;
@@ -78,8 +78,8 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
         eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
 
-        HttpServerRequest2 req = new HttpServerRequest2();
-        HttpServerResponse2 response = new HttpServerResponse2();
+        HttpServerRequest req = new HttpServerRequest();
+        HttpServerResponse response = new HttpServerResponse();
 
         req.setRequestURI(URI.create("http://localhost/team"));
         req.setMethod(HttpMethod.GET);
@@ -96,8 +96,8 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
         eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
 
-        HttpServerRequest2 req = new HttpServerRequest2();
-        HttpServerResponse2 response = new HttpServerResponse2();
+        HttpServerRequest req = new HttpServerRequest();
+        HttpServerResponse response = new HttpServerResponse();
 
         req.setRequestURI(URI.create("http://localhost/team"));
         req.setMethod(HttpMethod.GET);
@@ -113,11 +113,11 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
         eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
 
-        HttpServerRequest2 req = new HttpServerRequest2();
+        HttpServerRequest req = new HttpServerRequest();
         req.setRequestURI(URI.create("http://localhost/unknown_path"));
         req.setMethod(HttpMethod.GET);
 
-        HttpServerResponse2 response = new HttpServerResponse2();
+        HttpServerResponse response = new HttpServerResponse();
 
         Response resp = reactor.process(req, response).toBlocking().single();
         Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
@@ -166,11 +166,11 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
         eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
 
-        HttpServerRequest2 req = new HttpServerRequest2();
+        HttpServerRequest req = new HttpServerRequest();
         req.setRequestURI(URI.create("http://localhost/unknown_path"));
         req.setMethod(HttpMethod.GET);
 
-        HttpServerResponse2 response = new HttpServerResponse2();
+        HttpServerResponse response = new HttpServerResponse();
 
         reactor.process(req, response).toBlocking().single();
 

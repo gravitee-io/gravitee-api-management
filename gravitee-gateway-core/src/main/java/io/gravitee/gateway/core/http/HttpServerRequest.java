@@ -27,7 +27,7 @@ import java.util.*;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class HttpServerRequest2 implements Request {
+public class HttpServerRequest implements Request {
 
 	private final String id;
 
@@ -55,7 +55,7 @@ public class HttpServerRequest2 implements Request {
 
 	private Map<String, String> headers = new HashMap();
 
-	public HttpServerRequest2() {
+	public HttpServerRequest() {
 		this.date = new Date();
 		this.id = UUID.randomUUID().toString();
 	}
