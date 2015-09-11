@@ -78,7 +78,7 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler, Embe
     }
 
     private boolean isEnabled(Plugin reporterPlugin) {
-        String value = stringValueResolver.resolveStringValue("${reporter." + reporterPlugin.id() + ".enable:true}");
+        String value = stringValueResolver.resolveStringValue("${reporter." + reporterPlugin.id() + ".enabled:true}");
         LOGGER.debug("Plugin {} configuration: {}", reporterPlugin.id(), value);
         return Boolean.parseBoolean(value);
     }
