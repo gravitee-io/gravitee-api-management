@@ -20,20 +20,26 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.TimeZone;
 
+import io.gravitee.common.service.AbstractService;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.reporter.Reporter;
 import org.eclipse.jetty.util.RolloverFileOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.reporter.Reporter;
-import io.gravitee.gateway.core.service.AbstractService;
 import io.gravitee.reporters.access.file.config.Config;
 
 /**
+ * Write an access log to a file by using the following line format:
+ *
+ * <pre>
+ *     [TIMESTAMP] REMOTE_IP LOCAL_IP METHOD PATH STATUS LENGTH
+ * </pre>
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @SuppressWarnings("rawtypes")
@@ -48,20 +54,16 @@ public class AccessLogReporter extends AbstractService implements Reporter {
 
 	private static final SimpleDateFormat dateFormatter = new SimpleDateFormat(RFC_3339_DATE_FORMAT);
 
-	// A Dummy Container Date Object is used to format the date
-	private Date date = new Date();
-
 	private static ThreadLocal<StringBuilder> buffers = new ThreadLocal<StringBuilder>() {
 		@Override
 		protected StringBuilder initialValue() {
 			return new StringBuilder(256);
 		}
 	};
-	
+
 	private transient OutputStream _out;
 
 	private transient Writer _writer;
-
 
 	public void write(String accessLog) throws IOException {
 		synchronized (this) {
@@ -79,26 +81,24 @@ public class AccessLogReporter extends AbstractService implements Reporter {
 		StringBuilder buf = buffers.get();
 		buf.setLength(0);
 
-		long startTime = (long) request.date().getTime();
-
-		// buf.append(request.getServerName());
-		// buf.append(' ');
-		//buf.append(request.getRemoteAddr());
-		//buf.append(' ');
-
+		// Append request timestamp
 		buf.append('[');
+		buf.append(dateFormatter.format(request.timestamp()));
+		buf.append("] ");
 
-		date.setTime(startTime);
-		buf.append(dateFormatter.format(date));
+		// Append remote and local IPs
+		buf.append(request.remoteAddress());
+		buf.append(' ');
+		buf.append(request.localAddress());
+		buf.append(" ");
 
-		buf.append("] \"");
+		// Append request method and URI
 		buf.append(request.method());
 		buf.append(' ');
-		buf.append(request.uri());
-		//buf.append(' ');
-		//buf.append(request.protocol());
-		buf.append("\" ");
+		buf.append(request.path());
+		buf.append(" ");
 
+		// Append response status
 		int status = response.status();
 		if (status <= 0)
 			status = 404;
@@ -106,6 +106,7 @@ public class AccessLogReporter extends AbstractService implements Reporter {
 		buf.append((char) ('0' + ((status / 10) % 10)));
 		buf.append((char) ('0' + (status % 10)));
 
+		// Append response length
 		long responseLength = getLongContentLength(response);
 		if (responseLength >= 0) {
 			buf.append(' ');
@@ -128,33 +129,9 @@ public class AccessLogReporter extends AbstractService implements Reporter {
 			buf.append(" -1 ");
 		}
 
-//		final String apiName = api == null ? "-" : api.getName();
-//		buf.append('"');
-//		buf.append(apiName);
-//		buf.append("\" ");
-
-		String apiKey = request.id();
-		if (apiKey == null) {
-			apiKey = "-";
-		}
-		buf.append('"');
-		buf.append(apiKey);
-		buf.append("\" ");
-
-		
-
 		return buf.toString();
 	}
 
-	public String getResponseTime(Response response){
-		// TODO add response missing information
-		String responseTime = null;
-		if (responseTime != null && !responseTime.isEmpty()) {
-			return responseTime;
-		}
-		return "-1";
-	}
-	
 	public long getLongContentLength(Response response) {
 		String contentLength = response.headers().get("Content-Length");
 		if (contentLength != null && !contentLength.isEmpty()) {
@@ -164,27 +141,26 @@ public class AccessLogReporter extends AbstractService implements Reporter {
 		return -1;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public synchronized void doStart() throws Exception {
-		
-		String filename = config.getFilename();
-		
-		if (filename != null) {
-			_out = new RolloverFileOutputStream(filename);
-			LOGGER.info("Opened " + filename);
-		}
+        String filename = config.getFilename();
+        if (filename != null) {
+            _out = new RolloverFileOutputStream(
+                    filename,
+					config.isAppend(),
+					config.getRetainDays(),
+                    TimeZone.getDefault(),
+					config.getDateFormat(),
+					config.getBackupFormat()
+            );
+            LOGGER.info("Opened rollover access log file " + filename);
+        }
 
 		synchronized (this) {
 			_writer = new OutputStreamWriter(_out);
 		}
 	}
 	
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public synchronized void doStop() throws Exception {
 		synchronized (this) {
@@ -206,11 +182,8 @@ public class AccessLogReporter extends AbstractService implements Reporter {
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
-	public synchronized void report(Request request, Response response) {
+	public void report(Request request, Response response) {
 		String log = format(request, response);
 		try {
 			write(log);
@@ -218,5 +191,4 @@ public class AccessLogReporter extends AbstractService implements Reporter {
 			e.printStackTrace();
 		}
 	}
-
 }

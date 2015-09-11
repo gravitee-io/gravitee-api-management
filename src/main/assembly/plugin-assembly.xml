@@ -23,14 +23,14 @@
 	</formats>
 	<includeBaseDirectory>false</includeBaseDirectory>
 
-	<!-- Include the main Policy Jar file -->
+	<!-- Include the main plugin Jar file -->
 	<files>
 		<file>
 			<source>${project.build.directory}/${project.build.finalName}.jar</source>
 		</file>
 	</files>
 
-	<!-- Finally include Policy dependencies -->
+	<!-- Finally include plugin dependencies -->
 	<dependencySets>
 		<dependencySet>
 			<outputDirectory>lib</outputDirectory>

@@ -21,18 +21,56 @@ import org.springframework.beans.factory.annotation.Value;
  * AccessLog client reporter configuration.
  *  
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
- *
  */
 public class Config {
 
 	/**
 	 *  Reporter file name. 
 	 */
-	@Value("${reporter.file.filename:access.log}")
+	@Value("${reporter.file.fileName:access-yyyy_mm_dd.log}")
 	private String filename;
+
+	/**
+	 * Whether existing files will be appended to or not.
+	 */
+	@Value("${reporter.file.append:true}")
+	private Boolean append;
+
+	/**
+	 * The number of days to retain files before deleting them. 0 to retain forever.
+	 */
+	@Value("${reporter.file.retainDays:0}")
+	private Integer retainDays;
+
+	/**
+	 * The format for the date file substitution.
+	 */
+	@Value("${reporter.file.dateFormat:yyyy_MM_dd}")
+	private String dateFormat;
+
+	/**
+	 * The format for the file extension of backup files.
+	 */
+	@Value("${reporter.file.backupFormat:HHmmssSSS}")
+	private String backupFormat;
 
 	public String getFilename() {
 		return filename;
 	}
 
+	public Boolean isAppend() {
+		return append;
+	}
+
+	public Integer getRetainDays() {
+		return retainDays;
+	}
+
+	public String getDateFormat() {
+		return dateFormat;
+	}
+
+	public String getBackupFormat() {
+		return backupFormat;
+	}
 }

@@ -35,16 +35,47 @@
 
 	<properties>
 		<junit.version>4.12</junit.version>
+		<jetty.version>9.2.11.v20150529</jetty.version>
+        <slf4j.version>1.7.12</slf4j.version>
+        <spring.version>4.1.6.RELEASE</spring.version>
 	</properties>
 
 	<dependencies>
 		<!-- Gravitee internal dependencies -->
 		<dependency>
 			<groupId>io.gravitee.gateway</groupId>
-			<artifactId>gravitee-gateway-core</artifactId>
+			<artifactId>gravitee-gateway-api</artifactId>
 			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>io.gravitee.common</groupId>
+			<artifactId>gravitee-common</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- External dependencies -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-util</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
 
 		<!-- Unit Tests -->
 		<dependency>
@@ -69,7 +100,7 @@
 				<configuration>
 					<appendAssemblyId>false</appendAssemblyId>
 					<descriptors>
-						<descriptor>src/main/assemblies/plugin.xml</descriptor>
+						<descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
 					</descriptors>
 				</configuration>
 				<executions>

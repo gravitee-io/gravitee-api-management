@@ -27,6 +27,8 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 
 /**
+ * Asynchronous AccessLogReporter
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class AsyncAccessLogReporter extends AccessLogReporter {
@@ -41,7 +43,7 @@ public class AsyncAccessLogReporter extends AccessLogReporter {
 
 	@Override
 	public synchronized void doStart() throws Exception {
-		super.start();
+		super.doStart();
 		LOGGER.info("Async AccessLog reporter is starting.");
 
 		this.thread = new WriterThread();
