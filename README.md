@@ -9,10 +9,10 @@ Administrative Rest API to manage the Gateway
 ```
 $ git clone https://github.com/gravitee-io/gravitee-management-rest-api.git
 $ cd gravitee-management-rest-api/war
-$ mvn -Djetty.port=8082 jetty:run -Dgravitee.home=/|gravite-home-path|/ -Dgravitee.conf=/|gravite-conf-path|/gravitee.yml
+$ mvn -Djetty.port=8083 jetty:run -Dgravitee.home=/|gravite-home-path|/ -Dgravitee.conf=/|gravite-conf-path|/gravitee.yml
 
 ...
-<app starts and listens on port 8082>
+<app starts and listens on port 8083>
 ```
 The application can be package and deploy as web application (war file)
 ```
@@ -33,7 +33,7 @@ $ mvn package
 <you can start the application with the following command line>
 $ java -jar target/<app_name>-executable.jar -Dgravitee.home=/|gravite-home-path|/ -Dgravitee.conf=/|gravite-conf-path|/gravitee.yml
 ...
-<app starts and listens on port 8082>
+<app starts and listens on port 8083>
 ```
 ## Application configuration file
 
