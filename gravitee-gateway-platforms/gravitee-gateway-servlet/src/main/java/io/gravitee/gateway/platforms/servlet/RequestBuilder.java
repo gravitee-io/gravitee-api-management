@@ -16,8 +16,8 @@
 package io.gravitee.gateway.platforms.servlet;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.gateway.core.http.HttpServerRequest2;
-import io.gravitee.gateway.core.http.HttpServerResponse2;
+import io.gravitee.gateway.core.http.HttpServerRequest;
+import io.gravitee.gateway.core.http.HttpServerResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,8 +33,8 @@ import java.util.Enumeration;
  */
 public class RequestBuilder {
 
-	public static HttpServerRequest2 from(HttpServletRequest servletRequest) throws IOException {
-		HttpServerRequest2 request = new HttpServerRequest2();
+	public static HttpServerRequest from(HttpServletRequest servletRequest) throws IOException {
+		HttpServerRequest request = new HttpServerRequest();
 
 		request.setInputStream(servletRequest.getInputStream());
 		request.setContentLength(servletRequest.getContentLength());
@@ -51,13 +51,13 @@ public class RequestBuilder {
 		return request;
 	}
 
-	public static HttpServerResponse2 from(HttpServletResponse servletResponse) throws IOException {
-		HttpServerResponse2 response = new HttpServerResponse2();
+	public static HttpServerResponse from(HttpServletResponse servletResponse) throws IOException {
+		HttpServerResponse response = new HttpServerResponse();
 		response.setOutputStream(servletResponse.getOutputStream());
 		return response;
 	}
 
-	private static void copyHeaders(HttpServerRequest2 request, HttpServletRequest servletRequest) {
+	private static void copyHeaders(HttpServerRequest request, HttpServletRequest servletRequest) {
 		Enumeration<String> headerNames = servletRequest.getHeaderNames();
 		while (headerNames.hasMoreElements()) {
 			String hname = headerNames.nextElement();
@@ -66,7 +66,7 @@ public class RequestBuilder {
 		}
 	}
 
-	private static void copyQueryParameters(HttpServerRequest2 request, HttpServletRequest servletRequest) {
+	private static void copyQueryParameters(HttpServerRequest request, HttpServletRequest servletRequest) {
 		String query = servletRequest.getQueryString();
 
 		if (query != null) {
