@@ -46,7 +46,7 @@ import io.gravitee.repository.model.TeamRole;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-public class TeamServiceImpl implements TeamService {
+public class TeamServiceImpl extends TransactionalService implements TeamService {
 
     /**
      * Logger.

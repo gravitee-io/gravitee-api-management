@@ -45,7 +45,7 @@ import io.gravitee.repository.model.OwnerType;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-public class ApiServiceImpl implements ApiService {
+public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     /**
      * Logger.

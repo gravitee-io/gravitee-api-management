@@ -15,28 +15,29 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.exceptions.UserMailAlreadyExistsException;
-import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
-import io.gravitee.management.model.NewUserEntity;
-import io.gravitee.management.model.UserEntity;
-import io.gravitee.management.service.UserService;
-import io.gravitee.repository.api.UserRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.User;
+import java.util.Date;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.Optional;
+import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UserMailAlreadyExistsException;
+import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
+import io.gravitee.repository.api.UserRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.model.User;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends TransactionalService implements UserService {
 
     /**
      * Logger.

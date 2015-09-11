@@ -15,6 +15,16 @@
  */
 package io.gravitee.management.service.impl;
 
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
@@ -25,21 +35,12 @@ import io.gravitee.repository.api.ApplicationRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Application;
 import io.gravitee.repository.model.OwnerType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-public class ApplicationServiceImpl implements ApplicationService {
+public class ApplicationServiceImpl extends TransactionalService implements ApplicationService {
 
     /**
      * Logger.

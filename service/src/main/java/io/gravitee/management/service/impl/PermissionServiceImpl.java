@@ -38,7 +38,7 @@ import io.gravitee.repository.model.TeamRole;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-public class PermissionServiceImpl implements PermissionService {
+public class PermissionServiceImpl extends TransactionalService implements PermissionService {
 
     /**
      * Logger.

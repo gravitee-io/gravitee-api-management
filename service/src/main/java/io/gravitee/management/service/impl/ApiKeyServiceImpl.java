@@ -15,29 +15,34 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.model.ApiKeyEntity;
-import io.gravitee.management.service.ApiKeyGenerator;
-import io.gravitee.management.service.ApiKeyService;
-import io.gravitee.repository.api.ApiKeyRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.ApiKey;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.function.Predicate;
+import io.gravitee.management.model.ApiKeyEntity;
+import io.gravitee.management.service.ApiKeyGenerator;
+import io.gravitee.management.service.ApiKeyService;
+import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.repository.api.ApiKeyRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.model.ApiKey;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-public class ApiKeyServiceImpl implements ApiKeyService {
+public class ApiKeyServiceImpl extends TransactionalService implements ApiKeyService {
 
     /**
      * Logger.

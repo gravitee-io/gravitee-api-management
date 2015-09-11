@@ -43,7 +43,7 @@ import io.gravitee.repository.model.PageType;
  * @author Titouan COMPIEGNE
  */
 @Component
-public class DocumentationServiceImpl implements DocumentationService {
+public class DocumentationServiceImpl extends TransactionalService implements DocumentationService {
 
 	private final Logger LOGGER = LoggerFactory.getLogger(DocumentationServiceImpl.class);
 

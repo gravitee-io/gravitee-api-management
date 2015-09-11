@@ -15,6 +15,18 @@
  */
 package io.gravitee.management.service.impl;
 
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import io.gravitee.management.model.MembershipEntity;
 import io.gravitee.management.model.TeamRole;
 import io.gravitee.management.service.TeamMembershipService;
@@ -26,23 +38,12 @@ import io.gravitee.repository.api.TeamRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Member;
 import io.gravitee.repository.model.Team;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-public class TeamMembershipServiceImpl implements TeamMembershipService {
+public class TeamMembershipServiceImpl extends TransactionalService implements TeamMembershipService {
 
     /**
      * Logger.

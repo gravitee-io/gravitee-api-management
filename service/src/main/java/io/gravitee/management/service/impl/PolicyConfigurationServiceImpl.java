@@ -15,6 +15,15 @@
  */
 package io.gravitee.management.service.impl;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import io.gravitee.management.model.PolicyConfigurationEntity;
 import io.gravitee.management.service.PolicyConfigurationService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -22,20 +31,12 @@ import io.gravitee.repository.api.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Api;
 import io.gravitee.repository.model.PolicyConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-public class PolicyConfigurationServiceImpl implements PolicyConfigurationService {
+public class PolicyConfigurationServiceImpl extends TransactionalService implements PolicyConfigurationService {
 
     /**
      * Logger.
