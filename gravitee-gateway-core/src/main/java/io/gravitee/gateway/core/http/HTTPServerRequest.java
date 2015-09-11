@@ -27,13 +27,15 @@ import java.util.*;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ServerRequest implements Request {
+public class HttpServerRequest implements Request {
 
 	private final String id;
 
 	private final Date date;
 
-	private String remoteAddr;
+	private String remoteAddress;
+
+	private String localAddress;
 
 	private HttpMethod method;
 
@@ -53,17 +55,9 @@ public class ServerRequest implements Request {
 
 	private Map<String, String> headers = new HashMap();
 
-	public ServerRequest() {
+	public HttpServerRequest() {
 		this.date = new Date();
 		this.id = UUID.randomUUID().toString();
-	}
-
-	public String getRemoteAddr() {
-		return remoteAddr;
-	}
-
-	public void setRemoteAddr(String remoteAddr) {
-		this.remoteAddr = remoteAddr;
 	}
 
 	public HttpMethod method() {
@@ -94,13 +88,31 @@ public class ServerRequest implements Request {
 	}
 
 	@Override
-	public Date date() {
+	public Date timestamp() {
 		return date;
 	}
 
 	@Override
 	public InputStream inputStream() {
 		return inputStream;
+	}
+
+	public void setLocalAddress(String localAddress) {
+		this.localAddress = localAddress;
+	}
+
+	public void setRemoteAddress(String remoteAddress) {
+		this.remoteAddress = remoteAddress;
+	}
+
+	@Override
+	public String remoteAddress() {
+		return this.remoteAddress;
+	}
+
+	@Override
+	public String localAddress() {
+		return this.localAddress;
 	}
 
 	public void setInputStream(InputStream inputStream) {

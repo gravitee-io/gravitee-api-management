@@ -16,8 +16,8 @@
 package io.gravitee.gateway.platforms.servlet;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.gateway.core.http.ServerRequest;
-import io.gravitee.gateway.core.http.ServerResponse;
+import io.gravitee.gateway.core.http.HttpServerRequest;
+import io.gravitee.gateway.core.http.HttpServerResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
-import java.time.Instant;
 import java.util.Enumeration;
 
 /**
@@ -34,12 +33,14 @@ import java.util.Enumeration;
  */
 public class RequestBuilder {
 
-	public static ServerRequest from(HttpServletRequest servletRequest) throws IOException {
-		ServerRequest request = new ServerRequest();
+	public static HttpServerRequest from(HttpServletRequest servletRequest) throws IOException {
+		HttpServerRequest request = new HttpServerRequest();
 
 		request.setInputStream(servletRequest.getInputStream());
 		request.setContentLength(servletRequest.getContentLength());
 		request.setContentType(servletRequest.getContentType());
+		request.setLocalAddress(servletRequest.getLocalAddr());
+		request.setRemoteAddress(servletRequest.getRemoteAddr());
 
 		copyHeaders(request, servletRequest);
 		copyQueryParameters(request, servletRequest);
@@ -50,13 +51,13 @@ public class RequestBuilder {
 		return request;
 	}
 
-	public static ServerResponse from(HttpServletResponse servletResponse) throws IOException {
-		ServerResponse response = new ServerResponse();
+	public static HttpServerResponse from(HttpServletResponse servletResponse) throws IOException {
+		HttpServerResponse response = new HttpServerResponse();
 		response.setOutputStream(servletResponse.getOutputStream());
 		return response;
 	}
 
-	private static void copyHeaders(ServerRequest request, HttpServletRequest servletRequest) {
+	private static void copyHeaders(HttpServerRequest request, HttpServletRequest servletRequest) {
 		Enumeration<String> headerNames = servletRequest.getHeaderNames();
 		while (headerNames.hasMoreElements()) {
 			String hname = headerNames.nextElement();
@@ -65,7 +66,7 @@ public class RequestBuilder {
 		}
 	}
 
-	private static void copyQueryParameters(ServerRequest request, HttpServletRequest servletRequest) {
+	private static void copyQueryParameters(HttpServerRequest request, HttpServletRequest servletRequest) {
 		String query = servletRequest.getQueryString();
 
 		if (query != null) {

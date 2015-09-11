@@ -60,7 +60,7 @@ public class ApiHandler extends ContextHandler {
                         if (requestPolicyChain.isFailure()) {
                             response.status(requestPolicyChain.statusCode());
                         } else {
-                            // 2_ Call remote service
+                            // 3_ Call remote service
                             httpClient.invoke(request, response).subscribe(new Subscriber<Response>() {
                                 @Override
                                 public void onCompleted() {
@@ -74,9 +74,9 @@ public class ApiHandler extends ContextHandler {
 
                                 @Override
                                 public void onNext(Response response) {
+                                    // 4_ Apply response policies
                                     getResponsePolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
 
-                                    response.headers().put("x-mykey", "x-toto");
                                     observer.onNext(response);
 
                                     reporterService.report(request, response);
