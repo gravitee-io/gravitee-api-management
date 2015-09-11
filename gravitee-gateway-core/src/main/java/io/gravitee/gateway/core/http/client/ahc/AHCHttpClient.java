@@ -179,9 +179,29 @@ public class AHCHttpClient extends AbstractHttpClient {
                 .setReadTimeout(httpClientDefinition.getReadTimeout())
                 .setConnectTimeout(httpClientDefinition.getConnectTimeout())
                 .setMaxConnectionsPerHost(httpClientDefinition.getMaxConnectionsPerHost())
-                .setMaxConnections(httpClientDefinition.getMaxConnections())
-                .build();
+                .setMaxConnections(httpClientDefinition.getMaxConnections());
 
+        if (httpClientDefinition.isUseProxy()) {
+            boolean useCredentials = (httpClientDefinition.getHttpProxy().getPrincipal() != null);
+
+            ProxyServer proxy = null;
+
+            if (useCredentials) {
+                proxy = new ProxyServer(
+                        httpClientDefinition.getHttpProxy().getHost(),
+                        httpClientDefinition.getHttpProxy().getPort(),
+                        httpClientDefinition.getHttpProxy().getPrincipal(),
+                        httpClientDefinition.getHttpProxy().getPassword()
+                );
+            } else {
+                proxy = new ProxyServer(
+                        httpClientDefinition.getHttpProxy().getHost(),
+                        httpClientDefinition.getHttpProxy().getPort()
+                );
+            }
+
+            builder.setProxyServer(proxy);
+        }
 
         return new AsyncHttpClient(builder.build());
     }
