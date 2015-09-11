@@ -194,8 +194,8 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
     protected void doStart() throws Exception {
         super.doStart();
 
-        applicationContext.getBean(PluginRegistry.class).start();
         applicationContext.getBean(PluginEventListener.class).start();
+        applicationContext.getBean(PluginRegistry.class).start();
         applicationContext.getBean(ReporterService.class).start();
 
         eventManager.subscribeForEvents(this, ApiEvent.class);
