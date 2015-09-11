@@ -179,7 +179,8 @@ public class AHCHttpClient extends AbstractHttpClient {
                 .setReadTimeout(httpClientDefinition.getReadTimeout())
                 .setConnectTimeout(httpClientDefinition.getConnectTimeout())
                 .setMaxConnectionsPerHost(httpClientDefinition.getMaxConnectionsPerHost())
-                .setMaxConnections(httpClientDefinition.getMaxConnections());
+                .setMaxConnections(httpClientDefinition.getMaxConnections())
+                .setMaxRequestRetry(0);
 
         if (httpClientDefinition.isUseProxy()) {
             boolean useCredentials = (httpClientDefinition.getHttpProxy().getPrincipal() != null);
