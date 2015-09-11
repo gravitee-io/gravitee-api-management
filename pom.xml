@@ -34,6 +34,11 @@
 	<name>Gravitee IO - Gateway File Reporter</name>
 
 	<properties>
+		<!-- Gravitee's project versions -->
+		<gravitee-gateway.version>1.0.0-SNAPSHOT</gravitee-gateway.version>
+		<gravitee-common.version>1.0.0-SNAPSHOT</gravitee-common.version>
+
+		<!-- External project versions -->
 		<junit.version>4.12</junit.version>
 		<jetty.version>9.2.11.v20150529</jetty.version>
         <slf4j.version>1.7.12</slf4j.version>
@@ -45,13 +50,13 @@
 		<dependency>
 			<groupId>io.gravitee.gateway</groupId>
 			<artifactId>gravitee-gateway-api</artifactId>
-			<version>${project.version}</version>
+			<version>${gravitee-gateway.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.gravitee.common</groupId>
 			<artifactId>gravitee-common</artifactId>
-			<version>${project.version}</version>
+			<version>${gravitee-common.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
