@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporters.access.file.config;
+package io.gravitee.reporter.file.config;
 
 import org.springframework.beans.factory.annotation.Value;
 
 /**
- * AccessLog client reporter configuration.
+ * File reporter client configuration.
  *  
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  */

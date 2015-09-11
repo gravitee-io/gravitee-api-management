@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporters.access.file;
+package io.gravitee.reporter.file;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -26,12 +26,11 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.reporter.Reporter;
+import io.gravitee.reporter.file.config.Config;
 import org.eclipse.jetty.util.RolloverFileOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import io.gravitee.reporters.access.file.config.Config;
 
 /**
  * Write an access log to a file by using the following line format:
@@ -43,12 +42,12 @@ import io.gravitee.reporters.access.file.config.Config;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @SuppressWarnings("rawtypes")
-public class AccessLogReporter extends AbstractService implements Reporter {
+public class FileReporter extends AbstractService implements Reporter {
 
 	@Autowired
 	private Config config;
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(AccessLogReporter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileReporter.class);
 
 	private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 

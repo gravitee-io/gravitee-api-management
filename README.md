@@ -1,6 +1,6 @@
-# Gravitee Reporter Access Log
+# Gravitee File Reporter
 
-[![Build Status](http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-reporter-accesslog)](http://build.gravitee.io/jenkins/job/gravitee-reporter-accesslog/)
+[![Build Status](http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-reporter-file)](http://build.gravitee.io/jenkins/job/gravitee-reporter-file/)
 
 Presentation
 ------------

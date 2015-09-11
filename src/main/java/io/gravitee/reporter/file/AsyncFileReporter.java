@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporters.access.file;
+package io.gravitee.reporter.file;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
@@ -27,13 +27,13 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 
 /**
- * Asynchronous AccessLogReporter
+ * Asynchronous FileReporter
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class AsyncAccessLogReporter extends AccessLogReporter {
+public class AsyncFileReporter extends FileReporter {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AsyncAccessLogReporter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AsyncFileReporter.class);
 
 	private final BlockingQueue<String> queue = new BlockingArrayQueue<>(1024);
 
@@ -66,7 +66,7 @@ public class AsyncAccessLogReporter extends AccessLogReporter {
 		if (!this.queue.offer(log)) {
 			if (this.warnedFull) {
 				// TODO: provide a programmatic overflow to disk feature
-				LOGGER.warn("Accesslog Queue overflow !");
+				LOGGER.warn("Async Reporter file's queue overflow !");
 			}
 			this.warnedFull = true;
 		}
@@ -76,7 +76,7 @@ public class AsyncAccessLogReporter extends AccessLogReporter {
 		private volatile boolean running = true;
 
 		WriterThread() {
-			this.setName("reporter-accesslog");
+			this.setName("reporter-file");
 		}
 
 		public void terminate() {
@@ -87,15 +87,15 @@ public class AsyncAccessLogReporter extends AccessLogReporter {
 		public void run() {
 			while (running) {
 				try {
-					String log = AsyncAccessLogReporter.this.queue.poll(10, TimeUnit.SECONDS);
+					String log = AsyncFileReporter.this.queue.poll(10, TimeUnit.SECONDS);
 					if (log != null) {
-						AsyncAccessLogReporter.this.write(log);
+						AsyncFileReporter.this.write(log);
 					}
 
-					while (!AsyncAccessLogReporter.this.queue.isEmpty()) {
-						log = AsyncAccessLogReporter.this.queue.poll();
+					while (!AsyncFileReporter.this.queue.isEmpty()) {
+						log = AsyncFileReporter.this.queue.poll();
 						if (log != null) {
-							AsyncAccessLogReporter.this.write(log);
+							AsyncFileReporter.this.write(log);
 						}
 					}
 				} catch (IOException ioe) {
