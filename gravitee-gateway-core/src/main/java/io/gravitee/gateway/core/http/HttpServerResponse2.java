@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class HttpServerResponse implements Response {
+public class HttpServerResponse2 implements Response {
 
     private int status;
 
@@ -73,7 +73,7 @@ public class HttpServerResponse implements Response {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("HttpServerResponse{");
+        final StringBuilder sb = new StringBuilder("HttpServerResponse2{");
         sb.append("status=").append(status);
         sb.append('}');
         return sb.toString();

@@ -21,8 +21,8 @@ import io.gravitee.gateway.api.policy.PolicyChain;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.api.policy.annotations.OnRequest;
 import io.gravitee.gateway.api.policy.annotations.OnResponse;
-import io.gravitee.gateway.core.http.HttpServerRequest;
-import io.gravitee.gateway.core.http.HttpServerResponse;
+import io.gravitee.gateway.core.http.HttpServerRequest2;
+import io.gravitee.gateway.core.http.HttpServerResponse2;
 import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
 import io.gravitee.gateway.core.policy.impl.PolicyImpl;
 import org.junit.Before;
@@ -129,8 +129,8 @@ public class PolicyTest {
         Method onResponseMethod = resolvePolicyMethod(policyDefinition.policy(), OnResponse.class);
 
         Policy policy = new PolicyImpl(policyInst, null, onResponseMethod);
-        Request mockRequest = new HttpServerRequest();
-        Response mockResponse = new HttpServerResponse();
+        Request mockRequest = new HttpServerRequest2();
+        Response mockResponse = new HttpServerResponse2();
 
         policy.onResponse(mockRequest, mockResponse);
 
