@@ -15,9 +15,8 @@
     limitations under the License.
 
 -->
-
 <md-dialog aria-label="Mango (Fruit)">
-  <form>
+  <form ng-submit="createPage()">
   <md-toolbar>
     <div class="md-toolbar-tools">
       <h2>Create</h2>
@@ -63,11 +62,11 @@
     </div>
   </md-dialog-content>
   <div class="md-actions" layout="row">
-    <md-button class="md-raised" ng-click="createPage()">
-     Create
-    </md-button>
     <md-button md-no-ink class="md-primary" ng-click="hide()" style="margin-right:20px;">
       Close
+    </md-button>
+    <md-button class="md-raised" type="submit">
+     Create
     </md-button>
   </div>
   </form>

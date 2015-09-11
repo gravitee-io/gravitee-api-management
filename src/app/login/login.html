@@ -18,7 +18,7 @@
 <section class="jumbotron">
     <h1>Login page</h1>
 
-    <form name="formUser" class="gravitee-login-container">
+    <form name="formUser" ng-submit="loginCtrl.login()" class="gravitee-login-container">
         <md-input-container class="md-icon-float">
             <label>Login</label>
             <input ng-model="loginCtrl.user.username" type="text" ng-required="true">
@@ -29,7 +29,7 @@
             <input ng-model="loginCtrl.user.password" type="text" ng-required="true">
         </md-input-container>
 
-        <md-button ng-click="loginCtrl.login()" class="md-primary" ng-disabled="formUser.$invalid">
+        <md-button type="submit" class="md-primary" ng-disabled="formUser.$invalid">
             Login
         </md-button>
     </form>

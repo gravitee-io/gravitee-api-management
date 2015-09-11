@@ -16,7 +16,7 @@
 
 -->
   <md-dialog aria-label="Creation of a new team">
-    <form name="formTeam" novalidate>
+    <form name="formTeam" ng-submit="save(team)" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
           <h2>{{creationMode?'Creation of a new team' : 'Modification of team "' + team.name + '"'}}</h2>
@@ -55,7 +55,7 @@
         <md-button ng-click="hide()" class="md-primary">
           Cancel
         </md-button>
-        <md-button ng-click="save(team)" class="md-primary" ng-disabled="formTeam.$invalid">
+        <md-button type="submit" class="md-primary" ng-disabled="formTeam.$invalid">
           Save
         </md-button>
       </div>

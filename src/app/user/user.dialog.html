@@ -16,7 +16,7 @@
 
 -->
   <md-dialog aria-label="Modification of user">
-    <form name="formUser" novalidate>
+    <form name="formUser" ng-submit="create(user)" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
           <h2>Modification of user {{user.code}}</h2>
@@ -71,7 +71,7 @@
         <md-button ng-click="hide()" class="md-primary">
           Cancel
         </md-button>
-        <md-button ng-click="create(user)" class="md-primary" ng-disabled="formUser.$invalid">
+        <md-button type="submit" class="md-primary" ng-disabled="formUser.$invalid">
           Modify
         </md-button>
       </div>

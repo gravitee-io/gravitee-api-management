@@ -16,7 +16,7 @@
 
 -->
   <md-dialog aria-label="Creation of a new API">
-    <form name="formApi" novalidate>
+    <form name="formApi" ng-submit="create(api)" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
           <h2>Creation of a new API</h2>
@@ -75,7 +75,7 @@
         <md-button ng-click="hide()" class="md-primary">
           Cancel
         </md-button>
-        <md-button ng-click="create(api)" class="md-primary" ng-disabled="formApi.$invalid">
+        <md-button type="submit" class="md-primary" ng-disabled="formApi.$invalid">
           Create
         </md-button>
       </div>
