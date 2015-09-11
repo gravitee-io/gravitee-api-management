@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.core.reporter.impl;
 
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.reporter.ReporterManager;
 import io.gravitee.gateway.core.reporter.ReporterService;
-import io.gravitee.gateway.core.service.AbstractService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

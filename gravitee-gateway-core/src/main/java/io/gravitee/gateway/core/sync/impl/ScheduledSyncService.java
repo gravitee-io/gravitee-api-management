@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.sync.impl;
 
-import io.gravitee.gateway.core.service.AbstractService;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.core.sync.SyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
