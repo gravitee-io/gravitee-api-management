@@ -24,7 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.util.Assert;
+import org.springframework.util.StringValueResolver;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,11 +34,13 @@ import java.util.Collection;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ReporterManagerImpl implements ReporterManager, PluginHandler {
+public class ReporterManagerImpl implements ReporterManager, PluginHandler, EmbeddedValueResolverAware {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ReporterManagerImpl.class);
 
     private final Collection<Reporter> reporters = new ArrayList<>();
+
+    private StringValueResolver stringValueResolver;
 
     @Autowired
     private PluginContextFactory pluginContextFactory;
@@ -58,15 +62,29 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
 
     @Override
     public void handle(Plugin plugin) {
-        try {
-            Assert.isAssignable(Reporter.class, plugin.clazz());
-
-            ApplicationContext context = pluginContextFactory.create(plugin);
-            reporters.add(context.getBean(Reporter.class));
-        } catch (Exception iae) {
-            LOGGER.error("Unexpected error while create reporter instance", iae);
-            // Be sure that the context does not exist anymore.
-            pluginContextFactory.remove(plugin);
+        boolean enabled = isEnabled(plugin);
+        if (enabled) {
+            try {
+                ApplicationContext context = pluginContextFactory.create(plugin);
+                reporters.add(context.getBean(Reporter.class));
+            } catch (Exception iae) {
+                LOGGER.error("Unexpected error while create reporter instance", iae);
+                // Be sure that the context does not exist anymore.
+                pluginContextFactory.remove(plugin);
+            }
+        } else {
+            LOGGER.warn("Plugin {} is disabled. Please have a look to your configuration to re-enable it", plugin.id());
         }
+    }
+
+    private boolean isEnabled(Plugin reporterPlugin) {
+        String value = stringValueResolver.resolveStringValue("${reporter." + reporterPlugin.id() + ".enable:true}");
+        LOGGER.debug("Plugin {} configuration: {}", reporterPlugin.id(), value);
+        return Boolean.parseBoolean(value);
+    }
+
+    @Override
+    public void setEmbeddedValueResolver(StringValueResolver resolver) {
+        stringValueResolver = resolver;
     }
 }
