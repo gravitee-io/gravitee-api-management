@@ -1,2 +1,2 @@
 io.gravitee.repository.Repository=\
-io.gravitee.repositories.mongodb.MongoRepository
+io.gravitee.repository.mongodb.MongoRepository
