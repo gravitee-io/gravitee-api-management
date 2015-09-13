@@ -25,8 +25,6 @@ public interface Response {
 
     int status();
 
-    void status(int status);
-
     Map<String, String> headers();
 
     OutputStream outputStream();
