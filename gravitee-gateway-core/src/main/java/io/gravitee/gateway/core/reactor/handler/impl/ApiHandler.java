@@ -18,6 +18,7 @@ package io.gravitee.gateway.core.reactor.handler.impl;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.http.HttpServerResponse;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
@@ -58,7 +59,7 @@ public class ApiHandler extends ContextHandler {
                         requestPolicyChain.doNext(request, response);
 
                         if (requestPolicyChain.isFailure()) {
-                            response.status(requestPolicyChain.statusCode());
+                            ((HttpServerResponse) response).setStatus(requestPolicyChain.statusCode());
                         } else {
                             // 3_ Call remote service
                             httpClient.invoke(request, response).subscribe(new Subscriber<Response>() {
