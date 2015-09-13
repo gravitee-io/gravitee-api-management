@@ -49,7 +49,7 @@ public class ResponsePolicyChain extends AbstractPolicyChain {
             try {
                 policy.onResponse(request, response, this);
             } catch (Exception ex) {
-                LOGGER.error("Unexpected error while running onRequest onResponse for policy {}", policy, ex);
+                LOGGER.error("Unexpected error while running onResponse for policy {}", policy, ex);
                 sendError(HttpStatusCode.INTERNAL_SERVER_ERROR_500, ex);
             }
         }
