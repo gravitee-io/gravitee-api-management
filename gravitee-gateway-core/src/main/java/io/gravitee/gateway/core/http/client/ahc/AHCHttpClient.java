@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.http.client.ahc;
 
 import com.ning.http.client.*;
+import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -42,7 +43,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class AHCHttpClient extends AbstractHttpClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AHCHttpClient.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(AHCHttpClient.class);
 
     private AsyncHttpClient client;
 
@@ -64,8 +65,7 @@ public class AHCHttpClient extends AbstractHttpClient {
 
                         if (hasContent(request)) {
                             builder.setContentLength((int) request.contentLength());
-                            InputStreamBodyGenerator bodyGenerator = new InputStreamBodyGenerator(
-                                    request.inputStream());
+                            RequestBodyGenerator bodyGenerator = new RequestBodyGenerator(request);
                             builder.setBody(bodyGenerator);
                         }
 
@@ -113,6 +113,8 @@ public class AHCHttpClient extends AbstractHttpClient {
 
                                 @Override
                                 public Object onCompleted(com.ning.http.client.Response proxyResponse) throws Exception {
+                                    LOGGER.debug("{} proxying successful", request.id());
+
                                     observer.onNext(response);
                                     observer.onCompleted();
                                     return response;
@@ -120,7 +122,7 @@ public class AHCHttpClient extends AbstractHttpClient {
 
                                 @Override
                                 public STATE onContentWriteCompleted() {
-                                    LOGGER.debug("{} proxying successful", request.id());
+                                    LOGGER.debug("{} proxying complete", request.id());
                                     return super.onContentWriteCompleted();
                                 }
                             });
@@ -193,6 +195,10 @@ public class AHCHttpClient extends AbstractHttpClient {
 
     private AsyncHttpClient construct(HttpClientDefinition httpClientDefinition) {
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
+
+        // httpClientCodecMaxChunkSize is set to 8192 by default
+        NettyAsyncHttpProviderConfig config = new NettyAsyncHttpProviderConfig();
+        builder.setAsyncHttpClientProviderConfig(config);
 
         builder
                 .setAllowPoolingConnections(true)

@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.http.client.ahc;
 
 import com.ning.http.client.Body;
 import com.ning.http.client.BodyGenerator;
+import io.gravitee.gateway.api.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,20 +34,18 @@ import java.nio.ByteBuffer;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class InputStreamBodyGenerator implements BodyGenerator {
+public class RequestBodyGenerator implements BodyGenerator {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(AHCHttpClient.class);
 
     private final static byte[] END_PADDING = "\r\n".getBytes();
     private final static byte[] ZERO = "0".getBytes();
-    private final InputStream inputStream;
-    private final static Logger logger = LoggerFactory.getLogger(InputStreamBodyGenerator.class);
+    private final Request request;
+    private final static Logger logger = LoggerFactory.getLogger(RequestBodyGenerator.class);
     private boolean patchNettyChunkingIssue = false;
 
-    public InputStreamBodyGenerator(InputStream inputStream) {
-        this.inputStream = inputStream;
-    }
-
-    public InputStream getInputStream() {
-        return inputStream;
+    public RequestBodyGenerator(Request request) {
+        this.request = request;
     }
 
     @Override
@@ -73,7 +72,8 @@ public class InputStreamBodyGenerator implements BodyGenerator {
             int read = -1;
 
             try {
-                read = inputStream.read(chunk);
+                read = request.inputStream().read(chunk);
+                LOGGER.debug("{} proxying content to upstream: {} bytes", request.id(), read);
             } catch (IOException ex) {
                 logger.warn("Unable to read", ex);
             }
@@ -110,7 +110,7 @@ public class InputStreamBodyGenerator implements BodyGenerator {
 
         @Override
         public void close() throws IOException {
-            inputStream.close();
+            request.inputStream().close();
         }
     }
 
