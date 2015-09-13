@@ -133,8 +133,8 @@ public class ResponsePolicyChainTest {
 
     private List<Policy> policies3() {
         List<Policy> policies = new ArrayList<>();
-        policies.add(policy3);
         policies.add(policy2);
+        policies.add(policy3);
         return policies;
     }
 }
