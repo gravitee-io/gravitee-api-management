@@ -53,7 +53,7 @@ public class HttpServerRequest implements Request {
 
 	private Map<String, String> queryParameters = new LinkedHashMap();
 
-	private Map<String, String> headers = new HashMap();
+	private Map<String, String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
 	public HttpServerRequest() {
 		this.date = new Date();

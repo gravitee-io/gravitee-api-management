@@ -19,8 +19,8 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.io.ByteBufferOutputStream;
 
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
@@ -30,7 +30,7 @@ public class HttpServerResponse implements Response {
 
     private int status;
 
-    private Map<String, String> headers = new HashMap<>();
+    private Map<String, String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     private OutputStream os = new ByteBufferOutputStream(2056);
 
