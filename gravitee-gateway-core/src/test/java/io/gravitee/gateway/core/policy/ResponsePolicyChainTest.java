@@ -115,7 +115,7 @@ public class ResponsePolicyChainTest {
         chain.doNext(null, null);
 
         verify(policy3, atLeastOnce()).onResponse(null, null, chain);
-        verify(policy2, atLeastOnce()).onResponse(null, null, chain);
+        verify(policy2, never()).onResponse(null, null, chain);
     }
 
     private List<Policy> policies() {
