@@ -37,6 +37,7 @@ import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -80,12 +81,30 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
         HttpServerRequest req = new HttpServerRequest();
         HttpServerResponse response = new HttpServerResponse();
+        response.setOutputStream(new ByteArrayOutputStream());
 
         req.setRequestURI(URI.create("http://localhost/team"));
         req.setMethod(HttpMethod.GET);
 
         Response resp = reactor.process(req, response).toBlocking().single();
         Assert.assertEquals(HttpStatusCode.OK_200, resp.status());
+    }
+
+    @Test
+    public void processRequest_startedApi_gatewayError() throws IOException {
+        // Register API endpoint
+        ApiDefinition apiDefinition = getApiDefinition();
+
+        eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
+
+        HttpServerRequest req = new HttpServerRequest();
+        HttpServerResponse response = new HttpServerResponse();
+
+        req.setRequestURI(URI.create("http://localhost/team"));
+        req.setMethod(HttpMethod.GET);
+
+        Response resp = reactor.process(req, response).toBlocking().single();
+        Assert.assertEquals(HttpStatusCode.BAD_GATEWAY_502, resp.status());
     }
 
     @Test
