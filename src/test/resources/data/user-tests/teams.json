@@ -1,7 +1,7 @@
 [
 	{
 	   "_id":"team1",
-	   "_class":"io.gravitee.repositories.mongodb.internal.model.TeamMongo",
+	   "_class":"io.gravitee.repository.mongodb.internal.model.TeamMongo",
 	   "description":"Sample team description",
 	   "privateTeam":false,
 	   "members":[

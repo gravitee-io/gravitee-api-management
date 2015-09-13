@@ -1,7 +1,7 @@
 [
 	{
 		"_id" : "api1",
-		"_class" : "io.gravitee.repositories.mongodb.internal.model.ApiMongo",
+		"_class" : "io.gravitee.repository.mongodb.internal.model.ApiMongo",
 		"version" : "1",
 		"publicURI" : "/public/sample/",
 		"targetURI" : "/target/sample/",
@@ -14,7 +14,7 @@
     },	
 	{
 		"_id" : "api2",
-		"_class" : "io.gravitee.repositories.mongodb.internal.model.ApiMongo",
+		"_class" : "io.gravitee.repository.mongodb.internal.model.ApiMongo",
 		"version" : "1",
 		"publicURI" : "/public/sample/",
 		"targetURI" : "/target/sample/",
