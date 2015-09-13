@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.policy.Policy;
@@ -48,8 +49,8 @@ public class ResponsePolicyChain extends AbstractPolicyChain {
             try {
                 policy.onResponse(request, response, this);
             } catch (Exception ex) {
-                LOGGER.error("Unexpected error while running onResponse on policy", ex);
-                doNext(request, response);
+                LOGGER.error("Unexpected error while running onRequest onResponse for policy {}", policy, ex);
+                sendError(HttpStatusCode.INTERNAL_SERVER_ERROR_500, ex);
             }
         }
     }

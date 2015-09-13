@@ -113,7 +113,7 @@ public class RequestPolicyChainTest {
         chain.doNext(null, null);
 
         verify(policy3, atLeastOnce()).onRequest(null, null, chain);
-        verify(policy2, atLeastOnce()).onRequest(null, null, chain);
+        verify(policy2, never()).onRequest(null, null, chain);
     }
 
     private List<Policy> policies() {
