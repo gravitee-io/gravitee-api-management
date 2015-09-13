@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.http.client.ahc;
 
 import com.ning.http.client.*;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.definition.ApiDefinition;
@@ -23,6 +24,7 @@ import io.gravitee.gateway.core.definition.HttpClientDefinition;
 import io.gravitee.gateway.core.http.HttpServerResponse;
 import io.gravitee.gateway.core.http.client.AbstractHttpClient;
 import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpHeaderValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -71,11 +74,24 @@ public class AHCHttpClient extends AbstractHttpClient {
                             client.executeRequest(proxyRequest, new AsyncCompletionHandler<Object>() {
 
                                 @Override
-                                public void onThrowable(Throwable t) {
+                                public void onThrowable(Throwable failure) {
+                                    LOGGER.debug(request.id() + " proxying failed", failure);
+
+                                    if (failure instanceof TimeoutException)
+                                        ((HttpServerResponse) response).setStatus(HttpStatusCode.GATEWAY_TIMEOUT_504);
+                                    else
+                                        ((HttpServerResponse) response).setStatus(HttpStatusCode.BAD_GATEWAY_502);
+
+                                    response.headers().put(HttpHeader.CONNECTION.asString(), HttpHeaderValue.CLOSE.asString());
+
+                                    observer.onNext(response);
+                                    observer.onCompleted();
                                 }
 
                                 @Override
                                 public STATE onBodyPartReceived(HttpResponseBodyPart content) throws Exception {
+                                    LOGGER.debug("{} proxying content to downstream: {} bytes", request.id(), content.length());
+
                                     content.writeTo(response.outputStream());
                                     return STATE.CONTINUE;
                                 }
@@ -100,6 +116,12 @@ public class AHCHttpClient extends AbstractHttpClient {
                                     observer.onNext(response);
                                     observer.onCompleted();
                                     return response;
+                                }
+
+                                @Override
+                                public STATE onContentWriteCompleted() {
+                                    LOGGER.debug("{} proxying successful", request.id());
+                                    return super.onContentWriteCompleted();
                                 }
                             });
                     }
