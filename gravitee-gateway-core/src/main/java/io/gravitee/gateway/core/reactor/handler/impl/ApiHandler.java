@@ -112,4 +112,12 @@ public class ApiHandler extends ContextHandler {
         super.doStop();
         httpClient.stop();
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ApiHandler{");
+        sb.append("contextPath=").append(apiDefinition.getProxy().getContextPath());
+        sb.append('}');
+        return sb.toString();
+    }
 }

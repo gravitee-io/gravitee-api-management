@@ -76,7 +76,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
         Set<ContextHandler> mapHandlers = handlers.entrySet().stream().filter(
                 entry -> path.startsWith(entry.getKey())).map(Map.Entry::getValue).collect(Collectors.toSet());
 
-        logger.trace("Found {} handlers to handle request {}", mapHandlers.size(), path);
+        logger.debug("Found {} handlers for path {}", mapHandlers.size(), path);
 
         if (! mapHandlers.isEmpty()) {
 
@@ -104,7 +104,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
             }
 
             ContextHandler handler = mapHandlers.iterator().next();
-            logger.trace("Returning the first handler matching path {} : {}", path, handler);
+            logger.debug("Returning the first handler matching path {} : {}", path, handler);
             return handler;
         }
 
