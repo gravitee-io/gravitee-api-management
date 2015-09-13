@@ -87,7 +87,7 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
         BeanDefinition beanDefinition =
                 BeanDefinitionBuilder.rootBeanDefinition(plugin.clazz().getName()).getBeanDefinition();
 
-        LOGGER.info("\tRegistering a new reporter: {}", plugin.clazz().getName());
+        LOGGER.info("\tRegistering a new plugin bean definition: {}", plugin.clazz().getName());
         pluginContext.registerBeanDefinition(plugin.clazz().getName(), beanDefinition);
 
         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
