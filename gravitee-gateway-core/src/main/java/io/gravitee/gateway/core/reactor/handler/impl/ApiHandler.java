@@ -60,12 +60,13 @@ public class ApiHandler extends ContextHandler {
 
                         if (requestPolicyChain.isFailure()) {
                             ((HttpServerResponse) response).setStatus(requestPolicyChain.statusCode());
+                            observer.onNext(response);
+                            observer.onCompleted();
                         } else {
                             // 3_ Call remote service
                             httpClient.invoke(request, response).subscribe(new Subscriber<Response>() {
                                 @Override
-                                public void onCompleted() {
-                                    observer.onCompleted();
+                                public void onCompleted(){
                                 }
 
                                 @Override
@@ -79,11 +80,12 @@ public class ApiHandler extends ContextHandler {
                                     getResponsePolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
 
                                     observer.onNext(response);
-
-                                    reporterService.report(request, response);
+                                    observer.onCompleted();
                                 }
                             });
                         }
+
+                        reporterService.report(request, response);
                     }
                 }
         );
