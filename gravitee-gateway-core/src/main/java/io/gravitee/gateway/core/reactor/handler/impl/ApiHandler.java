@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.reactor.handler.impl;
 
+import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.definition.ApiDefinition;
@@ -51,6 +52,8 @@ public class ApiHandler extends ContextHandler {
 
                     @Override
                     public void call(final Subscriber<? super Response> observer) {
+                        request.headers().put(GraviteeHttpHeader.X_GRAVITEE_API_NAME.toString(), apiDefinition.getName());
+
                         // 1_ Calculate policies
                         List<Policy> policies = getPolicyResolver().resolve(request);
 
