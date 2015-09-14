@@ -16,11 +16,15 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.policy.PolicyContext;
 import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.policy.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +32,7 @@ import java.util.List;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PolicyResolverImpl implements PolicyResolver {
+public class PolicyResolverImpl implements PolicyResolver, ApplicationContextAware {
 
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyResolverImpl.class);
 
@@ -41,6 +45,8 @@ public class PolicyResolverImpl implements PolicyResolver {
     @Autowired
     private PolicyFactory policyFactory;
 
+    private ApplicationContext applicationContext;
+
     @Override
     public List<Policy> resolve(Request request) {
         List<Policy> policies = new ArrayList<>();
@@ -49,6 +55,8 @@ public class PolicyResolverImpl implements PolicyResolver {
                 .get("/*").getMethods().iterator().next().getPolicies();
 
         if (definedPolicies != null) {
+            PolicyContext policyContext = getPolicyContext();
+
             definedPolicies.stream().forEach(policy -> {
                 PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(policy.getName());
                 if (policyDefinition == null) {
@@ -58,7 +66,7 @@ public class PolicyResolverImpl implements PolicyResolver {
 
                     if (policyInst != null) {
                         LOGGER.debug("Policy {} has been added to the chain for request {}", policyDefinition.id(), request.id());
-                        policies.add(new PolicyImpl(policyInst, policyDefinition.onRequestMethod(), policyDefinition.onResponseMethod()));
+                        policies.add(new PolicyImpl(policyInst, policyContext, policyDefinition.onRequestMethod(), policyDefinition.onResponseMethod()));
                     }
                 }
             });
@@ -67,11 +75,20 @@ public class PolicyResolverImpl implements PolicyResolver {
         return policies;
     }
 
+    private PolicyContext getPolicyContext() {
+        return new PolicyContextImpl(applicationContext);
+    }
+
     public ApiDefinition getApiDefinition() {
         return apiDefinition;
     }
 
     public void setApiDefinition(ApiDefinition apiDefinition) {
         this.apiDefinition = apiDefinition;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }
