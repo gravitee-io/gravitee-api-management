@@ -52,22 +52,18 @@ public class PolicyFactoryImpl implements PolicyFactory {
 
         LOGGER.debug("Create a new policy instance for {}", policyClass.getName());
 
-        if (policyClass != null) {
-            PolicyConfiguration policyConfiguration = null;
-            if (policyConfigurationClazz != null) {
-                if (configuration == null) {
-                    LOGGER.error("A configuration is required for policy {}, returning a null policy", policyDefinition.id());
-                    return null;
-                } else {
-                    LOGGER.debug("Create policy configuration for policy {}", policyDefinition.id());
-                    policyConfiguration = policyConfigurationFactory.create(policyConfigurationClazz, configuration);
-                }
+        PolicyConfiguration policyConfiguration = null;
+        if (policyConfigurationClazz != null) {
+            if (configuration == null) {
+                LOGGER.error("A configuration is required for policy {}, returning a null policy", policyDefinition.id());
+                return null;
+            } else {
+                LOGGER.debug("Create policy configuration for policy {}", policyDefinition.id());
+                policyConfiguration = policyConfigurationFactory.create(policyConfigurationClazz, configuration);
             }
-
-            return createPolicy(policyClass, policyConfiguration);
         }
 
-        return null;
+        return createPolicy(policyClass, policyConfiguration);
     }
 
     private Object createPolicy(Class<?> policyClass, Object ... args) {
