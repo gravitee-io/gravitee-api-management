@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import static org.reflections.ReflectionUtils.*;
@@ -41,54 +43,83 @@ public class PolicyFactoryImpl implements PolicyFactory {
     @Autowired
     private PolicyConfigurationFactory policyConfigurationFactory;
 
+    private Map<Class<?>, Constructor<?>> constructorCache = new HashMap<>();
+
     @Override
     public Object create(PolicyDefinition policyDefinition, String configuration) {
         Class<? extends PolicyConfiguration> policyConfigurationClazz = policyDefinition.configuration();
         Class<?> policyClass = policyDefinition.policy();
 
-        try {
-            Object policyInst = null;
+        LOGGER.debug("Create a new policy instance for {}", policyClass.getName());
 
-            LOGGER.debug("Trying to create a new instance of policy {}", policyClass.getName());
-
-            if (policyClass != null) {
-                PolicyConfiguration policyConfiguration = null;
-                if (policyConfigurationClazz != null) {
-                    if (configuration == null) {
-                        LOGGER.error("A configuration is required for policy {}, returning a null policy", policyDefinition.id());
-                        return null;
-                    } else {
-                        LOGGER.debug("Create policy configuration for policy {}", policyDefinition.id());
-                        policyConfiguration = policyConfigurationFactory.create(policyConfigurationClazz, configuration);
-                    }
-                }
-
-                LOGGER.debug("Looking for a constructor to inject policy configuration");
-                Set<Constructor> constructors =
-                        ReflectionUtils.getConstructors(policyClass,
-                                withModifier(Modifier.PUBLIC),
-                                withParametersAssignableTo(PolicyConfiguration.class),
-                                withParametersCount(1));
-
-                Constructor<?> constr = null;
-
-                if (constructors.isEmpty()) {
-                    LOGGER.debug("No configuration can be injected for {} because there is no valid constructor. Using default empty constructor.", policyClass.getName());
-                    policyInst = createInstance(policyClass);
-                } else if (constructors.size() == 1) {
-                    constr = constructors.iterator().next();
-                    policyInst = constr.newInstance(policyConfiguration);
+        if (policyClass != null) {
+            PolicyConfiguration policyConfiguration = null;
+            if (policyConfigurationClazz != null) {
+                if (configuration == null) {
+                    LOGGER.error("A configuration is required for policy {}, returning a null policy", policyDefinition.id());
+                    return null;
                 } else {
-                    LOGGER.info("Too much constructors to instantiate policy {}", policyClass.getName());
+                    LOGGER.debug("Create policy configuration for policy {}", policyDefinition.id());
+                    policyConfiguration = policyConfigurationFactory.create(policyConfigurationClazz, configuration);
                 }
             }
 
-            return policyInst;
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
-            LOGGER.error("Unable to instantiate policy {}", policyDefinition.policy().getName(), ex);
+            return createPolicy(policyClass, policyConfiguration);
         }
 
         return null;
+    }
+
+    private Object createPolicy(Class<?> policyClass, Object ... args) {
+        Constructor<?> constr = getConstructor(policyClass);
+
+        if (constr != null) {
+            try {
+                if (constr.getParameterCount() > 0) {
+                    return constr.newInstance(args);
+                } else {
+                    return constr.newInstance();
+                }
+            } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
+                LOGGER.error("Unable to instantiate policy {}", policyClass.getName(), ex);
+            }
+        }
+
+        return null;
+    }
+
+    private Constructor<?> getConstructor(Class<?> policyClass) {
+        Constructor cons = constructorCache.get(policyClass);
+        if (cons == null) {
+            LOGGER.debug("Looking for a constructor to inject policy configuration");
+
+            Set<Constructor> constructors =
+                    ReflectionUtils.getConstructors(policyClass,
+                            withModifier(Modifier.PUBLIC),
+                            withParametersAssignableTo(PolicyConfiguration.class),
+                            withParametersCount(1));
+
+            if (constructors.isEmpty()) {
+                LOGGER.debug("No configuration can be injected for {} because there is no valid constructor. " +
+                        "Using default empty constructor.", policyClass.getName());
+                try {
+                    cons = policyClass.getConstructor();
+                } catch (NoSuchMethodException nsme) {
+                    LOGGER.error("Unable to find default empty constructor for {}", policyClass.getName(), nsme);
+                }
+            } else if (constructors.size() == 1) {
+                cons = constructors.iterator().next();
+            } else {
+                LOGGER.info("Too much constructors to instantiate policy {}", policyClass.getName());
+            }
+
+            if (cons != null) {
+                // Put reference in cache
+                constructorCache.put(policyClass, cons);
+            }
+        }
+
+        return cons;
     }
 
     private <T> T createInstance(Class<T> clazz) throws IllegalAccessException, InstantiationException {
