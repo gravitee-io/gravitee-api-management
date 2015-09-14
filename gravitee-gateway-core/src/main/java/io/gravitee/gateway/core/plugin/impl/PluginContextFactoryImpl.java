@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.core.plugin.impl;
 
+import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.plugin.PluginContextFactory;
 import io.gravitee.gateway.core.spring.PropertiesConfiguration;
-
 import io.gravitee.plugin.api.Plugin;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
@@ -84,11 +84,14 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
             configurations.forEach(pluginContext::register);
         }
 
-        BeanDefinition beanDefinition =
-                BeanDefinitionBuilder.rootBeanDefinition(plugin.clazz().getName()).getBeanDefinition();
+        // Only reporter can be inject by Spring
+        if (Reporter.class.isAssignableFrom(plugin.clazz())) {
+            BeanDefinition beanDefinition =
+                    BeanDefinitionBuilder.rootBeanDefinition(plugin.clazz().getName()).getBeanDefinition();
 
-        LOGGER.info("\tRegistering a new plugin bean definition: {}", plugin.clazz().getName());
-        pluginContext.registerBeanDefinition(plugin.clazz().getName(), beanDefinition);
+            LOGGER.info("\tRegistering a new reporter bean definition: {}", plugin.clazz().getName());
+            pluginContext.registerBeanDefinition(plugin.clazz().getName(), beanDefinition);
+        }
 
         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
         try {
