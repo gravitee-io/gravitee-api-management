@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reactor;
-
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import rx.Observable;
+package io.gravitee.gateway.api.handler;
 
 /**
+ * A generic event handler
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class AsyncGraviteeReactor extends GraviteeReactor<Observable<Response>> {
+public interface Handler<T> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncGraviteeReactor.class);
-
-    @Override
-    public Observable<Response> process(Request request, Response response) {
-        LOGGER.debug("Receiving a request {} for path {}", request.id(), request.path());
-        return super.handle(request, response);
-    }
+    void handle(T result);
 }

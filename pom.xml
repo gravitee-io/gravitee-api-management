@@ -58,12 +58,6 @@
                 <artifactId>logback-core</artifactId>
                 <version>${logback.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>io.reactivex</groupId>
-                <artifactId>rxjava</artifactId>
-                <version>${rxjava.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -78,7 +72,6 @@
     </dependencies>
 
     <properties>
-        <rxjava.version>1.0.11</rxjava.version>
         <junit.version>4.12</junit.version>
         <jackson.version>2.5.3</jackson.version>
         <jetty.version>9.2.11.v20150529</jetty.version>

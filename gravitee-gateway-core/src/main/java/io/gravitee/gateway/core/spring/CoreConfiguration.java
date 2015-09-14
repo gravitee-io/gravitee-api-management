@@ -21,7 +21,7 @@ import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
-import io.gravitee.gateway.core.reactor.AsyncGraviteeReactor;
+import io.gravitee.gateway.core.reactor.GraviteeReactor;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.ErrorHandler;
 import io.gravitee.gateway.core.reactor.handler.Handler;
@@ -55,7 +55,7 @@ public class CoreConfiguration {
     @Bean
     @SuppressWarnings("rawtypes")
     public Reactor reactor() {
-        return new AsyncGraviteeReactor();
+        return new GraviteeReactor();
     }
 
     @Bean

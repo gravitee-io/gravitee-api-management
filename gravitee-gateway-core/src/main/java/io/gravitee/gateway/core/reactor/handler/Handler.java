@@ -18,12 +18,11 @@ package io.gravitee.gateway.core.reactor.handler;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import rx.Observable;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface Handler extends LifecycleComponent<Handler> {
 
-    Observable<Response> handle(Request request, Response response);
+    void handle(Request request, Response response, io.gravitee.gateway.api.handler.Handler<Response> handler);
 }
