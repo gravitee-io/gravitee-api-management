@@ -19,6 +19,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.policy.PolicyChain;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
+import io.gravitee.gateway.api.policy.PolicyContext;
 import io.gravitee.gateway.api.policy.annotations.OnRequest;
 import io.gravitee.gateway.api.policy.annotations.OnResponse;
 import io.gravitee.gateway.core.http.HttpServerRequest;
@@ -58,7 +59,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(policyDefinition.policy(), OnRequest.class);
 
-        Policy policy = new PolicyImpl(policyInst, onRequestMethod, null);
+        Policy policy = new PolicyImpl(policyInst, mock(PolicyContext.class), onRequestMethod, null);
         policy.onRequest();
 
         verify(policyInst, atLeastOnce()).onRequest(any(), any(), any());
@@ -72,7 +73,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(policyDefinition.policy(), OnResponse.class);
 
-        Policy policy = new PolicyImpl(policyInst, null, onResponseMethod);
+        Policy policy = new PolicyImpl(policyInst, mock(PolicyContext.class), null, onResponseMethod);
         policy.onResponse();
 
         verify(policyInst, never()).onRequest(any(), any(), any());
@@ -86,7 +87,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(policyDefinition.policy(), OnRequest.class);
 
-        Policy policy = new PolicyImpl(policyInst, onRequestMethod, null);
+        Policy policy = new PolicyImpl(policyInst, mock(PolicyContext.class), onRequestMethod, null);
         policy.onRequest();
 
         verify(policyInst, atLeastOnce()).onRequest(any(), any(), any());
@@ -99,7 +100,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(policyDefinition.policy(), OnResponse.class);
 
-        Policy policy = new PolicyImpl(policyInst, null, onResponseMethod);
+        Policy policy = new PolicyImpl(policyInst, mock(PolicyContext.class), null, onResponseMethod);
         policy.onResponse();
 
         verify(policyInst, atLeastOnce()).onResponse(any(), any(), any());
@@ -112,7 +113,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(policyDefinition.policy(), OnRequest.class);
 
-        Policy policy = new PolicyImpl(policyInst, onRequestMethod, null);
+        Policy policy = new PolicyImpl(policyInst, mock(PolicyContext.class), onRequestMethod, null);
         Request mockRequest = mock(Request.class);
         Response mockResponse = mock(Response.class);
 
@@ -128,7 +129,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(policyDefinition.policy(), OnResponse.class);
 
-        Policy policy = new PolicyImpl(policyInst, null, onResponseMethod);
+        Policy policy = new PolicyImpl(policyInst, mock(PolicyContext.class), null, onResponseMethod);
         Request mockRequest = new HttpServerRequest();
         Response mockResponse = new HttpServerResponse();
 

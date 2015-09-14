@@ -55,7 +55,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
                 PolicyConfiguration policyConfiguration = null;
                 if (policyConfigurationClazz != null) {
                     if (configuration == null) {
-                        LOGGER.error("A configuration is required for policy {}, returning a null policy.", policyDefinition.id());
+                        LOGGER.error("A configuration is required for policy {}, returning a null policy", policyDefinition.id());
                         return null;
                     } else {
                         LOGGER.debug("Create policy configuration for policy {}", policyDefinition.id());
@@ -63,7 +63,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
                     }
                 }
 
-                LOGGER.debug("Looking for an injectable configuration using policy constructor.");
+                LOGGER.debug("Looking for a constructor to inject policy configuration");
                 Set<Constructor> constructors =
                         ReflectionUtils.getConstructors(policyClass,
                                 withModifier(Modifier.PUBLIC),
@@ -73,19 +73,19 @@ public class PolicyFactoryImpl implements PolicyFactory {
                 Constructor<?> constr = null;
 
                 if (constructors.isEmpty()) {
-                    LOGGER.debug("No configuration can be injected for {} because there is no valid constructor, using default constructor.", policyClass.getName());
+                    LOGGER.debug("No configuration can be injected for {} because there is no valid constructor. Using default empty constructor.", policyClass.getName());
                     policyInst = createInstance(policyClass);
                 } else if (constructors.size() == 1) {
                     constr = constructors.iterator().next();
                     policyInst = constr.newInstance(policyConfiguration);
                 } else {
-                    LOGGER.info("Too much constructor to instantiate policy {}", policyClass.getName());
+                    LOGGER.info("Too much constructors to instantiate policy {}", policyClass.getName());
                 }
             }
 
             return policyInst;
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
-            LOGGER.error("Unable to instantiate Policy {}", policyDefinition.policy().getName(), ex);
+            LOGGER.error("Unable to instantiate policy {}", policyDefinition.policy().getName(), ex);
         }
 
         return null;

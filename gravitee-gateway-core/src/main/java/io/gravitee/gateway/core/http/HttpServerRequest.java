@@ -160,4 +160,13 @@ public class HttpServerRequest implements Request {
 	public boolean hasContent() {
 		return false;
 	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder("HttpServerRequest{");
+		sb.append("id='").append(id).append('\'');
+		sb.append(", requestURI=").append(requestURI);
+		sb.append('}');
+		return sb.toString();
+	}
 }
