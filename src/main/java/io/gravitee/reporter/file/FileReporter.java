@@ -22,6 +22,7 @@ import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
+import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -36,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Write an access log to a file by using the following line format:
  *
  * <pre>
- *     [TIMESTAMP] REMOTE_IP LOCAL_IP METHOD PATH STATUS LENGTH
+ *     [TIMESTAMP] (LOCAL_IP) REMOTE_IP KEY METHOD PATH STATUS LENGTH
  * </pre>
  *
  * @author David BRASSELY (brasseld at gmail.com)
@@ -52,6 +53,10 @@ public class FileReporter extends AbstractService implements Reporter {
 	private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
 	private static final SimpleDateFormat dateFormatter = new SimpleDateFormat(RFC_3339_DATE_FORMAT);
+
+	private static final String NO_STRING_DATA_VALUE = "-";
+
+	private static final String NO_INTEGER_DATA_VALUE = "-1";
 
 	private static ThreadLocal<StringBuilder> buffers = new ThreadLocal<StringBuilder>() {
 		@Override
@@ -85,17 +90,28 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(dateFormatter.format(request.timestamp()));
 		buf.append("] ");
 
-		// Append remote and local IPs
+		// Append local IP
+		buf.append('(');
+		buf.append(request.localAddress());
+		buf.append(") ");
+
+		// Append remote IP
 		buf.append(request.remoteAddress());
 		buf.append(' ');
-		buf.append(request.localAddress());
-		buf.append(" ");
+
+		// TODO Append API
+		//buf.append(request.api());
+		//buf.append(' ');
+
+		// Append key
+		buf.append(request.headers().getOrDefault(GraviteeHttpHeader.X_GRAVITEE_API_KEY, NO_STRING_DATA_VALUE));
+		buf.append(' ');
 
 		// Append request method and URI
 		buf.append(request.method());
 		buf.append(' ');
 		buf.append(request.path());
-		buf.append(" ");
+		buf.append(' ');
 
 		// Append response status
 		int status = response.status();
@@ -104,11 +120,11 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append((char) ('0' + ((status / 100) % 10)));
 		buf.append((char) ('0' + ((status / 10) % 10)));
 		buf.append((char) ('0' + (status % 10)));
+		buf.append(' ');
 
 		// Append response length
 		long responseLength = getLongContentLength(response);
 		if (responseLength >= 0) {
-			buf.append(' ');
 			if (responseLength > 99999) {
 				buf.append(responseLength);
 			} else {
@@ -122,22 +138,15 @@ public class FileReporter extends AbstractService implements Reporter {
 					buf.append((char) ('0' + ((responseLength / 10) % 10)));
 				buf.append((char) ('0' + (responseLength) % 10));
 			}
-			buf.append(' ');
 		} else {
-			// Send -1 in case of no content-length
-			buf.append(" -1 ");
+			buf.append(NO_INTEGER_DATA_VALUE);
 		}
 
 		return buf.toString();
 	}
 
 	public long getLongContentLength(Response response) {
-		String contentLength = response.headers().get("Content-Length");
-		if (contentLength != null && !contentLength.isEmpty()) {
-			return Integer.parseInt(contentLength);
-		}
-
-		return -1;
+		return Integer.parseInt(response.headers().getOrDefault("Content-Length", NO_INTEGER_DATA_VALUE));
 	}
 
 	@Override
