@@ -21,7 +21,6 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.http.HttpServerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -31,10 +30,10 @@ public class ErrorHandler extends AbstractHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(ErrorHandler.class);
 
     @Override
-    public Observable<Response> handle(Request request, Response response) {
+    public void handle(Request request, Response response, io.gravitee.gateway.api.handler.Handler<Response> handler) {
         LOGGER.warn("No Gravitee handler can be found for request {}, returns NOT_FOUND(404)", request.path());
 
         ((HttpServerResponse)response).setStatus(HttpStatusCode.NOT_FOUND_404);
-        return Observable.just(response);
+        handler.handle(response);
     }
 }

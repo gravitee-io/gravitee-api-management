@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.AbstractCoreTest;
 import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.external.ApiExternalResource;
@@ -35,7 +34,6 @@ import io.gravitee.plugin.api.PluginManifest;
 import io.gravitee.plugin.api.PluginType;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import rx.Observable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -53,7 +51,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     public static final ApiExternalResource SERVER_MOCK = new ApiExternalResource("8083", ApiServlet.class, "/*", null);
 
     @Autowired
-    private GraviteeReactor<Observable<Response>> reactor;
+    private GraviteeReactor reactor;
 
     @Autowired
     private ReporterManager reporterManager;
@@ -86,8 +84,8 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         req.setRequestURI(URI.create("http://localhost/team"));
         req.setMethod(HttpMethod.GET);
 
-        Response resp = reactor.process(req, response).toBlocking().single();
-        Assert.assertEquals(HttpStatusCode.OK_200, resp.status());
+        reactor.process(req, response,
+                resp -> Assert.assertEquals(HttpStatusCode.OK_200, resp.status()));
     }
 
     @Test
@@ -103,8 +101,8 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         req.setRequestURI(URI.create("http://localhost/team"));
         req.setMethod(HttpMethod.GET);
 
-        Response resp = reactor.process(req, response).toBlocking().single();
-        Assert.assertEquals(HttpStatusCode.BAD_GATEWAY_502, resp.status());
+        reactor.process(req, response,
+                resp -> Assert.assertEquals(HttpStatusCode.BAD_GATEWAY_502, resp.status()));
     }
 
     @Test
@@ -121,8 +119,8 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         req.setRequestURI(URI.create("http://localhost/team"));
         req.setMethod(HttpMethod.GET);
 
-        Response resp = reactor.process(req, response).toBlocking().single();
-        Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
+        reactor.process(req, response,
+                resp -> Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status()));
     }
 
     @Test
@@ -138,8 +136,8 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
         HttpServerResponse response = new HttpServerResponse();
 
-        Response resp = reactor.process(req, response).toBlocking().single();
-        Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
+        reactor.process(req, response,
+                resp -> Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status()));
     }
 
     @Test
@@ -191,7 +189,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
         HttpServerResponse response = new HttpServerResponse();
 
-        reactor.process(req, response).toBlocking().single();
+        reactor.process(req, response, result -> {});
 
         // check that the reporter has been correctly called
 //        verify(reporter, atLeastOnce()).report(eq(req), any(Response.class));

@@ -38,7 +38,7 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
 
     @Before
     public void setUp() {
-        reactor = spy(new AsyncGraviteeReactor());
+        reactor = spy(new GraviteeReactor());
 
         handlerFactory = spy(new ApiContextHandlerFactory());
         handlerFactory.setApplicationContext(applicationContext);

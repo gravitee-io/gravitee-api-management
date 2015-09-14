@@ -18,6 +18,7 @@ package io.gravitee.gateway.core.reactor.handler.impl;
 import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.http.HttpServerResponse;
 import io.gravitee.gateway.core.http.client.HttpClient;
@@ -26,8 +27,6 @@ import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
 import io.gravitee.gateway.core.reactor.handler.ContextHandler;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import org.springframework.beans.factory.annotation.Autowired;
-import rx.Observable;
-import rx.Subscriber;
 
 import java.util.List;
 
@@ -46,52 +45,30 @@ public class ApiHandler extends ContextHandler {
     private ReporterService reporterService;
 
     @Override
-    public Observable<Response> handle(final Request request, final Response response) {
-        return Observable.create(
-                new Observable.OnSubscribe<Response>() {
+    public void handle(Request request, Response response, Handler<Response> handler) {
+        request.headers().put(GraviteeHttpHeader.X_GRAVITEE_API_NAME.toString(), apiDefinition.getName());
 
-                    @Override
-                    public void call(final Subscriber<? super Response> observer) {
-                        request.headers().put(GraviteeHttpHeader.X_GRAVITEE_API_NAME.toString(), apiDefinition.getName());
+        // 1_ Calculate policies
+        List<Policy> policies = getPolicyResolver().resolve(request);
 
-                        // 1_ Calculate policies
-                        List<Policy> policies = getPolicyResolver().resolve(request);
+        // 2_ Apply request policies
+        AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(policies);
+        requestPolicyChain.doNext(request, response);
 
-                        // 2_ Apply request policies
-                        AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(policies);
-                        requestPolicyChain.doNext(request, response);
+        if (requestPolicyChain.isFailure()) {
+            ((HttpServerResponse) response).setStatus(requestPolicyChain.statusCode());
+            handler.handle(response);
+            reporterService.report(request, response);
+        } else {
+            // 3_ Call remote service
+            httpClient.invoke(request, response, result -> {
+                // 4_ Apply response policies
+                getResponsePolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
 
-                        if (requestPolicyChain.isFailure()) {
-                            ((HttpServerResponse) response).setStatus(requestPolicyChain.statusCode());
-                            observer.onNext(response);
-                            observer.onCompleted();
-                        } else {
-                            // 3_ Call remote service
-                            httpClient.invoke(request, response).subscribe(new Subscriber<Response>() {
-                                @Override
-                                public void onCompleted(){
-                                }
-
-                                @Override
-                                public void onError(Throwable throwable) {
-                                    observer.onError(throwable);
-                                }
-
-                                @Override
-                                public void onNext(Response response) {
-                                    // 4_ Apply response policies
-                                    getResponsePolicyChainBuilder().newPolicyChain(policies).doNext(request, response);
-
-                                    observer.onNext(response);
-                                    observer.onCompleted();
-                                }
-                            });
-                        }
-
-                        reporterService.report(request, response);
-                    }
-                }
-        );
+                handler.handle(response);
+                reporterService.report(request, response);
+            });
+        }
     }
 
     @Override

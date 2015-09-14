@@ -20,6 +20,7 @@ import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.definition.HttpClientDefinition;
 import io.gravitee.gateway.core.http.HttpServerResponse;
@@ -29,8 +30,6 @@ import org.eclipse.jetty.http.HttpHeaderValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import rx.Observable;
-import rx.Subscriber;
 
 import java.net.URI;
 import java.util.List;
@@ -50,85 +49,6 @@ public class AHCHttpClient extends AbstractHttpClient {
     @Autowired
     public AHCHttpClient(ApiDefinition apiDefinition) {
         super(apiDefinition);
-    }
-
-    @Override
-    public Observable<Response> invoke(final Request request, final Response response) {
-
-        return Observable.create(
-                new Observable.OnSubscribe<Response>() {
-                    @Override
-                    public void call(final Subscriber<? super Response> observer) {
-                        AsyncHttpClient.BoundRequestBuilder builder = requestBuilder(request);
-
-                        copyRequestHeaders(request, builder);
-
-                        if (hasContent(request)) {
-                            builder.setContentLength((int) request.contentLength());
-                            RequestBodyGenerator bodyGenerator = new RequestBodyGenerator(request);
-                            builder.setBody(bodyGenerator);
-                        }
-
-                        com.ning.http.client.Request proxyRequest = builder.build();
-
-                            client.executeRequest(proxyRequest, new AsyncCompletionHandler<Object>() {
-
-                                @Override
-                                public void onThrowable(Throwable failure) {
-                                    LOGGER.debug(request.id() + " proxying failed", failure);
-
-                                    if (failure instanceof TimeoutException)
-                                        ((HttpServerResponse) response).setStatus(HttpStatusCode.GATEWAY_TIMEOUT_504);
-                                    else
-                                        ((HttpServerResponse) response).setStatus(HttpStatusCode.BAD_GATEWAY_502);
-
-                                    response.headers().put(HttpHeader.CONNECTION.asString(), HttpHeaderValue.CLOSE.asString());
-
-                                    observer.onNext(response);
-                                    observer.onCompleted();
-                                }
-
-                                @Override
-                                public STATE onBodyPartReceived(HttpResponseBodyPart content) throws Exception {
-                                    LOGGER.debug("{} proxying content to downstream: {} bytes", request.id(), content.length());
-
-                                    content.writeTo(response.outputStream());
-                                    return STATE.CONTINUE;
-                                }
-
-                                @Override
-                                public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
-                                    for (Map.Entry<String, List<String>> header : headers.getHeaders().entrySet()) {
-                                        response.headers().put(header.getKey(), header.getValue().iterator().next());
-                                    }
-
-                                    return STATE.CONTINUE;
-                                }
-
-                                @Override
-                                public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
-                                    ((HttpServerResponse) response).setStatus(status.getStatusCode());
-                                    return STATE.CONTINUE;
-                                }
-
-                                @Override
-                                public Object onCompleted(com.ning.http.client.Response proxyResponse) throws Exception {
-                                    LOGGER.debug("{} proxying successful", request.id());
-
-                                    observer.onNext(response);
-                                    observer.onCompleted();
-                                    return response;
-                                }
-
-                                @Override
-                                public STATE onContentWriteCompleted() {
-                                    LOGGER.debug("{} proxying complete", request.id());
-                                    return super.onContentWriteCompleted();
-                                }
-                            });
-                    }
-                }
-        );
     }
 
     private boolean hasContent(Request request) {
@@ -248,5 +168,74 @@ public class AHCHttpClient extends AbstractHttpClient {
 
         LOGGER.info("Close AsyncHttpClient for {}", apiDefinition);
         client.close();
+    }
+
+    @Override
+    public void invoke(Request request, Response response, Handler handler) {
+        AsyncHttpClient.BoundRequestBuilder builder = requestBuilder(request);
+
+        copyRequestHeaders(request, builder);
+
+        if (hasContent(request)) {
+            builder.setContentLength((int) request.contentLength());
+            RequestBodyGenerator bodyGenerator = new RequestBodyGenerator(request);
+            builder.setBody(bodyGenerator);
+        }
+
+        com.ning.http.client.Request proxyRequest = builder.build();
+
+        client.executeRequest(proxyRequest, new AsyncCompletionHandler<Object>() {
+
+            @Override
+            public void onThrowable(Throwable failure) {
+                LOGGER.debug(request.id() + " proxying failed", failure);
+
+                if (failure instanceof TimeoutException)
+                    ((HttpServerResponse) response).setStatus(HttpStatusCode.GATEWAY_TIMEOUT_504);
+                else
+                    ((HttpServerResponse) response).setStatus(HttpStatusCode.BAD_GATEWAY_502);
+
+                response.headers().put(HttpHeader.CONNECTION.asString(), HttpHeaderValue.CLOSE.asString());
+
+                handler.handle(response);
+            }
+
+            @Override
+            public STATE onBodyPartReceived(HttpResponseBodyPart content) throws Exception {
+                LOGGER.debug("{} proxying content to downstream: {} bytes", request.id(), content.length());
+
+                content.writeTo(response.outputStream());
+                return STATE.CONTINUE;
+            }
+
+            @Override
+            public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
+                for (Map.Entry<String, List<String>> header : headers.getHeaders().entrySet()) {
+                    response.headers().put(header.getKey(), header.getValue().iterator().next());
+                }
+
+                return STATE.CONTINUE;
+            }
+
+            @Override
+            public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
+                ((HttpServerResponse) response).setStatus(status.getStatusCode());
+                return STATE.CONTINUE;
+            }
+
+            @Override
+            public Object onCompleted(com.ning.http.client.Response proxyResponse) throws Exception {
+                LOGGER.debug("{} proxying successful", request.id());
+
+                handler.handle(response);
+                return response;
+            }
+
+            @Override
+            public STATE onContentWriteCompleted() {
+                LOGGER.debug("{} proxying complete", request.id());
+                return super.onContentWriteCompleted();
+            }
+        });
     }
 }

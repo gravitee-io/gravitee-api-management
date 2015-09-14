@@ -18,12 +18,12 @@ package io.gravitee.gateway.core.http.client;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import rx.Observable;
+import io.gravitee.gateway.api.handler.Handler;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface HttpClient extends LifecycleComponent<HttpClient> {
 
-    Observable<Response> invoke(Request request, Response response);
+    void invoke(Request request, Response response, Handler handler);
 }

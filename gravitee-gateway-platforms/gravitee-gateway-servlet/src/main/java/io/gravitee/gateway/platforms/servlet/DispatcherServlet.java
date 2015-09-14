@@ -15,21 +15,18 @@
  */
 package io.gravitee.gateway.platforms.servlet;
 
-import java.io.IOException;
-import java.util.Map;
+import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.core.Reactor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.Reactor;
-import rx.Observable;
+import java.io.IOException;
+import java.util.Map;
 
 
 /**
@@ -48,11 +45,7 @@ public abstract class DispatcherServlet extends HttpServlet {
 		asyncContext.setTimeout(0);
 
         getReactor()
-                .process(RequestBuilder.from(req),RequestBuilder.from(resp))
-		        .subscribe(
-			        result -> handleResult(req, resp, result),
-			        error -> handleError(req, resp, error)
-		        );
+                .process(RequestBuilder.from(req), RequestBuilder.from(resp), result -> handleResult(req, resp, result));
 	}
 
     private void handleResult(final HttpServletRequest req, final HttpServletResponse resp, Response response) {
@@ -121,5 +114,5 @@ public abstract class DispatcherServlet extends HttpServlet {
 		}
 	}
 
-    protected abstract Reactor<Observable<Response>> getReactor();
+    protected abstract Reactor getReactor();
 }

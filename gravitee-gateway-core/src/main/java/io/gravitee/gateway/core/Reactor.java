@@ -18,12 +18,13 @@ package io.gravitee.gateway.core;
 import io.gravitee.common.service.Service;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.handler.Handler;
 
 /**
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Reactor<T> extends Service {
+public interface Reactor extends Service {
 
-	T process(Request request, Response response);
+	void process(Request request, Response response, Handler<Response> handler);
 }

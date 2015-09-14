@@ -51,8 +51,8 @@ import java.util.stream.Collectors;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public abstract class GraviteeReactor<T> extends AbstractService implements
-        Reactor<T>, EventListener<ApiEvent, ApiDefinition>, ApplicationContextAware {
+public class GraviteeReactor extends AbstractService implements
+        Reactor, EventListener<ApiEvent, ApiDefinition>, ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(GraviteeReactor.class);
 
@@ -68,7 +68,7 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
     @Autowired
     private ContextHandlerFactory contextHandlerFactory;
 
-    private final ConcurrentMap<String, ContextHandler> handlers = new ConcurrentHashMap();
+    private final ConcurrentMap<String, ContextHandler> handlers = new ConcurrentHashMap<>();
 
     protected Handler bestHandler(Request request) {
         String path = request.path();
@@ -111,8 +111,10 @@ public abstract class GraviteeReactor<T> extends AbstractService implements
         return errorHandler;
     }
 
-    protected T handle(Request request, Response response) {
-        return (T) bestHandler(request).handle(request, response);
+    public void process(Request request, Response response, io.gravitee.gateway.api.handler.Handler<Response> handler) {
+        logger.debug("Receiving a request {} for path {}", request.id(), request.path());
+
+        bestHandler(request).handle(request, response,  handler);
     }
 
     private String getHost(Request request) {
