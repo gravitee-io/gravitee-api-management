@@ -34,7 +34,7 @@
             <outputDirectory>/lib</outputDirectory>
             <unpack>false</unpack>
             <includes>
-                <include>io.gravitee.repositories:gravitee-repository-mongodb</include>
+                <include>io.gravitee.repository:gravitee-repository-mongodb</include>
             </includes>
         </dependencySet>
         <dependencySet>
