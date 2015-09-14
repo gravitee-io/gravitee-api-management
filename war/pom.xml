@@ -45,12 +45,12 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.gravitee.repositories</groupId>
+			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.gravitee.repositories</groupId>
+			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository-mongodb</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
@@ -61,7 +61,7 @@
     		</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>io.gravitee.repositories</groupId>
+			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository-jpa</artifactId>
 			<version>${project.version}</version>
 		</dependency>
