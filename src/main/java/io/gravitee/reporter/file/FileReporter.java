@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Write an access log to a file by using the following line format:
  *
  * <pre>
- *     [TIMESTAMP] (LOCAL_IP) REMOTE_IP KEY METHOD PATH STATUS LENGTH
+ *     [TIMESTAMP] (LOCAL_IP) REMOTE_IP API KEY METHOD PATH STATUS LENGTH TOTAL_RESPONSE_TIME
  * </pre>
  *
  * @author David BRASSELY (brasseld at gmail.com)
@@ -99,12 +99,12 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(request.remoteAddress());
 		buf.append(' ');
 
-		// TODO Append API
-		//buf.append(request.api());
-		//buf.append(' ');
+		// Append Api name
+		buf.append(request.headers().getOrDefault(GraviteeHttpHeader.X_GRAVITEE_API_NAME.toString(), NO_STRING_DATA_VALUE));
+		buf.append(' ');
 
 		// Append key
-		buf.append(request.headers().getOrDefault(GraviteeHttpHeader.X_GRAVITEE_API_KEY, NO_STRING_DATA_VALUE));
+		buf.append(request.headers().getOrDefault(GraviteeHttpHeader.X_GRAVITEE_API_KEY.toString(), NO_STRING_DATA_VALUE));
 		buf.append(' ');
 
 		// Append request method and URI
@@ -141,6 +141,10 @@ public class FileReporter extends AbstractService implements Reporter {
 		} else {
 			buf.append(NO_INTEGER_DATA_VALUE);
 		}
+		buf.append(' ');
+
+		// Append total response time
+		buf.append(response.headers().getOrDefault(GraviteeHttpHeader.X_GRAVITEE_RESPONSE_TIME.toString(), NO_STRING_DATA_VALUE));
 
 		return buf.toString();
 	}
