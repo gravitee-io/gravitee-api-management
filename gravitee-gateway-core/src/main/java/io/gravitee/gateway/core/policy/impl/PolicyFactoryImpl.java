@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
+import com.google.common.base.Predicate;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
@@ -24,9 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
+import javax.annotation.Nullable;
+import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -92,7 +92,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
             Set<Constructor> constructors =
                     ReflectionUtils.getConstructors(policyClass,
                             withModifier(Modifier.PUBLIC),
-                            withParametersAssignableTo(PolicyConfiguration.class),
+                            withParametersAssignableFrom(PolicyConfiguration.class),
                             withParametersCount(1));
 
             if (constructors.isEmpty()) {
@@ -128,5 +128,31 @@ public class PolicyFactoryImpl implements PolicyFactory {
 
     public void setPolicyConfigurationFactory(PolicyConfigurationFactory policyConfigurationFactory) {
         this.policyConfigurationFactory = policyConfigurationFactory;
+    }
+
+    public static Predicate<Member> withParametersAssignableFrom(final Class... types) {
+        return new Predicate<Member>() {
+            public boolean apply(@Nullable Member input) {
+                if (input != null) {
+                    Class<?>[] parameterTypes = parameterTypes(input);
+                    if (parameterTypes.length == types.length) {
+                        for (int i = 0; i < parameterTypes.length; i++) {
+                            if (!types[i].isAssignableFrom(parameterTypes[i]) ||
+                                    (parameterTypes[i] == Object.class && types[i] != Object.class)) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            }
+        };
+    }
+
+    private static Class[] parameterTypes(Member member) {
+        return member != null ?
+                member.getClass() == Method.class ? ((Method) member).getParameterTypes() :
+                        member.getClass() == Constructor.class ? ((Constructor) member).getParameterTypes() : null : null;
     }
 }
