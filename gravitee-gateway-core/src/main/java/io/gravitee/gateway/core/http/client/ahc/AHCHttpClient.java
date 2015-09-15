@@ -158,7 +158,7 @@ public class AHCHttpClient extends AbstractHttpClient {
     protected void doStart() throws Exception {
         super.doStart();
 
-        LOGGER.info("Initializing AsyncHttpClient for {} with configuration {}", apiDefinition.getProxy().getHttpClient());
+        LOGGER.info("Initializing AsyncHttpClient with {}", apiDefinition.getProxy().getHttpClient());
         client = construct(apiDefinition.getProxy().getHttpClient());
     }
 
