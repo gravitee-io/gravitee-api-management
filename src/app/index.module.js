@@ -20,6 +20,8 @@ import routerConfig from './index.route';
 
 import interceptorConfig from './index.interceptor';
 
+import delegatorConfig from './index.delegator';
+
 import runBlock from './index.run';
 import MainController from './main/main.controller';
 import ApiService from './api/api.service';
@@ -35,15 +37,18 @@ import NotificationService from './components/notification/notification.service'
 import DocumentationController from './documentation/documentation.controller';
 import DocumentationService from './documentation/documentation.service';
 
-angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists'])
+angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown'])
   .constant('malarkey', malarkey)
   .constant('moment', moment)
-  .constant('baseURL', 'http://localhost:8082/')
+  .constant('baseURL', 'http://localhost:8083/')
+	
   .config(config)
 
   .config(routerConfig)
 
   .config(interceptorConfig)
+
+	.config(delegatorConfig)
 
   .run(runBlock)
   .controller('MainController', MainController)

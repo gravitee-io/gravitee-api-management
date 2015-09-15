@@ -15,12 +15,21 @@
  */
 /* global document:false */
 class DocumentationController {
-  constructor(DocumentationService, $mdDialog) {
+  
+	constructor(DocumentationService, $mdDialog, baseURL) {
     'ngInject';
     this.DocumentationService = DocumentationService;
     this.$mdDialog = $mdDialog;
     this.selected = null;
     this.pages = [ ];
+		this.previewMode = true;
+		this.editMode = false;
+		this.MARKDOWN_PAGE = 'MARKDOWN';
+    this.RAML_PAGE = 'RAML';
+  	this.SWAGGER_PAGE = 'SWAGGER';
+		this.baseURL = baseURL;
+		this.contentPageURL = baseURL;
+		this.dataHasLoaded = false;
     this.init();
   }
 
@@ -31,9 +40,14 @@ class DocumentationController {
   init() {
     // TODO get the real api name
     var apiName = "TEST";
+		this.preview();
     this.DocumentationService.list(apiName).then(response => {
       this.pages = response.data;
-      this.selected = this.pages[0];
+			if (this.pages.length > 0) {
+		    this.selected = this.pages[0];
+				this.dataHasLoaded = true;
+				this.contentPageURL = this.baseURL + 'documentation/pages/' + this.selected.name + '/content';
+			}
     });
   }
 
@@ -43,6 +57,7 @@ class DocumentationController {
     this.DocumentationService.list(apiName).then(response => {
       this.pages = response.data;
       this.selected = this.pages[this.pages.length - 1];
+			this.contentPageURL = this.baseURL + 'documentation/pages/' + this.selected.name + '/content';
     });
   }
 
@@ -61,6 +76,7 @@ class DocumentationController {
     if (confirm("Are you sure to delete")) {
       var self = this;
       this.DocumentationService.deletePage(this.selected.name).then(function () {
+				self.pages.slice(self.selected);	
         self.init();
       });
     }
@@ -73,9 +89,29 @@ class DocumentationController {
       templateUrl: 'app/documentation/documentation.dialog.html',
       parent: angular.element(document.body),
     }).then(function (response) {
+			self.edit();
       self.list();
     });
   }
+
+	// swith mode (edit/preview)
+	edit() {
+		this.editMode = true;
+		this.previewMode = false;
+	}
+
+	preview() {
+		this.editMode = false;
+		this.previewMode = true;
+	}
+
+	ramlPreviewMode() {
+		return this.previewMode && this.RAML_PAGE === this.selected.type;
+	}
+
+	markdownPreviewMode() {
+		return this.previewMode && this.MARKDOWN_PAGE === this.selected.type;
+	}
 }
 
 function DialogDocumentationController($scope, $mdDialog, DocumentationService) {

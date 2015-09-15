@@ -41,10 +41,23 @@
     
     <div style="padding:0 20px;">
       <h2>{{documentationCtrl.selected.title}}</h2>
-      <textarea ng-model="documentationCtrl.selected.content" cols="190" rows="37">{{documentationCtrl.selected.content}}</textarea>
-      <md-button ng-click="documentationCtrl.editPage()">Save</md-button>
-      <md-button>Cancel</md-button>
-      <md-button>Preview</md-button>
+			
+			<div ng-if="documentationCtrl.dataHasLoaded">
+				<raml-console ng-show="documentationCtrl.ramlPreviewMode()" src="{{documentationCtrl.contentPageURL}}"
+					disable-title disable-theme-switcher disable-raml-client-generator></raml-console>
+
+
+				<div ng-show="documentationCtrl.markdownPreviewMode()" btf-markdown="documentationCtrl.selected.content">
+				</div>
+			</div>
+
+			<div ng-show="documentationCtrl.editMode">
+				 <textarea ng-model="documentationCtrl.selected.content" cols="190" rows="37">{{documentationCtrl.selected.content}}</textarea>
+			</div>
+
+      <md-button ng-click="documentationCtrl.editPage()" ng-show="documentationCtrl.editMode">Save</md-button>
+			<md-button ng-click="documentationCtrl.edit()" ng-show="documentationCtrl.previewMode">Edit</md-button>
+      <md-button ng-click="documentationCtrl.preview()" ng-show="documentationCtrl.editMode">Preview</md-button>
       <md-button ng-click="documentationCtrl.deletePage()">Delete</md-button>
     </div>
   </md-content>
