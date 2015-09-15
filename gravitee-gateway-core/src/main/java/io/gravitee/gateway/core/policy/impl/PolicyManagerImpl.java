@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.policy.annotations.OnRequest;
 import io.gravitee.gateway.api.policy.annotations.OnResponse;
 import io.gravitee.gateway.core.plugin.PluginContextFactory;
 import io.gravitee.gateway.core.plugin.PluginHandler;
+import io.gravitee.gateway.core.policy.PolicyConfigurationClassResolver;
 import io.gravitee.gateway.core.policy.PolicyDefinition;
 import io.gravitee.gateway.core.policy.PolicyManager;
 import io.gravitee.gateway.core.policy.PolicyMethodResolver;
@@ -54,6 +55,9 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
     @Autowired
     private PolicyMethodResolver policyMethodResolver;
 
+    @Autowired
+    private PolicyConfigurationClassResolver policyConfigurationClassResolver;
+
     private final Map<String, PolicyDefinition> definitions = new HashMap<>();
 
     @Override
@@ -75,28 +79,7 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
             if (onRequestMethod == null && onResponseMethod == null) {
                 LOGGER.error("No method annotated with @OnRequest or @OnResponse found, skip policy registration for {}", policyClass.getName());
             } else {
-                LOGGER.info("Looking for a policy configuration class in package {}", plugin.clazz().getPackage().getName());
-
-                Reflections reflections = new Reflections(new ConfigurationBuilder()
-                        .addClassLoader(plugin.clazz().getClassLoader())
-                        .setUrls(ClasspathHelper.forClass(plugin.clazz(), plugin.clazz().getClassLoader()))
-                        .setScanners(new SubTypesScanner(false), new TypeAnnotationsScanner())
-                        .filterInputsBy(new FilterBuilder().includePackage(plugin.clazz().getPackage().getName())));
-
-
-                Set<Class<? extends PolicyConfiguration>> policyConfigurations =
-                        reflections.getSubTypesOf(PolicyConfiguration.class);
-
-                Class<PolicyConfiguration> policyConfiguration = null;
-
-                if (policyConfigurations.isEmpty()) {
-                    LOGGER.info("\tNo policy configuration class defined for policy {}", plugin.id());
-                } else {
-                    policyConfiguration = (Class<PolicyConfiguration>) policyConfigurations.iterator().next();
-                    LOGGER.info("\tPolicy configuration class found for plugin {} : {}", plugin.id(), policyConfiguration.getName());
-                }
-
-                final Class<PolicyConfiguration> finalPolicyConfiguration = policyConfiguration;
+                final Class<? extends PolicyConfiguration> policyConfiguration = policyConfigurationClassResolver.resolvePolicyConfigurationClass(plugin.clazz());
 
                 PolicyDefinition definition = new PolicyDefinition() {
                     @Override
@@ -110,8 +93,8 @@ public class PolicyManagerImpl implements PolicyManager, PluginHandler {
                     }
 
                     @Override
-                    public Class<PolicyConfiguration> configuration() {
-                        return finalPolicyConfiguration;
+                    public Class<? extends PolicyConfiguration> configuration() {
+                        return policyConfiguration;
                     }
 
                     @Override
