@@ -15,7 +15,13 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.management.model.NewPageEntity;
+import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.UpdatePageEntity;
+import io.gravitee.management.service.DocumentationService;
+
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -25,11 +31,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.UpdatePageEntity;
-import io.gravitee.management.service.DocumentationService;
+import javax.ws.rs.core.Response;
 
 /**
  * @author Titouan COMPIEGNE
@@ -55,6 +57,17 @@ public class DocumentationResource extends AbstractResource {
 		newPage.setOrder(order);
 		newPage.setLastContributor(getAuthenticatedUser());
 		return documentationService.createPage(newPage);
+	}
+	
+	@GET
+	@Path("/pages/{name}/content")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String contentPage(@PathParam("name") String name) {
+		Optional<PageEntity> optPage = documentationService.findByName(name);
+		if (optPage != null && optPage.isPresent()) {
+			return optPage.get().getContent();
+		}
+		return Response.status(400).toString();
 	}
 	
 	@POST
