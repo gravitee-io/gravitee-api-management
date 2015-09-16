@@ -15,11 +15,12 @@
  */
 package io.gravitee.gateway.core.sync.impl;
 
+import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.ProxyDefinition;
 import io.gravitee.gateway.core.manager.ApiManager;
-import io.gravitee.gateway.core.model.Api;
-import io.gravitee.gateway.core.model.ApiLifecycleState;
 import io.gravitee.repository.api.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.model.LifecycleState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,56 +47,59 @@ public class SyncManager {
 
     public void refresh() {
         logger.debug("Refreshing gateway state...");
+
         try {
             Set<io.gravitee.repository.model.Api> apis = apiRepository.findAll();
 
-            Map<String, Api> apisMap = apis.stream()
-                    .map(api -> convert(api))
-                    .collect(Collectors.toMap(Api::getName, api -> api));
+            Map<String, ApiDefinition> apisMap = apis.stream()
+                    .map(this::convert)
+                    .collect(Collectors.toMap(ApiDefinition::getName, api -> api));
 
             // Determine APIs to remove
-            Set<String> apiToRemove = apiManager.apis().keySet().stream()
+            Set<String> apiToRemove = apiManager.apis().stream()
                     .filter(apiName -> !apisMap.containsKey(apiName))
+                    .map(ApiDefinition::getName)
                     .collect(Collectors.toSet());
 
-            apiToRemove.stream().forEach(apiName -> apiManager.remove(apiName));
+            apiToRemove.stream().forEach(apiManager::remove);
 
-            /*
             // Determine APIs to update
             apisMap.keySet().stream()
-                    .filter(apiName -> apiManager.apis().containsKey(apiName))
+                    .filter(apiName ->  apiManager.get(apiName) != null)
                     .forEach(apiName -> {
                         // Get local cached API
-                        ApiDefinition cachedApi = apiManager.apis().get(apiName);
+                        ApiDefinition deployedApi = apiManager.get(apiName);
 
                         // Get API from store
-                        Api remoteApi = apisMap.get(apiName);
+                        ApiDefinition remoteApi = apisMap.get(apiName);
 
-                        if (cachedApi.getUpdatedAt().before(remoteApi.getUpdatedAt())) {
+                        if (deployedApi.getDeployedAt().before(remoteApi.getDeployedAt())) {
                             apiManager.update(remoteApi);
                         }
                     });
 
             // Determine APIs to create
             apisMap.keySet().stream()
-                    .filter(apiName -> !apiManager.apis().containsKey(apiName))
+                    .filter(apiName ->  apiManager.get(apiName) == null)
                     .forEach(apiName -> apiManager.add(apisMap.get(apiName)));
-            */
 
         } catch (TechnicalException te) {
             logger.error("Unable to sync instance", te);
         }
     }
 
-    private Api convert(io.gravitee.repository.model.Api remoteApi) {
-        Api api = new Api();
+    private ApiDefinition convert(io.gravitee.repository.model.Api remoteApi) {
+        ApiDefinition api = new ApiDefinition();
 
         api.setName(remoteApi.getName());
-        api.setPublicURI(remoteApi.getPublicURI());
-        api.setTargetURI(remoteApi.getTargetURI());
-        api.setCreatedAt(remoteApi.getCreatedAt());
-        api.setUpdatedAt(remoteApi.getUpdatedAt());
-        api.setState(ApiLifecycleState.valueOf(remoteApi.getLifecycleState().name()));
+        api.setEnabled(remoteApi.getLifecycleState() == LifecycleState.STARTED);
+        api.setDeployedAt(remoteApi.getUpdatedAt());
+
+        ProxyDefinition proxyDefinition = new ProxyDefinition();
+        proxyDefinition.setContextPath(remoteApi.getPublicURI().getPath());
+        proxyDefinition.setTarget(remoteApi.getTargetURI());
+        proxyDefinition.setStripContextPath(false);
+        api.setProxy(proxyDefinition);
 
         return api;
     }

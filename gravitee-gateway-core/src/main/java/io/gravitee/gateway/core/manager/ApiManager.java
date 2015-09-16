@@ -17,7 +17,7 @@ package io.gravitee.gateway.core.manager;
 
 import io.gravitee.gateway.core.definition.ApiDefinition;
 
-import java.util.Map;
+import java.util.Collection;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -30,7 +30,7 @@ public interface ApiManager {
 
     void remove(String apiName);
 
-    Map<String, ApiDefinition> apis();
+    Collection<ApiDefinition> apis();
 
     ApiDefinition get(String name);
 }
