@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.definition;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -33,9 +34,11 @@ public class ApiDefinition {
     private ProxyDefinition proxy;
 
     @JsonProperty(value = "paths", required = true)
-    private Map<String, PathDefinition> paths = new HashMap();
+    private Map<String, PathDefinition> paths = new HashMap<>();
 
     private boolean enabled = true;
+
+    private Date deployedAt;
 
     public String getName() {
         return name;
@@ -67,6 +70,14 @@ public class ApiDefinition {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public Date getDeployedAt() {
+        return deployedAt;
+    }
+
+    public void setDeployedAt(Date deployedAt) {
+        this.deployedAt = deployedAt;
     }
 
     @Override

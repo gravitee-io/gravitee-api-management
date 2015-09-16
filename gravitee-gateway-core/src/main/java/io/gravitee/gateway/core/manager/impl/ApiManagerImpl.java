@@ -23,8 +23,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -78,8 +80,8 @@ public class ApiManagerImpl implements ApiManager {
     }
 
     @Override
-    public Map<String, ApiDefinition> apis() {
-        return apis;
+    public Collection<ApiDefinition> apis() {
+        return apis.values();
     }
 
     @Override
