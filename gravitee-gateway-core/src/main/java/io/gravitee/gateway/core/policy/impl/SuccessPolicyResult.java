@@ -13,10 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api;
+package io.gravitee.gateway.core.policy.impl;
+
+import io.gravitee.gateway.api.policy.PolicyResult;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyResult {
+public class SuccessPolicyResult implements PolicyResult {
+
+    @Override
+    public boolean isFailure() {
+        return false;
+    }
+
+    @Override
+    public int httpStatusCode() {
+        return 0;
+    }
+
+    @Override
+    public String message() {
+        return null;
+    }
 }

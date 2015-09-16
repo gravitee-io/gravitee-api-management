@@ -16,41 +16,44 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.policy.PolicyChain;
+import io.gravitee.gateway.api.policy.PolicyResult;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public abstract class AbstractPolicyChain implements PolicyChain {
 
-    private boolean isFailure = false;
-    private int statusCode = -1;
+    protected static final PolicyResult SUCESS_POLICY_CHAIN = new SuccessPolicyResult();
+
+    protected Handler<PolicyResult> resultHandler;
 
     @Override
-    public void sendError(int statusCode) {
-        setFailure();
-        this.statusCode = statusCode;
+    public void failWith(PolicyResult policyResult) {
+        resultHandler.handle(policyResult);
     }
 
-    @Override
-    public void sendError(int statusCode, Throwable throwable) {
-        sendError(statusCode);
+    protected void failWith(Throwable throwable) {
+        failWith(new PolicyResult() {
+            @Override
+            public boolean isFailure() {
+                return true;
+            }
+
+            @Override
+            public int httpStatusCode() {
+                return HttpStatusCode.INTERNAL_SERVER_ERROR_500;
+            }
+
+            @Override
+            public String message() {
+                return throwable.getMessage();
+            }
+        });
     }
 
-    @Override
-    public void sendError(Throwable throwable) {
-        sendError(HttpStatusCode.INTERNAL_SERVER_ERROR_500, throwable);
-    }
-
-    private void setFailure() {
-        isFailure = true;
-    }
-
-    public boolean isFailure() {
-        return isFailure;
-    }
-
-    public int statusCode() {
-        return statusCode;
+    public void setResultHandler(Handler<PolicyResult> resultHandler) {
+        this.resultHandler = resultHandler;
     }
 }

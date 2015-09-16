@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.policy.PolicyChain;
+import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
 import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
 import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
 import org.junit.Before;
@@ -68,8 +69,11 @@ public class GlobalPolicyChainTest {
     public void doNext_multiplePolicyOrder() throws Exception {
         List<Policy> policies = policies2();
 
-        PolicyChain requestChain = new RequestPolicyChain(policies);
-        PolicyChain responseChain = new ResponsePolicyChain(policies);
+        AbstractPolicyChain requestChain = new RequestPolicyChain(policies);
+        requestChain.setResultHandler(result -> {});
+
+        AbstractPolicyChain responseChain = new ResponsePolicyChain(policies);
+        responseChain.setResultHandler(result -> {});
 
         InOrder requestOrder = inOrder(policy, policy2);
         InOrder responseOrder = inOrder(policy, policy2);
