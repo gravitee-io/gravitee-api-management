@@ -34,6 +34,9 @@ public class HttpClientDefinition {
     @JsonProperty("max_connections")
     private int maxConnections = -1;
 
+    @JsonProperty("request_retry")
+    private int requestRetry = 0;
+
     @JsonProperty("max_connections_per_host")
     private int maxConnectionsPerHost = -1;
 
@@ -81,6 +84,14 @@ public class HttpClientDefinition {
 
     public void setRequestTimeout(int requestTimeout) {
         this.requestTimeout = requestTimeout;
+    }
+
+    public int getRequestRetry() {
+        return requestRetry;
+    }
+
+    public void setRequestRetry(int requestRetry) {
+        this.requestRetry = requestRetry;
     }
 
     public HttpProxyDefinition getHttpProxy() {
