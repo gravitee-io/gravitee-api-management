@@ -51,11 +51,11 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
         ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("my-api")
                 .proxy(new ProxyDefinitionBuilder().contextPath("/team").build()).build();
 
-        Event<ApiEvent, ApiDefinition> evt = new SimpleEvent<>(ApiEvent.CREATE, apiDefinition);
+        Event<ApiEvent, ApiDefinition> evt = new SimpleEvent<>(ApiEvent.DEPLOY, apiDefinition);
 
         reactor.onEvent(evt);
 
-        verify(reactor).addHandler(apiDefinition);
+        verify(reactor).createHandler(apiDefinition);
         verify(handlerFactory).create(apiDefinition);
         verify(reactor, never()).removeHandler(apiDefinition);
     }
@@ -65,11 +65,11 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
         ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("my-api")
                 .proxy(new ProxyDefinitionBuilder().contextPath("/team").build()).enabled(false).build();
 
-        Event<ApiEvent, ApiDefinition> evt = new SimpleEvent<>(ApiEvent.CREATE, apiDefinition);
+        Event<ApiEvent, ApiDefinition> evt = new SimpleEvent<>(ApiEvent.DEPLOY, apiDefinition);
 
         reactor.onEvent(evt);
 
-        verify(reactor).addHandler(apiDefinition);
+        verify(reactor).createHandler(apiDefinition);
         verify(handlerFactory, never()).create(apiDefinition);
         verify(reactor, never()).removeHandler(apiDefinition);
     }
@@ -84,7 +84,7 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
         reactor.onEvent(evt);
 
         verify(reactor).removeHandler(apiDefinition);
-        verify(reactor).addHandler(apiDefinition);
+        verify(reactor).createHandler(apiDefinition);
         verify(handlerFactory, never()).create(apiDefinition);
     }
 
@@ -98,7 +98,7 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
         reactor.onEvent(evt);
 
         verify(reactor).removeHandler(apiDefinition);
-        verify(reactor).addHandler(apiDefinition);
+        verify(reactor).createHandler(apiDefinition);
         verify(handlerFactory).create(apiDefinition);
     }
 
@@ -107,11 +107,11 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
         ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("my-api")
                 .proxy(new ProxyDefinitionBuilder().contextPath("/team").build()).build();
 
-        Event<ApiEvent, ApiDefinition> evt = new SimpleEvent<>(ApiEvent.REMOVE, apiDefinition);
+        Event<ApiEvent, ApiDefinition> evt = new SimpleEvent<>(ApiEvent.UNDEPLOY, apiDefinition);
 
         reactor.onEvent(evt);
 
         verify(reactor).removeHandler(apiDefinition);
-        verify(reactor, never()).addHandler(apiDefinition);
+        verify(reactor, never()).createHandler(apiDefinition);
     }
 }

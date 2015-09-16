@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -41,21 +40,17 @@ public class ApiManagerImpl implements ApiManager {
     private final Map<String, ApiDefinition> apis = new HashMap<>();
 
     @Override
-    public void add(ApiDefinition apiDefinition) {
-        logger.debug("{} has been added", apiDefinition);
+    public void deploy(ApiDefinition apiDefinition) {
+        logger.debug("Trying to deploy API {}", apiDefinition);
 
-        try {
-            // TODO: validate API definition
-            apis.put(apiDefinition.getName(), apiDefinition);
-            eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
-        } catch (IllegalStateException ise) {
-            logger.error("{} can not be added to reactor due to previous error", apiDefinition);
-        }
+        // TODO: validate API definition before triggering an event
+        apis.put(apiDefinition.getName(), apiDefinition);
+        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
     }
 
     @Override
     public void update(ApiDefinition apiDefinition) {
-        logger.debug("{} has been updated", apiDefinition);
+        logger.debug("Trying to update API {}", apiDefinition);
         ApiDefinition cachedApi = apis.get(apiDefinition.getName());
 
         // Update only if certain fields has been updated:
@@ -63,20 +58,16 @@ public class ApiManagerImpl implements ApiManager {
         // - TargetURL
         // - PublicURL
 
-        try {
-            // TODO: validate API definition
-            apis.put(apiDefinition.getName(), apiDefinition);
-            eventManager.publishEvent(ApiEvent.UPDATE, apiDefinition);
-        } catch (IllegalStateException ise) {
-            logger.error("{} can not be updated in reactor due to previous error", apiDefinition);
-        }
+        // TODO: validate API definition before triggering an event
+        apis.put(apiDefinition.getName(), apiDefinition);
+        eventManager.publishEvent(ApiEvent.UPDATE, apiDefinition);
     }
 
     @Override
-    public void remove(String apiName) {
-        logger.debug("{} has been removed", apiName);
+    public void undeploy(String apiName) {
+        logger.debug("API {} has been undeployed", apiName);
         apis.remove(apiName);
-        eventManager.publishEvent(ApiEvent.REMOVE, apis.get(apiName));
+        eventManager.publishEvent(ApiEvent.UNDEPLOY, apis.get(apiName));
     }
 
     @Override
@@ -88,47 +79,6 @@ public class ApiManagerImpl implements ApiManager {
     public ApiDefinition get(String name) {
         return apis.get(name);
     }
-
-/*
-    public void enhance(Api get) {
-        try {
-            logger.debug("Trying to enhance {} with policy configurations", get);
-
-            List<PolicyConfiguration> policies = apiRepository.findPoliciesByApi(get.getName());
-            if (! policies.isEmpty()) {
-                policies.stream().forEach(new Consumer<PolicyConfiguration>() {
-                    @Override
-                    public void accept(PolicyConfiguration policyConfiguration) {
-                        String policy = policyConfiguration.getPolicy();
-
-                        // Check that the policy is locally installed
-                        PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(policy);
-                        if (policyDefinition == null) {
-                            logger.error("Policy {} is not available for {}", policy, get);
-                            throw new IllegalStateException("Policy " + policy + " is not available for " + get);
-                        }
-
-                        String configuration = policyConfiguration.getConfiguration();
-                        if (configuration != null && ! configuration.isEmpty()) {
-                            // TODO: Validate configuration against installed policy
-                            io.gravitee.gateway.get.policy.PolicyConfiguration internalPolicyConfiguration = policyConfigurationFactory.create(policyDefinition.configuration(), configuration);
-                            if (internalPolicyConfiguration == null) {
-                                logger.error("Policy configuration for {} and {} can not be parsed", policy, get);
-                                throw new IllegalStateException("Policy configuration for {} and {} can not be parsed" + get);
-                            }
-                        }
-                    }
-                });
-            } else {
-                logger.warn("No policy has been configured for {}, skipping enhancement...", get);
-            }
-
-        } catch (TechnicalException e) {
-            logger.error("Unable to retrieve policy configurations for {} from repository", get, e);
-            throw new IllegalStateException("Unable to retrieve policy configuration for " + get);
-        }
-    }
-*/
 
     public void setEventManager(EventManager eventManager) {
         this.eventManager = eventManager;

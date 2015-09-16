@@ -20,17 +20,43 @@ import io.gravitee.gateway.core.definition.ApiDefinition;
 import java.util.Collection;
 
 /**
+ * This manager interface acts as a bridge between the source of {@link ApiDefinition} (*.json files in case of
+ * local registry and sync scheduler when using the sync mode) and the {@link io.gravitee.gateway.core.Reactor}.
+ * This means that all actions handled by the reactor must be done by using this manager and not directly by emitting
+ * internal event.
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface ApiManager {
 
-    void add(ApiDefinition apiDefinition);
+    /**
+     * Deploy an API definition.
+     * @param apiDefinition API definition to deploy.
+     */
+    void deploy(ApiDefinition apiDefinition);
 
+    /**
+     * Update an API definition already registered.
+     * @param apiDefinition API definition to update.
+     */
     void update(ApiDefinition apiDefinition);
 
-    void remove(String apiName);
+    /**
+     * Undeploy an API from the {@link io.gravitee.gateway.core.Reactor}.
+     * @param apiName The name of the API to undeploy.
+     */
+    void undeploy(String apiName);
 
+    /**
+     * Returns a collection of deployed {@link ApiDefinition}s.
+     * @return A collection of deployed  {@link ApiDefinition}s.
+     */
     Collection<ApiDefinition> apis();
 
+    /**
+     * Retrieve a deployed {@link ApiDefinition} using its name.
+     * @param name The name of the deployed API.
+     * @return A deployed {@link ApiDefinition}
+     */
     ApiDefinition get(String name);
 }

@@ -49,8 +49,8 @@ public class ApiManagerTest {
         ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("api-test")
                 .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("http://localhost/target").build()).build();
 
-        apiManager.add(apiDefinition);
+        apiManager.deploy(apiDefinition);
 
-        verify(eventManager, only()).publishEvent(ApiEvent.CREATE, apiDefinition);
+        verify(eventManager, only()).publishEvent(ApiEvent.DEPLOY, apiDefinition);
     }
 }

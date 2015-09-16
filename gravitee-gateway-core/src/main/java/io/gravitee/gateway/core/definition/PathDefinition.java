@@ -29,7 +29,7 @@ public class PathDefinition {
 
     private String path;
 
-    private List<MethodDefinition> methods = new ArrayList();
+    private List<MethodDefinition> methods = new ArrayList<>();
 
     public String getPath() {
         return path;

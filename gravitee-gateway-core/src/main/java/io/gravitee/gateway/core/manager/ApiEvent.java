@@ -20,5 +20,5 @@ package io.gravitee.gateway.core.manager;
  */
 public enum ApiEvent {
 
-    CREATE, UPDATE, REMOVE;
+    DEPLOY, UPDATE, UNDEPLOY;
 }

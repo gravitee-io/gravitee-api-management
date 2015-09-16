@@ -71,9 +71,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, never()).add(any(ApiDefinition.class));
+        verify(apiManager, never()).deploy(any(ApiDefinition.class));
         verify(apiManager, never()).update(any(ApiDefinition.class));
-        verify(apiManager, never()).remove(any(String.class));
+        verify(apiManager, never()).undeploy(any(String.class));
     }
 
     @Test
@@ -84,9 +84,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).add(convert(api));
+        verify(apiManager).deploy(convert(api));
         verify(apiManager, never()).update(any(ApiDefinition.class));
-        verify(apiManager, never()).remove(any(String.class));
+        verify(apiManager, never()).undeploy(any(String.class));
     }
 
     @Test
@@ -99,9 +99,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).add(convert(api));
+        verify(apiManager).deploy(convert(api));
         verify(apiManager, never()).update(any(ApiDefinition.class));
-        verify(apiManager, never()).remove(any(String.class));
+        verify(apiManager, never()).undeploy(any(String.class));
     }
 
     @Test
@@ -121,10 +121,10 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).add(convert(api));
-        verify(apiManager).add(convert(api2));
+        verify(apiManager).deploy(convert(api));
+        verify(apiManager).deploy(convert(api2));
         verify(apiManager, never()).update(any(ApiDefinition.class));
-        verify(apiManager, never()).remove(any(String.class));
+        verify(apiManager, never()).undeploy(any(String.class));
     }
 
     @Test
@@ -140,11 +140,11 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).add(convert(api));
-        verify(apiManager).add(convert(api2));
+        verify(apiManager).deploy(convert(api));
+        verify(apiManager).deploy(convert(api2));
         verify(apiManager, never()).update(any(ApiDefinition.class));
-        verify(apiManager).remove(api.getName());
-        verify(apiManager, never()).remove(api2.getName());
+        verify(apiManager).undeploy(api.getName());
+        verify(apiManager, never()).undeploy(api2.getName());
     }
 
     @Test
@@ -162,9 +162,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).add(convert(api));
+        verify(apiManager).deploy(convert(api));
         verify(apiManager).update(convert(api));
-        verify(apiManager, never()).remove(any(String.class));
+        verify(apiManager, never()).undeploy(any(String.class));
     }
 
     @Test
@@ -180,9 +180,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).add(convert(api));
+        verify(apiManager).deploy(convert(api));
         verify(apiManager, never()).update(any(ApiDefinition.class));
-        verify(apiManager, never()).remove(any(String.class));
+        verify(apiManager, never()).undeploy(any(String.class));
     }
 
     @Test
@@ -191,9 +191,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, never()).add(any(ApiDefinition.class));
+        verify(apiManager, never()).deploy(any(ApiDefinition.class));
         verify(apiManager, never()).update(any(ApiDefinition.class));
-        verify(apiManager, never()).remove(any(String.class));
+        verify(apiManager, never()).undeploy(any(String.class));
     }
 
     private ApiDefinition convert(io.gravitee.repository.model.Api remoteApi) {
