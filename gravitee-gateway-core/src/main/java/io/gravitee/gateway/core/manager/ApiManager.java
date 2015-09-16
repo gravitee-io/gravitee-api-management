@@ -31,4 +31,6 @@ public interface ApiManager {
     void remove(String apiName);
 
     Map<String, ApiDefinition> apis();
+
+    ApiDefinition get(String name);
 }

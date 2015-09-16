@@ -44,10 +44,10 @@ public class LocalApiDefinitionRegistryTest {
     }
 
     @Test
-    public void test() throws URISyntaxException {
+    public void test() throws Exception {
         URL resource = LocalApiDefinitionRegistryTest.class.getResource("/registry");
 
         registry.setRegistryPath(resource.getPath());
-        registry.init();
+        registry.start();
     }
 }

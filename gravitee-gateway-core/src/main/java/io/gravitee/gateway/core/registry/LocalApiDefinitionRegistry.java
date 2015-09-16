@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.registry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.manager.ApiManager;
 import org.slf4j.Logger;
@@ -25,11 +26,16 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class LocalApiDefinitionRegistry {
+public class LocalApiDefinitionRegistry extends AbstractService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(LocalApiDefinitionRegistry.class);
 
@@ -44,6 +50,10 @@ public class LocalApiDefinitionRegistry {
     @Autowired
     private ApiManager apiManager;
 
+    private ExecutorService executor;
+
+    private Map<Path, ApiDefinition> definitions = new HashMap<>();
+
     /**
      * Empty constructor is used to use a workspace directory defined from @Value annotation
      * on registryPath field.
@@ -55,7 +65,7 @@ public class LocalApiDefinitionRegistry {
         this.registryPath = registryPath;
     }
 
-    public void init() {
+    private void init() {
         if (enabled) {
             if (registryPath == null || registryPath.isEmpty()) {
                 LOGGER.error("Local API definitions registry path is not specified.");
@@ -71,32 +81,124 @@ public class LocalApiDefinitionRegistry {
                         + registryDir.getAbsolutePath());
             }
 
-            LOGGER.info("Loading API definitions from {}", registryDir.getAbsoluteFile());
-            File[] definitionFiles = searchForDefinitions(registryDir);
-
-            LOGGER.info("\t{} API definitions have been found.", definitionFiles.length);
-
-            for(File definitionFile : definitionFiles) {
-                try {
-                    ApiDefinition apiDefinition = load(definitionFile);
-                    apiManager.add(apiDefinition);
-                } catch (IOException e) {
-                    LOGGER.error("Unable to load API definition from {}", definitionFile, e);
-                }
-            }
+            initRegistry(registryDir);
         } else {
             LOGGER.warn("Local registry for API definitions is disabled");
         }
     }
 
-    private ApiDefinition load(File apiDefinitionFile) throws IOException {
-        return new ObjectMapper().readValue(apiDefinitionFile, ApiDefinition.class);
+    private void initRegistry(File registryDir) {
+        LOGGER.info("Loading API definitions from {}", registryDir.getAbsoluteFile());
+        File[] definitionFiles = searchForDefinitions(registryDir);
+
+        LOGGER.info("\t{} API definitions have been found.", definitionFiles.length);
+
+        for(File definitionFile : definitionFiles) {
+            try {
+                ApiDefinition apiDefinition = loadDefinition(definitionFile);
+                apiManager.add(apiDefinition);
+                definitions.put(Paths.get(definitionFile.toURI()), apiDefinition);
+            } catch (IOException e) {
+                LOGGER.error("Unable to load API definition from {}", definitionFile, e);
+            }
+        }
     }
 
     private File[] searchForDefinitions(File registryDir) {
         return registryDir.listFiles((dir, name) -> {
             return name.endsWith(JSON_EXTENSION);
         });
+    }
+
+    private ApiDefinition loadDefinition(File apiDefinitionFile) throws IOException {
+        return new ObjectMapper().readValue(apiDefinitionFile, ApiDefinition.class);
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+        if (enabled) {
+            super.doStart();
+
+            this.init();
+
+            executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "registry-monitor"));
+            executor.execute(() -> {
+                Path registry = Paths.get(registryPath);
+                LOGGER.info("Start local registry monitor for directory {}", registry);
+
+                try {
+                    WatchService watcher = registry.getFileSystem().newWatchService();
+                    registry.register(watcher, StandardWatchEventKinds.ENTRY_CREATE,
+                            StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+
+                    while (true) {
+                        WatchKey key;
+                        try {
+                            key = watcher.take();
+                        } catch (InterruptedException ex) {
+                            return;
+                        }
+
+                        for (WatchEvent<?> event : key.pollEvents()) {
+                            WatchEvent.Kind<?> kind = event.kind();
+
+                            @SuppressWarnings("unchecked")
+                            WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                            Path fileName =registry.resolve(ev.context().getFileName());
+
+                            LOGGER.info("An event occurs for file {}: {}", fileName, kind.name());
+
+                            if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                ApiDefinition loadedDefinition = loadDefinition(fileName.toFile());
+                                ApiDefinition existingDefinition = definitions.get(fileName);
+                                if (existingDefinition != null) {
+                                    if (apiManager.get(existingDefinition.getName()) != null) {
+                                        apiManager.update(existingDefinition);
+                                    } else {
+                                        apiManager.remove(existingDefinition.getName());
+                                        definitions.remove(fileName);
+                                        apiManager.add(loadedDefinition);
+                                        definitions.put(fileName, loadedDefinition);
+                                    }
+                                }
+                            } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
+                                ApiDefinition loadedDefinition = loadDefinition(fileName.toFile());
+                                ApiDefinition existingDefinition = apiManager.get(loadedDefinition.getName());
+                                if (existingDefinition != null) {
+                                    apiManager.update(loadedDefinition);
+                                } else {
+                                    apiManager.add(loadedDefinition);
+                                    definitions.put(fileName, loadedDefinition);
+                                }
+                            } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                                ApiDefinition existingDefinition = definitions.get(fileName);
+                                if (existingDefinition != null && apiManager.get(existingDefinition.getName()) != null) {
+                                    apiManager.remove(existingDefinition.getName());
+                                    definitions.remove(fileName);
+                                }
+                            }
+
+                            boolean valid = key.reset();
+                            if (!valid) {
+                                break;
+                            }
+                        }
+                    }
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            });
+        }
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        if (enabled) {
+            super.doStop();
+
+            executor.shutdownNow();
+            executor = null;
+        }
     }
 
     public void setApiManager(ApiManager apiManager) {

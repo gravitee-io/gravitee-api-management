@@ -202,7 +202,7 @@ public class GraviteeReactor extends AbstractService implements
 
         eventManager.subscribeForEvents(this, ApiEvent.class);
 
-        applicationContext.getBean(LocalApiDefinitionRegistry.class).init();
+        applicationContext.getBean(LocalApiDefinitionRegistry.class).start();
         applicationContext.getBean(SyncService.class).start();
     }
 
@@ -212,6 +212,7 @@ public class GraviteeReactor extends AbstractService implements
 
         applicationContext.getBean(PluginRegistry.class).stop();
         applicationContext.getBean(PluginEventListener.class).stop();
+        applicationContext.getBean(LocalApiDefinitionRegistry.class).stop();
         applicationContext.getBean(SyncService.class).stop();
 
         clearHandlers();
