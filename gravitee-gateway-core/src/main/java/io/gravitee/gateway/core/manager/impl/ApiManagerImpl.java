@@ -82,12 +82,17 @@ public class ApiManagerImpl implements ApiManager {
         return apis;
     }
 
-/*
-    public void enhance(Api api) {
-        try {
-            logger.debug("Trying to enhance {} with policy configurations", api);
+    @Override
+    public ApiDefinition get(String name) {
+        return apis.get(name);
+    }
 
-            List<PolicyConfiguration> policies = apiRepository.findPoliciesByApi(api.getName());
+/*
+    public void enhance(Api get) {
+        try {
+            logger.debug("Trying to enhance {} with policy configurations", get);
+
+            List<PolicyConfiguration> policies = apiRepository.findPoliciesByApi(get.getName());
             if (! policies.isEmpty()) {
                 policies.stream().forEach(new Consumer<PolicyConfiguration>() {
                     @Override
@@ -97,28 +102,28 @@ public class ApiManagerImpl implements ApiManager {
                         // Check that the policy is locally installed
                         PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(policy);
                         if (policyDefinition == null) {
-                            logger.error("Policy {} is not available for {}", policy, api);
-                            throw new IllegalStateException("Policy " + policy + " is not available for " + api);
+                            logger.error("Policy {} is not available for {}", policy, get);
+                            throw new IllegalStateException("Policy " + policy + " is not available for " + get);
                         }
 
                         String configuration = policyConfiguration.getConfiguration();
                         if (configuration != null && ! configuration.isEmpty()) {
                             // TODO: Validate configuration against installed policy
-                            io.gravitee.gateway.api.policy.PolicyConfiguration internalPolicyConfiguration = policyConfigurationFactory.create(policyDefinition.configuration(), configuration);
+                            io.gravitee.gateway.get.policy.PolicyConfiguration internalPolicyConfiguration = policyConfigurationFactory.create(policyDefinition.configuration(), configuration);
                             if (internalPolicyConfiguration == null) {
-                                logger.error("Policy configuration for {} and {} can not be parsed", policy, api);
-                                throw new IllegalStateException("Policy configuration for {} and {} can not be parsed" + api);
+                                logger.error("Policy configuration for {} and {} can not be parsed", policy, get);
+                                throw new IllegalStateException("Policy configuration for {} and {} can not be parsed" + get);
                             }
                         }
                     }
                 });
             } else {
-                logger.warn("No policy has been configured for {}, skipping enhancement...", api);
+                logger.warn("No policy has been configured for {}, skipping enhancement...", get);
             }
 
         } catch (TechnicalException e) {
-            logger.error("Unable to retrieve policy configurations for {} from repository", api, e);
-            throw new IllegalStateException("Unable to retrieve policy configuration for " + api);
+            logger.error("Unable to retrieve policy configurations for {} from repository", get, e);
+            throw new IllegalStateException("Unable to retrieve policy configuration for " + get);
         }
     }
 */
