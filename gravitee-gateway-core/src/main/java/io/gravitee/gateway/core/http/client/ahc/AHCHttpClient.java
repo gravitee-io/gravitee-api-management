@@ -16,6 +16,9 @@
 package io.gravitee.gateway.core.http.client.ahc;
 
 import com.ning.http.client.*;
+import com.ning.http.client.filter.FilterContext;
+import com.ning.http.client.filter.FilterException;
+import com.ning.http.client.filter.IOExceptionFilter;
 import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
@@ -118,16 +121,18 @@ public class AHCHttpClient extends AbstractHttpClient {
 
         // httpClientCodecMaxChunkSize is set to 8192 by default
         NettyAsyncHttpProviderConfig config = new NettyAsyncHttpProviderConfig();
+
         builder.setAsyncHttpClientProviderConfig(config);
 
         builder
-                .setAllowPoolingConnections(true)
                 .setRequestTimeout(httpClientDefinition.getRequestTimeout())
                 .setReadTimeout(httpClientDefinition.getReadTimeout())
                 .setConnectTimeout(httpClientDefinition.getConnectTimeout())
                 .setMaxConnectionsPerHost(httpClientDefinition.getMaxConnectionsPerHost())
                 .setMaxConnections(httpClientDefinition.getMaxConnections())
-                .setMaxRequestRetry(0);
+                .setMaxRequestRetry(httpClientDefinition.getRequestRetry())
+                .setPooledConnectionIdleTimeout(5000)
+                .setAllowPoolingConnections(true);
 
         if (httpClientDefinition.isUseProxy()) {
             boolean useCredentials = (httpClientDefinition.getHttpProxy().getPrincipal() != null);
@@ -188,12 +193,13 @@ public class AHCHttpClient extends AbstractHttpClient {
 
             @Override
             public void onThrowable(Throwable failure) {
-                LOGGER.debug(request.id() + " proxying failed", failure);
+                LOGGER.error(request.id() + " proxying failed", failure);
 
-                if (failure instanceof TimeoutException)
+                if (failure instanceof TimeoutException) {
                     ((HttpServerResponse) response).setStatus(HttpStatusCode.GATEWAY_TIMEOUT_504);
-                else
+                } else {
                     ((HttpServerResponse) response).setStatus(HttpStatusCode.BAD_GATEWAY_502);
+                }
 
                 response.headers().put(HttpHeader.CONNECTION.asString(), HttpHeaderValue.CLOSE.asString());
 

@@ -26,6 +26,8 @@ import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
 import io.gravitee.gateway.core.reactor.handler.ContextHandler;
 import io.gravitee.gateway.core.reporter.ReporterService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -60,37 +62,32 @@ public class ApiHandler extends ContextHandler {
                 reporterService.report(request, response);
             } else {
                 // 3_ Call remote service
-                httpClient.invoke(request, response, new Handler() {
-                    @Override
-                    public void handle(Object result) {
+                httpClient.invoke(request, response, result -> {
+                    // 4_ Apply response policies
 
-                        // 4_ Apply response policies
-                        AbstractPolicyChain responsePolicyChain = ApiHandler.this.getResponsePolicyChainBuilder().newPolicyChain(policies);
-                        responsePolicyChain.setResultHandler(responsePolicyResult -> {
+                    // FIXME: we are never go here because policy does not implement @OnResponse
+                    // and so do not apply doNext in policy chain
+                    /*
+                    AbstractPolicyChain responsePolicyChain = ApiHandler.this.getResponsePolicyChainBuilder().newPolicyChain(policies);
+                    responsePolicyChain.setResultHandler(responsePolicyResult -> {
+                        if (responsePolicyResult.isFailure()) {
+                            ((HttpServerResponse) response).setStatus(requestPolicyResult.httpStatusCode());
+                            handler.handle(response);
+                            reporterService.report(request, response);
+                        } else {
 
-                            // FIXME: we are never go here because policy does not implement @OnResponse
-                            // and so do not apply doNext in policy chain
+                            // 5_ Transfer the proxy response to the initial consumer
+                            handler.handle(response);
+                            reporterService.report(request, response);
+                        }
+                    });
 
-                            /*
-                            if (responsePolicyResult.isFailure()) {
-                                ((HttpServerResponse) response).setStatus(requestPolicyResult.httpStatusCode());
-                                handler.handle(response);
-                                reporterService.report(request, response);
-                            } else {
+                    responsePolicyChain.doNext(request, response);
+                    */
 
-                                // 5_ Transfer the proxy response to the initial consumer
-                                handler.handle(response);
-                                reporterService.report(request, response);
-                            }
-                            */
-                        });
-
-                        responsePolicyChain.doNext(request, response);
-
-                        // 5_ Transfer the proxy response to the initial consumer
-                        handler.handle(response);
-                        reporterService.report(request, response);
-                    }
+                    // 5_ Transfer the proxy response to the initial consumer
+                    handler.handle(response);
+                    reporterService.report(request, response);
                 });
             }
         });
