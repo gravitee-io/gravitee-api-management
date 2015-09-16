@@ -15,17 +15,14 @@
  */
 package io.gravitee.gateway.api.policy;
 
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.handler.Handler;
-
 /**
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyChain {
+public interface PolicyResult {
 
-    void doNext(Request request, Response response);
+    boolean isFailure();
 
-    void failWith(PolicyResult policyResult);
+    int httpStatusCode();
+
+    String message();
 }

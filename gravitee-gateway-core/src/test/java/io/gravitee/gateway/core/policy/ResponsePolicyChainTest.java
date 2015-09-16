@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.policy.PolicyChain;
+import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
 import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
 import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
 import org.junit.Before;
@@ -73,7 +74,8 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_emptyPolicies() throws Exception {
-        PolicyChain chain = new ResponsePolicyChain(new ArrayList<>());
+        AbstractPolicyChain chain = new ResponsePolicyChain(new ArrayList<>());
+        chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 
         verify(policy, never()).onRequest();
@@ -82,7 +84,8 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_singlePolicy() throws Exception {
-        PolicyChain chain = new ResponsePolicyChain(policies());
+        AbstractPolicyChain chain = new ResponsePolicyChain(policies());
+        chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 
         verify(policy, never()).onRequest(anyVararg());
@@ -91,7 +94,9 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_multiplePolicy() throws Exception {
-        PolicyChain chain = new ResponsePolicyChain(policies2());
+        AbstractPolicyChain chain = new ResponsePolicyChain(policies2());
+        chain.setResultHandler(result -> {});
+
         chain.doNext(null, null);
 
         verify(policy, atLeastOnce()).onResponse(null, null, chain);
@@ -100,7 +105,9 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_multiplePolicyOrder() throws Exception {
-        PolicyChain chain = new ResponsePolicyChain(policies2());
+        AbstractPolicyChain chain = new ResponsePolicyChain(policies2());
+        chain.setResultHandler(result -> {});
+
         InOrder inOrder = inOrder(policy, policy2);
 
         chain.doNext(null, null);
@@ -111,7 +118,8 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_multiplePolicy_throwError() throws Exception {
-        PolicyChain chain = new ResponsePolicyChain(policies3());
+        AbstractPolicyChain chain = new ResponsePolicyChain(policies3());
+        chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 
         verify(policy3, atLeastOnce()).onResponse(null, null, chain);

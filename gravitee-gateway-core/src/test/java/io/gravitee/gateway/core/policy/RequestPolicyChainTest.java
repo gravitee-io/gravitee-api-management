@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.policy.PolicyChain;
+import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
 import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,7 +72,9 @@ public class RequestPolicyChainTest {
 
     @Test
     public void doNext_emptyPolicies() throws Exception {
-        PolicyChain chain = new RequestPolicyChain(new ArrayList<>());
+        AbstractPolicyChain chain = new RequestPolicyChain(new ArrayList<>());
+        chain.setResultHandler(result -> {});
+
         chain.doNext(null, null);
 
         verify(policy, never()).onRequest();
@@ -80,7 +83,9 @@ public class RequestPolicyChainTest {
 
     @Test
     public void doNext_singlePolicy() throws Exception {
-        PolicyChain chain = new RequestPolicyChain(policies());
+        AbstractPolicyChain chain = new RequestPolicyChain(policies());
+        chain.setResultHandler(result -> {});
+
         chain.doNext(null, null);
 
         verify(policy, atLeastOnce()).onRequest(anyVararg());
@@ -89,7 +94,9 @@ public class RequestPolicyChainTest {
 
     @Test
     public void doNext_multiplePolicy() throws Exception {
-        PolicyChain chain = new RequestPolicyChain(policies2());
+        AbstractPolicyChain chain = new RequestPolicyChain(policies2());
+        chain.setResultHandler(result -> {});
+
         chain.doNext(null, null);
 
         verify(policy, atLeastOnce()).onRequest(null, null, chain);
@@ -98,7 +105,9 @@ public class RequestPolicyChainTest {
 
     @Test
     public void doNext_multiplePolicyOrder() throws Exception {
-        PolicyChain chain = new RequestPolicyChain(policies2());
+        AbstractPolicyChain chain = new RequestPolicyChain(policies2());
+        chain.setResultHandler(result -> {});
+
         InOrder inOrder = inOrder(policy, policy2);
 
         chain.doNext(null, null);
@@ -109,7 +118,8 @@ public class RequestPolicyChainTest {
 
     @Test
     public void doNext_multiplePolicy_throwError() throws Exception {
-        PolicyChain chain = new RequestPolicyChain(policies3());
+        AbstractPolicyChain chain = new RequestPolicyChain(policies3());
+        chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 
         verify(policy3, atLeastOnce()).onRequest(null, null, chain);
