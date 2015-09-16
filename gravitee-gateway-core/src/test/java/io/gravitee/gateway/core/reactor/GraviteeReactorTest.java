@@ -75,7 +75,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         // Register API endpoint
         ApiDefinition apiDefinition = getApiDefinition();
 
-        eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
+        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
 
         HttpServerRequest req = new HttpServerRequest();
         HttpServerResponse response = new HttpServerResponse();
@@ -93,7 +93,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         // Register API endpoint
         ApiDefinition apiDefinition = getApiDefinition();
 
-        eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
+        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
 
         HttpServerRequest req = new HttpServerRequest();
         HttpServerResponse response = new HttpServerResponse();
@@ -111,7 +111,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         ApiDefinition apiDefinition = getApiDefinition();
         apiDefinition.setEnabled(false);
 
-        eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
+        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
 
         HttpServerRequest req = new HttpServerRequest();
         HttpServerResponse response = new HttpServerResponse();
@@ -128,7 +128,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         // Register API endpoint
         ApiDefinition apiDefinition = getApiDefinition();
 
-        eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
+        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
 
         HttpServerRequest req = new HttpServerRequest();
         req.setRequestURI(URI.create("http://localhost/unknown_path"));
@@ -181,7 +181,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         // Register API endpoint
         ApiDefinition apiDefinition = getApiDefinition();
 
-        eventManager.publishEvent(ApiEvent.CREATE, apiDefinition);
+        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
 
         HttpServerRequest req = new HttpServerRequest();
         req.setRequestURI(URI.create("http://localhost/unknown_path"));

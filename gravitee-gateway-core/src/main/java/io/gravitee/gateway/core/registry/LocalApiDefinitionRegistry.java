@@ -96,7 +96,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
         for(File definitionFile : definitionFiles) {
             try {
                 ApiDefinition apiDefinition = loadDefinition(definitionFile);
-                apiManager.add(apiDefinition);
+                apiManager.deploy(apiDefinition);
                 definitions.put(Paths.get(definitionFile.toURI()), apiDefinition);
             } catch (IOException e) {
                 LOGGER.error("Unable to load API definition from {}", definitionFile, e);
@@ -155,9 +155,9 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                                     if (apiManager.get(existingDefinition.getName()) != null) {
                                         apiManager.update(existingDefinition);
                                     } else {
-                                        apiManager.remove(existingDefinition.getName());
+                                        apiManager.undeploy(existingDefinition.getName());
                                         definitions.remove(fileName);
-                                        apiManager.add(loadedDefinition);
+                                        apiManager.deploy(loadedDefinition);
                                         definitions.put(fileName, loadedDefinition);
                                     }
                                 }
@@ -167,13 +167,13 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                                 if (existingDefinition != null) {
                                     apiManager.update(loadedDefinition);
                                 } else {
-                                    apiManager.add(loadedDefinition);
+                                    apiManager.deploy(loadedDefinition);
                                     definitions.put(fileName, loadedDefinition);
                                 }
                             } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
                                 ApiDefinition existingDefinition = definitions.get(fileName);
                                 if (existingDefinition != null && apiManager.get(existingDefinition.getName()) != null) {
-                                    apiManager.remove(existingDefinition.getName());
+                                    apiManager.undeploy(existingDefinition.getName());
                                     definitions.remove(fileName);
                                 }
                             }

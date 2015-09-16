@@ -129,29 +129,29 @@ public class GraviteeReactor extends AbstractService implements
     @Override
     public void onEvent(Event<ApiEvent, ApiDefinition> event) {
         switch(event.type()) {
-            case CREATE:
-                addHandler(event.content());
+            case DEPLOY:
+                createHandler(event.content());
                 break;
             case UPDATE:
                 removeHandler(event.content());
-                addHandler(event.content());
+                createHandler(event.content());
                 break;
-            case REMOVE:
+            case UNDEPLOY:
                 removeHandler(event.content());
                 break;
         }
     }
 
-    public void addHandler(ApiDefinition apiDefinition) {
+    public void createHandler(ApiDefinition apiDefinition) {
         if (apiDefinition.isEnabled()) {
-            logger.info("API {} has been enabled in reactor", apiDefinition.getName());
+            logger.info("API {} has been deployed in reactor", apiDefinition.getName());
 
             ContextHandler handler = contextHandlerFactory.create(apiDefinition);
             try {
                 handler.start();
                 handlers.putIfAbsent(handler.getContextPath(), handler);
             } catch (Exception ex) {
-                logger.error("Unable to add reactor handler", ex);
+                logger.error("Unable to deploy handler", ex);
             }
         } else {
             logger.warn("Api {} is settled has disable in reactor !", apiDefinition.getName());
@@ -167,7 +167,7 @@ public class GraviteeReactor extends AbstractService implements
                 handler.stop();
                 handlers.remove(apiDefinition.getProxy().getContextPath());
             } catch (Exception e) {
-                logger.error("Unable to remove reactor handler", e);
+                logger.error("Unable to remove handler", e);
             }
         }
     }

@@ -15,16 +15,17 @@
  */
 package io.gravitee.gateway.core.sync.impl;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.definition.ProxyDefinition;
+import io.gravitee.gateway.core.definition.*;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.repository.api.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.LifecycleState;
+import io.gravitee.repository.model.PolicyConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -55,13 +56,13 @@ public class SyncManager {
                     .map(this::convert)
                     .collect(Collectors.toMap(ApiDefinition::getName, api -> api));
 
-            // Determine APIs to remove
+            // Determine APIs to undeploy
             Set<String> apiToRemove = apiManager.apis().stream()
                     .filter(apiName -> !apisMap.containsKey(apiName))
                     .map(ApiDefinition::getName)
                     .collect(Collectors.toSet());
 
-            apiToRemove.stream().forEach(apiManager::remove);
+            apiToRemove.stream().forEach(apiManager::undeploy);
 
             // Determine APIs to update
             apisMap.keySet().stream()
@@ -74,14 +75,29 @@ public class SyncManager {
                         ApiDefinition remoteApi = apisMap.get(apiName);
 
                         if (deployedApi.getDeployedAt().before(remoteApi.getDeployedAt())) {
-                            apiManager.update(remoteApi);
+                            // Should be updated so prepare the complete definition.
+                            try {
+                                prepare(remoteApi);
+                                apiManager.update(remoteApi);
+                            } catch (TechnicalException te) {
+                                logger.error("Unable to prepare API definition for {}", remoteApi.getName(), te);
+                            }
                         }
                     });
 
             // Determine APIs to create
             apisMap.keySet().stream()
                     .filter(apiName ->  apiManager.get(apiName) == null)
-                    .forEach(apiName -> apiManager.add(apisMap.get(apiName)));
+                    .forEach(apiName -> {
+                        ApiDefinition newApi = apisMap.get(apiName);
+                        // Should be updated so prepare the complete definition.
+                        try {
+                            prepare(newApi);
+                            apiManager.deploy(newApi);
+                        } catch (TechnicalException te) {
+                            logger.error("Unable to prepare API definition for {}", newApi.getName(), te);
+                        }
+                    });
 
         } catch (TechnicalException te) {
             logger.error("Unable to sync instance", te);
@@ -102,6 +118,29 @@ public class SyncManager {
         api.setProxy(proxyDefinition);
 
         return api;
+    }
+
+    private void prepare(ApiDefinition apiDefinition) throws TechnicalException {
+        logger.debug("Loading complete API definition for API {}", apiDefinition.getName());
+
+        List<PolicyConfiguration> policyConfigurationList = apiRepository.findPoliciesByApi(apiDefinition.getName());
+
+        if (policyConfigurationList != null) {
+            PathDefinition pathDefinition = new PathDefinition();
+            pathDefinition.setPath("/*");
+
+            MethodDefinition methodDefinition = new MethodDefinition();
+            pathDefinition.getMethods().add(methodDefinition);
+
+            policyConfigurationList.stream().forEachOrdered(policyConfiguration -> {
+                PolicyDefinition policyDefinition = new PolicyDefinition();
+                policyDefinition.setName(policyConfiguration.getPolicy());
+                policyDefinition.setConfiguration(policyConfiguration.getConfiguration());
+                methodDefinition.getPolicies().add(policyDefinition);
+            });
+
+            apiDefinition.getPaths().put(pathDefinition.getPath(), pathDefinition);
+        }
     }
 
     public void setApiRepository(ApiRepository apiRepository) {
