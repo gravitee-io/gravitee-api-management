@@ -42,6 +42,11 @@ public class ApiKey {
 	 */
 	private Date createdAt;
 
+	/**
+	 * The API for which the key is defined.
+	 */
+	private String api;
+
 	public boolean isRevoked() {
 		return revoked;
 	}
@@ -72,5 +77,13 @@ public class ApiKey {
 
 	public void setCreatedAt(Date createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public String getApi() {
+		return api;
+	}
+
+	public void setApi(String api) {
+		this.api = api;
 	}
 }
