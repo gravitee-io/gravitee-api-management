@@ -90,6 +90,7 @@ public class ApiKeyRepositoryTest extends AbstractMongoDBTest {
 	    	
 	    	ApiKey keyFound = optional.get();
 	    	Assert.assertNotNull("ApiKey not found", keyFound);
+			Assert.assertNotNull("No API relative to the key", keyFound.getApi());
 	    	
 	    }catch(Exception e){
 			logger.error("Error while getting key",e);

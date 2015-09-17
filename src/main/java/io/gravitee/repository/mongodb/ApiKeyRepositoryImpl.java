@@ -121,8 +121,10 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository{
 
 		ApiAssociationMongo apiAssociationMongo = internalApiKeyRepo.retrieve(apiKey);
 
-		if(apiAssociationMongo != null){
-			return Optional.ofNullable(mapper.map(apiAssociationMongo.getKey(), ApiKey.class));
+		if(apiAssociationMongo != null) {
+			ApiKey retKey = mapper.map(apiAssociationMongo.getKey(), ApiKey.class);
+			retKey.setApi(apiAssociationMongo.getApi().getName());
+			return Optional.of(retKey);
 		}
 		
 		return Optional.empty();
