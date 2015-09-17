@@ -15,13 +15,17 @@
  */
 package io.gravitee.gateway.core.http;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.Request;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.util.*;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  *
@@ -31,7 +35,7 @@ public class HttpServerRequest implements Request {
 
 	private final String id;
 
-	private final Date date;
+	private final Instant instant;
 
 	private String remoteAddress;
 
@@ -51,12 +55,12 @@ public class HttpServerRequest implements Request {
 
 	private String contentType;
 
-	private Map<String, String> queryParameters = new LinkedHashMap();
+	private Map<String, String> queryParameters = new LinkedHashMap<>();
 
-	private Map<String, String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+	private HttpHeaders headers = new HttpHeaders();
 
 	public HttpServerRequest() {
-		this.date = new Date();
+		this.instant = Instant.now();
 		this.id = UUID.randomUUID().toString();
 	}
 
@@ -70,26 +74,8 @@ public class HttpServerRequest implements Request {
 	}
 
 	@Override
-	public long contentLength() {
-		return contentLength;
-	}
-
-	public void setContentLength(long contentLength) {
-		this.contentLength = contentLength;
-	}
-
-	@Override
-	public String contentType() {
-		return contentType;
-	}
-
-	public void setContentType(String contentType) {
-		this.contentType = contentType;
-	}
-
-	@Override
-	public Date timestamp() {
-		return date;
+	public Instant timestamp() {
+		return Instant.now();
 	}
 
 	@Override
@@ -149,7 +135,7 @@ public class HttpServerRequest implements Request {
 	}
 
 	@Override
-	public Map<String, String> headers() {
+	public HttpHeaders headers() {
 		return headers;
 	}
 

@@ -37,8 +37,8 @@ public class RequestBuilder {
 		HttpServerRequest request = new HttpServerRequest();
 
 		request.setInputStream(servletRequest.getInputStream());
-		request.setContentLength(servletRequest.getContentLength());
-		request.setContentType(servletRequest.getContentType());
+		request.headers().contentLength(servletRequest.getContentLength());
+		request.headers().contentType(servletRequest.getContentType());
 		request.setLocalAddress(servletRequest.getLocalAddr());
 		request.setRemoteAddress(servletRequest.getRemoteAddr());
 
@@ -61,8 +61,10 @@ public class RequestBuilder {
 		Enumeration<String> headerNames = servletRequest.getHeaderNames();
 		while (headerNames.hasMoreElements()) {
 			String hname = headerNames.nextElement();
-			String hval = servletRequest.getHeader(hname);
-			request.headers().put(hname, hval);
+			Enumeration<String> enu = servletRequest.getHeaders(hname);
+			while (enu.hasMoreElements()) {
+				request.headers().add(hname, enu.nextElement());
+			}
 		}
 	}
 

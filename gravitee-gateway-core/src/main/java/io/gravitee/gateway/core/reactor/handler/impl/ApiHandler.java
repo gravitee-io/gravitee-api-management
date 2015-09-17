@@ -48,7 +48,7 @@ public class ApiHandler extends ContextHandler {
 
     @Override
     public void handle(Request request, Response response, Handler<Response> handler) {
-        request.headers().put(GraviteeHttpHeader.X_GRAVITEE_API_NAME.toString(), apiDefinition.getName());
+        request.headers().set(GraviteeHttpHeader.X_GRAVITEE_API_NAME.toString(), apiDefinition.getName());
 
         // 1_ Calculate policies
         List<Policy> policies = getPolicyResolver().resolve(request);

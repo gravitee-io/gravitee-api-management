@@ -37,6 +37,7 @@
         <gravitee-common.version>1.0.0-SNAPSHOT</gravitee-common.version>
         <gravitee-plugin-core.version>1.0.0-SNAPSHOT</gravitee-plugin-core.version>
         <gravitee-repository.version>1.0.0-SNAPSHOT</gravitee-repository.version>
+        <jetty.version>9.3.3.v20150827</jetty.version>
     </properties>
 
     <dependencies>
@@ -79,13 +80,7 @@
             <artifactId>logback-core</artifactId>
         </dependency>
 
-        <!-- Proxy : Jetty policy-->
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-client</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-
+        <!-- Proxy : AHC client -->
         <dependency>
             <groupId>com.ning</groupId>
             <artifactId>async-http-client</artifactId>

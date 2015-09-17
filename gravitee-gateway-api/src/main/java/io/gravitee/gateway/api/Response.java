@@ -15,8 +15,9 @@
  */
 package io.gravitee.gateway.api;
 
+import io.gravitee.common.http.HttpHeaders;
+
 import java.io.OutputStream;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -25,7 +26,10 @@ public interface Response {
 
     int status();
 
-    Map<String, String> headers();
+    /**
+     * @return the headers in the response.
+     */
+    HttpHeaders headers();
 
     OutputStream outputStream();
 }

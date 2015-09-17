@@ -18,6 +18,7 @@ package io.gravitee.gateway.core.reactor;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -32,7 +33,6 @@ import io.gravitee.gateway.core.registry.LocalApiDefinitionRegistry;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.sync.SyncService;
 import io.gravitee.plugin.api.PluginRegistry;
-import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -118,7 +118,7 @@ public class GraviteeReactor extends AbstractService implements
     }
 
     private String getHost(Request request) {
-        String host = request.headers().get(HttpHeader.HOST.asString());
+        String host = request.headers().getFirst(HttpHeaders.HOST);
         if (host == null || host.isEmpty()) {
             return URI.create(request.uri()).getHost();
         } else {
