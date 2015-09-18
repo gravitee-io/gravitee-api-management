@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.http;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Response;
 
 import java.io.OutputStream;
@@ -29,7 +30,7 @@ public class HttpServerResponse implements Response {
 
     private int status;
 
-    private Map<String, String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private HttpHeaders headers = new HttpHeaders();
 
     private OutputStream os;
 
@@ -41,7 +42,7 @@ public class HttpServerResponse implements Response {
         this.status = status;
     }
 
-    public Map<String, String> headers() {
+    public HttpHeaders headers() {
         return headers;
     }
 

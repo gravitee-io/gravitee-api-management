@@ -16,6 +16,7 @@
 package io.gravitee.gateway.policies;
 
 import io.gravitee.common.http.GraviteeHttpHeader;
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.policy.PolicyChain;
@@ -26,9 +27,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.stub;
@@ -80,7 +78,7 @@ public class ResponseTimePolicyTest {
     public void testOnResponse() throws Exception {
         mockStatic(System.class);
 
-        Map<String, String> headers = new HashMap<>();
+        HttpHeaders headers = new HttpHeaders();
         stub(response.headers()).toReturn(headers);
 
         doNothing().when(policyChain).doNext(request, response);
@@ -94,7 +92,7 @@ public class ResponseTimePolicyTest {
         policy.onResponse(request, response, policyChain);
 
         verify(policyChain, times(2)).doNext(request, response);
-        assertEquals(String.valueOf(endTime - startTime), headers.get(GraviteeHttpHeader.X_GRAVITEE_RESPONSE_TIME.toString()));
+        assertEquals(String.valueOf(endTime - startTime), headers.getFirst(GraviteeHttpHeader.X_GRAVITEE_RESPONSE_TIME));
     }
 
 }

@@ -16,10 +16,8 @@
 package io.gravitee.gateway.core.http.client.ahc;
 
 import com.ning.http.client.*;
-import com.ning.http.client.filter.FilterContext;
-import com.ning.http.client.filter.FilterException;
-import com.ning.http.client.filter.IOExceptionFilter;
 import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig;
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -28,8 +26,6 @@ import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.definition.HttpClientDefinition;
 import io.gravitee.gateway.core.http.HttpServerResponse;
 import io.gravitee.gateway.core.http.client.AbstractHttpClient;
-import org.eclipse.jetty.http.HttpHeader;
-import org.eclipse.jetty.http.HttpHeaderValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,27 +50,19 @@ public class AHCHttpClient extends AbstractHttpClient {
         super(apiDefinition);
     }
 
-    private boolean hasContent(Request request) {
-        return request.contentLength() > 0 ||
-                request.contentType() != null ||
-                // TODO: create an enum class for common HTTP headers
-                request.headers().get("Transfer-Encoding") != null;
-    }
-
-    protected void copyRequestHeaders(Request clientRequest, AsyncHttpClient.BoundRequestBuilder requestBuilder)
-    {
-        for (Map.Entry<String, String> header : clientRequest.headers().entrySet()) {
-            String headerName = header.getKey();
+    protected void copyRequestHeaders(Request clientRequest, AsyncHttpClient.BoundRequestBuilder requestBuilder) {
+        for (Map.Entry<String, List<String>> headerValues : clientRequest.headers().entrySet()) {
+            String headerName = headerValues.getKey();
             String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
 
             // Remove hop-by-hop headers.
             if (HOP_HEADERS.contains(lowerHeaderName))
                 continue;
 
-            requestBuilder.addHeader(headerName, header.getValue());
+            headerValues.getValue().forEach(headerValue -> requestBuilder.addHeader(headerName, headerValue));
         }
 
-        requestBuilder.setHeader(HttpHeader.HOST.toString(), apiDefinition.getProxy().getTarget().getHost());
+        requestBuilder.setHeader(HttpHeaders.HOST, apiDefinition.getProxy().getTarget().getHost());
     }
 
     private AsyncHttpClient.BoundRequestBuilder requestBuilder(Request request) {
@@ -182,7 +170,7 @@ public class AHCHttpClient extends AbstractHttpClient {
         copyRequestHeaders(request, builder);
 
         if (hasContent(request)) {
-            builder.setContentLength((int) request.contentLength());
+            builder.setContentLength((int) request.headers().contentLength());
             RequestBodyGenerator bodyGenerator = new RequestBodyGenerator(request);
             builder.setBody(bodyGenerator);
         }
@@ -201,7 +189,7 @@ public class AHCHttpClient extends AbstractHttpClient {
                     ((HttpServerResponse) response).setStatus(HttpStatusCode.BAD_GATEWAY_502);
                 }
 
-                response.headers().put(HttpHeader.CONNECTION.asString(), HttpHeaderValue.CLOSE.asString());
+                response.headers().set(HttpHeaders.CONNECTION, "close");
 
                 handler.handle(response);
             }
@@ -216,9 +204,8 @@ public class AHCHttpClient extends AbstractHttpClient {
 
             @Override
             public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
-                for (Map.Entry<String, List<String>> header : headers.getHeaders().entrySet()) {
-                    response.headers().put(header.getKey(), header.getValue().iterator().next());
-                }
+                headers.getHeaders().forEach(header ->
+                        response.headers().put(header.getKey(), header.getValue()));
 
                 return STATE.CONTINUE;
             }

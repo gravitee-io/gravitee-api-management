@@ -72,11 +72,11 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
         return requestURI.toString();
     }
 
-    private static boolean hasContent(Request request) {
-        return request.contentLength() > 0 ||
-                request.contentType() != null ||
+    protected boolean hasContent(Request request) {
+        return request.headers().contentLength() > 0 ||
+                request.headers().contentType() != null ||
                 // TODO: create an enum class for common HTTP headers
-                request.headers().get("Transfer-Encoding") != null;
+                request.headers().getFirst("Transfer-Encoding") != null;
     }
 
     protected URI rewriteURI(Request request) {

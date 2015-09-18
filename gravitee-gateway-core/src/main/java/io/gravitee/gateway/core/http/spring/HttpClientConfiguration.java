@@ -31,11 +31,4 @@ public class HttpClientConfiguration {
     public HttpClient httpClient(ApiDefinition apiDefinition) {
         return new AHCHttpClient(apiDefinition);
     }
-
-    /*
-    @Bean
-    public HttpClient httpClient(ApiDefinition api) {
-        return new JettyHttpClient(api);
-    }
-    */
 }

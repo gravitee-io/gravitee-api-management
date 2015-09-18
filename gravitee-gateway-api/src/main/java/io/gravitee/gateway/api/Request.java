@@ -15,13 +15,12 @@
  */
 package io.gravitee.gateway.api;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -51,7 +50,7 @@ public interface Request {
     /**
      * @return the headers in the request.
      */
-    Map<String, String> headers();
+    HttpHeaders headers();
 
     /**
      * @return the HTTP method for the request.
@@ -64,27 +63,12 @@ public interface Request {
     HttpVersion version();
 
     /**
-     * Returns the length, in bytes, of the request body and made available by the input stream, or -1 if the length is
-     * not known.
+     * The timestamp for when this request was received.
+     * Specifically, this is the timestamp of creation of the request object.
      *
-     * @return a long containing the length of the request body or -1L if the length is not known.
+     * @return the instant timestamp for the request.
      */
-    long contentLength();
-
-    /**
-     * Returns the MIME type of the body of the request, or <code>null</code> if the type is not known.
-     *
-     * @return a <code>String</code> containing the name of the MIME type of the request, or null if the type is not
-     * known.
-     */
-    String contentType();
-
-    /**
-     * Returns the Request TimeStamp.
-     *
-     * @return The time that the request was received.
-     */
-    Date timestamp();
+    Instant timestamp();
 
     /**
      * Retrieves the body of the request as binary data.
