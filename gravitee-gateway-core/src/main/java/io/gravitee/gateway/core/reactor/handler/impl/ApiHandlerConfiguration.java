@@ -20,7 +20,7 @@ import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.gateway.core.policy.PolicyResolver;
 import io.gravitee.gateway.core.policy.impl.*;
-import io.gravitee.gateway.core.reactor.handler.ContextHandler;
+import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -58,7 +58,7 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ContextHandler handler() {
-        return new ApiHandler();
+    public ContextReactorHandler handler() {
+        return new ApiReactorHandler();
     }
 }

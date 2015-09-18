@@ -24,10 +24,7 @@ import io.gravitee.gateway.core.http.HttpServerResponse;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
-import io.gravitee.gateway.core.reactor.handler.ContextHandler;
-import io.gravitee.gateway.core.reporter.ReporterService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -35,7 +32,7 @@ import java.util.List;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiHandler extends ContextHandler {
+public class ApiReactorHandler extends ContextReactorHandler {
 
     @Autowired
     private ApiDefinition apiDefinition;
@@ -43,12 +40,9 @@ public class ApiHandler extends ContextHandler {
     @Autowired
     private HttpClient httpClient;
 
-    @Autowired
-    private ReporterService reporterService;
-
     @Override
     public void handle(Request request, Response response, Handler<Response> handler) {
-        request.headers().set(GraviteeHttpHeader.X_GRAVITEE_API_NAME.toString(), apiDefinition.getName());
+        request.headers().set(GraviteeHttpHeader.X_GRAVITEE_API_NAME, apiDefinition.getName());
 
         // 1_ Calculate policies
         List<Policy> policies = getPolicyResolver().resolve(request);
@@ -59,7 +53,6 @@ public class ApiHandler extends ContextHandler {
             if (requestPolicyResult.isFailure()) {
                 ((HttpServerResponse) response).setStatus(requestPolicyResult.httpStatusCode());
                 handler.handle(response);
-                reporterService.report(request, response);
             } else {
                 // 3_ Call remote service
                 httpClient.invoke(request, response, result -> {
@@ -68,7 +61,7 @@ public class ApiHandler extends ContextHandler {
                     // FIXME: we are never go here because policy does not implement @OnResponse
                     // and so do not apply doNext in policy chain
                     /*
-                    AbstractPolicyChain responsePolicyChain = ApiHandler.this.getResponsePolicyChainBuilder().newPolicyChain(policies);
+                    AbstractPolicyChain responsePolicyChain = ApiReactorHandler.this.getResponsePolicyChainBuilder().newPolicyChain(policies);
                     responsePolicyChain.setResultHandler(responsePolicyResult -> {
                         if (responsePolicyResult.isFailure()) {
                             ((HttpServerResponse) response).setStatus(requestPolicyResult.httpStatusCode());
@@ -87,7 +80,6 @@ public class ApiHandler extends ContextHandler {
 
                     // 5_ Transfer the proxy response to the initial consumer
                     handler.handle(response);
-                    reporterService.report(request, response);
                 });
             }
         });
@@ -119,7 +111,7 @@ public class ApiHandler extends ContextHandler {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ApiHandler{");
+        final StringBuilder sb = new StringBuilder("ApiReactorHandler{");
         sb.append("contextPath=").append(apiDefinition.getProxy().getContextPath());
         sb.append('}');
         return sb.toString();

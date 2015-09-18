@@ -37,6 +37,7 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
 
     @Override
     public void report(Request request, Response response) {
+        LOGGER.trace("Calling reporters with {} and {}", request, response);
         for(Reporter reporter: reporterManager.getReporters()) {
             reporter.report(request, response);
         }

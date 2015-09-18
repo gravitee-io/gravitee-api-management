@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reactor.handler;
+package io.gravitee.gateway.api.handler;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 
 /**
+ *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ContextHandlerFactory {
+public interface Context {
 
-    ContextReactorHandler create(ApiDefinition apiDefinition);
+    Request getRequest();
+
+    Response getResponse();
 }

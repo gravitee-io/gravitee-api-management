@@ -18,11 +18,12 @@ package io.gravitee.gateway.core.reactor.handler;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.handler.Handler;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Handler extends LifecycleComponent<Handler> {
+public interface ReactorHandler extends LifecycleComponent<ReactorHandler> {
 
-    void handle(Request request, Response response, io.gravitee.gateway.api.handler.Handler<Response> handler);
+    void handle(Request request, Response response, Handler<Response> handler);
 }

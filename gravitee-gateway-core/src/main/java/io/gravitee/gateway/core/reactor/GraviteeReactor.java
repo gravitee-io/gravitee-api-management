@@ -22,13 +22,15 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.manager.ApiEvent;
 import io.gravitee.gateway.core.plugin.PluginEventListener;
-import io.gravitee.gateway.core.reactor.handler.ContextHandler;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
-import io.gravitee.gateway.core.reactor.handler.Handler;
+import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.reporter.ReporterHandler;
 import io.gravitee.gateway.core.registry.LocalApiDefinitionRegistry;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.sync.SyncService;
@@ -63,17 +65,17 @@ public class GraviteeReactor extends AbstractService implements
 
     @Autowired
     @Qualifier("errorHandler")
-    private Handler errorHandler;
+    private ReactorHandler errorHandler;
 
     @Autowired
     private ContextHandlerFactory contextHandlerFactory;
 
-    private final ConcurrentMap<String, ContextHandler> handlers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, ContextReactorHandler> handlers = new ConcurrentHashMap<>();
 
-    protected Handler bestHandler(Request request) {
+    protected ReactorHandler bestHandler(Request request) {
         String path = request.path();
 
-        Set<ContextHandler> mapHandlers = handlers.entrySet().stream().filter(
+        Set<ContextReactorHandler> mapHandlers = handlers.entrySet().stream().filter(
                 entry -> path.startsWith(entry.getKey())).map(Map.Entry::getValue).collect(Collectors.toSet());
 
         logger.debug("Found {} handlers for path {}", mapHandlers.size(), path);
@@ -81,14 +83,14 @@ public class GraviteeReactor extends AbstractService implements
         if (! mapHandlers.isEmpty()) {
 
             // Sort valid handlers and push handler with VirtualHost first
-            ContextHandler[] sorted = new ContextHandler[mapHandlers.size()];
+            ContextReactorHandler[] sorted = new ContextReactorHandler[mapHandlers.size()];
             int idx = 0;
-            for (ContextHandler handler : mapHandlers) {
+            for (ContextReactorHandler handler : mapHandlers) {
                 if (handler.hasVirtualHost()) {
                     sorted[idx++] = handler;
                 }
             }
-            for (ContextHandler handler : mapHandlers) {
+            for (ContextReactorHandler handler : mapHandlers) {
                 if (!handler.hasVirtualHost()) {
                     sorted[idx++] = handler;
                 }
@@ -97,13 +99,13 @@ public class GraviteeReactor extends AbstractService implements
             String host = getHost(request);
 
             // Always pick-up the first which is corresponding
-            for (ContextHandler handler : sorted) {
+            for (ContextReactorHandler handler : sorted) {
                 if (host.equals(handler.getVirtualHost())) {
                     return handler;
                 }
             }
 
-            ContextHandler handler = mapHandlers.iterator().next();
+            ContextReactorHandler handler = mapHandlers.iterator().next();
             logger.debug("Returning the first handler matching path {} : {}", path, handler);
             return handler;
         }
@@ -111,10 +113,20 @@ public class GraviteeReactor extends AbstractService implements
         return errorHandler;
     }
 
-    public void process(Request request, Response response, io.gravitee.gateway.api.handler.Handler<Response> handler) {
+    @Autowired
+    private ReporterService reporterService;
+
+    public void process(Request request, Response response, Handler<Response> handler) {
         logger.debug("Receiving a request {} for path {}", request.id(), request.path());
 
-        bestHandler(request).handle(request, response,  handler);
+        ReactorHandler reactorHandler = bestHandler(request);
+
+        if (! reactorHandler.equals(errorHandler)) {
+            // wrap the handler with the reporter handler
+            handler = new ReporterHandler(reporterService, request, handler);
+        }
+
+        reactorHandler.handle(request, response, handler);
     }
 
     private String getHost(Request request) {
@@ -146,7 +158,7 @@ public class GraviteeReactor extends AbstractService implements
         if (apiDefinition.isEnabled()) {
             logger.info("API {} has been deployed in reactor", apiDefinition.getName());
 
-            ContextHandler handler = contextHandlerFactory.create(apiDefinition);
+            ContextReactorHandler handler = contextHandlerFactory.create(apiDefinition);
             try {
                 handler.start();
                 handlers.putIfAbsent(handler.getContextPath(), handler);
@@ -161,7 +173,7 @@ public class GraviteeReactor extends AbstractService implements
     public void removeHandler(ApiDefinition apiDefinition) {
         logger.info("API {} has been disabled (or removed) from reactor", apiDefinition.getName());
 
-        Handler handler = handlers.remove(apiDefinition.getProxy().getContextPath());
+        ReactorHandler handler = handlers.remove(apiDefinition.getProxy().getContextPath());
         if (handler != null) {
             try {
                 handler.stop();

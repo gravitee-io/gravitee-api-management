@@ -24,7 +24,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public abstract class AbstractHandler extends AbstractLifecycleComponent<Handler> implements Handler, ApplicationContextAware {
+public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<ReactorHandler> implements ReactorHandler, ApplicationContextAware {
 
     private ApplicationContext applicationContext;
 

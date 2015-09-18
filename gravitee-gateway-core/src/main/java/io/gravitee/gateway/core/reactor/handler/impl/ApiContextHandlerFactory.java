@@ -16,7 +16,7 @@
 package io.gravitee.gateway.core.reactor.handler.impl;
 
 import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.reactor.handler.ContextHandler;
+import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -29,9 +29,9 @@ import java.util.Properties;
 public class ApiContextHandlerFactory extends AbstractContextHandlerFactory {
 
     @Override
-    public ContextHandler create(ApiDefinition apiDefinition) {
+    public ContextReactorHandler create(ApiDefinition apiDefinition) {
         AbstractApplicationContext internalApplicationContext = createApplicationContext(apiDefinition);
-        return internalApplicationContext.getBean(ContextHandler.class);
+        return internalApplicationContext.getBean(ContextReactorHandler.class);
     }
 
     private AbstractApplicationContext createApplicationContext(ApiDefinition apiDefinition) {
