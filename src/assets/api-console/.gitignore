@@ -1,8 +1,0 @@
-node_modules
-.tmp
-.sass-cache
-.idea
-.idea/
-selenium
-vendor/bower_components
-bower_components
