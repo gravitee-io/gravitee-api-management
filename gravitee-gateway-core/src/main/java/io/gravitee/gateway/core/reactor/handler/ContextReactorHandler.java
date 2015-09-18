@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public abstract class ContextHandler extends AbstractHandler implements Handler {
+public abstract class ContextReactorHandler extends AbstractReactorHandler implements ReactorHandler {
 
     @Autowired
     private PolicyChainBuilder<RequestPolicyChain> requestPolicyChainBuilder;
