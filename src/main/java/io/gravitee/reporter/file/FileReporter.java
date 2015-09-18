@@ -15,13 +15,6 @@
  */
 package io.gravitee.reporter.file;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.text.SimpleDateFormat;
-import java.util.TimeZone;
-
 import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
@@ -32,6 +25,13 @@ import org.eclipse.jetty.util.RolloverFileOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 /**
  * Write an access log to a file by using the following line format:
@@ -100,11 +100,20 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(' ');
 
 		// Append Api name
-		buf.append(request.headers().getOrDefault(GraviteeHttpHeader.X_GRAVITEE_API_NAME.toString(), NO_STRING_DATA_VALUE));
+		String apiName = request.headers().getFirst(GraviteeHttpHeader.X_GRAVITEE_API_NAME);
+		if (apiName == null) {
+			apiName = NO_STRING_DATA_VALUE;
+		}
+
+		buf.append(apiName);
 		buf.append(' ');
 
 		// Append key
-		buf.append(request.headers().getOrDefault(GraviteeHttpHeader.X_GRAVITEE_API_KEY.toString(), NO_STRING_DATA_VALUE));
+		String apiKey = request.headers().getFirst(GraviteeHttpHeader.X_GRAVITEE_API_KEY);
+		if (apiKey == null) {
+			apiKey = NO_STRING_DATA_VALUE;
+		}
+		buf.append(apiKey);
 		buf.append(' ');
 
 		// Append request method and URI
@@ -123,7 +132,7 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(' ');
 
 		// Append response length
-		long responseLength = getLongContentLength(response);
+		long responseLength = response.headers().contentLength();
 		if (responseLength >= 0) {
 			if (responseLength > 99999) {
 				buf.append(responseLength);
@@ -144,13 +153,13 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(' ');
 
 		// Append total response time
-		buf.append(response.headers().getOrDefault(GraviteeHttpHeader.X_GRAVITEE_RESPONSE_TIME.toString(), NO_STRING_DATA_VALUE));
+		String responseTime = request.headers().getFirst(GraviteeHttpHeader.X_GRAVITEE_RESPONSE_TIME);
+		if (responseTime == null) {
+			responseTime = NO_STRING_DATA_VALUE;
+		}
+		buf.append(responseTime);
 
 		return buf.toString();
-	}
-
-	public long getLongContentLength(Response response) {
-		return Integer.parseInt(response.headers().getOrDefault("Content-Length", NO_INTEGER_DATA_VALUE));
 	}
 
 	@Override
