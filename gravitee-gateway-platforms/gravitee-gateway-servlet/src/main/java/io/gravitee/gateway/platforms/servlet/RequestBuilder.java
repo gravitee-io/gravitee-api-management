@@ -37,8 +37,15 @@ public class RequestBuilder {
 		HttpServerRequest request = new HttpServerRequest();
 
 		request.setInputStream(servletRequest.getInputStream());
-		request.headers().contentLength(servletRequest.getContentLength());
-		request.headers().contentType(servletRequest.getContentType());
+
+		if (servletRequest.getContentLengthLong() > 0) {
+			request.headers().contentLength(servletRequest.getContentLength());
+		}
+
+		if (servletRequest.getContentType() != null) {
+			request.headers().contentType(servletRequest.getContentType());
+		}
+
 		request.setLocalAddress(servletRequest.getLocalAddr());
 		request.setRemoteAddress(servletRequest.getRemoteAddr());
 
