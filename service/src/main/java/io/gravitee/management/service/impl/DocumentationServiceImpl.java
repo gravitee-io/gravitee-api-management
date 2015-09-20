@@ -122,6 +122,8 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 
 			// Copy fields from existing values
 			page.setCreatedAt(pageToUpdate.getCreatedAt());
+			page.setType(pageToUpdate.getType());
+			page.setApiName(pageToUpdate.getApiName());
 
 			Page updatedPage = pageRepository.update(page);
 			return convert(updatedPage);
