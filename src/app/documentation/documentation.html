@@ -41,14 +41,16 @@
     
     <div style="padding:0 20px;">
       <h2>{{documentationCtrl.selected.title}}</h2>
-			
-			<div ng-if="documentationCtrl.dataHasLoaded">
-				<raml-console ng-show="documentationCtrl.ramlPreviewMode()" src="{{documentationCtrl.contentPageURL}}"
-					disable-title disable-theme-switcher disable-raml-client-generator></raml-console>
 
-				<div ng-show="documentationCtrl.markdownPreviewMode()" btf-markdown="documentationCtrl.selected.content">
-				</div>
-			</div>
+      <div ng-if="documentationCtrl.markdownType()" btf-markdown="documentationCtrl.selected.content">
+      </div>
+
+      <raml-console ng-if="documentationCtrl.ramlType()" src="{{documentationCtrl.getContentUrl()}}"
+                    disable-title disable-theme-switcher disable-raml-client-generator>
+      </raml-console>
+
+      <div ng-if="documentationCtrl.swaggerType()" swagger-ui url="documentationCtrl.getContentUrl()">
+      </div>
 
 			<div ng-show="documentationCtrl.editMode">
 				 <textarea ng-model="documentationCtrl.selected.content" cols="190" rows="37">{{documentationCtrl.selected.content}}</textarea>

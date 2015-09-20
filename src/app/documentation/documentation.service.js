@@ -21,9 +21,13 @@
     this.documentationURL = baseURL + 'documentation/';
   }
 
-  list(apiName) {
-  	return this.$http.get(this.documentationURL + "pages/" + apiName);
-  }
+   list(apiName) {
+     return this.$http.get(this.documentationURL + "pages/" + apiName);
+   }
+
+   getContentUrl(pageName) {
+     return this.documentationURL + "pages/" + pageName + '/content';
+   }
 
   createPage(newPage) {
     return this.$http.post(this.documentationURL, newPage);

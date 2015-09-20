@@ -27,9 +27,6 @@ class DocumentationController {
 		this.MARKDOWN_PAGE = 'MARKDOWN';
     this.RAML_PAGE = 'RAML';
   	this.SWAGGER_PAGE = 'SWAGGER';
-		this.baseURL = baseURL;
-		this.contentPageURL = baseURL;
-    this.dataHasLoaded = false;
     this.location = $location;
     this.init();
   }
@@ -40,12 +37,16 @@ class DocumentationController {
   }
 
   init() {
+    this.list();
+		this.preview();
+  }
+
+  list() {
     // TODO get the real api name
     var apiName = "TEST";
-		this.preview();
     this.DocumentationService.list(apiName).then(response => {
       this.pages = response.data;
-			if (this.pages.length > 0) {
+      if (this.pages.length > 0) {
         var currentPageName = this.location.hash();
         var pageIndex = 0;
         for (var i = 0; i < this.pages.length; i++) {
@@ -55,20 +56,12 @@ class DocumentationController {
           }
         }
         this.selected = this.pages[pageIndex];
-				this.dataHasLoaded = true;
-				this.contentPageURL = this.baseURL + 'documentation/pages/' + this.selected.name + '/content';
-			}
+      }
     });
   }
 
-  list() {
-    // TODO get the real api name
-    var apiName = "TEST";
-    this.DocumentationService.list(apiName).then(response => {
-      this.pages = response.data;
-      this.selected = this.pages[this.pages.length - 1];
-			this.contentPageURL = this.baseURL + 'documentation/pages/' + this.selected.name + '/content';
-    });
+  getContentUrl() {
+    return this.DocumentationService.getContentUrl(this.selected.name);
   }
 
   editPage() {
@@ -115,13 +108,17 @@ class DocumentationController {
 		this.previewMode = true;
 	}
 
-	ramlPreviewMode() {
-		return this.previewMode && this.RAML_PAGE === this.selected.type;
-	}
+  ramlType() {
+    return this.selected && this.RAML_PAGE === this.selected.type;
+  }
 
-	markdownPreviewMode() {
-		return this.previewMode && this.MARKDOWN_PAGE === this.selected.type;
-	}
+  markdownType() {
+    return this.selected && this.MARKDOWN_PAGE === this.selected.type;
+  }
+
+  swaggerType() {
+    return this.selected && this.SWAGGER_PAGE === this.selected.type;
+  }
 }
 
 function DialogDocumentationController($scope, $mdDialog, DocumentationService) {

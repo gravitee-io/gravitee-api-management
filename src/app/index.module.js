@@ -37,7 +37,7 @@ import NotificationService from './components/notification/notification.service'
 import DocumentationController from './documentation/documentation.controller';
 import DocumentationService from './documentation/documentation.service';
 
-angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown'])
+angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi'])
   .constant('malarkey', malarkey)
   .constant('moment', moment)
   .constant('baseURL', 'http://localhost:8083/')
