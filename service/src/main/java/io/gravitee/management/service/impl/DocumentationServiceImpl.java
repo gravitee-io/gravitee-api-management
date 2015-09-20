@@ -124,6 +124,7 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 			page.setCreatedAt(pageToUpdate.getCreatedAt());
 			page.setType(pageToUpdate.getType());
 			page.setApiName(pageToUpdate.getApiName());
+			page.setOrder(pageToUpdate.getOrder());
 
 			Page updatedPage = pageRepository.update(page);
 			return convert(updatedPage);
@@ -149,7 +150,8 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 	public int findMaxPageOrderByApiName(String apiName) {
 		try {
 			LOGGER.debug("Find Max Order Page for api name : {}", apiName);
-			return pageRepository.findMaxPageOrderByApiName(apiName);
+			final Integer maxPageOrder = pageRepository.findMaxPageOrderByApiName(apiName);
+			return maxPageOrder == null ? 0 : maxPageOrder;
 		} catch (TechnicalException ex) {
 			LOGGER.error("An error occured when searching max order page for api name [{}]", apiName, ex);
 			throw new TechnicalManagementException("An error occured when searching max order page for api name " + apiName, ex);
