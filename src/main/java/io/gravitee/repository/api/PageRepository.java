@@ -36,7 +36,7 @@ public interface PageRepository {
 	
 	void delete(String name) throws TechnicalException;
 	
-	int findMaxPageOrderByApiName(String apiName) throws TechnicalException;
+	Integer findMaxPageOrderByApiName(String apiName) throws TechnicalException;
 	
 
 }
