@@ -19,17 +19,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import io.gravitee.repository.mongodb.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.repository.mongodb.internal.model.PageMongo;
-import io.gravitee.repository.mongodb.internal.page.PageMongoRepository;
 import io.gravitee.repository.api.PageRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.Page;
+import io.gravitee.repository.mongodb.internal.model.PageMongo;
+import io.gravitee.repository.mongodb.internal.page.PageMongoRepository;
+import io.gravitee.repository.mongodb.mapper.GraviteeMapper;
 
 /**
  * @author Titouan COMPIEGNE
@@ -123,7 +123,7 @@ public class PageRepositoryImpl implements PageRepository {
 	}
 
 	@Override
-	public int findMaxPageOrderByApiName(String apiName) throws TechnicalException {
+	public Integer findMaxPageOrderByApiName(String apiName) throws TechnicalException {
 		try{
 			return internalPageRepo.findMaxPageOrderByApiName(apiName);
 		}catch(Exception e){
