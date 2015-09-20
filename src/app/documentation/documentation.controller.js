@@ -16,7 +16,7 @@
 /* global document:false */
 class DocumentationController {
   
-	constructor(DocumentationService, $mdDialog, baseURL) {
+	constructor(DocumentationService, $mdDialog, baseURL, $location) {
     'ngInject';
     this.DocumentationService = DocumentationService;
     this.$mdDialog = $mdDialog;
@@ -29,12 +29,14 @@ class DocumentationController {
   	this.SWAGGER_PAGE = 'SWAGGER';
 		this.baseURL = baseURL;
 		this.contentPageURL = baseURL;
-		this.dataHasLoaded = false;
+    this.dataHasLoaded = false;
+    this.location = $location;
     this.init();
   }
 
   selectPage(page) {
     this.selected = angular.isNumber(page) ? this.pages[page] : page;
+    this.location.hash(page.name);
   }
 
   init() {
@@ -44,7 +46,15 @@ class DocumentationController {
     this.DocumentationService.list(apiName).then(response => {
       this.pages = response.data;
 			if (this.pages.length > 0) {
-		    this.selected = this.pages[0];
+        var currentPageName = this.location.hash();
+        var pageIndex = 0;
+        for (var i = 0; i < this.pages.length; i++) {
+          if (this.pages[i].name === currentPageName) {
+            pageIndex = i;
+            break;
+          }
+        }
+        this.selected = this.pages[pageIndex];
 				this.dataHasLoaded = true;
 				this.contentPageURL = this.baseURL + 'documentation/pages/' + this.selected.name + '/content';
 			}
