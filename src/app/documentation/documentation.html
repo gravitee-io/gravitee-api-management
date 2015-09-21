@@ -49,7 +49,7 @@
                     disable-title disable-theme-switcher disable-raml-client-generator>
       </raml-console>
 
-      <div ng-if="documentationCtrl.swaggerType()" swagger-ui url="documentationCtrl.getContentUrl()">
+      <div ng-if="documentationCtrl.swaggerType()" swagger-ui url="documentationCtrl.getContentUrl()" api-explorer="true">
       </div>
 
 			<div ng-show="documentationCtrl.editMode">
