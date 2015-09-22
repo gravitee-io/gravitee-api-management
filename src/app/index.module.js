@@ -34,6 +34,7 @@ import LoginService from './login/login.service';
 import LoginController from './login/login.controller';
 import NavbarDirective from './components/navbar/navbar.directive';
 import NotificationService from './components/notification/notification.service';
+import DocumentationDirective from './documentation/documentation.directive';
 import DocumentationController from './documentation/documentation.controller';
 import DocumentationService from './documentation/documentation.service';
 
@@ -63,4 +64,5 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .controller('LoginController', LoginController)
   .controller('DocumentationController', DocumentationController)
   .service('DocumentationService', DocumentationService)
-  .directive('graviteeNavbar', () => new NavbarDirective());
+  .directive('graviteeNavbar', () => new NavbarDirective())
+  .directive('filecontent', () => new DocumentationDirective());

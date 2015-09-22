@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global document:false */
+/* global document:false, confirm:false */
 class DocumentationController {
   
 	constructor(DocumentationService, $mdDialog, $location, $state) {
@@ -86,7 +86,7 @@ class DocumentationController {
     }
   }
 
-  showNewPageDialog(event) {
+  showNewPageDialog() {
     var self = this;
     this.$mdDialog.show({
       controller: DialogDocumentationController,
@@ -94,7 +94,9 @@ class DocumentationController {
       parent: angular.element(document.body),
     }).then(function (response) {
       self.location.hash(response.data.name);
-			self.edit();
+      if (!response.data.content) {
+			  self.edit();
+      }
       self.list();
     });
   }
@@ -126,9 +128,20 @@ class DocumentationController {
 function DialogDocumentationController($scope, $mdDialog, DocumentationService) {
   'ngInject';
 
+  $scope.$watch('pageContentFile.content', function (data) {
+    if (data) {
+      $scope.selectPageType($scope.IMPORT);
+    } else {
+      $scope.selectPageType('');
+    }
+  });
+
+  $scope.pageContentFile = {content: '', name : ''};
+
   $scope.MARKDOWN_PAGE = 'MARKDOWN';
   $scope.RAML_PAGE = 'RAML';
   $scope.SWAGGER_PAGE = 'SWAGGER';
+  $scope.IMPORT = 'IMPORT';
   $scope.selectedPageType = null;
   $scope.pageTitle = null;
 
@@ -140,12 +153,30 @@ function DialogDocumentationController($scope, $mdDialog, DocumentationService) 
     $scope.selectedPageType = pageType;
   };
 
+  function getPageType() {
+    if ($scope.pageContentFile.name) {
+      switch ($scope.pageContentFile.name.split('.').pop()) {
+        case 'md':
+          return $scope.MARKDOWN_PAGE;
+        case 'raml':
+          return $scope.RAML_PAGE;
+        case 'json':
+          return $scope.SWAGGER_PAGE;
+        default :
+          throw 'The page content type is not managed:' + $scope.pageContentFile.type;
+      }
+    }
+    return $scope.selectedPageType;
+  }
+
   $scope.createPage = function() {
-    if ($scope.selectedPageType != null && ($scope.pageTitle != null && $scope.pageTitle.trim() != '')) {
+    var selectedPageType = getPageType();
+    if (selectedPageType && $scope.pageTitle) {
       var newPage = {
         "name" : $scope.pageTitle.replace(/\s/g, "-").toLowerCase(),
-        "type" : $scope.selectedPageType,
+        "type" : selectedPageType,
         "title" : $scope.pageTitle,
+        "content" : $scope.pageContentFile.content,
         "apiName": "TEST"
       };
       DocumentationService.createPage(newPage).then(function (page) {

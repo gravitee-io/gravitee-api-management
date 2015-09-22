@@ -16,7 +16,7 @@
 function runBlock ($rootScope, $window, $http) {
   'ngInject';
 	
-  $rootScope.$on('authenticationSuccess', function(event, args) {
+  $rootScope.$on('authenticationSuccess', function() {
   	$http.defaults.headers.common.Authorization = 'Basic ' + $window.sessionStorage.getItem('GraviteeAuthentication');
   });
 

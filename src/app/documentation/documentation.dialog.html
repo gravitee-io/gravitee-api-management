@@ -46,11 +46,17 @@
     <div layout="row">
       <div flex>
         <md-button ng-click="selectPageType(SWAGGER_PAGE)" ng-class="{'selected' : SWAGGER_PAGE === selectedPageType }">
-            <md-icon class="avatar"></md-icon>
-            <h4>Swagger Page</h4>
-            Start with a blank Swagger page.
+          <md-icon class="avatar"></md-icon>
+          <h4>Swagger Page</h4>
+          Start with a blank Swagger page.
         </md-button>
-       </div>
+      </div>
+      <div flex>
+        <md-button>
+          Import APIs description from file
+          <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" />
+        </md-button>
+      </div>
     </div>
     <div layout="row" ng-show="selectedPageType != null">
       <md-input>
