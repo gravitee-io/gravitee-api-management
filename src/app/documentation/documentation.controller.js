@@ -16,7 +16,7 @@
 /* global document:false */
 class DocumentationController {
   
-	constructor(DocumentationService, $mdDialog, baseURL, $location) {
+	constructor(DocumentationService, $mdDialog, $location, $state) {
     'ngInject';
     this.DocumentationService = DocumentationService;
     this.$mdDialog = $mdDialog;
@@ -28,6 +28,7 @@ class DocumentationController {
     this.RAML_PAGE = 'RAML';
   	this.SWAGGER_PAGE = 'SWAGGER';
     this.location = $location;
+    this.state = $state;
     this.init();
   }
 
@@ -71,7 +72,7 @@ class DocumentationController {
       "content": this.selected.content
     };
     this.DocumentationService.editPage(this.selected.name, editPage).then(function () {
-        self.init();
+      self.state.transitionTo(self.state.current, self.state.$current.params, { reload: true, location:false });
     });
   }
 
