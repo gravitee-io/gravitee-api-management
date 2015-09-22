@@ -80,7 +80,7 @@ class DocumentationController {
     if (confirm("Are you sure to delete")) {
       var self = this;
       this.DocumentationService.deletePage(this.selected.name).then(function () {
-				self.pages.slice(self.selected);	
+        self.location.hash('');
         self.init();
       });
     }
@@ -93,6 +93,7 @@ class DocumentationController {
       templateUrl: 'app/documentation/documentation.dialog.html',
       parent: angular.element(document.body),
     }).then(function (response) {
+      self.location.hash(response.data.name);
 			self.edit();
       self.list();
     });
