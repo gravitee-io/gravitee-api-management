@@ -59,7 +59,6 @@ repository:
 #    hibernateDialect: org.hibernate.dialect.PostgreSQL9Dialect
 #    driverClassName: org.postgresql.Driver
 #    url: jdbc:postgresql://localhost/gravitee
-#    hbm2ddlAuto: validate | update | create | create-drop
 #    username: user
 #    password: password
 
