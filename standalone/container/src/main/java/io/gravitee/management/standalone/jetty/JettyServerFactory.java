@@ -15,21 +15,79 @@
  */
 package io.gravitee.management.standalone.jetty;
 
+import org.eclipse.jetty.jmx.MBeanContainer;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.xml.XmlConfiguration;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.StatisticsHandler;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.lang.management.ManagementFactory;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class JettyServerFactory implements FactoryBean<Server> {
 
+    @Autowired
+    private JettyConfiguration jettyConfiguration;
+
     @Override
     public Server getObject() throws Exception {
-        Resource fileserver_xml = Resource.newSystemResource("gravitee-management-jetty.xml");
-        XmlConfiguration configuration = new XmlConfiguration(fileserver_xml.getInputStream());
-        return (Server) configuration.configure();
+
+        // Setup ThreadPool
+        QueuedThreadPool threadPool = new QueuedThreadPool(
+                jettyConfiguration.getPoolMaxThreads(),
+                jettyConfiguration.getPoolMinThreads(),
+                jettyConfiguration.getPoolIdleTimeout(),
+                new ArrayBlockingQueue<Runnable>(jettyConfiguration.getPoolQueueSize())
+        );
+        threadPool.setName("gravitee-listener");
+
+        Server server = new Server(threadPool);
+
+        // Extra options
+        server.setDumpAfterStart(false);
+        server.setDumpBeforeStop(false);
+        server.setStopAtShutdown(true);
+
+        // Setup JMX
+        if (jettyConfiguration.isJmxEnabled()) {
+            MBeanContainer mbContainer = new MBeanContainer(
+                    ManagementFactory.getPlatformMBeanServer());
+            server.addBean(mbContainer);
+        }
+
+        // HTTP Configuration
+        HttpConfiguration httpConfig = new HttpConfiguration();
+        httpConfig.setSecureScheme("https");
+        httpConfig.setSecurePort(8443);
+        httpConfig.setOutputBufferSize(32768);
+        httpConfig.setRequestHeaderSize(8192);
+        httpConfig.setResponseHeaderSize(8192);
+        httpConfig.setSendServerVersion(false);
+        httpConfig.setSendDateHeader(false);
+
+        // Setup Jetty HTTP Connector
+        ServerConnector http = new ServerConnector(server,
+                new HttpConnectionFactory(httpConfig));
+        http.setPort(jettyConfiguration.getHttpPort());
+        http.setIdleTimeout(jettyConfiguration.getIdleTimeout());
+
+        server.addConnector(http);
+
+        // Setup Jetty statistics
+        if (jettyConfiguration.isStatisticsEnabled()) {
+            StatisticsHandler stats = new StatisticsHandler();
+            stats.setHandler(server.getHandler());
+            server.setHandler(stats);
+        }
+
+        return server;
     }
 
     @Override
