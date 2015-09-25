@@ -17,6 +17,8 @@ package io.gravitee.gateway.core.manager.impl;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.validator.ValidationException;
+import io.gravitee.gateway.core.definition.validator.Validator;
 import io.gravitee.gateway.core.manager.ApiEvent;
 import io.gravitee.gateway.core.manager.ApiManager;
 import org.slf4j.Logger;
@@ -37,15 +39,23 @@ public class ApiManagerImpl implements ApiManager {
     @Autowired
     private EventManager eventManager;
 
+    @Autowired
+    private Validator validator;
+
     private final Map<String, ApiDefinition> apis = new HashMap<>();
 
     @Override
     public void deploy(ApiDefinition apiDefinition) {
         logger.debug("Trying to deploy API {}", apiDefinition);
 
-        // TODO: validate API definition before triggering an event
-        apis.put(apiDefinition.getName(), apiDefinition);
-        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
+        try {
+            validator.validate(apiDefinition);
+
+            apis.put(apiDefinition.getName(), apiDefinition);
+            eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
+        } catch (ValidationException ve) {
+            logger.error("API Definition can't be deployed because of validation errors", ve);
+        }
     }
 
     @Override
@@ -58,9 +68,14 @@ public class ApiManagerImpl implements ApiManager {
         // - TargetURL
         // - PublicURL
 
-        // TODO: validate API definition before triggering an event
-        apis.put(apiDefinition.getName(), apiDefinition);
-        eventManager.publishEvent(ApiEvent.UPDATE, apiDefinition);
+        try {
+            validator.validate(apiDefinition);
+
+            apis.put(apiDefinition.getName(), apiDefinition);
+            eventManager.publishEvent(ApiEvent.UPDATE, apiDefinition);
+        } catch (ValidationException ve) {
+            logger.error("API Definition can't be updated because of validation errors", ve);
+        }
     }
 
     @Override
@@ -82,5 +97,9 @@ public class ApiManagerImpl implements ApiManager {
 
     public void setEventManager(EventManager eventManager) {
         this.eventManager = eventManager;
+    }
+
+    public void setValidator(Validator validator) {
+        this.validator = validator;
     }
 }
