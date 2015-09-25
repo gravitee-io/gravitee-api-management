@@ -22,7 +22,7 @@ import io.gravitee.gateway.core.definition.ApiDefinition;
  */
 public class PathValidator implements Validator {
 
-    private static final String CONTEXT_PATH_PATTERN = "^(\\\\/\\\\w+)+\\\\.\\\\w+(\\\\?(\\\\w+=[\\\\w\\\\d]+(&\\\\w+=[\\\\w\\\\d]+)+)+)*$";
+    private static final String CONTEXT_PATH_PATTERN = "^\\\\/([a-zA-Z0-9_-]+\\\\/?+)++";
 
     @Override
     public void validate(ApiDefinition definition) throws ValidationException {

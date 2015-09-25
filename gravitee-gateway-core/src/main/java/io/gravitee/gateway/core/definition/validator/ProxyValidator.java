@@ -24,7 +24,7 @@ import org.apache.commons.validator.routines.UrlValidator;
  */
 public class ProxyValidator implements Validator {
 
-    private static final String CONTEXT_PATH_PATTERN = "^(\\\\/\\w+)+\\.\\w+(\\?(\\w+=[\\w\\d]+(&\\w+=[\\w\\d]+)+)+)*$";
+    private static final String CONTEXT_PATH_PATTERN = "^\\\\/([a-zA-Z0-9_-]+\\\\/?+)++";
 
     private static final UrlValidator urlValidator = new UrlValidator(new String []{"http","https"}, UrlValidator.ALLOW_LOCAL_URLS);
 
@@ -44,8 +44,8 @@ public class ProxyValidator implements Validator {
             throw new ValidationException("An API must have a valid target");
         }
 
-        if (proxyDefinition.getContextPath() == null || proxyDefinition.getContextPath().isEmpty()) {
-            throw new ValidationException("An API must have a context path");
+        if (proxyDefinition.getContextPath() == null || proxyDefinition.getContextPath().matches(CONTEXT_PATH_PATTERN)) {
+            throw new ValidationException("An API must have a valid context path");
         }
 
         if (! proxyDefinition.getContextPath().startsWith("/")) {
