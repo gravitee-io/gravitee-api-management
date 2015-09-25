@@ -153,7 +153,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                                 ApiDefinition existingDefinition = definitions.get(fileName);
                                 if (existingDefinition != null) {
                                     if (apiManager.get(existingDefinition.getName()) != null) {
-                                        apiManager.update(existingDefinition);
+                                        apiManager.update(loadedDefinition);
                                     } else {
                                         apiManager.undeploy(existingDefinition.getName());
                                         definitions.remove(fileName);
