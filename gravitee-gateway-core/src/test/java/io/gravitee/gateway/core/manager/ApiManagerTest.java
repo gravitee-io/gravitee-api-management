@@ -19,9 +19,12 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.core.builder.ApiDefinitionBuilder;
 import io.gravitee.gateway.core.builder.ProxyDefinitionBuilder;
 import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.validator.ValidationException;
+import io.gravitee.gateway.core.definition.validator.Validator;
 import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.mockito.Mockito.*;
@@ -32,16 +35,20 @@ import static org.mockito.Mockito.*;
 public class ApiManagerTest {
 
     private ApiManager apiManager;
+
+    @Mock
+    private Validator validator;
+
+    @Mock
     private EventManager eventManager;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        eventManager = mock(EventManager.class);
-
         apiManager = spy(new ApiManagerImpl());
         ((ApiManagerImpl)apiManager).setEventManager(eventManager);
+        ((ApiManagerImpl)apiManager).setValidator(validator);
     }
 
     @Test
@@ -52,5 +59,17 @@ public class ApiManagerTest {
         apiManager.deploy(apiDefinition);
 
         verify(eventManager, only()).publishEvent(ApiEvent.DEPLOY, apiDefinition);
+    }
+
+    @Test
+    public void add_simpleApi_validationError() {
+        ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("api-test")
+                .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("http://localhost/target").build()).build();
+
+        doThrow(new ValidationException()).when(validator).validate(apiDefinition);
+
+        apiManager.deploy(apiDefinition);
+
+        verify(eventManager, never()).publishEvent(ApiEvent.DEPLOY, apiDefinition);
     }
 }

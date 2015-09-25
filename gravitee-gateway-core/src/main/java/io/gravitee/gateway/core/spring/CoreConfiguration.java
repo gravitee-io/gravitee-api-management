@@ -18,6 +18,8 @@ package io.gravitee.gateway.core.spring;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.gateway.core.Reactor;
+import io.gravitee.gateway.core.definition.validator.Validator;
+import io.gravitee.gateway.core.definition.validator.ValidatorImpl;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
@@ -71,6 +73,11 @@ public class CoreConfiguration {
     @Bean
     public ApiManager apiManager() {
         return new ApiManagerImpl();
+    }
+
+    @Bean
+    public Validator validator() {
+        return new ValidatorImpl();
     }
 
     @Bean(name = "errorHandler")
