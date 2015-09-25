@@ -25,7 +25,7 @@ import io.gravitee.gateway.api.policy.PolicyResult;
  */
 public abstract class AbstractPolicyChain implements PolicyChain {
 
-    protected static final PolicyResult SUCESS_POLICY_CHAIN = new SuccessPolicyResult();
+    protected static final PolicyResult SUCCESS_POLICY_CHAIN = new SuccessPolicyResult();
 
     protected Handler<PolicyResult> resultHandler;
 

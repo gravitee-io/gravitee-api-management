@@ -15,10 +15,8 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.policy.PolicyResult;
 import io.gravitee.gateway.core.policy.Policy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +52,7 @@ public class RequestPolicyChain extends AbstractPolicyChain {
                 failWith(ex);
             }
         } else {
-            resultHandler.handle(SUCESS_POLICY_CHAIN);
+            resultHandler.handle(SUCCESS_POLICY_CHAIN);
         }
     }
 
