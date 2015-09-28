@@ -24,12 +24,11 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-gateway</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.gateway</groupId>
     <artifactId>gravitee-gateway-api</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
 
     <name>Gravitee IO - API Management - Gateway API</name>
 

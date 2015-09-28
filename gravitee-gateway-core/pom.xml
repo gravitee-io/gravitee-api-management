@@ -24,19 +24,18 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-gateway</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.gateway</groupId>
     <artifactId>gravitee-gateway-core</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
 
     <name>Gravitee IO - API Management - Gateway Core</name>
 
     <properties>
-        <gravitee-common.version>1.0.0-SNAPSHOT</gravitee-common.version>
-        <gravitee-plugin-core.version>1.0.0-SNAPSHOT</gravitee-plugin-core.version>
-        <gravitee-repository.version>1.0.0-SNAPSHOT</gravitee-repository.version>
+        <gravitee-common.version>0.1.0-SNAPSHOT</gravitee-common.version>
+        <gravitee-plugin-core.version>0.1.0-SNAPSHOT</gravitee-plugin-core.version>
+        <gravitee-repository.version>0.1.0-SNAPSHOT</gravitee-repository.version>
         <jetty.version>9.3.3.v20150827</jetty.version>
     </properties>
 
