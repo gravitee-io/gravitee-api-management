@@ -30,7 +30,7 @@
 	<artifactId>gravitee-management-api</artifactId>
 	<packaging>pom</packaging>
 
-	<version>1.0.0-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 	<name>Gravitee IO - Management</name>
 
 	<modules>
@@ -62,9 +62,6 @@
 
 	<properties>
 		<gravitee-common.version>1.0.0-SNAPSHOT</gravitee-common.version>
-		<slf4j.version>1.7.12</slf4j.version>
-		<spring.version>4.1.6.RELEASE</spring.version>
-		<mockito.version>1.10.19</mockito.version>
 		<javax.servlet-api.version>3.1.0</javax.servlet-api.version>
 	</properties>
 </project>

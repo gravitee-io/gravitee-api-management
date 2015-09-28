@@ -24,12 +24,9 @@
     <parent>
         <groupId>io.gravitee.management.standalone</groupId>
         <artifactId>gravitee-management-api-standalone</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.management.standalone</groupId>
     <artifactId>gravitee-management-api-standalone-bootstrap</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-
     <name>Gravitee IO - Management - Standalone - Boostrap</name>
 </project>
