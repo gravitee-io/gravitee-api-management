@@ -28,21 +28,21 @@
 
 	<groupId>io.gravitee.reporter</groupId>
 	<artifactId>gravitee-reporter-file</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Gravitee IO - Gateway File Reporter</name>
 
 	<properties>
 		<!-- Gravitee's project versions -->
-		<gravitee-gateway.version>1.0.0-SNAPSHOT</gravitee-gateway.version>
-		<gravitee-common.version>1.0.0-SNAPSHOT</gravitee-common.version>
+		<gravitee-gateway-api.version>0.1.0-SNAPSHOT</gravitee-gateway-api.version>
+		<gravitee-common.version>0.1.0-SNAPSHOT</gravitee-common.version>
 
 		<!-- External project versions -->
-		<junit.version>4.12</junit.version>
+		<!--
+			TODO: Remove it !!!
+		-->
 		<jetty.version>9.2.11.v20150529</jetty.version>
-        <slf4j.version>1.7.12</slf4j.version>
-        <spring.version>4.1.6.RELEASE</spring.version>
 	</properties>
 
 	<dependencies>
@@ -50,7 +50,7 @@
 		<dependency>
 			<groupId>io.gravitee.gateway</groupId>
 			<artifactId>gravitee-gateway-api</artifactId>
-			<version>${gravitee-gateway.version}</version>
+			<version>${gravitee-gateway-api.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
