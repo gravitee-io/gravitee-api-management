@@ -15,54 +15,36 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.policy.PolicyChain;
-import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
-import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
-import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
+import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.spy;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Spy;
+
+import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
+import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class GlobalPolicyChainTest {
 
-    private Policy policy = new Policy() {
-        @Override
-        public void onRequest(Object... args) throws Exception {
-            ((PolicyChain)args[2]).doNext(null, null);
-        }
+    @Spy
+    private Policy policy = new SuccessPolicy();
 
-        @Override
-        public void onResponse(Object... args) throws Exception {
-            ((PolicyChain)args[2]).doNext(null, null);
-        }
-    };
-
-    private Policy policy2 = new Policy() {
-        @Override
-        public void onRequest(Object... args) throws Exception {
-            ((PolicyChain)args[2]).doNext(null, null);
-        }
-
-        @Override
-        public void onResponse(Object... args) throws Exception {
-            ((PolicyChain)args[2]).doNext(null, null);
-        }
-    };
+    @Spy
+    private Policy policy2 = new SuccessPolicy();
 
     @Before
     public void setUp() {
-        policy = spy(policy);
-        policy2 = spy(policy2);
+        initMocks(this);
     }
 
     @Test
