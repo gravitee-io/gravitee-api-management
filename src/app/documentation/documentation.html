@@ -15,7 +15,6 @@
     limitations under the License.
 
 -->
-
 <div flex layout="row">
 
   <md-sidenav md-is-locked-open="$mdMedia('gt-sm')" class="md-whiteframe-z2" md-component-id="left" layout="column">
@@ -23,6 +22,12 @@
       <h1 class="md-toolbar-tools">API Documentation</h1>
     </md-toolbar>
     <md-list layout="column">
+      <md-select placeholder="Select an APIs..." ng-model="documentationCtrl.selectedApi">
+        <md-select-label>{{ documentationCtrl.selectedApi.name }}</md-select-label>
+        <md-option ng-repeat="api in documentationCtrl.apis" ng-value="api" ng-click="documentationCtrl.selectApi(api, true)">
+          {{api.name}}
+        </md-option>
+      </md-select>
       <md-list-item ng-repeat="p in documentationCtrl.pages">
           <md-button ng-click="documentationCtrl.selectPage(p)" ng-class="{'selected' : p === documentationCtrl.selected }">
             <md-icon class="avatar"></md-icon>
@@ -34,7 +39,7 @@
 
   <md-content flex id="content">
     <md-toolbar>
-      <section flex="" layout="row" layout-align="left center">
+      <section ng-if="documentationCtrl.selectedApi" flex="" layout="row" layout-align="left center">
         <md-button class="md-primary" ng-click="documentationCtrl.showNewPageDialog($event)">New</md-button>
       </section>
     </md-toolbar>
@@ -56,10 +61,12 @@
 				 <textarea ng-model="documentationCtrl.selected.content" cols="190" rows="37">{{documentationCtrl.selected.content}}</textarea>
 			</div>
 
-      <md-button ng-click="documentationCtrl.editPage()" ng-show="documentationCtrl.editMode">Save</md-button>
-			<md-button ng-click="documentationCtrl.edit()" ng-show="documentationCtrl.previewMode">Edit</md-button>
-      <md-button ng-click="documentationCtrl.preview()" ng-show="documentationCtrl.editMode">Preview</md-button>
-      <md-button ng-click="documentationCtrl.deletePage()">Delete</md-button>
+      <div ng-if="documentationCtrl.selected">
+        <md-button ng-click="documentationCtrl.editPage()" ng-show="documentationCtrl.editMode">Save</md-button>
+		  	<md-button ng-click="documentationCtrl.edit()" ng-show="documentationCtrl.previewMode">Edit</md-button>
+        <md-button ng-click="documentationCtrl.preview()" ng-show="documentationCtrl.editMode">Preview</md-button>
+        <md-button ng-click="documentationCtrl.deletePage()">Delete</md-button>
+      </div>
     </div>
   </md-content>
 

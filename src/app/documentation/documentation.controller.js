@@ -16,12 +16,12 @@
 /* global document:false, confirm:false */
 class DocumentationController {
   
-	constructor(DocumentationService, $mdDialog, $location, $state) {
+	constructor(DocumentationService, $mdDialog, $location, $state, ApiService) {
     'ngInject';
     this.DocumentationService = DocumentationService;
     this.$mdDialog = $mdDialog;
     this.selected = null;
-    this.pages = [ ];
+    this.pages = [];
 		this.previewMode = true;
 		this.editMode = false;
 		this.MARKDOWN_PAGE = 'MARKDOWN';
@@ -29,36 +29,61 @@ class DocumentationController {
   	this.SWAGGER_PAGE = 'SWAGGER';
     this.location = $location;
     this.state = $state;
+
+    var that = this;
+
+    ApiService.list().then(function(response) {
+        that.apis = response.data;
+        if (that.apis.length > 0) {
+          var currentApiName = that.location.$$search.api;
+          for (var i = 0; i < that.apis.length; i++) {
+            if (that.apis[i].name === currentApiName) {
+              that.selectApi(that.apis[i]);
+              break;
+            }
+          }
+        }
+    });
+  }
+
+  init() {
+    this.list();
+    this.preview();
+  }
+
+  selectApi(api, clearPage) {
+    if (clearPage) {
+      delete this.location.$$search.page;
+      this.selected = null;
+    }
+
+    this.location.search('api', api.name);
+    this.selectedApi = api;
     this.init();
   }
 
   selectPage(page) {
     this.selected = angular.isNumber(page) ? this.pages[page] : page;
-    this.location.hash(page.name);
-  }
-
-  init() {
-    this.list();
-		this.preview();
+    this.location.search('page', page.name);
   }
 
   list() {
-    // TODO get the real api name
-    var apiName = "TEST";
-    this.DocumentationService.list(apiName).then(response => {
-      this.pages = response.data;
-      if (this.pages.length > 0) {
-        var currentPageName = this.location.hash();
-        var pageIndex = 0;
-        for (var i = 0; i < this.pages.length; i++) {
-          if (this.pages[i].name === currentPageName) {
-            pageIndex = i;
-            break;
+    if (this.selectedApi) {
+      this.DocumentationService.list(this.selectedApi.name).then(response => {
+        this.pages = response.data;
+        if (this.pages.length > 0) {
+          var currentPageName = this.location.$$search.page;
+          for (var i = 0; i < this.pages.length; i++) {
+            if (this.pages[i].name === currentPageName) {
+              this.selectPage(this.pages[i]);
+              break;
+            }
           }
+        } else {
+          this.selectApi(this.selectedApi, true);
         }
-        this.selected = this.pages[pageIndex];
-      }
-    });
+      });
+    }
   }
 
   getContentUrl() {
@@ -68,20 +93,19 @@ class DocumentationController {
   editPage() {
     var self = this;
     var editPage = {
-      "title" : this.selected.title,
-      "content": this.selected.content
+      'title' : this.selected.title,
+      'content': this.selected.content
     };
     this.DocumentationService.editPage(this.selected.name, editPage).then(function () {
-      self.state.transitionTo(self.state.current, self.state.$current.params, { reload: true, location:false });
+      self.state.transitionTo(self.state.current, self.state.$current.search, { reload: true, location:false });
     });
   }
 
   deletePage() {
-    if (confirm("Are you sure to delete")) {
+    if (confirm('Are you sure to delete')) {
       var self = this;
       this.DocumentationService.deletePage(this.selected.name).then(function () {
-        self.location.hash('');
-        self.init();
+        self.selectApi(self.selectedApi, true);
       });
     }
   }
@@ -92,8 +116,9 @@ class DocumentationController {
       controller: DialogDocumentationController,
       templateUrl: 'app/documentation/documentation.dialog.html',
       parent: angular.element(document.body),
+      apiName: self.selectedApi.name
     }).then(function (response) {
-      self.location.hash(response.data.name);
+      self.location.search('page', response.data.name);
       if (!response.data.content) {
 			  self.edit();
       }
@@ -125,14 +150,14 @@ class DocumentationController {
   }
 }
 
-function DialogDocumentationController($scope, $mdDialog, DocumentationService) {
+function DialogDocumentationController($scope, $mdDialog, DocumentationService, apiName) {
   'ngInject';
 
   $scope.$watch('pageContentFile.content', function (data) {
     if (data) {
       $scope.selectPageType($scope.IMPORT);
     } else {
-      $scope.selectPageType('');
+      $scope.selectPageType(null);
     }
   });
 
@@ -142,8 +167,8 @@ function DialogDocumentationController($scope, $mdDialog, DocumentationService) 
   $scope.RAML_PAGE = 'RAML';
   $scope.SWAGGER_PAGE = 'SWAGGER';
   $scope.IMPORT = 'IMPORT';
-  $scope.selectedPageType = null;
   $scope.pageTitle = null;
+  $scope.apiName = apiName;
 
   $scope.hide = function(){
     $mdDialog.hide();
@@ -155,7 +180,8 @@ function DialogDocumentationController($scope, $mdDialog, DocumentationService) 
 
   function getPageType() {
     if ($scope.pageContentFile.name) {
-      switch ($scope.pageContentFile.name.split('.').pop()) {
+      var fileExtension = $scope.pageContentFile.name.split('.').pop();
+      switch (fileExtension) {
         case 'md':
           return $scope.MARKDOWN_PAGE;
         case 'raml':
@@ -163,7 +189,7 @@ function DialogDocumentationController($scope, $mdDialog, DocumentationService) 
         case 'json':
           return $scope.SWAGGER_PAGE;
         default :
-          throw 'The page content type is not managed:' + $scope.pageContentFile.type;
+          throw 'The document extension is not managed:' + fileExtension;
       }
     }
     return $scope.selectedPageType;
@@ -173,11 +199,11 @@ function DialogDocumentationController($scope, $mdDialog, DocumentationService) 
     var selectedPageType = getPageType();
     if (selectedPageType && $scope.pageTitle) {
       var newPage = {
-        "name" : $scope.pageTitle.replace(/\s/g, "-").toLowerCase(),
-        "type" : selectedPageType,
-        "title" : $scope.pageTitle,
-        "content" : $scope.pageContentFile.content,
-        "apiName": "TEST"
+        'name' : $scope.pageTitle.replace(/\s/g, '-').toLowerCase(),
+        'type' : selectedPageType,
+        'title' : $scope.pageTitle,
+        'content' : $scope.pageContentFile.content,
+        'apiName': $scope.apiName
       };
       DocumentationService.createPage(newPage).then(function (page) {
         $mdDialog.hide(page);
