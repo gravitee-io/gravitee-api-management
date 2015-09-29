@@ -35,6 +35,6 @@ public class PageAlreadyExistsException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "A page with anme " + pagename + " already exists.";
+        return "A page with name " + pagename + " already exists.";
     }
 }

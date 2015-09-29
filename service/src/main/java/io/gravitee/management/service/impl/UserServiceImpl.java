@@ -27,7 +27,6 @@ import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.exceptions.UserMailAlreadyExistsException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
 import io.gravitee.repository.api.UserRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -65,11 +64,6 @@ public class UserServiceImpl extends TransactionalService implements UserService
             Optional<UserEntity> checkUser = findByName(newUserEntity.getUsername());
             if (checkUser.isPresent()) {
                 throw new UsernameAlreadyExistsException(newUserEntity.getUsername());
-            }
-
-            checkUser = userRepository.findByEmail(newUserEntity.getEmail()).map(UserServiceImpl::convert);
-            if (checkUser.isPresent()) {
-                throw new UserMailAlreadyExistsException(newUserEntity.getEmail());
             }
 
             User user = convert(newUserEntity);
