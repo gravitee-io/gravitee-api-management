@@ -42,16 +42,15 @@ class UserController {
   }
 
   showAddUserModal(user) {
+    var that = this;
     this.$mdDialog.show({
       controller: DialogUserController,
       templateUrl: 'app/user/user.dialog.html',
       parent: angular.element(document.body),
       user: user,
       roles: this.roles,
-    }).then(function (user) {
-      if (user) {
-        this.list();
-      }
+    }).then(function () {
+      that.list();
     });
   }
 
@@ -62,10 +61,8 @@ class UserController {
       templateUrl: 'app/user/team.dialog.html',
       parent: angular.element(document.body),
       team: team
-    }).then(function (team) {
-      if (team) {
-        that.listTeams();
-      }
+    }).then(function () {
+      that.listTeams();
     });
   }
 }
@@ -76,19 +73,16 @@ function DialogTeamController($scope, $mdDialog, TeamService, team, Notification
   $scope.team = team;
   $scope.creationMode = !team;
 
-  TeamService.list().then(response => {
-    $scope.teams = response.data;
-  });
-
-  $scope.hide = function () {
-    $mdDialog.hide();
+  $scope.cancel = function () {
+    $mdDialog.cancel();
   };
 
   $scope.save = function (team) {
     var save = $scope.creationMode ? TeamService.create(team) : TeamService.update(team);
-    save.then(function (team) {
+    save.then(function () {
       NotificationService.show($scope.creationMode ? 'Team created with success!' : 'Team updated with success!');
-      $mdDialog.hide(team);
+
+      $mdDialog.hide();
     }).catch(function (error) {
       NotificationService.show(error.data.message);
     });
@@ -105,13 +99,13 @@ function DialogUserController($scope, $mdDialog, UserService, user, roles) {
     $scope.teams = response.data;
   });
 
-  $scope.hide = function () {
-    $mdDialog.hide();
+  $scope.cancel = function () {
+    $mdDialog.cancel();
   };
 
   $scope.create = function (user) {
     UserService.create(user).then(function () {
-      $mdDialog.hide(user);
+      $mdDialog.hide();
     }).catch(function (error) {
       $scope.error = error;
     });

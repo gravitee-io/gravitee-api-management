@@ -21,7 +21,7 @@
         <div class="md-toolbar-tools">
           <h2>Modification of user {{user.code}}</h2>
           <span flex></span>
-          <md-button class="md-icon-button" ng-click="hide()">
+          <md-button type="button" class="md-icon-button" ng-click="cancel()">
             X
           </md-button>
         </div>
@@ -68,7 +68,7 @@
       </md-dialog-content>
 
       <div class="md-actions" layout="row">
-        <md-button ng-click="hide()" class="md-primary">
+        <md-button type="button" ng-click="cancel()" class="md-primary">
           Cancel
         </md-button>
         <md-button type="submit" class="md-primary" ng-disabled="formUser.$invalid">
