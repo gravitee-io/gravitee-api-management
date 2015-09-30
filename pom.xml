@@ -65,12 +65,18 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>${spring.version}</version>
+			<scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
             <version>${spring.version}</version>
+			<scope>provided</scope>
         </dependency>
+
+		<!--
+		TODO: This one should be deleted !!!
+		-->
         <dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-util</artifactId>
@@ -80,6 +86,7 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
+			<scope>provided</scope>
         </dependency>
 
 		<!-- Unit Tests -->
