@@ -5,7 +5,7 @@ plugins:
   registry:
     path: ${gravitee.home}/plugins
 
-repository:
+management:
   type: mongodb
   mongodb:
     dbname: gravitee

@@ -31,10 +31,10 @@ import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.api.ApplicationRepository;
+import io.gravitee.repository.api.management.ApplicationRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.Application;
-import io.gravitee.repository.model.OwnerType;
+import io.gravitee.repository.model.management.Application;
+import io.gravitee.repository.model.management.OwnerType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

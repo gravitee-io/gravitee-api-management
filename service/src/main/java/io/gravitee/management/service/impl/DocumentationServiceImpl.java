@@ -34,10 +34,10 @@ import io.gravitee.management.service.DocumentationService;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.api.PageRepository;
+import io.gravitee.repository.api.management.PageRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.Page;
-import io.gravitee.repository.model.PageType;
+import io.gravitee.repository.model.management.Page;
+import io.gravitee.repository.model.management.PageType;
 
 /**
  * @author Titouan COMPIEGNE

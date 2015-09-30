@@ -34,9 +34,9 @@ import io.gravitee.management.service.ApiKeyGenerator;
 import io.gravitee.management.service.ApiKeyService;
 import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.api.ApiKeyRepository;
+import io.gravitee.repository.api.management.ApiKeyRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.ApiKey;
+import io.gravitee.repository.model.management.ApiKey;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

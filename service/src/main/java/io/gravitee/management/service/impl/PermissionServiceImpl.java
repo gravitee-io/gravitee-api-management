@@ -29,10 +29,10 @@ import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.api.TeamMembershipRepository;
+import io.gravitee.repository.api.management.TeamMembershipRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.Member;
-import io.gravitee.repository.model.TeamRole;
+import io.gravitee.repository.model.management.Member;
+import io.gravitee.repository.model.management.TeamRole;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

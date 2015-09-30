@@ -18,7 +18,7 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.management.rest.builder.ApiBuilder;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.service.ApiService;
-import io.gravitee.repository.model.Api;
+import io.gravitee.repository.model.management.Api;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;

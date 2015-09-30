@@ -35,11 +35,11 @@ import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.api.ApiRepository;
+import io.gravitee.repository.api.management.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.LifecycleState;
-import io.gravitee.repository.model.OwnerType;
+import io.gravitee.repository.model.management.Api;
+import io.gravitee.repository.model.management.LifecycleState;
+import io.gravitee.repository.model.management.OwnerType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

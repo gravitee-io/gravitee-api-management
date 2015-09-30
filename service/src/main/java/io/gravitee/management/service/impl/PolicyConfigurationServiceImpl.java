@@ -27,10 +27,10 @@ import org.springframework.stereotype.Component;
 import io.gravitee.management.model.PolicyConfigurationEntity;
 import io.gravitee.management.service.PolicyConfigurationService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.api.ApiRepository;
+import io.gravitee.repository.api.management.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.PolicyConfiguration;
+import io.gravitee.repository.model.management.Api;
+import io.gravitee.repository.model.management.PolicyConfiguration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

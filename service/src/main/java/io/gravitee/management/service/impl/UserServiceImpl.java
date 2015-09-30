@@ -28,9 +28,9 @@ import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
-import io.gravitee.repository.api.UserRepository;
+import io.gravitee.repository.api.management.UserRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.User;
+import io.gravitee.repository.model.management.User;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

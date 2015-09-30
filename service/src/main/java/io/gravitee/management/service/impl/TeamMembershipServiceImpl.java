@@ -33,11 +33,11 @@ import io.gravitee.management.service.TeamMembershipService;
 import io.gravitee.management.service.exceptions.TeamNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UnknownMemberException;
-import io.gravitee.repository.api.TeamMembershipRepository;
-import io.gravitee.repository.api.TeamRepository;
+import io.gravitee.repository.api.management.TeamMembershipRepository;
+import io.gravitee.repository.api.management.TeamRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.Member;
-import io.gravitee.repository.model.Team;
+import io.gravitee.repository.model.management.Member;
+import io.gravitee.repository.model.management.Team;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -144,7 +144,7 @@ public class TeamMembershipServiceImpl extends TransactionalService implements T
         return membershipEntity;
     }
 
-    private static io.gravitee.repository.model.TeamRole convert(TeamRole teamRole) {
-        return io.gravitee.repository.model.TeamRole.valueOf(teamRole.name());
+    private static io.gravitee.repository.model.management.TeamRole convert(TeamRole teamRole) {
+        return io.gravitee.repository.model.management.TeamRole.valueOf(teamRole.name());
     }
 }

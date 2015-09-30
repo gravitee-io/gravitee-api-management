@@ -15,9 +15,8 @@
  */
 package io.gravitee.management.rest.repository;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import io.gravitee.repository.Repository;
+import io.gravitee.repository.Scope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -30,7 +29,8 @@ import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
-import io.gravitee.repository.Repository;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -39,63 +39,78 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
 
     protected final Logger LOGGER = LoggerFactory.getLogger(RepositoryBeanFactoryPostProcessor.class);
 
+    private ConfigurationClassPostProcessor configurationClassPostProcessor;
+
     private String repositoryType;
 
-    private ConfigurationClassPostProcessor configurationClassPostProcessor;
+    private Scope repositoryScope;
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        LOGGER.info("Looking for a repository implementation");
-
-        if (repositoryType == null || repositoryType.isEmpty()) {
-            LOGGER.error("No repository.type defined in configuration");
-            throw new IllegalStateException("No repository.type defined in configuration");
+        if (repositoryScope == null) {
+            LOGGER.error("No repository scope provided.");
+            throw new IllegalStateException("No repository scope provided.");
         }
 
-        Set<String> repositories = new HashSet(
+        LOGGER.info("Looking for a repository [{}] implementation: {}", repositoryScope.getName(), repositoryType);
+
+        if (repositoryType == null || repositoryType.isEmpty()) {
+            LOGGER.error("No repository type defined in configuration for {}", repositoryScope.getName());
+
+            // Management is required so we are throwing an exception while registering bean definitions
+            if (repositoryScope == Scope.MANAGEMENT) {
+                throw new IllegalStateException("No repository type defined in configuration for " + repositoryScope.getName());
+            } else {
+                return;
+            }
+        }
+
+        Set<String> repositories = new HashSet<>(
                 SpringFactoriesLoader.loadFactoryNames(Repository.class, beanFactory.getBeanClassLoader()));
 
         if (repositories.isEmpty()) {
-            throw new IllegalStateException("No repository implementation can be found");
-        }
+            LOGGER.error("No repository implementation can be found for {}", repositoryScope.getName());
 
-        int size = repositories.size();
-        LOGGER.info("\tFound {} {} implementation(s):{}", size, Repository.class.getSimpleName(), repositories);
+            if (repositoryScope == Scope.MANAGEMENT) {
+                throw new IllegalStateException("No repository implementation can be found for {}" + repositoryScope.getName());
+            }
+        } else {
 
-        DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
-        Repository repository  = null;
+            int size = repositories.size();
+            LOGGER.info("\tFound {} {} implementation(s)", size, Repository.class.getSimpleName());
 
-        for(String repositoryClass : repositories) {
-            try {
-                Class<?> instanceClass = ClassUtils.forName(repositoryClass, beanFactory.getBeanClassLoader());
-                Assert.isAssignable(Repository.class, instanceClass);
+            DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
+            Repository repository = null;
 
-                Repository repositoryInstance = createInstance((Class<Repository>)instanceClass);
-                if (repositoryType.equalsIgnoreCase(repositoryInstance.type())) {
-                    repository = repositoryInstance;
+            for (String repositoryClass : repositories) {
+                try {
+                    Class<?> instanceClass = ClassUtils.forName(repositoryClass, beanFactory.getBeanClassLoader());
+                    Assert.isAssignable(Repository.class, instanceClass);
+
+                    Repository repositoryInstance = createInstance((Class<Repository>) instanceClass);
+                    if (repositoryType.equalsIgnoreCase(repositoryInstance.type())) {
+                        repository = repositoryInstance;
+                    }
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to instantiate repository: {}", ex);
+                    throw new IllegalStateException("Unable to instantiate repository: " + repositoryClass, ex);
                 }
             }
-            catch (Exception ex) {
-                LOGGER.error("Unable to instantiate repository: {}", ex);
-                throw new IllegalStateException("Unable to instantiate repository: " + repositoryClass, ex);
-            }
-        }
 
-        if (repository != null) {
-            Class<?> [] extensions = repository.configurations();
-            if (extensions != null) {
-                for(Class<?> extension : extensions) {
+            if (repository != null) {
+                Class<?> extension = repository.configuration(repositoryScope);
+                if (extension != null) {
                     defaultListableBeanFactory.registerBeanDefinition(extension.getName(),
                             new RootBeanDefinition(extension.getName()));
 
                     LOGGER.info("\tRegistering repository extension: {}", extension.getName());
                 }
-            }
 
-            configurationClassPostProcessor.processConfigBeanDefinitions(defaultListableBeanFactory);
-        } else {
-            LOGGER.error("Repository implementation for {} can not be found. Please add correct module in classpath", repositoryType);
-            throw new IllegalStateException("Repository implementation for " + repositoryType + " can not be found. Please add correct module in classpath");
+                configurationClassPostProcessor.processConfigBeanDefinitions(defaultListableBeanFactory);
+            } else {
+                LOGGER.error("Repository implementation for {} can not be found. Please add correct module in classpath", repositoryType);
+                throw new IllegalStateException("Repository implementation for " + repositoryType + " can not be found. Please add correct module in classpath");
+            }
         }
     }
 
@@ -114,5 +129,9 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
 
     public void setRepositoryType(String repositoryType) {
         this.repositoryType = repositoryType;
+    }
+
+    public void setRepositoryScope(Scope repositoryScope) {
+        this.repositoryScope = repositoryScope;
     }
 }

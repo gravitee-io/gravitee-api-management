@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.repository;
 
+import io.gravitee.repository.Scope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +32,7 @@ public class RepositoryConfiguration {
             @Value("${repository.type}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
         RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor = new RepositoryBeanFactoryPostProcessor();
         repositoryBeanFactoryPostProcessor.setRepositoryType(repositoryType);
+        repositoryBeanFactoryPostProcessor.setRepositoryScope(Scope.MANAGEMENT);
         repositoryBeanFactoryPostProcessor.setConfigurationClassPostProcessor(configurationClassPostProcessor);
         return repositoryBeanFactoryPostProcessor;
     }
