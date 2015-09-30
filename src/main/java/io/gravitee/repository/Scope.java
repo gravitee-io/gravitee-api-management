@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.model;
+package io.gravitee.repository;
 
 /**
- * Node states
- * 
- * @author David BRASSELY (brasseld at gmail.com)
+ * Created by david on 29/09/15.
  */
-public enum NodeState {
+public enum Scope {
 
-	REGISTERED, UNREGISTERED;
+    MANAGEMENT("management"),
+    RATE_LIMIT("ratelimit");
+
+    String name;
+
+    Scope(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return this.name;
+    }
 }

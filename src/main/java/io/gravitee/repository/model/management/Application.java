@@ -13,77 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.model;
+package io.gravitee.repository.model.management;
 
-import java.net.URI;
 import java.util.Date;
 import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class Api {
+public class Application {
 
 	/**
-	 * The api name.
+	 * The application name
 	 */
     private String name;
-
+    
     /**
-     * the api description.
+     * The application description
      */
     private String description;
 
     /**
-     * The api version.
+     * The application type.
      */
-    private String version;
+    private String type;
 
     /**
-     * The uri used to expose api.
-     */
-    private URI publicURI;
-    
-    /**
-     * The uri of consumed api.
-     */
-    private URI targetURI;
-
-    /**
-     * The Api creation date
+     * The team creation date
      */
     private Date createdAt;
     
     /**
-     * The Api last updated date
+     * The team last updated date
      */
     private Date updatedAt;
-    
+
     /**
-     * The api owner entity type (user or team)
+     * The owner entity (user or team)
      */
     private OwnerType ownerType;
     
     /**
-     * The api owner entity name (user name or team name)
+     * The owner entity name (user name or team name)
      */
     private String owner;
-
+    
     /**
-     * The api user name creator
+     * The user name that create the application
      */
     private String creator;
 
-    /**
-     * The api visibility (private of for all users)
-     */
-    private boolean privateApi;
-
-    /**
-     * The current api life cycle state.
-     */
-    private LifecycleState lifecycleState = LifecycleState.STOPPED;
-
+    
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -92,12 +72,12 @@ public class Api {
         this.createdAt = createdAt;
     }
 
-    public LifecycleState getLifecycleState() {
-        return lifecycleState;
+    public String getDescription() {
+        return description;
     }
 
-    public void setLifecycleState(LifecycleState lifecycleState) {
-        this.lifecycleState = lifecycleState;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getName() {
@@ -108,20 +88,12 @@ public class Api {
         this.name = name;
     }
 
-    public URI getPublicURI() {
-        return publicURI;
+    public String getType() {
+        return type;
     }
 
-    public void setPublicURI(URI publicURI) {
-        this.publicURI = publicURI;
-    }
-
-    public URI getTargetURI() {
-        return targetURI;
-    }
-
-    public void setTargetURI(URI targetURI) {
-        this.targetURI = targetURI;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Date getUpdatedAt() {
@@ -131,23 +103,7 @@ public class Api {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public boolean isPrivateApi() {
-        return privateApi;
-    }
-
-    public void setPrivateApi(boolean privateApi) {
-        this.privateApi = privateApi;
-    }
-
+    
     public OwnerType getOwnerType() {
 		return ownerType;
 	}
@@ -163,7 +119,7 @@ public class Api {
 	public void setOwner(String owner) {
 		this.owner = owner;
 	}
-	
+
     public String getCreator() {
         return creator;
     }
@@ -172,34 +128,24 @@ public class Api {
         this.creator = creator;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    @Override
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Api api = (Api) o;
-        return Objects.equals(name, api.name) &&
-                Objects.equals(version, api.version);
+        Application that = (Application) o;
+        return Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, version);
+        return Objects.hash(name);
     }
 
-	@Override
+    @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Api{");
+        final StringBuilder sb = new StringBuilder("Application{");
         sb.append("name='").append(name).append('\'');
-        sb.append(", version='").append(version).append('\'');
-        sb.append(", lifecycleState=").append(lifecycleState);
+        sb.append(", type='").append(type).append('\'');
         sb.append('}');
         return sb.toString();
     }
