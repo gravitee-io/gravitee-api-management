@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.api;
+package io.gravitee.repository.api.management;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.PolicyConfiguration;
-import io.gravitee.repository.model.User;
+import io.gravitee.repository.model.management.Api;
+import io.gravitee.repository.model.management.PolicyConfiguration;
+import io.gravitee.repository.model.management.User;
+import io.gravitee.repository.model.management.Team;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -45,7 +46,7 @@ public interface ApiRepository {
     Set<Api> findAll() throws TechnicalException;
 
     /**
-     * List APIs (public and/or private) hold by a {@link io.gravitee.repository.model.Team}.
+     * List APIs (public and/or private) hold by a {@link Team}.
      *
      * @param teamName The name of the team.
      * @param publicOnly List only public APIs.
@@ -54,7 +55,7 @@ public interface ApiRepository {
     Set<Api> findByTeam(String teamName, boolean publicOnly) throws TechnicalException;
 
     /**
-     * List APIs (public and private) hold by a {@link io.gravitee.repository.model.User}.
+     * List APIs (public and private) hold by a {@link User}.
      *
      * @param username The name of the user.
      * @param publicOnly List only public APIs.
@@ -86,7 +87,7 @@ public interface ApiRepository {
     void delete(String apiName) throws TechnicalException;
 
     /**
-     * Count all APIs (public and private) owned by a given {@link io.gravitee.repository.model.User}
+     * Count all APIs (public and private) owned by a given {@link User}
      * 
      * @param username owner user name 
      * @param publicOnly List only public APIs.
@@ -95,7 +96,7 @@ public interface ApiRepository {
     int countByUser(String username, boolean publicOnly) throws TechnicalException;
    
     /**
-    * Count all APIs (public and private) owned by a given {@link io.gravitee.repository.model.Team}
+    * Count all APIs (public and private) owned by a given {@link Team}
     * 
     * @param teamName owner team name 
     * @param publicOnly List only public APIs.
