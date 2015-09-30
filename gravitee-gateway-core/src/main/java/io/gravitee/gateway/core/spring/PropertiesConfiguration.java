@@ -20,9 +20,11 @@ import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -35,7 +37,7 @@ public class PropertiesConfiguration {
     protected final static Logger LOGGER = LoggerFactory.getLogger(PropertiesConfiguration.class);
 
     public final static String GRAVITEE_CONFIGURATION = "gravitee.conf";
-    
+
     @Bean(name = "graviteeProperties")
     public static Properties graviteeProperties() throws IOException {
         LOGGER.info("Loading Gravitee configuration.");

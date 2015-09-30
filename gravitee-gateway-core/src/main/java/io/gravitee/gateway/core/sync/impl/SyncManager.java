@@ -17,10 +17,10 @@ package io.gravitee.gateway.core.sync.impl;
 
 import io.gravitee.gateway.core.definition.*;
 import io.gravitee.gateway.core.manager.ApiManager;
-import io.gravitee.repository.api.ApiRepository;
+import io.gravitee.repository.api.management.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.LifecycleState;
-import io.gravitee.repository.model.PolicyConfiguration;
+import io.gravitee.repository.model.management.LifecycleState;
+import io.gravitee.repository.model.management.PolicyConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +50,7 @@ public class SyncManager {
         logger.debug("Refreshing gateway state...");
 
         try {
-            Set<io.gravitee.repository.model.Api> apis = apiRepository.findAll();
+            Set<io.gravitee.repository.model.management.Api> apis = apiRepository.findAll();
 
             Map<String, ApiDefinition> apisMap = apis.stream()
                     .map(this::convert)
@@ -104,7 +104,7 @@ public class SyncManager {
         }
     }
 
-    private ApiDefinition convert(io.gravitee.repository.model.Api remoteApi) {
+    private ApiDefinition convert(io.gravitee.repository.model.management.Api remoteApi) {
         ApiDefinition api = new ApiDefinition();
 
         api.setName(remoteApi.getName());
