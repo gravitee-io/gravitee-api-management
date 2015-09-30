@@ -96,6 +96,7 @@ public class CoreConfiguration {
 
         PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
         propertySourcesPlaceholderConfigurer.setProperties(graviteeProperties);
+        propertySourcesPlaceholderConfigurer.setIgnoreUnresolvablePlaceholders(true);
 
         LOGGER.info("Loading Gravitee placeholder. DONE");
 

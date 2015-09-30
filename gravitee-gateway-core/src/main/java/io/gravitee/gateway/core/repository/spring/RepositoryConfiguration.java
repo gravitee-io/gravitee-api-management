@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.repository.spring;
 
+import io.gravitee.repository.Scope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,10 +28,23 @@ import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 public class RepositoryConfiguration {
 
     @Bean
-    public static RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor(
-            @Value("${repository.type}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
+    public static RepositoryBeanFactoryPostProcessor managementRepositoryBeanFactoryPostProcessor(
+            @Value("${management.type:#{null}}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
+
         RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor = new RepositoryBeanFactoryPostProcessor();
         repositoryBeanFactoryPostProcessor.setRepositoryType(repositoryType);
+        repositoryBeanFactoryPostProcessor.setRepositoryScope(Scope.MANAGEMENT);
+        repositoryBeanFactoryPostProcessor.setConfigurationClassPostProcessor(configurationClassPostProcessor);
+        return repositoryBeanFactoryPostProcessor;
+    }
+
+    @Bean
+    public static RepositoryBeanFactoryPostProcessor rateLimitRepositoryBeanFactoryPostProcessor(
+            @Value("${ratelimit.type:#{null}}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
+
+        RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor = new RepositoryBeanFactoryPostProcessor();
+        repositoryBeanFactoryPostProcessor.setRepositoryType(repositoryType);
+        repositoryBeanFactoryPostProcessor.setRepositoryScope(Scope.RATE_LIMIT);
         repositoryBeanFactoryPostProcessor.setConfigurationClassPostProcessor(configurationClassPostProcessor);
         return repositoryBeanFactoryPostProcessor;
     }

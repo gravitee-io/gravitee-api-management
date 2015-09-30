@@ -22,9 +22,9 @@ import io.gravitee.gateway.core.definition.ProxyDefinition;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.core.sync.impl.SyncManager;
-import io.gravitee.repository.api.ApiRepository;
+import io.gravitee.repository.api.management.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.Api;
+import io.gravitee.repository.model.management.Api;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -196,7 +196,7 @@ public class SyncManagerTest {
         verify(apiManager, never()).undeploy(any(String.class));
     }
 
-    private ApiDefinition convert(io.gravitee.repository.model.Api remoteApi) {
+    private ApiDefinition convert(io.gravitee.repository.model.management.Api remoteApi) {
         ApiDefinition api = new ApiDefinition();
 
         api.setName(remoteApi.getName());

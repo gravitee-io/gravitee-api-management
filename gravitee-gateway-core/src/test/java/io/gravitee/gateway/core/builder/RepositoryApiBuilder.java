@@ -16,8 +16,8 @@
 package io.gravitee.gateway.core.builder;
 
 
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.LifecycleState;
+import io.gravitee.repository.model.management.Api;
+import io.gravitee.repository.model.management.LifecycleState;
 
 import java.net.URI;
 import java.util.Date;
