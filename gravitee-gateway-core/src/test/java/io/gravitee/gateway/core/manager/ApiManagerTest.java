@@ -21,6 +21,7 @@ import io.gravitee.gateway.core.builder.ProxyDefinitionBuilder;
 import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.definition.validator.ValidationException;
 import io.gravitee.gateway.core.definition.validator.Validator;
+import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
 import org.junit.Before;
 import org.junit.Test;

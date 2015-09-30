@@ -25,7 +25,7 @@ import io.gravitee.gateway.core.external.ApiExternalResource;
 import io.gravitee.gateway.core.external.ApiServlet;
 import io.gravitee.gateway.core.http.HttpServerRequest;
 import io.gravitee.gateway.core.http.HttpServerResponse;
-import io.gravitee.gateway.core.manager.ApiEvent;
+import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.reporter.ConsoleReporter;
 import io.gravitee.gateway.core.reporter.ReporterManager;

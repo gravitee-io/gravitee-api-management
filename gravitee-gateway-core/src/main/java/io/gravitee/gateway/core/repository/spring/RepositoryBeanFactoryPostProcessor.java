@@ -51,7 +51,7 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
             throw new IllegalStateException("No repository.type defined in configuration");
         }
 
-        Set<String> repositories = new HashSet(
+        Set<String> repositories = new HashSet<>(
                 SpringFactoriesLoader.loadFactoryNames(Repository.class, beanFactory.getBeanClassLoader()));
 
         if (repositories.isEmpty()) {

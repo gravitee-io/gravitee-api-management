@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.manager;
+package io.gravitee.gateway.core.event;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

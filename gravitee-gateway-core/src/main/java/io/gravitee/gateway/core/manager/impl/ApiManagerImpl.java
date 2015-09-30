@@ -19,7 +19,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.definition.validator.ValidationException;
 import io.gravitee.gateway.core.definition.validator.Validator;
-import io.gravitee.gateway.core.manager.ApiEvent;
+import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.manager.ApiManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -25,7 +25,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.manager.ApiEvent;
+import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.plugin.PluginEventListener;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
