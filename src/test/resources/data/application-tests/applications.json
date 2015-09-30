@@ -1,7 +1,7 @@
 [
 	{
 	   "_id":"findByNameOk",
-	   "_class":"io.gravitee.repository.mongodb.internal.model.ApplicationMongo",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application1 description",
 	   "createdAt"  : { "$date" : 1439022010883 },
 	   "updatedAt"  : { "$date" : 1439022010883 },
@@ -10,7 +10,7 @@
 	},
 	{
 	   "_id":"findByUser1Test",
-	   "_class":"io.gravitee.repository.mongodb.internal.model.ApplicationMongo",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application1 description",
 	   "createdAt"  : { "$date" : 1439022010883 },
 	   "updatedAt"  : { "$date" : 1439022010883 },
@@ -18,7 +18,7 @@
 	},
 	{
 	   "_id":"findByTeam1Test",
-	   "_class":"io.gravitee.repository.mongodb.internal.model.ApplicationMongo",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application1 description",
 	   "createdAt"  : { "$date" : 1439022010883 },
 	   "updatedAt"  : { "$date" : 1439022010883 },
@@ -26,7 +26,7 @@
 	},
 	{
 	   "_id":"findByTeam2Test",
-	   "_class":"io.gravitee.repository.mongodb.internal.model.ApplicationMongo",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application1 description",
 	   "createdAt"  : { "$date" : 1439022010883 },
 	   "updatedAt"  : { "$date" : 1439022010883 },
@@ -34,7 +34,7 @@
 	},
 	{
 	   "_id":"deleted-app",
-	   "_class":"io.gravitee.repository.mongodb.internal.model.ApplicationMongo",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application deleted description",
 	   "createdAt"  : { "$date" : 1439022010883 },
 	   "updatedAt"  : { "$date" : 1439022010883 },
@@ -43,7 +43,7 @@
 	},	
 	{
 	   "_id":"updated-app",
-	   "_class":"io.gravitee.repository.mongodb.internal.model.ApplicationMongo",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application updated description",
 	   "type" : "type",
 	   "createdAt"  : { "$date" : 1439022010883 },
@@ -53,7 +53,7 @@
 	},
 		{
 	   "_id":"associated-app",
-	   "_class":"io.gravitee.repository.mongodb.internal.model.ApplicationMongo",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application updated description",
 	   "type" : "type",
 	   "createdAt"  : { "$date" : 1439022010883 },
@@ -64,7 +64,7 @@
 	},
     {
 	   "_id":"dissociated-app",
-	   "_class":"io.gravitee.repository.mongodb.internal.model.ApplicationMongo",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application updated description",
 	   "type" : "type",
 	   "createdAt"  : { "$date" : 1439022010883 },

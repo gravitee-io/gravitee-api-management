@@ -1,7 +1,7 @@
 [
 	{
 		"_id" : "findByNameOk",
-		"_class" : "io.gravitee.repository.mongodb.internal.model.ApiMongo",
+		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
 		"publicURI" : "/public/sample/",
 		"targetURI" : "/target/sample/",
@@ -14,7 +14,7 @@
     },	
 	{
 		"_id" : "findByTeamApiTest1",
-		"_class" : "io.gravitee.repository.mongodb.internal.model.ApiMongo",
+		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
 		"publicURI" : "/public/sample/",
 		"targetURI" : "/target/sample/",
@@ -27,7 +27,7 @@
     },	
 	{
 		"_id" : "findByTeamApiTest2",
-		"_class" : "io.gravitee.repository.mongodb.internal.model.ApiMongo",
+		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
 		"publicURI" : "/public/sample/",
 		"targetURI" : "/target/sample/",
@@ -40,7 +40,7 @@
     },	
 	{
 		"_id" : "findByUserApiTest1",
-		"_class" : "io.gravitee.repository.mongodb.internal.model.ApiMongo",
+		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
 		"publicURI" : "/public/sample/",
 		"targetURI" : "/target/sample/",
@@ -53,7 +53,7 @@
 	},
 	{
 		"_id" : "findByUserApiTest2",
-		"_class" : "io.gravitee.repository.mongodb.internal.model.ApiMongo",
+		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
 		"publicURI" : "/public/sample/",
 		"targetURI" : "/target/sample/",
@@ -66,7 +66,7 @@
 	},
 	{
 		"_id" : "api1",
-		"_class" : "io.gravitee.repository.mongodb.internal.model.ApiMongo",
+		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
 		"publicURI" : "/public/sample/",
 		"targetURI" : "/target/sample/",
@@ -79,7 +79,7 @@
     },	
     {
 		"_id" : "api2",
-		"_class" : "io.gravitee.repository.mongodb.internal.model.ApiMongo",
+		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
 		"publicURI" : "/public/sample/",
 		"targetURI" : "/target/sample/",
