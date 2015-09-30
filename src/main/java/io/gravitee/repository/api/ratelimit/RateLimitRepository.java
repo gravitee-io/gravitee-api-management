@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.model;
-
+package io.gravitee.repository.api.ratelimit;
 
 /**
- * Owner types for Api, Application..
- * 
- * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
+ * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum OwnerType {
-
-    TEAM, USER;
+public interface RateLimitRepository {
 }
-
