@@ -7,7 +7,7 @@ plugins:
   registry:
     path: ${node.home}/io/gravitee/gateway/core/plugin/workspace
 
-repository:
+management:
   type: mock
 
 sync:

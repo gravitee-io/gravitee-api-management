@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.repository;
 
 import io.gravitee.repository.Repository;
+import io.gravitee.repository.Scope;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -28,9 +29,14 @@ public class MockRepository implements Repository {
     }
 
     @Override
-    public Class<?>[] configurations() {
-        return new Class<?>[] {
-                RepositoryConfiguration.class
+    public Scope[] scopes() {
+        return new Scope[] {
+                Scope.MANAGEMENT
         };
+    }
+
+    @Override
+    public Class<?> configuration(Scope scope) {
+        return RepositoryConfiguration.class;
     }
 }
