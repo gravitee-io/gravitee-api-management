@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.api;
+package io.gravitee.repository.api.management;
 
 import java.util.Optional;
 import java.util.Set;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.Application;
-import io.gravitee.repository.model.Team;
-import io.gravitee.repository.model.User;
+import io.gravitee.repository.model.management.Application;
+import io.gravitee.repository.model.management.Team;
+import io.gravitee.repository.model.management.User;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -37,7 +36,7 @@ public interface ApplicationRepository {
     Set<Application> findAll() throws TechnicalException;
 
     /**
-     * List all applications hold by a {@link io.gravitee.repository.model.Team}.
+     * List all applications hold by a {@link Team}.
      *
      * @param teamName The name of the team.
      * @return All applications from a team.
@@ -45,7 +44,7 @@ public interface ApplicationRepository {
     Set<Application> findByTeam(String teamName) throws TechnicalException;
 
     /**
-     * List all applications hold by a {@link io.gravitee.repository.model.User}.
+     * List all applications hold by a {@link User}.
      *
      * @param userName The name of the user.
      * @return All applications from a user.

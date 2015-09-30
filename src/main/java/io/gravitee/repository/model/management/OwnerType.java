@@ -13,31 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository;
+package io.gravitee.repository.model.management;
+
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * Owner types for Api, Application..
+ * 
+ * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  */
-public interface Repository {
+public enum OwnerType {
 
-    /**
-     * The type of the repository implementation (mongodb, jpa, ...)
-     *
-     * @return
-     */
-    String type();
-
-    /**
-     * Scopes handled by the repository implementation.
-     * @return
-     */
-    Scope [] scopes();
-
-    /**
-     * Retrieve a configuration class (annotated with @Configuration) for a given scope.
-     *
-     * @param scope
-     * @return
-     */
-    Class<?> configuration(Scope scope);
+    TEAM, USER;
 }
+

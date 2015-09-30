@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.model;
+package io.gravitee.repository.model.management;
 
 /**
- * @author Titouan COMPIEGNE
+ * Node states
+ * 
+ * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum PageType {
+public enum NodeState {
 
-	MARKDOWN,
-	RAML,
-	SWAGGER
+	REGISTERED, UNREGISTERED;
 }
