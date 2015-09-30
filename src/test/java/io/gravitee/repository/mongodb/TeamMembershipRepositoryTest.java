@@ -28,10 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import io.gravitee.repository.api.TeamMembershipRepository;
-import io.gravitee.repository.model.Member;
-import io.gravitee.repository.model.Team;
-import io.gravitee.repository.model.TeamRole;
+import io.gravitee.repository.api.management.TeamMembershipRepository;
+import io.gravitee.repository.model.management.Member;
+import io.gravitee.repository.model.management.Team;
+import io.gravitee.repository.model.management.TeamRole;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { TestRepositoryConfiguration.class })

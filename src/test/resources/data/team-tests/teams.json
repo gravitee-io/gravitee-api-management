@@ -1,7 +1,7 @@
 [
 	{
 	   "_id":"team1",
-	   "_class":"io.gravitee.repository.mongodb.internal.model.TeamMongo",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.TeamMongo",
 	   "description":"Sample team description",
 	   "privateTeam":false,
 	   "members":[
@@ -51,7 +51,7 @@
 	},
 	{
 	   "_id":"team2",
-	   "_class":"io.gravitee.repository.mongodb.internal.model.TeamMongo",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.TeamMongo",
 	   "email" : "team2@gravitee.io",
 	   "description":"Sample team2 description",
 	   "privateTeam":true,

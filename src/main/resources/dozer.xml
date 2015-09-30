@@ -5,8 +5,8 @@
           http://dozer.sourceforge.net/schema/beanmapping.xsd">
           
   <mapping> 
-    <class-a>io.gravitee.repository.model.User</class-a>
-    <class-b>io.gravitee.repository.mongodb.internal.model.UserMongo</class-b>
+    <class-a>io.gravitee.repository.model.management.User</class-a>
+    <class-b>io.gravitee.repository.mongodb.management.internal.model.UserMongo</class-b>
     <field>
       <a>username</a>
       <b>name</b>
@@ -14,8 +14,8 @@
   </mapping>  
   
   <mapping> 
-    <class-a>io.gravitee.repository.model.Api</class-a>
-    <class-b>io.gravitee.repository.mongodb.internal.model.ApiMongo</class-b>
+    <class-a>io.gravitee.repository.model.management.Api</class-a>
+    <class-b>io.gravitee.repository.mongodb.management.internal.model.ApiMongo</class-b>
     <field-exclude>
     	<a>owner</a>
     	<b>owner</b>
@@ -27,8 +27,8 @@
   </mapping>  
    
   <mapping> 
-    <class-a>io.gravitee.repository.model.PolicyConfiguration</class-a>
-    <class-b>io.gravitee.repository.mongodb.internal.model.PolicyConfigurationMongo</class-b>
+    <class-a>io.gravitee.repository.model.management.PolicyConfiguration</class-a>
+    <class-b>io.gravitee.repository.mongodb.management.internal.model.PolicyConfigurationMongo</class-b>
   	
     <!-- field-exclude>
     	<a>policy</a>
@@ -37,8 +37,8 @@
   </mapping>  
   
   <mapping> 
-    <class-a>io.gravitee.repository.model.Application</class-a>
-    <class-b>io.gravitee.repository.mongodb.internal.model.ApplicationMongo</class-b>
+    <class-a>io.gravitee.repository.model.management.Application</class-a>
+    <class-b>io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo</class-b>
     <field-exclude>
     	<a>owner</a>
     	<b>owner</b>
@@ -51,8 +51,8 @@
   </mapping>  
   
   <mapping> 
-    <class-a>io.gravitee.repository.model.Team</class-a>
-    <class-b>io.gravitee.repository.mongodb.internal.model.TeamMongo</class-b>
+    <class-a>io.gravitee.repository.model.management.Team</class-a>
+    <class-b>io.gravitee.repository.mongodb.management.internal.model.TeamMongo</class-b>
   </mapping>  
 
 </mappings> 

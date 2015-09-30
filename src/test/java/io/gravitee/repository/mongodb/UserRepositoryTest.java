@@ -27,8 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import io.gravitee.repository.api.UserRepository;
-import io.gravitee.repository.model.User;
+import io.gravitee.repository.api.management.UserRepository;
+import io.gravitee.repository.model.management.User;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { TestRepositoryConfiguration.class })

@@ -1,32 +1,32 @@
 [
    {
       "_id":"user0",
-      "_class":"io.gravitee.repository.mongodb.internal.model.UserMongo",
+      "_class":"io.gravitee.repository.mongodb.management.internal.model.UserMongo",
       "email":"user0@gravitee.io"
    },
    {
       "_id":"user1",
-      "_class":"io.gravitee.repository.mongodb.internal.model.UserMongo",
+      "_class":"io.gravitee.repository.mongodb.management.internal.model.UserMongo",
       "email":"user1@gravitee.io"
    },
    {
       "_id":"user2",
-      "_class":"io.gravitee.repository.mongodb.internal.model.UserMongo",
+      "_class":"io.gravitee.repository.mongodb.management.internal.model.UserMongo",
       "email":"user2@gravitee.io"
    },
    {
       "_id":"user3",
-      "_class":"io.gravitee.repository.mongodb.internal.model.UserMongo",
+      "_class":"io.gravitee.repository.mongodb.management.internal.model.UserMongo",
       "email":"user3@gravitee.io"
    },
    {
       "_id":"user4",
-      "_class":"io.gravitee.repository.mongodb.internal.model.UserMongo",
+      "_class":"io.gravitee.repository.mongodb.management.internal.model.UserMongo",
       "email":"user4@gravitee.io"
    },
    {
       "_id":"user5",
-      "_class":"io.gravitee.repository.mongodb.internal.model.UserMongo",
+      "_class":"io.gravitee.repository.mongodb.management.internal.model.UserMongo",
       "email":"user5@gravitee.io"
    }
 ]

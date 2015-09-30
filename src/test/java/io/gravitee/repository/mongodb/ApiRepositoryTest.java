@@ -33,13 +33,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import io.gravitee.repository.api.ApiRepository;
-import io.gravitee.repository.api.UserRepository;
-import io.gravitee.repository.model.Api;
-import io.gravitee.repository.model.LifecycleState;
-import io.gravitee.repository.model.OwnerType;
-import io.gravitee.repository.model.PolicyConfiguration;
-import io.gravitee.repository.model.User;
+import io.gravitee.repository.api.management.ApiRepository;
+import io.gravitee.repository.api.management.UserRepository;
+import io.gravitee.repository.model.management.Api;
+import io.gravitee.repository.model.management.LifecycleState;
+import io.gravitee.repository.model.management.OwnerType;
+import io.gravitee.repository.model.management.PolicyConfiguration;
+import io.gravitee.repository.model.management.User;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { TestRepositoryConfiguration.class })
