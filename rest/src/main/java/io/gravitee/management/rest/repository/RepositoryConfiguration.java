@@ -15,11 +15,12 @@
  */
 package io.gravitee.management.rest.repository;
 
-import io.gravitee.repository.Scope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
+
+import io.gravitee.repository.Scope;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -29,7 +30,7 @@ public class RepositoryConfiguration {
 
     @Bean
     public static RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor(
-            @Value("${repository.type}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
+            @Value("${management.type}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
         RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor = new RepositoryBeanFactoryPostProcessor();
         repositoryBeanFactoryPostProcessor.setRepositoryType(repositoryType);
         repositoryBeanFactoryPostProcessor.setRepositoryScope(Scope.MANAGEMENT);
