@@ -92,7 +92,6 @@ gulp.task('other', function () {
   var fileFilter = $.filter(function (file) {
     return file.stat.isFile();
   });
-
   return gulp.src([
     path.join(conf.paths.src, '/**/*'),
     path.join('!' + conf.paths.src, '/**/*.{html,css,js,scss}')
@@ -101,8 +100,33 @@ gulp.task('other', function () {
     .pipe(gulp.dest(path.join(conf.paths.dist, '/')));
 });
 
+gulp.task('ramldep', function () {
+  var fileFilter = $.filter(function (file) {
+    return file.stat.isFile();
+  });
+  return gulp.src([
+    path.join(conf.paths.src, '/assets/api-console/**/*.{css,js}')
+  ])
+    .pipe(fileFilter)
+    .pipe(gulp.dest(path.join(conf.paths.dist, '/assets/api-console')));
+});
+
+gulp.task('jquery', function () {
+  var fileFilter = $.filter(function (file) {
+    return file.stat.isFile();
+  });
+  return gulp.src([
+    path.join('bower_components/jquery/dist/jquery.min.js')
+  ])
+    .pipe(fileFilter)
+    .pipe(gulp.dest(path.join(conf.paths.dist, 'bower_components/jquery/dist')));
+});
+
 gulp.task('clean', function (done) {
   $.del([path.join(conf.paths.dist, '/'), path.join(conf.paths.tmp, '/')], done);
 });
 
-gulp.task('build', ['html', 'fonts', 'other']);
+gulp.task('build', ['clean'],  function (cb) {
+  gulp.start(['html', 'fonts', 'other', 'ramldep', 'jquery'], cb)
+});
+

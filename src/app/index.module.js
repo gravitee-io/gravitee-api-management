@@ -41,7 +41,7 @@ import DocumentationService from './documentation/documentation.service';
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi'])
   .constant('malarkey', malarkey)
   .constant('moment', moment)
-  .constant('baseURL', 'http://localhost:8083/')
+  .constant('baseURL', 'http://localhost:8083/management/')
 	
   .config(config)
 
