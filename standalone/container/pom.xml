@@ -92,10 +92,26 @@
             <artifactId>logback-core</artifactId>
             <version>${logback.version}</version>
         </dependency>
+
+        <!-- TODO remove DB drivers dependencies from here -->
+
+        <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
+        </dependency>
     </dependencies>
 
     <properties>
         <jetty.version>9.3.3.v20150827</jetty.version>
+        <postgresql.version>9.1-901-1.jdbc4</postgresql.version>
+        <mysql.version>5.1.32</mysql.version>
     </properties>
 
     <build>
