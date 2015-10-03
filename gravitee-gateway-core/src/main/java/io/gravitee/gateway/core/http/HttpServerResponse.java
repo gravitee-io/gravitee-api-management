@@ -18,9 +18,7 @@ package io.gravitee.gateway.core.http;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Response;
 
-import java.io.OutputStream;
-import java.util.Map;
-import java.util.TreeMap;
+import java.nio.ByteBuffer;
 
 /**
  *
@@ -30,16 +28,16 @@ public class HttpServerResponse implements Response {
 
     private int status;
 
-    private HttpHeaders headers = new HttpHeaders();
-
-    private OutputStream os;
+    private HttpHeaders headers;
 
     public int status() {
         return status;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    @Override
+    public Response status(int statusCode) {
+        this.status = statusCode;
+        return this;
     }
 
     public HttpHeaders headers() {
@@ -47,19 +45,15 @@ public class HttpServerResponse implements Response {
     }
 
     @Override
-    public OutputStream outputStream() {
-        return os;
+    public Response addHeader(String headerName, String headerValue) {
+        headers.add(headerName, headerValue);
+        return this;
     }
 
-    public void setOutputStream(OutputStream os) {
-        this.os = os;
+    @Override
+    public Response write(ByteBuffer byteBuffer) {
+        return null;
     }
-
-    /*
-    public byte [] content() {
-        return os.toByteArray();
-    }
-    */
 
     @Override
     public String toString() {

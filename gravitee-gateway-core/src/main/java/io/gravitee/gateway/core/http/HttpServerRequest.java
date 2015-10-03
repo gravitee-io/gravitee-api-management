@@ -19,9 +19,11 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.handler.Handler;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -78,11 +80,6 @@ public class HttpServerRequest implements Request {
 		return Instant.now();
 	}
 
-	@Override
-	public InputStream inputStream() {
-		return inputStream;
-	}
-
 	public void setLocalAddress(String localAddress) {
 		this.localAddress = localAddress;
 	}
@@ -99,6 +96,16 @@ public class HttpServerRequest implements Request {
 	@Override
 	public String localAddress() {
 		return this.localAddress;
+	}
+
+	@Override
+	public Request bodyHandler(Handler<ByteBuffer> handler) {
+		return null;
+	}
+
+	@Override
+	public Request endHandler(Handler<Void> handler) {
+		return null;
 	}
 
 	public void setInputStream(InputStream inputStream) {

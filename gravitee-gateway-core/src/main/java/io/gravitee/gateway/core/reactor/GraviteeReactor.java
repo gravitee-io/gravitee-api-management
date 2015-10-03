@@ -19,6 +19,8 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -119,14 +121,23 @@ public class GraviteeReactor extends AbstractService implements
     public void process(Request request, Response response, Handler<Response> handler) {
         logger.debug("Receiving a request {} for path {}", request.id(), request.path());
 
-        ReactorHandler reactorHandler = bestHandler(request);
+        try {
+            ReactorHandler reactorHandler = bestHandler(request);
 
-        if (! reactorHandler.equals(errorHandler)) {
-            // wrap the handler with the reporter handler
-            handler = new ReporterHandler(reporterService, request, handler);
+            if (!reactorHandler.equals(errorHandler)) {
+                // wrap the handler with the reporter handler
+                handler = new ReporterHandler(reporterService, request, handler);
+            }
+
+            reactorHandler.handle(request, response, handler);
+        } catch (Exception ex) {
+            logger.error("An unexpected error occurs while processing request", ex);
+
+            // Send an INTERNAL_SERVER_ERROR (500)
+            response.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+            response.addHeader(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+            handler.handle(response);
         }
-
-        reactorHandler.handle(request, response, handler);
     }
 
     private String getHost(Request request) {

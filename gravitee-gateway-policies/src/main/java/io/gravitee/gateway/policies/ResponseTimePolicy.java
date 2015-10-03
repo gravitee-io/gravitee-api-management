@@ -45,7 +45,7 @@ public class ResponseTimePolicy {
     @OnResponse
     public void onResponse(Request request, Response response, PolicyChain handler) {
         long endTime = System.currentTimeMillis();
-        response.headers().set(GraviteeHttpHeader.X_GRAVITEE_RESPONSE_TIME, String.valueOf(endTime - startTime));
+        response.addHeader(GraviteeHttpHeader.X_GRAVITEE_RESPONSE_TIME, String.valueOf(endTime - startTime));
         handler.doNext(request, response);
     }
 

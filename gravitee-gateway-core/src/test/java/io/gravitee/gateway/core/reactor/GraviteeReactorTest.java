@@ -21,11 +21,11 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.core.AbstractCoreTest;
 import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.external.ApiExternalResource;
 import io.gravitee.gateway.core.external.ApiServlet;
 import io.gravitee.gateway.core.http.HttpServerRequest;
 import io.gravitee.gateway.core.http.HttpServerResponse;
-import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.reporter.ConsoleReporter;
 import io.gravitee.gateway.core.reporter.ReporterManager;
@@ -35,7 +35,6 @@ import io.gravitee.plugin.api.PluginType;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -79,7 +78,6 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
         HttpServerRequest req = new HttpServerRequest();
         HttpServerResponse response = new HttpServerResponse();
-        response.setOutputStream(new ByteArrayOutputStream());
 
         req.setRequestURI(URI.create("http://localhost/team"));
         req.setMethod(HttpMethod.GET);
