@@ -21,7 +21,7 @@
     <img class="gravitee-logo" src="assets/images/logo_gravitee.png" alt="Gravitee"><br>
     Because i'm API!
   </p>
-  <md-button class="md-raised animated infinite" ng-class="mainCtrl.classAnimation">Discover our APIs flow</md-button>
-  <p>
-  </p>
+  <md-button ng-if="!authenticated" class="md-raised animated infinite" ng-class="mainCtrl.classAnimation" ng-href="#login">
+    Login
+  </md-button>
 </section>

@@ -15,19 +15,29 @@
  */
 function runBlock ($rootScope, $window, $http) {
   'ngInject';
+  var graviteeAuthenticationKey = 'GraviteeAuthentication';
 
   function setAuthorization() {
-    var graviteeAuthentication = $window.sessionStorage.getItem('GraviteeAuthentication');
+    var graviteeAuthentication = $window.sessionStorage.getItem(graviteeAuthenticationKey);
     if (graviteeAuthentication) {
       $http.defaults.headers.common.Authorization = 'Basic ' + graviteeAuthentication;
+      $rootScope.authenticated = true;
+    } else {
+      delete $http.defaults.headers.common.Authorization;
+      $rootScope.authenticated = false;
     }
   }
 
+  setAuthorization();
+
   $rootScope.$on('authenticationSuccess', function() {
-  	setAuthorization();
+    setAuthorization();
   });
 
-  setAuthorization();
+  $rootScope.$on('graviteeLogout', function() {
+    $window.sessionStorage.removeItem(graviteeAuthenticationKey);
+    $window.location.href = '/';
+  });
 }
 
 export default runBlock;

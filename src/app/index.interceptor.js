@@ -15,6 +15,7 @@
  */
 function interceptorConfig ($httpProvider) {
   'ngInject';
+  $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
   var interceptorUnauthorized = ['$location', '$q', function($location, $q) {
     return {

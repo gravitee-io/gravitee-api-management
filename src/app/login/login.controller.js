@@ -22,7 +22,7 @@ class LoginController {
     this.$location = $location;
 		this.$window = $window;
 		this.$rootScope = $rootScope;
-    this.user = {username:'user', password:'password'};
+    this.user = {};
   }
 
   login() {
@@ -30,12 +30,10 @@ class LoginController {
     this.LoginService.login(this.user).then(function() {
 			that.$window.sessionStorage.setItem('GraviteeAuthentication', btoa(that.user.username + ":" + that.user.password));			
 			that.user = {};
-			that.$rootScope.authenticated = true;
 			that.$rootScope.$broadcast('authenticationSuccess');
       that.$location.path('/');
     }).catch(function () {
 			that.user = {};
-			that.$rootScope.authenticated = false;
       that.NotificationService.show("Wrong user or password!");
     });
   }

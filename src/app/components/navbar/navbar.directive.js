@@ -15,13 +15,11 @@
  */
 class NavbarDirective {
   constructor () {
-    'ngInject';
-
     let directive = {
       restrict: 'E',
       templateUrl: 'app/components/navbar/navbar.html',
       controller: NavbarController,
-      controllerAs: 'vm',
+      controllerAs: 'navbarCtrl',
       bindToController: true
     };
 
@@ -30,6 +28,14 @@ class NavbarDirective {
 }
 
 class NavbarController {
+  constructor ($rootScope) {
+    'ngInject';
+    this.$rootScope = $rootScope;
+  }
+
+  logout() {
+    this.$rootScope.$broadcast('graviteeLogout');
+  }
 }
 
 export default NavbarDirective;
