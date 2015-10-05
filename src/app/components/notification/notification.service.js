@@ -25,6 +25,10 @@ class NotificationService {
           .hideDelay(3000)
       );
     };
+
+    this.error = function (error, message) {
+      this.show(message || error.data.message || error.statusText);
+    };
   }
 }
 

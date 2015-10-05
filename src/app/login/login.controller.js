@@ -32,9 +32,6 @@ class LoginController {
 			that.user = {};
 			that.$rootScope.$broadcast('authenticationSuccess');
       that.$location.path('/');
-    }).catch(function () {
-			that.user = {};
-      that.NotificationService.show("Wrong user or password!");
     });
   }
 }

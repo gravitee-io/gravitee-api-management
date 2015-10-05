@@ -83,8 +83,6 @@ function DialogTeamController($scope, $mdDialog, TeamService, team, Notification
       NotificationService.show($scope.creationMode ? 'Team created with success!' : 'Team updated with success!');
 
       $mdDialog.hide();
-    }).catch(function (error) {
-      NotificationService.show(error.data.message);
     });
   };
 }
