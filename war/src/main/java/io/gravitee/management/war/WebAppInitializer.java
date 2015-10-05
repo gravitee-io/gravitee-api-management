@@ -15,11 +15,6 @@
  */
 package io.gravitee.management.war;
 
-import io.gravitee.management.rest.resource.GraviteeApplication;
-import io.gravitee.management.rest.spring.PropertiesConfiguration;
-import io.gravitee.management.rest.spring.RestConfiguration;
-import io.gravitee.management.war.utils.PropertiesLoader;
-
 import java.io.File;
 import java.util.EnumSet;
 import java.util.Properties;
@@ -37,6 +32,11 @@ import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
+
+import io.gravitee.management.rest.resource.GraviteeApplication;
+import io.gravitee.management.rest.spring.PropertiesConfiguration;
+import io.gravitee.management.rest.spring.RestConfiguration;
+import io.gravitee.management.war.utils.PropertiesLoader;
 
 /**
  * 
@@ -66,10 +66,10 @@ public class WebAppInitializer implements WebApplicationInitializer {
 		// initialize
 		initialize();
 		Properties prop = propertiesLoader.load();
-		
+
 		// REST configuration
 		ServletRegistration.Dynamic servletRegistration = context.addServlet("REST", ServletContainer.class.getName());
-		servletRegistration.addMapping("/*");
+		servletRegistration.addMapping("/management/*");
 		servletRegistration.setLoadOnStartup(1);
 		servletRegistration.setInitParameter("javax.ws.rs.Application", GraviteeApplication.class.getName());
 
@@ -80,7 +80,8 @@ public class WebAppInitializer implements WebApplicationInitializer {
 		context.setInitParameter("contextConfigLocation", RestConfiguration.class.getName());
 
 		// Spring Security filter
-		context.addFilter("springSecurityFilterChain", DelegatingFilterProxy.class).addMappingForUrlPatterns(EnumSet.<DispatcherType> of(DispatcherType.REQUEST, DispatcherType.FORWARD), false, "/*");
+		context.addFilter("springSecurityFilterChain", DelegatingFilterProxy.class).addMappingForUrlPatterns(
+			EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD), false, "/*");
 	}
 
 }

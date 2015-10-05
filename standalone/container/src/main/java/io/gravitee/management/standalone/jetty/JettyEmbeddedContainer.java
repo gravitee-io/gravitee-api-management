@@ -15,11 +15,6 @@
  */
 package io.gravitee.management.standalone.jetty;
 
-import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.management.rest.resource.GraviteeApplication;
-import io.gravitee.management.standalone.jetty.handler.NoContentOutputErrorHandler;
-import io.gravitee.management.standalone.spring.StandaloneConfiguration;
-
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
@@ -30,8 +25,6 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.AbstractEnvironment;
@@ -39,15 +32,15 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.management.rest.resource.GraviteeApplication;
+import io.gravitee.management.standalone.jetty.handler.NoContentOutputErrorHandler;
+import io.gravitee.management.standalone.spring.StandaloneConfiguration;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbeddedContainer> {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(JettyEmbeddedContainer.class);
 
     @Autowired
     private Server server;
@@ -69,7 +62,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
         servletHolder.setInitParameter("javax.ws.rs.Application", GraviteeApplication.class.getName());
         servletHolder.setInitOrder(0);
-        context.addServlet(servletHolder, "/*");
+        context.addServlet(servletHolder, "/management/*");
 
         // Spring configuration
         System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, securityImplementation);

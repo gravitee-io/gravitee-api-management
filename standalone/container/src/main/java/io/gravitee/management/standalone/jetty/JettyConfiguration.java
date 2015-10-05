@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class JettyConfiguration {
 
-    @Value("${jetty.port:8082}")
+    @Value("${jetty.port:8083}")
     private int httpPort;
 
     @Value("${jetty.idleTimeout:30000}")

@@ -81,6 +81,7 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
                 LOGGER.debug("User {} has full access because has role admin", username);
                 return;
             }
+
             ApiEntity api = apiService.findByName(apiName).get();
 
             if (permissionType == PermissionType.VIEW_API) {
