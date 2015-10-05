@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.service.impl;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +32,11 @@ import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.api.management.TeamMembershipRepository;
+import io.gravitee.repository.api.management.UserRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.management.Member;
 import io.gravitee.repository.model.management.TeamRole;
+import io.gravitee.repository.model.management.User;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -47,6 +51,9 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
 
     @Autowired
     private TeamMembershipRepository teamMembershipRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ApiService apiService;
@@ -68,6 +75,12 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
     private void validateApi(String username, String apiName, PermissionType permissionType) {
         try {
             LOGGER.debug("Validate user rights for API: {}", apiName);
+
+            final Optional<User> user = userRepository.findByUsername(username);
+            if (user.isPresent() && user.get().getRoles().contains("ROLE_ADMIN")) {
+                LOGGER.debug("User {} has full access because has role admin", username);
+                return;
+            }
             ApiEntity api = apiService.findByName(apiName).get();
 
             if (permissionType == PermissionType.VIEW_API) {
