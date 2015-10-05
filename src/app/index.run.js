@@ -15,12 +15,19 @@
  */
 function runBlock ($rootScope, $window, $http) {
   'ngInject';
-	
+
+  function setAuthorization() {
+    var graviteeAuthentication = $window.sessionStorage.getItem('GraviteeAuthentication');
+    if (graviteeAuthentication) {
+      $http.defaults.headers.common.Authorization = 'Basic ' + graviteeAuthentication;
+    }
+  }
+
   $rootScope.$on('authenticationSuccess', function() {
-  	$http.defaults.headers.common.Authorization = 'Basic ' + $window.sessionStorage.getItem('GraviteeAuthentication');
+  	setAuthorization();
   });
 
-  $http.defaults.headers.common.Authorization = 'Basic ' + $window.sessionStorage.getItem('GraviteeAuthentication');
+  setAuthorization();
 }
 
 export default runBlock;
