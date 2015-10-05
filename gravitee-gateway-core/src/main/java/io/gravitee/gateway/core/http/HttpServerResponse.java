@@ -30,6 +30,8 @@ public class HttpServerResponse implements Response {
 
     private HttpHeaders headers;
 
+    private boolean chunked = false;
+
     public int status() {
         return status;
     }
@@ -44,15 +46,33 @@ public class HttpServerResponse implements Response {
         return headers;
     }
 
+    /*
     @Override
     public Response addHeader(String headerName, String headerValue) {
         headers.add(headerName, headerValue);
         return this;
     }
+    */
 
     @Override
     public Response write(ByteBuffer byteBuffer) {
         return null;
+    }
+
+    @Override
+    public Response chunked(boolean chunked) {
+        this.chunked = chunked;
+        return this;
+    }
+
+    @Override
+    public boolean chunked() {
+        return this.chunked;
+    }
+
+    @Override
+    public void end() {
+
     }
 
     @Override
