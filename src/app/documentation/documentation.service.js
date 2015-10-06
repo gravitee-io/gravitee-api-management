@@ -22,11 +22,11 @@
   }
 
    list(apiName) {
-     return this.$http.get(this.documentationURL + "pages/" + apiName);
+     return this.$http.get(this.documentationURL + 'pages/' + apiName);
    }
 
    getContentUrl(pageName) {
-     return this.documentationURL + "pages/" + pageName + '/content';
+     return this.documentationURL + 'pages/' + pageName + '/content';
    }
 
   createPage(newPage) {
@@ -34,11 +34,11 @@
   }
 
   deletePage(name) {
-    return this.$http.post(this.documentationURL + "pages/" + name + "/delete");
+    return this.$http.post(this.documentationURL + 'pages/' + name + '/delete');
   }
 
   editPage(name, editPage) {
-  	return this.$http.post(this.documentationURL + "pages/" + name + "/edit", editPage);
+  	return this.$http.post(this.documentationURL + 'pages/' + name + '/edit', editPage);
   }
 }
 

@@ -22,7 +22,7 @@
         <div class="gravitee-policies-container" layout="">
             <div class="gravitee-policy-container" ng-repeat="(type, policies) in apiCtrl.policies" ng-include="'app/policy/policy.html'"></div>
         </div>
-        <table class="gravitee-flow-container">
+        <table class="gravitee-flow-container gravitee-table">
             <tr>
                 <th>Public URI</th>
                 <th>--></th>
@@ -33,13 +33,14 @@
             <tr>
                 <td class="gravitee-flow-link-container">
                     <div class="gravitee-flow-link">
-                        <a href="{{apiCtrl.api.public}}" target="_blank">{{apiCtrl.api.public}}</a>
+                        <span>{{apiCtrl.api.public}}</span>
                     </div>
                 </td>
                 <td class="gravitee-flow-inbound">
                 </td>
                 <td class="gravitee-policy-container">
-                    <div ng-repeat="policies in apiCtrl.api.policies" ng-include="'app/policy/policy.html'"></div></td>
+                    <div ng-repeat="policies in apiCtrl.api.policies" ng-include="'app/policy/policy.html'"></div>
+                </td>
                 <td class="gravitee-flow-outbound">
                 </td>
                 <td class="gravitee-flow-link-container">
@@ -59,25 +60,46 @@
 
     </div>
 
-    <div class="gravitee-api-container">
-        <md-input-container class="md-icon-float">
-            <label>Name</label>
-            <input ng-model="apiCtrl.api.name" type="text" ng-required="true">
-        </md-input-container>
+    <form name="formApi" class="gravitee-api-container" ng-submit="apiCtrl.update(apiCtrl.api)" novalidate>
 
-        <md-input-container class="md-icon-float">
-            <label>State</label>
-            <input ng-model="apiCtrl.api.state" type="text" ng-required="true">
-        </md-input-container>
+        <div layout="" layout-sm="column">
+            <md-input-container class="flex md-icon-float">
+                <label>Name</label>
+                <input ng-model="apiCtrl.api.name" type="text" ng-required="true" ng-disabled="true">
+            </md-input-container>
 
-        <md-input-container class="md-icon-float">
-            <label>Public URI</label>
-            <input ng-model="apiCtrl.api.public" type="text" ng-required="true">
-        </md-input-container>
+            <md-input-container class="flex md-icon-float">
+                <label>Public URI</label>
+                <input ng-model="apiCtrl.api.public" type="text" ng-required="true">
+            </md-input-container>
+        </div>
+        <div layout="" layout-sm="column">
+            <md-input-container class="flex md-icon-float">
+                <label>Description</label>
+                <input ng-model="apiCtrl.api.description" type="text" ng-required="true">
+            </md-input-container>
 
-        <md-input-container class="md-icon-float">
-            <label>Target URI</label>
-            <input ng-model="apiCtrl.api.target" type="text" ng-required="true">
-        </md-input-container>
-    </div>
+            <md-input-container class="flex md-icon-float">
+                <label>Target URI</label>
+                <input ng-model="apiCtrl.api.target" type="text" ng-required="true">
+            </md-input-container>
+        </div>
+        <div layout="" layout-sm="column">
+            <md-input-container class="flex md-icon-float">
+                <label>Version</label>
+                <input ng-model="apiCtrl.api.version" type="text" ng-required="true">
+            </md-input-container>
+
+            <md-input-container class="flex md-icon-float">
+                <label>Private</label>
+                <input ng-model="apiCtrl.api.private" type="checkbox">
+            </md-input-container>
+        </div>
+
+        <div class="md-actions gravitee-api-save-button" layout="row">
+            <md-button type="submit" class="md-primary" ng-disabled="formApi.$invalid || formApi.$pristine">
+                Save
+            </md-button>
+        </div>
+    </form>
 </section>

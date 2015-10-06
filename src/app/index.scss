@@ -51,8 +51,8 @@ section.jumbotron {
 }
 
 .gravitee-table {
-   width: 100%;
-  
+  width: 100%;
+
   th {
     text-align: center;
   }
@@ -83,6 +83,10 @@ section.jumbotron {
 
 md-icon {
   margin: 20px;
+}
+
+.flex {
+  flex: 1;
 }
 
 /**

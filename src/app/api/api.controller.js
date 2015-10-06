@@ -15,11 +15,12 @@
  */
 /* global document:false */
 class ApiController {
-  constructor (ApiService, $stateParams, PolicyService, $mdDialog) {
+  constructor (ApiService, $stateParams, $mdDialog, NotificationService, $scope) {
     'ngInject';
     this.ApiService = ApiService;
-    this.PolicyService = PolicyService;
     this.$mdDialog = $mdDialog;
+    this.NotificationService = NotificationService;
+    this.$scope = $scope;
 
     this.apis = [];
     if ($stateParams.apiName) {
@@ -35,7 +36,6 @@ class ApiController {
   get(apiName) {
     this.ApiService.get(apiName).then(response => {
       this.api = response.data;
-      this.api.policies = [this.api.onRequestPolicies, this.api.onResponsePolicies];
     });
   }
 
@@ -64,7 +64,7 @@ class ApiController {
   }
 
   listPolicies(apiName) {
-    this.PolicyService.list(apiName).then(response => {
+    this.ApiService.listPolicies(apiName).then(response => {
       // TODO filter request, response and request/response policies
       this.policies = {
         'OnRequest': response.data,
@@ -84,6 +84,13 @@ class ApiController {
       if (api) {
         that.list();
       }
+    });
+  }
+
+  update(api) {
+    this.ApiService.update(api).then(() => {
+      this.$scope.formApi.$setPristine();
+      this.NotificationService.show('Api updated with success');
     });
   }
 }

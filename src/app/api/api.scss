@@ -10,7 +10,7 @@ $flowRadius: 120px;
 }
 
 .gravitee-flow-container {
-  width: 100%;
+  display: inline;
 
   .gravitee-flow-logo-container {
     width: 20%;
@@ -50,4 +50,8 @@ $flowRadius: 120px;
     max-width: 300px;
     word-wrap: break-word;
   }
+}
+
+.gravitee-api-save-button {
+  display: block;
 }

@@ -26,7 +26,6 @@ import runBlock from './index.run';
 import MainController from './main/main.controller';
 import ApiService from './api/api.service';
 import ApiController from './api/api.controller';
-import PolicyService from './policy/policy.service.js';
 import TeamService from './user/team.service';
 import UserService from './user/user.service';
 import UserController from './user/user.controller';
@@ -55,7 +54,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .controller('MainController', MainController)
   .service('ApiService', ApiService)
   .controller('ApiController', ApiController)
-  .service('PolicyService', PolicyService)
   .service('TeamService', TeamService)
   .service('UserService', UserService)
   .controller('UserController', UserController)

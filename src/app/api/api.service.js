@@ -46,8 +46,18 @@ class ApiService {
     return this.$http.post(this.teamsURL + team + '/apis', api);
   }
 
+  update(api) {
+    return this.$http.put(this.apisURL + api.name,
+      {'target': api.target, 'private': api.private, 'version': api.version, 'public': api.public, 'description': api.description}
+    );
+  }
+
   delete(name) {
     return this.$http.delete(this.apisURL + name);
+  }
+
+  listPolicies(apiName) {
+    return this.$http.get(this.apisURL + apiName + '/policies');
   }
 }
 
