@@ -15,11 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.mongodb.*;
+import com.mongodb.MongoClientOptions.Builder;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeDozerMapper;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import io.gravitee.repository.mongodb.management.transaction.NoTransactionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
@@ -31,20 +31,14 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
-import org.springframework.integration.transaction.PseudoTransactionManager;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.MongoClientOptions.Builder;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
-import com.mongodb.WriteConcern;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeDozerMapper;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Configuration
 @ComponentScan
@@ -206,6 +200,6 @@ public class RepositoryConfiguration extends AbstractMongoConfiguration {
 
 	@Bean
 	public AbstractPlatformTransactionManager graviteeTransactionManager() {
-		return new PseudoTransactionManager();
+		return new NoTransactionManager();
 	}
 }
