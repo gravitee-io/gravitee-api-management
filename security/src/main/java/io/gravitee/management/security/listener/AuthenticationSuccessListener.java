@@ -15,16 +15,40 @@
  */
 package io.gravitee.management.security.listener;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.Authentication;
+
+import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.service.UserService;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class AuthenticationSuccessListener implements ApplicationListener<AuthenticationSuccessEvent> {
 
+    @Autowired
+    private UserService userService;
+
     @Override
     public void onApplicationEvent(AuthenticationSuccessEvent event) {
-        System.out.println("User Logged In: " + event.getAuthentication());
+        final Authentication authentication = event.getAuthentication();
+        final Optional<UserEntity> user = userService.findByName(authentication.getName());
+        if (!user.isPresent()) {
+            final NewUserEntity newUser = new NewUserEntity();
+            newUser.setUsername(authentication.getName());
+            final List<String> roles = authentication.getAuthorities().stream().map(
+                grantedAuthority -> grantedAuthority.getAuthority()
+            ).collect(Collectors.toList());
+            newUser.setRoles(roles);
+            userService.create(newUser);
+        }
+        System.out.println("User Logged In: " + authentication);
     }
 }
