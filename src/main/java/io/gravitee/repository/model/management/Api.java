@@ -84,6 +84,11 @@ public class Api {
      */
     private LifecycleState lifecycleState = LifecycleState.STOPPED;
 
+    /**
+     * The api JSON descriptor
+     */
+    private boolean jsonDescriptor;
+
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -180,6 +185,14 @@ public class Api {
         this.description = description;
     }
 
+    public boolean isJsonDescriptor() {
+        return jsonDescriptor;
+    }
+
+    public void setJsonDescriptor(boolean jsonDescriptor) {
+        this.jsonDescriptor = jsonDescriptor;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -200,6 +213,7 @@ public class Api {
         sb.append("name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", lifecycleState=").append(lifecycleState);
+        sb.append(", jsonDescriptor=").append(jsonDescriptor);
         sb.append('}');
         return sb.toString();
     }
