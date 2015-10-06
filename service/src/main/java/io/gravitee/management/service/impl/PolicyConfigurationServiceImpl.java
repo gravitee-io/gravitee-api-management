@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service.impl;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -24,13 +24,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.management.model.PolicyConfigurationEntity;
 import io.gravitee.management.service.PolicyConfigurationService;
+import io.gravitee.management.service.exceptions.NoValidDesciptorException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.api.management.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.management.Api;
-import io.gravitee.repository.model.management.PolicyConfiguration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -46,18 +47,22 @@ public class PolicyConfigurationServiceImpl extends TransactionalService impleme
     @Autowired
     private ApiRepository apiRepository;
 
+    private ObjectMapper mapper = new ObjectMapper();
+
     @Override
     public List<PolicyConfigurationEntity> getPolicies(String apiName) {
         try {
             LOGGER.debug("Get policies for API: {}", apiName);
-            List<PolicyConfiguration> policyConfigurations = apiRepository.findPoliciesByApi(apiName);
-            List<PolicyConfigurationEntity> policyConfigurationEntities = new ArrayList<>(policyConfigurations.size());
-
-            for(PolicyConfiguration policyConfiguration : policyConfigurations) {
-                policyConfigurationEntities.add(convert(policyConfiguration));
+            final String descriptorByApi = apiRepository.findDescriptorByApi(apiName);
+            if (descriptorByApi == null || descriptorByApi.isEmpty()) {
+                return Collections.emptyList();
             }
-
-            return policyConfigurationEntities;
+            try {
+                return mapper.readValue(descriptorByApi, List.class);
+            } catch (final Exception e) {
+                LOGGER.error(e.getMessage(), e);
+                throw new NoValidDesciptorException(descriptorByApi);
+            }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get policies for API: {}", apiName, ex);
             throw new TechnicalManagementException("An error occurs while trying to get policies for API: " + apiName, ex);
@@ -68,15 +73,14 @@ public class PolicyConfigurationServiceImpl extends TransactionalService impleme
     public void updatePolicyConfigurations(String apiName, List<PolicyConfigurationEntity> policyConfigurationEntities) {
         try {
             LOGGER.debug("Update policies for API: {}", apiName);
-            List<PolicyConfiguration> policyConfigurations = new ArrayList<>(policyConfigurationEntities.size());
 
-            for(PolicyConfigurationEntity policyConfigurationEntity : policyConfigurationEntities) {
-                PolicyConfiguration singleConfiguration = convert(policyConfigurationEntity);
-                singleConfiguration.setCreatedAt(new Date());
-                policyConfigurations.add(convert(policyConfigurationEntity));
+            try {
+                apiRepository.updateDescriptor(apiName, mapper.writeValueAsString(policyConfigurationEntities));
+            } catch (final Exception e) {
+                LOGGER.error(e.getMessage(), e);
+                throw new TechnicalManagementException("Error while updating the API JSON descriptor", e);
             }
 
-            apiRepository.updatePoliciesConfiguration(apiName, policyConfigurations);
             Api api = apiRepository.findByName(apiName).get();
             api.setUpdatedAt(new Date());
             apiRepository.update(api);
@@ -84,24 +88,5 @@ public class PolicyConfigurationServiceImpl extends TransactionalService impleme
             LOGGER.error("An error occurs while trying to update policies for API: {}", apiName, ex);
             throw new TechnicalManagementException("An error occurs while trying to update policies for API: " + apiName, ex);
         }
-    }
-
-    private static PolicyConfigurationEntity convert(PolicyConfiguration policyConfiguration) {
-        PolicyConfigurationEntity policyConfigurationEntity = new PolicyConfigurationEntity();
-
-        policyConfigurationEntity.setPolicy(policyConfiguration.getPolicy());
-        policyConfigurationEntity.setConfiguration(policyConfiguration.getConfiguration());
-        policyConfigurationEntity.setCreatedAt(policyConfiguration.getCreatedAt());
-
-        return policyConfigurationEntity;
-    }
-
-    private static PolicyConfiguration convert(PolicyConfigurationEntity policyConfigurationEntity) {
-        PolicyConfiguration policyConfiguration = new PolicyConfiguration();
-
-        policyConfiguration.setPolicy(policyConfigurationEntity.getPolicy());
-        policyConfiguration.setConfiguration(policyConfigurationEntity.getConfiguration());
-
-        return policyConfiguration;
     }
 }
