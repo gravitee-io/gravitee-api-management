@@ -23,25 +23,23 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
-import io.gravitee.repository.mongodb.management.internal.model.PolicyConfigurationMongo;
-import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
-import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.ApiAssociationMongo;
-import io.gravitee.repository.mongodb.management.internal.team.TeamMongoRepository;
 import io.gravitee.repository.api.management.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.management.Api;
 import io.gravitee.repository.model.management.OwnerType;
 import io.gravitee.repository.model.management.PolicyConfiguration;
+import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.ApiAssociationMongo;
+import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
+import io.gravitee.repository.mongodb.management.internal.model.PolicyConfigurationMongo;
+import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
+import io.gravitee.repository.mongodb.management.internal.team.TeamMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 
 @Component
 public class ApiRepositoryImpl implements ApiRepository {
@@ -61,9 +59,6 @@ public class ApiRepositoryImpl implements ApiRepository {
 	
 	@Autowired
 	private GraviteeMapper mapper;
-	
-	private Logger logger = LoggerFactory.getLogger(ApiRepositoryImpl.class);
-
 	
 	@Override
 	public Optional<Api> findByName(String apiName) throws TechnicalException {
