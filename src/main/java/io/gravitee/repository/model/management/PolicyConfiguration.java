@@ -20,6 +20,7 @@ import java.util.Date;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@Deprecated
 public class PolicyConfiguration {
 
     /**
