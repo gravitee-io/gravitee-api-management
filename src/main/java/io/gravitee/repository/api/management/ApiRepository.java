@@ -106,27 +106,57 @@ public interface ApiRepository {
 
     /**
      * Update an API policies
-     * 
+     *
      * @param apiName API name
      * @param policyConfigurations Ordered list of {@link PolicyConfiguration} to set to the API
      */
-    void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigurations) throws TechnicalException;
-  
+    @Deprecated
+    default void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigurations) throws TechnicalException {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Update a API policy
-     * 
+     *
      * @param apiName API name
      * @param policyConfiguration {@link PolicyConfiguration} to update
      */
-    void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfiguration) throws TechnicalException;
+    @Deprecated
+    default void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfiguration) throws TechnicalException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Update a API policy descriptor
+     *
+     * @param apiName API name
+     * @param jsonDescriptor to update
+     */
+    default void updateDescriptor(String apiName, String jsonDescriptor) throws TechnicalException {
+        // TODO remove default
+    }
 
     /**
      * Give all {@link PolicyConfiguration} for an API
-     * 
+     *
+     * @param apiName API name
+     * @return API JSON descriptor
+     */
+    default String findDescriptorByApi(String apiName) throws TechnicalException {
+        // TODO remove default
+        return null;
+    }
+
+    /**
+     * Give all {@link PolicyConfiguration} for an API
+     *
      * @param apiName API name
      * @return API policies configuration
      */
-    List<PolicyConfiguration> findPoliciesByApi(String apiName) throws TechnicalException;
+    @Deprecated
+    default List<PolicyConfiguration> findPoliciesByApi(String apiName) throws TechnicalException {
+        throw new UnsupportedOperationException();
+    }
     
     /**
      * Find APIs by creator
