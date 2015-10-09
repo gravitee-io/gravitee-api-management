@@ -15,12 +15,12 @@
  */
 package io.gravitee.management.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -51,7 +51,7 @@ public class UserEntity {
     /**
      * The user email
      */
-    private String mail;
+    private String email;
     
     /**
      * The user roles
@@ -95,12 +95,12 @@ public class UserEntity {
         this.createdAt = createdAt;
     }
 
-    public String getMail() {
-        return mail;
+    public String getEmail() {
+        return email;
     }
 
-    public void setMail(String mail) {
-        this.mail = mail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public Date getUpdatedAt() {
@@ -153,7 +153,7 @@ public class UserEntity {
         final StringBuilder sb = new StringBuilder("UserEntity{");
         sb.append("firstname='").append(firstname).append('\'');
         sb.append(", lastname='").append(lastname).append('\'');
-        sb.append(", mail='").append(mail).append('\'');
+        sb.append(", email='").append(email).append('\'');
         sb.append(", username='").append(username).append('\'');
         sb.append(", roles='").append(roles).append('\'');
         sb.append('}');

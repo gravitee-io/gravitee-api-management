@@ -81,6 +81,9 @@ public class UserServiceImpl extends TransactionalService implements UserService
     }
 
     private static User convert(NewUserEntity newUserEntity) {
+        if (newUserEntity == null) {
+            return null;
+        }
         User user = new User();
 
         user.setUsername(newUserEntity.getUsername());
@@ -93,10 +96,13 @@ public class UserServiceImpl extends TransactionalService implements UserService
     }
 
     private static UserEntity convert(User user) {
+        if (user == null) {
+            return null;
+        }
         UserEntity userEntity = new UserEntity();
 
         userEntity.setUsername(user.getUsername());
-        userEntity.setMail(user.getEmail());
+        userEntity.setEmail(user.getEmail());
         userEntity.setFirstname(user.getFirstname());
         userEntity.setLastname(user.getLastname());
         userEntity.setPassword(user.getPassword());
