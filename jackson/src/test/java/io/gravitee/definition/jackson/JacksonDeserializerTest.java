@@ -65,8 +65,7 @@ public class JacksonDeserializerTest {
     public void definition_noPath() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-nopath.json");
 
-        Assert.assertNotNull(api.getPaths());
-        Assert.assertEquals(0, api.getPaths().size());
+        Assert.assertNull(api.getPaths());
     }
 
     @Test
