@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.model.management;
 
-import java.net.URI;
 import java.util.Date;
 import java.util.Objects;
 
@@ -40,14 +39,9 @@ public class Api {
     private String version;
 
     /**
-     * The uri used to expose api.
+     * The api JSON definition
      */
-    private URI publicURI;
-    
-    /**
-     * The uri of consumed api.
-     */
-    private URI targetURI;
+    private String definition;
 
     /**
      * The Api creation date
@@ -84,11 +78,6 @@ public class Api {
      */
     private LifecycleState lifecycleState = LifecycleState.STOPPED;
 
-    /**
-     * The api JSON descriptor
-     */
-    private boolean jsonDescriptor;
-
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -111,22 +100,6 @@ public class Api {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public URI getPublicURI() {
-        return publicURI;
-    }
-
-    public void setPublicURI(URI publicURI) {
-        this.publicURI = publicURI;
-    }
-
-    public URI getTargetURI() {
-        return targetURI;
-    }
-
-    public void setTargetURI(URI targetURI) {
-        this.targetURI = targetURI;
     }
 
     public Date getUpdatedAt() {
@@ -185,12 +158,12 @@ public class Api {
         this.description = description;
     }
 
-    public boolean isJsonDescriptor() {
-        return jsonDescriptor;
+    public String getDefinition() {
+        return definition;
     }
 
-    public void setJsonDescriptor(boolean jsonDescriptor) {
-        this.jsonDescriptor = jsonDescriptor;
+    public void setDefinition(String definition) {
+        this.definition = definition;
     }
 
     @Override
@@ -213,7 +186,6 @@ public class Api {
         sb.append("name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", lifecycleState=").append(lifecycleState);
-        sb.append(", jsonDescriptor=").append(jsonDescriptor);
         sb.append('}');
         return sb.toString();
     }
