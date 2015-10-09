@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -263,10 +264,16 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setName(api.getName());
         apiEntity.setCreatedAt(api.getCreatedAt());
         apiEntity.setPrivate(api.isPrivateApi());
-        /*
-        apiEntity.setPublicURI(api.getPublicURI());
-        apiEntity.setTargetURI(api.getTargetURI());
-        */
+
+        if (api.getDefinition() != null) {
+            try {
+                ApiDefinition definition = objectMapper.readValue(api.getDefinition(), ApiDefinition.class);
+                apiEntity.setProxy(definition.getProxy());
+                apiEntity.setPaths(definition.getPaths());
+            } catch (IOException ioe) {
+                LOGGER.error("Unexpected error while generating API definition", ioe);
+            }
+        }
         apiEntity.setUpdatedAt(api.getUpdatedAt());
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
