@@ -24,17 +24,7 @@
     	<a>creator</a>
     	<b>creator</b>
     </field-exclude>
-  </mapping>  
-   
-  <mapping> 
-    <class-a>io.gravitee.repository.model.management.PolicyConfiguration</class-a>
-    <class-b>io.gravitee.repository.mongodb.management.internal.model.PolicyConfigurationMongo</class-b>
-  	
-    <!-- field-exclude>
-    	<a>policy</a>
-    	<b>policy</b>
-    </field-exclude-->
-  </mapping>  
+  </mapping>
   
   <mapping> 
     <class-a>io.gravitee.repository.model.management.Application</class-a>

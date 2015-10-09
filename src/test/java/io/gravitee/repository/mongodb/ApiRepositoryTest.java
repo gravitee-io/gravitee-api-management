@@ -17,7 +17,10 @@ package io.gravitee.repository.mongodb;
 
 import io.gravitee.repository.api.management.ApiRepository;
 import io.gravitee.repository.api.management.UserRepository;
-import io.gravitee.repository.model.management.*;
+import io.gravitee.repository.model.management.Api;
+import io.gravitee.repository.model.management.LifecycleState;
+import io.gravitee.repository.model.management.OwnerType;
+import io.gravitee.repository.model.management.User;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,8 +30,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { TestRepositoryConfiguration.class })
@@ -261,53 +266,6 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			Set<Api> apis = apiRepository.findByApplication("application-sample");
 			Assert.assertNotNull(apis);
 			Assert.assertEquals(2, apis.size());
-			
-		}catch(Exception e){
-			logger.error("Error while finding api by application",e);
-			Assert.fail("Error while finding api by application");
-		}
-	}
-
-	@Test
-	public void updatePoliciesConfigurationTest() throws Exception {
-		
-		PolicyConfiguration policyConfiguration = new PolicyConfiguration();
-		policyConfiguration.setPolicy("policy1");
-		policyConfiguration.setConfiguration("{ 'update:'configuration1' }");
-		
-		PolicyConfiguration policyConfiguration2 = new PolicyConfiguration();
-		policyConfiguration2.setPolicy("policy2");
-		policyConfiguration2.setConfiguration("{ 'update:'configuration2' }");
-		
-		List<PolicyConfiguration> configs = Arrays.asList(policyConfiguration, policyConfiguration2);
-			
-		apiRepository.updatePoliciesConfiguration("api1", configs);
-
-	}
-	
-	
-	@Test
-	public void updatePolicyConfigurationTest() throws Exception {
-		try{
-			String apiName = "api2";
-			PolicyConfiguration policyConfiguration = new PolicyConfiguration();
-			policyConfiguration.setPolicy("policy1");
-			policyConfiguration.setConfiguration("{ 'update:'configuration' }");
-			
-			apiRepository.updatePolicyConfiguration(apiName, policyConfiguration);
-			
-			List<PolicyConfiguration> configurations = apiRepository.findPoliciesByApi(apiName);
-			
-			Optional<PolicyConfiguration> optional = configurations.stream().filter(new Predicate<PolicyConfiguration>() {
-
-				@Override
-				public boolean test(PolicyConfiguration t) {
-					return t.getPolicy().equalsIgnoreCase(policyConfiguration.getPolicy());
-				}
-			}).findFirst();
-			
-			Assert.assertTrue(optional.isPresent());
-			Assert.assertEquals(optional.get().getConfiguration(), policyConfiguration.getConfiguration());
 			
 		}catch(Exception e){
 			logger.error("Error while finding api by application",e);

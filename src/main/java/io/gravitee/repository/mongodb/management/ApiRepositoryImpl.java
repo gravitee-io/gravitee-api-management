@@ -15,31 +15,24 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.api.management.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.management.Api;
 import io.gravitee.repository.model.management.OwnerType;
-import io.gravitee.repository.model.management.PolicyConfiguration;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiAssociationMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
-import io.gravitee.repository.mongodb.management.internal.model.PolicyConfigurationMongo;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.team.TeamMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class ApiRepositoryImpl implements ApiRepository {
@@ -178,32 +171,6 @@ public class ApiRepositoryImpl implements ApiRepository {
 			}
 		}
 		return api;
-	}
-	
-	
-
-	@Override
-	public void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigs) throws TechnicalException {
-		
-		List<PolicyConfigurationMongo> policiesConfigsMongo = mapper.collection2list(policyConfigs, PolicyConfiguration.class, PolicyConfigurationMongo.class);
-		
-		this.internalApiRepo.updatePoliciesConfiguration(apiName, policiesConfigsMongo);
-		
-	}
-
-	@Override
-	public void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfig) throws TechnicalException {
-		
-		PolicyConfigurationMongo policyConfigMongo = mapper.map(policyConfig, PolicyConfigurationMongo.class);
-		this.internalApiRepo.updatePolicyConfiguration(apiName, policyConfigMongo);
-		
-	}
-
-	@Override
-	public List<PolicyConfiguration> findPoliciesByApi(String apiName) throws TechnicalException {
-		
-		 List<PolicyConfigurationMongo>  policies = this.internalApiRepo.findPoliciesByApi(apiName);
-		 return  mapper.collection2list(policies, PolicyConfigurationMongo.class, PolicyConfiguration.class);
 	}
 
 	@Override

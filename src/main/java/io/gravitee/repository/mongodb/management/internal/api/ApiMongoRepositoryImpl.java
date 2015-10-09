@@ -15,17 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Predicate;
-
+import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
-import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
-import io.gravitee.repository.mongodb.management.internal.model.PolicyConfigurationMongo;
+import java.util.List;
 
 public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
@@ -77,47 +73,5 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 		
 		Query query = getFindByOwnerQuery("teams", teamname, publicOnly);				
 		return mongoTemplate.count(query, ApiMongo.class);
-		
 	}
-
-
-
-	@Override
-	public void updatePoliciesConfiguration(String apiName, List<PolicyConfigurationMongo> policyConfigurations) {
-
-		ApiMongo apiMongo = mongoTemplate.findById(apiName, ApiMongo.class);
-		
-		apiMongo.setPolicies(policyConfigurations);
-		mongoTemplate.save(apiMongo);
-		
-	}
-
-
-	@Override
-	public void updatePolicyConfiguration(String apiName, PolicyConfigurationMongo policyConfiguration) {
-
-		ApiMongo apiMongo = mongoTemplate.findById(apiName, ApiMongo.class);
-		
-		Optional<PolicyConfigurationMongo> optionnal = apiMongo.getPolicies().stream().filter(new Predicate<PolicyConfigurationMongo>() {
-
-			@Override
-			public boolean test(PolicyConfigurationMongo t) {
-				return t.getPolicy().equals(policyConfiguration.getPolicy());
-			}
-		}).findFirst();
-		
-		PolicyConfigurationMongo configurationMongo = optionnal.get();
-		configurationMongo.setConfiguration(policyConfiguration.getConfiguration());
-		
-		mongoTemplate.save(apiMongo);
-	}
-
-
-	@Override
-	public List<PolicyConfigurationMongo> findPoliciesByApi(String apiName) {
-		
-		ApiMongo api = mongoTemplate.findById(apiName, ApiMongo.class);
-		return api.getPolicies();
-	}
-	
 }

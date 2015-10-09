@@ -51,8 +51,6 @@ public class ApiMongo {
     
     @DBRef 
     private UserMongo creator;
-
-    private List<PolicyConfigurationMongo> policies = new ArrayList<>();
     
     
     public boolean isPrivateApi() {
@@ -125,14 +123,6 @@ public class ApiMongo {
 
 	public void setCreator(UserMongo creator) {
 		this.creator = creator;
-	}
-	
-	public List<PolicyConfigurationMongo> getPolicies() {
-		return policies;
-	}
-
-	public void setPolicies(List<PolicyConfigurationMongo> policies) {
-		this.policies = policies;
 	}
 
     public String getDescription() {
