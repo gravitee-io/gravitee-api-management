@@ -15,15 +15,9 @@
  */
 package io.gravitee.repository.mongodb;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Predicate;
-
+import io.gravitee.repository.api.management.ApiRepository;
+import io.gravitee.repository.api.management.UserRepository;
+import io.gravitee.repository.model.management.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,13 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import io.gravitee.repository.api.management.ApiRepository;
-import io.gravitee.repository.api.management.UserRepository;
-import io.gravitee.repository.model.management.Api;
-import io.gravitee.repository.model.management.LifecycleState;
-import io.gravitee.repository.model.management.OwnerType;
-import io.gravitee.repository.model.management.PolicyConfiguration;
-import io.gravitee.repository.model.management.User;
+import java.util.*;
+import java.util.function.Predicate;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { TestRepositoryConfiguration.class })
@@ -85,8 +74,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			api.setVersion("1");
 			api.setLifecycleState(LifecycleState.STOPPED);
 			api.setPrivateApi(true);
-			api.setPublicURI(URI.create("/public/sample/"));
-			api.setTargetURI(URI.create("/target/sample/"));
+			api.setDefinition("{}");
 			api.setCreatedAt(new Date());
 			api.setUpdatedAt(new Date());
 			api.setCreator("creator");
@@ -102,8 +90,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			Assert.assertEquals("Invalid saved api version.", 	api.getVersion(), apiSaved.getVersion());
 			Assert.assertEquals("Invalid api lifecycle.", 		api.getLifecycleState(), apiSaved.getLifecycleState());
 			Assert.assertEquals("Invalid api private api status.", 	api.isPrivateApi(), apiSaved.isPrivateApi());
-			Assert.assertEquals("Invalid api public uri.", 		api.getPublicURI(), apiSaved.getPublicURI());
-			Assert.assertEquals("Invalid api target uri.", 		api.getTargetURI(), apiSaved.getTargetURI());
+			Assert.assertEquals("Invalid api definition.", 		api.getDefinition(), apiSaved.getDefinition());
 			Assert.assertEquals("Invalid api createdAt.", 		api.getCreatedAt(), apiSaved.getCreatedAt());
 			Assert.assertEquals("Invalid api updateAt.", 		api.getUpdatedAt(), apiSaved.getUpdatedAt());
 			Assert.assertEquals("Invalid api Owner.", 			api.getOwner(), apiSaved.getOwner());

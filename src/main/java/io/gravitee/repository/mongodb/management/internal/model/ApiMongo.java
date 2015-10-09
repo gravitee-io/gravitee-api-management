@@ -37,8 +37,7 @@ public class ApiMongo {
     private String version;
     private String description;
 
-    private String publicURI;
-    private String targetURI;
+    private String definition;
 
     private String lifecycleState;
     
@@ -88,20 +87,12 @@ public class ApiMongo {
         this.name = name;
     }
 
-    public String getPublicURI() {
-        return publicURI;
+    public String getDefinition() {
+        return definition;
     }
 
-    public void setPublicURI(String publicURI) {
-        this.publicURI = publicURI;
-    }
-
-    public String getTargetURI() {
-        return targetURI;
-    }
-
-    public void setTargetURI(String targetURI) {
-        this.targetURI = targetURI;
+    public void setDefinition(String definition) {
+        this.definition = definition;
     }
 
     public Date getUpdatedAt() {
