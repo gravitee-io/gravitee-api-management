@@ -15,15 +15,13 @@
  */
 package io.gravitee.repository.api.management;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.management.Api;
-import io.gravitee.repository.model.management.PolicyConfiguration;
-import io.gravitee.repository.model.management.User;
 import io.gravitee.repository.model.management.Team;
+import io.gravitee.repository.model.management.User;
+
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -103,60 +101,6 @@ public interface ApiRepository {
     * @return counted APIs
     */
     int countByTeam(String teamName, boolean publicOnly) throws TechnicalException;
-
-    /**
-     * Update an API policies
-     *
-     * @param apiName API name
-     * @param policyConfigurations Ordered list of {@link PolicyConfiguration} to set to the API
-     */
-    @Deprecated
-    default void updatePoliciesConfiguration(String apiName, List<PolicyConfiguration> policyConfigurations) throws TechnicalException {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Update a API policy
-     *
-     * @param apiName API name
-     * @param policyConfiguration {@link PolicyConfiguration} to update
-     */
-    @Deprecated
-    default void updatePolicyConfiguration(String apiName, PolicyConfiguration policyConfiguration) throws TechnicalException {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Update a API policy descriptor
-     *
-     * @param apiName API name
-     * @param jsonDescriptor to update
-     */
-    default void updateDescriptor(String apiName, String jsonDescriptor) throws TechnicalException {
-        // TODO remove default
-    }
-
-    /**
-     * Give all {@link PolicyConfiguration} for an API
-     *
-     * @param apiName API name
-     * @return API JSON descriptor
-     */
-    default String findDescriptorByApi(String apiName) throws TechnicalException {
-        // TODO remove default
-        return null;
-    }
-
-    /**
-     * Give all {@link PolicyConfiguration} for an API
-     *
-     * @param apiName API name
-     * @return API policies configuration
-     */
-    @Deprecated
-    default List<PolicyConfiguration> findPoliciesByApi(String apiName) throws TechnicalException {
-        throw new UnsupportedOperationException();
-    }
     
     /**
      * Find APIs by creator
