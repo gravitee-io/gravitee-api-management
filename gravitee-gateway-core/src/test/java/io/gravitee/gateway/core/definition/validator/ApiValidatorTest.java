@@ -15,14 +15,10 @@
  */
 package io.gravitee.gateway.core.definition.validator;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.definition.PathDefinition;
-import io.gravitee.gateway.core.definition.ProxyDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import org.junit.Test;
 
-import java.net.URI;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -31,14 +27,14 @@ public class ApiValidatorTest {
 
     @Test(expected = ValidationException.class)
     public void validate_emptyDefinition() {
-        ApiDefinition definition = new ApiDefinition();
+        Api definition = new Api();
 
         new ApiValidator().validate(definition);
     }
 
     @Test(expected = ValidationException.class)
     public void validate_noPathDefinition() {
-        ApiDefinition definition = new ApiDefinition();
+        Api definition = new Api();
         definition.setName("api-test");
 
         new ApiValidator().validate(definition);
@@ -46,7 +42,7 @@ public class ApiValidatorTest {
 
     @Test(expected = ValidationException.class)
     public void validate_emptyPathDefinition() {
-        ApiDefinition definition = new ApiDefinition();
+        Api definition = new Api();
         definition.setName("api-test");
         definition.setPaths(new HashMap<>());
 

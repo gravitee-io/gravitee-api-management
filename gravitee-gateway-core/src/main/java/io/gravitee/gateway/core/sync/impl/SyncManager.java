@@ -15,17 +15,17 @@
  */
 package io.gravitee.gateway.core.sync.impl;
 
-import io.gravitee.gateway.core.definition.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.repository.api.management.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.management.LifecycleState;
-import io.gravitee.repository.model.management.PolicyConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,20 +46,23 @@ public class SyncManager {
     @Autowired
     private ApiManager apiManager;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     public void refresh() {
         logger.debug("Refreshing gateway state...");
 
         try {
             Set<io.gravitee.repository.model.management.Api> apis = apiRepository.findAll();
 
-            Map<String, ApiDefinition> apisMap = apis.stream()
+            Map<String, Api> apisMap = apis.stream()
                     .map(this::convert)
-                    .collect(Collectors.toMap(ApiDefinition::getName, api -> api));
+                    .collect(Collectors.toMap(Api::getName, api -> api));
 
             // Determine APIs to undeploy
             Set<String> apiToRemove = apiManager.apis().stream()
                     .filter(apiName -> !apisMap.containsKey(apiName))
-                    .map(ApiDefinition::getName)
+                    .map(Api::getName)
                     .collect(Collectors.toSet());
 
             apiToRemove.stream().forEach(apiManager::undeploy);
@@ -69,19 +72,13 @@ public class SyncManager {
                     .filter(apiName ->  apiManager.get(apiName) != null)
                     .forEach(apiName -> {
                         // Get local cached API
-                        ApiDefinition deployedApi = apiManager.get(apiName);
+                        Api deployedApi = apiManager.get(apiName);
 
                         // Get API from store
-                        ApiDefinition remoteApi = apisMap.get(apiName);
+                        Api remoteApi = apisMap.get(apiName);
 
                         if (deployedApi.getDeployedAt().before(remoteApi.getDeployedAt())) {
-                            // Should be updated so prepare the complete definition.
-                            try {
-                                prepare(remoteApi);
-                                apiManager.update(remoteApi);
-                            } catch (TechnicalException te) {
-                                logger.error("Unable to prepare API definition for {}", remoteApi.getName(), te);
-                            }
+                            apiManager.update(remoteApi);
                         }
                     });
 
@@ -89,14 +86,8 @@ public class SyncManager {
             apisMap.keySet().stream()
                     .filter(apiName ->  apiManager.get(apiName) == null)
                     .forEach(apiName -> {
-                        ApiDefinition newApi = apisMap.get(apiName);
-                        // Should be updated so prepare the complete definition.
-                        try {
-                            prepare(newApi);
-                            apiManager.deploy(newApi);
-                        } catch (TechnicalException te) {
-                            logger.error("Unable to prepare API definition for {}", newApi.getName(), te);
-                        }
+                        Api newApi = apisMap.get(apiName);
+                        apiManager.deploy(newApi);
                     });
 
         } catch (TechnicalException te) {
@@ -104,42 +95,19 @@ public class SyncManager {
         }
     }
 
-    private ApiDefinition convert(io.gravitee.repository.model.management.Api remoteApi) {
-        ApiDefinition api = new ApiDefinition();
+    private Api convert(io.gravitee.repository.model.management.Api remoteApi) {
+        try {
+            Api api = objectMapper.readValue(remoteApi.getDefinition(), Api.class);
 
-        api.setName(remoteApi.getName());
-        api.setEnabled(remoteApi.getLifecycleState() == LifecycleState.STARTED);
-        api.setDeployedAt(remoteApi.getUpdatedAt());
+            api.setName(remoteApi.getName());
+            api.setVersion(remoteApi.getVersion());
+            api.setEnabled(remoteApi.getLifecycleState() == LifecycleState.STARTED);
+            api.setDeployedAt(remoteApi.getUpdatedAt());
 
-        ProxyDefinition proxyDefinition = new ProxyDefinition();
-        proxyDefinition.setContextPath(remoteApi.getPublicURI().getPath());
-        proxyDefinition.setTarget(remoteApi.getTargetURI());
-        proxyDefinition.setStripContextPath(false);
-        api.setProxy(proxyDefinition);
-
-        return api;
-    }
-
-    private void prepare(ApiDefinition apiDefinition) throws TechnicalException {
-        logger.debug("Loading complete API definition for API {}", apiDefinition.getName());
-
-        List<PolicyConfiguration> policyConfigurationList = apiRepository.findPoliciesByApi(apiDefinition.getName());
-
-        if (policyConfigurationList != null) {
-            PathDefinition pathDefinition = new PathDefinition();
-            pathDefinition.setPath("/*");
-
-            MethodDefinition methodDefinition = new MethodDefinition();
-            pathDefinition.getMethods().add(methodDefinition);
-
-            policyConfigurationList.stream().forEachOrdered(policyConfiguration -> {
-                PolicyDefinition policyDefinition = new PolicyDefinition();
-                policyDefinition.setName(policyConfiguration.getPolicy());
-                policyDefinition.setConfiguration(policyConfiguration.getConfiguration());
-                methodDefinition.getPolicies().add(policyDefinition);
-            });
-
-            apiDefinition.getPaths().put(pathDefinition.getPath(), pathDefinition);
+            return api;
+        } catch (IOException ioe) {
+            logger.error("Unable to prepare API definition from repository", ioe);
+            return null;
         }
     }
 

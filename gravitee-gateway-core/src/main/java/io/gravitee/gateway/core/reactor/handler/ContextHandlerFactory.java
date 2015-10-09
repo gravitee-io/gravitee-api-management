@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.core.reactor.handler;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface ContextHandlerFactory {
 
-    ContextReactorHandler create(ApiDefinition apiDefinition);
+    ContextReactorHandler create(Api api);
 }

@@ -15,14 +15,11 @@
  */
 package io.gravitee.gateway.core.definition.validator;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.definition.PathDefinition;
-import io.gravitee.gateway.core.definition.ProxyDefinition;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.gateway.core.definition.Api;
 import org.junit.Test;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -31,10 +28,10 @@ public class ProxyValidatorTest {
 
     @Test(expected = ValidationException.class)
     public void validate_proxy_badContextPath() {
-        ProxyDefinition proxyDefinition = new ProxyDefinition();
+        Proxy proxyDefinition = new Proxy();
         proxyDefinition.setContextPath("context-path");
 
-        ApiDefinition definition = new ApiDefinition();
+        Api definition = new Api();
         definition.setProxy(proxyDefinition);
 
         new ProxyValidator().validate(definition);
@@ -42,11 +39,11 @@ public class ProxyValidatorTest {
 
     @Test(expected = ValidationException.class)
     public void validate_proxy_badTarget() {
-        ProxyDefinition proxyDefinition = new ProxyDefinition();
+        Proxy proxyDefinition = new Proxy();
         proxyDefinition.setContextPath("/");
         proxyDefinition.setTarget(URI.create("toto"));
 
-        ApiDefinition definition = new ApiDefinition();
+        Api definition = new Api();
         definition.setProxy(proxyDefinition);
 
         new ProxyValidator().validate(definition);
@@ -54,11 +51,11 @@ public class ProxyValidatorTest {
 
     @Test
     public void validate_proxy_correctContextPathAndTarget() {
-        ProxyDefinition proxyDefinition = new ProxyDefinition();
+        Proxy proxyDefinition = new Proxy();
         proxyDefinition.setContextPath("/context-path");
         proxyDefinition.setTarget(URI.create("http://localhost"));
 
-        ApiDefinition definition = new ApiDefinition();
+        Api definition = new Api();
         definition.setProxy(proxyDefinition);
 
         new ProxyValidator().validate(definition);

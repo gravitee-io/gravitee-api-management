@@ -72,5 +72,6 @@
 
     <properties>
         <jackson.version>2.5.3</jackson.version>
+        <gravitee-definition.version>0.1.0-SNAPSHOT</gravitee-definition.version>
     </properties>
 </project>

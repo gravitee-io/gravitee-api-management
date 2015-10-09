@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.reactor.handler.impl;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -29,12 +29,12 @@ import java.util.Properties;
 public class ApiContextHandlerFactory extends AbstractContextHandlerFactory {
 
     @Override
-    public ContextReactorHandler create(ApiDefinition apiDefinition) {
-        AbstractApplicationContext internalApplicationContext = createApplicationContext(apiDefinition);
+    public ContextReactorHandler create(Api api) {
+        AbstractApplicationContext internalApplicationContext = createApplicationContext(api);
         return internalApplicationContext.getBean(ContextReactorHandler.class);
     }
 
-    private AbstractApplicationContext createApplicationContext(ApiDefinition apiDefinition) {
+    private AbstractApplicationContext createApplicationContext(Api api) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.setParent(applicationContext);
 
@@ -44,9 +44,9 @@ public class ApiContextHandlerFactory extends AbstractContextHandlerFactory {
         configurer.setIgnoreUnresolvablePlaceholders(true);
         context.addBeanFactoryPostProcessor(configurer);
 
-        context.getBeanFactory().registerSingleton("api", apiDefinition);
+        context.getBeanFactory().registerSingleton("api", api);
         context.register(ApiHandlerConfiguration.class);
-        context.setId("context-api-" + apiDefinition.getName());
+        context.setId("context-api-" + api.getName());
         context.refresh();
 
         return context;

@@ -15,34 +15,16 @@
  */
 package io.gravitee.gateway.core.definition;
 
-import java.util.Objects;
+import java.util.Date;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PolicyDefinition {
+public class Api extends io.gravitee.definition.model.Api {
 
     private boolean enabled = true;
 
-    private String name;
-
-    private String configuration;
-
-    public String getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    private Date deployedAt;
 
     public boolean isEnabled() {
         return enabled;
@@ -52,16 +34,11 @@ public class PolicyDefinition {
         this.enabled = enabled;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        PolicyDefinition policy = (PolicyDefinition) o;
-        return Objects.equals(name, policy.name);
+    public Date getDeployedAt() {
+        return deployedAt;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
+    public void setDeployedAt(Date deployedAt) {
+        this.deployedAt = deployedAt;
     }
 }

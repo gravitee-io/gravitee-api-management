@@ -16,7 +16,7 @@
 package io.gravitee.gateway.core.manager.impl;
 
 import io.gravitee.common.event.EventManager;
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.definition.validator.ValidationException;
 import io.gravitee.gateway.core.definition.validator.Validator;
 import io.gravitee.gateway.core.event.ApiEvent;
@@ -42,26 +42,26 @@ public class ApiManagerImpl implements ApiManager {
     @Autowired
     private Validator validator;
 
-    private final Map<String, ApiDefinition> apis = new HashMap<>();
+    private final Map<String, Api> apis = new HashMap<>();
 
     @Override
-    public void deploy(ApiDefinition apiDefinition) {
-        logger.debug("Trying to deploy API {}", apiDefinition);
+    public void deploy(Api api) {
+        logger.debug("Trying to deploy API {}", api);
 
         try {
-            validator.validate(apiDefinition);
+            validator.validate(api);
 
-            apis.put(apiDefinition.getName(), apiDefinition);
-            eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
+            apis.put(api.getName(), api);
+            eventManager.publishEvent(ApiEvent.DEPLOY, api);
         } catch (ValidationException ve) {
             logger.error("API Definition can't be deployed because of validation errors", ve);
         }
     }
 
     @Override
-    public void update(ApiDefinition apiDefinition) {
-        logger.debug("Trying to update API {}", apiDefinition);
-        ApiDefinition cachedApi = apis.get(apiDefinition.getName());
+    public void update(Api api) {
+        logger.debug("Trying to update API {}", api);
+        Api cachedApi = apis.get(api.getName());
 
         // Update only if certain fields has been updated:
         // - Lifecycle
@@ -69,10 +69,10 @@ public class ApiManagerImpl implements ApiManager {
         // - PublicURL
 
         try {
-            validator.validate(apiDefinition);
+            validator.validate(api);
 
-            apis.put(apiDefinition.getName(), apiDefinition);
-            eventManager.publishEvent(ApiEvent.UPDATE, apiDefinition);
+            apis.put(api.getName(), api);
+            eventManager.publishEvent(ApiEvent.UPDATE, api);
         } catch (ValidationException ve) {
             logger.error("API Definition can't be updated because of validation errors", ve);
         }
@@ -86,12 +86,12 @@ public class ApiManagerImpl implements ApiManager {
     }
 
     @Override
-    public Collection<ApiDefinition> apis() {
+    public Collection<Api> apis() {
         return apis.values();
     }
 
     @Override
-    public ApiDefinition get(String name) {
+    public Api get(String name) {
         return apis.get(name);
     }
 

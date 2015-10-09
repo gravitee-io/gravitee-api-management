@@ -18,11 +18,11 @@ package io.gravitee.gateway.core.http.client.vertx;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.definition.ProxyDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.http.client.AbstractHttpClient;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
@@ -33,6 +33,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -44,8 +45,8 @@ public class VertxHttpClient extends AbstractHttpClient {
 
     private HttpClient httpClient;
 
-    public VertxHttpClient(ApiDefinition apiDefinition) {
-        super(apiDefinition);
+    public VertxHttpClient(Api api) {
+        super(api);
     }
 
     @Override
@@ -88,8 +89,6 @@ public class VertxHttpClient extends AbstractHttpClient {
             LOGGER.debug("{} proxying complete", request.id());
             clientRequest.end();
         });
-
-        handler.handle(response);
     }
 
     private void handleClientResponse(Request request, Response serverResponse, HttpClientResponse clientResponse, Handler handler) {
@@ -100,6 +99,8 @@ public class VertxHttpClient extends AbstractHttpClient {
         LOGGER.debug("{} proxying response headers to downstream");
         clientResponse.headers().forEach(header ->
                 serverResponse.headers().add(header.getKey(), header.getValue()));
+
+        handler.handle(serverResponse);
 
         String transferEncoding = serverResponse.headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
         if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding)) {
@@ -128,16 +129,16 @@ public class VertxHttpClient extends AbstractHttpClient {
             headerValues.getValue().forEach(headerValue -> httpClientRequest.putHeader(headerName, headerValue));
         }
 
-        httpClientRequest.putHeader(HttpHeaders.HOST, apiDefinition.getProxy().getTarget().getHost());
+        httpClientRequest.putHeader(HttpHeaders.HOST, api.getProxy().getTarget().getHost());
     }
 
     @Override
     protected void doStart() throws Exception {
         super.doStart();
 
-        LOGGER.info("Initializing Vert.x HTTP Client with {}", apiDefinition.getProxy().getHttpClient());
+        LOGGER.info("Starting HTTP Client for API {}", api);
 
-        initialize(apiDefinition.getProxy());
+        initialize(api.getProxy());
     }
 
     private io.vertx.core.http.HttpMethod convert(io.gravitee.common.http.HttpMethod httpMethod) {
@@ -169,11 +170,16 @@ public class VertxHttpClient extends AbstractHttpClient {
     protected void doStop() throws Exception {
         super.doStop();
 
-        LOGGER.info("Close Vert.x HTTP Client for {}", apiDefinition);
+        LOGGER.info("Close Vert.x HTTP Client for {}", api);
         httpClient.close();
     }
 
-    private void initialize(ProxyDefinition proxyDefinition) {
+    private void initialize(Proxy proxyDefinition) {
+        Objects.requireNonNull(proxyDefinition, "Proxy must not be null");
+        Objects.requireNonNull(proxyDefinition.getTarget(), "Proxy target must not be null");
+
+        LOGGER.info("Initializing Vert.x HTTP Client with {}", proxyDefinition.getHttpClient());
+
         HttpClientOptions options = new HttpClientOptions();
         options.setKeepAlive(false);
         options.setTcpNoDelay(true);
@@ -189,5 +195,6 @@ public class VertxHttpClient extends AbstractHttpClient {
         }
 
         httpClient = Vertx.vertx().createHttpClient(options);
+        LOGGER.info("Vert.x HTTP Client created {}", httpClient);
     }
 }

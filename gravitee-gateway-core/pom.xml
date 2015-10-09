@@ -40,7 +40,19 @@
     </properties>
 
     <dependencies>
-        <!-- Gravitee internal dependencies -->
+        <!-- Gravitee.io dependencies -->
+        <dependency>
+            <groupId>io.gravitee.definition</groupId>
+            <artifactId>gravitee-definition-model</artifactId>
+            <version>${gravitee-definition.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.definition</groupId>
+            <artifactId>gravitee-definition-jackson</artifactId>
+            <version>${gravitee-definition.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-api</artifactId>

@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.builder;
 
-import io.gravitee.gateway.core.definition.ProxyDefinition;
+import io.gravitee.definition.model.Proxy;
 
 import java.net.URI;
 
@@ -24,7 +24,7 @@ import java.net.URI;
  */
 public class ProxyDefinitionBuilder {
 
-    private final ProxyDefinition proxyDefinition = new ProxyDefinition();
+    private final Proxy proxyDefinition = new Proxy();
 
     public ProxyDefinitionBuilder contextPath(String contextPath) {
         this.proxyDefinition.setContextPath(contextPath);
@@ -41,7 +41,7 @@ public class ProxyDefinitionBuilder {
         return this;
     }
 
-    public ProxyDefinition build() {
+    public Proxy build() {
         return this.proxyDefinition;
     }
 

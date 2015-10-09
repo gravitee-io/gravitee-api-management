@@ -19,7 +19,7 @@ import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
@@ -38,14 +38,14 @@ public class ApiReactorHandler extends ContextReactorHandler {
     private final Logger logger = LoggerFactory.getLogger(ApiReactorHandler.class);
 
     @Autowired
-    private ApiDefinition apiDefinition;
+    private Api api;
 
     @Autowired
     private HttpClient httpClient;
 
     @Override
     public void handle(Request request, Response response, Handler<Response> handler) {
-        request.headers().set(GraviteeHttpHeader.X_GRAVITEE_API_NAME, apiDefinition.getName());
+        request.headers().set(GraviteeHttpHeader.X_GRAVITEE_API_NAME, api.getName());
 
         // 1_ Calculate policies
         List<Policy> policies = getPolicyResolver().resolve(request);
@@ -92,12 +92,12 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
     @Override
     public String getContextPath() {
-        return apiDefinition.getProxy().getContextPath();
+        return api.getProxy().getContextPath();
     }
 
     @Override
     public String getVirtualHost() {
-        return apiDefinition.getProxy().getTarget().getAuthority();
+        return api.getProxy().getTarget().getAuthority();
     }
 
     @Override
@@ -115,7 +115,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("ApiReactorHandler{");
-        sb.append("contextPath=").append(apiDefinition.getProxy().getContextPath());
+        sb.append("contextPath=").append(api.getProxy().getContextPath());
         sb.append('}');
         return sb.toString();
     }

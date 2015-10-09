@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.core.manager;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 
 import java.util.Collection;
 
 /**
- * This manager interface acts as a bridge between the source of {@link ApiDefinition} (*.json files in case of
+ * This manager interface acts as a bridge between the source of {@link Api} (*.json files in case of
  * local registry and sync scheduler when using the sync mode) and the {@link io.gravitee.gateway.core.Reactor}.
  * This means that all actions handled by the reactor must be done by using this manager and not directly by emitting
  * internal event.
@@ -31,15 +31,15 @@ public interface ApiManager {
 
     /**
      * Deploy an API definition.
-     * @param apiDefinition API definition to deploy.
+     * @param api API definition to deploy.
      */
-    void deploy(ApiDefinition apiDefinition);
+    void deploy(Api api);
 
     /**
      * Update an API definition already registered.
-     * @param apiDefinition API definition to update.
+     * @param api API definition to update.
      */
-    void update(ApiDefinition apiDefinition);
+    void update(Api api);
 
     /**
      * Undeploy an API from the {@link io.gravitee.gateway.core.Reactor}.
@@ -48,15 +48,15 @@ public interface ApiManager {
     void undeploy(String apiName);
 
     /**
-     * Returns a collection of deployed {@link ApiDefinition}s.
-     * @return A collection of deployed  {@link ApiDefinition}s.
+     * Returns a collection of deployed {@link Api}s.
+     * @return A collection of deployed  {@link Api}s.
      */
-    Collection<ApiDefinition> apis();
+    Collection<Api> apis();
 
     /**
-     * Retrieve a deployed {@link ApiDefinition} using its name.
+     * Retrieve a deployed {@link Api} using its name.
      * @param name The name of the deployed API.
-     * @return A deployed {@link ApiDefinition}
+     * @return A deployed {@link Api}
      */
-    ApiDefinition get(String name);
+    Api get(String name);
 }

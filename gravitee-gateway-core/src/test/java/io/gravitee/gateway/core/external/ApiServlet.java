@@ -52,6 +52,8 @@ public class ApiServlet extends HttpServlet {
     } else {
       resp.getOutputStream().print("hello");
     }
+
+    resp.getOutputStream().flush();
   }
 
 }
