@@ -17,6 +17,7 @@ package io.gravitee.definition.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.Api;
 import org.junit.Assert;
 import org.junit.Test;
 

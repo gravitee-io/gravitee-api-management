@@ -18,6 +18,7 @@ package io.gravitee.definition.jackson;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Method;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Policy;

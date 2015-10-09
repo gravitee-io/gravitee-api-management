@@ -13,13 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson;
+package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Proxy;
-
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -29,17 +24,13 @@ import java.util.Objects;
  */
 public class Api {
 
-    @JsonProperty(required = true)
     private String name;
 
-    @JsonProperty(required = true)
     private String version;
 
-    @JsonProperty(value = "proxy", required = true)
     private Proxy proxy;
 
-    @JsonProperty(value = "paths", required = true)
-    private Map<String, Path> paths = new HashMap<>();
+    private Map<String, Path> paths;
 
     public String getName() {
         return name;
@@ -47,14 +38,6 @@ public class Api {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
     }
 
     public Proxy getProxy() {
@@ -73,13 +56,21 @@ public class Api {
         this.paths = paths;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Api that = (Api) o;
-        return Objects.equals(name, that.name) &&
-                Objects.equals(version, that.version);
+        Api api = (Api) o;
+        return Objects.equals(name, api.name) &&
+                Objects.equals(version, api.version);
     }
 
     @Override
