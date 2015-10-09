@@ -38,6 +38,15 @@
         <module>jackson</module>
     </modules>
 
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <properties>
         <gravitee-common.version>0.1.0-SNAPSHOT</gravitee-common.version>
         <jackson.version>2.5.3</jackson.version>
