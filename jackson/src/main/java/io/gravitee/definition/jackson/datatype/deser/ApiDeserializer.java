@@ -19,12 +19,13 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Proxy;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -45,7 +46,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
 
         JsonNode nameNode = node.get("name");
         if (nameNode == null) {
-            ctxt.mappingException("Name property is required");
+            throw ctxt.mappingException("Name property is required");
         } else {
             api.setName(nameNode.asText());
         }
@@ -59,8 +60,9 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
 
         JsonNode proxyNode = node.get("proxy");
         if (proxyNode != null) {
-            Proxy proxy = proxyNode.traverse(jp.getCodec()).readValueAs(Proxy.class);
-            api.setProxy(proxy);
+            api.setProxy(proxyNode.traverse(jp.getCodec()).readValueAs(Proxy.class));
+        } else {
+            throw ctxt.mappingException("Proxy part of API is required");
         }
 
         JsonNode pathsNode = node.get("paths");

@@ -47,14 +47,11 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
 
         if (api.getPaths() != null) {
             jgen.writeObjectFieldStart("paths");
-            api.getPaths().forEach(new BiConsumer<String, Path>() {
-                @Override
-                public void accept(String s, Path path) {
-                    try {
-                        jgen.writeObjectField(s, path);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+            api.getPaths().forEach((s, path) -> {
+                try {
+                    jgen.writeObjectField(s, path);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             });
 

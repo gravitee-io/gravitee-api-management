@@ -45,14 +45,6 @@ public class JacksonSerializerTest {
     }
 
     @Test
-    public void definition_noProxyPart() throws Exception {
-        Api api = getDefinition("/io/gravitee/definition/jackson/api-noproxy-part.json");
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        Assert.assertNotNull(generatedJsonDefinition);
-    }
-
-    @Test
     public void definition_noPath() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-nopath.json");
 

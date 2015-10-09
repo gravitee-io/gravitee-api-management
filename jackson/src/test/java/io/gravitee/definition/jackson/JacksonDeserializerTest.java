@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.jackson;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -54,11 +55,9 @@ public class JacksonDeserializerTest {
         Assert.assertNotNull(api.getProxy().getHttpClient().getHttpProxy());
     }
 
-    @Test
+    @Test(expected = JsonMappingException.class)
     public void definition_noProxyPart() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-noproxy-part.json");
-
-        Assert.assertNull(api.getProxy());
     }
 
     @Test
