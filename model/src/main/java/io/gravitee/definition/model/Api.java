@@ -77,4 +77,15 @@ public class Api {
     public int hashCode() {
         return Objects.hash(name, version);
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Api{");
+        sb.append("name='").append(name).append('\'');
+        sb.append(", version='").append(version).append('\'');
+        sb.append(", context_path=").append(proxy.getContextPath()).append('\'');
+        sb.append(", target=").append(proxy.getTarget());
+        sb.append('}');
+        return sb.toString();
+    }
 }
