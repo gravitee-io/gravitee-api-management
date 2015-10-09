@@ -15,8 +15,8 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.NewUserEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.definition.jackson.model.NewUserEntity;
+import io.gravitee.definition.jackson.model.UserEntity;
 import io.gravitee.management.service.UserService;
 
 import java.net.URI;

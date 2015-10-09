@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.definition.jackson.model;
 
 import javax.validation.constraints.NotNull;
 

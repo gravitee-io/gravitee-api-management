@@ -13,45 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Date;
+package io.gravitee.definition.jackson.model;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class MembershipEntity {
+public class Owner {
 
-    private String member;
+    private String login;
 
-    private String role;
+    private OwnerType type;
 
-    @JsonProperty("since")
-    private Date memberSince;
-
-    public String getMember() {
-        return member;
+    public String getLogin() {
+        return login;
     }
 
-    public void setMember(String member) {
-        this.member = member;
+    public void setLogin(String login) {
+        this.login = login;
     }
 
-    public String getRole() {
-        return role;
+    public OwnerType getType() {
+        return type;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setType(OwnerType type) {
+        this.type = type;
     }
 
-    public Date getMemberSince() {
-        return memberSince;
-    }
-
-    public void setMemberSince(Date memberSince) {
-        this.memberSince = memberSince;
+    public enum OwnerType {
+        USER, TEAM;
     }
 }

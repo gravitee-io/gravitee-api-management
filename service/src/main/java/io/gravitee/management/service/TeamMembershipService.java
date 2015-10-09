@@ -15,8 +15,8 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.MembershipEntity;
-import io.gravitee.management.model.TeamRole;
+import io.gravitee.definition.jackson.model.MembershipEntity;
+import io.gravitee.definition.jackson.model.TeamRole;
 
 import java.util.Set;
 

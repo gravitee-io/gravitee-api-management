@@ -15,9 +15,9 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.UpdatePageEntity;
+import io.gravitee.definition.jackson.model.NewPageEntity;
+import io.gravitee.definition.jackson.model.PageEntity;
+import io.gravitee.definition.jackson.model.UpdatePageEntity;
 import io.gravitee.management.service.DocumentationService;
 
 import java.util.List;

@@ -22,9 +22,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.Owner;
+import io.gravitee.definition.jackson.model.ApiEntity;
+import io.gravitee.definition.jackson.model.ApplicationEntity;
+import io.gravitee.definition.jackson.model.Owner;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.PermissionService;

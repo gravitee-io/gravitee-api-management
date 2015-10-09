@@ -38,6 +38,13 @@
 	</properties>
 
 	<dependencies>
+		<!-- Gravitee.io dependencies -->
+		<dependency>
+			<groupId>io.gravitee.definition</groupId>
+			<artifactId>gravitee-definition-model</artifactId>
+			<version>${gravitee-definition.version}</version>
+		</dependency>
+
 		<!-- Jackson dependencies -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>

@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.ApiKeyEntity;
+import io.gravitee.definition.jackson.model.ApiKeyEntity;
 import io.gravitee.management.service.ApiKeyService;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;

@@ -18,9 +18,9 @@ package io.gravitee.management.service;
 import java.util.List;
 import java.util.Optional;
 
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.UpdatePageEntity;
+import io.gravitee.definition.jackson.model.NewPageEntity;
+import io.gravitee.definition.jackson.model.PageEntity;
+import io.gravitee.definition.jackson.model.UpdatePageEntity;
 
 /**
  * @author Titouan COMPIEGNE

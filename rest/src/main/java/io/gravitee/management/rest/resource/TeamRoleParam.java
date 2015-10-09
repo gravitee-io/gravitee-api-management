@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.TeamRole;
+import io.gravitee.definition.jackson.model.TeamRole;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

@@ -16,8 +16,8 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
-import io.gravitee.management.model.NewUserEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.definition.jackson.model.NewUserEntity;
+import io.gravitee.definition.jackson.model.UserEntity;
 
 import java.util.Optional;
 

@@ -15,8 +15,8 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.definition.jackson.model.ApplicationEntity;
+import io.gravitee.definition.jackson.model.UpdateApplicationEntity;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;

@@ -15,15 +15,16 @@
  */
 package io.gravitee.management.service.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.event.EventManager;
+import io.gravitee.common.event.impl.EventManagerImpl;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.plugin.spring.PluginConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-import io.gravitee.common.event.EventManager;
-import io.gravitee.common.event.impl.EventManagerImpl;
-import io.gravitee.plugin.spring.PluginConfiguration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -37,5 +38,10 @@ public class ServiceConfiguration {
 	@Bean
 	public EventManager eventManager() {
 		return new EventManagerImpl();
+	}
+
+	@Bean
+	public ObjectMapper objectMapper() {
+		return new GraviteeMapper();
 	}
 }

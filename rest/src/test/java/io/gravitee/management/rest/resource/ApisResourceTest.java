@@ -17,8 +17,8 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.rest.builder.ApiBuilder;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.definition.jackson.model.ApiEntity;
+import io.gravitee.definition.jackson.model.NewApiEntity;
 import io.gravitee.management.service.ApiService;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -70,8 +70,11 @@ public class ApisResourceTest extends AbstractResourceTest {
     @Test
     public void testGetApis_findAllReturnApis() {
         Set<ApiEntity> apis = new HashSet<>();
+
+        /*
         apis.add(new ApiBuilder().name("my-api").origin("http://localhost/my-api").target("http://remote_api/context").build());
         apis.add(new ApiBuilder().name("my-api2").origin("http://localhost/my-api2").target("http://remote_api2/context").build());
+        */
 
         Mockito.doReturn(apis).when(apiService).findAll();
         final Response response = target().request().get();
@@ -90,12 +93,14 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void testPostApi_correctApi() {
-        ApiEntity api = new ApiBuilder().name("my-api").origin("http://localhost/my-api").target("http://remote_api/context").build();
+        ApiEntity api = new ApiBuilder().name("my-api").build();//.origin("http://localhost/my-api").target("http://remote_api/context").build();
 
         ApiEntity api2 = new ApiBuilder()
                 .name("my-api")
+                /*
                 .origin("http://localhost/my-api")
                 .target("http://remote_api/context")
+                */
                 .createdAt(new Date())
                 .build();
 

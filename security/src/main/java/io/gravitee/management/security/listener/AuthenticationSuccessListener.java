@@ -24,8 +24,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 
-import io.gravitee.management.model.NewUserEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.definition.jackson.model.NewUserEntity;
+import io.gravitee.definition.jackson.model.UserEntity;
 import io.gravitee.management.service.UserService;
 
 /**

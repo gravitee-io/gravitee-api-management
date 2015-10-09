@@ -15,9 +15,9 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.TeamEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.definition.jackson.model.ApiEntity;
+import io.gravitee.definition.jackson.model.TeamEntity;
+import io.gravitee.definition.jackson.model.UserEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.TeamService;
 import io.gravitee.management.service.UserService;

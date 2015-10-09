@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.PolicyEntity;
+import io.gravitee.definition.jackson.model.PolicyEntity;
 import io.gravitee.management.service.PolicyService;
 
 import javax.inject.Inject;

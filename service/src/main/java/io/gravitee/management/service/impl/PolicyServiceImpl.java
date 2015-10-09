@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.management.model.PolicyEntity;
+import io.gravitee.definition.jackson.model.PolicyEntity;
 import io.gravitee.management.service.PolicyService;
 import io.gravitee.plugin.api.Plugin;
 import io.gravitee.plugin.api.PluginRegistry;

@@ -28,9 +28,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.management.model.NewTeamEntity;
-import io.gravitee.management.model.TeamEntity;
-import io.gravitee.management.model.UpdateTeamEntity;
+import io.gravitee.definition.jackson.model.NewTeamEntity;
+import io.gravitee.definition.jackson.model.TeamEntity;
+import io.gravitee.definition.jackson.model.UpdateTeamEntity;
 import io.gravitee.management.service.TeamService;
 import io.gravitee.management.service.exceptions.TeamAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TeamNotFoundException;

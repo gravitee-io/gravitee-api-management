@@ -38,7 +38,13 @@
 	</properties>
 
 	<dependencies>
-		<!-- GraviteeIO dependencies-->
+		<!-- Gravitee.io dependencies -->
+		<dependency>
+			<groupId>io.gravitee.definition</groupId>
+			<artifactId>gravitee-definition-jackson</artifactId>
+			<version>${gravitee-definition.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository</artifactId>

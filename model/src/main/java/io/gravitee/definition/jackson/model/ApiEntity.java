@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
-
-import java.net.URI;
-import java.util.Date;
-import java.util.Objects;
+package io.gravitee.definition.jackson.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Proxy;
+
+import javax.validation.constraints.NotNull;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -33,11 +37,12 @@ public class ApiEntity {
     private String version;
     private String description;
 
-    @JsonProperty("public")
-    private URI publicURI;
+    @NotNull
+    @JsonProperty(value = "proxy", required = true)
+    private Proxy proxy;
 
-    @JsonProperty("target")
-    private URI targetURI;
+    @JsonProperty(value = "paths", required = true)
+    private Map<String, Path> paths = new HashMap<>();
 
     @JsonProperty("created_at")
     private Date createdAt;
@@ -83,22 +88,6 @@ public class ApiEntity {
         this.isPrivate = isPrivate;
     }
 
-    public URI getPublicURI() {
-        return publicURI;
-    }
-
-    public void setPublicURI(URI publicURI) {
-        this.publicURI = publicURI;
-    }
-
-    public URI getTargetURI() {
-        return targetURI;
-    }
-
-    public void setTargetURI(URI targetURI) {
-        this.targetURI = targetURI;
-    }
-
     public Date getUpdatedAt() {
         return updatedAt;
     }
@@ -129,6 +118,22 @@ public class ApiEntity {
 
     public void setState(Lifecycle.State state) {
         this.state = state;
+    }
+
+    public Proxy getProxy() {
+        return proxy;
+    }
+
+    public void setProxy(Proxy proxy) {
+        this.proxy = proxy;
+    }
+
+    public Map<String, Path> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(Map<String, Path> paths) {
+        this.paths = paths;
     }
 
     @Override

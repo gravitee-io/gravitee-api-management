@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.PolicyConfigurationEntity;
-
-import java.util.List;
+package io.gravitee.definition.jackson.model;
 
 /**
+ * User team roles
+ * 
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyConfigurationService {
-
-    List<PolicyConfigurationEntity> getPolicies(String apiName);
-
-    void updatePolicyConfigurations(String apiName, List<PolicyConfigurationEntity> policyConfigurationEntities);
+public enum TeamRole {
+    MEMBER, ADMIN;
 }

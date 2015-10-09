@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.PolicyEntity;
+import io.gravitee.definition.jackson.model.PolicyEntity;
 
 import java.util.Set;
 

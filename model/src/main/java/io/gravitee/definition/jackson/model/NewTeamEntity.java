@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.definition.jackson.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -23,23 +23,16 @@ import javax.validation.constraints.NotNull;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class UpdateTeamEntity {
+public class NewTeamEntity {
+
+    @NotNull
+    private String name;
 
     @NotNull
     private String description;
 
     @NotNull
     private String email;
-
-    private boolean isPrivate;
-
-    public boolean isPrivate() {
-        return isPrivate;
-    }
-
-    public void setPrivate(boolean isPrivate) {
-        this.isPrivate = isPrivate;
-    }
 
     public String getDescription() {
         return description;
@@ -55,5 +48,13 @@ public class UpdateTeamEntity {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

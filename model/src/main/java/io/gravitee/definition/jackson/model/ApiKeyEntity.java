@@ -13,46 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.definition.jackson.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.gravitee.management.model.jackson.PolicyConfigurationDeserializer;
 
-import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@JsonDeserialize(using = PolicyConfigurationDeserializer.class)
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class PolicyConfigurationEntity {
+public class ApiKeyEntity {
 
-    @NotNull
-    private String policy;
+    private String key;
 
-    @NotNull
-    private String configuration;
+    @JsonProperty("expire_on")
+    private Date expireOn;
+
+    private boolean revoked;
 
     @JsonProperty("created_at")
     private Date createdAt;
 
-    public String getConfiguration() {
-        return configuration;
+    public Date getExpireOn() {
+        return expireOn;
     }
 
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
+    public void setExpireOn(Date expireOn) {
+        this.expireOn = expireOn;
     }
 
-    public String getPolicy() {
-        return policy;
+    public String getKey() {
+        return key;
     }
 
-    public void setPolicy(String policy) {
-        this.policy = policy;
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public Date getCreatedAt() {
@@ -61,5 +57,26 @@ public class PolicyConfigurationEntity {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public boolean isRevoked() {
+        return revoked;
+    }
+
+    public void setRevoked(boolean revoked) {
+        this.revoked = revoked;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApiKeyEntity that = (ApiKeyEntity) o;
+        return Objects.equals(key, that.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key);
     }
 }

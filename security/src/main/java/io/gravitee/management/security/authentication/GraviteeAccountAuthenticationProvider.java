@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.security.authentication;
 
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.definition.jackson.model.UserEntity;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 
@@ -99,7 +99,7 @@ public class GraviteeAccountAuthenticationProvider extends AbstractUserDetailsAu
 		if (userEntity.getRoles() != null && userEntity.getRoles().size() > 0) {
 			authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(StringUtils.join(userEntity.getRoles(), ','));
 		}
-		return new User(userEntity.getUsername(), userEntity.getPassword(), authorities);
+		return new User(userEntity.getUsername(), "unknown", authorities);
 	}
 
 }

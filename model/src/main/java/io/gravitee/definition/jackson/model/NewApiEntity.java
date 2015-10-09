@@ -13,33 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.definition.jackson.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Proxy;
 
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class NewApplicationEntity {
+public class NewApiEntity {
 
     @NotNull
     private String name;
 
     @NotNull
+    private String version;
+
+    @NotNull
     private String description;
 
-    private String type;
+    @NotNull
+    @JsonProperty(value = "proxy", required = true)
+    private Proxy proxy;
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    @JsonProperty(value = "paths", required = true)
+    private Map<String, Path> paths = new HashMap<>();
 
     public String getName() {
         return name;
@@ -49,20 +54,43 @@ public class NewApplicationEntity {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
+    public String getVersion() {
+        return version;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Proxy getProxy() {
+        return proxy;
+    }
+
+    public void setProxy(Proxy proxy) {
+        this.proxy = proxy;
+    }
+
+    public Map<String, Path> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(Map<String, Path> paths) {
+        this.paths = paths;
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Application{");
-        sb.append("description='").append(description).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", type='").append(type).append('\'');
+        final StringBuilder sb = new StringBuilder("Api{");
+        sb.append("name='").append(name).append('\'');
+        sb.append(", version='").append(version).append('\'');
         sb.append('}');
         return sb.toString();
     }

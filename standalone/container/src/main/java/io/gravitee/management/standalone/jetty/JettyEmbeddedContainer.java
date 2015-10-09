@@ -56,13 +56,13 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         server.addBean(noContentHandler);
 
         // Create the servlet context
-        final ServletContextHandler context = new ServletContextHandler(server, "/*", ServletContextHandler.SESSIONS);
+        final ServletContextHandler context = new ServletContextHandler(server, "/management/*", ServletContextHandler.SESSIONS);
 
         // REST configuration
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
         servletHolder.setInitParameter("javax.ws.rs.Application", GraviteeApplication.class.getName());
         servletHolder.setInitOrder(0);
-        context.addServlet(servletHolder, "/management/*");
+        context.addServlet(servletHolder, "/*");
 
         // Spring configuration
         System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, securityImplementation);

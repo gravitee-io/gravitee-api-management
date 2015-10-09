@@ -31,8 +31,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import io.gravitee.management.model.NewTeamEntity;
-import io.gravitee.management.model.TeamEntity;
+import io.gravitee.definition.jackson.model.NewTeamEntity;
+import io.gravitee.definition.jackson.model.TeamEntity;
 import io.gravitee.management.service.TeamService;
 
 /**

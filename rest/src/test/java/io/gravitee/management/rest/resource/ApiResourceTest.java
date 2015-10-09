@@ -16,7 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.rest.builder.ApiBuilder;
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.definition.jackson.model.ApiEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.repository.model.management.Api;
 import org.junit.Ignore;
@@ -44,8 +44,10 @@ public class ApiResourceTest extends AbstractResourceTest {
     public void testGetApi() {
         Optional<ApiEntity> api = Optional.of(new ApiBuilder()
                 .name("my-api")
+                /*
                 .origin("http://localhost/my-api")
                 .target("http://remote_api/context")
+                */
                 .createdAt(new Date())
                 .build());
 

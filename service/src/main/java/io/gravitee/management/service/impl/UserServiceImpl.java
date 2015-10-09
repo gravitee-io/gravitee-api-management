@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.management.model.NewUserEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.definition.jackson.model.NewUserEntity;
+import io.gravitee.definition.jackson.model.UserEntity;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;

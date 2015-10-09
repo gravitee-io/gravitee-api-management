@@ -15,22 +15,13 @@
  */
 package io.gravitee.management.service.impl;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.NewApiEntity;
-import io.gravitee.management.model.Owner;
-import io.gravitee.management.model.UpdateApiEntity;
+import io.gravitee.definition.jackson.model.ApiEntity;
+import io.gravitee.definition.jackson.model.NewApiEntity;
+import io.gravitee.definition.jackson.model.Owner;
+import io.gravitee.definition.jackson.model.UpdateApiEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -40,6 +31,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.model.management.Api;
 import io.gravitee.repository.model.management.LifecycleState;
 import io.gravitee.repository.model.management.OwnerType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -54,6 +51,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private ApiRepository apiRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public ApiEntity createForUser(NewApiEntity api, String username) throws ApiAlreadyExistsException {
@@ -81,7 +81,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public Optional<ApiEntity> findByName(String apiName) {
         try {
             LOGGER.debug("Find API by name: {}", apiName);
-            return apiRepository.findByName(apiName).map(ApiServiceImpl::convert);
+            return apiRepository.findByName(apiName).map(this::convert);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find an API using its name {}", apiName, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its name " + apiName, ex);
@@ -156,20 +156,25 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             }
 
             Api apiToUpdate = optApiToUpdate.get();
-            Api api = convert(updateApiEntity);
+            Api api = convert(apiName, updateApiEntity);
 
-            api.setName(apiName);
-            api.setUpdatedAt(new Date());
+            if (api != null) {
+                api.setName(apiName);
+                api.setUpdatedAt(new Date());
 
-            // Copy fields from existing values
-            api.setCreatedAt(apiToUpdate.getCreatedAt());
-            api.setLifecycleState(LifecycleState.STOPPED);
-            api.setOwner(apiToUpdate.getOwner());
-            api.setOwnerType(apiToUpdate.getOwnerType());
-            api.setCreator(apiToUpdate.getCreator());
+                // Copy fields from existing values
+                api.setCreatedAt(apiToUpdate.getCreatedAt());
+                api.setLifecycleState(LifecycleState.STOPPED);
+                api.setOwner(apiToUpdate.getOwner());
+                api.setOwnerType(apiToUpdate.getOwnerType());
+                api.setCreator(apiToUpdate.getCreator());
 
-            Api updatedApi =  apiRepository.update(api);
-            return convert(updatedApi);
+                Api updatedApi = apiRepository.update(api);
+                return convert(updatedApi);
+            } else {
+                LOGGER.error("Unable to update API {} because of previous error.");
+                throw new TechnicalManagementException("Unable to update API " + apiName);
+            }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update API {}", apiName, ex);
             throw new TechnicalManagementException("An error occurs while trying to update API " + apiName, ex);
@@ -227,34 +232,41 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         Api api = convert(newApiEntity);
 
-        // Set date fields
-        api.setCreatedAt(new Date());
-        api.setUpdatedAt(api.getCreatedAt());
+        if (api != null) {
+            // Set date fields
+            api.setCreatedAt(new Date());
+            api.setUpdatedAt(api.getCreatedAt());
 
-        // Be sure that lifecycle is set to STOPPED by default
-        api.setLifecycleState(LifecycleState.STOPPED);
+            // Be sure that lifecycle is set to STOPPED by default
+            api.setLifecycleState(LifecycleState.STOPPED);
 
-        // Set owner and owner type
-        api.setOwner(owner);
-        api.setOwnerType(ownerType);
+            // Set owner and owner type
+            api.setOwner(owner);
+            api.setOwnerType(ownerType);
 
-        api.setCreator(currentUser);
+            api.setCreator(currentUser);
 
-        // Private by default
-        api.setPrivateApi(true);
+            // Private by default
+            api.setPrivateApi(true);
 
-        Api createdApi =  apiRepository.create(api);
-        return convert(createdApi);
+            Api createdApi = apiRepository.create(api);
+            return convert(createdApi);
+        } else {
+            LOGGER.error("Unable to update API {} because of previous error.");
+            throw new TechnicalManagementException("Unable to update API " + newApiEntity.getName());
+        }
     }
 
-    private static ApiEntity convert(Api api) {
+    private ApiEntity convert(Api api) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setName(api.getName());
         apiEntity.setCreatedAt(api.getCreatedAt());
         apiEntity.setPrivate(api.isPrivateApi());
+        /*
         apiEntity.setPublicURI(api.getPublicURI());
         apiEntity.setTargetURI(api.getTargetURI());
+        */
         apiEntity.setUpdatedAt(api.getUpdatedAt());
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
@@ -268,27 +280,51 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         return apiEntity;
     }
 
-    private static Api convert(NewApiEntity newApiEntity) {
+    private Api convert(NewApiEntity newApiEntity) {
         Api api = new Api();
 
         api.setName(newApiEntity.getName());
-        api.setPublicURI(newApiEntity.getPublicURI());
-        api.setTargetURI(newApiEntity.getTargetURI());
         api.setVersion(newApiEntity.getVersion());
         api.setDescription(newApiEntity.getDescription());
 
-        return api;
+        try {
+            ApiDefinition apiDefinition = new ApiDefinition();
+            apiDefinition.setName(newApiEntity.getName());
+            apiDefinition.setVersion(newApiEntity.getVersion());
+            apiDefinition.setProxy(newApiEntity.getProxy());
+            apiDefinition.setPaths(newApiEntity.getPaths());
+
+            String definition = objectMapper.writeValueAsString(apiDefinition);
+            api.setDefinition(definition);
+            return api;
+        } catch (JsonProcessingException jse) {
+            LOGGER.error("Unexpected error while generating API definition", jse);
+        }
+
+        return null;
     }
 
-    private static Api convert(UpdateApiEntity updateApiEntity) {
+    private Api convert(String apiName, UpdateApiEntity updateApiEntity) {
         Api api = new Api();
 
         api.setPrivateApi(updateApiEntity.isPrivate());
-        api.setPublicURI(updateApiEntity.getPublicURI());
-        api.setTargetURI(updateApiEntity.getTargetURI());
         api.setVersion(updateApiEntity.getVersion());
         api.setDescription(updateApiEntity.getDescription());
 
-        return api;
+        try {
+            ApiDefinition apiDefinition = new ApiDefinition();
+            apiDefinition.setName(apiName);
+            apiDefinition.setVersion(updateApiEntity.getVersion());
+            apiDefinition.setProxy(updateApiEntity.getProxy());
+            apiDefinition.setPaths(updateApiEntity.getPaths());
+
+            String definition = objectMapper.writeValueAsString(apiDefinition);
+            api.setDefinition(definition);
+            return api;
+        } catch (JsonProcessingException jse) {
+            LOGGER.error("Unexpected error while generating API definition", jse);
+        }
+
+        return null;
     }
 }

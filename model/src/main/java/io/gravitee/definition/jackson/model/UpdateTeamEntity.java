@@ -13,33 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.definition.jackson.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import javax.validation.constraints.NotNull;
-import java.net.URI;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class UpdateApiEntity {
-
-    @NotNull
-    private String version;
+public class UpdateTeamEntity {
 
     @NotNull
     private String description;
 
     @NotNull
-    @JsonProperty("public")
-    private URI publicURI;
-
-    @NotNull
-    @JsonProperty("target")
-    private URI targetURI;
+    private String email;
 
     private boolean isPrivate;
 
@@ -51,35 +41,19 @@ public class UpdateApiEntity {
         this.isPrivate = isPrivate;
     }
 
-    public URI getPublicURI() {
-        return publicURI;
-    }
-
-    public void setPublicURI(URI publicURI) {
-        this.publicURI = publicURI;
-    }
-
-    public URI getTargetURI() {
-        return targetURI;
-    }
-
-    public void setTargetURI(URI targetURI) {
-        this.targetURI = targetURI;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

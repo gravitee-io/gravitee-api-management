@@ -15,9 +15,8 @@
  */
 package io.gravitee.management.rest.builder;
 
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.definition.jackson.model.ApiEntity;
 
-import java.net.URI;
 import java.util.Date;
 
 /**
@@ -29,16 +28,6 @@ public class ApiBuilder {
 
     public ApiBuilder name(String name) {
         this.api.setName(name);
-        return this;
-    }
-
-    public ApiBuilder target(String target) {
-        this.api.setTargetURI(URI.create(target));
-        return this;
-    }
-
-    public ApiBuilder origin(String origin) {
-        this.api.setPublicURI(URI.create(origin));
         return this;
     }
 

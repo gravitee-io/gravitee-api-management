@@ -13,13 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.definition.jackson.model;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import javax.validation.constraints.NotNull;
 
 /**
- * User team roles
- * 
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum TeamRole {
-    MEMBER, ADMIN;
+@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+public class UpdateApplicationEntity {
+
+    @NotNull
+    private String description;
+
+    @NotNull
+    private String type;
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 }

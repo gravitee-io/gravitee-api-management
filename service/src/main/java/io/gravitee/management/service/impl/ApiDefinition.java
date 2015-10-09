@@ -13,53 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.service.impl;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Proxy;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author Gravitee.io Team
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class PolicyEntity {
+public class ApiDefinition {
 
-    /**
-     * The policy identifier
-     */
-    private String id;
-
-    /**
-     * The policy name
-     */
+    @JsonProperty(required = true)
     private String name;
 
-    /**
-     * The policy description
-     */
-    private String description;
-
-    /**
-     * The policy version
-     */
+    @JsonProperty(required = true)
     private String version;
 
-    public String getDescription() {
-        return description;
-    }
+    @JsonProperty(value = "proxy", required = true)
+    private Proxy proxy;
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
+    @JsonProperty(value = "paths", required = true)
+    private Map<String, Path> paths = new HashMap<>();
 
     public String getName() {
         return name;
@@ -77,28 +57,33 @@ public class PolicyEntity {
         this.version = version;
     }
 
+    public Proxy getProxy() {
+        return proxy;
+    }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("PolicyEntity{");
-        sb.append("id='").append(id).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", version='").append(version).append('\'');
-        sb.append('}');
-        return sb.toString();
+    public void setProxy(Proxy proxy) {
+        this.proxy = proxy;
+    }
+
+    public Map<String, Path> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(Map<String, Path> paths) {
+        this.paths = paths;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PolicyEntity that = (PolicyEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name);
+        ApiDefinition that = (ApiDefinition) o;
+        return Objects.equals(name, that.name) &&
+                Objects.equals(version, that.version);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name);
+        return Objects.hash(name, version);
     }
 }

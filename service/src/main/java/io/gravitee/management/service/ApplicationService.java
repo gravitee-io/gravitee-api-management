@@ -15,9 +15,9 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.NewApplicationEntity;
-import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.definition.jackson.model.ApplicationEntity;
+import io.gravitee.definition.jackson.model.NewApplicationEntity;
+import io.gravitee.definition.jackson.model.UpdateApplicationEntity;
 
 import java.util.Optional;
 import java.util.Set;

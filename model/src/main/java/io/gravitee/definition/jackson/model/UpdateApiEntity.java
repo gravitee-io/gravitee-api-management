@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.definition.jackson.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Proxy;
 
 import javax.validation.constraints.NotNull;
-import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class NewApiEntity {
-
-    @NotNull
-    private String name;
+public class UpdateApiEntity {
 
     @NotNull
     private String version;
@@ -37,35 +37,20 @@ public class NewApiEntity {
     private String description;
 
     @NotNull
-    @JsonProperty("public")
-    private URI publicURI;
+    @JsonProperty(value = "proxy", required = true)
+    private Proxy proxy;
 
-    @NotNull
-    @JsonProperty("target")
-    private URI targetURI;
+    @JsonProperty(value = "paths", required = true)
+    private Map<String, Path> paths = new HashMap<>();
 
-    public String getName() {
-        return name;
+    private boolean isPrivate;
+
+    public boolean isPrivate() {
+        return isPrivate;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public URI getPublicURI() {
-        return publicURI;
-    }
-
-    public void setPublicURI(URI publicURI) {
-        this.publicURI = publicURI;
-    }
-
-    public URI getTargetURI() {
-        return targetURI;
-    }
-
-    public void setTargetURI(URI targetURI) {
-        this.targetURI = targetURI;
+    public void setPrivate(boolean isPrivate) {
+        this.isPrivate = isPrivate;
     }
 
     public String getVersion() {
@@ -84,14 +69,19 @@ public class NewApiEntity {
         this.description = description;
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Api{");
-        sb.append("name='").append(name).append('\'');
-        sb.append(", version='").append(version).append('\'');
-        sb.append(", publicURI=").append(publicURI);
-        sb.append(", targetURI=").append(targetURI);
-        sb.append('}');
-        return sb.toString();
+    public Proxy getProxy() {
+        return proxy;
+    }
+
+    public void setProxy(Proxy proxy) {
+        this.proxy = proxy;
+    }
+
+    public Map<String, Path> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(Map<String, Path> paths) {
+        this.paths = paths;
     }
 }
