@@ -29,6 +29,8 @@ public class Proxy {
 
     private boolean stripContextPath = false;
 
+    private HttpClient httpClient;
+
     public String getContextPath() {
         return contextPath;
     }
@@ -51,5 +53,13 @@ public class Proxy {
 
     public void setStripContextPath(boolean stripContextPath) {
         this.stripContextPath = stripContextPath;
+    }
+
+    public HttpClient getHttpClient() {
+        return httpClient;
+    }
+
+    public void setHttpClient(HttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 }

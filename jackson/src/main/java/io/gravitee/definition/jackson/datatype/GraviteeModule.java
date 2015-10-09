@@ -17,18 +17,9 @@ package io.gravitee.definition.jackson.datatype;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.gravitee.definition.jackson.datatype.deser.MethodDeserializer;
-import io.gravitee.definition.jackson.datatype.deser.PathDeserializer;
-import io.gravitee.definition.jackson.datatype.deser.PolicyDeserializer;
-import io.gravitee.definition.jackson.datatype.deser.ProxyDeserializer;
-import io.gravitee.definition.jackson.datatype.ser.MethodSerializer;
-import io.gravitee.definition.jackson.datatype.ser.PathSerializer;
-import io.gravitee.definition.jackson.datatype.ser.PolicySerializer;
-import io.gravitee.definition.jackson.datatype.ser.ProxySerializer;
-import io.gravitee.definition.model.Method;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.jackson.datatype.deser.*;
+import io.gravitee.definition.jackson.datatype.ser.*;
+import io.gravitee.definition.model.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -46,12 +37,16 @@ public class GraviteeModule extends SimpleModule {
         addDeserializer(Path.class, new PathDeserializer(Path.class));
         addDeserializer(Policy.class, new PolicyDeserializer(Policy.class));
         addDeserializer(Proxy.class, new ProxyDeserializer(Proxy.class));
+        addDeserializer(HttpClient.class, new HttpClientDeserializer(HttpClient.class));
+        addDeserializer(HttpProxy.class, new HttpProxyDeserializer(HttpProxy.class));
 
         // then serializers:
         addSerializer(Path.class, new PathSerializer(Path.class));
         addSerializer(Method.class, new MethodSerializer(Method.class));
         addSerializer(Policy.class, new PolicySerializer(Policy.class));
         addSerializer(Proxy.class, new ProxySerializer(Proxy.class));
+        addSerializer(HttpClient.class, new HttpClientSerializer(HttpClient.class));
+        addSerializer(HttpProxy.class, new HttpProxySerializer(HttpProxy.class));
     }
 
     @Override

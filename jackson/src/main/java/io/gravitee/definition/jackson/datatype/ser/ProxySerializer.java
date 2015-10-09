@@ -34,14 +34,14 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
 
     @Override
     public void serialize(Proxy proxy, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-
         jgen.writeStartObject();
         jgen.writeStringField("context_path", proxy.getContextPath());
         jgen.writeObjectField("target", proxy.getTarget().toString());
         jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
         jgen.writeEndObject();
-        /*
-        jgen.writeRawValue(policy.getConfiguration());
-        */
+
+        if (proxy.getHttpClient() != null) {
+            jgen.writeObjectField("http_client", proxy.getHttpClient());
+        }
     }
 }
