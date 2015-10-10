@@ -17,7 +17,7 @@ package io.gravitee.gateway.core.http.spring;
 
 import io.gravitee.gateway.core.definition.ApiDefinition;
 import io.gravitee.gateway.core.http.client.HttpClient;
-import io.gravitee.gateway.core.http.client.ahc.AHCHttpClient;
+import io.gravitee.gateway.core.http.client.vertx.VertxHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,6 +29,6 @@ public class HttpClientConfiguration {
 
     @Bean
     public HttpClient httpClient(ApiDefinition apiDefinition) {
-        return new AHCHttpClient(apiDefinition);
+        return new VertxHttpClient(apiDefinition);
     }
 }

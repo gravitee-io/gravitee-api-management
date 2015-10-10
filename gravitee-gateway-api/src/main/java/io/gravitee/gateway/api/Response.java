@@ -24,16 +24,22 @@ import java.nio.ByteBuffer;
  */
 public interface Response {
 
+    Response status(int statusCode);
+
     int status();
 
-    Response status(int statusCode);
+
+    Response chunked(boolean chunked);
+
+    boolean chunked();
+
 
     /**
      * @return the headers in the response.
      */
     HttpHeaders headers();
 
-    Response addHeader(String headerName, String headerValue);
-
     Response write(ByteBuffer byteBuffer);
+
+    void end();
 }

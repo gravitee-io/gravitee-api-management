@@ -33,6 +33,7 @@ public class ErrorReactorHandler extends AbstractReactorHandler {
         LOGGER.warn("No Gravitee handler can be found for request {}, returns NOT_FOUND(404)", request.path());
 
         response.status(HttpStatusCode.NOT_FOUND_404);
+        response.end();
         handler.handle(response);
     }
 }

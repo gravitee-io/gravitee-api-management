@@ -135,7 +135,8 @@ public class GraviteeReactor extends AbstractService implements
 
             // Send an INTERNAL_SERVER_ERROR (500)
             response.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            response.addHeader(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+            response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+            response.end();
             handler.handle(response);
         }
     }

@@ -81,9 +81,9 @@
 
         <!-- Proxy : AHC client -->
         <dependency>
-            <groupId>com.ning</groupId>
-            <artifactId>async-http-client</artifactId>
-            <version>1.9.31</version>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>3.0.0</version>
         </dependency>
 
         <!-- Jackson dependencies -->
