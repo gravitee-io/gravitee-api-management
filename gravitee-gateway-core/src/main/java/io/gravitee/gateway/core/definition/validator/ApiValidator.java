@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.definition.validator;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -23,7 +23,7 @@ import io.gravitee.gateway.core.definition.ApiDefinition;
 public class ApiValidator implements Validator {
 
     @Override
-    public void validate(ApiDefinition definition) throws ValidationException {
+    public void validate(Api definition) throws ValidationException {
         if (definition.getName() == null || definition.getName().isEmpty()) {
             throw new ValidationException("An API must have a name");
         }

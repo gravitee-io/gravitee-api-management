@@ -17,7 +17,7 @@ package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.policy.PolicyContext;
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.policy.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public class PolicyResolverImpl implements PolicyResolver, ApplicationContextAwa
     private PolicyManager policyManager;
 
     @Autowired
-    private ApiDefinition apiDefinition;
+    private Api api;
 
     @Autowired
     private PolicyFactory policyFactory;
@@ -51,7 +51,7 @@ public class PolicyResolverImpl implements PolicyResolver, ApplicationContextAwa
     public List<Policy> resolve(Request request) {
         List<Policy> policies = new ArrayList<>();
 
-        List<io.gravitee.gateway.core.definition.PolicyDefinition> definedPolicies = getApiDefinition().getPaths()
+        List<io.gravitee.definition.model.Policy> definedPolicies = getApi().getPaths()
                 .get("/*").getMethods().iterator().next().getPolicies();
 
         if (definedPolicies != null) {
@@ -79,12 +79,12 @@ public class PolicyResolverImpl implements PolicyResolver, ApplicationContextAwa
         return new PolicyContextImpl(applicationContext);
     }
 
-    public ApiDefinition getApiDefinition() {
-        return apiDefinition;
+    public Api getApi() {
+        return api;
     }
 
-    public void setApiDefinition(ApiDefinition apiDefinition) {
-        this.apiDefinition = apiDefinition;
+    public void setApi(Api api) {
+        this.api = api;
     }
 
     @Override

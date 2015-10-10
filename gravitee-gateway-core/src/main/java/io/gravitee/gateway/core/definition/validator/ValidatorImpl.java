@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.definition.validator;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class ValidatorImpl implements Validator {
     };
 
     @Override
-    public void validate(ApiDefinition definition) throws ValidationException {
+    public void validate(Api definition) throws ValidationException {
         logger.debug("Validate API Definition for API: {}", definition.getName());
 
         for (Validator validator : VALIDATORS) {

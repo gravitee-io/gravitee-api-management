@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.core.definition.validator;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.definition.ProxyDefinition;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.gateway.core.definition.Api;
 import org.apache.commons.validator.routines.UrlValidator;
 
 /**
@@ -29,8 +29,8 @@ public class ProxyValidator implements Validator {
     private static final UrlValidator urlValidator = new UrlValidator(new String []{"http","https"}, UrlValidator.ALLOW_LOCAL_URLS);
 
     @Override
-    public void validate(ApiDefinition definition) throws ValidationException {
-        ProxyDefinition proxyDefinition = definition.getProxy();
+    public void validate(Api definition) throws ValidationException {
+        Proxy proxyDefinition = definition.getProxy();
 
         if (proxyDefinition == null) {
             throw new ValidationException("An API must have a proxy part");

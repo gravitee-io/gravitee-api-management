@@ -17,7 +17,7 @@ package io.gravitee.gateway.core.registry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.manager.ApiManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
 
     private ExecutorService executor;
 
-    private Map<Path, ApiDefinition> definitions = new HashMap<>();
+    private Map<Path, Api> definitions = new HashMap<>();
 
     /**
      * Empty constructor is used to use a workspace directory defined from @Value annotation
@@ -95,9 +95,9 @@ public class LocalApiDefinitionRegistry extends AbstractService {
 
         for(File definitionFile : definitionFiles) {
             try {
-                ApiDefinition apiDefinition = loadDefinition(definitionFile);
-                apiManager.deploy(apiDefinition);
-                definitions.put(Paths.get(definitionFile.toURI()), apiDefinition);
+                Api api = loadDefinition(definitionFile);
+                apiManager.deploy(api);
+                definitions.put(Paths.get(definitionFile.toURI()), api);
             } catch (IOException e) {
                 LOGGER.error("Unable to load API definition from {}", definitionFile, e);
             }
@@ -110,8 +110,8 @@ public class LocalApiDefinitionRegistry extends AbstractService {
         });
     }
 
-    private ApiDefinition loadDefinition(File apiDefinitionFile) throws IOException {
-        return new ObjectMapper().readValue(apiDefinitionFile, ApiDefinition.class);
+    private Api loadDefinition(File apiDefinitionFile) throws IOException {
+        return new ObjectMapper().readValue(apiDefinitionFile, Api.class);
     }
 
     @Override
@@ -149,8 +149,8 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                             LOGGER.info("An event occurs for file {}: {}", fileName, kind.name());
 
                             if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                                ApiDefinition loadedDefinition = loadDefinition(fileName.toFile());
-                                ApiDefinition existingDefinition = definitions.get(fileName);
+                                Api loadedDefinition = loadDefinition(fileName.toFile());
+                                Api existingDefinition = definitions.get(fileName);
                                 if (existingDefinition != null) {
                                     if (apiManager.get(existingDefinition.getName()) != null) {
                                         apiManager.update(loadedDefinition);
@@ -162,8 +162,8 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                                     }
                                 }
                             } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                                ApiDefinition loadedDefinition = loadDefinition(fileName.toFile());
-                                ApiDefinition existingDefinition = apiManager.get(loadedDefinition.getName());
+                                Api loadedDefinition = loadDefinition(fileName.toFile());
+                                Api existingDefinition = apiManager.get(loadedDefinition.getName());
                                 if (existingDefinition != null) {
                                     apiManager.update(loadedDefinition);
                                 } else {
@@ -171,7 +171,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                                     definitions.put(fileName, loadedDefinition);
                                 }
                             } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                                ApiDefinition existingDefinition = definitions.get(fileName);
+                                Api existingDefinition = definitions.get(fileName);
                                 if (existingDefinition != null && apiManager.get(existingDefinition.getName()) != null) {
                                     apiManager.undeploy(existingDefinition.getName());
                                     definitions.remove(fileName);

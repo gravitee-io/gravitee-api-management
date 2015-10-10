@@ -18,7 +18,7 @@ package io.gravitee.gateway.core.http.client;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 
 import java.net.URI;
 import java.util.Collections;
@@ -47,17 +47,17 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
         HOP_HEADERS = Collections.unmodifiableSet(hopHeaders);
     }
 
-    protected final ApiDefinition apiDefinition;
+    protected final Api api;
 
-    protected AbstractHttpClient(ApiDefinition apiDefinition) {
-        this.apiDefinition = apiDefinition;
+    protected AbstractHttpClient(Api api) {
+        this.api = api;
     }
 
     protected String rewriteTarget(Request request) {
         final StringBuilder requestURI =
                 new StringBuilder(request.path())
-                        .delete(0, apiDefinition.getProxy().getContextPath().length())
-                        .insert(0, apiDefinition.getProxy().getTarget().toString());
+                        .delete(0, api.getProxy().getContextPath().length())
+                        .insert(0, api.getProxy().getTarget().toString());
 
         if (request.parameters() != null && ! request.parameters().isEmpty()) {
             requestURI.append('?');

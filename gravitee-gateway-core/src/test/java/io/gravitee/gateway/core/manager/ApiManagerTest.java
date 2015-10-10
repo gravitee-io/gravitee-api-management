@@ -18,7 +18,7 @@ package io.gravitee.gateway.core.manager;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.core.builder.ApiDefinitionBuilder;
 import io.gravitee.gateway.core.builder.ProxyDefinitionBuilder;
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.definition.validator.ValidationException;
 import io.gravitee.gateway.core.definition.validator.Validator;
 import io.gravitee.gateway.core.event.ApiEvent;
@@ -54,23 +54,23 @@ public class ApiManagerTest {
 
     @Test
     public void add_simpleApi() {
-        ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("api-test")
+        Api api = new ApiDefinitionBuilder().name("api-test")
                 .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("http://localhost/target").build()).build();
 
-        apiManager.deploy(apiDefinition);
+        apiManager.deploy(api);
 
-        verify(eventManager, only()).publishEvent(ApiEvent.DEPLOY, apiDefinition);
+        verify(eventManager, only()).publishEvent(ApiEvent.DEPLOY, api);
     }
 
     @Test
     public void add_simpleApi_validationError() {
-        ApiDefinition apiDefinition = new ApiDefinitionBuilder().name("api-test")
+        Api api = new ApiDefinitionBuilder().name("api-test")
                 .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("http://localhost/target").build()).build();
 
-        doThrow(new ValidationException()).when(validator).validate(apiDefinition);
+        doThrow(new ValidationException()).when(validator).validate(api);
 
-        apiManager.deploy(apiDefinition);
+        apiManager.deploy(api);
 
-        verify(eventManager, never()).publishEvent(ApiEvent.DEPLOY, apiDefinition);
+        verify(eventManager, never()).publishEvent(ApiEvent.DEPLOY, api);
     }
 }

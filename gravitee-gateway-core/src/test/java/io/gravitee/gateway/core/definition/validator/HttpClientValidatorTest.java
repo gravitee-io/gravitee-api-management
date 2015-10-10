@@ -15,12 +15,10 @@
  */
 package io.gravitee.gateway.core.definition.validator;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.definition.HttpClientDefinition;
-import io.gravitee.gateway.core.definition.ProxyDefinition;
+import io.gravitee.definition.model.HttpClient;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.gateway.core.definition.Api;
 import org.junit.Test;
-
-import java.net.URI;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -29,12 +27,12 @@ public class HttpClientValidatorTest {
 
     @Test(expected = ValidationException.class)
     public void validate_proxy_httpclient_useProxy() {
-        HttpClientDefinition httpClientDefinition = new HttpClientDefinition();
+        HttpClient httpClientDefinition = new HttpClient();
         httpClientDefinition.setUseProxy(true);
 
-        ProxyDefinition proxyDefinition = new ProxyDefinition();
+        Proxy proxyDefinition = new Proxy();
         proxyDefinition.setHttpClient(httpClientDefinition);
-        ApiDefinition definition = new ApiDefinition();
+        Api definition = new Api();
         definition.setProxy(proxyDefinition);
 
         new HttpClientValidator().validate(definition);

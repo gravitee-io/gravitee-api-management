@@ -15,32 +15,32 @@
  */
 package io.gravitee.gateway.core.builder;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.definition.ProxyDefinition;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.gateway.core.definition.Api;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class ApiDefinitionBuilder {
 
-    private final ApiDefinition apiDefinition = new ApiDefinition();
+    private final Api api = new Api();
 
     public ApiDefinitionBuilder name(String name) {
-        this.apiDefinition.setName(name);
+        this.api.setName(name);
         return this;
     }
 
     public ApiDefinitionBuilder enabled(boolean enabled) {
-        this.apiDefinition.setEnabled(enabled);
+        this.api.setEnabled(enabled);
         return this;
     }
 
-    public ApiDefinitionBuilder proxy(ProxyDefinition proxyDefinition) {
-        this.apiDefinition.setProxy(proxyDefinition);
+    public ApiDefinitionBuilder proxy(Proxy proxyDefinition) {
+        this.api.setProxy(proxyDefinition);
         return this;
     }
 
-    public ApiDefinition build() {
-        return this.apiDefinition;
+    public Api build() {
+        return this.api;
     }
 }

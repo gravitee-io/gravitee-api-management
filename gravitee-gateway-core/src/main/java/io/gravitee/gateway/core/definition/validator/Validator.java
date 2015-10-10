@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.core.definition.validator;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface Validator {
 
-    void validate(ApiDefinition definition) throws ValidationException;
+    void validate(Api definition) throws ValidationException;
 }

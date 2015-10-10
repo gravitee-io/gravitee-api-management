@@ -17,14 +17,12 @@ package io.gravitee.gateway.core.sync;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.core.builder.RepositoryApiBuilder;
-import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.definition.ProxyDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.core.sync.impl.SyncManager;
 import io.gravitee.repository.api.management.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Api;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -67,31 +65,31 @@ public class SyncManagerTest {
 
     @Test
     public void test_empty() throws TechnicalException {
-        when(apiRepository.findAll()).thenReturn(Collections.<Api>emptySet());
+        when(apiRepository.findAll()).thenReturn(Collections.<io.gravitee.repository.model.management.Api>emptySet());
 
         syncManager.refresh();
 
-        verify(apiManager, never()).deploy(any(ApiDefinition.class));
-        verify(apiManager, never()).update(any(ApiDefinition.class));
+        verify(apiManager, never()).deploy(any(Api.class));
+        verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
 
     @Test
     public void test_newApi() throws TechnicalException {
-        Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
+        io.gravitee.repository.model.management.Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
 
         verify(apiManager).deploy(convert(api));
-        verify(apiManager, never()).update(any(ApiDefinition.class));
+        verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
 
     @Test
     public void test_twiceWithSameApi() throws TechnicalException {
-        Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
+        io.gravitee.repository.model.management.Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
@@ -100,20 +98,20 @@ public class SyncManagerTest {
         syncManager.refresh();
 
         verify(apiManager).deploy(convert(api));
-        verify(apiManager, never()).update(any(ApiDefinition.class));
+        verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
 
     @Test
     public void test_twiceWithTwoApis() throws TechnicalException {
-        Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
-        Api api2 = new RepositoryApiBuilder().name("api-test-2").updatedAt(new Date()).build();
+        io.gravitee.repository.model.management.Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
+        io.gravitee.repository.model.management.Api api2 = new RepositoryApiBuilder().name("api-test-2").updatedAt(new Date()).build();
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
 
-        Set<Api> apis = new HashSet<>();
+        Set<io.gravitee.repository.model.management.Api> apis = new HashSet<>();
         apis.add(api);
         apis.add(api2);
 
@@ -123,14 +121,14 @@ public class SyncManagerTest {
 
         verify(apiManager).deploy(convert(api));
         verify(apiManager).deploy(convert(api2));
-        verify(apiManager, never()).update(any(ApiDefinition.class));
+        verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
 
     @Test
     public void test_twiceWithTwoApis_apiToRemove() throws TechnicalException {
-        Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
-        Api api2 = new RepositoryApiBuilder().name("api-test-2").updatedAt(new Date()).build();
+        io.gravitee.repository.model.management.Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
+        io.gravitee.repository.model.management.Api api2 = new RepositoryApiBuilder().name("api-test-2").updatedAt(new Date()).build();
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
@@ -142,17 +140,17 @@ public class SyncManagerTest {
 
         verify(apiManager).deploy(convert(api));
         verify(apiManager).deploy(convert(api2));
-        verify(apiManager, never()).update(any(ApiDefinition.class));
+        verify(apiManager, never()).update(any(Api.class));
         verify(apiManager).undeploy(api.getName());
         verify(apiManager, never()).undeploy(api2.getName());
     }
 
     @Test
     public void test_twiceWithTwoApis_apiToUpdate() throws TechnicalException {
-        Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
+        io.gravitee.repository.model.management.Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
 
         Instant updateDateInst = api.getUpdatedAt().toInstant().plus(Duration.ofHours(1));
-        Api api2 = new RepositoryApiBuilder().name("api-test").updatedAt(Date.from(updateDateInst)).build();
+        io.gravitee.repository.model.management.Api api2 = new RepositoryApiBuilder().name("api-test").updatedAt(Date.from(updateDateInst)).build();
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
@@ -169,8 +167,8 @@ public class SyncManagerTest {
 
     @Test
     public void test_twiceWithTwoApis_api_noUpdate() throws TechnicalException {
-        Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
-        Api api2 = new RepositoryApiBuilder().name("api-test").updatedAt(api.getUpdatedAt()).build();
+        io.gravitee.repository.model.management.Api api = new RepositoryApiBuilder().name("api-test").updatedAt(new Date()).build();
+        io.gravitee.repository.model.management.Api api2 = new RepositoryApiBuilder().name("api-test").updatedAt(api.getUpdatedAt()).build();
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
@@ -181,7 +179,7 @@ public class SyncManagerTest {
         syncManager.refresh();
 
         verify(apiManager).deploy(convert(api));
-        verify(apiManager, never()).update(any(ApiDefinition.class));
+        verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
 
@@ -191,20 +189,22 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, never()).deploy(any(ApiDefinition.class));
-        verify(apiManager, never()).update(any(ApiDefinition.class));
+        verify(apiManager, never()).deploy(any(Api.class));
+        verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
 
-    private ApiDefinition convert(io.gravitee.repository.model.management.Api remoteApi) {
-        ApiDefinition api = new ApiDefinition();
+    private Api convert(io.gravitee.repository.model.management.Api remoteApi) {
+        Api api = new Api();
 
         api.setName(remoteApi.getName());
 
+        /*
         ProxyDefinition proxy = new ProxyDefinition();
         proxy.setContextPath(remoteApi.getPublicURI().getPath());
         proxy.setTarget(remoteApi.getTargetURI());
         proxy.setStripContextPath(false);
+        */
         /*
         api.setCreatedAt(remoteApi.getCreatedAt());
         api.setUpdatedAt(remoteApi.getUpdatedAt());

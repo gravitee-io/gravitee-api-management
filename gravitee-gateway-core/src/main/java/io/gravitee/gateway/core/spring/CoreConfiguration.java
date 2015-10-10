@@ -15,8 +15,10 @@
  */
 package io.gravitee.gateway.core.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.definition.validator.Validator;
 import io.gravitee.gateway.core.definition.validator.ValidatorImpl;
@@ -68,6 +70,11 @@ public class CoreConfiguration {
     @Bean
     public LocalApiDefinitionRegistry localApiDefinitionRegistry() {
         return new LocalApiDefinitionRegistry();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new GraviteeMapper();
     }
 
     @Bean

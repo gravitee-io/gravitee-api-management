@@ -19,8 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.core.AbstractCoreTest;
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.external.ApiExternalResource;
 import io.gravitee.gateway.core.external.ApiServlet;
@@ -72,9 +73,9 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     @Test
     public void processRequest_startedApi() throws IOException {
         // Register API endpoint
-        ApiDefinition apiDefinition = getApiDefinition();
+        Api api = getApiDefinition();
 
-        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
+        eventManager.publishEvent(ApiEvent.DEPLOY, api);
 
         HttpServerRequest req = new HttpServerRequest();
         HttpServerResponse response = new HttpServerResponse();
@@ -89,9 +90,9 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     @Test
     public void processRequest_startedApi_gatewayError() throws IOException {
         // Register API endpoint
-        ApiDefinition apiDefinition = getApiDefinition();
+        Api api = getApiDefinition();
 
-        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
+        eventManager.publishEvent(ApiEvent.DEPLOY, api);
 
         HttpServerRequest req = new HttpServerRequest();
         HttpServerResponse response = new HttpServerResponse();
@@ -106,10 +107,10 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     @Test
     public void processRequest_notYetStartedApi() throws IOException {
         // Register API endpoint
-        ApiDefinition apiDefinition = getApiDefinition();
-        apiDefinition.setEnabled(false);
+        Api api = getApiDefinition();
+        api.setEnabled(false);
 
-        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
+        eventManager.publishEvent(ApiEvent.DEPLOY, api);
 
         HttpServerRequest req = new HttpServerRequest();
         HttpServerResponse response = new HttpServerResponse();
@@ -124,9 +125,9 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     @Test
     public void processNotFoundRequest() throws IOException {
         // Register API endpoint
-        ApiDefinition apiDefinition = getApiDefinition();
+        Api api = getApiDefinition();
 
-        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
+        eventManager.publishEvent(ApiEvent.DEPLOY, api);
 
         HttpServerRequest req = new HttpServerRequest();
         req.setRequestURI(URI.create("http://localhost/unknown_path"));
@@ -177,9 +178,9 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 //        Reporter reporter = spy(reporterManager.getReporters().iterator().next());
 
         // Register API endpoint
-        ApiDefinition apiDefinition = getApiDefinition();
+        Api api = getApiDefinition();
 
-        eventManager.publishEvent(ApiEvent.DEPLOY, apiDefinition);
+        eventManager.publishEvent(ApiEvent.DEPLOY, api);
 
         HttpServerRequest req = new HttpServerRequest();
         req.setRequestURI(URI.create("http://localhost/unknown_path"));
@@ -193,8 +194,8 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 //        verify(reporter, atLeastOnce()).report(eq(req), any(Response.class));
     }
 
-    private ApiDefinition getApiDefinition() throws IOException {
+    private Api getApiDefinition() throws IOException {
         URL jsonFile = GraviteeReactorTest.class.getResource("/io/gravitee/gateway/core/reactor/api.json");
-        return new ObjectMapper().readValue(jsonFile, ApiDefinition.class);
+        return new GraviteeMapper().readValue(jsonFile, Api.class);
     }
 }

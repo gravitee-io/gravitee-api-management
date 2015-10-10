@@ -26,7 +26,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.Reactor;
-import io.gravitee.gateway.core.definition.ApiDefinition;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.plugin.PluginEventListener;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class GraviteeReactor extends AbstractService implements
-        Reactor, EventListener<ApiEvent, ApiDefinition>, ApplicationContextAware {
+        Reactor, EventListener<ApiEvent, Api>, ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(GraviteeReactor.class);
 
@@ -71,6 +71,9 @@ public class GraviteeReactor extends AbstractService implements
 
     @Autowired
     private ContextHandlerFactory contextHandlerFactory;
+
+    @Autowired
+    private ReporterService reporterService;
 
     private final ConcurrentMap<String, ContextReactorHandler> handlers = new ConcurrentHashMap<>();
 
@@ -115,9 +118,6 @@ public class GraviteeReactor extends AbstractService implements
         return errorHandler;
     }
 
-    @Autowired
-    private ReporterService reporterService;
-
     public void process(Request request, Response response, Handler<Response> handler) {
         logger.debug("Receiving a request {} for path {}", request.id(), request.path());
 
@@ -151,7 +151,7 @@ public class GraviteeReactor extends AbstractService implements
     }
 
     @Override
-    public void onEvent(Event<ApiEvent, ApiDefinition> event) {
+    public void onEvent(Event<ApiEvent, Api> event) {
         switch(event.type()) {
             case DEPLOY:
                 createHandler(event.content());
@@ -166,11 +166,11 @@ public class GraviteeReactor extends AbstractService implements
         }
     }
 
-    public void createHandler(ApiDefinition apiDefinition) {
-        if (apiDefinition.isEnabled()) {
-            logger.info("API {} has been deployed in reactor", apiDefinition.getName());
+    public void createHandler(Api api) {
+        if (api.isEnabled()) {
+            logger.info("API {} has been deployed in reactor", api.getName());
 
-            ContextReactorHandler handler = contextHandlerFactory.create(apiDefinition);
+            ContextReactorHandler handler = contextHandlerFactory.create(api);
             try {
                 handler.start();
                 handlers.putIfAbsent(handler.getContextPath(), handler);
@@ -178,18 +178,18 @@ public class GraviteeReactor extends AbstractService implements
                 logger.error("Unable to deploy handler", ex);
             }
         } else {
-            logger.warn("Api {} is settled has disable in reactor !", apiDefinition.getName());
+            logger.warn("Api {} is settled has disable in reactor !", api.getName());
         }
     }
 
-    public void removeHandler(ApiDefinition apiDefinition) {
-        logger.info("API {} has been disabled (or removed) from reactor", apiDefinition.getName());
+    public void removeHandler(Api api) {
+        logger.info("API {} has been disabled (or removed) from reactor", api.getName());
 
-        ReactorHandler handler = handlers.remove(apiDefinition.getProxy().getContextPath());
+        ReactorHandler handler = handlers.remove(api.getProxy().getContextPath());
         if (handler != null) {
             try {
                 handler.stop();
-                handlers.remove(apiDefinition.getProxy().getContextPath());
+                handlers.remove(api.getProxy().getContextPath());
             } catch (Exception e) {
                 logger.error("Unable to remove handler", e);
             }

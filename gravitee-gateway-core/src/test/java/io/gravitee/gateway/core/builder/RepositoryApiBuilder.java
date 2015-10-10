@@ -17,9 +17,7 @@ package io.gravitee.gateway.core.builder;
 
 
 import io.gravitee.repository.model.management.Api;
-import io.gravitee.repository.model.management.LifecycleState;
 
-import java.net.URI;
 import java.util.Date;
 
 /**
@@ -31,21 +29,6 @@ public class RepositoryApiBuilder {
 
     public RepositoryApiBuilder name(String name) {
         this.api.setName(name);
-        return this;
-    }
-
-    public RepositoryApiBuilder target(String target) {
-        this.api.setTargetURI(URI.create(target));
-        return this;
-    }
-
-    public RepositoryApiBuilder origin(String origin) {
-        this.api.setPublicURI(URI.create(origin));
-        return this;
-    }
-
-    public RepositoryApiBuilder start() {
-        this.api.setLifecycleState(LifecycleState.STARTED);
         return this;
     }
 

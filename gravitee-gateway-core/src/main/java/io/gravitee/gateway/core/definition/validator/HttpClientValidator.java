@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.core.definition.validator;
 
-import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.definition.HttpClientDefinition;
+import io.gravitee.definition.model.HttpClient;
+import io.gravitee.gateway.core.definition.Api;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -24,10 +24,10 @@ import io.gravitee.gateway.core.definition.HttpClientDefinition;
 public class HttpClientValidator implements Validator {
 
     @Override
-    public void validate(ApiDefinition definition) throws ValidationException {
-        HttpClientDefinition httpClientDefinition = definition.getProxy().getHttpClient();
+    public void validate(Api definition) throws ValidationException {
+        HttpClient httpClient = definition.getProxy().getHttpClient();
 
-        if (httpClientDefinition.isUseProxy() && httpClientDefinition.getHttpProxy() == null) {
+        if (httpClient != null && httpClient.isUseProxy() && httpClient.getHttpProxy() == null) {
             throw new ValidationException("An API must have a HTTP proxy if 'use_proxy' property is enabled");
         }
 
