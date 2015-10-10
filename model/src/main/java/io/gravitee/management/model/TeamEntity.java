@@ -13,37 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson.model;
+package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.util.Date;
 import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class PolicyEntity {
+public class TeamEntity {
 
     /**
-     * The policy identifier
-     */
-    private String id;
-
-    /**
-     * The policy name
+     * The shorthand name of the team.
      */
     private String name;
 
     /**
-     * The policy description
+     * The description of the team.
      */
     private String description;
 
     /**
-     * The policy version
+     * The team can only be visible for members.
      */
-    private String version;
+    private boolean isPrivate;
+
+    /**
+     * The publicly visible email address.
+     */
+    private String email;
+
+    /**
+     * The team creation date
+     */
+    @JsonProperty("created_at")
+    private Date createdAt;
+
+    /**
+     * The team last updated date
+     */
+    @JsonProperty("updated_at")
+    private Date updatedAt;
 
     public String getDescription() {
         return description;
@@ -53,12 +67,12 @@ public class PolicyEntity {
         this.description = description;
     }
 
-    public String getId() {
-        return id;
+    public String getEmail() {
+        return email;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getName() {
@@ -69,36 +83,40 @@ public class PolicyEntity {
         this.name = name;
     }
 
-    public String getVersion() {
-        return version;
+    public boolean isPrivate() {
+        return isPrivate;
     }
 
-    public void setVersion(String version) {
-        this.version = version;
+    public void setIsPrivate(boolean isPrivate) {
+        this.isPrivate = isPrivate;
     }
 
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("PolicyEntity{");
-        sb.append("id='").append(id).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", version='").append(version).append('\'');
-        sb.append('}');
-        return sb.toString();
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PolicyEntity that = (PolicyEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name);
+        TeamEntity that = (TeamEntity) o;
+        return Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name);
+        return Objects.hash(name);
     }
 }

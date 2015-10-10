@@ -27,9 +27,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.definition.jackson.model.NewPageEntity;
-import io.gravitee.definition.jackson.model.PageEntity;
-import io.gravitee.definition.jackson.model.UpdatePageEntity;
+import io.gravitee.management.model.NewPageEntity;
+import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.UpdatePageEntity;
 import io.gravitee.management.service.DocumentationService;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;

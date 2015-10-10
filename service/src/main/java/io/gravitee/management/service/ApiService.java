@@ -18,9 +18,9 @@ package io.gravitee.management.service;
 import java.util.Optional;
 import java.util.Set;
 
-import io.gravitee.definition.jackson.model.ApiEntity;
-import io.gravitee.definition.jackson.model.NewApiEntity;
-import io.gravitee.definition.jackson.model.UpdateApiEntity;
+import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.management.model.UpdateApiEntity;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

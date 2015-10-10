@@ -15,8 +15,8 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.definition.jackson.model.TeamEntity;
-import io.gravitee.definition.jackson.model.UpdateTeamEntity;
+import io.gravitee.management.model.TeamEntity;
+import io.gravitee.management.model.UpdateTeamEntity;
 import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.service.PermissionService;

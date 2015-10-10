@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.definition.jackson.model.ApiKeyEntity;
+import io.gravitee.management.model.ApiKeyEntity;
 import io.gravitee.management.service.ApiKeyGenerator;
 import io.gravitee.management.service.ApiKeyService;
 import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;

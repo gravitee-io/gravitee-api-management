@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.security.authentication;
 
-import io.gravitee.definition.jackson.model.UserEntity;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 

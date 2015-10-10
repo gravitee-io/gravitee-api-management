@@ -15,8 +15,8 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.definition.jackson.model.ApiEntity;
-import io.gravitee.definition.jackson.model.ApplicationEntity;
+import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.service.ApiService;

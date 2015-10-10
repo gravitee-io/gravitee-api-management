@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson.model;
+package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
 
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class UpdateApiEntity {
+public class ApiEntity {
 
-    @NotNull
+    private String name;
     private String version;
-
-    @NotNull
     private String description;
 
     @NotNull
@@ -43,7 +44,41 @@ public class UpdateApiEntity {
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
 
+    @JsonProperty("created_at")
+    private Date createdAt;
+
+    @JsonProperty("updated_at")
+    private Date updatedAt;
+
     private boolean isPrivate;
+
+    private Owner owner;
+
+    private Lifecycle.State state;
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Owner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Owner owner) {
+        this.owner = owner;
+    }
 
     public boolean isPrivate() {
         return isPrivate;
@@ -51,6 +86,14 @@ public class UpdateApiEntity {
 
     public void setPrivate(boolean isPrivate) {
         this.isPrivate = isPrivate;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public String getVersion() {
@@ -69,6 +112,14 @@ public class UpdateApiEntity {
         this.description = description;
     }
 
+    public Lifecycle.State getState() {
+        return state;
+    }
+
+    public void setState(Lifecycle.State state) {
+        this.state = state;
+    }
+
     public Proxy getProxy() {
         return proxy;
     }
@@ -83,5 +134,30 @@ public class UpdateApiEntity {
 
     public void setPaths(Map<String, Path> paths) {
         this.paths = paths;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApiEntity api = (ApiEntity) o;
+        return Objects.equals(name, api.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Api{");
+        sb.append("createdAt=").append(createdAt);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", version='").append(version).append('\'');
+        sb.append(", privateApi=").append(isPrivate);
+        sb.append(", state=").append(state);
+        sb.append('}');
+        return sb.toString();
     }
 }

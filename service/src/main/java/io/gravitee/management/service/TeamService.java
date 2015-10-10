@@ -15,9 +15,9 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.definition.jackson.model.NewTeamEntity;
-import io.gravitee.definition.jackson.model.TeamEntity;
-import io.gravitee.definition.jackson.model.UpdateTeamEntity;
+import io.gravitee.management.model.NewTeamEntity;
+import io.gravitee.management.model.TeamEntity;
+import io.gravitee.management.model.UpdateTeamEntity;
 
 import java.util.Optional;
 import java.util.Set;

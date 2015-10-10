@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.rest.builder;
 
-import io.gravitee.definition.jackson.model.ApiEntity;
+import io.gravitee.management.model.ApiEntity;
 
 import java.util.Date;
 

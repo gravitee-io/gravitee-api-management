@@ -13,23 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson.model;
+package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Proxy;
 
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class UpdateTeamEntity {
+public class UpdateApiEntity {
+
+    @NotNull
+    private String version;
 
     @NotNull
     private String description;
 
     @NotNull
-    private String email;
+    @JsonProperty(value = "proxy", required = true)
+    private Proxy proxy;
+
+    @JsonProperty(value = "paths", required = true)
+    private Map<String, Path> paths = new HashMap<>();
 
     private boolean isPrivate;
 
@@ -41,6 +53,14 @@ public class UpdateTeamEntity {
         this.isPrivate = isPrivate;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -49,11 +69,19 @@ public class UpdateTeamEntity {
         this.description = description;
     }
 
-    public String getEmail() {
-        return email;
+    public Proxy getProxy() {
+        return proxy;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setProxy(Proxy proxy) {
+        this.proxy = proxy;
+    }
+
+    public Map<String, Path> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(Map<String, Path> paths) {
+        this.paths = paths;
     }
 }

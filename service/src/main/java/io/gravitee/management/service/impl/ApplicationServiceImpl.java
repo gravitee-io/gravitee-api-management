@@ -25,9 +25,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.definition.jackson.model.ApplicationEntity;
-import io.gravitee.definition.jackson.model.NewApplicationEntity;
-import io.gravitee.definition.jackson.model.UpdateApplicationEntity;
+import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.NewApplicationEntity;
+import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;

@@ -13,21 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.model;
 
-import io.gravitee.management.model.MembershipEntity;
-import io.gravitee.management.model.TeamRole;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import java.util.Set;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface TeamMembershipService {
+@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+public class UpdateApplicationEntity {
 
-    void addOrUpdateMember(String teamName, String username, TeamRole teamRole);
+    @NotNull
+    private String description;
 
-    void deleteMember(String teamName, String username);
+    @NotNull
+    private String type;
 
-    Set<MembershipEntity> findMembers(String teamName, TeamRole teamRole);
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 }

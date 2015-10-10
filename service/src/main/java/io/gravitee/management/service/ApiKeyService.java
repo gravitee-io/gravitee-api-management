@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.definition.jackson.model.ApiKeyEntity;
+import io.gravitee.management.model.ApiKeyEntity;
 
 import java.util.Optional;
 import java.util.Set;

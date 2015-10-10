@@ -13,38 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson.model;
+package io.gravitee.management.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Proxy;
 
-import javax.validation.constraints.NotNull;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class NewApiEntity {
+public class PolicyEntity {
 
-    @NotNull
+    /**
+     * The policy identifier
+     */
+    private String id;
+
+    /**
+     * The policy name
+     */
     private String name;
 
-    @NotNull
-    private String version;
-
-    @NotNull
+    /**
+     * The policy description
+     */
     private String description;
 
-    @NotNull
-    @JsonProperty(value = "proxy", required = true)
-    private Proxy proxy;
+    /**
+     * The policy version
+     */
+    private String version;
 
-    @JsonProperty(value = "paths", required = true)
-    private Map<String, Path> paths = new HashMap<>();
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -62,36 +77,28 @@ public class NewApiEntity {
         this.version = version;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Proxy getProxy() {
-        return proxy;
-    }
-
-    public void setProxy(Proxy proxy) {
-        this.proxy = proxy;
-    }
-
-    public Map<String, Path> getPaths() {
-        return paths;
-    }
-
-    public void setPaths(Map<String, Path> paths) {
-        this.paths = paths;
-    }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Api{");
-        sb.append("name='").append(name).append('\'');
+        final StringBuilder sb = new StringBuilder("PolicyEntity{");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PolicyEntity that = (PolicyEntity) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name);
     }
 }

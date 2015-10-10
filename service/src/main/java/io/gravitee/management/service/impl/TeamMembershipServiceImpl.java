@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.definition.jackson.model.MembershipEntity;
-import io.gravitee.definition.jackson.model.TeamRole;
+import io.gravitee.management.model.MembershipEntity;
+import io.gravitee.management.model.TeamRole;
 import io.gravitee.management.service.TeamMembershipService;
 import io.gravitee.management.service.exceptions.TeamNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;

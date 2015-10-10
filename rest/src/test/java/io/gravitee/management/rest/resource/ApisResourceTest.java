@@ -17,8 +17,8 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.rest.builder.ApiBuilder;
-import io.gravitee.definition.jackson.model.ApiEntity;
-import io.gravitee.definition.jackson.model.NewApiEntity;
+import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.service.ApiService;
 import org.junit.Ignore;
 import org.junit.Test;
