@@ -18,7 +18,6 @@ package io.gravitee.gateway.core.reactor.handler;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.http.HttpServerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +32,7 @@ public class ErrorReactorHandler extends AbstractReactorHandler {
     public void handle(Request request, Response response, io.gravitee.gateway.api.handler.Handler<Response> handler) {
         LOGGER.warn("No Gravitee handler can be found for request {}, returns NOT_FOUND(404)", request.path());
 
-        ((HttpServerResponse)response).setStatus(HttpStatusCode.NOT_FOUND_404);
+        response.status(HttpStatusCode.NOT_FOUND_404);
         handler.handle(response);
     }
 }

@@ -71,12 +71,15 @@ public class RequestBodyGenerator implements BodyGenerator {
 
             int read = -1;
 
+            // TODO: we have to read bytebuffer from request bodyHandler
+            /*
             try {
                 read = request.inputStream().read(chunk);
                 LOGGER.debug("{} proxying content to upstream: {} bytes", request.id(), read);
             } catch (IOException ex) {
                 logger.warn("Unable to read", ex);
             }
+            */
 
             if (patchNettyChunkingIssue) {
                 if (read >= 0) {
@@ -110,7 +113,7 @@ public class RequestBodyGenerator implements BodyGenerator {
 
         @Override
         public void close() throws IOException {
-            request.inputStream().close();
+        //    request.inputStream().close();
         }
     }
 

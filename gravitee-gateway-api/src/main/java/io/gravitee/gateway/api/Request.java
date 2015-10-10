@@ -18,8 +18,9 @@ package io.gravitee.gateway.api;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
+import io.gravitee.gateway.api.handler.Handler;
 
-import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Map;
 
@@ -71,13 +72,6 @@ public interface Request {
     Instant timestamp();
 
     /**
-     * Retrieves the body of the request as binary data.
-     *
-     * @return an {@link InputStream} object containing the body of the request.
-     */
-    InputStream inputStream();
-
-    /**
      * Returns the Internet Protocol (IP) address of the client or last proxy that sent the request.
      *
      * @return a <code>String</code> containing the IP address of the client that sent the request.
@@ -90,4 +84,8 @@ public interface Request {
      * @return a <code>String</code> containing the IP address on which the request was received.
      */
     String localAddress();
+
+    Request bodyHandler(Handler<ByteBuffer> handler);
+
+    Request endHandler(Handler<Void> handler);
 }

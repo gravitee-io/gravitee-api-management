@@ -17,7 +17,7 @@ package io.gravitee.gateway.api;
 
 import io.gravitee.common.http.HttpHeaders;
 
-import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -26,10 +26,14 @@ public interface Response {
 
     int status();
 
+    Response status(int statusCode);
+
     /**
      * @return the headers in the response.
      */
     HttpHeaders headers();
 
-    OutputStream outputStream();
+    Response addHeader(String headerName, String headerValue);
+
+    Response write(ByteBuffer byteBuffer);
 }

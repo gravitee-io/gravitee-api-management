@@ -60,7 +60,6 @@ public class RequestBuilder {
 
 	public static HttpServerResponse from(HttpServletResponse servletResponse) throws IOException {
 		HttpServerResponse response = new HttpServerResponse();
-		response.setOutputStream(servletResponse.getOutputStream());
 		return response;
 	}
 

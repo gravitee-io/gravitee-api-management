@@ -20,11 +20,12 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.definition.ApiDefinition;
-import io.gravitee.gateway.core.http.HttpServerResponse;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -33,6 +34,8 @@ import java.util.List;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class ApiReactorHandler extends ContextReactorHandler {
+
+    private final Logger logger = LoggerFactory.getLogger(ApiReactorHandler.class);
 
     @Autowired
     private ApiDefinition apiDefinition;
@@ -51,7 +54,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
         AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(policies);
         requestPolicyChain.setResultHandler(requestPolicyResult -> {
             if (requestPolicyResult.isFailure()) {
-                ((HttpServerResponse) response).setStatus(requestPolicyResult.httpStatusCode());
+                response.status(requestPolicyResult.httpStatusCode());
                 handler.handle(response);
             } else {
                 // 3_ Call remote service

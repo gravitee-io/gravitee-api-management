@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.http.client;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.definition.ApiDefinition;
 
@@ -75,8 +76,7 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
     protected boolean hasContent(Request request) {
         return request.headers().contentLength() > 0 ||
                 request.headers().contentType() != null ||
-                // TODO: create an enum class for common HTTP headers
-                request.headers().getFirst("Transfer-Encoding") != null;
+                request.headers().getFirst(HttpHeaders.TRANSFER_ENCODING) != null;
     }
 
     protected URI rewriteURI(Request request) {
