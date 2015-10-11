@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.registry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.manager.ApiManager;
 import org.slf4j.Logger;
@@ -111,7 +112,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
     }
 
     private Api loadDefinition(File apiDefinitionFile) throws IOException {
-        return new ObjectMapper().readValue(apiDefinitionFile, Api.class);
+        return new GraviteeMapper().readValue(apiDefinitionFile, Api.class);
     }
 
     @Override
