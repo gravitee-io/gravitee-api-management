@@ -51,8 +51,12 @@ public class ApiManagerImpl implements ApiManager {
         try {
             validator.validate(api);
 
-            apis.put(api.getName(), api);
-            eventManager.publishEvent(ApiEvent.DEPLOY, api);
+            if (api.isEnabled()) {
+                apis.put(api.getName(), api);
+                eventManager.publishEvent(ApiEvent.DEPLOY, api);
+            } else {
+                logger.debug("{} is not enabled. Skip deployment.", api);
+            }
         } catch (ValidationException ve) {
             logger.error("API Definition can't be deployed because of validation errors", ve);
         }
@@ -80,9 +84,11 @@ public class ApiManagerImpl implements ApiManager {
 
     @Override
     public void undeploy(String apiName) {
-        logger.debug("API {} has been undeployed", apiName);
-        apis.remove(apiName);
-        eventManager.publishEvent(ApiEvent.UNDEPLOY, apis.get(apiName));
+        Api currentApi = apis.remove(apiName);
+        if (currentApi != null) {
+            eventManager.publishEvent(ApiEvent.UNDEPLOY, currentApi);
+            logger.debug("API {} has been undeployed", apiName);
+        }
     }
 
     @Override
