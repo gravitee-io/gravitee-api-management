@@ -28,6 +28,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
 import java.util.List;
@@ -44,6 +45,9 @@ public class VertxHttpClient extends AbstractHttpClient {
     private final Logger LOGGER = LoggerFactory.getLogger(VertxHttpClient.class);
 
     private HttpClient httpClient;
+
+    @Autowired
+    private Vertx vertx;
 
     public VertxHttpClient(Api api) {
         super(api);
@@ -194,7 +198,7 @@ public class VertxHttpClient extends AbstractHttpClient {
             options.setDefaultPort(port);
         }
 
-        httpClient = Vertx.vertx().createHttpClient(options);
+        httpClient = vertx.createHttpClient(options);
         LOGGER.info("Vert.x HTTP Client created {}", httpClient);
     }
 }

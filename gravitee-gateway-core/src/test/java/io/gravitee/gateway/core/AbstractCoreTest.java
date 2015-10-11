@@ -16,10 +16,12 @@
 package io.gravitee.gateway.core;
 
 import io.gravitee.gateway.core.spring.CoreConfiguration;
+import io.vertx.core.Vertx;
 import org.junit.runner.RunWith;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,6 +50,12 @@ public abstract class AbstractCoreTest implements ApplicationContextAware {
     @Configuration
     @Import({CoreConfiguration.class})
     static class ContextConfiguration {
+
+        // This bean is needed by HTTP client part
+        @Bean
+        public Vertx vertx() {
+            return Vertx.vertx();
+        }
     }
 
     @Override
