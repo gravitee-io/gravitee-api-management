@@ -57,6 +57,7 @@ public class SyncManager {
 
             Map<String, Api> apisMap = apis.stream()
                     .map(this::convert)
+                    .filter(api -> api != null)
                     .collect(Collectors.toMap(Api::getName, api -> api));
 
             // Determine APIs to undeploy
@@ -97,18 +98,22 @@ public class SyncManager {
 
     private Api convert(io.gravitee.repository.model.management.Api remoteApi) {
         try {
-            Api api = objectMapper.readValue(remoteApi.getDefinition(), Api.class);
+            String definition = remoteApi.getDefinition();
+            if (definition != null && !definition.isEmpty()) {
+                Api api = objectMapper.readValue(definition, Api.class);
 
-            api.setName(remoteApi.getName());
-            api.setVersion(remoteApi.getVersion());
-            api.setEnabled(remoteApi.getLifecycleState() == LifecycleState.STARTED);
-            api.setDeployedAt(remoteApi.getUpdatedAt());
+                api.setName(remoteApi.getName());
+                api.setVersion(remoteApi.getVersion());
+                api.setEnabled(remoteApi.getLifecycleState() == LifecycleState.STARTED);
+                api.setDeployedAt(remoteApi.getUpdatedAt());
 
-            return api;
+                return api;
+            }
         } catch (IOException ioe) {
             logger.error("Unable to prepare API definition from repository", ioe);
-            return null;
         }
+
+        return null;
     }
 
     public void setApiRepository(ApiRepository apiRepository) {
