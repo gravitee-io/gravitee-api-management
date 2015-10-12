@@ -16,6 +16,8 @@
 package io.gravitee.gateway.core.reactor.handler.impl;
 
 import io.gravitee.common.http.GraviteeHttpHeader;
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
@@ -55,6 +57,8 @@ public class ApiReactorHandler extends ContextReactorHandler {
         requestPolicyChain.setResultHandler(requestPolicyResult -> {
             if (requestPolicyResult.isFailure()) {
                 response.status(requestPolicyResult.httpStatusCode());
+                response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+                response.end();
                 handler.handle(response);
             } else {
                 // 3_ Call remote service
