@@ -185,8 +185,7 @@ public class VertxHttpClient extends AbstractHttpClient {
         LOGGER.info("Initializing Vert.x HTTP Client with {}", proxyDefinition.getHttpClient());
 
         HttpClientOptions options = new HttpClientOptions();
-        options.setKeepAlive(false);
-        options.setTcpNoDelay(true);
+        options.setKeepAlive(true);
         options.setUsePooledBuffers(true);
         options.setIdleTimeout(10);
         options.setConnectTimeout(5000);
