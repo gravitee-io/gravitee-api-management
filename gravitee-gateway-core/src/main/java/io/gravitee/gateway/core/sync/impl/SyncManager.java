@@ -18,9 +18,9 @@ package io.gravitee.gateway.core.sync.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.manager.ApiManager;
-import io.gravitee.repository.api.management.ApiRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.LifecycleState;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.model.LifecycleState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,7 @@ public class SyncManager {
         logger.debug("Refreshing gateway state...");
 
         try {
-            Set<io.gravitee.repository.model.management.Api> apis = apiRepository.findAll();
+            Set<io.gravitee.repository.management.model.Api> apis = apiRepository.findAll();
 
             Map<String, Api> apisMap = apis.stream()
                     .map(this::convert)
@@ -96,7 +96,7 @@ public class SyncManager {
         }
     }
 
-    private Api convert(io.gravitee.repository.model.management.Api remoteApi) {
+    private Api convert(io.gravitee.repository.management.model.Api remoteApi) {
         try {
             String definition = remoteApi.getDefinition();
             if (definition != null && !definition.isEmpty()) {

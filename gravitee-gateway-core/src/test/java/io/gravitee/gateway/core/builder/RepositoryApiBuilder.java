@@ -16,7 +16,7 @@
 package io.gravitee.gateway.core.builder;
 
 
-import io.gravitee.repository.model.management.Api;
+import io.gravitee.repository.management.model.Api;
 
 import java.util.Date;
 
