@@ -15,23 +15,22 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.NodeRepository;
+import io.gravitee.repository.management.model.Node;
+import io.gravitee.repository.management.model.NodeState;
 import io.gravitee.repository.mongodb.management.internal.model.NodeMongo;
 import io.gravitee.repository.mongodb.management.internal.node.NodeMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.repository.api.management.NodeRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Node;
-import io.gravitee.repository.model.management.NodeState;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 @Component
-public class NodeRepositoryImpl implements NodeRepository{
+public class NodeRepositoryImpl implements NodeRepository {
 
 	@Autowired
 	private NodeMongoRepository internalNodeRepo;

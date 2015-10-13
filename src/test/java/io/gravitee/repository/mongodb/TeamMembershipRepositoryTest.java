@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository.mongodb;
 
-import java.util.Date;
-import java.util.Set;
-import java.util.function.Predicate;
-
+import io.gravitee.repository.management.api.TeamMembershipRepository;
+import io.gravitee.repository.management.model.Member;
+import io.gravitee.repository.management.model.Team;
+import io.gravitee.repository.management.model.TeamRole;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,10 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import io.gravitee.repository.api.management.TeamMembershipRepository;
-import io.gravitee.repository.model.management.Member;
-import io.gravitee.repository.model.management.Team;
-import io.gravitee.repository.model.management.TeamRole;
+import java.util.Date;
+import java.util.Set;
+import java.util.function.Predicate;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { TestRepositoryConfiguration.class })

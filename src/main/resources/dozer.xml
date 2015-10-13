@@ -5,7 +5,7 @@
           http://dozer.sourceforge.net/schema/beanmapping.xsd">
           
   <mapping> 
-    <class-a>io.gravitee.repository.model.management.User</class-a>
+    <class-a>io.gravitee.repository.management.model.User</class-a>
     <class-b>io.gravitee.repository.mongodb.management.internal.model.UserMongo</class-b>
     <field>
       <a>username</a>
@@ -14,7 +14,7 @@
   </mapping>  
   
   <mapping> 
-    <class-a>io.gravitee.repository.model.management.Api</class-a>
+    <class-a>io.gravitee.repository.management.model.Api</class-a>
     <class-b>io.gravitee.repository.mongodb.management.internal.model.ApiMongo</class-b>
     <field-exclude>
     	<a>owner</a>
@@ -27,7 +27,7 @@
   </mapping>
   
   <mapping> 
-    <class-a>io.gravitee.repository.model.management.Application</class-a>
+    <class-a>io.gravitee.repository.management.model.Application</class-a>
     <class-b>io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo</class-b>
     <field-exclude>
     	<a>owner</a>
@@ -41,7 +41,7 @@
   </mapping>  
   
   <mapping> 
-    <class-a>io.gravitee.repository.model.management.Team</class-a>
+    <class-a>io.gravitee.repository.management.model.Team</class-a>
     <class-b>io.gravitee.repository.mongodb.management.internal.model.TeamMongo</class-b>
   </mapping>  
 

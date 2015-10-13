@@ -15,14 +15,15 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.TeamMembershipRepository;
+import io.gravitee.repository.management.model.Member;
+import io.gravitee.repository.management.model.Team;
+import io.gravitee.repository.management.model.TeamRole;
 import io.gravitee.repository.mongodb.management.internal.model.TeamMemberMongo;
 import io.gravitee.repository.mongodb.management.internal.model.TeamMongo;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
+import io.gravitee.repository.mongodb.management.internal.team.TeamMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
@@ -30,12 +31,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.repository.mongodb.management.internal.team.TeamMongoRepository;
-import io.gravitee.repository.api.management.TeamMembershipRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Member;
-import io.gravitee.repository.model.management.Team;
-import io.gravitee.repository.model.management.TeamRole;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Component
 public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
@@ -52,7 +51,7 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	private Logger logger = LoggerFactory.getLogger(TeamMembershipRepositoryImpl.class);
 	
 	@Override
-	public void addMember(String teamName,  Member member) throws TechnicalException {
+	public void addMember(String teamName, Member member) throws TechnicalException {
 	
 		TeamMongo team = internalTeamRepo.findByName(teamName);
 		UserMongo user = internalUserRepo.findOne(member.getUsername());
@@ -69,7 +68,7 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	}
 
 	@Override
-	public void updateMember(String teamName,  Member member) throws TechnicalException {
+	public void updateMember(String teamName, Member member) throws TechnicalException {
 		TeamMongo teamMongo = internalTeamRepo.findByName(teamName);
 		
 		//TODO deal with null / validation / mongo upset implementation

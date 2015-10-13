@@ -15,12 +15,12 @@
  */
 package io.gravitee.repository.mongodb;
 
-import io.gravitee.repository.api.management.ApiRepository;
-import io.gravitee.repository.api.management.UserRepository;
-import io.gravitee.repository.model.management.Api;
-import io.gravitee.repository.model.management.LifecycleState;
-import io.gravitee.repository.model.management.OwnerType;
-import io.gravitee.repository.model.management.User;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.OwnerType;
+import io.gravitee.repository.management.model.User;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

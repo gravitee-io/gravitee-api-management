@@ -15,23 +15,22 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.mongodb.management.internal.model.TeamMemberMongo;
+import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
+import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.repository.mongodb.management.internal.model.TeamMemberMongo;
-import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
-import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import io.gravitee.repository.api.management.UserRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.User;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class UserRepositoryImpl implements UserRepository {

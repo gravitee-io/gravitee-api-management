@@ -15,29 +15,24 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.OwnerType;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.team.TeamMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import io.gravitee.repository.api.management.ApplicationRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Application;
-import io.gravitee.repository.model.management.OwnerType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 @Component
-public class ApplicationRepositoryImpl implements ApplicationRepository{
+public class ApplicationRepositoryImpl implements ApplicationRepository {
 
 	@Autowired
 	private ApplicationMongoRepository internalApplicationRepo;

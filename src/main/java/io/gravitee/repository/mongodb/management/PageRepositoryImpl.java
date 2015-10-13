@@ -15,21 +15,20 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
+import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.repository.api.management.PageRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Page;
-import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
-import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE

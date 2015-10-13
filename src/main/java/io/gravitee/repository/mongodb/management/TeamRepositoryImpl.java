@@ -15,25 +15,24 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.TeamRepository;
+import io.gravitee.repository.management.model.Team;
 import io.gravitee.repository.mongodb.management.internal.model.TeamMongo;
+import io.gravitee.repository.mongodb.management.internal.team.TeamMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.repository.mongodb.management.internal.team.TeamMongoRepository;
-import io.gravitee.repository.api.management.TeamRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Team;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 
 @Component
-public class TeamRepositoryImpl implements TeamRepository{
+public class TeamRepositoryImpl implements TeamRepository {
 
 	@Autowired
 	private TeamMongoRepository internalTeamRepo;
