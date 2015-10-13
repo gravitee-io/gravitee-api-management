@@ -15,17 +15,16 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.management.service.impl.PermissionServiceImpl;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.TeamMembershipRepository;
+import io.gravitee.repository.management.api.UserRepository;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import io.gravitee.management.service.impl.PermissionServiceImpl;
-import io.gravitee.repository.api.management.TeamMembershipRepository;
-import io.gravitee.repository.api.management.UserRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)

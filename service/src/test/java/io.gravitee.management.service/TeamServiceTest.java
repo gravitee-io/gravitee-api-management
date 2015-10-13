@@ -15,24 +15,6 @@
  */
 package io.gravitee.management.service;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
 import io.gravitee.management.model.NewTeamEntity;
 import io.gravitee.management.model.TeamEntity;
 import io.gravitee.management.model.UpdateTeamEntity;
@@ -40,12 +22,29 @@ import io.gravitee.management.service.exceptions.TeamAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TeamNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.TeamServiceImpl;
-import io.gravitee.repository.api.management.TeamMembershipRepository;
-import io.gravitee.repository.api.management.TeamRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Member;
-import io.gravitee.repository.model.management.Team;
-import io.gravitee.repository.model.management.TeamRole;
+import io.gravitee.repository.management.api.TeamMembershipRepository;
+import io.gravitee.repository.management.api.TeamRepository;
+import io.gravitee.repository.management.model.Member;
+import io.gravitee.repository.management.model.Team;
+import io.gravitee.repository.management.model.TeamRole;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)

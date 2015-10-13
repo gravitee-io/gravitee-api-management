@@ -15,18 +15,17 @@
  */
 package io.gravitee.management.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
+import io.gravitee.management.model.MembershipEntity;
+import io.gravitee.management.model.TeamRole;
+import io.gravitee.management.service.exceptions.TeamNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UnknownMemberException;
+import io.gravitee.management.service.impl.TeamMembershipServiceImpl;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.TeamMembershipRepository;
+import io.gravitee.repository.management.api.TeamRepository;
+import io.gravitee.repository.management.model.Member;
+import io.gravitee.repository.management.model.Team;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -34,17 +33,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import io.gravitee.management.model.MembershipEntity;
-import io.gravitee.management.model.TeamRole;
-import io.gravitee.management.service.exceptions.TeamNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.exceptions.UnknownMemberException;
-import io.gravitee.management.service.impl.TeamMembershipServiceImpl;
-import io.gravitee.repository.api.management.TeamMembershipRepository;
-import io.gravitee.repository.api.management.TeamRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Member;
-import io.gravitee.repository.model.management.Team;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -96,7 +93,7 @@ public class TeamMembershipServiceTest {
         teamMembershipService.addOrUpdateMember(TEAM_NAME, USER_NAME, teamRole);
 
         verify(member).setUpdatedAt(any());
-        verify(member).setRole(io.gravitee.repository.model.management.TeamRole.MEMBER);
+        verify(member).setRole(io.gravitee.repository.management.model.TeamRole.MEMBER);
         verify(teamMembershipRepository).updateMember(TEAM_NAME, member);
     }
 
@@ -134,7 +131,7 @@ public class TeamMembershipServiceTest {
     public void shouldFindMembers() throws TechnicalException {
         when(teamRepository.findByName(TEAM_NAME)).thenReturn(Optional.of(team));
         when(member.getUsername()).thenReturn(MEMBER_NAME);
-        when(member.getRole()).thenReturn(io.gravitee.repository.model.management.TeamRole.MEMBER);
+        when(member.getRole()).thenReturn(io.gravitee.repository.management.model.TeamRole.MEMBER);
         when(teamMembershipRepository.listMembers(TEAM_NAME)).thenReturn(new HashSet<>(Arrays.asList(member)));
 
         final Set<MembershipEntity> members = teamMembershipService.findMembers(TEAM_NAME, teamRole);
@@ -147,7 +144,7 @@ public class TeamMembershipServiceTest {
     public void shouldNotFindMembersBecauseTeamRoleNotMatch() throws TechnicalException {
         when(teamRepository.findByName(TEAM_NAME)).thenReturn(Optional.of(team));
         when(member.getUsername()).thenReturn(MEMBER_NAME);
-        when(member.getRole()).thenReturn(io.gravitee.repository.model.management.TeamRole.ADMIN);
+        when(member.getRole()).thenReturn(io.gravitee.repository.management.model.TeamRole.ADMIN);
         when(teamMembershipRepository.listMembers(TEAM_NAME)).thenReturn(new HashSet<>(Arrays.asList(member)));
 
         final Set<MembershipEntity> members = teamMembershipService.findMembers(TEAM_NAME, teamRole);

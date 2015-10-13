@@ -15,16 +15,14 @@
  */
 package io.gravitee.management.service;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.*;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
+import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
+import io.gravitee.management.service.impl.UserServiceImpl;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -32,14 +30,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import io.gravitee.management.model.NewUserEntity;
-import io.gravitee.management.model.UserEntity;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
-import io.gravitee.management.service.impl.UserServiceImpl;
-import io.gravitee.repository.api.management.UserRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.User;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)

@@ -15,13 +15,6 @@
  */
 package io.gravitee.management.service.impl;
 
-import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.Owner;
@@ -31,12 +24,18 @@ import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.api.management.TeamMembershipRepository;
-import io.gravitee.repository.api.management.UserRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Member;
-import io.gravitee.repository.model.management.TeamRole;
-import io.gravitee.repository.model.management.User;
+import io.gravitee.repository.management.api.TeamMembershipRepository;
+import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.Member;
+import io.gravitee.repository.management.model.TeamRole;
+import io.gravitee.repository.management.model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

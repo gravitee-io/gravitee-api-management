@@ -15,28 +15,23 @@
  */
 package io.gravitee.management.service.impl;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.management.model.ApiKeyEntity;
 import io.gravitee.management.service.ApiKeyGenerator;
 import io.gravitee.management.service.ApiKeyService;
 import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.api.management.ApiKeyRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.ApiKey;
+import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.ApiKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

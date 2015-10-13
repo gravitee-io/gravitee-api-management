@@ -15,7 +15,21 @@
  */
 package io.gravitee.management.service.impl;
 
-import static java.util.Collections.emptySet;
+import io.gravitee.management.model.MembershipEntity;
+import io.gravitee.management.model.TeamRole;
+import io.gravitee.management.service.TeamMembershipService;
+import io.gravitee.management.service.exceptions.TeamNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UnknownMemberException;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.TeamMembershipRepository;
+import io.gravitee.repository.management.api.TeamRepository;
+import io.gravitee.repository.management.model.Member;
+import io.gravitee.repository.management.model.Team;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -23,22 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import io.gravitee.management.model.MembershipEntity;
-import io.gravitee.management.model.TeamRole;
-import io.gravitee.management.service.TeamMembershipService;
-import io.gravitee.management.service.exceptions.TeamNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.exceptions.UnknownMemberException;
-import io.gravitee.repository.api.management.TeamMembershipRepository;
-import io.gravitee.repository.api.management.TeamRepository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Member;
-import io.gravitee.repository.model.management.Team;
+import static java.util.Collections.emptySet;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -56,20 +55,6 @@ public class TeamMembershipServiceImpl extends TransactionalService implements T
 
     @Autowired
     private TeamRepository teamRepository;
-
-    private static MembershipEntity convert(Member member) {
-        MembershipEntity membershipEntity = new MembershipEntity();
-
-        membershipEntity.setMember(member.getUsername());
-        membershipEntity.setRole(member.getRole().name());
-        membershipEntity.setMemberSince(member.getCreatedAt());
-
-        return membershipEntity;
-    }
-
-    private static io.gravitee.repository.model.management.TeamRole convert(TeamRole teamRole) {
-        return io.gravitee.repository.model.management.TeamRole.valueOf(teamRole.name());
-    }
 
     @Override
     public void addOrUpdateMember(String teamName, String username, TeamRole teamRole) {
@@ -148,5 +133,19 @@ public class TeamMembershipServiceImpl extends TransactionalService implements T
             LOGGER.error("An error occurs while trying to find members by team {}", teamName, ex);
             throw new TechnicalManagementException("An error occurs while trying to find members by team " + teamName, ex);
         }
+    }
+
+    private static MembershipEntity convert(Member member) {
+        MembershipEntity membershipEntity = new MembershipEntity();
+
+        membershipEntity.setMember(member.getUsername());
+        membershipEntity.setRole(member.getRole().name());
+        membershipEntity.setMemberSince(member.getCreatedAt());
+
+        return membershipEntity;
+    }
+
+    private static io.gravitee.repository.management.model.TeamRole convert(TeamRole teamRole) {
+        return io.gravitee.repository.management.model.TeamRole.valueOf(teamRole.name());
     }
 }

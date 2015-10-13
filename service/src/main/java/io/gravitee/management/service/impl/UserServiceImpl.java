@@ -15,22 +15,21 @@
  */
 package io.gravitee.management.service.impl;
 
-import java.util.Date;
-import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
-import io.gravitee.repository.api.management.UserRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.User;
+import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

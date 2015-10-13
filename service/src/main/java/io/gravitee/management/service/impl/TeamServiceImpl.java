@@ -15,20 +15,6 @@
  */
 package io.gravitee.management.service.impl;
 
-import static java.util.Collections.emptySet;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.management.model.NewTeamEntity;
 import io.gravitee.management.model.TeamEntity;
 import io.gravitee.management.model.UpdateTeamEntity;
@@ -36,12 +22,21 @@ import io.gravitee.management.service.TeamService;
 import io.gravitee.management.service.exceptions.TeamAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TeamNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.api.management.TeamMembershipRepository;
-import io.gravitee.repository.api.management.TeamRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Member;
-import io.gravitee.repository.model.management.Team;
-import io.gravitee.repository.model.management.TeamRole;
+import io.gravitee.repository.management.api.TeamMembershipRepository;
+import io.gravitee.repository.management.api.TeamRepository;
+import io.gravitee.repository.management.model.Member;
+import io.gravitee.repository.management.model.Team;
+import io.gravitee.repository.management.model.TeamRole;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptySet;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

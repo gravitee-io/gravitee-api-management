@@ -15,18 +15,6 @@
  */
 package io.gravitee.management.service.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.UpdatePageEntity;
@@ -34,10 +22,16 @@ import io.gravitee.management.service.DocumentationService;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.api.management.PageRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Page;
-import io.gravitee.repository.model.management.PageType;
+import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 /**
  * @author Titouan COMPIEGNE
