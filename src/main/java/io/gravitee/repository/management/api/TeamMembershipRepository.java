@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.api.management;
+package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Member;
-import io.gravitee.repository.model.management.Team;
+import io.gravitee.repository.management.model.Member;
+import io.gravitee.repository.management.model.Team;
 
 import java.util.Set;
 

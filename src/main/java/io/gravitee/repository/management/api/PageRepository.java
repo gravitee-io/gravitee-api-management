@@ -13,14 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.model.management;
+package io.gravitee.repository.management.api;
+
+import java.util.Optional;
+import java.util.Set;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.Page;
 
 /**
  * @author Titouan COMPIEGNE
  */
-public enum PageType {
+public interface PageRepository {
+	
+	Set<Page> findByApiName(String apiName) throws TechnicalException;
+	
+	Optional<Page> findByName(String name) throws TechnicalException;
+	
+	Page create(Page page) throws TechnicalException;
+	
+	Page update(Page page) throws TechnicalException;
+	
+	void delete(String name) throws TechnicalException;
+	
+	Integer findMaxPageOrderByApiName(String apiName) throws TechnicalException;
+	
 
-	MARKDOWN,
-	RAML,
-	SWAGGER
 }
