@@ -15,12 +15,13 @@
  */
 package io.gravitee.management.service.impl;
 
+import static java.util.Collections.emptySet;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -83,7 +84,9 @@ public class TeamServiceImpl extends TransactionalService implements TeamService
             Team team = convert(newTeamEntity);
 
             // Set date fields
-            team.setCreatedAt(new Date());
+            final Date createdAt = new Date();
+
+            team.setCreatedAt(createdAt);
             team.setUpdatedAt(team.getCreatedAt());
 
             // Private by default
@@ -94,7 +97,7 @@ public class TeamServiceImpl extends TransactionalService implements TeamService
 
             // Create default admin member
             Member ownerMember = new Member();
-            ownerMember.setCreatedAt(new Date());
+            ownerMember.setCreatedAt(createdAt);
             ownerMember.setUpdatedAt(ownerMember.getCreatedAt());
             ownerMember.setUsername(owner);
             ownerMember.setRole(TeamRole.ADMIN);
@@ -114,7 +117,7 @@ public class TeamServiceImpl extends TransactionalService implements TeamService
             LOGGER.debug("Update Team {}", teamName);
 
             Optional<Team> optTeamToUpdate = teamRepository.findByName(teamName);
-            if (! optTeamToUpdate.isPresent()) {
+            if (!optTeamToUpdate.isPresent()) {
                 throw new TeamNotFoundException(teamName);
             }
 
@@ -142,15 +145,19 @@ public class TeamServiceImpl extends TransactionalService implements TeamService
         try {
             LOGGER.debug("Find teams for user {}", username);
             Set<Team> teams = teamMembershipRepository.findByUser(username);
-            Set<TeamEntity> teamEntities = new HashSet<>();
+            if (teams == null || teams.isEmpty()) {
+                return emptySet();
+            }
+
+            final Set<TeamEntity> teamEntities = new HashSet<>(teams.size());
 
             if (publicOnly) {
-                teamEntities.addAll(teams.stream().filter(new Predicate<Team>() {
-                    @Override
-                    public boolean test(Team team) {
-                        return !team.isPrivateTeam();
-                    }
-                }).map(TeamServiceImpl::convert).collect(Collectors.toSet()));
+                teamEntities.addAll(
+                    teams.stream()
+                        .filter(team -> !team.isPrivateTeam())
+                        .map(TeamServiceImpl::convert)
+                        .collect(Collectors.toSet())
+                );
             } else {
                 teamEntities.addAll(teams.stream().map(TeamServiceImpl::convert).collect(Collectors.toSet()));
             }
@@ -167,11 +174,18 @@ public class TeamServiceImpl extends TransactionalService implements TeamService
         try {
             LOGGER.debug("Find all teams");
             Set<Team> teams = teamRepository.findAll(publicOnly);
-            Set<TeamEntity> publicTeams = new LinkedHashSet<>(teams.size());
 
-            for(Team team : teams) {
-                publicTeams.add(convert(team));
+            if (teams == null || teams.isEmpty()) {
+                return emptySet();
             }
+
+            final Set<TeamEntity> publicTeams = new LinkedHashSet<>(teams.size());
+
+            publicTeams.addAll(
+                teams.stream()
+                    .map(TeamServiceImpl::convert)
+                    .collect(Collectors.toSet())
+            );
 
             return publicTeams;
         } catch (TechnicalException ex) {

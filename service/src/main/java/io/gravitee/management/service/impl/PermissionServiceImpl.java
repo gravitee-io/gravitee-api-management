@@ -62,13 +62,13 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
     private ApplicationService applicationService;
 
     @Override
-    public void hasPermission(String username, String entityId, PermissionType permissionType) {
+    public void hasPermission(String username, String apiName, PermissionType permissionType) {
         if (permissionType == PermissionType.VIEW_API || permissionType == PermissionType.EDIT_API) {
-            validateApi(username, entityId, permissionType);
+            validateApi(username, apiName, permissionType);
         } else if (permissionType == PermissionType.VIEW_APPLICATION || permissionType == PermissionType.EDIT_APPLICATION) {
-            validateApplication(username, entityId, permissionType);
+            validateApplication(username, apiName, permissionType);
         } else if (permissionType == PermissionType.VIEW_TEAM || permissionType == PermissionType.EDIT_TEAM) {
-            validateTeam(username, entityId, permissionType);
+            validateTeam(username, apiName, permissionType);
         }
     }
 
@@ -77,45 +77,52 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
             LOGGER.debug("Validate user rights for API: {}", apiName);
 
             final Optional<User> user = userRepository.findByUsername(username);
-            if (user.isPresent() && user.get().getRoles().contains("ROLE_ADMIN")) {
+            if (user != null && user.isPresent() && user.get().getRoles().contains("ROLE_ADMIN")) {
                 LOGGER.debug("User {} has full access because has role admin", username);
                 return;
             }
 
-            ApiEntity api = apiService.findByName(apiName).get();
+            final Optional<ApiEntity> optionalApi = apiService.findByName(apiName);
 
-            if (permissionType == PermissionType.VIEW_API) {
-                if (api.isPrivate()) {
+            if (optionalApi != null && optionalApi.isPresent()) {
+                final ApiEntity api = optionalApi.get();
+
+                if (permissionType == PermissionType.VIEW_API) {
+                    if (api.isPrivate()) {
+                        if (api.getOwner().getType() == Owner.OwnerType.TEAM) {
+                            // Check if the user is a member of the team
+                            Member member = teamMembershipRepository.getMember(api.getOwner().getLogin(), username);
+                            if (member == null) {
+                                LOGGER.error("User {} does not have correct rights to view team's API {}", username, apiName);
+                                throw new ForbiddenAccessException();
+                            }
+                        } else {
+                            // In case of user owner
+                            if (!api.getOwner().getLogin().equalsIgnoreCase(username)) {
+                                LOGGER.error("User {} does not have correct rights to view user's API {}", username, apiName);
+                                throw new ForbiddenAccessException();
+                            }
+                        }
+                    }
+                } else {
                     if (api.getOwner().getType() == Owner.OwnerType.TEAM) {
-                        // Check if the user is a member of the team
+                        // Check if the user is an admin member of the team
                         Member member = teamMembershipRepository.getMember(api.getOwner().getLogin(), username);
-                        if (member == null) {
-                            LOGGER.error("User {} does not have correct rights to view team's API {}", username, apiName);
+                        if (member == null || member.getRole() != TeamRole.ADMIN) {
+                            LOGGER.error("User {} does not have correct rights to edit team's API {}", username, apiName);
                             throw new ForbiddenAccessException();
                         }
                     } else {
                         // In case of user owner
                         if (!api.getOwner().getLogin().equalsIgnoreCase(username)) {
-                            LOGGER.error("User {} does not have correct rights to view user's API {}", username, apiName);
+                            LOGGER.error("User {} does not have correct rights to edit user's API {}", username, apiName);
                             throw new ForbiddenAccessException();
                         }
                     }
                 }
             } else {
-                if (api.getOwner().getType() == Owner.OwnerType.TEAM) {
-                    // Check if the user is an admin member of the team
-                    Member member = teamMembershipRepository.getMember(api.getOwner().getLogin(), username);
-                    if (member == null || member.getRole() != TeamRole.ADMIN) {
-                        LOGGER.error("User {} does not have correct rights to edit team's API {}", username, apiName);
-                        throw new ForbiddenAccessException();
-                    }
-                } else {
-                    // In case of user owner
-                    if (!api.getOwner().getLogin().equalsIgnoreCase(username)) {
-                        LOGGER.error("User {} does not have correct rights to edit user's API {}", username, apiName);
-                        throw new ForbiddenAccessException();
-                    }
-                }
+                LOGGER.error("API {} does not exists", apiName);
+                throw new ForbiddenAccessException();
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to validate user's permissions for API: {}", apiName, ex);
@@ -127,8 +134,10 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
         try {
             LOGGER.debug("Validate user rights for application: {}", applicationName);
 
-            ApplicationEntity application = applicationService.findByName(applicationName).get();
-            if (permissionType == PermissionType.VIEW_API) {
+            final Optional<ApplicationEntity> optionalApplication = applicationService.findByName(applicationName);
+            if (optionalApplication != null && optionalApplication.isPresent()) {
+                ApplicationEntity application = optionalApplication.get();
+                if (permissionType == PermissionType.VIEW_APPLICATION) {
                     if (application.getOwner().getType() == Owner.OwnerType.TEAM) {
                         // Check if the user is a member of the team
                         Member member = teamMembershipRepository.getMember(application.getOwner().getLogin(), username);
@@ -143,21 +152,25 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
                             throw new ForbiddenAccessException();
                         }
                     }
-            } else {
-                if (application.getOwner().getType() == Owner.OwnerType.TEAM) {
-                    // Check if the user is an admin member of the team
-                    Member member = teamMembershipRepository.getMember(application.getOwner().getLogin(), username);
-                    if (member == null || member.getRole() != TeamRole.ADMIN) {
-                        LOGGER.error("User {} does not have correct rights to edit team's application {}", username, applicationName);
-                        throw new ForbiddenAccessException();
-                    }
                 } else {
-                    // In case of user owner
-                    if (!application.getOwner().getLogin().equalsIgnoreCase(username)) {
-                        LOGGER.error("User {} does not have correct rights to edit user's application {}", username, applicationName);
-                        throw new ForbiddenAccessException();
+                    if (application.getOwner().getType() == Owner.OwnerType.TEAM) {
+                        // Check if the user is an admin member of the team
+                        Member member = teamMembershipRepository.getMember(application.getOwner().getLogin(), username);
+                        if (member == null || member.getRole() != TeamRole.ADMIN) {
+                            LOGGER.error("User {} does not have correct rights to edit team's application {}", username, applicationName);
+                            throw new ForbiddenAccessException();
+                        }
+                    } else {
+                        // In case of user owner
+                        if (!application.getOwner().getLogin().equalsIgnoreCase(username)) {
+                            LOGGER.error("User {} does not have correct rights to edit user's application {}", username, applicationName);
+                            throw new ForbiddenAccessException();
+                        }
                     }
                 }
+            } else {
+                LOGGER.error("Application {} does not exists", applicationName);
+                throw new ForbiddenAccessException();
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to validate user's permissions for application: {}", applicationName, ex);
@@ -166,6 +179,6 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
     }
 
     private void validateTeam(String username, String teamName, PermissionType permissionType) {
-
+        // TODO implements validate team
     }
 }

@@ -15,11 +15,12 @@
  */
 package io.gravitee.management.service.impl;
 
+import static java.util.Collections.emptySet;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -56,10 +57,24 @@ public class TeamMembershipServiceImpl extends TransactionalService implements T
     @Autowired
     private TeamRepository teamRepository;
 
+    private static MembershipEntity convert(Member member) {
+        MembershipEntity membershipEntity = new MembershipEntity();
+
+        membershipEntity.setMember(member.getUsername());
+        membershipEntity.setRole(member.getRole().name());
+        membershipEntity.setMemberSince(member.getCreatedAt());
+
+        return membershipEntity;
+    }
+
+    private static io.gravitee.repository.model.management.TeamRole convert(TeamRole teamRole) {
+        return io.gravitee.repository.model.management.TeamRole.valueOf(teamRole.name());
+    }
+
     @Override
     public void addOrUpdateMember(String teamName, String username, TeamRole teamRole) {
         try {
-            LOGGER.debug("Add member {) in team {}", username, teamName);
+            LOGGER.debug("Add member {} in team {}", username, teamName);
 
             // Check if user is not already registered
             Member member = teamMembershipRepository.getMember(teamName, username);
@@ -79,14 +94,14 @@ public class TeamMembershipServiceImpl extends TransactionalService implements T
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to add member {} in team {}", username, teamName, ex);
             throw new TechnicalManagementException("An error occurs while trying to add member " + username +
-                    " in team " + teamName, ex);
+                " in team " + teamName, ex);
         }
     }
 
     @Override
     public void deleteMember(String teamName, String username) {
         try {
-            LOGGER.debug("Remove member {) from team {}", username, teamName);
+            LOGGER.debug("Remove member {} from team {}", username, teamName);
 
             // Check if user is registered in team
             Member member = teamMembershipRepository.getMember(teamName, username);
@@ -98,7 +113,7 @@ public class TeamMembershipServiceImpl extends TransactionalService implements T
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to remove member {} from team {}", username, teamName, ex);
             throw new TechnicalManagementException("An error occurs while trying to remove member " + username +
-                    " from team " + teamName, ex);
+                " from team " + teamName, ex);
         }
     }
 
@@ -111,18 +126,19 @@ public class TeamMembershipServiceImpl extends TransactionalService implements T
 
             if (team.isPresent()) {
                 Set<Member> members = teamMembershipRepository.listMembers(teamName);
+
+                if (members == null || members.isEmpty()) {
+                    return emptySet();
+                }
+
                 Set<MembershipEntity> membershipEntities = new HashSet<>();
 
-                if (teamRole == null) {
-                    membershipEntities.addAll(members.stream().map(TeamMembershipServiceImpl::convert).collect(Collectors.toSet()));
-                } else {
-                    membershipEntities.addAll(members.stream().filter(new Predicate<Member>() {
-                        @Override
-                        public boolean test(Member member) {
-                            return member.getRole().name().equalsIgnoreCase(teamRole.name());
-                        }
-                    }).map(TeamMembershipServiceImpl::convert).collect(Collectors.toSet()));
-                }
+                membershipEntities.addAll(
+                    members.stream()
+                        .filter(member -> teamRole == null ? true : member.getRole().name().equalsIgnoreCase(teamRole.name()))
+                        .map(TeamMembershipServiceImpl::convert)
+                        .collect(Collectors.toSet())
+                );
 
                 return membershipEntities;
             } else {
@@ -132,19 +148,5 @@ public class TeamMembershipServiceImpl extends TransactionalService implements T
             LOGGER.error("An error occurs while trying to find members by team {}", teamName, ex);
             throw new TechnicalManagementException("An error occurs while trying to find members by team " + teamName, ex);
         }
-    }
-
-    private static MembershipEntity convert(Member member) {
-        MembershipEntity membershipEntity = new MembershipEntity();
-
-        membershipEntity.setMember(member.getUsername());
-        membershipEntity.setRole(member.getRole().name());
-        membershipEntity.setMemberSince(member.getCreatedAt());
-
-        return membershipEntity;
-    }
-
-    private static io.gravitee.repository.model.management.TeamRole convert(TeamRole teamRole) {
-        return io.gravitee.repository.model.management.TeamRole.valueOf(teamRole.name());
     }
 }

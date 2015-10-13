@@ -68,7 +68,7 @@ public class UserServiceTest {
     private Date date;
 
     @Test
-    public void shouldFind() throws TechnicalException {
+    public void shouldFindByUsername() throws TechnicalException {
         when(user.getUsername()).thenReturn(USER_NAME);
         when(user.getEmail()).thenReturn(EMAIL);
         when(user.getFirstname()).thenReturn(FIRST_NAME);
@@ -90,7 +90,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void shouldNotFindBecauseNotExists() throws TechnicalException {
+    public void shouldNotFindByUsernameBecauseNotExists() throws TechnicalException {
         when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.empty());
 
         final Optional<UserEntity> optionalUser = userService.findByName(USER_NAME);
@@ -98,7 +98,7 @@ public class UserServiceTest {
     }
 
     @Test(expected = TechnicalManagementException.class)
-    public void shouldNotFindBecauseTechnicalException() throws TechnicalException {
+    public void shouldNotFindByUsernameBecauseTechnicalException() throws TechnicalException {
         when(userRepository.findByUsername(USER_NAME)).thenThrow(TechnicalException.class);
 
         userService.findByName(USER_NAME);

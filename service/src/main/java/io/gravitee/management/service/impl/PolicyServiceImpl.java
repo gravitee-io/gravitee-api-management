@@ -15,12 +15,13 @@
  */
 package io.gravitee.management.service.impl;
 
+import static java.util.Collections.emptySet;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,22 +37,24 @@ import io.gravitee.plugin.api.PluginType;
 @Component
 public class PolicyServiceImpl extends TransactionalService implements PolicyService {
 
-    /**
-     * Logger.
-     */
-    private final Logger LOGGER = LoggerFactory.getLogger(PolicyServiceImpl.class);
-
     @Autowired
     private PluginRegistry pluginRegistry;
 
     @Override
     public Set<PolicyEntity> findAll() {
-        Collection<Plugin> plugins = pluginRegistry.plugins(PluginType.POLICY);
-        Set<PolicyEntity> policies = new HashSet<>(plugins.size());
+        final Collection<Plugin> plugins = pluginRegistry.plugins(PluginType.POLICY);
 
-        for(Plugin plugin : plugins) {
-            policies.add(convert(plugin));
+        if (plugins == null || plugins.isEmpty()) {
+            return emptySet();
         }
+
+        final Set<PolicyEntity> policies = new HashSet<>(plugins.size());
+
+        policies.addAll(
+            plugins.stream()
+                .map(plugin -> convert(plugin))
+                .collect(Collectors.toSet())
+        );
 
         return policies;
     }

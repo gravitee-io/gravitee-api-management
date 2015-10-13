@@ -27,5 +27,5 @@ public enum PermissionType {
     EDIT_APPLICATION,
 
     VIEW_TEAM,
-    EDIT_TEAM;
+    EDIT_TEAM
 }
