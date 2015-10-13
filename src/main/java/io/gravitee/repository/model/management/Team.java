@@ -16,6 +16,7 @@
 package io.gravitee.repository.model.management;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -100,5 +101,30 @@ public class Team {
 	public void setUpdatedAt(Date updatedAt) {
 		this.updatedAt = updatedAt;
 	}
-    
+
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Team)) {
+            return false;
+        }
+        Team team = (Team) o;
+        return Objects.equals(name, team.name);
+    }
+
+    public int hashCode() {
+        return Objects.hash(name);
+    }
+
+    public String toString() {
+        return "Team{" +
+            "name='" + name + '\'' +
+            ", description='" + description + '\'' +
+            ", privateTeam=" + privateTeam +
+            ", email='" + email + '\'' +
+            ", createdAt=" + createdAt +
+            ", updatedAt=" + updatedAt +
+            '}';
+    }
 }
