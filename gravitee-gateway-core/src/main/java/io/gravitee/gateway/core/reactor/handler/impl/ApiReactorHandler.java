@@ -21,6 +21,7 @@ import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.policy.PolicyResult;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.http.client.HttpClient;
 import io.gravitee.gateway.core.policy.Policy;
@@ -30,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -56,9 +59,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
         AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(policies);
         requestPolicyChain.setResultHandler(requestPolicyResult -> {
             if (requestPolicyResult.isFailure()) {
-                response.status(requestPolicyResult.httpStatusCode());
-                response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-                response.end();
+                writePolicyResult(requestPolicyResult, response);
                 handler.handle(response);
             } else {
                 // 3_ Call remote service
@@ -92,6 +93,21 @@ public class ApiReactorHandler extends ContextReactorHandler {
         });
 
         requestPolicyChain.doNext(request, response);
+    }
+
+
+    private void writePolicyResult(PolicyResult policyResult, Response response) {
+        response.status(policyResult.httpStatusCode());
+
+        response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+
+        if (policyResult.message() != null) {
+            ByteBuffer bb = ByteBuffer.wrap(policyResult.message().getBytes(Charset.forName("UTF-8")));
+            response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(bb.remaining()));
+            response.write(bb);
+        }
+
+        response.end();
     }
 
     @Override
