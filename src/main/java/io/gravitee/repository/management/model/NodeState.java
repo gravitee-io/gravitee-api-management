@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.model.management;
+package io.gravitee.repository.management.model;
 
 /**
- * User team roles
+ * Node states
  * 
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum TeamRole {
-    MEMBER, ADMIN;
+public enum NodeState {
+
+	REGISTERED, UNREGISTERED;
 }

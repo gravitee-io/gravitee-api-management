@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.model.management;
+package io.gravitee.repository.management.model;
 
 /**
- * Api lifecycle states
+ * User team roles
  * 
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum LifecycleState {
-
-    STARTED, STOPPED;
+public enum TeamRole {
+    MEMBER, ADMIN;
 }

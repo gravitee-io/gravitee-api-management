@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.model.management;
+package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.Objects;

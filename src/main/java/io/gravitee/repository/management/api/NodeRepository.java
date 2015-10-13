@@ -13,30 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.api.management;
+package io.gravitee.repository.management.api;
 
-import java.util.Optional;
 import java.util.Set;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.model.management.Page;
+import io.gravitee.repository.management.model.Node;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PageRepository {
-	
-	Set<Page> findByApiName(String apiName) throws TechnicalException;
-	
-	Optional<Page> findByName(String name) throws TechnicalException;
-	
-	Page create(Page page) throws TechnicalException;
-	
-	Page update(Page page) throws TechnicalException;
-	
-	void delete(String name) throws TechnicalException;
-	
-	Integer findMaxPageOrderByApiName(String apiName) throws TechnicalException;
-	
+public interface NodeRepository {
 
+	/**
+	 * Register a gateway {@link Node}
+	 * @param node Node to register
+	 */
+    void register(Node node) throws TechnicalException;
+
+    /**
+     * Unregister a gateway {@link Node}
+     * @param nodename Node name
+     */
+    void unregister(String nodename) throws TechnicalException;
+    
+    /**
+     * Find all {@link Node} (registered an unregistered)
+     * @return Node found
+     */
+    Set<Node> findAll() throws TechnicalException;
 }

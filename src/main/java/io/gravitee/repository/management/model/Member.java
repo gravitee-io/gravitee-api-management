@@ -13,45 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.model.management;
+package io.gravitee.repository.management.model;
 
 import java.util.Date;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Deprecated
-public class PolicyConfiguration {
+public class Member {
+
+	/**
+	 * The name of user member
+	 */
+    private String username;
 
     /**
-     * ID of the policy
+     * The role give to the user
      */
-    private String policy;
+    private TeamRole role;
 
     /**
-     * Configuration of the policy in JSON format.
-     */
-    private String configuration;
-
-    /**
-     * The Api creation date
+     * The membership creation date
      */
     private Date createdAt;
 
-    public String getConfiguration() {
-        return configuration;
+    /**
+     * The membership last updated date
+     */
+    private Date updatedAt;
+
+    public TeamRole getRole() {
+        return role;
     }
 
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
+    public void setRole(TeamRole role) {
+        this.role = role;
     }
 
-    public String getPolicy() {
-        return policy;
+    public String getUsername() {
+        return username;
     }
 
-    public void setPolicy(String policy) {
-        this.policy = policy;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public Date getCreatedAt() {
@@ -60,5 +64,13 @@ public class PolicyConfiguration {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
