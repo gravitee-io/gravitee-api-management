@@ -42,8 +42,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.Environment;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -98,15 +98,18 @@ public class CoreConfiguration {
     }
 
     @Bean
-    public static PropertySourcesPlaceholderConfigurer properties(@Qualifier("graviteeProperties") Properties graviteeProperties) throws IOException {
-        LOGGER.info("Loading Gravitee placeholder.");
-
+    public static PropertySourcesPlaceholderConfigurer properties(@Qualifier("graviteeProperties") Properties graviteeProperties) {
         PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
         propertySourcesPlaceholderConfigurer.setProperties(graviteeProperties);
         propertySourcesPlaceholderConfigurer.setIgnoreUnresolvablePlaceholders(true);
 
-        LOGGER.info("Loading Gravitee placeholder. DONE");
-
         return propertySourcesPlaceholderConfigurer;
+    }
+
+    @Bean
+    public static PropertySourceBeanProcessor propertySourceBeanProcessor(@Qualifier("graviteeProperties") Properties graviteeProperties,
+                                                                          Environment environment) {
+        // Using this we are now able to use {@link org.springframework.core.env.Environment} in Spring beans
+        return new PropertySourceBeanProcessor(graviteeProperties, environment);
     }
 }

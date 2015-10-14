@@ -16,10 +16,10 @@
 package io.gravitee.gateway.core.repository.spring;
 
 import io.gravitee.repository.Scope;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -29,10 +29,9 @@ public class RepositoryConfiguration {
 
     @Bean
     public static RepositoryBeanFactoryPostProcessor managementRepositoryBeanFactoryPostProcessor(
-            @Value("${management.type:#{null}}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
-
+            Environment environment, ConfigurationClassPostProcessor configurationClassPostProcessor) {
         RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor = new RepositoryBeanFactoryPostProcessor();
-        repositoryBeanFactoryPostProcessor.setRepositoryType(repositoryType);
+        repositoryBeanFactoryPostProcessor.setRepositoryType(environment.getProperty("management.type"));
         repositoryBeanFactoryPostProcessor.setRepositoryScope(Scope.MANAGEMENT);
         repositoryBeanFactoryPostProcessor.setConfigurationClassPostProcessor(configurationClassPostProcessor);
         return repositoryBeanFactoryPostProcessor;
@@ -40,10 +39,9 @@ public class RepositoryConfiguration {
 
     @Bean
     public static RepositoryBeanFactoryPostProcessor rateLimitRepositoryBeanFactoryPostProcessor(
-            @Value("${ratelimit.type:#{null}}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
-
+            Environment environment, ConfigurationClassPostProcessor configurationClassPostProcessor) {
         RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor = new RepositoryBeanFactoryPostProcessor();
-        repositoryBeanFactoryPostProcessor.setRepositoryType(repositoryType);
+        repositoryBeanFactoryPostProcessor.setRepositoryType(environment.getProperty("ratelimit.type"));
         repositoryBeanFactoryPostProcessor.setRepositoryScope(Scope.RATE_LIMIT);
         repositoryBeanFactoryPostProcessor.setConfigurationClassPostProcessor(configurationClassPostProcessor);
         return repositoryBeanFactoryPostProcessor;
