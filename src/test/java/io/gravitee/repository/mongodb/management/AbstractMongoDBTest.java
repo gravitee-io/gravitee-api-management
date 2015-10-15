@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb;
+package io.gravitee.repository.mongodb.management;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -42,6 +42,9 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.util.JSON;
 
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Allows to start/stop an instance of MongoDB for each tests and inject a data set provided.
@@ -55,8 +58,11 @@ import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
  *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.management.*")
+//@RunWith(PowerMockRunner.class)
+//@PowerMockIgnore("javax.management.*")
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = { TestRepositoryConfiguration.class })
+@ActiveProfiles("test")
 public abstract class AbstractMongoDBTest {
 
     private static Logger LOG = LoggerFactory.getLogger(AbstractMongoDBTest.class);

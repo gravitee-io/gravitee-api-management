@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management;
+package io.gravitee.repository.mongodb;
 
 import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
+import io.gravitee.repository.mongodb.management.RepositoryConfiguration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -31,7 +32,8 @@ public class MongoRepository implements Repository {
     @Override
     public Scope[] scopes() {
         return new Scope [] {
-                Scope.MANAGEMENT
+                Scope.MANAGEMENT,
+                Scope.RATE_LIMIT
         };
     }
     @Override
