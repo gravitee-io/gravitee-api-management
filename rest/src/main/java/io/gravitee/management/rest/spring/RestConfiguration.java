@@ -20,12 +20,15 @@ import io.gravitee.management.security.config.SecurityConfig;
 import io.gravitee.management.service.spring.ServiceConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.Environment;
 
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  *
@@ -38,14 +41,18 @@ public class RestConfiguration {
     protected final static Logger LOGGER = LoggerFactory.getLogger(RestConfiguration.class);
 
     @Bean
-    public static PropertySourcesPlaceholderConfigurer properties() throws IOException {
-        LOGGER.info("Loading Gravitee Management placeholder.");
-
+    public static PropertySourcesPlaceholderConfigurer properties(@Qualifier("graviteeProperties") Properties graviteeProperties) {
         PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-        propertySourcesPlaceholderConfigurer.setProperties(PropertiesConfiguration.graviteeProperties());
-
-        LOGGER.info("Loading Gravitee Management placeholder. DONE");
+        propertySourcesPlaceholderConfigurer.setProperties(graviteeProperties);
+        propertySourcesPlaceholderConfigurer.setIgnoreUnresolvablePlaceholders(true);
 
         return propertySourcesPlaceholderConfigurer;
+    }
+
+    @Bean
+    public static PropertySourceBeanProcessor propertySourceBeanProcessor(@Qualifier("graviteeProperties") Properties graviteeProperties,
+                                                                          Environment environment) {
+        // Using this we are now able to use {@link org.springframework.core.env.Environment} in Spring beans
+        return new PropertySourceBeanProcessor(graviteeProperties, environment);
     }
 }
