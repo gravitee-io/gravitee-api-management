@@ -15,10 +15,10 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApiKeyEntity;
-
 import java.util.Optional;
 import java.util.Set;
+
+import io.gravitee.management.model.ApiKeyEntity;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -29,7 +29,7 @@ public interface ApiKeyService {
 
     void revoke(String apiKey);
 
-    Optional<ApiKeyEntity> current(String applicationName, String apiName);
+    Optional<ApiKeyEntity> getCurrent(String applicationName, String apiName);
 
     Set<ApiKeyEntity> findAll(String applicationName, String apiName);
 }

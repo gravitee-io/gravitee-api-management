@@ -50,7 +50,7 @@ public class ApiKeyResource extends AbstractResource {
     public ApiKeyEntity getCurrentApiKeyEntity() {
         permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_APPLICATION);
 
-        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.current(applicationName, apiName);
+        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrent(applicationName, apiName);
 
         if (! apiKeyEntity.isPresent()) {
             throw new NoValidApiKeyException();

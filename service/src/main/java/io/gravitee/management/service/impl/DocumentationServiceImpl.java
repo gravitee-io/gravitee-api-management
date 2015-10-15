@@ -15,6 +15,20 @@
  */
 package io.gravitee.management.service.impl;
 
+import static java.util.Collections.emptyList;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.UpdatePageEntity;
@@ -26,12 +40,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * @author Titouan COMPIEGNE
@@ -47,14 +55,20 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 	@Override
 	public List<PageEntity> findByApiName(String apiName) {
 		try {
-			Set<Page> pages = pageRepository.findByApiName(apiName);
-			List<PageEntity> pageEntities = new ArrayList<PageEntity>(pages.size());
+			final Set<Page> pages = pageRepository.findByApiName(apiName);
 
-			for (Page page : pages) {
-				pageEntities.add(convert(page));
+			if (pages == null || pages.isEmpty()) {
+				return emptyList();
 			}
-			Collections.sort(pageEntities, PageEntity.PageOrderComparator);
-			Collections.reverse(pageEntities);
+
+			final List<PageEntity> pageEntities = new ArrayList<>(pages.size());
+
+			pageEntities.addAll(pages.stream()
+					.map(DocumentationServiceImpl::convert)
+					.sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
+					.collect(Collectors.toSet())
+			);
+
 			return pageEntities;
 		} catch (TechnicalException ex) {
 			LOGGER.error("An error occurs while trying to find an PAGES using its api name {}", apiName, ex);
@@ -156,7 +170,10 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 		Page page = new Page();
 
 		page.setName(newPageEntity.getName());
-		page.setType(PageType.valueOf(newPageEntity.getType()));
+		final String type = newPageEntity.getType();
+		if (type != null) {
+			page.setType(PageType.valueOf(type));
+		}
 		page.setTitle(newPageEntity.getTitle());
 		page.setContent(newPageEntity.getContent());
 		page.setLastContributor(newPageEntity.getLastContributor());
@@ -169,7 +186,9 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 		PageEntity pageEntity = new PageEntity();
 
 		pageEntity.setName(page.getName());
-		pageEntity.setType(page.getType().toString());
+		if (page.getType() != null) {
+			pageEntity.setType(page.getType().toString());
+		}
 		pageEntity.setTitle(page.getTitle());
 		pageEntity.setContent(page.getContent());
 		pageEntity.setLastContributor(page.getLastContributor());

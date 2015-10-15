@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.model;
 
-import java.util.Comparator;
+import java.util.Objects;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -95,6 +95,21 @@ public class PageEntity {
 		this.apiName = apiName;
 	}
 
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof PageEntity)) {
+			return false;
+		}
+		PageEntity that = (PageEntity) o;
+		return Objects.equals(name, that.name);
+	}
+
+	public int hashCode() {
+		return Objects.hash(name);
+	}
+
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("Page{");
@@ -108,12 +123,4 @@ public class PageEntity {
 		sb.append('}');
 		return sb.toString();
 	}
-
-	public static Comparator<PageEntity> PageOrderComparator = new Comparator<PageEntity>() {
-	    public int compare(PageEntity o1, PageEntity o2) {
-	        int i1 = o1.getOrder();
-	        int i2 = o2.getOrder();
-	        return (i1 > i2 ? -1 : (i1 == i2 ? 0 : 1));
-	    }
-	};
 }

@@ -15,6 +15,21 @@
  */
 package io.gravitee.management.service.impl;
 
+import static java.util.Collections.emptySet;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
@@ -31,13 +46,6 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.OwnerType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -93,12 +101,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public Set<ApiEntity> findAll() {
         try {
             LOGGER.debug("Find all APIs");
-            Set<Api> apis = apiRepository.findAll();
-            Set<ApiEntity> publicApis = new LinkedHashSet<>(apis.size());
+            final Set<Api> apis = apiRepository.findAll();
 
-            for (Api api : apis) {
-                publicApis.add(convert(api));
+            if (apis == null || apis.isEmpty()) {
+                return emptySet();
             }
+
+            final Set<ApiEntity> publicApis = new LinkedHashSet<>(apis.size());
+
+            publicApis.addAll(apis.stream()
+                .map(api -> convert(api))
+                .collect(Collectors.toSet())
+            );
 
             return publicApis;
         } catch (TechnicalException ex) {
@@ -112,12 +126,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             LOGGER.debug("Find APIs for team {} (public: {})", teamName, publicOnly);
 
-            Set<Api> apis = apiRepository.findByTeam(teamName, publicOnly);
-            Set<ApiEntity> teamApis = new HashSet<>(apis.size());
+            final Set<Api> apis = apiRepository.findByTeam(teamName, publicOnly);
 
-            for(Api api : apis) {
-                teamApis.add(convert(api));
+            if (apis == null || apis.isEmpty()) {
+                return emptySet();
             }
+
+            final Set<ApiEntity> teamApis = new HashSet<>(apis.size());
+
+            teamApis.addAll(apis.stream()
+                    .map(api -> convert(api))
+                    .collect(Collectors.toSet())
+            );
 
             return teamApis;
         } catch (TechnicalException ex) {
@@ -131,12 +151,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public Set<ApiEntity> findByUser(String username, boolean publicOnly) {
         try {
             LOGGER.debug("Find APIs for user {} (public: {})", username, publicOnly);
-            Set<Api> apis = apiRepository.findByUser(username, publicOnly);
-            Set<ApiEntity> userApis = new HashSet<>(apis.size());
+            final Set<Api> apis = apiRepository.findByUser(username, publicOnly);
 
-            for(Api api : apis) {
-                userApis.add(convert(api));
+            if (apis == null || apis.isEmpty()) {
+                return emptySet();
             }
+
+            final Set<ApiEntity> userApis = new HashSet<>(apis.size());
+
+            userApis.addAll(apis.stream()
+                    .map(api -> convert(api))
+                    .collect(Collectors.toSet())
+            );
 
             return userApis;
         } catch (TechnicalException ex) {
@@ -277,11 +303,17 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setUpdatedAt(api.getUpdatedAt());
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
-        apiEntity.setState(Lifecycle.State.valueOf(api.getLifecycleState().name()));
+        final LifecycleState lifecycleState = api.getLifecycleState();
+        if (lifecycleState != null) {
+            apiEntity.setState(Lifecycle.State.valueOf(lifecycleState.name()));
+        }
 
         final Owner owner = new Owner();
         owner.setLogin(api.getOwner());
-        owner.setType(Owner.OwnerType.valueOf(api.getOwnerType().toString()));
+        final OwnerType ownerType = api.getOwnerType();
+        if (ownerType != null) {
+            owner.setType(Owner.OwnerType.valueOf(ownerType.toString()));
+        }
         apiEntity.setOwner(owner);
 
         return apiEntity;

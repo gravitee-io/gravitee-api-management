@@ -15,25 +15,30 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.NewApplicationEntity;
-import io.gravitee.management.model.UpdateApplicationEntity;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.OwnerType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import static java.util.Collections.emptySet;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.NewApplicationEntity;
+import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
+import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.OwnerType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -65,12 +70,18 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Find applications for team {}", teamName);
 
-            Set<Application> applications = applicationRepository.findByTeam(teamName);
-            Set<ApplicationEntity> applicationEntities = new HashSet<>(applications.size());
+            final Set<Application> applications = applicationRepository.findByTeam(teamName);
 
-            for(Application application : applications) {
-                applicationEntities.add(convert(application));
+            if (applications == null || applications.isEmpty()) {
+                return emptySet();
             }
+
+            final Set<ApplicationEntity> applicationEntities = new HashSet<>(applications.size());
+
+            applicationEntities.addAll(applications.stream()
+                .map(ApplicationServiceImpl::convert)
+                .collect(Collectors.toSet())
+            );
 
             return applicationEntities;
         } catch (TechnicalException ex) {
@@ -84,12 +95,18 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Find applications for user {}", username);
 
-            Set<Application> applications = applicationRepository.findByUser(username);
-            Set<ApplicationEntity> applicationEntities = new HashSet<>(applications.size());
+            final Set<Application> applications = applicationRepository.findByUser(username);
 
-            for(Application application : applications) {
-                applicationEntities.add(convert(application));
+            if (applications == null || applications.isEmpty()) {
+                return emptySet();
             }
+
+            final Set<ApplicationEntity> applicationEntities = new HashSet<>(applications.size());
+
+            applicationEntities.addAll(applications.stream()
+                    .map(ApplicationServiceImpl::convert)
+                    .collect(Collectors.toSet())
+            );
 
             return applicationEntities;
         } catch (TechnicalException ex) {
@@ -124,6 +141,12 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     public ApplicationEntity update(String applicationName, UpdateApplicationEntity updateApplicationEntity) {
         try {
             LOGGER.debug("Update application {}", applicationName);
+
+            Optional<Application> optApplicationToUpdate = applicationRepository.findByName(applicationName);
+            if (!optApplicationToUpdate.isPresent()) {
+                throw new ApplicationNotFoundException(applicationName);
+            }
+
             Application application = convert(updateApplicationEntity);
             application.setName(applicationName);
             application.setUpdatedAt(new Date());
@@ -149,6 +172,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
     @Override
     public Set<ApplicationEntity> findByApi(String apiName) {
+        // TODO Implements and test me
         return null;
     }
 
