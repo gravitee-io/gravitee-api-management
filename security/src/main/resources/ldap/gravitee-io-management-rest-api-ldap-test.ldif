@@ -28,7 +28,7 @@ sn: Aurélien
 uid: abourdon
 userPassword: abourdonspassword
 
-dn: uid=aelamrani,ou=people,dc=graviee,dc=io
+dn: uid=aelamrani,ou=people,dc=gravitee,dc=io
 objectclass: top
 objectclass: person
 objectclass: organizationalPerson
