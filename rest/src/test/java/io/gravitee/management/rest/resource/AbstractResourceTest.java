@@ -15,20 +15,22 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.rest.JerseySpringTest;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.TeamService;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.TeamRepository;
+import static org.mockito.Mockito.mock;
+
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+
+import io.gravitee.management.rest.JerseySpringTest;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.TeamService;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -37,34 +39,40 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 @ContextConfiguration(loader=AnnotationConfigContextLoader.class)
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
+    @Autowired
+    protected ApiService apiService;
+
+    @Autowired
+    protected TeamService teamService;
+
+    @Autowired
+    protected ApplicationService applicationService;
+
+    @Autowired
+    protected PermissionService permissionService;
+
     @Configuration
     @ComponentScan("io.gravitee.management.rest.resource")
     static class ContextConfiguration {
 
     	@Bean
     	public ApiService apiService() {
-    		return Mockito.mock(ApiService.class);
+    		return mock(ApiService.class);
     	}
 
         @Bean
         public TeamService teamService() {
-            return Mockito.mock(TeamService.class);
+            return mock(TeamService.class);
         }
 
         @Bean
         public ApplicationService applicationService() {
-            return Mockito.mock(ApplicationService.class);
-        }
-
-        // Repositories
-        @Bean
-        public ApiRepository apiRepository() {
-            return null;
+            return mock(ApplicationService.class);
         }
 
         @Bean
-        public TeamRepository teamRepository() {
-            return null;
+        public PermissionService permissionService() {
+            return mock(PermissionService.class);
         }
     }
 }

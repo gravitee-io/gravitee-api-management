@@ -15,51 +15,75 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.rest.builder.ApiBuilder;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.repository.management.model.Api;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.ws.rs.core.Response;
-import java.util.Date;
-import java.util.Optional;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+
+import java.util.Optional;
+
+import javax.ws.rs.core.Response;
+
+import org.junit.Test;
+
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.service.PermissionType;
+import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Ignore
 public class ApiResourceTest extends AbstractResourceTest {
 
-    @Autowired
-    private ApiService apiService;
+    private static final String API_NAME = "my-api";
+
+    protected String contextPath() {
+        return "/apis/";
+    }
 
     @Test
-    public void testGetApi() {
-        Optional<ApiEntity> api = Optional.of(new ApiBuilder()
-                .name("my-api")
-                /*
-                .origin("http://localhost/my-api")
-                .target("http://remote_api/context")
-                */
-                .createdAt(new Date())
-                .build());
+    public void shouldGetApi() {
+        final ApiEntity mockApi = new ApiEntity();
+        mockApi.setName(API_NAME);
 
-        Mockito.doReturn(api).when(apiService).findByName(api.get().getName());
+        doReturn(Optional.of(mockApi)).when(apiService).findByName(API_NAME);
 
-        final Response response = target("/apis/" + api.get().getName()).request().get();
+        final Response response = target(API_NAME).request().get();
 
         // Check HTTP response
-        assertEquals(200, response.getStatus());
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         // Check Response content
-        Api responseApi = response.readEntity(Api.class);
+        final ApiEntity responseApi = response.readEntity(ApiEntity.class);
         assertNotNull(responseApi);
+        assertEquals(API_NAME, responseApi.getName());
+    }
+
+    @Test
+    public void shouldNotGetApiBecauseNotFound() {
+        final ApiEntity mockApi = new ApiEntity();
+        mockApi.setName(API_NAME);
+
+        doReturn(Optional.empty()).when(apiService).findByName(API_NAME);
+
+        final Response response = target(API_NAME).request().get();
+
+        // Check HTTP response
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotGetApiBecausePermissionDenied() {
+        final ApiEntity mockApi = new ApiEntity();
+        mockApi.setName(API_NAME);
+
+        doReturn(Optional.of(new ApiEntity())).when(apiService).findByName(API_NAME);
+        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_API);
+
+        final Response response = target(API_NAME).request().get();
+
+        // Check HTTP response
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 }

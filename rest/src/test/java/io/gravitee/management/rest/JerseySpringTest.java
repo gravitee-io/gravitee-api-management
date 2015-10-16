@@ -15,7 +15,15 @@
  */
 package io.gravitee.management.rest;
 
-import io.gravitee.management.rest.resource.GraviteeApplication;
+import java.io.IOException;
+import java.security.Principal;
+
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.SecurityContext;
+
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
@@ -23,19 +31,27 @@ import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
+import io.gravitee.management.rest.resource.GraviteeApplication;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public abstract class JerseySpringTest {
 
+    protected static final String USER_NAME = "UnitTests";
+
     private JerseyTest _jerseyTest;
+
+    protected abstract String contextPath();
+
+    public final WebTarget target()
+    {
+        return target("");
+    }
 
     public final WebTarget target(final String path)
     {
-        return _jerseyTest.target(path);
+        return _jerseyTest.target(contextPath() + path);
     }
 
     @Before
@@ -61,10 +77,32 @@ public abstract class JerseySpringTest {
                 ResourceConfig application = new GraviteeApplication();
 
                 application.property("contextConfig", context);
+                application.register(AuthenticationFilter.class);
+
 
                 return application;
             }
         };
+    }
+
+     public static class AuthenticationFilter implements ContainerRequestFilter {
+        @Override
+        public void filter(final ContainerRequestContext requestContext) throws IOException {
+            requestContext.setSecurityContext(new SecurityContext() {
+                @Override
+                public Principal getUserPrincipal() {
+                    return () -> USER_NAME;
+                }
+                @Override
+                public boolean isUserInRole(String string) {
+                    return true;
+                }
+                @Override
+                public boolean isSecure() { return true; }
+                @Override
+                public String getAuthenticationScheme() { return "BASIC"; }
+            });
+        }
     }
 
 //    protected abstract ResourceConfig configure();
