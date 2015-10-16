@@ -51,10 +51,8 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         final Response response = target(API_NAME).request().get();
 
-        // Check HTTP response
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        // Check Response content
         final ApiEntity responseApi = response.readEntity(ApiEntity.class);
         assertNotNull(responseApi);
         assertEquals(API_NAME, responseApi.getName());
@@ -69,7 +67,6 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         final Response response = target(API_NAME).request().get();
 
-        // Check HTTP response
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
@@ -83,7 +80,6 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         final Response response = target(API_NAME).request().get();
 
-        // Check HTTP response
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 }

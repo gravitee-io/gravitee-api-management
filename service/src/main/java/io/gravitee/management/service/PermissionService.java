@@ -20,5 +20,5 @@ package io.gravitee.management.service;
  */
 public interface PermissionService {
 
-    void hasPermission(String username, String entityId, PermissionType permissionType);
+    void hasPermission(String username, String apiName, PermissionType permissionType);
 }
