@@ -33,9 +33,9 @@
     <name>Gravitee IO - API Management - Gateway Core</name>
 
     <properties>
-        <gravitee-common.version>0.1.0-SNAPSHOT</gravitee-common.version>
-        <gravitee-plugin-core.version>0.1.0-SNAPSHOT</gravitee-plugin-core.version>
-        <gravitee-repository.version>0.1.0-SNAPSHOT</gravitee-repository.version>
+        <gravitee-common.version>0.1.0</gravitee-common.version>
+        <gravitee-plugin-core.version>0.1.0</gravitee-plugin-core.version>
+        <gravitee-repository.version>0.1.0</gravitee-repository.version>
         <jetty.version>9.3.3.v20150827</jetty.version>
     </properties>
 
