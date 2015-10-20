@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.jackson.datatype;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -29,5 +30,7 @@ public class GraviteeMapper extends ObjectMapper {
         registerModule(new GraviteeModule());
         enable(SerializationFeature.INDENT_OUTPUT);
         enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 }
