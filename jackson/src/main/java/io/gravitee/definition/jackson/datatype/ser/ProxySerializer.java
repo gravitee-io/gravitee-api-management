@@ -15,12 +15,13 @@
  */
 package io.gravitee.definition.jackson.datatype.ser;
 
+import java.io.IOException;
+import java.net.URI;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Proxy;
-
-import java.io.IOException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -36,7 +37,10 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
     public void serialize(Proxy proxy, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("context_path", proxy.getContextPath());
-        jgen.writeObjectField("target", proxy.getTarget().toString());
+        final URI target = proxy.getTarget();
+        if (target != null) {
+            jgen.writeObjectField("target", target.toString());
+        }
         jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
         jgen.writeEndObject();
 
