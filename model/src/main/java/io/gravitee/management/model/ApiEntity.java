@@ -15,22 +15,21 @@
  */
 package io.gravitee.management.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Proxy;
-
-import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.validation.constraints.NotNull;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Proxy;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class ApiEntity {
 
     private String name;

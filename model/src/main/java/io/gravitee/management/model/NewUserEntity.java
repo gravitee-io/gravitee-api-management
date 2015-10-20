@@ -19,12 +19,9 @@ import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class NewUserEntity {
 
 	/**

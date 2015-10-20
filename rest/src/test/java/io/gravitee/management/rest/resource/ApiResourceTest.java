@@ -15,19 +15,22 @@
  */
 package io.gravitee.management.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 
+import java.net.URI;
 import java.util.Optional;
 
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
 import org.junit.Test;
 
-import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 
@@ -48,10 +51,11 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(Optional.of(mockApi)).when(apiService).findByName(API_NAME);
+        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_API);
 
         final Response response = target(API_NAME).request().get();
 
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertEquals(OK_200, response.getStatus());
 
         final ApiEntity responseApi = response.readEntity(ApiEntity.class);
         assertNotNull(responseApi);
@@ -64,10 +68,11 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(Optional.empty()).when(apiService).findByName(API_NAME);
+        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_API);
 
         final Response response = target(API_NAME).request().get();
 
-        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        assertEquals(NOT_FOUND_404, response.getStatus());
     }
 
     @Test
@@ -80,6 +85,105 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         final Response response = target(API_NAME).request().get();
 
-        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldStartApi() {
+        final ApiEntity mockApi = new ApiEntity();
+        mockApi.setName(API_NAME);
+
+        doReturn(Optional.of(mockApi)).when(apiService).findByName(API_NAME);
+        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+
+        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
+
+        verify(apiService).start(API_NAME);
+    }
+
+    @Test
+    public void shouldNotStartApiBecauseNotFound() {
+        final ApiEntity mockApi = new ApiEntity();
+        mockApi.setName(API_NAME);
+
+        doReturn(Optional.empty()).when(apiService).findByName(API_NAME);
+        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+
+        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotStartApiBecausePermissionDenied() {
+        final ApiEntity mockApi = new ApiEntity();
+        mockApi.setName(API_NAME);
+
+        doReturn(Optional.of(mockApi)).when(apiService).findByName(API_NAME);
+        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+
+        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
+
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldStopApi() {
+        final ApiEntity mockApi = new ApiEntity();
+        mockApi.setName(API_NAME);
+
+        doReturn(Optional.of(mockApi)).when(apiService).findByName(API_NAME);
+        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+
+        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotStopApiBecauseNotFound() {
+        final ApiEntity mockApi = new ApiEntity();
+        mockApi.setName(API_NAME);
+
+        doReturn(Optional.empty()).when(apiService).findByName(API_NAME);
+        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+
+        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotStopApiBecausePermissionDenied() {
+        final ApiEntity mockApi = new ApiEntity();
+        mockApi.setName(API_NAME);
+
+        doReturn(Optional.of(mockApi)).when(apiService).findByName(API_NAME);
+        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+
+        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
+
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldUpdateApi() {
+        final UpdateApiEntity mockApi = new UpdateApiEntity();
+        mockApi.setVersion("v1");
+        mockApi.setDescription("Description of my API");
+
+        final Proxy proxy = new Proxy();
+        proxy.setContextPath("/test");
+        proxy.setTarget(URI.create("http://remote_api/api/v1"));
+        mockApi.setProxy(proxy);
+
+        doReturn(new ApiEntity()).when(apiService).update(API_NAME, mockApi);
+        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+
+        final Response response = target(API_NAME).request().put(Entity.json(mockApi));
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
     }
 }

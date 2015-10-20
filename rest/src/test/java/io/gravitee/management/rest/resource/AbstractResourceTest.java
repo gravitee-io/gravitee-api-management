@@ -20,7 +20,6 @@ import static org.mockito.Mockito.mock;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -52,7 +51,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected PermissionService permissionService;
 
     @Configuration
-    @ComponentScan("io.gravitee.management.rest.resource")
     static class ContextConfiguration {
 
     	@Bean

@@ -15,19 +15,18 @@
  */
 package io.gravitee.management.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Proxy;
-
-import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.validation.constraints.NotNull;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Proxy;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class UpdateApiEntity {
 
     @NotNull

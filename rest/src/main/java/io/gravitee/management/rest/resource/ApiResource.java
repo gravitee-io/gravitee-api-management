@@ -19,10 +19,12 @@ import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
+import io.gravitee.management.rest.provider.ManagementExceptionMapper;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
+import io.gravitee.management.service.exceptions.UnknownMemberException;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -96,7 +98,7 @@ public class ApiResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
-    public ApiEntity update(@Valid final UpdateApiEntity api) {
+    public ApiEntity update( final UpdateApiEntity api) {
         permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.EDIT_API);
 
         return apiService.update(apiName, api);
@@ -107,7 +109,7 @@ public class ApiResource extends AbstractResource {
     public Response delete() {
         Optional<ApiEntity> optApi = apiService.findByName(apiName);
 
-        if (! optApi.isPresent()) {
+        if (!optApi.isPresent()) {
             throw new ApiNotFoundException(apiName);
         }
 

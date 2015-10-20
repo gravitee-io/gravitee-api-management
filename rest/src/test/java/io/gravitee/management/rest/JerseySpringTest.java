@@ -24,6 +24,8 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.SecurityContext;
 
+import io.gravitee.management.rest.mapper.ObjectMapperResolver;
+import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
@@ -79,8 +81,14 @@ public abstract class JerseySpringTest {
                 application.property("contextConfig", context);
                 application.register(AuthenticationFilter.class);
 
-
                 return application;
+            }
+
+            @Override
+            protected void configureClient(ClientConfig config) {
+                super.configureClient(config);
+
+                config.register(ObjectMapperResolver.class);
             }
         };
     }

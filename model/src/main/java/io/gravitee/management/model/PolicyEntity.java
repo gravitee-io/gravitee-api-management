@@ -15,14 +15,11 @@
  */
 package io.gravitee.management.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class PolicyEntity {
 
     /**

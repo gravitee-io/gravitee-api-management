@@ -17,12 +17,9 @@ package io.gravitee.management.model;
 
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 /**
  * @author Titouan COMPIEGNE
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class UpdatePageEntity {
 
 	@NotNull

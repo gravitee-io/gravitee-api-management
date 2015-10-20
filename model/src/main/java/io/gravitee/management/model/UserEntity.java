@@ -20,12 +20,10 @@ import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class UserEntity {
 
 	/**

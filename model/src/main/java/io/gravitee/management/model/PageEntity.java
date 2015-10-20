@@ -17,12 +17,9 @@ package io.gravitee.management.model;
 
 import java.util.Objects;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 /**
  * @author Titouan COMPIEGNE
  */
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class PageEntity {
 
 	private String name;
