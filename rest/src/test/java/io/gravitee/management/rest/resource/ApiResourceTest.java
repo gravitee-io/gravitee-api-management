@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
-import java.net.URI;
 import java.util.Optional;
 
 import javax.ws.rs.client.Entity;
@@ -173,11 +172,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         final UpdateApiEntity mockApi = new UpdateApiEntity();
         mockApi.setVersion("v1");
         mockApi.setDescription("Description of my API");
-
-        final Proxy proxy = new Proxy();
-        proxy.setContextPath("/test");
-        proxy.setTarget(URI.create("http://remote_api/api/v1"));
-        mockApi.setProxy(proxy);
+        mockApi.setProxy(new Proxy());
 
         doReturn(new ApiEntity()).when(apiService).update(API_NAME, mockApi);
         doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
@@ -185,5 +180,57 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = target(API_NAME).request().put(Entity.json(mockApi));
 
         assertEquals(NO_CONTENT_204, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotUpdateApiBecausePermissionDenied() {
+        final UpdateApiEntity mockApi = new UpdateApiEntity();
+        mockApi.setVersion("v1");
+        mockApi.setDescription("Description of my API");
+        mockApi.setProxy(new Proxy());
+
+        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+
+        final Response response = target(API_NAME).request().put(Entity.json(mockApi));
+
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldDeleteApi() {
+        final ApiEntity mockApi = new ApiEntity();
+        mockApi.setName(API_NAME);
+
+        doReturn(Optional.of(mockApi)).when(apiService).findByName(API_NAME);
+        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+
+        final Response response = target(API_NAME).request().delete();
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
+
+        verify(apiService).delete(API_NAME);
+    }
+
+    @Test
+    public void shouldNotDeleteApiBecauseNotFound() {
+        doReturn(Optional.empty()).when(apiService).findByName(API_NAME);
+        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+
+        final Response response = target(API_NAME).request().delete();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotDeleteApiBecausePermissionDenied() {
+        final ApiEntity mockApi = new ApiEntity();
+        mockApi.setName(API_NAME);
+
+        doReturn(Optional.of(mockApi)).when(apiService).findByName(API_NAME);
+        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+
+        final Response response = target(API_NAME).request().delete();
+
+        assertEquals(FORBIDDEN_403, response.getStatus());
     }
 }
