@@ -20,6 +20,7 @@ import io.gravitee.repository.Scope;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -30,12 +31,13 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @ComponentScan
 @EnableMongoRepositories
 @Profile("!test")
-public class RepositoryConfiguration extends AbstractRepositoryConfiguration {
+public class ManagementRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
 	@Autowired
+	@Qualifier("managementMongo")
 	private Mongo mongo;
 
-	@Bean
+	@Bean(name = "managementMongo")
 	public static MongoFactory mongoFactory() {
 		return new MongoFactory(Scope.MANAGEMENT.getName());
 	}

@@ -17,7 +17,8 @@ package io.gravitee.repository.mongodb;
 
 import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
-import io.gravitee.repository.mongodb.management.RepositoryConfiguration;
+import io.gravitee.repository.mongodb.management.ManagementRepositoryConfiguration;
+import io.gravitee.repository.mongodb.ratelimit.RateLimitRepositoryConfiguration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -40,7 +41,9 @@ public class MongoRepository implements Repository {
     public Class<?> configuration(Scope scope) {
         switch (scope) {
             case MANAGEMENT:
-                return RepositoryConfiguration.class;
+                return ManagementRepositoryConfiguration.class;
+            case RATE_LIMIT:
+                return RateLimitRepositoryConfiguration.class;
 
         }
 

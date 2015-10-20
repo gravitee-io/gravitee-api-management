@@ -16,6 +16,8 @@
 package io.gravitee.repository.mongodb.common;
 
 import com.mongodb.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -27,6 +29,8 @@ import java.util.List;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class MongoFactory implements FactoryBean<Mongo> {
+
+    private final Logger logger = LoggerFactory.getLogger(MongoFactory.class);
 
     @Autowired
     private Environment environment;
@@ -42,23 +46,23 @@ public class MongoFactory implements FactoryBean<Mongo> {
 
         builder.writeConcern(WriteConcern.SAFE);
 
-        Integer connectionPerHost = environment.getProperty(propertyPrefix + "connectionPerHost", Integer.class);
-        Integer connectTimeout = environment.getProperty(propertyPrefix + "connectTimeout", Integer.class);
-        Integer maxWaitTime = environment.getProperty(propertyPrefix + "maxWaitTime", Integer.class);
-        Integer socketTimeout = environment.getProperty(propertyPrefix + "socketTimeout", Integer.class);
-        Boolean socketKeepAlive = environment.getProperty(propertyPrefix + "socketKeepAlive", Boolean.class);
-        Integer maxConnectionLifeTime = environment.getProperty(propertyPrefix + "maxConnectionLifeTime", Integer.class);
-        Integer maxConnectionIdleTime = environment.getProperty(propertyPrefix + "maxConnectionIdleTime", Integer.class);
-        Integer minHeartbeatFrequency = environment.getProperty(propertyPrefix + "minHeartbeatFrequency", Integer.class);
-        String description = environment.getProperty(propertyPrefix + "description");
-        Integer heartbeatConnectTimeout = environment.getProperty(propertyPrefix + "heartbeatConnectTimeout", Integer.class);
-        Integer heartbeatFrequency = environment.getProperty(propertyPrefix + "heartbeatFrequency", Integer.class);
-        Integer heartbeatSocketTimeout = environment.getProperty(propertyPrefix + "heartbeatSocketTimeout", Integer.class);
-        Integer localThreshold = environment.getProperty(propertyPrefix + "localThreshold", Integer.class);
-        Integer minConnectionsPerHost = environment.getProperty(propertyPrefix + "minConnectionsPerHost", Integer.class);
-        Boolean sslEnabled = environment.getProperty(propertyPrefix + "sslEnabled", Boolean.class);
-        Integer threadsAllowedToBlockForConnectionMultiplier = environment.getProperty(propertyPrefix + "threadsAllowedToBlockForConnectionMultiplier", Integer.class);
-        Boolean cursorFinalizerEnabled = environment.getProperty(propertyPrefix + "cursorFinalizerEnabled", Boolean.class);
+        Integer connectionPerHost = readPropertyValue(propertyPrefix + "connectionPerHost", Integer.class);
+        Integer connectTimeout = readPropertyValue(propertyPrefix + "connectTimeout", Integer.class);
+        Integer maxWaitTime = readPropertyValue(propertyPrefix + "maxWaitTime", Integer.class);
+        Integer socketTimeout = readPropertyValue(propertyPrefix + "socketTimeout", Integer.class);
+        Boolean socketKeepAlive = readPropertyValue(propertyPrefix + "socketKeepAlive", Boolean.class);
+        Integer maxConnectionLifeTime = readPropertyValue(propertyPrefix + "maxConnectionLifeTime", Integer.class);
+        Integer maxConnectionIdleTime = readPropertyValue(propertyPrefix + "maxConnectionIdleTime", Integer.class);
+        Integer minHeartbeatFrequency = readPropertyValue(propertyPrefix + "minHeartbeatFrequency", Integer.class);
+        String description = readPropertyValue(propertyPrefix + "description");
+        Integer heartbeatConnectTimeout = readPropertyValue(propertyPrefix + "heartbeatConnectTimeout", Integer.class);
+        Integer heartbeatFrequency = readPropertyValue(propertyPrefix + "heartbeatFrequency", Integer.class);
+        Integer heartbeatSocketTimeout = readPropertyValue(propertyPrefix + "heartbeatSocketTimeout", Integer.class);
+        Integer localThreshold = readPropertyValue(propertyPrefix + "localThreshold", Integer.class);
+        Integer minConnectionsPerHost = readPropertyValue(propertyPrefix + "minConnectionsPerHost", Integer.class);
+        Boolean sslEnabled = readPropertyValue(propertyPrefix + "sslEnabled", Boolean.class);
+        Integer threadsAllowedToBlockForConnectionMultiplier = readPropertyValue(propertyPrefix + "threadsAllowedToBlockForConnectionMultiplier", Integer.class);
+        Boolean cursorFinalizerEnabled = readPropertyValue(propertyPrefix + "cursorFinalizerEnabled", Boolean.class);
 
         if(connectionPerHost != null)
             builder.connectionsPerHost(connectionPerHost);
@@ -100,11 +104,11 @@ public class MongoFactory implements FactoryBean<Mongo> {
 
     @Override
     public Mongo getObject() throws Exception {
-        String databaseName = environment.getProperty(propertyPrefix + "dbname", "gravitee");
-        String host = environment.getProperty(propertyPrefix + "host", "localhost");
-        int port = environment.getProperty(propertyPrefix + "port", int.class, 27017);
-        String username = environment.getProperty(propertyPrefix + "username");
-        String password = environment.getProperty(propertyPrefix + "password");
+        String databaseName = readPropertyValue(propertyPrefix + "dbname", String.class, "gravitee");
+        String host = readPropertyValue(propertyPrefix + "host", String.class, "localhost");
+        int port = readPropertyValue(propertyPrefix + "port", int.class, 27017);
+        String username = readPropertyValue(propertyPrefix + "username");
+        String password = readPropertyValue(propertyPrefix + "password");
 
         List<MongoCredential> credentials = null;
         if (username != null || password != null) {
@@ -120,6 +124,20 @@ public class MongoFactory implements FactoryBean<Mongo> {
 
         return new MongoClient(Collections.singletonList(new ServerAddress(host, port)),
                 credentials, options);
+    }
+
+    private String readPropertyValue(String propertyName) {
+        return readPropertyValue(propertyName, String.class, null);
+    }
+
+    private <T> T readPropertyValue(String propertyName, Class<T> propertyType) {
+        return readPropertyValue(propertyName, propertyType, null);
+    }
+
+    private <T> T readPropertyValue(String propertyName, Class<T> propertyType, T defaultValue) {
+        T value = environment.getProperty(propertyName, propertyType, defaultValue);
+        logger.debug("Read property {}: {}", propertyName, value);
+        return value;
     }
 
     @Override

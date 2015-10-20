@@ -31,9 +31,6 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @EnableMongoRepositories
 public class TestRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
-	@Autowired
-	private Environment environment;
-
 	@Bean
 	public MongodForTestsFactory factory() throws Exception {
        return MongodForTestsFactory.with(Version.Main.DEVELOPMENT);
