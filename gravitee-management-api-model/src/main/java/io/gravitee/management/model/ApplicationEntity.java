@@ -15,10 +15,10 @@
  */
 package io.gravitee.management.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

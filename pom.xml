@@ -34,12 +34,12 @@
 	<name>Gravitee IO - Management</name>
 
 	<modules>
-		<module>model</module>
-		<module>service</module>
-		<module>rest</module>
-		<module>war</module>
-		<module>standalone</module>
-		<module>security</module>
+		<module>gravitee-management-api-model</module>
+		<module>gravitee-management-api-service</module>
+		<module>gravitee-management-api-rest</module>
+		<module>gravitee-management-api-war</module>
+		<module>gravitee-management-api-standalone</module>
+		<module>gravitee-management-api-security</module>
 	</modules>
 
 	<dependencies>
