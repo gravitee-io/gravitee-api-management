@@ -98,7 +98,7 @@ public class ApiResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
-    public ApiEntity update( final UpdateApiEntity api) {
+    public ApiEntity update(@Valid final UpdateApiEntity api) {
         permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.EDIT_API);
 
         return apiService.update(apiName, api);
