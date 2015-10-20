@@ -23,7 +23,7 @@
 
     <parent>
         <artifactId>gravitee-gateway</artifactId>
-        <groupId>io.gravitee</groupId>
+        <groupId>io.gravitee.gateway</groupId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
