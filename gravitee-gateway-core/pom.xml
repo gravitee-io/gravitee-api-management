@@ -22,14 +22,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee</groupId>
+        <groupId>io.gravitee.gateway</groupId>
         <artifactId>gravitee-gateway</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway</groupId>
-    <artifactId>gravitee-gateway-core</artifactId>
 
+    <artifactId>gravitee-gateway-core</artifactId>
     <name>Gravitee IO - API Management - Gateway Core</name>
 
     <properties>
