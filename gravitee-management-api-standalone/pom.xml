@@ -34,8 +34,8 @@
 	<description>Gravitee IO Manager in Standalone mode (based on Jetty).</description>
 
 	<modules>
-		<module>bootstrap</module>
-		<module>container</module>
-		<module>distribution</module>
+		<module>gravitee-management-api-standalone-bootstrap</module>
+		<module>gravitee-management-api-standalone-container</module>
+		<module>gravitee-management-api-standalone-distribution</module>
 	</modules>
 </project>
