@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
+public class MongoTeamMembershipRepository implements TeamMembershipRepository {
 
 	@Autowired
 	private GraviteeMapper mapper;
@@ -48,7 +48,7 @@ public class TeamMembershipRepositoryImpl implements TeamMembershipRepository {
 	@Autowired
 	private UserMongoRepository internalUserRepo;
 	
-	private Logger logger = LoggerFactory.getLogger(TeamMembershipRepositoryImpl.class);
+	private Logger logger = LoggerFactory.getLogger(MongoTeamMembershipRepository.class);
 	
 	@Override
 	public void addMember(String teamName, Member member) throws TechnicalException {

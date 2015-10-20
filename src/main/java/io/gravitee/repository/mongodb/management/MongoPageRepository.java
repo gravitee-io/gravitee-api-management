@@ -34,7 +34,7 @@ import java.util.Set;
  * @author Titouan COMPIEGNE
  */
 @Component
-public class PageRepositoryImpl implements PageRepository {
+public class MongoPageRepository implements PageRepository {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 

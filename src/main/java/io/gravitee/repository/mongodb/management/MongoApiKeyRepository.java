@@ -34,7 +34,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
-public class ApiKeyRepositoryImpl implements ApiKeyRepository {
+public class MongoApiKeyRepository implements ApiKeyRepository {
 
 		
 	@Autowired
@@ -50,7 +50,7 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepository {
 	private ApplicationMongoRepository internalApplicationRepo;
 	
 	
-	private Logger logger = LoggerFactory.getLogger(ApiKeyRepositoryImpl.class);
+	private Logger logger = LoggerFactory.getLogger(MongoApiKeyRepository.class);
 
 	private Set<ApiKey> map(Collection<ApiAssociationMongo> apiAssociationMongos){
 		

@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-public class NodeRepositoryImpl implements NodeRepository {
+public class MongoNodeRepository implements NodeRepository {
 
 	@Autowired
 	private NodeMongoRepository internalNodeRepo;

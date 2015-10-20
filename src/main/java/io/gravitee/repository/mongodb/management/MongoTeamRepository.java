@@ -32,7 +32,7 @@ import java.util.Set;
 
 
 @Component
-public class TeamRepositoryImpl implements TeamRepository {
+public class MongoTeamRepository implements TeamRepository {
 
 	@Autowired
 	private TeamMongoRepository internalTeamRepo;

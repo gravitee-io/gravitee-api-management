@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Component
-public class RateLimitRepositoryImpl implements RateLimitRepository<String> {
+public class MongoRateLimitRepository implements RateLimitRepository<String> {
 
     @Override
     public RateLimitResult acquire(String key, int pound, long limit, long periodTime, TimeUnit periodTimeUnit) {

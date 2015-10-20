@@ -35,7 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
-public class ApiRepositoryImpl implements ApiRepository {
+public class MongoApiRepository implements ApiRepository {
 	
 
 	@Autowired

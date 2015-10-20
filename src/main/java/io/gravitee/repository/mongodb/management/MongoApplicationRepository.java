@@ -36,7 +36,7 @@ import io.gravitee.repository.mongodb.management.internal.user.UserMongoReposito
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 
 @Component
-public class ApplicationRepositoryImpl implements ApplicationRepository {
+public class MongoApplicationRepository implements ApplicationRepository {
 
 	@Autowired
 	private ApplicationMongoRepository internalApplicationRepo;
