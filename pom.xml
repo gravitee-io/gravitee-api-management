@@ -74,5 +74,6 @@
     <properties>
         <jackson.version>2.5.3</jackson.version>
         <gravitee-definition.version>0.1.0</gravitee-definition.version>
+        <gravitee-common.version>0.1.0</gravitee-common.version>
     </properties>
 </project>
