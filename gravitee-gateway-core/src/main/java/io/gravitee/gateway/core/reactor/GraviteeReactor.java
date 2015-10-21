@@ -66,8 +66,8 @@ public class GraviteeReactor extends AbstractService implements
     private ApplicationContext applicationContext;
 
     @Autowired
-    @Qualifier("errorHandler")
-    private ReactorHandler errorHandler;
+    @Qualifier("notFoundHandler")
+    private ReactorHandler notFoundHandler;
 
     @Autowired
     private ContextHandlerFactory contextHandlerFactory;
@@ -115,7 +115,7 @@ public class GraviteeReactor extends AbstractService implements
             return handler;
         }
 
-        return errorHandler;
+        return notFoundHandler;
     }
 
     public void process(Request request, Response response, Handler<Response> handler) {
@@ -124,7 +124,7 @@ public class GraviteeReactor extends AbstractService implements
         try {
             ReactorHandler reactorHandler = bestHandler(request);
 
-            if (!reactorHandler.equals(errorHandler)) {
+            if (!reactorHandler.equals(notFoundHandler)) {
                 // wrap the handler with the reporter handler
                 handler = new ReporterHandler(reporterService, request, handler);
             }

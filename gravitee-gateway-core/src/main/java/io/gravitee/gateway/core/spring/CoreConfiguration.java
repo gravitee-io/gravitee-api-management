@@ -27,7 +27,7 @@ import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.core.reactor.GraviteeReactor;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
-import io.gravitee.gateway.core.reactor.handler.ErrorReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.NotFoundReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
 import io.gravitee.gateway.core.registry.LocalApiDefinitionRegistry;
@@ -87,9 +87,9 @@ public class CoreConfiguration {
         return new ValidatorImpl();
     }
 
-    @Bean(name = "errorHandler")
+    @Bean(name = "notFoundHandler")
     public ReactorHandler errorHandler() {
-        return new ErrorReactorHandler();
+        return new NotFoundReactorHandler();
     }
 
     @Bean
