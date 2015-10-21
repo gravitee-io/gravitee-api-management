@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee</groupId>
 		<artifactId>gravitee-parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>2</version>
 	</parent>
 
 	<groupId>io.gravitee.management</groupId>
@@ -61,8 +61,8 @@
 	</dependencies>
 
 	<properties>
-		<gravitee-common.version>0.1.0-SNAPSHOT</gravitee-common.version>
-		<gravitee-definition.version>0.1.0-SNAPSHOT</gravitee-definition.version>
+		<gravitee-common.version>0.1.0</gravitee-common.version>
+		<gravitee-definition.version>0.1.0</gravitee-definition.version>
 		<javax.servlet-api.version>3.1.0</javax.servlet-api.version>
 	</properties>
 </project>
