@@ -24,9 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.EmbeddedValueResolverAware;
+import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
-import org.springframework.util.StringValueResolver;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,13 +33,14 @@ import java.util.Collection;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ReporterManagerImpl implements ReporterManager, PluginHandler, EmbeddedValueResolverAware {
+public class ReporterManagerImpl implements ReporterManager, PluginHandler {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ReporterManagerImpl.class);
 
     private final Collection<Reporter> reporters = new ArrayList<>();
 
-    private StringValueResolver stringValueResolver;
+    @Autowired
+    private Environment environment;
 
     @Autowired
     private PluginContextFactory pluginContextFactory;
@@ -78,13 +78,8 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler, Embe
     }
 
     private boolean isEnabled(Plugin reporterPlugin) {
-        String value = stringValueResolver.resolveStringValue("${reporter." + reporterPlugin.id() + ".enabled:true}");
-        LOGGER.debug("Plugin {} configuration: {}", reporterPlugin.id(), value);
-        return Boolean.parseBoolean(value);
-    }
-
-    @Override
-    public void setEmbeddedValueResolver(StringValueResolver resolver) {
-        stringValueResolver = resolver;
+        boolean enabled = environment.getProperty("reporter." + reporterPlugin.id() + ".enabled", Boolean.class, true);
+        LOGGER.debug("Plugin {} configuration: {}", reporterPlugin.id(), enabled);
+        return enabled;
     }
 }
