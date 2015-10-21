@@ -17,8 +17,7 @@ package io.gravitee.gateway.core.http;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Response;
-
-import java.nio.ByteBuffer;
+import io.gravitee.gateway.api.http.BodyPart;
 
 /**
  *
@@ -46,16 +45,8 @@ public class HttpServerResponse implements Response {
         return headers;
     }
 
-    /*
     @Override
-    public Response addHeader(String headerName, String headerValue) {
-        headers.add(headerName, headerValue);
-        return this;
-    }
-    */
-
-    @Override
-    public Response write(ByteBuffer byteBuffer) {
+    public Response write(BodyPart bodyPart) {
         return null;
     }
 

@@ -15,14 +15,34 @@
  */
 package io.gravitee.gateway.core.http.client;
 
-import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.http.client.AsyncResponseHandler;
+import io.gravitee.gateway.api.http.BodyPart;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface HttpClient extends LifecycleComponent<HttpClient> {
+public class StringBodyPart implements BodyPart {
 
-    void invoke(Request request, AsyncResponseHandler clientResponseHandler);
+    private final byte[] bytes;
+
+    public StringBodyPart(String body) {
+        bytes = body.getBytes(Charset.forName("UTF-8"));
+    }
+
+    @Override
+    public int length() {
+        return bytes.length;
+    }
+
+    @Override
+    public byte[] getBodyPartAsBytes() {
+        return bytes;
+    }
+
+    @Override
+    public ByteBuffer getBodyPartAsByteBuffer() {
+        return ByteBuffer.wrap(bytes);
+    }
 }

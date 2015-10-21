@@ -20,10 +20,10 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.BodyPart;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -99,7 +99,7 @@ public class HttpServerRequest implements Request {
 	}
 
 	@Override
-	public Request bodyHandler(Handler<ByteBuffer> handler) {
+	public Request bodyHandler(Handler<BodyPart> handler) {
 		return null;
 	}
 
