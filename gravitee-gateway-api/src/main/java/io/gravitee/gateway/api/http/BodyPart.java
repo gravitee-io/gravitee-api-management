@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.client;
+package io.gravitee.gateway.api.http;
 
-import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.http.client.AsyncResponseHandler;
+import java.nio.ByteBuffer;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface HttpClient extends LifecycleComponent<HttpClient> {
+public interface BodyPart {
 
-    void invoke(Request request, AsyncResponseHandler clientResponseHandler);
+    int length();
+
+    byte[] getBodyPartAsBytes();
+
+    ByteBuffer getBodyPartAsByteBuffer();
 }

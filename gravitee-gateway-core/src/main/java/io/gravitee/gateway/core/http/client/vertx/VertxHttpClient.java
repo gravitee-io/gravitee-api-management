@@ -20,8 +20,7 @@ import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.client.AsyncResponseHandler;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.http.client.AbstractHttpClient;
 import io.vertx.core.Vertx;
@@ -31,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -54,71 +54,70 @@ public class VertxHttpClient extends AbstractHttpClient {
     }
 
     @Override
-    public void invoke(Request request, Response response, Handler handler) {
-        URI rewrittenURI = rewriteURI(request);
+    public void invoke(Request serverRequest, AsyncResponseHandler clientResponseHandler) {
+        URI rewrittenURI = rewriteURI(serverRequest);
         String url = rewrittenURI.toString();
-        LOGGER.debug("{} rewriting: {} -> {}", request.id(), request.uri(), url);
+        LOGGER.debug("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), url);
 
-        HttpClientRequest clientRequest = httpClient.request(convert(request.method()), url,
-                clientResponse -> handleClientResponse(request, response, clientResponse, handler));
+        HttpClientRequest clientRequest = httpClient.request(convert(serverRequest.method()), url,
+                clientResponse -> handleClientResponse(clientResponse, clientResponseHandler));
 
         clientRequest.exceptionHandler(event -> {
-            LOGGER.error(request.id() + " server proxying failed", event);
+            LOGGER.error(serverRequest.id() + " server proxying failed", event);
 
             if (event instanceof TimeoutException) {
-                response.status(HttpStatusCode.GATEWAY_TIMEOUT_504);
+                clientResponseHandler.onStatusReceived(HttpStatusCode.GATEWAY_TIMEOUT_504);
             } else {
-                response.status(HttpStatusCode.BAD_GATEWAY_502);
+                clientResponseHandler.onStatusReceived(HttpStatusCode.BAD_GATEWAY_502);
             }
 
-            response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-            response.end();
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+
+            clientResponseHandler.onHeadersReceived(httpHeaders);
+            clientResponseHandler.onComplete();
         });
 
-        copyRequestHeaders(request, clientRequest);
+        copyRequestHeaders(serverRequest, clientRequest);
 
-        if (hasContent(request)) {
-            String transferEncoding = request.headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
+        if (hasContent(serverRequest)) {
+            String transferEncoding = serverRequest.headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
             if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding)) {
                 clientRequest.setChunked(true);
             }
 
-            request.bodyHandler(buffer -> {
-                LOGGER.debug("{} proxying content to upstream: {} bytes", request.id(), buffer.remaining());
-                clientRequest.write(buffer.toString());
+            serverRequest.bodyHandler(bodyPart -> {
+                ByteBuffer byteBuffer = bodyPart.getBodyPartAsByteBuffer();
+                LOGGER.debug("{} proxying content to upstream: {} bytes", serverRequest.id(), byteBuffer.remaining());
+                clientRequest.write(byteBuffer.toString());
             });
         }
 
-        request.endHandler(result -> {
-            LOGGER.debug("{} proxying complete", request.id());
+        serverRequest.endHandler(result -> {
+            LOGGER.debug("{} proxying complete", serverRequest.id());
             clientRequest.end();
         });
     }
 
-    private void handleClientResponse(Request request, Response serverResponse, HttpClientResponse clientResponse, Handler handler) {
+    private void handleClientResponse(HttpClientResponse clientResponse,
+                                      AsyncResponseHandler clientResponseHandler){
         // Copy HTTP status
-        serverResponse.status(clientResponse.statusCode());
+        clientResponseHandler.onStatusReceived(clientResponse.statusCode());
 
         // Copy HTTP headers
-        LOGGER.debug("{} proxying response headers to downstream");
+        HttpHeaders httpHeaders = new HttpHeaders();
         clientResponse.headers().forEach(header ->
-                serverResponse.headers().add(header.getKey(), header.getValue()));
+                httpHeaders.add(header.getKey(), header.getValue()));
 
-        handler.handle(serverResponse);
-
-        String transferEncoding = serverResponse.headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
-        if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding)) {
-            serverResponse.chunked(true);
-        }
+        clientResponseHandler.onHeadersReceived(httpHeaders);
 
         // Copy body content
         clientResponse.handler(buffer -> {
-            LOGGER.debug("{} proxying content to downstream: {} bytes", request.id(), buffer.length());
-            serverResponse.write(buffer.getByteBuf().nioBuffer());
+            clientResponseHandler.onBodyPartReceived(new VertxBufferBodyPart(buffer));
         });
 
         // Signal end of the response
-        clientResponse.endHandler((v) -> serverResponse.end());
+        clientResponse.endHandler((v) -> clientResponseHandler.onComplete());
     }
 
     protected void copyRequestHeaders(Request clientRequest, HttpClientRequest httpClientRequest) {

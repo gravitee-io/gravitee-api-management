@@ -16,8 +16,7 @@
 package io.gravitee.gateway.api;
 
 import io.gravitee.common.http.HttpHeaders;
-
-import java.nio.ByteBuffer;
+import io.gravitee.gateway.api.http.BodyPart;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -39,7 +38,7 @@ public interface Response {
      */
     HttpHeaders headers();
 
-    Response write(ByteBuffer byteBuffer);
+    Response write(BodyPart bodyPart);
 
     void end();
 }

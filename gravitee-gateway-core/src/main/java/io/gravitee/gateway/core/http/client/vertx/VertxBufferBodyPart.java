@@ -13,16 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.client;
+package io.gravitee.gateway.core.http.client.vertx;
 
-import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.http.client.AsyncResponseHandler;
+import io.gravitee.gateway.api.http.BodyPart;
+import io.vertx.core.buffer.Buffer;
+
+import java.nio.ByteBuffer;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface HttpClient extends LifecycleComponent<HttpClient> {
+public class VertxBufferBodyPart implements BodyPart {
 
-    void invoke(Request request, AsyncResponseHandler clientResponseHandler);
+    private final byte[] bytes;
+
+    public VertxBufferBodyPart(Buffer buffer) {
+        bytes = buffer.getBytes();
+    }
+
+    @Override
+    public int length() {
+        return bytes.length;
+    }
+
+    @Override
+    public byte[] getBodyPartAsBytes() {
+        return bytes;
+    }
+
+    @Override
+    public ByteBuffer getBodyPartAsByteBuffer() {
+        return ByteBuffer.wrap(bytes);
+    }
 }
