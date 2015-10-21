@@ -39,9 +39,6 @@
 		<gravitee-common.version>0.1.0</gravitee-common.version>
 
 		<!-- External project versions -->
-		<!--
-			TODO: Remove it !!!
-		-->
 		<jetty.version>9.2.11.v20150529</jetty.version>
 	</properties>
 
@@ -74,14 +71,13 @@
 			<scope>provided</scope>
         </dependency>
 
-		<!--
-		TODO: This one should be deleted !!!
-		-->
+		<!-- Utils dependency -->
         <dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-util</artifactId>
 			<version>${jetty.version}</version>
 		</dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
