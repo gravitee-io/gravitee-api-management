@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.TimeZone;
 
 /**
@@ -87,7 +88,7 @@ public class FileReporter extends AbstractService implements Reporter {
 
 		// Append request timestamp
 		buf.append('[');
-		buf.append(dateFormatter.format(request.timestamp()));
+		buf.append(dateFormatter.format(Date.from(request.timestamp())));
 		buf.append("] ");
 
 		// Append local IP
