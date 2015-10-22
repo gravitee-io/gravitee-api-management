@@ -53,24 +53,26 @@ public final class AsyncReporterWrapper extends AbstractService implements Metri
     @Override
     public synchronized void doStart() throws Exception {
         super.doStart();
-        LOGGER.info("Async reporter starting for {}", getReporterName());
-
+        LOGGER.info("Start async reporter for {}", getReporterName());
+        LOGGER.info("\tQueue capacity: {}", getQueueCapacity());
+        LOGGER.info("\tQueue polling timeout: {} ms", getPollingTimeout());
         this.queue = new BlockingArrayQueue<>(getQueueCapacity());
         this.thread = new WriterThread();
         this.thread.start();
 
         this.metricsReporter.start();
+        LOGGER.info("Start async reporter for {} : DONE", getReporterName());
     }
 
     @Override
     public synchronized void doStop() throws Exception {
-        LOGGER.info("Stop async reporter for {}...", getReporterName());
+        LOGGER.info("Stop async reporter for {}", getReporterName());
         thread.terminate();
         thread.join();
         super.doStop();
         thread = null;
         this.metricsReporter.stop();
-        LOGGER.info("Stop async reporter for {}... DONE", getReporterName());
+        LOGGER.info("Stop async reporter for {} : DONE", getReporterName());
     }
 
     @Override
