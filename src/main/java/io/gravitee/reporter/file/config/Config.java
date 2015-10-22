@@ -27,7 +27,7 @@ public class Config {
 	/**
 	 *  Reporter file name. 
 	 */
-	@Value("${reporter.file.fileName:access-yyyy_mm_dd.log}")
+	@Value("${reporter.file.fileName:#{systemProperties['gravitee.home']}/logs/access-yyyy_mm_dd.log}")
 	private String filename;
 
 	/**
