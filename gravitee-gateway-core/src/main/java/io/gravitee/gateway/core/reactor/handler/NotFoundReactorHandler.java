@@ -24,9 +24,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ErrorReactorHandler extends AbstractReactorHandler {
+public class NotFoundReactorHandler extends AbstractReactorHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ErrorReactorHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NotFoundReactorHandler.class);
 
     @Override
     public void handle(Request request, Response response, io.gravitee.gateway.api.handler.Handler<Response> handler) {
