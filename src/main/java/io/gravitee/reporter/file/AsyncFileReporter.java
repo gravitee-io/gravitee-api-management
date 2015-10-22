@@ -19,12 +19,14 @@ import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import io.gravitee.reporter.file.config.Config;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Asynchronous FileReporter
@@ -35,7 +37,10 @@ public class AsyncFileReporter extends FileReporter {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AsyncFileReporter.class);
 
-	private final BlockingQueue<String> queue = new BlockingArrayQueue<>(1024);
+	@Autowired
+	private Config config;
+
+	private BlockingQueue<String> queue;
 
 	private transient WriterThread thread;
 
@@ -46,6 +51,7 @@ public class AsyncFileReporter extends FileReporter {
 		super.doStart();
 		LOGGER.info("Async AccessLog reporter is starting.");
 
+		this.queue = new BlockingArrayQueue<>(config.getQueueCapacity());
 		this.thread = new WriterThread();
 		this.thread.start();
 	}
@@ -87,7 +93,7 @@ public class AsyncFileReporter extends FileReporter {
 		public void run() {
 			while (running) {
 				try {
-					String log = AsyncFileReporter.this.queue.poll(10, TimeUnit.SECONDS);
+					String log = AsyncFileReporter.this.queue.poll(config.getQueuePolling(), TimeUnit.MILLISECONDS);
 					if (log != null) {
 						AsyncFileReporter.this.write(log);
 					}

@@ -34,13 +34,13 @@ public class Config {
 	 * Whether existing files will be appended to or not.
 	 */
 	@Value("${reporter.file.append:true}")
-	private Boolean append;
+	private boolean append;
 
 	/**
 	 * The number of days to retain files before deleting them. 0 to retain forever.
 	 */
 	@Value("${reporter.file.retainDays:0}")
-	private Integer retainDays;
+	private int retainDays;
 
 	/**
 	 * The format for the date file substitution.
@@ -54,15 +54,21 @@ public class Config {
 	@Value("${reporter.file.backupFormat:HHmmssSSS}")
 	private String backupFormat;
 
+	@Value("${reporter.file.queue.size:1024}")
+	private int queueCapacity;
+
+	@Value("${reporter.file.queue.poll:1000}")
+	private long queuePolling;
+
 	public String getFilename() {
 		return filename;
 	}
 
-	public Boolean isAppend() {
+	public boolean isAppend() {
 		return append;
 	}
 
-	public Integer getRetainDays() {
+	public int getRetainDays() {
 		return retainDays;
 	}
 
@@ -72,5 +78,13 @@ public class Config {
 
 	public String getBackupFormat() {
 		return backupFormat;
+	}
+
+	public int getQueueCapacity() {
+		return queueCapacity;
+	}
+
+	public long getQueuePolling() {
+		return queuePolling;
 	}
 }
