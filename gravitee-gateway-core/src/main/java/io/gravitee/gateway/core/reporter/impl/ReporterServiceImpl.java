@@ -18,6 +18,8 @@ package io.gravitee.gateway.core.reporter.impl;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.metrics.Metrics;
+import io.gravitee.gateway.api.reporter.MetricsReporter;
 import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.reporter.ReporterManager;
 import io.gravitee.gateway.core.reporter.ReporterService;
@@ -36,10 +38,9 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
     private ReporterManager reporterManager;
 
     @Override
-    public void report(Request request, Response response) {
-        LOGGER.trace("Calling reporters with {} and {}", request, response);
-        for(Reporter reporter: reporterManager.getReporters()) {
-            reporter.report(request, response);
+    public void report(Metrics metrics) {
+        for(MetricsReporter reporter: reporterManager.getReporters()) {
+            reporter.report(metrics);
         }
     }
 

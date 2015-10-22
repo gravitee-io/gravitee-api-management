@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.reactor.handler.reporter;
 
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.reporter.ReporterService;
@@ -26,12 +25,10 @@ import io.gravitee.gateway.core.reporter.ReporterService;
 public class ReporterHandler implements Handler<Response> {
 
     private final ReporterService reporterService;
-    private final Request request;
     private final Handler<Response> wrappedHandler;
 
-    public ReporterHandler(ReporterService reporterService, Request request, Handler<Response> wrappedHandler) {
+    public ReporterHandler(ReporterService reporterService, Handler<Response> wrappedHandler) {
         this.reporterService = reporterService;
-        this.request = request;
         this.wrappedHandler = wrappedHandler;
     }
 
@@ -40,6 +37,6 @@ public class ReporterHandler implements Handler<Response> {
         // Report and handle result to the initial wrapped handler
         wrappedHandler.handle(result);
 
-        reporterService.report(request, result);
+        reporterService.report(result.metrics());
     }
 }

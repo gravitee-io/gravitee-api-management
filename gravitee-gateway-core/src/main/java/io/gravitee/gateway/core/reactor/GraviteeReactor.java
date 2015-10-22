@@ -126,7 +126,7 @@ public class GraviteeReactor extends AbstractService implements
 
             if (!reactorHandler.equals(notFoundHandler)) {
                 // wrap the handler with the reporter handler
-                handler = new ReporterHandler(reporterService, request, handler);
+                handler = new ReporterHandler(reporterService, handler);
             }
 
             reactorHandler.handle(request, response, handler);
