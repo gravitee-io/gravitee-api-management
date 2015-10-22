@@ -15,11 +15,9 @@
  */
 package io.gravitee.reporter.file;
 
-import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.reporter.Reporter;
+import io.gravitee.gateway.api.metrics.Metrics;
+import io.gravitee.gateway.api.reporter.MetricsReporter;
 import io.gravitee.reporter.file.config.Config;
 import org.eclipse.jetty.util.RolloverFileOutputStream;
 import org.slf4j.Logger;
@@ -44,7 +42,7 @@ import java.util.TimeZone;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @SuppressWarnings("rawtypes")
-public class FileReporter extends AbstractService implements Reporter {
+public class FileReporter extends AbstractService implements MetricsReporter {
 
 	@Autowired
 	private Config config;
@@ -70,7 +68,7 @@ public class FileReporter extends AbstractService implements Reporter {
 
 	private transient Writer _writer;
 
-	public void write(String accessLog) throws IOException {
+	private void write(String accessLog) throws IOException {
 		synchronized (this) {
 			if (_writer == null) {
 				return;
@@ -82,26 +80,26 @@ public class FileReporter extends AbstractService implements Reporter {
 		}
 	}
 
-	protected String format(Request request, Response response) {
+	private String format(Metrics metrics) {
 		StringBuilder buf = buffers.get();
 		buf.setLength(0);
 
 		// Append request timestamp
 		buf.append('[');
-		buf.append(dateFormatter.format(Date.from(request.timestamp())));
+		buf.append(dateFormatter.format(Date.from(metrics.getRequestTimestamp())));
 		buf.append("] ");
 
 		// Append local IP
 		buf.append('(');
-		buf.append(request.localAddress());
+		buf.append(metrics.getRequestLocalAddress());
 		buf.append(") ");
 
 		// Append remote IP
-		buf.append(request.remoteAddress());
+		buf.append(metrics.getRequestRemoteAddress());
 		buf.append(' ');
 
 		// Append Api name
-		String apiName = request.headers().getFirst(GraviteeHttpHeader.X_GRAVITEE_API_NAME);
+		String apiName = metrics.getApiName();
 		if (apiName == null) {
 			apiName = NO_STRING_DATA_VALUE;
 		}
@@ -110,7 +108,7 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(' ');
 
 		// Append key
-		String apiKey = request.headers().getFirst(GraviteeHttpHeader.X_GRAVITEE_API_KEY);
+		String apiKey = metrics.getApiKey();
 		if (apiKey == null) {
 			apiKey = NO_STRING_DATA_VALUE;
 		}
@@ -118,13 +116,13 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(' ');
 
 		// Append request method and URI
-		buf.append(request.method());
+		buf.append(metrics.getRequestHttpMethod());
 		buf.append(' ');
-		buf.append(request.path());
+		buf.append(metrics.getRequestPath());
 		buf.append(' ');
 
 		// Append response status
-		int status = response.status();
+		int status = metrics.getResponseHttpStatus();
 		if (status <= 0)
 			status = 404;
 		buf.append((char) ('0' + ((status / 100) % 10)));
@@ -133,7 +131,7 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(' ');
 
 		// Append response length
-		long responseLength = response.headers().contentLength();
+		long responseLength = metrics.getResponseContentLength();
 		if (responseLength >= 0) {
 			if (responseLength > 99999) {
 				buf.append(responseLength);
@@ -154,11 +152,7 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(' ');
 
 		// Append total response time
-		String responseTime = request.headers().getFirst(GraviteeHttpHeader.X_GRAVITEE_RESPONSE_TIME);
-		if (responseTime == null) {
-			responseTime = NO_STRING_DATA_VALUE;
-		}
-		buf.append(responseTime);
+		buf.append(metrics.getProxyResponseTimeMs());
 
 		return buf.toString();
 	}
@@ -205,12 +199,11 @@ public class FileReporter extends AbstractService implements Reporter {
 	}
 
 	@Override
-	public void report(Request request, Response response) {
-		String log = format(request, response);
+	public void report(Metrics metrics) {
 		try {
-			write(log);
-		} catch (IOException e) {
-			e.printStackTrace();
+			write(format(metrics));
+		} catch (IOException ioe) {
+			LOGGER.error("", ioe);
 		}
 	}
 }

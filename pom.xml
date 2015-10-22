@@ -35,7 +35,7 @@
 
 	<properties>
 		<!-- Gravitee's project versions -->
-		<gravitee-gateway-api.version>0.1.0</gravitee-gateway-api.version>
+		<gravitee-gateway-api.version>0.2.0-SNAPSHOT</gravitee-gateway-api.version>
 		<gravitee-common.version>0.1.0</gravitee-common.version>
 
 		<!-- External project versions -->

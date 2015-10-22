@@ -54,12 +54,6 @@ public class Config {
 	@Value("${reporter.file.backupFormat:HHmmssSSS}")
 	private String backupFormat;
 
-	@Value("${reporter.file.queue.size:1024}")
-	private int queueCapacity;
-
-	@Value("${reporter.file.queue.poll:1000}")
-	private long queuePolling;
-
 	public String getFilename() {
 		return filename;
 	}
@@ -78,13 +72,5 @@ public class Config {
 
 	public String getBackupFormat() {
 		return backupFormat;
-	}
-
-	public int getQueueCapacity() {
-		return queueCapacity;
-	}
-
-	public long getQueuePolling() {
-		return queuePolling;
 	}
 }
