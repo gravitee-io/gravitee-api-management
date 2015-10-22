@@ -35,7 +35,7 @@
         <gravitee-common.version>0.1.0</gravitee-common.version>
         <gravitee-plugin-core.version>0.1.0</gravitee-plugin-core.version>
         <gravitee-repository.version>0.1.0</gravitee-repository.version>
-        <jetty.version>9.3.3.v20150827</jetty.version>
+        <jetty.version>9.3.5.v20151012</jetty.version>
     </properties>
 
     <dependencies>
@@ -90,11 +90,11 @@
             <artifactId>logback-core</artifactId>
         </dependency>
 
-        <!-- Proxy : AHC client -->
+        <!-- Vertx.io HTTP client -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>3.0.0</version>
+            <version>3.1.0</version>
         </dependency>
 
         <!-- Jackson dependencies -->
@@ -145,7 +145,7 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-util</artifactId>
-            <version>9.3.5.v20151012</version>
+            <version>${jetty.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
