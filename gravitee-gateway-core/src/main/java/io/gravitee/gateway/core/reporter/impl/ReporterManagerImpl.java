@@ -67,7 +67,8 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
         if (enabled) {
             try {
                 ApplicationContext context = pluginContextFactory.create(plugin);
-                reporters.add(context.getBean(MetricsReporter.class));
+                MetricsReporter metricsReporter = createAsyncReporter(plugin, context);
+                reporters.add(metricsReporter);
             } catch (Exception iae) {
                 LOGGER.error("Unexpected error while create reporter instance", iae);
                 // Be sure that the context does not exist anymore.
@@ -82,5 +83,14 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
         boolean enabled = environment.getProperty("reporter." + reporterPlugin.id() + ".enabled", Boolean.class, true);
         LOGGER.debug("Plugin {} configuration: {}", reporterPlugin.id(), enabled);
         return enabled;
+    }
+
+    private MetricsReporter createAsyncReporter(Plugin reporterPlugin, ApplicationContext applicationContext) {
+        AsyncReporterWrapper metricsReporter = new AsyncReporterWrapper(applicationContext.getBean(MetricsReporter.class));
+        metricsReporter.setReporterName(reporterPlugin.id());
+        metricsReporter.setQueueCapacity(environment.getProperty("reporter." + reporterPlugin.id() + ".queue.size", int.class, 10240));
+        metricsReporter.setPollingTimeout(environment.getProperty("reporter." + reporterPlugin.id() + ".queue.pollingTimeout", long.class, 1000l));
+
+        return metricsReporter;
     }
 }
