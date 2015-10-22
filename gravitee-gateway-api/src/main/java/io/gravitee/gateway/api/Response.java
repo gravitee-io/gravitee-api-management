@@ -17,6 +17,7 @@ package io.gravitee.gateway.api;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.http.BodyPart;
+import io.gravitee.gateway.api.metrics.Metrics;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -41,4 +42,6 @@ public interface Response {
     Response write(BodyPart bodyPart);
 
     void end();
+
+    Metrics metrics();
 }

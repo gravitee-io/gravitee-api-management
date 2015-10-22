@@ -37,7 +37,6 @@
         <module>gravitee-gateway-api</module>
         <module>gravitee-gateway-core</module>
         <module>gravitee-gateway-platforms</module>
-        <module>gravitee-gateway-policies</module>
     </modules>
 
     <dependencyManagement>

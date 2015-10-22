@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.reporter.impl;
 
+import io.gravitee.gateway.api.reporter.MetricsReporter;
 import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.plugin.PluginContextFactory;
 import io.gravitee.gateway.core.plugin.PluginHandler;
@@ -37,7 +38,7 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ReporterManagerImpl.class);
 
-    private final Collection<Reporter> reporters = new ArrayList<>();
+    private final Collection<MetricsReporter> reporters = new ArrayList<>();
 
     @Autowired
     private Environment environment;
@@ -46,7 +47,7 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
     private PluginContextFactory pluginContextFactory;
 
     @Override
-    public Collection<Reporter> getReporters() {
+    public Collection<MetricsReporter> getReporters() {
         return reporters;
     }
 
@@ -66,7 +67,7 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
         if (enabled) {
             try {
                 ApplicationContext context = pluginContextFactory.create(plugin);
-                reporters.add(context.getBean(Reporter.class));
+                reporters.add(context.getBean(MetricsReporter.class));
             } catch (Exception iae) {
                 LOGGER.error("Unexpected error while create reporter instance", iae);
                 // Be sure that the context does not exist anymore.

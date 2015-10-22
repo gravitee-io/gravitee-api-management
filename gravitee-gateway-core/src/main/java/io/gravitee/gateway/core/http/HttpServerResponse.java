@@ -18,6 +18,7 @@ package io.gravitee.gateway.core.http;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.http.BodyPart;
+import io.gravitee.gateway.api.metrics.Metrics;
 
 /**
  *
@@ -64,6 +65,11 @@ public class HttpServerResponse implements Response {
     @Override
     public void end() {
 
+    }
+
+    @Override
+    public Metrics metrics() {
+        return null;
     }
 
     @Override

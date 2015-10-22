@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reporter;
+package io.gravitee.gateway.api.reporter;
 
-import io.gravitee.gateway.api.reporter.MetricsReporter;
-import io.gravitee.gateway.api.reporter.Reporter;
-
-import java.util.Collection;
+import io.gravitee.gateway.api.metrics.Metrics;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ReporterManager {
+public interface MetricsReporter extends Reporter {
 
-    Collection<MetricsReporter> getReporters();
+    void report(Metrics metrics);
 }
