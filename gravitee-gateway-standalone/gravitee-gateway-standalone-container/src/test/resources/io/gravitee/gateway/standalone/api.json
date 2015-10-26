@@ -1,0 +1,14 @@
+{
+  "name": "api-test",
+
+  "proxy": {
+    "context_path": "/test",
+    "target": "http://localhost:8083/team",
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}

@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-api</artifactId>
-    <name>Gravitee IO - Gateway API</name>
+    <name>Gravitee IO - Gateway - API</name>
 
     <dependencies>
         <dependency>

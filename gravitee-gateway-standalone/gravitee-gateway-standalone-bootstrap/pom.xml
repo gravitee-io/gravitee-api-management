@@ -22,20 +22,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway.http</groupId>
-        <artifactId>gravitee-gateway-http-client</artifactId>
+        <groupId>io.gravitee.gateway.standalone</groupId>
+        <artifactId>gravitee-gateway-standalone</artifactId>
         <version>0.2.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-gateway-http-client-vertx</artifactId>
-    <name>Gravitee IO - Gateway - HTTP Client - Vert.x</name>
-
-    <dependencies>
-        <!-- Vertx.io HTTP client -->
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-core</artifactId>
-            <version>3.1.0</version>
-        </dependency>
-    </dependencies>
+    <artifactId>gravitee-gateway-standalone-bootstrap</artifactId>
+    <name>Gravitee IO - Gateway - Standalone - Bootstrap</name>
 </project>
