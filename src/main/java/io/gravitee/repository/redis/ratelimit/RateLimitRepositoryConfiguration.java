@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.redis.ratelimit;
 
+import io.gravitee.repository.Scope;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +30,7 @@ public class RateLimitRepositoryConfiguration {
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        return new RedisConnectionFactory();
+        return new RedisConnectionFactory(Scope.RATE_LIMIT.getName());
     }
 
     @Bean

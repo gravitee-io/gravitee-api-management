@@ -32,12 +32,20 @@ public class RedisConnectionFactory implements FactoryBean<org.springframework.d
     @Autowired
     private Environment environment;
 
+    private final String propertyPrefix;
+
+    public RedisConnectionFactory(String propertyPrefix) {
+        this.propertyPrefix = propertyPrefix + ".redis.";
+    }
+
     @Override
     public org.springframework.data.redis.connection.RedisConnectionFactory getObject() throws Exception {
         JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
 
-        jedisConnectionFactory.setHostName("localhost");
-        jedisConnectionFactory.setPort(6379);
+        jedisConnectionFactory.setHostName(readPropertyValue(propertyPrefix + "host", String.class, "localhost"));
+        jedisConnectionFactory.setPort(readPropertyValue(propertyPrefix + "port", int.class, 6379));
+        jedisConnectionFactory.setPassword(readPropertyValue(propertyPrefix + "password", String.class, null));
+        jedisConnectionFactory.setTimeout(readPropertyValue(propertyPrefix + "timeout", int.class, -1));
 
         jedisConnectionFactory.afterPropertiesSet();
 
@@ -52,5 +60,19 @@ public class RedisConnectionFactory implements FactoryBean<org.springframework.d
     @Override
     public boolean isSingleton() {
         return true;
+    }
+
+    private String readPropertyValue(String propertyName) {
+        return readPropertyValue(propertyName, String.class, null);
+    }
+
+    private <T> T readPropertyValue(String propertyName, Class<T> propertyType) {
+        return readPropertyValue(propertyName, propertyType, null);
+    }
+
+    private <T> T readPropertyValue(String propertyName, Class<T> propertyType, T defaultValue) {
+        T value = environment.getProperty(propertyName, propertyType, defaultValue);
+        logger.debug("Read property {}: {}", propertyName, value);
+        return value;
     }
 }
