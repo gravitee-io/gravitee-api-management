@@ -13,36 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.client;
+package io.gravitee.gateway.api.http.client;
 
-import io.gravitee.gateway.api.http.BodyPart;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.gateway.api.Request;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class StringBodyPart implements BodyPart {
+public interface HttpClient extends LifecycleComponent<HttpClient> {
 
-    private final byte[] bytes;
-
-    public StringBodyPart(String body) {
-        bytes = body.getBytes(Charset.forName("UTF-8"));
-    }
-
-    @Override
-    public int length() {
-        return bytes.length;
-    }
-
-    @Override
-    public byte[] getBodyPartAsBytes() {
-        return bytes;
-    }
-
-    @Override
-    public ByteBuffer getBodyPartAsByteBuffer() {
-        return ByteBuffer.wrap(bytes);
-    }
+    void invoke(Request request, AsyncResponseHandler clientResponseHandler);
 }

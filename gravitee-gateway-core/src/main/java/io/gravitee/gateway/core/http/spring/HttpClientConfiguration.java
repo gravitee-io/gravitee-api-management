@@ -15,9 +15,6 @@
  */
 package io.gravitee.gateway.core.http.spring;
 
-import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.http.client.HttpClient;
-import io.gravitee.gateway.core.http.client.vertx.VertxHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,7 +25,13 @@ import org.springframework.context.annotation.Configuration;
 public class HttpClientConfiguration {
 
     @Bean
+    public static HttpClientBeanFactoryPostProcessor httpClientBeanFactoryPostProcessor() {
+        return new HttpClientBeanFactoryPostProcessor();
+    }
+    /*
+    @Bean
     public HttpClient httpClient(Api api) {
         return new VertxHttpClient(api);
     }
+    */
 }

@@ -27,14 +27,42 @@
         <version>0.2.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-gateway-api</artifactId>
-    <name>Gravitee IO - Gateway API</name>
+    <groupId>io.gravitee.gateway.http</groupId>
+    <artifactId>gravitee-gateway-http-client</artifactId>
+    <version>0.2.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Gravitee IO - Gateway HTTP Client</name>
+
+    <modules>
+        <module>gravitee-gateway-http-client-vertx</module>
+    </modules>
 
     <dependencies>
+        <!-- Gravitee.io dependencies -->
+        <dependency>
+            <groupId>io.gravitee.definition</groupId>
+            <artifactId>gravitee-definition-model</artifactId>
+            <version>${gravitee-definition.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
             <version>${gravitee-common.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!--
+        <dependency>
+            <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        -->
     </dependencies>
 </project>

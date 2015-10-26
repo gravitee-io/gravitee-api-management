@@ -51,7 +51,7 @@ public abstract class AbstractCoreTest implements ApplicationContextAware {
     @Import({CoreConfiguration.class})
     static class ContextConfiguration {
 
-        // This bean is needed by HTTP client part
+        // This bean is needed by HTTP client
         @Bean
         public Vertx vertx() {
             return Vertx.vertx();

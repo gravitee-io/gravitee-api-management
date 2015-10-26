@@ -29,7 +29,7 @@
 
     <artifactId>gravitee-gateway-platforms</artifactId>
     <packaging>pom</packaging>
-    <name>Gravitee IO - API Management - Gateway Platforms</name>
+    <name>Gravitee IO - Gateway Platforms</name>
 
     <modules>
         <module>gravitee-gateway-servlet</module>
