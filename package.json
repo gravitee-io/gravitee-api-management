@@ -1,6 +1,7 @@
 {
   "name": "gravitee",
   "version": "0.0.0",
+  "description": "",
   "dependencies": {},
   "scripts": {
     "test": "gulp test"
