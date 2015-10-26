@@ -1,7 +1,7 @@
 {
-  "name": "gravitee",
-  "version": "0.0.0",
-  "description": "",
+  "name": "gravitee-management-webui",
+  "version": "0.1.0",
+  "description": "Gravitee IO - API Management - Admin - Web Console",
   "dependencies": {
     "angular-ui-router": "~0.2.15",
     "angular-material": "~0.9.7",
