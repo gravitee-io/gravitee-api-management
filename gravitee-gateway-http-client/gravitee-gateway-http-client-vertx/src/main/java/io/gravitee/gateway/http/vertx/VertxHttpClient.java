@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.client.vertx;
+package io.gravitee.gateway.http.vertx;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.client.AsyncResponseHandler;
-import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.http.client.AbstractHttpClient;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -46,12 +45,14 @@ public class VertxHttpClient extends AbstractHttpClient {
 
     private HttpClient httpClient;
 
-    @Autowired
+    @Resource
     private Vertx vertx;
 
+/*
     public VertxHttpClient(Api api) {
         super(api);
     }
+    */
 
     @Override
     public void invoke(Request serverRequest, AsyncResponseHandler clientResponseHandler) {
@@ -60,7 +61,9 @@ public class VertxHttpClient extends AbstractHttpClient {
         LOGGER.debug("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), url);
 
         HttpClientRequest clientRequest = httpClient.request(convert(serverRequest.method()), url,
-                clientResponse -> handleClientResponse(clientResponse, clientResponseHandler));
+                clientResponse -> {
+                    handleClientResponse(clientResponse, clientResponseHandler);
+                });
 
         clientRequest.exceptionHandler(event -> {
             LOGGER.error(serverRequest.id() + " server proxying failed", event);
@@ -137,14 +140,12 @@ public class VertxHttpClient extends AbstractHttpClient {
 
     @Override
     protected void doStart() throws Exception {
-        super.doStart();
-
         LOGGER.info("Starting HTTP Client for API {}", api);
 
         initialize(api.getProxy());
     }
 
-    private io.vertx.core.http.HttpMethod convert(io.gravitee.common.http.HttpMethod httpMethod) {
+    private HttpMethod convert(io.gravitee.common.http.HttpMethod httpMethod) {
         switch (httpMethod) {
             case CONNECT:
                 return HttpMethod.CONNECT;
@@ -171,8 +172,6 @@ public class VertxHttpClient extends AbstractHttpClient {
 
     @Override
     protected void doStop() throws Exception {
-        super.doStop();
-
         LOGGER.info("Close Vert.x HTTP Client for {}", api);
         httpClient.close();
     }

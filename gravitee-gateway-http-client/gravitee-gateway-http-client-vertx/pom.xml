@@ -22,30 +22,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway</groupId>
-        <artifactId>gravitee-gateway-platforms</artifactId>
+        <groupId>io.gravitee.gateway.http</groupId>
+        <artifactId>gravitee-gateway-http-client</artifactId>
         <version>0.2.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.gateway.platforms</groupId>
-    <artifactId>gravitee-gateway-servlet</artifactId>
-    <name>Gravitee IO - Gateway Platforms - Servlet</name>
+    <artifactId>gravitee-gateway-http-client-vertx</artifactId>
+    <name>Gravitee IO - Gateway HTTP Client - Vert.x</name>
 
     <dependencies>
-        <!-- Logging -->
+        <!-- Vertx.io HTTP client -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${javax.servlet-api.version}</version>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>3.1.0</version>
         </dependency>
     </dependencies>
-
-    <properties>
-        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-    </properties>
 </project>

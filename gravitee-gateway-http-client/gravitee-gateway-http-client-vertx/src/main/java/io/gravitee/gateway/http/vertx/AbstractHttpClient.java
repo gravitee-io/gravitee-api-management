@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.client;
+package io.gravitee.gateway.http.vertx;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.core.definition.Api;
+import io.gravitee.gateway.api.http.client.HttpClient;
 
+import javax.annotation.Resource;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
@@ -47,11 +49,8 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
         HOP_HEADERS = Collections.unmodifiableSet(hopHeaders);
     }
 
-    protected final Api api;
-
-    protected AbstractHttpClient(Api api) {
-        this.api = api;
-    }
+    @Resource
+    protected Api api;
 
     protected String rewriteTarget(Request request) {
         final StringBuilder requestURI =
@@ -82,15 +81,5 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
     protected URI rewriteURI(Request request) {
         String newTarget = rewriteTarget(request);
         return newTarget == null ? null : URI.create(newTarget);
-    }
-
-    @Override
-    protected void doStart() throws Exception {
-
-    }
-
-    @Override
-    protected void doStop() throws Exception {
-
     }
 }
