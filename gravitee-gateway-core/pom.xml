@@ -29,7 +29,7 @@
 
 
     <artifactId>gravitee-gateway-core</artifactId>
-    <name>Gravitee IO - Gateway Core</name>
+    <name>Gravitee IO - Gateway - Core</name>
 
     <properties>
         <gravitee-common.version>0.1.0</gravitee-common.version>

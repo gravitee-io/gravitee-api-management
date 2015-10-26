@@ -29,9 +29,8 @@
 
     <groupId>io.gravitee.gateway.http</groupId>
     <artifactId>gravitee-gateway-http-client</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Gravitee IO - Gateway HTTP Client</name>
+    <name>Gravitee IO - Gateway - HTTP Client</name>
 
     <modules>
         <module>gravitee-gateway-http-client-vertx</module>
@@ -56,13 +55,5 @@
             <artifactId>gravitee-gateway-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!--
-        <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        -->
     </dependencies>
 </project>
