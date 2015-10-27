@@ -27,7 +27,8 @@ import java.util.Map;
  */
 public class FileUtils {
 
-    private FileUtils() {}
+    private FileUtils() {
+    }
 
     public static DirectoryStream newDirectoryStream(Path dir, String glob) throws IOException {
         // create a matcher and return a filter that uses it.
@@ -71,7 +72,6 @@ public class FileUtils {
 
         //if the destination doesn't exist, create it
         if(Files.notExists(destDir)){
-            System.out.println(destDir + " does not exist. Creating...");
             Files.createDirectories(destDir);
         }
 
@@ -81,22 +81,16 @@ public class FileUtils {
             //walk the zip file tree and copy files to the destination
             Files.walkFileTree(root, new SimpleFileVisitor<Path>(){
                 @Override
-                public FileVisitResult visitFile(Path file,
-                                                 BasicFileAttributes attrs) throws IOException {
-                    final Path destFile = Paths.get(destDir.toString(),
-                            file.toString());
-                    System.out.printf("Extracting file %s to %s\n", file, destFile);
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    final Path destFile = Paths.get(destDir.toString(), file.toString());
                     Files.copy(file, destFile, StandardCopyOption.REPLACE_EXISTING);
                     return FileVisitResult.CONTINUE;
                 }
 
                 @Override
-                public FileVisitResult preVisitDirectory(Path dir,
-                                                         BasicFileAttributes attrs) throws IOException {
-                    final Path dirToCreate = Paths.get(destDir.toString(),
-                            dir.toString());
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    final Path dirToCreate = Paths.get(destDir.toString(), dir.toString());
                     if(Files.notExists(dirToCreate)){
-                        System.out.printf("Creating directory %s\n", dirToCreate);
                         Files.createDirectory(dirToCreate);
                     }
                     return FileVisitResult.CONTINUE;

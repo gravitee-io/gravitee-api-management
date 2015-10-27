@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.registry;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.core.definition.Api;
@@ -38,9 +37,9 @@ import java.util.concurrent.Executors;
  */
 public class LocalApiDefinitionRegistry extends AbstractService {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(LocalApiDefinitionRegistry.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LocalApiDefinitionRegistry.class);
 
-    private final static String JSON_EXTENSION = ".json";
+    private static final String JSON_EXTENSION = ".json";
 
     @Value("${local.enabled:false}")
     private boolean enabled;
@@ -106,9 +105,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
     }
 
     private File[] searchForDefinitions(File registryDir) {
-        return registryDir.listFiles((dir, name) -> {
-            return name.endsWith(JSON_EXTENSION);
-        });
+        return registryDir.listFiles((dir, name) -> name.endsWith(JSON_EXTENSION));
     }
 
     private Api loadDefinition(File apiDefinitionFile) throws IOException {
@@ -186,7 +183,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                         }
                     }
                 } catch (IOException ioe) {
-                    ioe.printStackTrace();
+                    LOGGER.error("Unexpected error while looking for ÀPI definitions from filesystem", ioe);
                 }
             });
         }

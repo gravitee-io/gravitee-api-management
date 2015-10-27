@@ -25,7 +25,7 @@ public class PathValidator implements Validator {
     private static final String CONTEXT_PATH_PATTERN = "^\\\\/([a-zA-Z0-9_-]+\\\\/?+)++";
 
     @Override
-    public void validate(Api definition) throws ValidationException {
+    public void validate(Api definition) {
 
         definition.getPaths().entrySet().stream().filter(path -> path.getValue().getMethods() == null).forEach(path -> {
             if (! path.getKey().matches(CONTEXT_PATH_PATTERN)) {

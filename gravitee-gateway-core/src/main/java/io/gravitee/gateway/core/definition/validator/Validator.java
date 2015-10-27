@@ -22,5 +22,5 @@ import io.gravitee.gateway.core.definition.Api;
  */
 public interface Validator {
 
-    void validate(Api definition) throws ValidationException;
+    void validate(Api definition);
 }

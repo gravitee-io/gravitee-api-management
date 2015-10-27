@@ -28,10 +28,4 @@ public class HttpClientConfiguration {
     public static HttpClientBeanFactoryPostProcessor httpClientBeanFactoryPostProcessor() {
         return new HttpClientBeanFactoryPostProcessor();
     }
-    /*
-    @Bean
-    public HttpClient httpClient(Api api) {
-        return new VertxHttpClient(api);
-    }
-    */
 }

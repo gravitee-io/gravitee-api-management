@@ -32,7 +32,7 @@ import java.util.Collection;
  */
 public class PluginEventListener extends AbstractService implements EventListener<PluginEvent, io.gravitee.plugin.api.Plugin> {
 
-    protected final Logger LOGGER = LoggerFactory.getLogger(PluginEventListener.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(PluginEventListener.class);
 
     @Autowired
     private Collection<PluginHandler> pluginHandlers;
@@ -42,11 +42,9 @@ public class PluginEventListener extends AbstractService implements EventListene
 
     @Override
     public void onEvent(Event<PluginEvent, Plugin> event) {
-        switch (event.type()) {
-            case DEPLOYED:
-                LOGGER.debug("Receive an event for plugin {} [{}]", event.content().id(), event.type());
-                deploy(event.content());
-                break;
+        if (event.type() == PluginEvent.DEPLOYED) {
+            LOGGER.debug("Receive an event for plugin {} [{}]", event.content().id(), event.type());
+            deploy(event.content());
         }
     }
 

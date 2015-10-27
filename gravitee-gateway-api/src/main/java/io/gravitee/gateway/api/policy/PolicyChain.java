@@ -17,7 +17,6 @@ package io.gravitee.gateway.api.policy;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.handler.Handler;
 
 /**
  *

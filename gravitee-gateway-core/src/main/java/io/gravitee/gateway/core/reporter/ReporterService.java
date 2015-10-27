@@ -16,8 +16,6 @@
 package io.gravitee.gateway.core.reporter;
 
 import io.gravitee.common.service.Service;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.metrics.Metrics;
 
 /**

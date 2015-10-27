@@ -35,7 +35,7 @@ import static org.reflections.ReflectionUtils.withModifier;
  */
 public class PolicyMethodResolverImpl implements PolicyMethodResolver {
 
-    private final Class<? extends Annotation> [] resolvableAnnotations = new Class[]{
+    private final static Class<? extends Annotation> [] resolvableAnnotations = new Class[]{
             OnRequest.class, OnResponse.class
     };
 
