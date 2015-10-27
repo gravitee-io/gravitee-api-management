@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.reporter;
 
 import io.gravitee.gateway.api.reporter.MetricsReporter;
-import io.gravitee.gateway.api.reporter.Reporter;
 
 import java.util.Collection;
 

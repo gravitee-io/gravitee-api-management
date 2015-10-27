@@ -29,7 +29,7 @@ public class ProxyValidator implements Validator {
     private static final UrlValidator urlValidator = new UrlValidator(new String []{"http","https"}, UrlValidator.ALLOW_LOCAL_URLS);
 
     @Override
-    public void validate(Api definition) throws ValidationException {
+    public void validate(Api definition) {
         Proxy proxyDefinition = definition.getProxy();
 
         if (proxyDefinition == null) {

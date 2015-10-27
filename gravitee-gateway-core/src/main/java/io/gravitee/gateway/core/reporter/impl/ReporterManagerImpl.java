@@ -36,7 +36,7 @@ import java.util.Collection;
  */
 public class ReporterManagerImpl implements ReporterManager, PluginHandler {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ReporterManagerImpl.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ReporterManagerImpl.class);
 
     private final Collection<MetricsReporter> reporters = new ArrayList<>();
 
@@ -56,7 +56,8 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
         try {
             Assert.isAssignable(Reporter.class, plugin.clazz());
             return true;
-        } catch (Exception iae) {
+        } catch (IllegalArgumentException iae) {
+            LOGGER.trace("Class {} is not assignable to {}", plugin.clazz(), Reporter.class);
             return false;
         }
     }

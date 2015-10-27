@@ -24,9 +24,9 @@ import org.slf4j.LoggerFactory;
  */
 public class ValidatorImpl implements Validator {
 
-    private final Logger logger = LoggerFactory.getLogger(ValidatorImpl.class);
+    private final static Logger logger = LoggerFactory.getLogger(ValidatorImpl.class);
 
-    private static final Validator [] VALIDATORS = {
+    private final static Validator [] VALIDATORS = {
             new ApiValidator(),
             new ProxyValidator(),
             new PathValidator(),
@@ -34,7 +34,7 @@ public class ValidatorImpl implements Validator {
     };
 
     @Override
-    public void validate(Api definition) throws ValidationException {
+    public void validate(Api definition) {
         logger.debug("Validate API Definition for API: {}", definition.getName());
 
         for (Validator validator : VALIDATORS) {

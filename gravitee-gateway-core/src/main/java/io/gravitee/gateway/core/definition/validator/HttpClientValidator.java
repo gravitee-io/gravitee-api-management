@@ -24,7 +24,7 @@ import io.gravitee.gateway.core.definition.Api;
 public class HttpClientValidator implements Validator {
 
     @Override
-    public void validate(Api definition) throws ValidationException {
+    public void validate(Api definition) {
         HttpClient httpClient = definition.getProxy().getHttpClient();
 
         if (httpClient != null && httpClient.isUseProxy() && httpClient.getHttpProxy() == null) {

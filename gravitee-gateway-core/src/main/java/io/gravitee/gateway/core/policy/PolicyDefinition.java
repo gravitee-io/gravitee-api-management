@@ -18,8 +18,6 @@ package io.gravitee.gateway.core.policy;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -28,19 +26,9 @@ public interface PolicyDefinition {
 
     String id();
 
-    /*
-    String name();
-
-    String description();
-
-    String version();
-    */
-
     Class<?> policy();
 
     Class<? extends PolicyConfiguration> configuration();
-
-//    List<URL> getClassPathElements();
 
     Method onRequestMethod();
 
