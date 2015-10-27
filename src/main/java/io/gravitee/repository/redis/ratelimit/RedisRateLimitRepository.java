@@ -43,11 +43,21 @@ public class RedisRateLimitRepository implements RateLimitRepository<String> {
 
     @Override
     public RateLimitResult acquire(String key, int pound, long limit, long periodTime, TimeUnit periodTimeUnit) {
-        RateLimit rateLimit = redisTemplate.execute((RedisConnection redisConnection) -> {
-            return convert(key, ((StringRedisConnection)redisConnection)
-                    .hMGet(KEY_PREFIX + key, FIELD_LAST_REQUEST, FIELD_RESET_TIME, FIELD_COUNTER));
+        boolean rateLimitExists = redisTemplate.execute((RedisConnection redisConnection) -> {
+            return ((StringRedisConnection)redisConnection).exists(KEY_PREFIX + key);
         });
 
+        RateLimit rateLimit;
+        if (rateLimitExists) {
+            rateLimit = redisTemplate.execute((RedisConnection redisConnection) -> {
+                return convert(key, ((StringRedisConnection) redisConnection)
+                        .hMGet(KEY_PREFIX + key, FIELD_LAST_REQUEST, FIELD_RESET_TIME, FIELD_COUNTER));
+            });
+        } else {
+            rateLimit = new RateLimit();
+        }
+
+        final RateLimit rateLimiting = rateLimit;
         RateLimitResult rateLimitResult = new RateLimitResult();
 
         // We prefer currentTimeMillis in place of nanoTime() because nanoTime is relatively
@@ -77,9 +87,9 @@ public class RedisRateLimitRepository implements RateLimitRepository<String> {
 
         redisTemplate.executePipelined((RedisConnection redisConnection) -> {
             Map<String, String> fields = new HashMap<>(3);
-            fields.put(FIELD_LAST_REQUEST, Long.toString(rateLimit.getLastRequest()));
-            fields.put(FIELD_RESET_TIME, Long.toString(rateLimit.getResetTime()));
-            fields.put(FIELD_COUNTER, Long.toString(rateLimit.getCounter()));
+            fields.put(FIELD_LAST_REQUEST, Long.toString(rateLimiting.getLastRequest()));
+            fields.put(FIELD_RESET_TIME, Long.toString(rateLimiting.getResetTime()));
+            fields.put(FIELD_COUNTER, Long.toString(rateLimiting.getCounter()));
             ((StringRedisConnection) redisConnection).hMSet(KEY_PREFIX + key, fields);
             ((StringRedisConnection) redisConnection).expireAt(KEY_PREFIX + key, resetTimeMillis);
             return null;
