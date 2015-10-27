@@ -17,7 +17,6 @@ package io.gravitee.gateway.core.plugin.impl;
 
 import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.plugin.PluginContextFactory;
-import io.gravitee.gateway.core.spring.PropertiesConfiguration;
 import io.gravitee.plugin.api.Plugin;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
@@ -29,18 +28,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -72,12 +70,11 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
         pluginContext.setClassLoader(plugin.clazz().getClassLoader());
         pluginContext.setEnvironment((ConfigurableEnvironment) applicationContext.getEnvironment());
 
-        PropertyPlaceholderConfigurer configurer = new PropertyPlaceholderConfigurer();
-        final Properties properties = applicationContext.getBean("graviteeProperties", Properties.class);
-        configurer.setProperties(properties);
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
         configurer.setIgnoreUnresolvablePlaceholders(true);
-        pluginContext.register(PropertiesConfiguration.class);
+        configurer.setEnvironment(applicationContext.getEnvironment());
         pluginContext.addBeanFactoryPostProcessor(configurer);
+
         if (configurations.isEmpty()) {
             LOGGER.info("\tNo @Configuration annotated class found for plugin {}", plugin.id());
         } else {
