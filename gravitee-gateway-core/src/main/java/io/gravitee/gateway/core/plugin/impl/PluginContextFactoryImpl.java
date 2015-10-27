@@ -36,6 +36,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -69,14 +70,14 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
 
         AnnotationConfigApplicationContext pluginContext = new AnnotationConfigApplicationContext();
         pluginContext.setClassLoader(plugin.clazz().getClassLoader());
+        pluginContext.setEnvironment((ConfigurableEnvironment) applicationContext.getEnvironment());
 
-        PropertyPlaceholderConfigurer configurer=new PropertyPlaceholderConfigurer();
+        PropertyPlaceholderConfigurer configurer = new PropertyPlaceholderConfigurer();
         final Properties properties = applicationContext.getBean("graviteeProperties", Properties.class);
         configurer.setProperties(properties);
         configurer.setIgnoreUnresolvablePlaceholders(true);
         pluginContext.register(PropertiesConfiguration.class);
         pluginContext.addBeanFactoryPostProcessor(configurer);
-
         if (configurations.isEmpty()) {
             LOGGER.info("\tNo @Configuration annotated class found for plugin {}", plugin.id());
         } else {
