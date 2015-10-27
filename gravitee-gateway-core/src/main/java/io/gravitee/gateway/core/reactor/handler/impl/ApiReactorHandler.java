@@ -103,14 +103,11 @@ public class ApiReactorHandler extends ContextReactorHandler {
                     public void onComplete() {
                         serverResponse.end();
 
-                        long apiResponseTimeInMs = System.currentTimeMillis() - serviceInvocationStart;
-                        long proxyResponseTimeInMs = System.currentTimeMillis() - proxyInvocationStart;
+                        serverResponse.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
+                        serverResponse.metrics().setProxyResponseTimeMs(System.currentTimeMillis() - proxyInvocationStart);
 
                         LOGGER.debug("Remote API invocation took {} ms [request={}]", serverResponse.metrics().getApiResponseTimeMs(), serverRequest.id());
                         LOGGER.debug("Complete proxying took {} ms [request={}]", serverResponse.metrics().getProxyResponseTimeMs(), serverRequest.id());
-
-                        serverResponse.metrics().setApiResponseTimeMs(apiResponseTimeInMs);
-                        serverResponse.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
 
                         fillMetrics(serverRequest, serverResponse);
 
