@@ -57,7 +57,7 @@ if [ "x$JAVA" = "x" ]; then
 fi
 
 # Setup the classpath
-runjar=`find $GRAVITEE_HOME -name "gravitee-standalone-bootstrap*.jar"`
+runjar=`find $GRAVITEE_HOME -name "gravitee-gateway-standalone-bootstrap*.jar"`
 if [ ! -f "$runjar" ]; then
     die "Missing required file: $runjar"
 fi
