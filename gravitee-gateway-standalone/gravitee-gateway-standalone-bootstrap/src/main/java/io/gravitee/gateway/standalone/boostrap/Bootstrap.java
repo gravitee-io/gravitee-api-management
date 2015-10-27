@@ -135,7 +135,7 @@ public class Bootstrap {
         File graviteeLibDir = new File(graviteeHomeDir, "lib");
 
         File [] files = graviteeLibDir.listFiles(pathname -> {
-            return pathname.getName().startsWith("gravitee-standalone-bootstrap");
+            return pathname.getName().startsWith("gravitee-gateway-standalone-bootstrap");
         });
 
         if (files == null || files.length == 0 || files.length > 1) {
