@@ -15,31 +15,25 @@
  */
 package io.gravitee.gateway.core.reactor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.AbstractCoreTest;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.external.ApiExternalResource;
 import io.gravitee.gateway.core.external.ApiServlet;
-import io.gravitee.gateway.core.http.HttpServerRequest;
-import io.gravitee.gateway.core.http.HttpServerResponse;
-import io.gravitee.gateway.core.plugin.PluginHandler;
-import io.gravitee.gateway.core.reporter.ConsoleReporter;
 import io.gravitee.gateway.core.reporter.ReporterManager;
-import io.gravitee.plugin.api.Plugin;
-import io.gravitee.plugin.api.PluginManifest;
-import io.gravitee.plugin.api.PluginType;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.Path;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -52,9 +46,6 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
     @Autowired
     private GraviteeReactor reactor;
-
-    @Autowired
-    private ReporterManager reporterManager;
 
     @Autowired
     private EventManager eventManager;
@@ -71,41 +62,55 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     }
 
     @Test
-    public void processRequest_startedApi() throws IOException {
+    public void processRequest_startedApi() throws Exception {
         // Register API endpoint
         Api api = getApiDefinition();
 
         eventManager.publishEvent(ApiEvent.DEPLOY, api);
 
         HttpServerRequest req = new HttpServerRequest();
-        HttpServerResponse response = new HttpServerResponse();
-
-        req.setRequestURI(URI.create("http://localhost/team"));
         req.setMethod(HttpMethod.GET);
+        req.setRequestURI(URI.create("http://localhost/team"));
 
+        Response response = new HttpServerResponse();
+
+        final CountDownLatch lock = new CountDownLatch(1);
         reactor.process(req, response,
-                resp -> Assert.assertEquals(HttpStatusCode.OK_200, resp.status()));
+                resp -> {
+                    Assert.assertEquals(HttpStatusCode.OK_200, resp.status());
+                    lock.countDown();
+                });
+
+        req.endHandler().handle(null);
+        Assert.assertEquals(true, lock.await(1000, TimeUnit.MILLISECONDS));
     }
 
     @Test
-    public void processRequest_startedApi_gatewayError() throws IOException {
+    public void processRequest_startedApi_gatewayError() throws Exception {
         // Register API endpoint
-        Api api = getApiDefinition();
+        Api api = getUnreachableApiDefinition();
 
         eventManager.publishEvent(ApiEvent.DEPLOY, api);
 
         HttpServerRequest req = new HttpServerRequest();
-        HttpServerResponse response = new HttpServerResponse();
-
-        req.setRequestURI(URI.create("http://localhost/team"));
         req.setMethod(HttpMethod.GET);
+        req.setRequestURI(URI.create("http://localhost/team"));
 
+        Response response = new HttpServerResponse();
+
+        final CountDownLatch lock = new CountDownLatch(1);
         reactor.process(req, response,
-                resp -> Assert.assertEquals(HttpStatusCode.BAD_GATEWAY_502, resp.status()));
+                resp -> {
+                    Assert.assertEquals(HttpStatusCode.BAD_GATEWAY_502, resp.status());
+                    lock.countDown();
+                });
+
+        req.endHandler().handle(null);
+        Assert.assertEquals(true, lock.await(10000, TimeUnit.MILLISECONDS));
     }
 
     @Test
-    public void processRequest_notYetStartedApi() throws IOException {
+    public void processRequest_notYetStartedApi() throws Exception {
         // Register API endpoint
         Api api = getApiDefinition();
         api.setEnabled(false);
@@ -113,89 +118,51 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         eventManager.publishEvent(ApiEvent.DEPLOY, api);
 
         HttpServerRequest req = new HttpServerRequest();
-        HttpServerResponse response = new HttpServerResponse();
-
+        req.setMethod(HttpMethod.GET);
         req.setRequestURI(URI.create("http://localhost/team"));
-        req.setMethod(HttpMethod.GET);
 
+        Response response = new HttpServerResponse();
+
+        final CountDownLatch lock = new CountDownLatch(1);
         reactor.process(req, response,
-                resp -> Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status()));
+                resp -> {
+                    Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
+                    lock.countDown();
+                });
+
+        Assert.assertEquals(true, lock.await(1000, TimeUnit.MILLISECONDS));
     }
 
     @Test
-    public void processNotFoundRequest() throws IOException {
+    public void processNotFoundRequest() throws Exception {
         // Register API endpoint
         Api api = getApiDefinition();
 
         eventManager.publishEvent(ApiEvent.DEPLOY, api);
 
         HttpServerRequest req = new HttpServerRequest();
-        req.setRequestURI(URI.create("http://localhost/unknown_path"));
         req.setMethod(HttpMethod.GET);
+        req.setRequestURI(URI.create("http://localhost/unknown_path"));
 
-        HttpServerResponse response = new HttpServerResponse();
+        Response response = new HttpServerResponse();
 
+        final CountDownLatch lock = new CountDownLatch(1);
         reactor.process(req, response,
-                resp -> Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status()));
-    }
+                resp -> {
+                    Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
+                    lock.countDown();
+                });
 
-    @Test
-    public void reporter_checkReport() throws IOException {
-        ((PluginHandler) reporterManager).handle(new Plugin() {
-            @Override
-            public String id() {
-                return "console-reporter";
-            }
-
-            @Override
-            public Class<?> clazz() {
-                return ConsoleReporter.class;
-            }
-
-            @Override
-            public PluginType type() {
-                return null;
-            }
-
-            @Override
-            public Path path() {
-                return null;
-            }
-
-            @Override
-            public PluginManifest manifest() {
-                return null;
-            }
-
-            @Override
-            public URL[] dependencies() {
-                return new URL[0];
-            }
-        });
-
-        Assert.assertEquals(1, reporterManager.getReporters().size());
-
-//        Reporter reporter = spy(reporterManager.getReporters().iterator().next());
-
-        // Register API endpoint
-        Api api = getApiDefinition();
-
-        eventManager.publishEvent(ApiEvent.DEPLOY, api);
-
-        HttpServerRequest req = new HttpServerRequest();
-        req.setRequestURI(URI.create("http://localhost/unknown_path"));
-        req.setMethod(HttpMethod.GET);
-
-        HttpServerResponse response = new HttpServerResponse();
-
-        reactor.process(req, response, result -> {});
-
-        // check that the reporter has been correctly called
-//        verify(reporter, atLeastOnce()).report(eq(req), any(Response.class));
+        Assert.assertEquals(true, lock.await(1000, TimeUnit.MILLISECONDS));
     }
 
     private Api getApiDefinition() throws IOException {
         URL jsonFile = GraviteeReactorTest.class.getResource("/io/gravitee/gateway/core/reactor/api.json");
+        return new GraviteeMapper().readValue(jsonFile, Api.class);
+    }
+
+    private Api getUnreachableApiDefinition() throws IOException {
+        URL jsonFile = GraviteeReactorTest.class.getResource("/io/gravitee/gateway/core/reactor/api-unreachable.json");
         return new GraviteeMapper().readValue(jsonFile, Api.class);
     }
 }
