@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http;
+package io.gravitee.gateway.core.reactor;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Response;
@@ -28,7 +28,9 @@ public class HttpServerResponse implements Response {
 
     private int status;
 
-    private HttpHeaders headers;
+    private final HttpHeaders headers = new HttpHeaders();
+
+    private final Metrics metrics = new Metrics();
 
     private boolean chunked = false;
 
@@ -69,7 +71,7 @@ public class HttpServerResponse implements Response {
 
     @Override
     public Metrics metrics() {
-        return null;
+        return metrics;
     }
 
     @Override

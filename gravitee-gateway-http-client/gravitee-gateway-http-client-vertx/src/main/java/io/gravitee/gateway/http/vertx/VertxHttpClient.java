@@ -18,7 +18,6 @@ package io.gravitee.gateway.http.vertx;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.client.AsyncResponseHandler;
@@ -47,12 +46,6 @@ public class VertxHttpClient extends AbstractHttpClient {
 
     @Resource
     private Vertx vertx;
-
-/*
-    public VertxHttpClient(Api api) {
-        super(api);
-    }
-    */
 
     @Override
     public void invoke(Request serverRequest, AsyncResponseHandler clientResponseHandler) {

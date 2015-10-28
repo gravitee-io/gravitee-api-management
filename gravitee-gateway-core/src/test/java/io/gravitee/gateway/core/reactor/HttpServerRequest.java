@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http;
+package io.gravitee.gateway.core.reactor;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
@@ -22,7 +22,6 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.BodyPart;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -50,12 +49,6 @@ public class HttpServerRequest implements Request {
 	private boolean secure;
 
 	private HttpVersion version;
-
-	private long contentLength;
-
-	private InputStream inputStream;
-
-	private String contentType;
 
 	private Map<String, String> queryParameters = new LinkedHashMap<>();
 
@@ -100,16 +93,19 @@ public class HttpServerRequest implements Request {
 
 	@Override
 	public Request bodyHandler(Handler<BodyPart> handler) {
-		return null;
+		return this;
 	}
+
+	private Handler<Void> endHandler;
 
 	@Override
-	public Request endHandler(Handler<Void> handler) {
-		return null;
+	public Request endHandler(Handler<Void> endHandler) {
+		this.endHandler = endHandler;
+		return this;
 	}
 
-	public void setInputStream(InputStream inputStream) {
-		this.inputStream = inputStream;
+	public Handler<Void> endHandler() {
+		return endHandler;
 	}
 
 	public void setMethod(HttpMethod method) {
