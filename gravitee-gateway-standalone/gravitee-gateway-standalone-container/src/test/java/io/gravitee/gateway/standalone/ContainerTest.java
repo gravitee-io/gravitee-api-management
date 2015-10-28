@@ -92,15 +92,16 @@ public class ContainerTest {
     }
 
     @Test
-    @Ignore
     public void call_get_not_started_api() throws Exception {
         ApiManager apiManager = node.getApplicationContext().getBean(ApiManager.class);
         Api api = getApiDefinition();
+        api.setName("not_started_api");
+        api.getProxy().setContextPath("/not_started_api");
         api.setEnabled(false);
 
         apiManager.deploy(api);
 
-        Request request = Request.Get("http://localhost:8082/test");
+        Request request = Request.Get("http://localhost:8082/not_started_api");
         Response response = request.execute();
         HttpResponse returnResponse = response.returnResponse();
 
