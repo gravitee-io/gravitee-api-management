@@ -48,7 +48,7 @@
     </dependencies>
 
     <properties>
-        <gravitee-common.version>0.1.0-SNAPSHOT</gravitee-common.version>
+        <gravitee-common.version>0.2.0</gravitee-common.version>
         <jackson.version>2.5.3</jackson.version>
     </properties>
 </project>
