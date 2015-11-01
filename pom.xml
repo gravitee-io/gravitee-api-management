@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee</groupId>
 		<artifactId>gravitee-parent</artifactId>
-		<version>2</version>
+		<version>3</version>
 	</parent>
 
 	<groupId>io.gravitee.repository</groupId>
@@ -33,7 +33,7 @@
 
 	<properties>
 		<jedis.version>2.7.3</jedis.version>
-		<gravitee-repository.version>0.1.0</gravitee-repository.version>
+		<gravitee-repository.version>0.2.0</gravitee-repository.version>
 		<spring-data-redis.version>1.6.0.RELEASE</spring-data-redis.version>
 	</properties>
 
