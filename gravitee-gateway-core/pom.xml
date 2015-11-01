@@ -32,9 +32,6 @@
     <name>Gravitee IO - Gateway - Core</name>
 
     <properties>
-        <gravitee-common.version>0.1.0</gravitee-common.version>
-        <gravitee-plugin-core.version>0.1.0</gravitee-plugin-core.version>
-        <gravitee-repository.version>0.1.0</gravitee-repository.version>
         <jetty.version>9.3.5.v20151012</jetty.version>
     </properties>
 

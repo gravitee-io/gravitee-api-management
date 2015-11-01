@@ -73,7 +73,9 @@
 
     <properties>
         <jackson.version>2.5.3</jackson.version>
-        <gravitee-definition.version>0.1.0</gravitee-definition.version>
-        <gravitee-common.version>0.1.0</gravitee-common.version>
+        <gravitee-definition.version>0.2.0</gravitee-definition.version>
+        <gravitee-common.version>0.2.0</gravitee-common.version>
+        <gravitee-repository.version>0.2.0</gravitee-repository.version>
+        <gravitee-plugin-core.version>0.2.0</gravitee-plugin-core.version>
     </properties>
 </project>
