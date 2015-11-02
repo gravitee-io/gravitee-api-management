@@ -15,39 +15,64 @@
     limitations under the License.
 
 -->
-<section class="jumbotron">
-  <h1>Gravitee APIs Management</h1>
-  <table class="gravitee-table">
-    <tr>
-      <th>Name</th>
-      <th>Public URI</th>
-      <th>Target URI</th>
-      <th>State</th>
-      <th></th>
-      <th></th>
-    </tr>
-    <tr ng-repeat="api in apiCtrl.apis">
-      <td><a ng-bind="api.name" ng-href="#/api/{{api.name}}"></a></td>
-      <td ng-bind="api.public"></td>
-      <td><a ng-bind="api.target" ng-href="{{api.target}}" target="_blank"></a></td>
-      <td ng-bind="api.state"></td>
-      <td ng-switch="api.state">
-        <div ng-switch-when="STARTED">
-          <md-button class="md-raised md-warn" ng-click="apiCtrl.stop(api.name)">Stop</md-button>
-        </div>
-        <div ng-switch-default>
-          <md-button class="md-raised md-success" ng-click="apiCtrl.start(api.name)">Start</md-button>
-        </div>
-      </td>
-      <td>
-        <div>
-          <md-button class="md-raised md-warn" ng-click="apiCtrl.delete(api.name)">Delete</md-button>
-        </div>
-      </td>
-    </tr>
-  </table>
+<section>
+  <section class="content-header">
+    <h1>
+       Gravitee
+       <small>APIs Management</small>
+    </h1>
+	</section>  
+  <md-card>
+    <md-card-content>
+      <table id="api-table" class="gravitee-table table table-bordered table-hover">
+        <thead>
+				  <tr>
+				    <th>Name</th>
+				    <th>Public URI</th>
+				    <th>Target URI</th>
+				    <th>State</th>
+				    <th></th>
+				    <th></th>
+				  </tr>
+        </thead>
+        <tbody>
+				  <tr ng-repeat="api in apiCtrl.apis">
+				    <td><a ng-bind="api.name" ng-href="#/api/{{api.name}}"></a></td>
+				    <td ng-bind="api.public"></td>
+				    <td><a ng-bind="api.target" ng-href="{{api.target}}" target="_blank"></a></td>
+				    <td ng-bind="api.state"></td>
+				    <td ng-switch="api.state">
+        			<div ng-switch-when="STARTED">
+          			<md-button class="md-raised md-warn" ng-click="apiCtrl.stop(api.name)">Stop</md-button>
+        			</div>
+        			<div ng-switch-default>
+          			<md-button class="md-raised md-success" ng-click="apiCtrl.start(api.name)">Start</md-button>
+        			</div>
+      			</td>
+      			<td>
+        			<div>
+          			<md-button class="md-raised md-warn" ng-click="apiCtrl.delete(api.name)">Delete</md-button>
+        			</div>
+      			</td>
+					</tr>
+        </tbody>
+		</table>
+    </md-card-content>
+  </md-card>  
 
-  <md-button ng-click="apiCtrl.showAddApiModal()" class="md-primary">
-    Add a new API
+  <md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="apiCtrl.showAddApiModal()">
+    <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
 </section>
+
+<script>
+  $(function () {
+    $("#api-table").DataTable({
+			"paging": true,
+      "lengthChange": false,
+      "searching": false,
+      "ordering": true,
+      "info": true
+    });
+  });
+</script>

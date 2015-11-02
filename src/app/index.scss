@@ -30,11 +30,23 @@ html {
   }
 }
 
-md-toolbar.md-default-theme {
-  background-color: black;
+md-content.md-default-theme {
+  background-color: #eee;
 }
+
 md-content.md-default-theme {
   width: 100%;
+}
+
+.user-avatar {
+  border-radius: 99%;
+}	
+
+.md-toolbar-tools-bottom {
+  font-size: small;
+  & :last-child {
+    opacity: 0.8;
+  }
 }
 
 section.jumbotron {

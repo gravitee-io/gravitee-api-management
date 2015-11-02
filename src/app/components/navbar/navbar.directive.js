@@ -28,9 +28,14 @@ class NavbarDirective {
 }
 
 class NavbarController {
-  constructor ($rootScope) {
+  constructor ($rootScope, $mdSidenav) {
     'ngInject';
     this.$rootScope = $rootScope;
+    this.$mdSidenav = $mdSidenav;
+  }
+
+  toggleSidenav(menuId) {
+    this.$mdSidenav(menuId).toggle();
   }
 
   logout() {

@@ -15,13 +15,17 @@
     limitations under the License.
 
 -->
-<section class="jumbotron">
-  <h1>Gravitee Administration Console</h1>
-  <p class="lead">
-    <img class="gravitee-logo" src="assets/images/logo_gravitee.png" alt="Gravitee"><br>
-    Because i'm API!
-  </p>
-  <md-button ng-if="!authenticated" class="md-raised animated infinite" ng-class="mainCtrl.classAnimation" ng-href="#login">
-    Login
-  </md-button>
+<section>
+	 <md-card>
+     <md-card-content style="text-align:center;">
+		   <h3>Gravitee Administration Console</h3>
+			 <md-divider></md-divider>
+  		 <p class="lead inset">
+    	   <img class="gravitee-logo" src="assets/images/logo_gravitee.png" alt="Gravitee"><br>
+  	   </p>
+       <md-button ng-if="!authenticated" class="md-raised animated infinite" ng-class="mainCtrl.classAnimation" ng-href="#login">
+         Login
+        </md-button>
+		 </md-card-content>
+   </md-card>
 </section>

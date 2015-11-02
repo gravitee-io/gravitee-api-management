@@ -15,18 +15,13 @@
     limitations under the License.
 
 -->
-<md-toolbar layout="row" layout-align="center center">
-
-  <md-button href="#/">
-    <img class="gravitee-navbar-logo" src="assets/images/logo_gravitee.png" alt="Gravitee">Gravitee Administration Console
+<md-toolbar layout="row" layout-align="start center" class="md-whiteframe-z2">
+  <md-button ng-click="navbarCtrl.toggleSidenav('left')" hide-gt-md aria-label="Menu">
+    <ng-md-icon icon="menu"></ng-md-icon>
   </md-button>
-
-  <section ng-if="authenticated" flex layout="row" layout-align="left center">
-    <md-button href="#/apis" class="md-raised">APIs Management</md-button>
-    <md-button href="#/users" class="md-raised">Users Management</md-button>
-		<md-button href="#/documentation" class="md-raised">Documentation</md-button>
-  </section>
-
-  <md-button ng-if="authenticated" type="button" ng-click="navbarCtrl.logout()">Log out</md-button>
-
+  <md-button href="#/">
+    Gravitee Administration Console
+  </md-button>
+	<span flex></span>
+  <md-button ng-if="authenticated" type="button" ng-click="navbarCtrl.logout()"><ng-md-icon icon="logout"></ng-md-icon> Log out</md-button>
 </md-toolbar>

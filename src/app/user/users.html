@@ -15,24 +15,48 @@
     limitations under the License.
 
 -->
-<section class="jumbotron">
-  <h1>Gravitee Users Management</h1>
+<section>
+  <section class="content-header">
+    <h1>
+       Gravitee
+       <small>Teams Management</small>
+    </h1>
+	</section>  
 
+  <md-card>
+    <md-card-content>
+      <table id="user-table" class="gravitee-table table table-bordered table-hover">
+        <thead>
+					<tr>
+						<th>Name</th>
+						<th>Description</th>
+						<th>Email</th>
+					</tr>
+				</thead>
+        <tbody>
+					<tr ng-repeat="team in userCtrl.teams">
+						<td><a ng-bind="team.name" ng-click="userCtrl.showSaveTeamModal(team)" href></a></td>
+						<td ng-bind="team.description"></td>
+						<td ng-bind="team.email"></td>
+					</tr>
+				</tbody>
+  		</table>
+		</md-card-content>
+	</md-card>
 
-  <table class="gravitee-table">
-    <tr>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Email</th>
-    </tr>
-    <tr ng-repeat="team in userCtrl.teams">
-      <td><a ng-bind="team.name" ng-click="userCtrl.showSaveTeamModal(team)" href></a></td>
-      <td ng-bind="team.description"></td>
-      <td ng-bind="team.email"></td>
-    </tr>
-  </table>
-
-  <md-button ng-click="userCtrl.showSaveTeamModal()" class="md-primary">
-    Add a new team
+  <md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="userCtrl.showSaveTeamModal()">
+    <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
 </section>
+
+<script>
+  $(function () {
+    $("#user-table").DataTable({
+			"paging": true,
+      "lengthChange": false,
+      "searching": false,
+      "ordering": true,
+      "info": true
+    });
+  });
+</script>
