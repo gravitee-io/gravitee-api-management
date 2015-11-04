@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model;
+package io.gravitee.repository.analytics.model.query;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum QueryType {
+public interface DateRangeQuery {
 
-    HITS,
-    HITS_BY_STATUS,
-    HITS_BY_LATENCY
+    long start();
+
+    long end();
 }

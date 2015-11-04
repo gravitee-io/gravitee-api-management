@@ -15,17 +15,17 @@
  */
 package io.gravitee.repository.analytics.query;
 
-import io.gravitee.repository.analytics.model.*;
+import io.gravitee.repository.analytics.model.query.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class QueryBuilder {
 
-    private Query query;
+    private DefaultQuery query;
 
     private QueryBuilder() {
-        query = new Query();
+        query = new DefaultQuery();
     }
 
     public static QueryBuilder Query() {
@@ -52,7 +52,7 @@ public class QueryBuilder {
         return this;
     }
 
-    public Query build() {
+    public DefaultQuery build() {
         return query;
     }
 }

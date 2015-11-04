@@ -15,8 +15,8 @@
  */
 package io.gravitee.repository.analytics.query;
 
-import io.gravitee.repository.analytics.model.FilterQuery;
-import io.gravitee.repository.analytics.model.FilterQueryType;
+import io.gravitee.repository.analytics.model.query.FilterQuery;
+import io.gravitee.repository.analytics.model.query.FilterQueryType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

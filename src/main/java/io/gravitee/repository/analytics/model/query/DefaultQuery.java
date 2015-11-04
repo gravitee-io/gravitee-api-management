@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model;
+package io.gravitee.repository.analytics.model.query;
 
 import io.gravitee.repository.analytics.query.IntervalQueryBuilder;
 import io.gravitee.repository.analytics.query.PeriodQueryBuilder;
@@ -21,7 +21,7 @@ import io.gravitee.repository.analytics.query.PeriodQueryBuilder;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class Query {
+public class DefaultQuery implements Query {
 
     // By default, only the last day
     private DateRangeQuery dateRangeQuery = PeriodQueryBuilder.lastDay();
