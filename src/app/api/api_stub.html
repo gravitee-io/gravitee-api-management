@@ -1,0 +1,143 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<section>
+  <section class="content-header">
+    <h1>
+       Gravitee
+       <small>API Stub Management (Stub version)</small>
+    </h1>
+	</section>
+
+	<md-card>
+		<md-card-content>
+			<md-tabs md-dynamic-height md-border-bottom>
+		    <md-tab label="summary">
+		      <md-content class="md-padding">
+		        <h1 class="md-display-1">API Stub</h1>
+						<md-divider></md-divider>
+		        <p class="inset">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla venenatis ante augue. Phasellus volutpat neque ac dui mattis vulputate. Etiam consequat aliquam cursus. In sodales pretium ultrices. Maecenas lectus est, sollicitudin consectetur felis nec, feugiat ultricies mi.</p>
+						<md-card>
+							<md-card-content>
+								<h5>Reports</h5>
+								<md-divider></md-divider>
+								<div class="chart">
+                  <!-- Sales Chart Canvas -->
+                  <canvas id="apiReportCanvas" style="height: 180px;"></canvas>
+                </div><!-- /.chart-responsive -->
+							</md-card-content>
+						</md-card>
+		      </md-content>
+		    </md-tab>
+		    <md-tab label="policies">
+		      <md-content class="md-padding">
+		        <h1 class="md-display-1">Policies</h1>
+		        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla venenatis ante augue. Phasellus volutpat neque ac dui mattis vulputate. Etiam consequat aliquam cursus. In sodales pretium ultrices. Maecenas lectus est, sollicitudin consectetur felis nec, feugiat ultricies mi. Aliquam erat volutpat. Nam placerat, tortor in ultrices porttitor, orci enim rutrum enim, vel tempor sapien arcu a tellus. Vivamus convallis sodales ante varius gravida. Curabitur a purus vel augue ultrices ultricies id a nisl. Nullam malesuada consequat diam, a facilisis tortor volutpat et. Sed urna dolor, aliquet vitae posuere vulputate, euismod ac lorem. Sed felis risus, pulvinar at interdum quis, vehicula sed odio. Phasellus in enim venenatis, iaculis tortor eu, bibendum ante. Donec ac tellus dictum neque volutpat blandit. Praesent efficitur faucibus risus, ac auctor purus porttitor vitae. Phasellus ornare dui nec orci posuere, nec luctus mauris semper.</p>
+		        <p>Morbi viverra, ante vel aliquet tincidunt, leo dolor pharetra quam, at semper massa orci nec magna. Donec posuere nec sapien sed laoreet. Etiam cursus nunc in condimentum facilisis. Etiam in tempor tortor. Vivamus faucibus egestas enim, at convallis diam pulvinar vel. Cras ac orci eget nisi maximus cursus. Nunc urna libero, viverra sit amet nisl at, hendrerit tempor turpis. Maecenas facilisis convallis mi vel tempor. Nullam vitae nunc leo. Cras sed nisl consectetur, rhoncus sapien sit amet, tempus sapien.</p>
+		        <p>Integer turpis erat, porttitor vitae mi faucibus, laoreet interdum tellus. Curabitur posuere molestie dictum. Morbi eget congue risus, quis rhoncus quam. Suspendisse vitae hendrerit erat, at posuere mi. Cras eu fermentum nunc. Sed id ante eu orci commodo volutpat non ac est. Praesent ligula diam, congue eu enim scelerisque, finibus commodo lectus.</p>
+		      </md-content>
+		    </md-tab>
+		    <md-tab label="documentation">
+		      <md-content class="md-padding">
+		        <h1 class="md-display-1">Documentation</h1>
+		        <p>Integer turpis erat, porttitor vitae mi faucibus, laoreet interdum tellus. Curabitur posuere molestie dictum. Morbi eget congue risus, quis rhoncus quam. Suspendisse vitae hendrerit erat, at posuere mi. Cras eu fermentum nunc. Sed id ante eu orci commodo volutpat non ac est. Praesent ligula diam, congue eu enim scelerisque, finibus commodo lectus.</p>
+		      </md-content>
+		    </md-tab>
+				<md-tab label="settings">
+		      <md-content class="md-padding">
+		        <h1 class="md-display-1">Settings</h1>
+		       	<md-card>
+							<md-card-content>
+								    <form name="formApi" class="gravitee-api-container" ng-submit="apiCtrl.update(apiCtrl.api)" novalidate>
+
+        <div layout="" layout-sm="column">
+            <md-input-container class="flex md-icon-float">
+                <label>Name</label>
+                <input ng-model="apiCtrl.api.name" type="text" ng-required="true" ng-disabled="true">
+            </md-input-container>
+
+            <md-input-container class="flex md-icon-float">
+                <label>Public URI</label>
+                <input ng-model="apiCtrl.api.public" type="text" ng-required="true">
+            </md-input-container>
+        </div>
+        <div layout="" layout-sm="column">
+            <md-input-container class="flex md-icon-float">
+                <label>Description</label>
+                <input ng-model="apiCtrl.api.description" type="text" ng-required="true">
+            </md-input-container>
+
+            <md-input-container class="flex md-icon-float">
+                <label>Target URI</label>
+                <input ng-model="apiCtrl.api.target" type="text" ng-required="true">
+            </md-input-container>
+        </div>
+        <div layout="" layout-sm="column">
+            <md-input-container class="flex md-icon-float">
+                <label>Version</label>
+                <input ng-model="apiCtrl.api.version" type="text" ng-required="true">
+            </md-input-container>
+
+            <md-input-container class="flex md-icon-float">
+                <label>Private</label>
+                <input ng-model="apiCtrl.api.private" type="checkbox">
+            </md-input-container>
+        </div>
+
+        <div class="md-actions gravitee-api-save-button" layout="row">
+            <md-button type="submit" class="md-primary" ng-disabled="formApi.$invalid || formApi.$pristine">
+                Save
+            </md-button>
+        </div>
+    </form>
+							</md-card-content>
+						</md-card>
+		      </md-content>
+		    </md-tab>
+		  </md-tabs>
+		</md-card-content>
+	</md-card>
+</section>
+
+<script>
+	var randomScalingFactor = function(){ return Math.round(Math.random()*100)};
+	var barChartData = {
+		labels : ["January","February","March","April","May","June","July"],
+		datasets : [
+			{
+				fillColor : "rgba(220,220,220,0.5)",
+				strokeColor : "rgba(220,220,220,0.8)",
+				highlightFill: "rgba(220,220,220,0.75)",
+				highlightStroke: "rgba(220,220,220,1)",
+				data : [randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor()]
+			},
+			{
+				fillColor : "rgba(151,187,205,0.5)",
+				strokeColor : "rgba(151,187,205,0.8)",
+				highlightFill : "rgba(151,187,205,0.75)",
+				highlightStroke : "rgba(151,187,205,1)",
+				data : [randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor()]
+			}
+		]
+	}
+	window.onload = function(){
+		var ctx = document.getElementById("apiReportCanvas").getContext("2d");
+		window.myBar = new Chart(ctx).Bar(barChartData, {
+			responsive : true
+		});
+	}
+	</script>

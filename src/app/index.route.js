@@ -34,6 +34,18 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiController',
       controllerAs: 'apiCtrl'
     })
+		.state('apisStub', {
+      url: '/apis_stub',
+      templateUrl: 'app/api/apis_stub.html',
+      controller: 'ApiController',
+      controllerAs: 'apiCtrl'
+    })
+		.state('apiStub', {
+      url: '/apis/:apiName',
+      templateUrl: 'app/api/api_stub.html',
+      controller: 'ApiController',
+      controllerAs: 'apiCtrl'
+    })
     .state('api', {
       url: '/api/:apiName',
       templateUrl: 'app/api/api.html',
@@ -42,6 +54,12 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
     .state('users', {
       url: '/users',
+      templateUrl: 'app/user/users_stub.html',
+      controller: 'UserController',
+      controllerAs: 'userCtrl'
+    })
+    .state('teams', {
+      url: '/teams',
       templateUrl: 'app/user/users.html',
       controller: 'UserController',
       controllerAs: 'userCtrl'

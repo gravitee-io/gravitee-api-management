@@ -36,6 +36,22 @@
 				  </tr>
         </thead>
         <tbody>
+					<tr>
+				    <td><a ng-href="#/apis/stub">API Stub name</a></td>
+				    <td>is Public</td>
+				    <td>http://api/api_stub/v1</td>
+				    <td>STARTED</td>
+				    <td>
+        			<div>
+          			<md-button class="md-raised md-warn" ng-click="apiCtrl.stop(api.name)">Stop</md-button>
+        			</div>
+      			</td>
+      			<td>
+        			<div>
+								<ng-md-icon class="md-raised md-warn" ng-click="apiCtrl.delete(api.name)" icon="delete" size="32" style="fill: red;"></ng-md-icon>
+        			</div>
+      			</td>
+					</tr>
 				  <tr ng-repeat="api in apiCtrl.apis">
 				    <td><a ng-bind="api.name" ng-href="#/api/{{api.name}}"></a></td>
 				    <td ng-bind="api.public"></td>
