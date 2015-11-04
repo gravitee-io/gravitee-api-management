@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository;
+package io.gravitee.repository.analytics.api;
+
+import io.gravitee.repository.analytics.model.Query;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum Scope {
+public interface AnalyticsRepository {
 
-    MANAGEMENT("management"),
-    RATE_LIMIT("ratelimit"),
-    ANALYTICS("analytics");
-
-    String name;
-
-    Scope(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return this.name;
-    }
+    Object query(Query query) throws Exception;
 }

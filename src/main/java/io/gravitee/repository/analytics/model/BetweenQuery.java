@@ -13,24 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository;
+package io.gravitee.repository.analytics.model;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum Scope {
+public class BetweenQuery implements DateRangeQuery {
 
-    MANAGEMENT("management"),
-    RATE_LIMIT("ratelimit"),
-    ANALYTICS("analytics");
+    private long start;
+    private long end;
 
-    String name;
-
-    Scope(String name) {
-        this.name = name;
+    public void setEnd(long end) {
+        this.end = end;
     }
 
-    public String getName() {
-        return this.name;
+    public void setStart(long start) {
+        this.start = start;
+    }
+
+    @Override
+    public long start() {
+        return start;
+    }
+
+    @Override
+    public long end() {
+        return end;
     }
 }
