@@ -13,14 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model;
+package io.gravitee.repository.analytics.model.query;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface DateRangeQuery {
+public class BetweenQuery implements DateRangeQuery {
 
-    long start();
+    private long start;
+    private long end;
 
-    long end();
+    public void setEnd(long end) {
+        this.end = end;
+    }
+
+    public void setStart(long start) {
+        this.start = start;
+    }
+
+    @Override
+    public long start() {
+        return start;
+    }
+
+    @Override
+    public long end() {
+        return end;
+    }
 }

@@ -15,9 +15,9 @@
  */
 package io.gravitee.repository.analytics.query;
 
-import io.gravitee.repository.analytics.model.BetweenQuery;
-import io.gravitee.repository.analytics.model.DateRangeQuery;
-import io.gravitee.repository.analytics.model.SinceQuery;
+import io.gravitee.repository.analytics.model.query.BetweenQuery;
+import io.gravitee.repository.analytics.model.query.DateRangeQuery;
+import io.gravitee.repository.analytics.model.query.SinceQuery;
 
 import java.time.temporal.ChronoUnit;
 

@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.analytics.query;
 
-import io.gravitee.repository.analytics.model.IntervalQuery;
+import io.gravitee.repository.analytics.model.query.IntervalQuery;
 
 import java.time.temporal.ChronoUnit;
 
