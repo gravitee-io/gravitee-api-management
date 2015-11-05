@@ -25,5 +25,5 @@ import java.util.concurrent.TimeUnit;
  */
 public interface RateLimitRepository<T extends Serializable> {
 
-    RateLimitResult acquire(T key, int pound, long limit, long periodTime, TimeUnit periodTimeUnit);
+    RateLimitResult acquire(T key, int weigth, long limit, long periodTime, TimeUnit periodTimeUnit);
 }
