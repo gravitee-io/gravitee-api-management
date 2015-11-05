@@ -37,7 +37,8 @@ import DocumentationDirective from './documentation/documentation.directive';
 import DocumentationController from './documentation/documentation.controller';
 import DocumentationService from './documentation/documentation.service';
 
-angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi', 'ngMdIcons'])
+angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
+	'ngMdIcons', 'chart.js'])
   .constant('malarkey', malarkey)
   .constant('moment', moment)
   .constant('baseURL', 'http://localhost:8083/management/')

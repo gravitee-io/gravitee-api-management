@@ -1,6 +1,6 @@
 {
   "name": "gravitee-management-webui",
-  "version": "0.2.0",
+  "version": "0.3.0-SNAPSHOT",
   "description": "Gravitee IO - API Management - Admin - Web Console",
   "dependencies": {
     "angular-ui-router": "~0.2.15",
@@ -13,7 +13,8 @@
     "angular-markdown-directive": "~0.3.1",
     "angular-swagger-ui": "~0.2.3",
     "jquery": "~2.1.4",
-    "bootstrap-sass": "3.3.5"
+    "bootstrap-sass": "3.3.5",
+    "angular-chart.js": "~0.8.5"
   },
   "devDependencies": {
     "angular-mocks": "~1.4.0"

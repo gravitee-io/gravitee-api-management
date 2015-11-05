@@ -36,9 +36,12 @@
 								<h5>Reports</h5>
 								<md-divider></md-divider>
 								<div class="chart">
-                  <!-- Sales Chart Canvas -->
-                  <canvas id="apiReportCanvas" style="height: 180px;"></canvas>
-                </div><!-- /.chart-responsive -->
+									<!-- Sales Chart Canvas -->
+									<canvas id="line" class="chart chart-line" chart-data="data"
+											chart-labels="labels" chart-legend="true" chart-series="series"
+											chart-click="onClick" >
+									</canvas>
+								</div><!-- /.chart-responsive -->
 							</md-card-content>
 						</md-card>
 		      </md-content>
@@ -112,32 +115,3 @@
 		</md-card-content>
 	</md-card>
 </section>
-
-<script>
-	var randomScalingFactor = function(){ return Math.round(Math.random()*100)};
-	var barChartData = {
-		labels : ["January","February","March","April","May","June","July"],
-		datasets : [
-			{
-				fillColor : "rgba(220,220,220,0.5)",
-				strokeColor : "rgba(220,220,220,0.8)",
-				highlightFill: "rgba(220,220,220,0.75)",
-				highlightStroke: "rgba(220,220,220,1)",
-				data : [randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor()]
-			},
-			{
-				fillColor : "rgba(151,187,205,0.5)",
-				strokeColor : "rgba(151,187,205,0.8)",
-				highlightFill : "rgba(151,187,205,0.75)",
-				highlightStroke : "rgba(151,187,205,1)",
-				data : [randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor()]
-			}
-		]
-	}
-	window.onload = function(){
-		var ctx = document.getElementById("apiReportCanvas").getContext("2d");
-		window.myBar = new Chart(ctx).Bar(barChartData, {
-			responsive : true
-		});
-	}
-	</script>
