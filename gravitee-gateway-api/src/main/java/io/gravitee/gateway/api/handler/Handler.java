@@ -20,6 +20,7 @@ package io.gravitee.gateway.api.handler;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@FunctionalInterface
 public interface Handler<T> {
 
     void handle(T result);
