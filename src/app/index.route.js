@@ -69,6 +69,12 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/documentation/documentation.html',
       controller: 'DocumentationController',
       controllerAs: 'documentationCtrl'
+    })
+    .state('profile', {
+      url: '/profile',
+      templateUrl: 'app/profile/profile_stub.html',
+      controller: 'ProfileController',
+      controllerAs: 'profileCtrl'
     });
 
   $urlRouterProvider.otherwise('/');
