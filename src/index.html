@@ -51,11 +51,11 @@
 		<md-toolbar class="md-tall md-hue-2 md-whiteframe-z2">
 		  <span flex></span>
           <div layout="column" class="md-toolbar-tools-bottom inset">
-			<div ng-if="authenticated" layout="row">
+			<div ng-if="!authenticated" layout="row">
 			  <img src="../assets/images/GRAVITEE_LOGOclair-04.png" width="64px" height="64px" />
 			  <h3>Gravitee.io</h3>
 			  </div>
-				 <div ng-if="!authenticated">
+				 <div ng-if="authenticated">
 		           <ng-md-icon icon="account_circle" size="64" style="fill: white;"></ng-md-icon>
 		        	<span></span>
 		            <a href="#/profile" style="color:white">
