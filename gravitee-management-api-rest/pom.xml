@@ -28,28 +28,9 @@
 
 	<artifactId>gravitee-management-api-rest</artifactId>
 	<packaging>jar</packaging>
-
 	<name>Gravitee IO - Management - Rest API</name>
 
-	<properties>
-		<jackson.version>2.5.3</jackson.version>
-		<jersey.version>2.19</jersey.version>
-	</properties>
-
 	<dependencies>
-		<!-- Gravitee.io dependencies -->
-		<dependency>
-			<groupId>io.gravitee.definition</groupId>
-			<artifactId>gravitee-definition-jackson</artifactId>
-			<version>${gravitee-definition.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.gravitee.common</groupId>
-			<artifactId>gravitee-common</artifactId>
-			<version>${gravitee-common.version}</version>
-		</dependency>
-
 		<!-- Gravitee Management dependencies-->
 		<dependency>
 			<groupId>io.gravitee.management</groupId>
@@ -65,6 +46,19 @@
 			<groupId>io.gravitee.management</groupId>
 			<artifactId>gravitee-management-api-service</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+
+		<!-- Gravitee dependencies -->
+		<dependency>
+			<groupId>io.gravitee.definition</groupId>
+			<artifactId>gravitee-definition-jackson</artifactId>
+			<version>${gravitee-definition.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.common</groupId>
+			<artifactId>gravitee-common</artifactId>
+			<version>${gravitee-common.version}</version>
 		</dependency>
 
 		<!-- Spring dependencies -->

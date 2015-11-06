@@ -27,14 +27,7 @@
 	</parent>
 
 	<artifactId>gravitee-management-api-security</artifactId>
-	<packaging>jar</packaging>
-
 	<name>Gravitee IO - Management - Security</name>
-
-	<properties>
-		<spring.security.version>4.0.2.RELEASE</spring.security.version>
-		<spring.security.oauth2.version>2.0.7.RELEASE</spring.security.oauth2.version>
-	</properties>
 
 	<dependencies>
 		<!-- Gravitee Management dependencies -->
@@ -74,7 +67,7 @@
 	    <dependency>
 	        <groupId>org.apache.directory.server</groupId>
 	        <artifactId>apacheds-server-jndi</artifactId>
-	        <version>1.5.5</version>
+	        <version>${apacheds-server-jndi.version}</version>
 	    </dependency>
 
 		<!-- Spring Security OAuth 2 dependencies -->

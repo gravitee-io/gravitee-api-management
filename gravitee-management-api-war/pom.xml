@@ -32,6 +32,13 @@
 	<name>Gravitee IO - Management - WAR</name>
 
 	<dependencies>
+		<!-- Gravitee Management dependencies -->
+		<dependency>
+			<groupId>io.gravitee.management</groupId>
+			<artifactId>gravitee-management-api-rest</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!-- Gravitee dependencies -->
 		<dependency>
 			<groupId>io.gravitee.common</groupId>
@@ -39,19 +46,14 @@
 			<version>${gravitee-common.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.gravitee.management</groupId>
-			<artifactId>gravitee-management-api-rest</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository</artifactId>
-			<version>${project.version}</version>
+			<version>${gravitee-repository.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository-mongodb</artifactId>
-			<version>${project.version}</version>
+			<version>${gravitee-repository-mongodb.version}</version>
 			<exclusions>
 		        <exclusion>
         	    	<groupId>org.springframework</groupId>
@@ -66,7 +68,7 @@
 		<dependency>
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository-jpa</artifactId>
-			<version>${project.version}</version>
+			<version>${gravitee-repository-jpa.version}</version>
 		</dependency>
 	</dependencies>
 	

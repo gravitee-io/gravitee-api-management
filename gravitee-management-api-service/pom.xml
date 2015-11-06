@@ -32,13 +32,15 @@
 	<name>Gravitee IO - Management - Service</name>
 	<description>Gravitee IO Manager Service</description>
 
-	<properties>
-		<gravitee-plugin-core.version>0.2.0</gravitee-plugin-core.version>
-		<gravitee-repository.version>0.2.0</gravitee-repository.version>
-	</properties>
-
 	<dependencies>
-		<!-- Gravitee.io dependencies -->
+		<!-- Gravitee Management dependencies -->
+		<dependency>
+			<groupId>io.gravitee.management</groupId>
+			<artifactId>gravitee-management-api-model</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- Gravitee Dependencies -->
 		<dependency>
 			<groupId>io.gravitee.definition</groupId>
 			<artifactId>gravitee-definition-jackson</artifactId>
@@ -55,13 +57,6 @@
 			<groupId>io.gravitee.plugin</groupId>
 			<artifactId>gravitee-plugin-core</artifactId>
 			<version>${gravitee-plugin-core.version}</version>
-		</dependency>
-
-		<!-- GraviteeIO Management dependencies-->
-		<dependency>
-			<groupId>io.gravitee.management</groupId>
-			<artifactId>gravitee-management-api-model</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 
 		<!-- Spring dependencies -->

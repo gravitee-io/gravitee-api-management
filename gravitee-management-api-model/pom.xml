@@ -32,13 +32,8 @@
 	<name>Gravitee IO - Management - Model</name>
 	<description>Gravitee IO Manager Model</description>
 
-	<properties>
-		<jackson.version>2.5.3</jackson.version>
-		<validation-api.version>1.1.0.Final</validation-api.version>
-	</properties>
-
 	<dependencies>
-		<!-- Gravitee.io dependencies -->
+		<!-- Gravitee dependencies -->
 		<dependency>
 			<groupId>io.gravitee.definition</groupId>
 			<artifactId>gravitee-definition-model</artifactId>
