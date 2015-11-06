@@ -71,4 +71,8 @@ public class IntervalBuilder {
     public static Interval interval(ChronoUnit unit, int interval) {
         return () -> unit.getDuration().toMillis() * interval;
     }
+
+    public static Interval interval(long intervalInMs) {
+        return () -> intervalInMs;
+    }
 }
