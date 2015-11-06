@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model.response;
+package io.gravitee.repository.analytics.query.response.histogram;
+
+import io.gravitee.repository.analytics.query.response.Response;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class HistogramAnalytics {
+public class HistogramResponse implements Response {
 
-    private HistogramBucket bucket;
+    private final List<Bucket> hits = new ArrayList<>();
 
-
+    public List<Bucket> hits() {
+        return hits;
+    }
 }

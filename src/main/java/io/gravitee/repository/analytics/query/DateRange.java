@@ -18,8 +18,9 @@ package io.gravitee.repository.analytics.query;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@FunctionalInterface
-public interface QueryBuilder {
+public interface DateRange {
 
-    Query<?> build();
+    long start();
+
+    long end();
 }

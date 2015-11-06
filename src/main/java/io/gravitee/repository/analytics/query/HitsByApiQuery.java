@@ -13,13 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model.response;
+package io.gravitee.repository.analytics.query;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class HistogramBucket {
+public class HitsByApiQuery extends TimeRangedQuery {
 
-    private String key;
-    private long count;
+    private String api;
+    private Type type = Type.HITS;
+
+    void api(String api) {
+        this.api = api;
+    }
+
+    public String api() {
+        return this.api;
+    }
+
+    void type(Type type) {
+        this.type = type;
+    }
+
+    public Type type() {
+        return this.type;
+    }
+
+    public enum Type {
+        HITS,
+        HITS_BY_LATENCY,
+        HITS_BY_APIKEY,
+        HITS_BY_STATUS
+    }
 }

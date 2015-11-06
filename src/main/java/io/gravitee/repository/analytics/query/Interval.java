@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model.query;
+package io.gravitee.repository.analytics.query;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface IntervalQuery {
+public interface Interval {
 
     long toMillis();
 }

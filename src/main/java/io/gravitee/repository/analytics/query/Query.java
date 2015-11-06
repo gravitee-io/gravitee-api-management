@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model.query;
+package io.gravitee.repository.analytics.query;
+
+import io.gravitee.repository.analytics.query.response.Response;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface DateRangeQuery {
+public interface Query<T extends Response> {
 
-    long start();
-
-    long end();
+    Class<T> responseType();
 }

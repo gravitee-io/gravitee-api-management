@@ -15,12 +15,13 @@
  */
 package io.gravitee.repository.analytics.api;
 
-import io.gravitee.repository.analytics.model.query.Query;
+import io.gravitee.repository.analytics.query.Query;
+import io.gravitee.repository.analytics.query.response.Response;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface AnalyticsRepository {
 
-    Object query(Query query) throws Exception;
+   <T extends Response> T query(Query<T> query) throws Exception;
 }

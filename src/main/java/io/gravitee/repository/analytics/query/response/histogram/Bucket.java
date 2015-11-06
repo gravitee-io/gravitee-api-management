@@ -13,31 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model.query;
+package io.gravitee.repository.analytics.query.response.histogram;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class BetweenQuery implements DateRangeQuery {
+public class Bucket {
 
-    private long start;
-    private long end;
+    private final String name;
 
-    public void setEnd(long end) {
-        this.end = end;
+    private List<Bucket> buckets;
+    private Map<String, List<Data>> data;
+
+    public Bucket(String name) {
+        this.name = name;
     }
 
-    public void setStart(long start) {
-        this.start = start;
+    public String name() {
+        return name;
     }
 
-    @Override
-    public long start() {
-        return start;
+    public Map<String, List<Data>> data() {
+        if (data == null) {
+            data = new HashMap<>();
+        }
+        return data;
     }
 
-    @Override
-    public long end() {
-        return end;
+    public List<Bucket> buckets() {
+        if (buckets == null) {
+            buckets = new ArrayList<>();
+        }
+        return buckets;
     }
 }

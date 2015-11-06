@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model.query;
+package io.gravitee.repository.analytics;
+
+import io.gravitee.repository.analytics.query.IntervalBuilder;
+import io.gravitee.repository.analytics.query.Query;
+
+import java.time.temporal.ChronoUnit;
+
+import static io.gravitee.repository.analytics.query.QueryBuilders.query;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * Created by david on 05/11/2015.
  */
-public enum FilterQueryType {
+public class QueryExample {
 
-    API_NAME,
-    API_KEY
+    public static void main(String[] args) {
+        Query query = query().hitsByApi("api-toto").interval(IntervalBuilder.interval(ChronoUnit.DAYS, 1)).build();
+    }
 }
