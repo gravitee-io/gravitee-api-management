@@ -34,20 +34,21 @@
 	<name>Gravitee IO - Management</name>
 
 	<properties>
-		<gravitee-repository-mongodb.version>0.2.0</gravitee-repository-mongodb.version>
-		<gravitee-repository-jpa.version>0.2.0</gravitee-repository-jpa.version>
-		<gravitee-plugin-core.version>0.2.0</gravitee-plugin-core.version>
-		<gravitee-repository.version>0.2.0</gravitee-repository.version>
 		<gravitee-common.version>0.2.0</gravitee-common.version>
 		<gravitee-definition.version>0.2.0</gravitee-definition.version>
-		<javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+		<gravitee-plugin-core.version>0.2.0</gravitee-plugin-core.version>
+		<gravitee-repository.version>0.3.0-SNAPSHOT</gravitee-repository.version>
+		<gravitee-repository-mongodb.version>0.2.0</gravitee-repository-mongodb.version>
+		<gravitee-repository-jpa.version>0.2.0</gravitee-repository-jpa.version>
+
+		<apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
 		<jackson.version>2.5.3</jackson.version>
-		<validation-api.version>1.1.0.Final</validation-api.version>
+		<javax.servlet-api.version>3.1.0</javax.servlet-api.version>
 		<jersey.version>2.19</jersey.version>
 		<jetty.version>9.3.3.v20150827</jetty.version>
 		<spring.security.version>4.0.2.RELEASE</spring.security.version>
 		<spring.security.oauth2.version>2.0.7.RELEASE</spring.security.oauth2.version>
-		<apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
+		<validation-api.version>1.1.0.Final</validation-api.version>
 	</properties>
 
 	<modules>
