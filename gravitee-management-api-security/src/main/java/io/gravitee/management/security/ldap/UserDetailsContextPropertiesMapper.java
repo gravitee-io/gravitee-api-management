@@ -40,7 +40,6 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsContextPropertiesMapper.class);
 
-	private static final String roleMapperPrefix = "security.authentication-manager.authentication-providers.authentication-provider-";
 	private static final boolean accountNonExpired = true;
 	private static final boolean accountNonLocked = true;
 	private static final boolean credentialsNonExpired = true;
@@ -55,7 +54,7 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 		List<GrantedAuthority> mappedAuthorities = new ArrayList<GrantedAuthority>();
 		try {
 			for (GrantedAuthority granted : authorities) {
-				String mappedAuthority = environment.getProperty(roleMapperPrefix+authenticationProviderId+".role-mapper."+granted.getAuthority());
+				String mappedAuthority = environment.getProperty("security.providers[" + authenticationProviderId+ "].role-mapper."+granted.getAuthority());
 				if (!StringUtils.isEmpty(mappedAuthority)) {
 					mappedAuthorities.add(new SimpleGrantedAuthority(mappedAuthority));
 				}
