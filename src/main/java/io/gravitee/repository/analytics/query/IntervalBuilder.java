@@ -15,56 +15,60 @@
  */
 package io.gravitee.repository.analytics.query;
 
-import io.gravitee.repository.analytics.model.query.IntervalQuery;
+import io.gravitee.repository.analytics.query.Interval;
 
 import java.time.temporal.ChronoUnit;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class IntervalQueryBuilder {
+public class IntervalBuilder {
 
-    public static IntervalQuery month() {
+    public static Interval year() {
+        return interval(ChronoUnit.YEARS, 1);
+    }
+
+    public static Interval month() {
         return interval(ChronoUnit.MONTHS, 1);
     }
 
-    public static IntervalQuery months(int interval) {
+    public static Interval months(int interval) {
         return interval(ChronoUnit.MONTHS, interval);
     }
 
-    public static IntervalQuery day() {
+    public static Interval day() {
         return interval(ChronoUnit.DAYS, 1);
     }
 
-    public static IntervalQuery days(int interval) {
+    public static Interval days(int interval) {
         return interval(ChronoUnit.DAYS, interval);
     }
 
-    public static IntervalQuery hour() {
+    public static Interval hour() {
         return interval(ChronoUnit.HOURS, 1);
     }
 
-    public static IntervalQuery hours(int interval) {
+    public static Interval hours(int interval) {
         return interval(ChronoUnit.HOURS, interval);
     }
 
-    public static IntervalQuery minute() {
+    public static Interval minute() {
         return interval(ChronoUnit.MINUTES, 1);
     }
 
-    public static IntervalQuery minutes(int interval) {
+    public static Interval minutes(int interval) {
         return interval(ChronoUnit.MINUTES, interval);
     }
 
-    public static IntervalQuery second() {
+    public static Interval second() {
         return interval(ChronoUnit.SECONDS, 1);
     }
 
-    public static IntervalQuery seconds(int interval) {
+    public static Interval seconds(int interval) {
         return interval(ChronoUnit.SECONDS, interval);
     }
 
-    public static IntervalQuery interval(ChronoUnit unit, int interval) {
+    public static Interval interval(ChronoUnit unit, int interval) {
         return () -> unit.getDuration().toMillis() * interval;
     }
 }

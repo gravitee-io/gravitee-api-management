@@ -15,19 +15,19 @@
  */
 package io.gravitee.repository.analytics.query;
 
-import io.gravitee.repository.analytics.model.query.BetweenQuery;
-import io.gravitee.repository.analytics.model.query.DateRangeQuery;
-import io.gravitee.repository.analytics.model.query.SinceQuery;
+import io.gravitee.repository.analytics.query.BetweenDateRange;
+import io.gravitee.repository.analytics.query.DateRange;
+import io.gravitee.repository.analytics.query.SinceDateRange;
 
 import java.time.temporal.ChronoUnit;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PeriodQueryBuilder {
+public class DateRangeBuilder {
 
-    public static DateRangeQuery between(long startTime, long endTime) {
-        BetweenQuery betweenQuery = new BetweenQuery();
+    public static DateRange between(long startTime, long endTime) {
+        BetweenDateRange betweenQuery = new BetweenDateRange();
 
         betweenQuery.setStart(startTime);
         betweenQuery.setEnd(endTime);
@@ -35,40 +35,40 @@ public class PeriodQueryBuilder {
         return betweenQuery;
     }
 
-    public static DateRangeQuery lastMonth() {
+    public static DateRange lastMonth() {
         return lastMonths(1);
     }
 
-    public static DateRangeQuery lastDay() {
+    public static DateRange lastDay() {
         return lastDays(1);
     }
 
-    public static DateRangeQuery lastHour() {
+    public static DateRange lastHour() {
         return lastHours(1);
     }
 
-    public static DateRangeQuery lastMinute() {
+    public static DateRange lastMinute() {
         return lastMinutes(1);
     }
 
-    public static DateRangeQuery lastDays(int days) {
-        SinceQuery sinceQuery = new SinceQuery();
+    public static DateRange lastDays(int days) {
+        SinceDateRange sinceQuery = new SinceDateRange();
         sinceQuery.setChronoUnit(ChronoUnit.DAYS);
         sinceQuery.setTime(days);
 
         return sinceQuery;
     }
 
-    public static DateRangeQuery lastMonths(int months) {
-        SinceQuery sinceQuery = new SinceQuery();
+    public static DateRange lastMonths(int months) {
+        SinceDateRange sinceQuery = new SinceDateRange();
         sinceQuery.setChronoUnit(ChronoUnit.MONTHS);
         sinceQuery.setTime(months);
 
         return sinceQuery;
     }
 
-    public static DateRangeQuery lastHours(int hours) {
-        SinceQuery sinceQuery = new SinceQuery();
+    public static DateRange lastHours(int hours) {
+        SinceDateRange sinceQuery = new SinceDateRange();
 
         sinceQuery.setChronoUnit(ChronoUnit.HOURS);
         sinceQuery.setTime(hours);
@@ -76,8 +76,8 @@ public class PeriodQueryBuilder {
         return sinceQuery;
     }
 
-    public static DateRangeQuery lastMinutes(int minutes) {
-        SinceQuery sinceQuery = new SinceQuery();
+    public static DateRange lastMinutes(int minutes) {
+        SinceDateRange sinceQuery = new SinceDateRange();
 
         sinceQuery.setChronoUnit(ChronoUnit.MINUTES);
         sinceQuery.setTime(minutes);

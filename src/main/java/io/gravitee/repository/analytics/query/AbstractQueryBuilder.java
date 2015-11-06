@@ -18,8 +18,16 @@ package io.gravitee.repository.analytics.query;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@FunctionalInterface
-public interface QueryBuilder {
+public abstract class AbstractQueryBuilder<Q extends Query> implements QueryBuilder {
 
-    Query<?> build();
+    protected final Q query;
+
+    protected AbstractQueryBuilder(Q query) {
+        this.query = query;
+    }
+
+    @Override
+    public Q build() {
+        return query;
+    }
 }

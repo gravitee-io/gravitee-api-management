@@ -13,14 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model.query;
+package io.gravitee.repository.analytics.query;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum QueryType {
+public class HitsByApiKeyQuery extends TimeRangedQuery {
 
-    HITS,
-    HITS_BY_STATUS,
-    HITS_BY_LATENCY
+    private String apiKey;
+    private Type type = Type.HITS;
+
+    void apiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
+    public String apiKey() {
+        return this.apiKey;
+    }
+
+    void type(Type type) {
+        this.type = type;
+    }
+
+    public Type type() {
+        return this.type;
+    }
+
+    public enum Type {
+        HITS,
+        HITS_BY_LATENCY,
+        HITS_BY_STATUS
+    }
 }

@@ -13,10 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model.response;
+package io.gravitee.repository.analytics.query;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface Analytics {
+public class QueryBuilders {
+
+    public static QueryBuilders query() {
+        return new QueryBuilders();
+    }
+
+    public HitsByApiQueryBuilder hitsByApi(String api) {
+        return HitsByApiQueryBuilder.query().api(api);
+    }
+
+    public HitsByApiQueryBuilder hitsByApi() {
+        return HitsByApiQueryBuilder.query();
+    }
+
+    public HitsByApiKeyQueryBuilder hitsByApiKey(String apiKey) {
+        return HitsByApiKeyQueryBuilder.query().apiKey(apiKey);
+    }
 }

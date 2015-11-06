@@ -13,30 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.model.query;
+package io.gravitee.repository.analytics.query;
 
-import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.TimeZone;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class SinceQuery implements DateRangeQuery {
+public class SinceDateRange implements DateRange {
 
     private long end = System.currentTimeMillis();
 
     private ChronoUnit chronoUnit;
     private long time;
-
-    public SinceQuery(long time, ChronoUnit chronoUnit) {
-        this.time = time;
-        this.chronoUnit = chronoUnit;
-    }
-
-    public SinceQuery() {
-    }
 
     public long getTime() {
         return time;
@@ -61,10 +50,6 @@ public class SinceQuery implements DateRangeQuery {
 
     @Override
     public long end() {
-        System.out.println("---------------");
-        System.out.println("end : " + end);
-        System.out.println("instant : " + Instant.ofEpochMilli(end));
-        System.out.println("zoned : " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(end), TimeZone.getTimeZone("GMT+1").toZoneId()));
         return end;
     }
 }

@@ -13,13 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query;
+package io.gravitee.repository.analytics.query.response.histogram;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@FunctionalInterface
-public interface QueryBuilder {
+public class Data {
 
-    Query<?> build();
+    private final long timestamp;
+
+    private final long count;
+
+    public Data(long timestamp, long count) {
+        this.timestamp = timestamp;
+        this.count = count;
+    }
+
+    public long timestamp() {
+        return timestamp;
+    }
+
+    public long count() {
+        return count;
+    }
 }
