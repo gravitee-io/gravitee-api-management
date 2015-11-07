@@ -29,9 +29,10 @@
 	<groupId>io.gravitee.repository</groupId>
 	<artifactId>gravitee-repository-mongodb</artifactId>
 	<version>0.3.0-SNAPSHOT</version>
-	<name>Gravitee IO - API Management - Repository MongoDB</name>
+	<name>Gravitee IO - Repository MongoDB</name>
 
 	<properties>
+		<gravitee-repository.version>0.3.0-SNAPSHOT</gravitee-repository.version>
 		<embed.mongo.version>1.47.3</embed.mongo.version>
 		<embedmongo-maven-plugin.version>0.1.12</embedmongo-maven-plugin.version>
 		<mongo.version>3.0.2</mongo.version>
@@ -45,7 +46,7 @@
 		<dependency>
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository</artifactId>
-			<version>0.2.0</version>
+			<version>${gravitee-repository.version}</version>
 		</dependency>
 
 		<dependency>
@@ -75,15 +76,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!--
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-			<version>${spring.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		-->
-
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
@@ -91,7 +83,6 @@
 			<scope>test</scope>
 		</dependency>
 		
-		 
 		<dependency>
 			<groupId>net.sf.dozer</groupId>
 			<artifactId>dozer</artifactId>
