@@ -47,6 +47,7 @@
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository</artifactId>
 			<version>${gravitee-repository.version}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -82,7 +83,7 @@
 			<version>${spring.version}</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>net.sf.dozer</groupId>
 			<artifactId>dozer</artifactId>
