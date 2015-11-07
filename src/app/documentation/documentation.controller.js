@@ -35,7 +35,7 @@ class DocumentationController {
     ApiService.list().then(function(response) {
         that.apis = response.data;
         if (that.apis.length > 0) {
-          var currentApiName = that.location.$$search.api;
+          var currentApiName = 'Team';
           for (var i = 0; i < that.apis.length; i++) {
             if (that.apis[i].name === currentApiName) {
               that.selectApi(that.apis[i]);
@@ -58,13 +58,13 @@ class DocumentationController {
     }
 
     this.location.search('api', api.name);
-    this.selectedApi = api;
+    this.selectedApi = {name:'Team'};
     this.init();
   }
 
   selectPage(page) {
     this.selected = angular.isNumber(page) ? this.pages[page] : page;
-    this.location.search('page', page.name);
+    //this.location.search('page', page.name);
   }
 
   list() {
@@ -72,7 +72,7 @@ class DocumentationController {
       this.DocumentationService.list(this.selectedApi.name).then(response => {
         this.pages = response.data;
         if (this.pages.length > 0) {
-          var currentPageName = this.location.$$search.page;
+          var currentPageName = 'Team';
           for (var i = 0; i < this.pages.length; i++) {
             if (this.pages[i].name === currentPageName) {
               this.selectPage(this.pages[i]);
@@ -97,7 +97,7 @@ class DocumentationController {
       'content': this.selected.content
     };
     this.DocumentationService.editPage(this.selected.name, editPage).then(function () {
-      self.state.transitionTo(self.state.current, self.state.$current.search, { reload: true, location:false });
+      //self.state.transitionTo(self.state.current, self.state.$current.search, { reload: true, location:false });
     });
   }
 

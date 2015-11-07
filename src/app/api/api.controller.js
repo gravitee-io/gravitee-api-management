@@ -103,6 +103,8 @@ class ApiController {
       this.NotificationService.show('Api updated with success');
     });
   }
+
+  // documentation
 }
 
 function DialogApiController($scope, $mdDialog, ApiService, TeamService) {
