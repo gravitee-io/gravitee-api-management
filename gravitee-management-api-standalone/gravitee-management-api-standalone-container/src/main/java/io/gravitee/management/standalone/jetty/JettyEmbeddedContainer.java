@@ -15,20 +15,35 @@
  */
 package io.gravitee.management.standalone.jetty;
 
+import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.EnumSet;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.servlet.DispatcherType;
+import javax.servlet.ServletContext;
 
+import io.gravitee.management.security.config.SecurityConfig;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.*;
 import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
 import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
@@ -40,13 +55,15 @@ import io.gravitee.management.standalone.spring.StandaloneConfiguration;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbeddedContainer> {
+public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbeddedContainer> implements ApplicationContextAware {
 
     @Autowired
     private Server server;
     
     @Value("${security.type:basic-auth}")
     private String securityImplementation;
+
+    private ApplicationContext applicationContext;
 
     @Override
     protected void doStart() throws Exception {
@@ -66,9 +83,15 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
         // Spring configuration
         System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, securityImplementation);
-        context.addEventListener(new ContextLoaderListener());
-        context.setInitParameter("contextClass", AnnotationConfigWebApplicationContext.class.getName());
-        context.setInitParameter("contextConfigLocation", StandaloneConfiguration.class.getName());
+
+        AnnotationConfigWebApplicationContext webApplicationContext = new AnnotationConfigWebApplicationContext();
+        webApplicationContext.register(SecurityConfig.class);
+        webApplicationContext.setEnvironment((ConfigurableEnvironment) applicationContext.getEnvironment());
+        webApplicationContext.setParent(applicationContext);
+
+        context.addEventListener(new ContextLoaderListener(webApplicationContext));
+//        context.setInitParameter("contextClass", AnnotationConfigWebApplicationContext.class.getName());
+//        context.setInitParameter("contextConfigLocation", SecurityConfig.class.getName());
 
         // Spring Security filter
         context.addFilter(new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),"/*", EnumSet.allOf(DispatcherType.class));
@@ -80,5 +103,10 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     @Override
     protected void doStop() throws Exception {
         server.stop();
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

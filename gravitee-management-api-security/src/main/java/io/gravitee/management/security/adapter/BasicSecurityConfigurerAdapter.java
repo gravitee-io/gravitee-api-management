@@ -19,17 +19,13 @@ import io.gravitee.management.security.authentication.AuthenticationProviderType
 import io.gravitee.management.security.authentication.GraviteeAccountAuthenticationProvider;
 import io.gravitee.management.security.filter.CORSFilter;
 import io.gravitee.management.security.ldap.UserDetailsContextPropertiesMapper;
-
-import java.util.Properties;
-
-import javax.servlet.Filter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
@@ -41,6 +37,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+
+import javax.servlet.Filter;
 
 /**
  * 
@@ -55,50 +53,50 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 	private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 	
 	@Autowired
-	private Properties graviteeProperties;
+	private Environment environment;
 	
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		int authenticationProviderSize = (int) graviteeProperties.get("security.authentication-manager.authentication-providers.size");
+		int authenticationProviderSize = environment.getProperty("security.authentication-manager.authentication-providers.size", int.class, 0);
 		for (int i = 1; i <= authenticationProviderSize; i++) {
-			String authenticationProviderType = (String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".type");
+			String authenticationProviderType = environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".type");
 			switch (AuthenticationProviderType.valueOf(authenticationProviderType.toUpperCase())) {
 				case MEMORY :
-					int userSize = (int) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.size");
+					int userSize = environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.size", int.class);
 					for (int j = 1; j <= userSize; j++) {
-						String username = (String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.user-"+j+".username");
-						String password = (String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.user-"+j+".password");
-						String roles = (String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.user-"+j+".roles");
+						String username = environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.user-"+j+".username");
+						String password = environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.user-"+j+".password");
+						String roles = environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".users.user-"+j+".roles");
 						auth.inMemoryAuthentication().withUser(username).password(password).roles(roles);
 					}
 					break;
 				case LDAP :
 					LdapAuthenticationProviderConfigurer<AuthenticationManagerBuilder> ldapAuthenticationProviderConfigurer = auth.ldapAuthentication();
-					ldapAuthenticationProviderConfigurer.userDnPatterns((String) graviteeProperties.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".user-dn-patterns","uid={0},ou=people"));
-					ldapAuthenticationProviderConfigurer.groupSearchBase((String) graviteeProperties.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".group-search-base","ou=groups"));
+					ldapAuthenticationProviderConfigurer.userDnPatterns(environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".user-dn-patterns","uid={0},ou=people"));
+					ldapAuthenticationProviderConfigurer.groupSearchBase(environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".group-search-base","ou=groups"));
 					// set up embedded mode
-					if ((boolean) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".embedded")) {
+					if (environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".embedded", boolean.class, false)) {
 						ldapAuthenticationProviderConfigurer.contextSource()
-							.root((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-base"))
+							.root(environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-base"))
 							.ldif("classpath:/ldap/gravitee-io-management-rest-api-ldap-test.ldif");
 					} else {
 						ldapAuthenticationProviderConfigurer.contextSource()
-							.root((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-base"))
-							.managerDn((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-username"))
-							.managerPassword((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-url"))
-							.url((String) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".url"));
+							.root(environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-base"))
+							.managerDn(environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-username"))
+							.managerPassword(environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".context-source-url"))
+							.url(environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".url"));
 					}
 					// set up roles mapper
-					if ((boolean) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".role-mapping")) {
+					if (environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".role-mapping", boolean.class, false)) {
 						UserDetailsContextMapper userDetailsContextPropertiesMapper = new UserDetailsContextPropertiesMapper();
 						((UserDetailsContextPropertiesMapper) userDetailsContextPropertiesMapper).setAuthenticationProviderId(i);
-						((UserDetailsContextPropertiesMapper) userDetailsContextPropertiesMapper).setProperties(graviteeProperties);
+						((UserDetailsContextPropertiesMapper) userDetailsContextPropertiesMapper).setEnvironment(environment);
 						ldapAuthenticationProviderConfigurer.userDetailsContextMapper(userDetailsContextPropertiesMapper);
 					}
 					break;
 				case GRAVITEE :
 					GraviteeAccountAuthenticationProvider graviteeAccountAuthenticationProvider = graviteeAccountAuthenticationProvider();
-					if ((boolean) graviteeProperties.get("security.authentication-manager.authentication-providers.authentication-provider-"+i+".password-encoding")) {
+					if (environment.getProperty("security.authentication-manager.authentication-providers.authentication-provider-"+i+".password-encoding", boolean.class, false)) {
 						graviteeAccountAuthenticationProvider.setPasswordEncoder(passwordEncoder());
 					}
 					auth.authenticationProvider(graviteeAccountAuthenticationProvider);

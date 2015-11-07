@@ -29,11 +29,21 @@ import io.gravitee.repository.Scope;
 public class RepositoryConfiguration {
 
     @Bean
-    public static RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor(
+    public static RepositoryBeanFactoryPostProcessor repositoryManagementBeanFactoryPostProcessor(
             @Value("${management.type}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
         RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor = new RepositoryBeanFactoryPostProcessor();
         repositoryBeanFactoryPostProcessor.setRepositoryType(repositoryType);
         repositoryBeanFactoryPostProcessor.setRepositoryScope(Scope.MANAGEMENT);
+        repositoryBeanFactoryPostProcessor.setConfigurationClassPostProcessor(configurationClassPostProcessor);
+        return repositoryBeanFactoryPostProcessor;
+    }
+
+    @Bean
+    public static RepositoryBeanFactoryPostProcessor repositoryAnalyticsBeanFactoryPostProcessor(
+            @Value("${analytics.type}") String repositoryType, ConfigurationClassPostProcessor configurationClassPostProcessor) {
+        RepositoryBeanFactoryPostProcessor repositoryBeanFactoryPostProcessor = new RepositoryBeanFactoryPostProcessor();
+        repositoryBeanFactoryPostProcessor.setRepositoryType(repositoryType);
+        repositoryBeanFactoryPostProcessor.setRepositoryScope(Scope.ANALYTICS);
         repositoryBeanFactoryPostProcessor.setConfigurationClassPostProcessor(configurationClassPostProcessor);
         return repositoryBeanFactoryPostProcessor;
     }

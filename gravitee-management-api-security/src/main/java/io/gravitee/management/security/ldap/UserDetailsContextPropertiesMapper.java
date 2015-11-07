@@ -15,14 +15,10 @@
  */
 package io.gravitee.management.security.ldap;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,6 +26,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 
@@ -48,14 +48,14 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 	
 	private int authenticationProviderId;
 	
-	private Properties graviteeProperties;
+	private Environment environment;
 
 	@Override
 	public UserDetails mapUserFromContext(DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
 		List<GrantedAuthority> mappedAuthorities = new ArrayList<GrantedAuthority>();
 		try {
 			for (GrantedAuthority granted : authorities) {
-				String mappedAuthority = (String) graviteeProperties.get(roleMapperPrefix+authenticationProviderId+".role-mapper."+granted.getAuthority());
+				String mappedAuthority = environment.getProperty(roleMapperPrefix+authenticationProviderId+".role-mapper."+granted.getAuthority());
 				if (!StringUtils.isEmpty(mappedAuthority)) {
 					mappedAuthorities.add(new SimpleGrantedAuthority(mappedAuthority));
 				}
@@ -78,8 +78,8 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 		this.authenticationProviderId = authenticationProviderId;
 	}
 	
-	public void setProperties(Properties graviteeProperties) {
-		this.graviteeProperties = graviteeProperties;
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
 	}
 
 }
