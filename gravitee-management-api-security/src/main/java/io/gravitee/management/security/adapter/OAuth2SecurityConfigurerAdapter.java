@@ -34,7 +34,7 @@ import org.springframework.security.oauth2.provider.token.ResourceServerTokenSer
  *
  */
 @Configuration
-@Profile("oauth2-auth")
+@Profile("oauth2")
 @EnableWebSecurity
 @EnableResourceServer
 public class OAuth2SecurityConfigurerAdapter extends ResourceServerConfigurerAdapter {

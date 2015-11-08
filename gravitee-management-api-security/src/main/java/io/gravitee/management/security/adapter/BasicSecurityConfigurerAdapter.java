@@ -47,7 +47,7 @@ import java.util.List;
  *
  */
 @Configuration
-@Profile("basic-auth")
+@Profile("basic")
 @EnableWebSecurity
 public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 	

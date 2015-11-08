@@ -60,7 +60,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     @Autowired
     private Server server;
     
-    @Value("${security.type:basic-auth}")
+    @Value("${security.type:basic}")
     private String securityImplementation;
 
     private ApplicationContext applicationContext;
@@ -90,8 +90,6 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         webApplicationContext.setParent(applicationContext);
 
         context.addEventListener(new ContextLoaderListener(webApplicationContext));
-//        context.setInitParameter("contextClass", AnnotationConfigWebApplicationContext.class.getName());
-//        context.setInitParameter("contextConfigLocation", SecurityConfig.class.getName());
 
         // Spring Security filter
         context.addFilter(new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),"/*", EnumSet.allOf(DispatcherType.class));
