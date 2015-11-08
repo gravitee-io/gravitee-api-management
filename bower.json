@@ -14,7 +14,8 @@
     "angular-swagger-ui": "~0.2.3",
     "jquery": "~2.1.4",
     "bootstrap-sass": "3.3.5",
-    "angular-chart.js": "~0.8.5"
+    "angular-chart.js": "~0.8.5",
+    "angular-ui-codemirror": "~0.3.0"
   },
   "devDependencies": {
     "angular-mocks": "~1.4.0"

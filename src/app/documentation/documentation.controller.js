@@ -29,6 +29,9 @@ class DocumentationController {
   	this.SWAGGER_PAGE = 'SWAGGER';
     this.location = $location;
     this.state = $state;
+    this.editorOptions = {
+        lineNumbers: true
+    };
 
     var that = this;
 

@@ -99,7 +99,8 @@
 								<div layout="column">
 									<h3 style="color: #676a6c; clear:both;">{{documentationCtrl.selected.title}}</h3>
 									<div class="documentation-tool-bar">
-										<md-button ng-click="documentationCtrl.edit()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Edit"><ng-md-icon icon="mode_edit" size="16"></ng-md-icon></md-button>
+										<md-button ng-show="!documentationCtrl.editMode" ng-click="documentationCtrl.edit()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Edit"><ng-md-icon icon="mode_edit" size="16"></ng-md-icon></md-button>
+										<md-button ng-show="documentationCtrl.editMode" ng-click="documentationCtrl.editPage()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Save"><ng-md-icon icon="save" size="16"></ng-md-icon></md-button>
 										<md-button ng-click="documentationCtrl.deletePage()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Delete"><ng-md-icon icon="delete" size="16"></ng-md-icon></md-button>
 									</div>
 								</div>
@@ -119,8 +120,7 @@
 								</div>
 
 								<div ng-show="documentationCtrl.editMode">
-									<textarea ng-model="documentationCtrl.selected.content" cols="190" rows="37">{{documentationCtrl.selected.content}}</textarea>
-									<md-button ng-click="documentationCtrl.editPage()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Save"><ng-md-icon icon="save" size="16"></ng-md-icon></md-button>
+									<div ui-codemirror ui-codemirror-opts="documentationCtrl.editorOptions" ng-model="documentationCtrl.selected.content"></div>
 								</div>
 							</md-card-content>
 						</md-card>

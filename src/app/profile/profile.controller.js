@@ -14,3 +14,10 @@
  * limitations under the License.
  */
 /* global document:false, confirm:false */
+class ProfileController {
+  constructor () {
+    'ngInject';
+  }
+}
+
+export default ProfileController;

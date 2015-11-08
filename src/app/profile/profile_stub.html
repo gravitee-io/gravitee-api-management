@@ -16,61 +16,70 @@
 
 -->
 <section>
-  <div layout="row" flex>
-  	<div flow="30">
+  <div layout="row" layout-wrap>
+  	<div flex="30">
   	  <md-card>
-  	  	<div>
-  	  		Detail
+  	  	<div class="inset">
+  	  		<h3>Profile Detail</h3>
+  	  		<md-divider></md-divider>
   	  	</div>
   		<md-card-content>
-  		  <md-list>
-  			<md-list-item>
-			    <span>Firstname Lastname</span>
-			</md-list-item>
-			<md-list-item>
-			    <span>firstname.lastname@mydomain.com</span>
-			</md-list-item>
-  		  <md-list>
+  		  <div>
+		  	<ng-md-icon icon="account_circle" size="64" style="fill: #eee;"></ng-md-icon>
+			<h4>Firstname Lastname</h4>
+			<h5>firstname.lastname@mydomain.com</h5>
+		  </div>
+		  <md-subheader>Teams</md-subheader>
+		  <md-chips>
+		  	<md-chip>administrators</md-chip>
+		  	<md-chip>developers</md-chip>
+		  	<md-chip>guests</md-chip>
+		  </md-chips>
   		</md-card-content>
+  		<md-card-actions layout="row" layout-align="start start">
+		   <md-button><ng-md-icon icon="mode_edit" size="16" style="fill: #333;"></ng-md-icon><small>Edit your Profile</small></md-button>
+		   <md-button><ng-md-icon icon="add" size="16" style="fill: #333;"></ng-md-icon><small>Add an application</small></md-button>
+		</md-card-actions>
   	  </md-card>
   	</div>
-  	<div flow="70">
+  	<div flex="70">
   	  <md-card>
-  	  	<div>
-  	  		My applications
+  	  	<div class="inset">
+  	  		<h3>Applications</h3>
+  	  		<md-divider></md-divider>
   	  	</div>
   		<md-card-content>
   			<md-list>
 		    <md-list-item class="md-2-line">
-		      <ng-md-icon icon="account_circle" size="60" style="fill: #eee;" class="face"></ng-md-icon>
+		      <ng-md-icon icon="settings_applications" size="60" style="fill: #eee;" class="face"></ng-md-icon>
 		      <div class="md-list-item-text">
 		        <h3>Application 1</h3>
 		      </div>
 		      <md-divider md-inset ng-if="!$last"></md-divider>
 		    </md-list-item>
         <md-list-item class="md-2-line">
-		      <ng-md-icon icon="account_circle" size="60" style="fill: #eee;" class="face"></ng-md-icon>
+		      <ng-md-icon icon="settings_applications" size="60" style="fill: #eee;" class="face"></ng-md-icon>
 		      <div class="md-list-item-text">
 		        <h3>Application 2</h3>
 		      </div>
 		      <md-divider md-inset ng-if="!$last"></md-divider>
 		    </md-list-item>
 				<md-list-item class="md-2-line">
-		      <ng-md-icon icon="account_circle" size="60" style="fill: #eee;" class="face"></ng-md-icon>
+		      <ng-md-icon icon="settings_applications" size="60" style="fill: #eee;" class="face"></ng-md-icon>
 		      <div class="md-list-item-text">
 		        <h3>Application 3</h3>
 		      </div>
 		      <md-divider md-inset ng-if="!$last"></md-divider>
 		    </md-list-item>
 				<md-list-item class="md-2-line">
-		      <ng-md-icon icon="account_circle" size="60" style="fill: #eee;" class="face"></ng-md-icon>
+		      <ng-md-icon icon="settings_applications" size="60" style="fill: #eee;" class="face"></ng-md-icon>
 		      <div class="md-list-item-text">
 		        <h3>Application 4</h3>
 		      </div>
 		      <md-divider md-inset ng-if="!$last"></md-divider>
 		    </md-list-item>
 				<md-list-item class="md-2-line">
-		      <ng-md-icon icon="account_circle" size="60" style="fill: #eee;" class="face"></ng-md-icon>
+		      <ng-md-icon icon="settings_applications" size="60" style="fill: #eee;" class="face"></ng-md-icon>
 		      <div class="md-list-item-text">
 		        <h3>Application 5</h3>
 		      </div>
@@ -90,5 +99,4 @@
   	  </md-card>
   	</div>
   </div>
-
 </section>
