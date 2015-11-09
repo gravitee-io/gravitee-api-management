@@ -26,7 +26,6 @@ import java.util.Map;
 public class Bucket {
 
     private final String name;
-
     private List<Bucket> buckets;
     private Map<String, List<Data>> data;
 
@@ -38,6 +37,7 @@ public class Bucket {
         return name;
     }
 
+    // Lazy loading to avoid useless structure initialization
     public Map<String, List<Data>> data() {
         if (data == null) {
             data = new HashMap<>();
@@ -45,6 +45,7 @@ public class Bucket {
         return data;
     }
 
+    // Lazy loading to avoid useless structure initialization
     public List<Bucket> buckets() {
         if (buckets == null) {
             buckets = new ArrayList<>();

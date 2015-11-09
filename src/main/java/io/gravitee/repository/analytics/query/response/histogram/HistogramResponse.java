@@ -18,16 +18,23 @@ package io.gravitee.repository.analytics.query.response.histogram;
 import io.gravitee.repository.analytics.query.response.Response;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class HistogramResponse implements Response {
 
-    private final List<Bucket> hits = new ArrayList<>();
+    private final Set<Long> timestamps = new HashSet<>();
+    private final List<Bucket> values = new ArrayList<>();
 
-    public List<Bucket> hits() {
-        return hits;
+    public List<Bucket> values() {
+        return values;
+    }
+
+    public Set<Long> timestamps() {
+        return timestamps;
     }
 }
