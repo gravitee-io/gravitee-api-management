@@ -40,7 +40,7 @@
 		<gravitee-repository.version>0.3.0-SNAPSHOT</gravitee-repository.version>
 		<gravitee-repository-elasticsearch.version>0.3.0-SNAPSHOT</gravitee-repository-elasticsearch.version>
 		<gravitee-repository-mongodb.version>0.3.0-SNAPSHOT</gravitee-repository-mongodb.version>
-		<gravitee-repository-jpa.version>0.3.0-SNAPSHOT</gravitee-repository-jpa.version>
+		<gravitee-repository-jdbc.version>0.3.0-SNAPSHOT</gravitee-repository-jdbc.version>
 
 		<apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
 		<jackson.version>2.5.3</jackson.version>
