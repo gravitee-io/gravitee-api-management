@@ -13,16 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.api;
+package io.gravitee.repository.analytics;
 
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.query.Query;
-import io.gravitee.repository.analytics.query.response.Response;
+import io.gravitee.repository.exceptions.RepositoryException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface AnalyticsRepository {
+public class AnalyticsException extends RepositoryException {
 
-   <T extends Response> T query(Query<T> query) throws AnalyticsException;
+    public AnalyticsException() {
+    }
+
+    public AnalyticsException(Throwable cause) {
+        super(cause);
+    }
+
+    public AnalyticsException(String message) {
+        super(message);
+    }
+
+    public AnalyticsException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
