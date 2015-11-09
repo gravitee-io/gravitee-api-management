@@ -123,4 +123,9 @@ public class ApiResource extends AbstractResource {
     public ApplicationsApiResource getApplicationsApiResource() {
         return resourceContext.getResource(ApplicationsApiResource.class);
     }
+
+    @Path("analytics")
+    public ApiAnalyticsResource getApiAnalyticsResource() {
+        return resourceContext.getResource(ApiAnalyticsResource.class);
+    }
 }
