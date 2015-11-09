@@ -81,6 +81,12 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/application/applications.html',
       controller: 'ApplicationController',
       controllerAs: 'applicationCtrl'
+    })
+		.state('application', {
+      url: '/applications/:applicationName',
+      templateUrl: 'app/application/application.html',
+      controller: 'ApplicationController',
+      controllerAs: 'applicationCtrl'
     });
 
   $urlRouterProvider.otherwise('/');

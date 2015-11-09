@@ -44,15 +44,15 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .constant('malarkey', malarkey)
   .constant('moment', moment)
   .constant('baseURL', 'http://tests.gravitee.io/management/')
-	
   .config(config)
-
   .config(routerConfig)
-
   .config(interceptorConfig)
-
 	.config(delegatorConfig)
-
+	.config(function($mdThemingProvider) {
+		$mdThemingProvider.theme('default')
+		  .primaryPalette('blue-grey')
+		  .accentPalette('blue');
+	})
   .run(runBlock)
   .controller('MainController', MainController)
   .service('ApiService', ApiService)
