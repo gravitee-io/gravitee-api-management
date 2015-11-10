@@ -15,10 +15,12 @@
  */
 package io.gravitee.management.rest.resource.param;
 
+import javax.ws.rs.WebApplicationException;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class AnalyticsTypeParam {
+public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.AnalyticsType> {
 
     public enum AnalyticsType {
         HITS,
@@ -27,19 +29,20 @@ public class AnalyticsTypeParam {
         HITS_BY_APIKEY
     }
 
-    private AnalyticsType type;
+    public AnalyticsTypeParam(String param) throws WebApplicationException {
+        super(param);
+    }
 
-    public AnalyticsTypeParam(String input) {
+    @Override
+    protected AnalyticsType parse(String param) throws Throwable {
         try {
-            if (input != null) {
-                type = AnalyticsType.valueOf(input.toUpperCase());
+            if (param != null) {
+                return AnalyticsType.valueOf(param.toUpperCase());
             }
         } catch (IllegalArgumentException iae) {
-            type = AnalyticsType.HITS;
         }
+
+        return AnalyticsType.HITS;
     }
 
-    public AnalyticsType getType() {
-        return this.type;
-    }
 }

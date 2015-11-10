@@ -60,7 +60,7 @@ public class ApiAnalyticsResource extends AbstractResource {
 
         HistogramAnalytics analytics = null;
 
-        switch(analyticsParam.getTypeParam().getType()) {
+        switch(analyticsParam.getTypeParam().getValue()) {
             case HITS:
                 analytics = analyticsService.apiHits(
                         apiName,
