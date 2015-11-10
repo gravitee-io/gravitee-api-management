@@ -17,7 +17,6 @@ class MainController {
   constructor ($timeout) {
     'ngInject';
     this.classAnimation = '';
-
     this.activate($timeout);
   }
 

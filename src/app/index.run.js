@@ -38,6 +38,7 @@ function runBlock ($rootScope, $window, $http) {
     $window.sessionStorage.removeItem(graviteeAuthenticationKey);
     $window.location.href = '/';
   });
+
 }
 
 export default runBlock;
