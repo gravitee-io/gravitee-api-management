@@ -58,6 +58,8 @@ public class ApiAnalyticsResource extends AbstractResource {
 
         permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.VIEW_API);
 
+        analyticsParam.validate();
+
         HistogramAnalytics analytics = null;
 
         switch(analyticsParam.getTypeParam().getValue()) {

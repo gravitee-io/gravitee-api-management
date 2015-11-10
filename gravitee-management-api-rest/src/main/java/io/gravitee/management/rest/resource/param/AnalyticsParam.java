@@ -17,6 +17,8 @@ package io.gravitee.management.rest.resource.param;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -66,5 +68,42 @@ public class AnalyticsParam {
 
     public void setTypeParam(AnalyticsTypeParam type) {
         this.type = type;
+    }
+
+    public void validate() throws WebApplicationException {
+        if (from == -1) {
+            throw new WebApplicationException(Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("Query parameter 'from' is not valid")
+                    .build());
+        }
+
+        if (to == -1) {
+            throw new WebApplicationException(Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("Query parameter 'to' is not valid")
+                    .build());
+        }
+
+        if (interval == -1) {
+            throw new WebApplicationException(Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("Query parameter 'interval' is not valid")
+                    .build());
+        }
+
+        if (interval < 1_000 || interval > 10_000_000) {
+            throw new WebApplicationException(Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 10000000")
+                    .build());
+        }
+
+        if (from >= to) {
+            throw new WebApplicationException(Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("'from' query parameter value must be greater than 'to'")
+                    .build());
+        }
     }
 }
