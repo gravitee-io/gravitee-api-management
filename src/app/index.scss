@@ -44,9 +44,6 @@ md-content.md-default-theme {
 
 .md-toolbar-tools-bottom {
   font-size: small;
-  & :last-child {
-    opacity: 0.8;
-  }
 }
 
 section.jumbotron {
@@ -103,6 +100,10 @@ md-icon {
 
 .face {
   margin: 0px 16px; 
+}
+
+md-toolbar.md-tall {
+  min-height: 100px;
 }
 
 /**

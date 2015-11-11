@@ -16,7 +16,7 @@
 
 -->
 <md-toolbar layout="row" layout-align="start center" class="md-whiteframe-z2" style="position:fixed;">
-  <md-button ng-click="navbarCtrl.toggleSidenav('left')" aria-label="Menu">
+  <md-button ng-if="authenticated" ng-click="navbarCtrl.toggleSidenav('left')" aria-label="Menu">
     <ng-md-icon icon="menu"></ng-md-icon>
   </md-button>
   <md-button href="#/">
