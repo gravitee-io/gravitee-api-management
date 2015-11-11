@@ -47,6 +47,8 @@ public class PageMongo {
 
 	private Date updatedAt;
 
+	private boolean published;
+
 	public String getName() {
 		return name;
 	}
@@ -118,7 +120,15 @@ public class PageMongo {
 	public void setUpdatedAt(Date updatedAt) {
 		this.updatedAt = updatedAt;
 	}
-	
+
+	public boolean isPublished() {
+		return published;
+	}
+
+	public void setPublished(boolean published) {
+		this.published = published;
+	}
+
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("Page{");

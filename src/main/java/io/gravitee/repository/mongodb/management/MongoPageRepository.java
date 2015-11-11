@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -44,15 +45,26 @@ public class MongoPageRepository implements PageRepository {
 	@Autowired
 	private GraviteeMapper mapper;
 
-	
-	@Override
-	public Set<Page> findByApiName(String apiName) throws TechnicalException {
-		logger.debug("Find pages by api name {}", apiName);
 
-		List<PageMongo> pages = internalPageRepo.findByApiName(apiName);
+	@Override
+	public Collection<Page> findPublishedByApi(String apiName) throws TechnicalException {
+		logger.debug("Find published pages by api {}", apiName);
+
+		List<PageMongo> pages = internalPageRepo.findByApi(apiName);
 		Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
 
-		logger.debug("Find pages by api name {} - Done", apiName);
+		logger.debug("Find published pages by api {} - Done", apiName);
+		return res;
+	}
+
+	@Override
+	public Collection<Page> findByApi(String apiName) throws TechnicalException {
+		logger.debug("Find pages by api {}", apiName);
+
+		List<PageMongo> pages = internalPageRepo.findByApi(apiName);
+		Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
+
+		logger.debug("Find pages by api {} - Done", apiName);
 		return res;
 	}
 

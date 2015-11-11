@@ -40,7 +40,4 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
 		PageMongo page = mongoTemplate.findOne(query, PageMongo.class);
 		return (page != null) ? page.getOrder() : 0;
 	}
-	
-	
-	
 }
