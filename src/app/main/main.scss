@@ -10,33 +10,75 @@
 }
 
 .section-main-header .section-title {
-    font-size: 44px;
-    color: #272727;
-    text-transform: uppercase;
-    position: relative;
-    padding-bottom: 20px;
+  font-size: 44px;
+  color: #272727;
+  text-transform: uppercase;
+  position: relative;
+  padding-bottom: 20px;
 }
 
 .section-main-header .section-title::before {
-    content: "";
-    position: absolute;
-    height: 1px;
-    background: #EBEBEB none repeat scroll 0% 0%;
-    margin-left: -70px;
-    left: 50%;
-    bottom: 0px;
-    width: 140px;
+  content: "";
+  position: absolute;
+  height: 1px;
+  background: #EBEBEB none repeat scroll 0% 0%;
+  margin-left: -70px;
+  left: 50%;
+  bottom: 0px;
+  width: 140px;
 }
 
 .section-main-header .section-title::after {
-    content: "";
-    position: absolute;
-    width: 24px;
-    height: 24px;
-    bottom: -11px;
-    left: 50%;
-    margin-left: -12px;
-    border: 5px solid #FFF;
-    border-radius: 20px;
-    background: #45AED6 none repeat scroll 0% 0%;
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  bottom: -11px;
+  left: 50%;
+  margin-left: -12px;
+  border: 5px solid #FFF;
+  border-radius: 20px;
+  background: #45AED6 none repeat scroll 0% 0%;
+}
+
+.widget-user .widget-user-image {
+	position: absolute;
+	top: 65px;
+	left: 50%;
+	margin-left: -45px;
+}
+
+.api-box .border-right {
+	border-right: 1px solid #f4f4f4;
+}
+
+.api-box .api-box-header { 
+	padding: 20px; 
+	border-top-right-radius: 3px; 
+	border-top-left-radius: 3px;
+}
+
+.api-box .api-box-header h3 {
+	color:white; 
+	margin-top: 20px; 
+	margin-bottom: 5px; 
+	font-weight: 300; 
+	text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+
+.api-box .api-box-header h5 {
+	color:white; 
+}
+
+.description-block {
+	display: block;
+	margin: 10px 0;
+	text-align: center;
+}
+
+.description-block>.description-header {
+	margin: 0;
+	padding: 0;
+	font-weight: 600;
+	font-size: 16px;
 }

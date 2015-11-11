@@ -28,14 +28,32 @@ class NavbarDirective {
 }
 
 class NavbarController {
-  constructor ($rootScope, $mdSidenav) {
+  constructor ($rootScope, $mdSidenav, $location, $window, LoginService) {
     'ngInject';
     this.$rootScope = $rootScope;
     this.$mdSidenav = $mdSidenav;
+		this.$location = $location;
+		this.$window = $window;
+		this.LoginService = LoginService;
+		this.user = {};
   }
 
   toggleSidenav(menuId) {
     this.$mdSidenav(menuId).toggle();
+  }
+
+  openMenu($mdOpenMenu, ev) {
+    $mdOpenMenu(ev);
+  }
+
+	login() {
+    var that = this;
+    this.LoginService.login(this.user).then(function() {
+			that.$window.sessionStorage.setItem('GraviteeAuthentication', btoa(that.user.username + ":" + that.user.password));			
+			that.user = {};
+			that.$rootScope.$broadcast('authenticationSuccess');
+      that.$location.path('/');
+    });
   }
 
   logout() {

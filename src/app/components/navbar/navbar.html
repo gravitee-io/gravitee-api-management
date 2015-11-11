@@ -23,6 +23,29 @@
     Gravitee.IO API Portal
   </md-button>
 	<span flex></span>
-	<md-button ng-if="!authenticated" type="button" href="#/login"><ng-md-icon icon="login" style="fill:white;"></ng-md-icon> Login</md-button>
+	<div class="navbar-login" ng-if="!authenticated">
+		<md-menu>
+			<md-button aria-label="Login form" ng-click="navbarCtrl.openMenu($mdOpenMenu, $event)">
+				<ng-md-icon md-menu-origin icon="login" style="fill:white;"></ng-md-icon> Login
+			</md-button>
+			<md-menu-content width="4" layout-padding>
+				<form name="formUser" ng-submit="navbarCtrl.login()" class="gravitee-login-container" style="padding-top:20px;">
+        	<md-input-container class="md-icon-float">
+            <label>Login</label>
+            <input ng-model="navbarCtrl.user.username" type="text" ng-required="true">
+        	</md-input-container>
+
+        	<md-input-container class="md-icon-float">
+            <label>Password</label>
+            <input ng-model="navbarCtrl.user.password" type="password" ng-required="true">
+        	</md-input-container>
+
+        	<md-button type="submit" class="md-raised md-primary md-button md-ink-ripple" ng-disabled="formUser.$invalid">
+            Login
+        	</md-button>
+      	</form>
+			</md-menu-content>
+		</md-menu>
+	</div>
   <md-button ng-if="authenticated" type="button" ng-click="navbarCtrl.logout()"><ng-md-icon icon="logout"></ng-md-icon> Log out</md-button>
 </md-toolbar>
