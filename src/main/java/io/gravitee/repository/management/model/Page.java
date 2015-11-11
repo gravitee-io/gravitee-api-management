@@ -33,6 +33,8 @@ public class Page {
 	private String lastContributor;
 	
 	private int order;
+
+	private boolean published;
 	
 	private String apiName;
 
@@ -110,5 +112,13 @@ public class Page {
 
 	public void setUpdatedAt(Date updatedAt) {
 		this.updatedAt = updatedAt;
+	}
+
+	public boolean isPublished() {
+		return published;
+	}
+
+	public void setPublished(boolean published) {
+		this.published = published;
 	}
 }
