@@ -94,7 +94,6 @@ class DocumentationController {
   }
 
   editPage() {
-    var self = this;
     var editPage = {
       'title' : this.selected.title,
       'content': this.selected.content
