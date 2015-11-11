@@ -36,12 +36,12 @@
 						Learn more about your APIs
 					</p>
 				</div>
-				<div layout="row" layout-wrap class="inset">
-					<div flex="33">
+				<div layout="row" layout-wrap class="inset" ng-controller="ApiController as apiCtrl">
+					<div flex="33" ng-repeat="api in apiCtrl.apis">
 						<md-card class="api-box">
-							<div class="api-box-header" style="background-color: #f39c12;">
-								<h3>API 1</h3>
-								<h5>v1.0.0</h5>
+							<div class="api-box-header" ng-style="{'background-color': apiCtrl.bgColorByIndex($index)}">
+								<h3>{{api.name}}</h3>
+								<h5>{{api.version}}</h5>
 							</div>
 							<div class="widget-user-image">
             	</div>
@@ -49,13 +49,13 @@
 								<div class="row">
                 <div class="col-sm-4 border-right">
                   <div class="description-block">
-                    <h5 class="description-header">5</h5>
+                    <h5 class="description-header">0</h5>
                     <span class="description-text">APPLICATIONS</span>
                   </div>
                 </div>
                 <div class="col-sm-4 border-right">
                   <div class="description-block">
-                    <h5 class="description-header">130</h5>
+                    <h5 class="description-header">0</h5>
                     <span class="description-text">LIKERS</span>
                   </div>
                 </div>
@@ -72,181 +72,6 @@
 						</md-card-content>
 					</md-card>
     		</div>
-				<div flex="33">
-					<md-card class="api-box">
-						<div class="api-box-header" style="background-color: #29b6f6;">
-							<h3>API 2</h3>
-							<h5>v1.0.0</h5>
-						</div>
-						<div class="widget-user-image">
-          	</div>
-						<md-card-content>
-							<div class="row">
-              <div class="col-sm-4 border-right">
-                <div class="description-block">
-                  <h5 class="description-header">5</h5>
-                  <span class="description-text">APPLICATIONS</span>
-                </div>
-              </div>
-              <div class="col-sm-4 border-right">
-                <div class="description-block">
-                  <h5 class="description-header">130</h5>
-                  <span class="description-text">LIKERS</span>
-                </div>
-              </div>
-              <div class="col-sm-4">
-                <div class="description-block">
-                  <h5 class="description-header">
-										<md-button ng-href="#/apis/sub">
-											<ng-md-icon icon="more_horiz" size="36" style="fill: #696969;"></ng-md-icon>
-										</md-button>
-									</h5>
-                </div>
-              </div>
-            </div>
-					</md-card-content>
-				</md-card>
-			</div>
-			<div flex="33">
-				<md-card class="api-box">
-					<div class="api-box-header" style="background-color: #26c6da;">
-						<h3>API 3</h3>
-						<h5>v1.0.0</h5>
-					</div>
-					<div class="widget-user-image">
-        	</div>
-					<md-card-content>
-						<div class="row">
-            <div class="col-sm-4 border-right">
-              <div class="description-block">
-                <h5 class="description-header">5</h5>
-                <span class="description-text">APPLICATIONS</span>
-              </div>
-            </div>
-            <div class="col-sm-4 border-right">
-              <div class="description-block">
-                <h5 class="description-header">130</h5>
-                <span class="description-text">LIKERS</span>
-              </div>
-            </div>
-            <div class="col-sm-4">
-              <div class="description-block">
-                <h5 class="description-header">
-									<md-button ng-href="#/apis/sub">
-										<ng-md-icon icon="more_horiz" size="36" style="fill: #696969;"></ng-md-icon>
-									</md-button>
-								</h5>
-              </div>
-            </div>
-          </div>
-				</md-card-content>
-			</md-card>
-			</div>
-			<div flex="33">
-				<md-card class="api-box">
-					<div class="api-box-header" style="background-color: #26a69a;">
-						<h3>API 4</h3>
-						<h5>v1.0.0</h5>
-					</div>
-					<div class="widget-user-image">
-	      	</div>
-					<md-card-content>
-						<div class="row">
-			        <div class="col-sm-4 border-right">
-			          <div class="description-block">
-			            <h5 class="description-header">5</h5>
-			            <span class="description-text">APPLICATIONS</span>
-			          </div>
-			        </div>
-			        <div class="col-sm-4 border-right">
-			          <div class="description-block">
-			            <h5 class="description-header">130</h5>
-			            <span class="description-text">LIKERS</span>
-			          </div>
-			        </div>
-			        <div class="col-sm-4">
-			          <div class="description-block">
-			            <h5 class="description-header">
-										<md-button ng-href="#/apis/sub">
-											<ng-md-icon icon="more_horiz" size="36" style="fill: #696969;"></ng-md-icon>
-										</md-button>
-									</h5>
-			          </div>
-			        </div>
-			      </div>
-					</md-card-content>
-				</md-card>
-			</div>
-			<div flex="33">
-				<md-card class="api-box">
-					<div class="api-box-header" style="background-color: #259b24;">
-						<h3>API 5</h3>
-						<h5>v1.0.0</h5>
-					</div>
-					<div class="widget-user-image">
-	      	</div>
-					<md-card-content>
-						<div class="row">
-			        <div class="col-sm-4 border-right">
-			          <div class="description-block">
-			            <h5 class="description-header">5</h5>
-			            <span class="description-text">APPLICATIONS</span>
-			          </div>
-			        </div>
-			        <div class="col-sm-4 border-right">
-			          <div class="description-block">
-			            <h5 class="description-header">130</h5>
-			            <span class="description-text">LIKERS</span>
-			          </div>
-			        </div>
-			        <div class="col-sm-4">
-			          <div class="description-block">
-			            <h5 class="description-header">
-										<md-button ng-href="#/apis/sub">
-											<ng-md-icon icon="more_horiz" size="36" style="fill: #8bc34a;"></ng-md-icon>
-										</md-button>
-									</h5>
-			          </div>
-			        </div>
-			      </div>
-					</md-card-content>
-				</md-card>
-			</div>
-			<div flex="33">
-				<md-card class="api-box">
-					<div class="api-box-header" style="background-color: #26a69a;">
-						<h3>API 6</h3>
-						<h5>v1.0.0</h5>
-					</div>
-					<div class="widget-user-image">
-	      	</div>
-					<md-card-content>
-						<div class="row">
-			        <div class="col-sm-4 border-right">
-			          <div class="description-block">
-			            <h5 class="description-header">5</h5>
-			            <span class="description-text">APPLICATIONS</span>
-			          </div>
-			        </div>
-			        <div class="col-sm-4 border-right">
-			          <div class="description-block">
-			            <h5 class="description-header">130</h5>
-			            <span class="description-text">LIKERS</span>
-			          </div>
-			        </div>
-			        <div class="col-sm-4">
-			          <div class="description-block">
-			            <h5 class="description-header">
-										<md-button ng-href="#/apis/sub">
-											<ng-md-icon icon="more_horiz" size="36" style="fill: #696969;"></ng-md-icon>
-										</md-button>
-									</h5>
-			          </div>
-			        </div>
-			      </div>
-					</md-card-content>
-				</md-card>
-			</div>
 		</div>
 		<div style="text-align:center;">
 			<ul class="pagination">
