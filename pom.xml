@@ -75,7 +75,9 @@
         <jackson.version>2.5.3</jackson.version>
         <gravitee-definition.version>0.2.0</gravitee-definition.version>
         <gravitee-common.version>0.2.0</gravitee-common.version>
-        <gravitee-repository.version>0.2.0</gravitee-repository.version>
-        <gravitee-plugin-core.version>0.2.0</gravitee-plugin-core.version>
+        <gravitee-repository.version>0.3.0-SNAPSHOT</gravitee-repository.version>
+        <gravitee-plugin-core.version>0.3.0-SNAPSHOT</gravitee-plugin-core.version>
+        <gravitee-repository-jdbc.version>0.3.0-SNAPSHOT</gravitee-repository-jdbc.version>
+        <gravitee-repository-mongodb.version>0.3.0-SNAPSHOT</gravitee-repository-mongodb.version>
     </properties>
 </project>

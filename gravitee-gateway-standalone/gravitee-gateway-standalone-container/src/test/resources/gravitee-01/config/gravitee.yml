@@ -1,10 +1,6 @@
 
-node:
-  home: ${gravitee.home}
-
 plugins:
-  registry:
-    path: ${node.home}/plugins
+    path: ${gravitee.home}/plugins
 
 management:
   type: mock

@@ -49,7 +49,7 @@
         <dependency>
             <groupId>io.gravitee.repository</groupId>
             <artifactId>gravitee-repository-mongodb</artifactId>
-            <version>${gravitee-repository.version}</version>
+            <version>${gravitee-repository-mongodb.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -59,8 +59,8 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.repository</groupId>
-            <artifactId>gravitee-repository-jpa</artifactId>
-            <version>${gravitee-repository.version}</version>
+            <artifactId>gravitee-repository-jdbc</artifactId>
+            <version>${gravitee-repository-jdbc.version}</version>
         </dependency>
 
         <dependency>

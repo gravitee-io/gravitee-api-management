@@ -44,7 +44,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
     @Value("${local.enabled:false}")
     private boolean enabled;
 
-    @Value("${local.path:${node.home}/apis}")
+    @Value("${local.path:${gravitee.home}/apis}")
     private String registryPath;
 
     @Autowired
