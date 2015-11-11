@@ -29,4 +29,10 @@ public interface AnalyticsService {
     HistogramAnalytics apiHitsByLatency(String apiName, long from, long to, long interval);
 
     HistogramAnalytics apiHitsByApiKey(String apiName, long from, long to, long interval);
+
+    HistogramAnalytics apiKeyHits(String apiKey, long from, long to, long interval);
+
+    HistogramAnalytics apiKeyHitsByStatus(String apiKey, long from, long to, long interval);
+
+    HistogramAnalytics apiKeyHitsByLatency(String apiKey, long from, long to, long interval);
 }

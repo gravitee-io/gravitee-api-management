@@ -65,8 +65,40 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return apiHits(HitsByApiQuery.Type.HITS_BY_APIKEY, apiName, from, to, interval);
     }
 
+    @Override
+    public HistogramAnalytics apiKeyHits(String apiKey, long from, long to, long interval) {
+        return apiKeyHits(HitsByApiKeyQuery.Type.HITS, apiKey, from, to, interval);
+    }
+
+    @Override
+    public HistogramAnalytics apiKeyHitsByStatus(String apiKey, long from, long to, long interval) {
+        return apiKeyHits(HitsByApiKeyQuery.Type.HITS_BY_STATUS, apiKey, from, to, interval);
+    }
+
+    @Override
+    public HistogramAnalytics apiKeyHitsByLatency(String apiKey, long from, long to, long interval) {
+        return apiKeyHits(HitsByApiKeyQuery.Type.HITS_BY_LATENCY, apiKey, from, to, interval);
+    }
+
+    private HistogramAnalytics apiKeyHits(HitsByApiKeyQuery.Type type, String apiKey, long from, long to, long interval) {
+        logger.debug("Run analytics query {} for API key '{}'", type, apiKey);
+
+        try {
+            return runHistoricalQuery(QueryBuilders.query()
+                    .hitsByApiKey(apiKey)
+                    .period(DateRangeBuilder.between(from, to))
+                    .interval(IntervalBuilder.interval(interval))
+                    .type(type)
+                    .build(), from, interval);
+
+        } catch (Exception ex) {
+            logger.error("An unexpected error occurs while searching for analytics data.", ex);
+            return null;
+        }
+    }
+
     private HistogramAnalytics apiHits(HitsByApiQuery.Type type, String apiName, long from, long to, long interval) {
-        logger.debug("Run analytics query {} for {}", type, apiName);
+        logger.debug("Run analytics query {} for API '{}'", type, apiName);
 
         try {
             return runHistoricalQuery(QueryBuilders.query()

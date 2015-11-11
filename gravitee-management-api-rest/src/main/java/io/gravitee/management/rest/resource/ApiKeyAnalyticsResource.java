@@ -16,27 +16,28 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApiKeyEntity;
+import io.gravitee.management.model.analytics.HistogramAnalytics;
+import io.gravitee.management.rest.resource.param.AnalyticsParam;
+import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.management.service.ApiKeyService;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
+import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.NoValidApiKeyException;
 
 import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiKeyResource extends AbstractResource {
-
-    @Context
-    private ResourceContext resourceContext;
+public class ApiKeyAnalyticsResource extends AbstractResource {
 
     @PathParam("applicationName")
     private String applicationName;
@@ -50,9 +51,12 @@ public class ApiKeyResource extends AbstractResource {
     @Inject
     private PermissionService permissionService;
 
+    @Inject
+    private AnalyticsService analyticsService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public ApiKeyEntity getCurrentApiKeyEntity() {
+    public Response hits(@BeanParam AnalyticsParam analyticsParam) throws ApiNotFoundException {
         permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_APPLICATION);
 
         Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrent(applicationName, apiName);
@@ -61,47 +65,34 @@ public class ApiKeyResource extends AbstractResource {
             throw new NoValidApiKeyException();
         }
 
-        return apiKeyEntity.get();
-    }
+        analyticsParam.validate();
 
-    @GET
-    @Path("all")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApiKeyEntity> findAllApiKeys() {
-        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_APPLICATION);
+        HistogramAnalytics analytics = null;
 
-        return apiKeyService.findAll(applicationName, apiName);
-    }
+        switch(analyticsParam.getTypeParam().getValue()) {
+            case HITS:
+                analytics = analyticsService.apiKeyHits(
+                        apiKeyEntity.get().getKey(),
+                        analyticsParam.getFrom(),
+                        analyticsParam.getTo(),
+                        analyticsParam.getInterval());
+                break;
+            case HITS_BY_LATENCY:
+                analytics = analyticsService.apiKeyHitsByLatency(
+                        apiKeyEntity.get().getKey(),
+                        analyticsParam.getFrom(),
+                        analyticsParam.getTo(),
+                        analyticsParam.getInterval());
+                break;
+            case HITS_BY_STATUS:
+                analytics = analyticsService.apiKeyHitsByStatus(
+                        apiKeyEntity.get().getKey(),
+                        analyticsParam.getFrom(),
+                        analyticsParam.getTo(),
+                        analyticsParam.getInterval());
+                break;
+        }
 
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response generateApiKey() {
-        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.EDIT_APPLICATION);
-        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_API);
-
-        ApiKeyEntity apiKeyEntity = apiKeyService.generate(applicationName, apiName);
-
-        return Response
-                .status(Response.Status.CREATED)
-                .entity(apiKeyEntity)
-                .build();
-    }
-
-    @DELETE
-    @Path("{apiKey}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response revokeApiKey(@PathParam("apiKey") String apiKey) {
-        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.EDIT_APPLICATION);
-
-        apiKeyService.revoke(apiKey);
-
-        return Response
-                .status(Response.Status.NO_CONTENT)
-                .build();
-    }
-
-    @Path("analytics")
-    public ApiKeyAnalyticsResource getApiKeyAnalyticsResource() {
-        return resourceContext.getResource(ApiKeyAnalyticsResource.class);
+        return Response.ok(analytics).build();
     }
 }
