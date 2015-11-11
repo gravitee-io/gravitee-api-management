@@ -8,3 +8,35 @@
 .landing-header-content ul li a {
 	color: #08c;
 }
+
+.section-main-header .section-title {
+    font-size: 44px;
+    color: #272727;
+    text-transform: uppercase;
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.section-main-header .section-title::before {
+    content: "";
+    position: absolute;
+    height: 1px;
+    background: #EBEBEB none repeat scroll 0% 0%;
+    margin-left: -70px;
+    left: 50%;
+    bottom: 0px;
+    width: 140px;
+}
+
+.section-main-header .section-title::after {
+    content: "";
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    bottom: -11px;
+    left: 50%;
+    margin-left: -12px;
+    border: 5px solid #FFF;
+    border-radius: 20px;
+    background: #45AED6 none repeat scroll 0% 0%;
+}

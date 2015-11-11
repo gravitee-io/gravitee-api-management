@@ -18,7 +18,7 @@
 <section layout="column">
 	<md-content>
 	  <section class="landing-header">
-			<img src="http://i.muskratmike.com/1638510.jpg" style="max-width: 100%;  height: auto;">
+			<div><img src="../../assets/images/landing-page-main-image.jpg" style="max-width: 100%;  height: auto;"></div>
 			<section class="landing-header-content" layout-padding style="text-align:center;">
 				<ul>
 					<li><a href="#/apis">Check out APIs <ng-md-icon icon="dashboard" style="fill:#08c;"></ng-md-icon></a></li>
@@ -28,7 +28,14 @@
 			</section>
 			<section id="apis" layout-padding>
 				<md-divider></md-divider>
-				<div style="text-align:center"><h3>APIs</h3></div>
+				<div class="section-main-header" style="text-align:center;">
+					<h2 style="visibility: visible; animation-name: fadeInDown;" class="section-title text-center wow fadeInDown animated">
+						API
+					</h2>
+					<p style="visibility: visible; animation-name: fadeInDown;" class="text-center wow fadeInDown animated">
+						Learn more about your APIs
+					</p>
+				</div>
 				<div layout="row" layout-wrap class="inset">
 					<div flex="33">
 						<md-card>
@@ -117,11 +124,7 @@
 		</div>
 		<div style="text-align:center;">
 			<ul class="pagination">
-				<li><a href="#">1</a></li>
-				<li><a href="#">2</a></li>
-				<li><a href="#">3</a></li>
-				<li><a href="#">4</a></li>
-				<li><a href="#">5</a></li>
+				<li><a href="#">...</a></li>
 			</ul>
 		</div>
 	</section>
