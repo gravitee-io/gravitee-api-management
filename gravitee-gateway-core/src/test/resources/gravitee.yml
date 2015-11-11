@@ -1,11 +1,6 @@
 
-
-node:
-  home: ${gravitee.home}
-
 plugins:
-  registry:
-    path: ${node.home}/io/gravitee/gateway/core/plugin/workspace
+  path: ${gravitee.home}/io/gravitee/gateway/core/plugin/workspace
 
 management:
   type: mock
