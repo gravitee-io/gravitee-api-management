@@ -36,13 +36,15 @@ public class ProxyValidator implements Validator {
             throw new ValidationException("An API must have a proxy part");
         }
 
-        if (proxyDefinition.getTarget() == null) {
+        if (proxyDefinition.getEndpoint() == null) {
             throw new ValidationException("An API must have a valid target");
         }
 
+        /*
         if (! urlValidator.isValid(proxyDefinition.getTarget().toString())) {
             throw new ValidationException("An API must have a valid target");
         }
+        */
 
         if (proxyDefinition.getContextPath() == null || proxyDefinition.getContextPath().matches(CONTEXT_PATH_PATTERN)) {
             throw new ValidationException("An API must have a valid context path");

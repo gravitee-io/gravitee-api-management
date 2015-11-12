@@ -26,6 +26,7 @@ import io.gravitee.gateway.api.http.client.AsyncResponseHandler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.api.policy.PolicyResult;
 import io.gravitee.gateway.core.definition.Api;
+import io.gravitee.gateway.core.endpoint.EndpointResolver;
 import io.gravitee.gateway.core.http.StringBodyPart;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
@@ -34,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -49,16 +51,23 @@ public class ApiReactorHandler extends ContextReactorHandler {
     @Autowired
     private HttpClient httpClient;
 
+    @Autowired
+    private EndpointResolver endpointResolver;
+
     @Override
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
         long proxyInvocationStart = System.currentTimeMillis();
 
         serverRequest.headers().set(GraviteeHttpHeader.X_GRAVITEE_API_NAME, api.getName());
 
-        // 1_ Calculate policies
+        // Calculate policies
         List<Policy> policies = getPolicyResolver().resolve(serverRequest);
 
-        // 2_ Apply serverRequest policies
+        // Resolve endpoint target
+        URI endpoint = endpointResolver.resolve(serverRequest);
+        serverResponse.metrics().setEndpoint(endpoint.toString());
+
+        // Apply serverRequest policies
         AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(policies);
         requestPolicyChain.setResultHandler(requestPolicyResult -> {
             if (requestPolicyResult.isFailure()) {
@@ -72,9 +81,9 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
                 handler.handle(serverResponse);
             } else {
-                // 3_ Call remote service
+                // Call remote endpoint
                 long serviceInvocationStart = System.currentTimeMillis();
-                httpClient.invoke(serverRequest, new AsyncResponseHandler() {
+                httpClient.invoke(serverRequest, endpoint, new AsyncResponseHandler() {
                     @Override
                     public void onStatusReceived(int status) {
                         serverResponse.status(status);
@@ -111,7 +120,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
                         fillMetrics(serverRequest, serverResponse);
 
-                        // 4_ Transfer the proxy response to the initial consumer
+                        // Transfer proxy response to the initial consumer
                         handler.handle(serverResponse);
                     }
                 });
@@ -156,10 +165,12 @@ public class ApiReactorHandler extends ContextReactorHandler {
         return api.getProxy().getContextPath();
     }
 
+    /*
     @Override
     public String getVirtualHost() {
         return api.getProxy().getTarget().getAuthority();
     }
+    */
 
     @Override
     protected void doStart() throws Exception {

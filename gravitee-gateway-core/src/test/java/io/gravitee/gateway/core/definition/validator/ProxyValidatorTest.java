@@ -19,8 +19,6 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.core.definition.Api;
 import org.junit.Test;
 
-import java.net.URI;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -37,23 +35,25 @@ public class ProxyValidatorTest {
         new ProxyValidator().validate(definition);
     }
 
+    /*
     @Test(expected = ValidationException.class)
     public void validate_proxy_badTarget() {
         Proxy proxyDefinition = new Proxy();
         proxyDefinition.setContextPath("/");
-        proxyDefinition.setTarget(URI.create("toto"));
+        proxyDefinition.setEndpoint("toto");
 
         Api definition = new Api();
         definition.setProxy(proxyDefinition);
 
         new ProxyValidator().validate(definition);
     }
+    */
 
     @Test
     public void validate_proxy_correctContextPathAndTarget() {
         Proxy proxyDefinition = new Proxy();
         proxyDefinition.setContextPath("/context-path");
-        proxyDefinition.setTarget(URI.create("http://localhost"));
+        proxyDefinition.setEndpoint("http://localhost");
 
         Api definition = new Api();
         definition.setProxy(proxyDefinition);

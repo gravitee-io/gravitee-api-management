@@ -48,12 +48,16 @@ public class VertxHttpClient extends AbstractHttpClient {
     private Vertx vertx;
 
     @Override
-    public void invoke(Request serverRequest, AsyncResponseHandler clientResponseHandler) {
-        URI rewrittenURI = rewriteURI(serverRequest);
+    public void invoke(Request serverRequest, URI endpointUri, AsyncResponseHandler clientResponseHandler) {
+        URI rewrittenURI = rewriteURI(serverRequest, endpointUri);
         String url = rewrittenURI.toString();
         LOGGER.debug("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), url);
 
-        HttpClientRequest clientRequest = httpClient.request(convert(serverRequest.method()), url,
+        HttpClientRequest clientRequest = httpClient.request(
+                convert(serverRequest.method()),
+                endpointUri.getPort(),
+                endpointUri.getHost(),
+                url,
                 clientResponse -> {
                     handleClientResponse(clientResponse, clientResponseHandler);
                 });
@@ -128,7 +132,7 @@ public class VertxHttpClient extends AbstractHttpClient {
             headerValues.getValue().forEach(headerValue -> httpClientRequest.putHeader(headerName, headerValue));
         }
 
-        httpClientRequest.putHeader(HttpHeaders.HOST, api.getProxy().getTarget().getHost());
+//        httpClientRequest.putHeader(HttpHeaders.HOST, api.getProxy().getTarget().getHost());
     }
 
     @Override
@@ -171,7 +175,7 @@ public class VertxHttpClient extends AbstractHttpClient {
 
     private void initialize(Proxy proxyDefinition) {
         Objects.requireNonNull(proxyDefinition, "Proxy must not be null");
-        Objects.requireNonNull(proxyDefinition.getTarget(), "Proxy target must not be null");
+        Objects.requireNonNull(proxyDefinition.getEndpoint(), "Proxy target must not be null");
 
         LOGGER.info("Initializing Vert.x HTTP Client with {}", proxyDefinition.getHttpClient());
 
@@ -181,12 +185,6 @@ public class VertxHttpClient extends AbstractHttpClient {
         options.setIdleTimeout(10);
         options.setConnectTimeout(5000);
         options.setMaxPoolSize(100);
-        options.setDefaultHost(proxyDefinition.getTarget().getHost());
-        int port = proxyDefinition.getTarget().getPort();
-
-        if (port != -1) {
-            options.setDefaultPort(port);
-        }
 
         httpClient = vertx.createHttpClient(options);
         LOGGER.info("Vert.x HTTP Client created {}", httpClient);

@@ -13,17 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api.http.client;
+package io.gravitee.gateway.core.endpoint;
 
-import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
 
-import java.net.URI;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface HttpClient extends LifecycleComponent<HttpClient> {
+public class WrappedRequestVariable {
 
-    void invoke(Request request, URI endpointUri, AsyncResponseHandler clientResponseHandler);
+    private final Request request;
+
+    public WrappedRequestVariable(Request request) {
+        this.request = request;
+    }
+
+    public String getId() {
+        return request.id();
+    }
+
+    public HttpHeaders getHeaders() {
+        return request.headers();
+    }
+
+    public Map<String, String> getParams() {
+        return request.parameters();
+    }
+
+    public String[] getPaths() {
+        return request.path().split("/");
+    }
 }

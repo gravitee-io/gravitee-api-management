@@ -52,11 +52,11 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
     @Resource
     protected Api api;
 
-    protected String rewriteTarget(Request request) {
+    protected String rewriteTarget(Request request, URI endpointUri) {
         final StringBuilder requestURI =
                 new StringBuilder(request.path())
                         .delete(0, api.getProxy().getContextPath().length())
-                        .insert(0, api.getProxy().getTarget().toString());
+                        .insert(0, endpointUri.toString());
 
         if (request.parameters() != null && ! request.parameters().isEmpty()) {
             requestURI.append('?');
@@ -78,8 +78,8 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
                 request.headers().getFirst(HttpHeaders.TRANSFER_ENCODING) != null;
     }
 
-    protected URI rewriteURI(Request request) {
-        String newTarget = rewriteTarget(request);
+    protected URI rewriteURI(Request request, URI endpointUri) {
+        String newTarget = rewriteTarget(request, endpointUri);
         return newTarget == null ? null : URI.create(newTarget);
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.reactor.handler.impl;
 
+import io.gravitee.gateway.core.endpoint.EndpointResolverFactory;
 import io.gravitee.gateway.core.http.spring.HttpClientConfiguration;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyFactory;
@@ -60,5 +61,10 @@ public class ApiHandlerConfiguration {
     @Bean
     public ContextReactorHandler handler() {
         return new ApiReactorHandler();
+    }
+
+    @Bean
+    public EndpointResolverFactory endpointResolverFactory() {
+        return new EndpointResolverFactory();
     }
 }

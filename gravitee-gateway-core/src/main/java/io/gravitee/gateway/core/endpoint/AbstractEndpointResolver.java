@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api.http.client;
+package io.gravitee.gateway.core.endpoint;
 
-import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.api.Request;
-
-import java.net.URI;
+import io.gravitee.gateway.core.definition.Api;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface HttpClient extends LifecycleComponent<HttpClient> {
+public abstract class AbstractEndpointResolver implements EndpointResolver {
 
-    void invoke(Request request, URI endpointUri, AsyncResponseHandler clientResponseHandler);
+    private final Api api;
+
+    protected AbstractEndpointResolver(Api api) {
+        this.api = api;
+    }
+
+    protected String getEndpoint() {
+        return api.getProxy().getEndpoint();
+    }
 }

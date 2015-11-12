@@ -78,7 +78,7 @@
     </dependencies>
 
     <properties>
-        <gravitee-definition.version>0.2.0</gravitee-definition.version>
+        <gravitee-definition.version>0.3.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>0.2.0</gravitee-common.version>
         <gravitee-repository.version>0.3.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-plugin-core.version>0.3.0-SNAPSHOT</gravitee-plugin-core.version>

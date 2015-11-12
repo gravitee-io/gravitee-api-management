@@ -54,6 +54,8 @@ public class Metrics {
 
     private long responseContentLength = -1;
 
+    private String endpoint;
+
     public Instant getRequestTimestamp() {
         return requestTimestamp;
     }
@@ -172,5 +174,13 @@ public class Metrics {
 
     public void setRequestId(String requestId) {
         this.requestId = requestId;
+    }
+
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
     }
 }

@@ -32,7 +32,7 @@ public class ProxyDefinitionBuilder {
     }
 
     public ProxyDefinitionBuilder target(String target) {
-        this.proxyDefinition.setTarget(URI.create(target));
+        this.proxyDefinition.setEndpoint(target);
         return this;
     }
 

@@ -47,11 +47,13 @@ public abstract class ContextReactorHandler extends AbstractReactorHandler imple
         return responsePolicyChainBuilder;
     }
 
+    /*
     public boolean hasVirtualHost() {
         return (getVirtualHost() != null && !getVirtualHost().isEmpty());
     }
 
-    public abstract String getContextPath();
-
     public abstract String getVirtualHost();
+    */
+
+    public abstract String getContextPath();
 }

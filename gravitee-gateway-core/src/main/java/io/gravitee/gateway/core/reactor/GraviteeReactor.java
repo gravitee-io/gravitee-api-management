@@ -45,7 +45,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -87,6 +86,11 @@ public class GraviteeReactor extends AbstractService implements
 
         if (! mapHandlers.isEmpty()) {
 
+            ContextReactorHandler handler = mapHandlers.iterator().next();
+            logger.debug("Returning the first handler matching path {} : {}", path, handler);
+            return handler;
+
+            /*
             // Sort valid handlers and push handler with VirtualHost first
             ContextReactorHandler[] sorted = new ContextReactorHandler[mapHandlers.size()];
             int idx = 0;
@@ -113,6 +117,7 @@ public class GraviteeReactor extends AbstractService implements
             ContextReactorHandler handler = mapHandlers.iterator().next();
             logger.debug("Returning the first handler matching path {} : {}", path, handler);
             return handler;
+            */
         }
 
         return notFoundHandler;
@@ -141,6 +146,7 @@ public class GraviteeReactor extends AbstractService implements
         }
     }
 
+    /*
     private String getHost(Request request) {
         String host = request.headers().getFirst(HttpHeaders.HOST);
         if (host == null || host.isEmpty()) {
@@ -149,6 +155,7 @@ public class GraviteeReactor extends AbstractService implements
             return host;
         }
     }
+    */
 
     @Override
     public void onEvent(Event<ApiEvent, Api> event) {

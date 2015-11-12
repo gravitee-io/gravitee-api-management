@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api.http.client;
+package io.gravitee.gateway.core.endpoint;
 
-import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.api.Request;
-
-import java.net.URI;
+import org.springframework.expression.ParserContext;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface HttpClient extends LifecycleComponent<HttpClient> {
+public class TemplateParserContext implements ParserContext {
 
-    void invoke(Request request, URI endpointUri, AsyncResponseHandler clientResponseHandler);
+    public String getExpressionPrefix() {
+        return "{";
+    }
+
+    public String getExpressionSuffix() {
+        return "}";
+    }
+
+    public boolean isTemplate() {
+        return true;
+    }
 }
