@@ -32,6 +32,8 @@ public class Api {
 
     private Map<String, Path> paths;
 
+    private Map<String, Object> properties;
+
     public String getName() {
         return name;
     }
@@ -64,6 +66,14 @@ public class Api {
         this.version = version;
     }
 
+    public Map<String, Object> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, Object> properties) {
+        this.properties = properties;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -84,7 +94,7 @@ public class Api {
         sb.append("name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", context_path='").append(proxy.getContextPath()).append('\'');
-        sb.append(", target='").append(proxy.getEndpoint()).append('\'');
+        sb.append(", endpoint='").append(proxy.getEndpoint()).append('\'');
         sb.append('}');
         return sb.toString();
     }

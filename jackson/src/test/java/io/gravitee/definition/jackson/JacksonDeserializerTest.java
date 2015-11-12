@@ -165,6 +165,36 @@ public class JacksonDeserializerTest {
         Assert.assertEquals(1, Methods.size());
     }
 
+    @Test
+    public void definition_apiWithoutProperties() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withoutproperties.json");
+        Map<String, Object> properties = api.getProperties();
+
+        Assert.assertNull(properties);
+    }
+
+    @Test
+    public void definition_apiWithEmptyProperties() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withemptyproperties.json");
+        Map<String, Object> properties = api.getProperties();
+
+        Assert.assertNotNull(properties);
+        Assert.assertTrue(properties.isEmpty());
+    }
+
+    @Test
+    public void definition_apiWithProperties() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withproperties.json");
+        Map<String, Object> properties = api.getProperties();
+
+        Assert.assertNotNull(properties);
+        Assert.assertEquals(3, properties.size());
+        Assert.assertEquals(properties.get("my_property"), true);
+        Assert.assertNotEquals(properties.get("my_property"), "true");
+        Assert.assertEquals(properties.get("my_property2"), 123);
+        Assert.assertEquals(properties.get("my_property3"), "text");
+    }
+
     private Api getDefinition(String resource) throws Exception {
         URL jsonFile = JacksonDeserializerTest.class.getResource(resource);
         return objectMapper().readValue(jsonFile, Api.class);

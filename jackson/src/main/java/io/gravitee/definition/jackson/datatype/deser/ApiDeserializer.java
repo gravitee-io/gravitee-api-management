@@ -81,6 +81,32 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
                 api.setPaths(paths);
         }
 
+        JsonNode propertiesNode = node.get("properties");
+        if (propertiesNode != null) {
+            Map<String, Object> properties = new HashMap<>();
+            propertiesNode.fields().forEachRemaining(jsonNode -> {
+                Object value = null;
+
+                if (jsonNode.getValue().isTextual()) {
+                    value = jsonNode.getValue().asText();
+                } else if (jsonNode.getValue().isBoolean()) {
+                    value = jsonNode.getValue().asBoolean();
+                } else if (jsonNode.getValue().isInt()) {
+                    value = jsonNode.getValue().asInt();
+                } else if (jsonNode.getValue().isLong()) {
+                    value = jsonNode.getValue().asLong();
+                } else if (jsonNode.getValue().isDouble()) {
+                    value = jsonNode.getValue().asDouble();
+                }
+
+                if (value != null) {
+                    properties.put(jsonNode.getKey(), value);
+                }
+            });
+
+            api.setProperties(properties);
+        }
+
         return api;
     }
 }
