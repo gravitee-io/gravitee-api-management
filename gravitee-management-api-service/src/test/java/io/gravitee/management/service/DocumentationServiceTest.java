@@ -78,7 +78,7 @@ public class DocumentationServiceTest {
         when(page2.getName()).thenReturn("Page 2");
         when(page1.getOrder()).thenReturn(1);
         when(page2.getOrder()).thenReturn(2);
-        when(pageRepository.findByApiName(API_NAME)).thenReturn(pages);
+        when(pageRepository.findByApi(API_NAME)).thenReturn(pages);
 
         final List<PageEntity> pageEntities = documentationService.findByApiName(API_NAME);
 
@@ -89,7 +89,7 @@ public class DocumentationServiceTest {
 
     @Test
     public void shouldNotFindByApiNameBecauseNotFound() throws TechnicalException {
-        when(pageRepository.findByApiName(API_NAME)).thenReturn(null);
+        when(pageRepository.findByApi(API_NAME)).thenReturn(null);
 
         final List<PageEntity> pageEntities = documentationService.findByApiName(API_NAME);
 
@@ -99,7 +99,7 @@ public class DocumentationServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByApiNameBecauseTechnicalException() throws TechnicalException {
-        when(pageRepository.findByApiName(API_NAME)).thenThrow(TechnicalException.class);
+        when(pageRepository.findByApi(API_NAME)).thenThrow(TechnicalException.class);
 
         documentationService.findByApiName(API_NAME);
     }

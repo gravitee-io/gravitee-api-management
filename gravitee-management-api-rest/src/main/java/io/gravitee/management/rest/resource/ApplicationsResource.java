@@ -15,18 +15,46 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.NewApplicationEntity;
+import io.gravitee.management.service.ApplicationService;
+
+import java.util.Set;
+
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Path("/applications")
-public class ApplicationsResource {
+public class ApplicationsResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
+    
+    @Inject
+    private ApplicationService applicationService;
+    
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<ApplicationEntity> all() {
+        return applicationService.findByUser(getAuthenticatedUser());
+    }
+    
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ApplicationEntity create(final NewApplicationEntity application) {
+    	return applicationService.createForUser(application, getAuthenticatedUser());
+    }
 
     @Path("{applicationName}")
     public ApplicationResource getApplicationResource() {

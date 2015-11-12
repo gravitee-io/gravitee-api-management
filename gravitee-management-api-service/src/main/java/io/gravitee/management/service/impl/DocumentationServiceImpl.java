@@ -16,19 +16,6 @@
 package io.gravitee.management.service.impl;
 
 import static java.util.Collections.emptyList;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.UpdatePageEntity;
@@ -40,6 +27,18 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageType;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Titouan COMPIEGNE
@@ -55,7 +54,7 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 	@Override
 	public List<PageEntity> findByApiName(String apiName) {
 		try {
-			final Set<Page> pages = pageRepository.findByApiName(apiName);
+			final Collection<Page> pages = pageRepository.findByApi(apiName);
 
 			if (pages == null || pages.isEmpty()) {
 				return emptyList();
