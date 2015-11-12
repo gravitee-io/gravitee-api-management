@@ -38,12 +38,13 @@ import DocumentationController from './documentation/documentation.controller';
 import DocumentationService from './documentation/documentation.service';
 import ProfileController from './profile/profile.controller';
 import ApplicationController from './application/application.controller';
+import ApplicationService from './application/application.service';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
 	'ngMdIcons', 'chart.js', 'ui.codemirror'])
   .constant('malarkey', malarkey)
   .constant('moment', moment)
-  .constant('baseURL', 'http://tests.gravitee.io/management/')
+  .constant('baseURL', 'http://localhost:8083/management/')
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -67,5 +68,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .service('DocumentationService', DocumentationService)
   .controller('ProfileController', ProfileController)
   .controller('ApplicationController', ApplicationController)
+	.service('ApplicationService', ApplicationService)
   .directive('graviteeNavbar', () => new NavbarDirective())
   .directive('filecontent', () => new DocumentationDirective());

@@ -15,12 +15,12 @@
     limitations under the License.
 
 -->
-  <md-dialog aria-label="Creation of a new API">
+  <md-dialog aria-label="Creation of a new application">
     <md-content class="md-padding">
-    <form name="formApi" ng-submit="create(api)" novalidate>
+    <form name="formApplication" ng-submit="create(application)" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
-          <h2>Creation of a new API</h2>
+          <h2>Creation of a new application</h2>
           <span flex></span>
           <md-button class="md-icon-button" ng-click="hide()">
             X
@@ -32,40 +32,22 @@
           <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
           <md-input-container>
             <label>Name *</label>
-            <input ng-model="api.name" required>
-          </md-input-container>
-				  <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
-          <md-input-container>
-            <label>Version *</label>
-            <input ng-model="api.version" required>
+            <input ng-model="application.name" required>
           </md-input-container>
         </div>
         <div layout="">
           <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
           <md-input-container>
             <label>Description *</label>
-            <input ng-model="api.description" required>
+            <input ng-model="application.description" required>
           </md-input-container>
         </div>
         <div layout="">
           <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
           <md-input-container>
-            <label>Public URI *</label>
-            <input ng-model="api.public" required>
+            <label>Type</label>
+            <input ng-model="application.type" required>
           </md-input-container>
-        </div>
-        <div layout="">
-          <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
-          <md-input-container>
-            <label>Target URI *</label>
-            <input ng-model="api.target" required>
-          </md-input-container>
-        </div>
-        <div layout="">
-          <md-icon md-svg-src="assets/images/icons/users.svg"></md-icon>
-          <md-select placeholder="Teams *" ng-model="team" required>
-            <md-option ng-repeat="team in teams" value="{{team.name}}">{{team.name}}</md-option>
-          </md-select>
         </div>
         <md-subheader class="md-warn" ng-bind="error"></md-subheader>
       </md-dialog-content>
@@ -74,7 +56,7 @@
         <md-button type="button" ng-click="hide()" class="md-primary">
           Cancel
         </md-button>
-        <md-button type="submit" class="md-primary" ng-disabled="formApi.$invalid">
+        <md-button type="submit" class="md-primary" ng-disabled="formApplication.$invalid">
           Create
         </md-button>
       </div>

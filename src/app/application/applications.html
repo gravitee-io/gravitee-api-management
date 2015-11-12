@@ -19,7 +19,7 @@
   <section class="content-header">
     <h1>
        Gravitee
-       <small>Applications Management (Stub version)</small>
+       <small>Applications Management</small>
     </h1>
     </section>  
 
@@ -29,37 +29,23 @@
 					<thead>
 						<tr>
 							<th>Name</th>
-							<th>Visibility</th>
-							<th>APIs</th>
+							<th>Type</th>
+							<th></th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
-							<td><a href="#/applications/application-1">Application 1</a></td>
-							<td>
-								<md-chips>
-									<md-chip>administrators</md-chip>
-									<md-chip>developers</md-chip>
-									<md-chip>guests</md-chip>
-								</md-chips>
-							</td>
-							<td><md-chips><md-chip>2</md-chip></md-chips></td>
-						</tr>
-						<tr>
-							<td><a href="#/applications/application-2">Application 2</a></td>
-							<td>
-								<md-chips>
-									<md-chip>administrators</md-chip>
-									<md-chip>developers</md-chip>
-									<md-chip>guests</md-chip>
-								</md-chips>
-							</td>
-							<td><md-chips><md-chip>3</md-chip></md-chips></td>
+						<tr ng-repeat="application in applicationCtrl.applications">
+							<td><a href="#/applications/{{application.name}}">{{application.name}}</a></td>
+							<td>{{application.type}}</td>
+							<td><md-button ng-click="applicationCtrl.delete(application.name)"><ng-md-icon icon="delete" style="fill:red;"></ng-md-icon></md-button></td>
 						</tr>
 					</tbody>
 				</table>
       </md-card-content>
     </md-card>
+		<md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="applicationCtrl.showAddApplicationModal($event)">
+    	<ng-md-icon icon="add"></ng-md-icon>
+  	</md-button>
   </section>
 </section>
 

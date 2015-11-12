@@ -14,8 +14,78 @@
  * limitations under the License.
  */
 class ApplicationController {
-  constructor() {
+  constructor($stateParams, $mdDialog, ApplicationService) {
+		'ngInject';
+		this.$stateParams = $stateParams;
+		this.$mdDialog = $mdDialog;
+		this.ApplicationService = ApplicationService;
+		this.applicationName = $stateParams.applicationName;
+		this.application = {};
+		this.applications = [];
+		
+		if (this.applicationName) {
+				this.get(this.applicationName); 
+		} else {
+			this.list();
+		}
+	}
+
+	get(name) {
+		this.ApplicationService.get(name).then(response => {
+      this.application = response.data;
+    });
   }
+	
+	list() {
+		this.ApplicationService.list().then(response => {
+			this.applications = response.data;		
+		});
+  }
+
+  update(application) {
+		this.ApplicationService.update(application).then(response => {
+			this.list();
+		});
+  }
+
+  delete(name) {
+		this.ApplicationService.delete(name).then(response => {
+			this.list();
+		});
+  }
+
+	showAddApplicationModal(ev) {
+    var that = this;
+    this.$mdDialog.show({
+      controller: DialogApplicationController,
+      templateUrl: 'app/application/application.dialog.html',
+      parent: angular.element(document.body),
+			targetEvent: ev,
+      clickOutsideToClose: true
+    }).then(function (application) {
+      if (application) {
+        that.list();
+      }
+    }, function() {
+       // You cancelled the dialog
+    });
+  }
+}
+
+function DialogApplicationController($scope, $mdDialog, ApplicationService) {
+  'ngInject';
+
+  $scope.hide = function () {
+     $mdDialog.cancel();
+  };
+
+  $scope.create = function (application) {
+    ApplicationService.create(application).then(function () {
+      $mdDialog.hide(application);
+    }).catch(function (error) {
+      $scope.error = error;
+    });
+  };
 }
 
 export default ApplicationController;

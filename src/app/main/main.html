@@ -20,11 +20,43 @@
 	  <section class="landing-header">
 			<div><img src="../../assets/images/landing-page-main-image.jpg" style="max-width: 100%;  height: auto;"></div>
 			<section class="landing-header-content" layout-padding style="text-align:center;">
-				<ul>
-					<li><a href="#/apis">Check out APIs <ng-md-icon icon="dashboard" style="fill:#08c;"></ng-md-icon></a></li>
-					<li><a href="#">Create your Application <ng-md-icon icon="my_library_add" style="fill:#08c;"></ng-md-icon></a></li>
-					<li><a href="#/static/documentation">Learn More <ng-md-icon icon="find_in_page" style="fill:#08c"></ng-md-icon></a></li>
-				</ul>
+				<div class="section-main-header" style="text-align:center;">
+					<h2 style="visibility: visible; animation-name: fadeInDown;" class="section-title text-center wow fadeInDown animated">
+						GET STARTED
+					</h2>
+				</div>
+				<div layout="row" layout-padding>
+          <div flex="33">
+            <div class="wow fadeInUp animated" data-wow-duration="400ms" data-wow-delay="0ms" style="visibility: visible; -webkit-animation: fadeInUp 400ms 0ms;">
+							<a href="#/apis">
+                <div class="icon-circle">
+                  <ng-md-icon icon="dashboard" style="fill:#08c;"></ng-md-icon>
+                </div>
+							</a>
+              <h3>Checkout APIs</h3>
+          </div>
+        </div>
+        <div flex="33">
+            <div class="wow fadeInUp animated" data-wow-duration="400ms" data-wow-delay="100ms" style="visibility: visible; -webkit-animation: fadeInUp 400ms 100ms;">
+							<a href="#">
+                <div class="icon-circle">
+                  <ng-md-icon icon="my_library_add" style="fill:#08c;"></ng-md-icon>
+                </div>
+							</a>
+              <h3>Create your application</h3>
+            </div>
+          </div>
+          <div flex="33">
+            <div class="wow fadeInUp animated" data-wow-duration="400ms" data-wow-delay="200ms" style="visibility: visible; -webkit-animation: fadeInUp 400ms 200ms;">
+							<a href="#/static/documentation">
+                <div class="icon-circle">
+                  <ng-md-icon icon="find_in_page" style="fill:#08c"></ng-md-icon>
+                </div>
+							</a>	
+              <h3>Learn more</h3>
+            </div>
+          </div>
+        </div>
 			</section>
 			<section id="apis" layout-padding>
 				<md-divider></md-divider>
@@ -37,46 +69,39 @@
 					</p>
 				</div>
 				<div layout="row" layout-wrap class="inset" ng-controller="ApiController as apiCtrl">
-					<div flex="33" ng-repeat="api in apiCtrl.apis">
-						<md-card class="api-box">
-							<div class="api-box-header" ng-style="{'background-color': apiCtrl.bgColorByIndex($index)}">
-								<h3>{{api.name}}</h3>
-								<h5>{{api.version}}</h5>
-							</div>
-							<div class="widget-user-image">
-            	</div>
-							<md-card-content>
-								<div class="row">
-                <div class="col-sm-4 border-right">
-                  <div class="description-block">
-                    <h5 class="description-header">0</h5>
-                    <span class="description-text">APPLICATIONS</span>
-                  </div>
-                </div>
-                <div class="col-sm-4 border-right">
-                  <div class="description-block">
-                    <h5 class="description-header">0</h5>
-                    <span class="description-text">LIKERS</span>
-                  </div>
-                </div>
-                <div class="col-sm-4">
-                  <div class="description-block">
-                    <h5 class="description-header">
-											<md-button ng-href="#/apis/sub">
-												<ng-md-icon icon="more_horiz" size="36" style="fill: #696969;"></ng-md-icon>
-											</md-button>
-										</h5>
-                  </div>
-                </div>
-              </div>
-						</md-card-content>
-					</md-card>
-    		</div>
-		</div>
-		<div style="text-align:center;">
-			<ul class="pagination">
-				<li><a href="#">...</a></li>
-			</ul>
+					<div class="apis-box" flex="33" ng-repeat="api in apiCtrl.apis">
+						<a href="#/apis/sub">
+							<md-card class="api-box">
+								<div class="api-box-header" ng-style="{'background-color': apiCtrl.bgColorByIndex($index)}">
+									<h3>{{api.name}}</h3>
+									<h5>{{api.version}}</h5>
+								</div>
+								<div class="widget-user-image">
+		          	</div>
+								<md-card-content>
+									<div layout="row">
+				            <div flex="50" class="border-right">
+				              <div class="description-block">
+				                <h5 class="description-header">0</h5>
+				                <span class="description-text">APPLICATIONS</span>
+				              </div>
+				            </div>
+				            <div flex="50">
+				              <div class="description-block">
+				                <h5 class="description-header">0</h5>
+				                <span class="description-text">LIKERS</span>
+				              </div>
+				            </div>
+		            	</div>
+								</md-card-content>
+							</md-card>
+						</a>
+    			</div>
+			</div>
+			<div style="text-align:center;">
+				<ul class="pagination">
+					<li><a href="#">...</a></li>
+				</ul>
 		</div>
 	</section>
  </section>
