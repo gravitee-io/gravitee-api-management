@@ -15,8 +15,6 @@
  */
 package io.gravitee.definition.model;
 
-import java.net.URI;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author Gravitee.io Team
@@ -25,7 +23,7 @@ public class Proxy {
 
     private String contextPath;
 
-    private URI target;
+    private String endpoint;
 
     private boolean stripContextPath = false;
 
@@ -39,12 +37,12 @@ public class Proxy {
         this.contextPath = contextPath;
     }
 
-    public URI getTarget() {
-        return target;
+    public String getEndpoint() {
+        return endpoint;
     }
 
-    public void setTarget(URI target) {
-        this.target = target;
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
     }
 
     public boolean isStripContextPath() {

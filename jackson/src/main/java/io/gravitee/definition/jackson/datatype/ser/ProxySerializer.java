@@ -37,9 +37,9 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
     public void serialize(Proxy proxy, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("context_path", proxy.getContextPath());
-        final URI target = proxy.getTarget();
-        if (target != null) {
-            jgen.writeObjectField("target", target.toString());
+        final String endpoint = proxy.getEndpoint();
+        if (endpoint != null) {
+            jgen.writeStringField("endpoint", endpoint);
         }
         jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
         jgen.writeEndObject();

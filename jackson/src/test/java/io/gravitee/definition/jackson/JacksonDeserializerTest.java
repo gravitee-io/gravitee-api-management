@@ -41,7 +41,7 @@ public class JacksonDeserializerTest {
     public void definition_defaultHttpConfig() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-defaulthttpconfig.json");
 
-        Assert.assertEquals(URI.create("http://localhost:1234"), api.getProxy().getTarget());
+        Assert.assertEquals("http://localhost:1234", api.getProxy().getEndpoint());
         Assert.assertNull(api.getProxy().getHttpClient());
     }
 
@@ -49,7 +49,7 @@ public class JacksonDeserializerTest {
     public void definition_overridedHttpConfig() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-overridedhttpconfig.json");
 
-        Assert.assertEquals(URI.create("http://localhost:1234"), api.getProxy().getTarget());
+        Assert.assertEquals("http://localhost:1234", api.getProxy().getEndpoint());
         Assert.assertTrue(api.getProxy().getHttpClient().isUseProxy());
 
         Assert.assertNotNull(api.getProxy().getHttpClient().getHttpProxy());

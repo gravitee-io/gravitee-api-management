@@ -15,15 +15,14 @@
  */
 package io.gravitee.definition.jackson.datatype.deser;
 
-import java.io.IOException;
-import java.net.URI;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.HttpClient;
 import io.gravitee.definition.model.Proxy;
+
+import java.io.IOException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -46,9 +45,9 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             proxy.setContextPath(contextPath.asText());
         }
 
-        final JsonNode target = node.get("target");
-        if (target != null) {
-            proxy.setTarget(URI.create(target.asText()));
+        final JsonNode endpoint = node.get("endpoint");
+        if (endpoint != null) {
+            proxy.setEndpoint(endpoint.asText());
         }
 
         JsonNode stripContextNode = node.get("strip_context_path");

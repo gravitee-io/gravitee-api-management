@@ -3,7 +3,7 @@
 
   "proxy": {
     "context_path": "/my-api",
-    "target": "http://localhost:1234",
+    "endpoint": "http://localhost:1234",
     "strip_context_path": false
   },
 
