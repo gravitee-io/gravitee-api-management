@@ -36,26 +36,10 @@
 				  </tr>
         </thead>
         <tbody>
-					<tr>
-				    <td><a ng-href="#/apis/stub">API Stub name</a></td>
-				    <td>/api_stubs</td>
-				    <td>http://api/api_stub/v1</td>
-				    <td>STARTED</td>
-				    <td>
-        			<div>
-          			<md-button class="md-raised md-warn" ng-click="apiCtrl.stop(api.name)">Stop</md-button>
-        			</div>
-      			</td>
-      			<td>
-        			<div>
-								<ng-md-icon class="md-raised md-warn" ng-click="apiCtrl.delete(api.name)" icon="delete" size="32" style="fill: red;"></ng-md-icon>
-        			</div>
-      			</td>
-					</tr>
 				  <tr ng-repeat="api in apiCtrl.apis">
 				    <td><a ng-bind="api.name" ng-href="#/api/{{api.name}}"></a></td>
-				    <td ng-bind="api.public"></td>
-				    <td><a ng-bind="api.target" ng-href="{{api.target}}" target="_blank"></a></td>
+				    <td ng-bind="api.proxy.context_path"></td>
+				    <td><a ng-bind="api.proxy.target" ng-href="{{api.proxy.target}}" target="_blank"></a></td>
 				    <td ng-bind="api.state"></td>
 				    <td ng-switch="api.state">
         			<div ng-switch-when="STARTED">
@@ -73,7 +57,7 @@
 					</tr>
         </tbody>
 		</table>
-    </md-card-content>
+    </md-card-content>  
   </md-card>  
 
   <md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="apiCtrl.showAddApiModal()">
