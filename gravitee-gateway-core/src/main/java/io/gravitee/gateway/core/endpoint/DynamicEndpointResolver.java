@@ -51,6 +51,8 @@ public class DynamicEndpointResolver extends AbstractEndpointResolver {
             context = new StandardEvaluationContext();
             expression = new SpelExpressionParser().
                     parseExpression(endpoint, new TemplateParserContext());
+
+            context.setVariable("properties", api.getProperties());
         } catch (ParseException pe) {
                 logger.error("An error occurs while parsing expression for dynamic endpoint", pe);
             throw new IllegalStateException("Unable to parse expression for dynamic endpoint: " + endpoint);

@@ -22,7 +22,7 @@ import io.gravitee.gateway.core.definition.Api;
  */
 public abstract class AbstractEndpointResolver implements EndpointResolver {
 
-    private final Api api;
+    protected final Api api;
 
     protected AbstractEndpointResolver(Api api) {
         this.api = api;

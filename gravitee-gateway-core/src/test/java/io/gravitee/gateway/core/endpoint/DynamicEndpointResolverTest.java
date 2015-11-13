@@ -67,7 +67,7 @@ public class DynamicEndpointResolverTest {
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
-        Assert.assertEquals(endpointUri.toString(), "http://my_api_host:9099/weather");
+        Assert.assertEquals("http://my_api_host:9099/weather", endpointUri.toString());
     }
 
     @Test
@@ -82,7 +82,7 @@ public class DynamicEndpointResolverTest {
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
-        Assert.assertEquals(endpointUri.toString(), "http://remote_api:9099/weather/prod");
+        Assert.assertEquals("http://remote_api:9099/weather/prod", endpointUri.toString());
     }
 
     @Test
@@ -93,7 +93,7 @@ public class DynamicEndpointResolverTest {
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
-        Assert.assertEquals(endpointUri.toString(), "http://store_99_host:9099/weather");
+        Assert.assertEquals("http://store_99_host:9099/weather", endpointUri.toString());
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
@@ -104,7 +104,7 @@ public class DynamicEndpointResolverTest {
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
-        Assert.assertEquals(endpointUri.toString(), "http://store_99_host:9099/weather");
+        Assert.assertEquals("http://store_99_host:9099/weather", endpointUri.toString());
     }
 
     @Test
@@ -128,6 +128,58 @@ public class DynamicEndpointResolverTest {
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
-        Assert.assertEquals(endpointUri.toString(), "http://my_api_host:9099/weather");
+        Assert.assertEquals("http://my_api_host:9099/weather", endpointUri.toString());
+    }
+
+    @Test
+    public void test_dynamicEndpoint_usingProperties() {
+        final Map<String, Object> properties = new HashMap<>();
+        properties.put("property_1", "value1");
+
+        when(api.getProxy()).thenReturn(proxy);
+        when(api.getProperties()).thenReturn(properties);
+        when(proxy.getEndpoint()).thenReturn("http://my_api_host:9099/weather/{#properties['property_1']}");
+
+        URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
+        Assert.assertNotNull(endpointUri);
+        Assert.assertEquals("http://my_api_host:9099/weather/value1", endpointUri.toString());
+    }
+
+    @Test
+    public void test_dynamicEndpoint_usingNullProperties() {
+        when(api.getProxy()).thenReturn(proxy);
+        when(proxy.getEndpoint()).thenReturn("http://my_api_host:9099/weather/{#properties['property_1']}");
+
+        URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
+        Assert.assertNotNull(endpointUri);
+        Assert.assertEquals("http://my_api_host:9099/weather/", endpointUri.toString());
+    }
+
+    @Test
+    public void test_dynamicEndpoint_usingUnknownProperty() {
+        final Map<String, Object> properties = new HashMap<>();
+
+        when(api.getProxy()).thenReturn(proxy);
+        when(api.getProperties()).thenReturn(properties);
+        when(proxy.getEndpoint()).thenReturn("http://my_api_host:9099/weather/{#properties['property_1']}");
+
+        URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
+        Assert.assertNotNull(endpointUri);
+        Assert.assertEquals("http://my_api_host:9099/weather/", endpointUri.toString());
+    }
+
+    @Test
+    public void test_dynamicEndpoint_usingPropertyAndPath() {
+        final Map<String, Object> properties = new HashMap<>();
+        properties.put("store_99", "host_store_xxx");
+
+        when(request.path()).thenReturn("/stores/99/products/123456");
+        when(api.getProxy()).thenReturn(proxy);
+        when(proxy.getEndpoint()).thenReturn("http://{#properties['store_' + #request.paths[2]]}:9099/weather");
+        when(api.getProperties()).thenReturn(properties);
+
+        URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
+        Assert.assertNotNull(endpointUri);
+        Assert.assertEquals("http://host_store_xxx:9099/weather", endpointUri.toString());
     }
 }
