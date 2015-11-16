@@ -44,7 +44,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
 	'ngMdIcons', 'chart.js', 'ui.codemirror'])
   .constant('malarkey', malarkey)
   .constant('moment', moment)
-  .constant('baseURL', 'http://tests.gravitee.io/management/')
+  .constant('baseURL', 'http://localhost:8083/management/')
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)

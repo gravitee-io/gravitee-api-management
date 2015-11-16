@@ -15,52 +15,175 @@
     limitations under the License.
 
 -->
-<section class="jumbotron">
-    <h1>Management of API '{{apiCtrl.api.name}}'</h1>
+<section>
+  <section class="content-header">
+    <h1>
+       Gravitee
+       <small>API Management</small>
+    </h1>
+	</section>
 
-    <div>
-        <div class="gravitee-policies-container" layout="">
-            <div class="gravitee-policy-container" ng-repeat="(type, policies) in apiCtrl.policies" ng-include="'app/policy/policy.html'"></div>
-        </div>
-        <table class="gravitee-flow-container gravitee-table">
-            <tr>
-                <th>Public URI</th>
-                <th>--></th>
-                <th>Request</th>
-                <th>--></th>
-                <th>Target URI</th>
-            </tr>
-            <tr>
-                <td class="gravitee-flow-link-container">
-                    <div class="gravitee-flow-link">
-                        <span>{{apiCtrl.api.public}}</span>
-                    </div>
-                </td>
-                <td class="gravitee-flow-inbound">
-                </td>
-                <td class="gravitee-policy-container">
-                    <div ng-repeat="policies in apiCtrl.api.policies" ng-include="'app/policy/policy.html'"></div>
-                </td>
-                <td class="gravitee-flow-outbound">
-                </td>
-                <td class="gravitee-flow-link-container">
-                    <div class="gravitee-flow-link">
-                        <a href="{{apiCtrl.api.target}}" target="_blank">{{apiCtrl.api.target}}</a>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <th></th>
-                <th><--</th>
-                <th>Response</th>
-                <th><--</th>
-                <th></th>
-            </tr>
-        </table>
+	<md-card>
+		<md-card-content>
+			<md-tabs class="md-primary" md-dynamic-height md-border-bottom>
+		    <md-tab label="dashboard">
+		      <md-content class="md-padding">
+		        <h1 class="md-display-1">{{apiCtrl.api.name}}</h1>
+						<md-divider></md-divider>
+		        <p class="inset">{{apiCtrl.api.description}}</p>
+						<md-card>
+							<md-card-content>
+								<h5>Reports (Stub)</h5>
+								<md-divider></md-divider>
+								<div class="column">
+									<div class="chart" layout="row" flex>
+										<div flex="70">
+											<canvas id="line" class="chart chart-line" chart-data="data"
+													chart-labels="labels" chart-legend="true" chart-series="series"
+													chart-click="onClick" >
+											</canvas>
+										</div>
+										<div flex="30">
+											<canvas id="pie" class="chart chart-pie"
+											  chart-data="dataPie" chart-labels="labelsPie" chart-legend="true">
+											</canvas>
+										</div>
+									</div>
+									<div class="chart" layout="row" flex>
+										<div flex="33">
+											<canvas id="radar" class="chart chart-radar"
+											  chart-data="data" chart-labels="labels">
+											</canvas>
+										</div>
+										<div flex="33">
+											<canvas id="polar-area" class="chart chart-polar-area"
+											  chart-data="dataPie" chart-labels="labelsPie">
+											</canvas>
+										</div>
+										<div flex="33">
+											<canvas id="doughnut" class="chart chart-doughnut"
+											  chart-data="dataPie" chart-labels="labelsPie">
+											</canvas>
+										</div>
+									</div>
+								</div>
+							</md-card-content>
+						</md-card>
+		      </md-content>
+		    </md-tab>
+				<md-tab label="policies">
+					<md-content>
+						<div layout="row">
+							<div flex="30">
+								<md-card>
+									<div class="inset">
+										<h5>Policies</h5>
+										<md-divider></md-divider>
+									</div>
+									<md-card-content>
+										<md-list>
+											<md-list-item class="md-2-line">
+												<div class="md-list-item-text">
+													<h3>Basic Authentication</h3>
+												</div>
+											</md-list-item>
+											<md-list-item class="md-2-line">
+												<div class="md-list-item-text">
+													<h3>API Key Authentication</h3>
+												</div>
+											</md-list-item>
+											<md-list-item class="md-2-line">
+												<div class="md-list-item-text">
+													<h3>CORS</h3>
+												</div>
+											</md-list-item>
+											<md-list-item class="md-2-line">
+												<div class="md-list-item-text">
+													<h3>Rate limit</h3>
+												</div>
+											</md-list-item>
+										</md-list>
+									</md-card-content>
+								</md-card>
+							</div>
+							<div flex="70">
+								<md-card>
+									<div class="inset">
+										<h5>API Policies</h5>
+										<md-divider></md-divider>
+									</div>
+									<md-card-content>
+										<div style="background-color: #eee; min-height:450px; text-align:center">
+											<span style="vertical-align:middle;"><ng-md-icon icon="add"></ng-md-icon>DROP POLICY</span>
+										</div>
+									</md-card-content>
+								</md-card>
+							</div>
+						</div>
+					</md-content>
+				</md-tab>
+		     <md-tab label="documentation">
+		      <md-content>
+				<div layout="row" ng-controller="DocumentationController as documentationCtrl">
+					<md-list layout="column" class="inset" flex="20">
+						<md-button class="md-fab md-mini md-primary" aria-label="Add" ng-click="documentationCtrl.showNewPageDialog()">
+							<ng-md-icon icon="add"></ng-md-icon>
+						</md-button>
+						<md-divider></md-divider>
+						<md-item ng-repeat="p in documentationCtrl.pages">
+					   <a href="#" style="color: #666;">
+						 <md-item-content md-ink-ripple layout="row" layout-align="start center">
+						   <div class="inset">
+							 <ng-md-icon icon="insert_drive_file"></ng-md-icon>
+						   </div>
+							 <md-button class="inset" ng-click="documentationCtrl.selectPage(p)" ng-class="{'selected' : p === documentationCtrl.selected }">
+								 {{p.title}}
+							 </md-button>
+						 </md-item-content>
+					  </a>
+					</md-item>
+					</md-list>
+					<md-content flex="80">
+						<md-card style="box-shadow:none;">
+							<div style="border: 1px solid #e7eaec; border-bottom: 0; padding: 30px 20px 20px;">
+								<div layout="column">
+									<h3 style="color: #676a6c; clear:both;">{{documentationCtrl.selected.title}}</h3>
+									<div class="documentation-tool-bar">
+										<md-button ng-show="!documentationCtrl.editMode" ng-click="documentationCtrl.edit()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Edit"><ng-md-icon icon="mode_edit" size="16"></ng-md-icon></md-button>
+										<md-button ng-show="documentationCtrl.editMode" ng-click="documentationCtrl.editPage()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Save"><ng-md-icon icon="save" size="16"></ng-md-icon></md-button>
+										<md-button ng-click="documentationCtrl.deletePage()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Delete"><ng-md-icon icon="delete" size="16"></ng-md-icon></md-button>
+									</div>
+								</div>
+							</div>
+							<md-card-content style="background-color: #fff; border: 1px solid #e7eaec">
 
-    </div>
+								<div ng-show="!documentationCtrl.editMode">
+									<div ng-if="documentationCtrl.markdownType()" btf-markdown="documentationCtrl.selected.content">
+									</div>
 
-    <form name="formApi" class="gravitee-api-container" ng-submit="apiCtrl.update(apiCtrl.api)" novalidate>
+									<raml-console ng-if="documentationCtrl.ramlType()" src="{{documentationCtrl.getContentUrl()}}"
+												  disable-title disable-theme-switcher disable-raml-client-generator>
+									</raml-console>
+
+									<div ng-if="documentationCtrl.swaggerType()" swagger-ui url="documentationCtrl.getContentUrl()" api-explorer="true">
+									</div>
+								</div>
+
+								<div ng-show="documentationCtrl.editMode">
+									<div ui-codemirror ui-codemirror-opts="documentationCtrl.editorOptions" ng-model="documentationCtrl.selected.content"></div>
+								</div>
+							</md-card-content>
+						</md-card>
+					</md-content>
+				</div>
+		      </md-content>
+		    </md-tab>
+				<md-tab label="settings">
+		      <md-content class="md-padding">
+		        <h1 class="md-display-1">Settings</h1>
+		       	<md-card>
+							<md-card-content>
+								    <form name="formApi" class="md-inline-form" ng-submit="apiCtrl.update(apiCtrl.api)" novalidate>
 
         <div layout="" layout-sm="column">
             <md-input-container class="flex md-icon-float">
@@ -70,7 +193,7 @@
 
             <md-input-container class="flex md-icon-float">
                 <label>Public URI</label>
-                <input ng-model="apiCtrl.api.public" type="text" ng-required="true">
+                <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-required="true">
             </md-input-container>
         </div>
         <div layout="" layout-sm="column">
@@ -81,7 +204,7 @@
 
             <md-input-container class="flex md-icon-float">
                 <label>Target URI</label>
-                <input ng-model="apiCtrl.api.target" type="text" ng-required="true">
+                <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
             </md-input-container>
         </div>
         <div layout="" layout-sm="column">
@@ -91,10 +214,46 @@
             </md-input-container>
 
             <md-input-container class="flex md-icon-float">
-                <label>Private</label>
-                <input ng-model="apiCtrl.api.private" type="checkbox">
+							<md-checkbox ng-model="apiCtrl.api.private" aria-label="Private?">
+  							is Private ?
+							</md-checkbox>
             </md-input-container>
+
+						<md-input-container class="flexx md-icon-float">
+							<md-checkbox ng-model="apiCtrl.api.proxy.strip_context_path" aria-label="Strip context path?">
+  							Strip context path ?
+							</md-checkbox>
+						</md-input-container>
         </div>
+				<div layout="" layout-sm="column">
+			 		<md-input-container class="flex md-icon-float">
+        	  <md-switch class="md-primary md-block" md-no-ink aria-label="Switch No Ink" ng-model="apiCtrl.api.proxy.http_client.use_proxy">
+							HTTP PROXY
+						</md-switch>
+          </md-input-container>
+				</div>
+
+				<div layout="" layout-sm="column" ng-show="apiCtrl.api.proxy.http_client.use_proxy">
+		 		 	<md-input-container class="flex md-icon-float">
+            <label>HOST</label>
+            <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.host" type="text">
+          </md-input-container>
+
+      	  <md-input-container class="flex md-icon-float">
+            <label>PORT</label>
+            <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.port" type="text">
+          </md-input-container>
+
+					<md-input-container class="flex md-icon-float">
+            <label>USERNAME</label>
+            <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.principal" type="text">
+          </md-input-container>
+
+      	  <md-input-container class="flex md-icon-float">
+            <label>PASSWORD</label>
+            <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.password" type="password">
+          </md-input-container>
+				</div>
 
         <div class="md-actions gravitee-api-save-button" layout="row">
             <md-button type="submit" class="md-primary" ng-disabled="formApi.$invalid || formApi.$pristine">
@@ -102,4 +261,11 @@
             </md-button>
         </div>
     </form>
+							</md-card-content>
+						</md-card>
+		      </md-content>
+		    </md-tab>
+		  </md-tabs>
+		</md-card-content>
+	</md-card>
 </section>

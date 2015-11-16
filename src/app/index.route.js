@@ -40,14 +40,8 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiController',
       controllerAs: 'apiCtrl'
     })
-		.state('apiStub', {
+		.state('api', {
       url: '/apis/:apiName',
-      templateUrl: 'app/api/api_stub.html',
-      controller: 'ApiController',
-      controllerAs: 'apiCtrl'
-    })
-    .state('api', {
-      url: '/api/:apiName',
       templateUrl: 'app/api/api.html',
       controller: 'ApiController',
       controllerAs: 'apiCtrl'

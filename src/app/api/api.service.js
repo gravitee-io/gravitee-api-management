@@ -48,7 +48,7 @@ class ApiService {
 
   update(api) {
     return this.$http.put(this.apisURL + api.name,
-      {'target': api.target, 'private': api.private, 'version': api.version, 'public': api.public, 'description': api.description}
+      {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private }
     );
   }
 

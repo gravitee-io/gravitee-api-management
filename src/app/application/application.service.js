@@ -17,6 +17,7 @@ class ApplicationService {
   constructor($http, baseURL) {
 		'ngInject';
     this.$http = $http;
+		this.baseURL = baseURL;
     this.applicationsURL = baseURL + 'applications/';
   }
 
@@ -25,11 +26,11 @@ class ApplicationService {
   }
 	
 	list() {
-    return this.$http.get(this.applicationsURL);
+    return this.$http.get(this.baseURL + 'user/applications/');
   }
 
 	create(application) {
-    return this.$http.post(this.applicationsURL, application);
+    return this.$http.post(this.baseURL + 'user/applications/', application);
   }
 
   update(application) {

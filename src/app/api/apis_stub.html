@@ -24,7 +24,7 @@
 	</section>
 	<div layout="row" layout-wrap class="inset">
 		<div class="apis-box" flex="33" ng-repeat="api in apiCtrl.apis">
-			<a href="#/apis/sub">
+			<a href="#/apis/{{api.name}}">
 				<md-card class="api-box">
 					<div class="api-box-header" ng-style="{'background-color': apiCtrl.bgColorByIndex($index)}">
 						<h3>{{api.name}}</h3>

@@ -37,9 +37,9 @@
         </thead>
         <tbody>
 				  <tr ng-repeat="api in apiCtrl.apis">
-				    <td><a ng-bind="api.name" ng-href="#/api/{{api.name}}"></a></td>
+				    <td><a ng-bind="api.name" ng-href="#/apis/{{api.name}}"></a></td>
 				    <td ng-bind="api.proxy.context_path"></td>
-				    <td><a ng-bind="api.proxy.target" ng-href="{{api.proxy.target}}" target="_blank"></a></td>
+				    <td><a ng-bind="api.proxy.endpoint" ng-href="{{api.proxy.endpoint}}" target="_blank"></a></td>
 				    <td ng-bind="api.state"></td>
 				    <td ng-switch="api.state">
         			<div ng-switch-when="STARTED">
