@@ -26,6 +26,10 @@ class TeamService {
     return this.$http.get(this.userURL + 'teams');
   }
 
+	get(name) {
+		return this.$http.get(this.teamsURL + name);
+	}
+
   create(team) {
     return this.$http.post(this.teamsURL, team);
   }
@@ -33,6 +37,22 @@ class TeamService {
   update(team) {
     return this.$http.put(this.teamsURL + team.name, {description: team.description, email: team.email});
   }
+
+	listMembers(teamName) {
+		return this.$http.get(this.teamsURL + teamName + '/members');
+	}
+
+	listApis(teamName) {
+		return this.$http.get(this.teamsURL + teamName + '/apis');
+	}
+
+	listApplications(teamName) {
+		return this.$http.get(this.teamsURL + teamName + '/applications');
+	}
+
+	addMember(team, username) {
+		return this.$http.put(this.teamsURL + team.name + '/members/' + username);
+	}
 }
 
 export default TeamService;

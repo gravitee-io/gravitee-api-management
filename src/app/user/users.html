@@ -35,7 +35,7 @@
 				</thead>
         <tbody>
 					<tr ng-repeat="team in userCtrl.teams">
-						<td><a ng-bind="team.name" ng-click="userCtrl.showSaveTeamModal(team)" href></a></td>
+						<td><a ng-bind="team.name" href="#/teams/{{team.name}}"></a></td>
 						<td ng-bind="team.description"></td>
 						<td ng-bind="team.email"></td>
 					</tr>

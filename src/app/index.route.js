@@ -46,15 +46,15 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiController',
       controllerAs: 'apiCtrl'
     })
-    .state('users', {
-      url: '/users',
-      templateUrl: 'app/user/users_stub.html',
-      controller: 'UserController',
-      controllerAs: 'userCtrl'
-    })
     .state('teams', {
       url: '/teams',
       templateUrl: 'app/user/users.html',
+      controller: 'UserController',
+      controllerAs: 'userCtrl'
+    })
+		.state('team', {
+      url: '/teams/:teamName',
+      templateUrl: 'app/user/team.html',
       controller: 'UserController',
       controllerAs: 'userCtrl'
     })

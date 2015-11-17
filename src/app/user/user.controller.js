@@ -15,12 +15,19 @@
  */
 /* global document:false */
 class UserController {
-  constructor(UserService, TeamService, $mdDialog) {
+  constructor(UserService, TeamService, $mdDialog, $stateParams) {
     'ngInject';
     this.UserService = UserService;
     this.TeamService = TeamService;
-    this.listTeams();
     this.$mdDialog = $mdDialog;
+		if ($stateParams.teamName) {
+      this.getTeam($stateParams.teamName);
+			this.listTeamMembers($stateParams.teamName);
+			this.listTeamApis($stateParams.teamName);
+			this.listTeamApplications($stateParams.teamName);
+    } else {
+       this.listTeams();
+    }
   }
 
   get(code) {
@@ -28,6 +35,30 @@ class UserController {
       this.user = response.data;
     });
   }
+
+	getTeam(name) {
+		this.TeamService.get(name).then(response => {
+			this.team = response.data;
+		});
+	}
+
+	listTeamMembers(teamName) {
+		this.TeamService.listMembers(teamName).then(response => {
+			this.teamMembers = response.data;
+		});
+	}
+
+  listTeamApis(teamName) {
+		this.TeamService.listApis(teamName).then(response => {
+			this.teamApis = response.data;		
+		});
+	}
+
+	listTeamApplications(teamName) {
+		this.TeamService.listApplications(teamName).then(response => {
+			this.teamApplications = response.data;		
+		});
+	}
 
   listTeams() {
     this.TeamService.list().then(response => {
@@ -40,6 +71,12 @@ class UserController {
       this.users = response.data;
     });
   }
+
+	updateTeam(team) {
+		this.TeamService.update(team).then(response => {
+			NotificationService.show('Team updated with success!');
+		});
+	}
 
   showAddUserModal(user) {
     var that = this;
@@ -65,6 +102,18 @@ class UserController {
       that.listTeams();
     });
   }
+
+	showAddMemberModal(team) {
+		var that = this;
+		this.$mdDialog.show({
+      controller: DialogAddMemberController,
+      templateUrl: 'app/user/teamAddMember.dialog.html',
+      parent: angular.element(document.body),
+      team: team,
+    }).then(function () {
+      that.list();
+    });
+	}
 }
 
 function DialogTeamController($scope, $mdDialog, TeamService, team, NotificationService) {
@@ -81,7 +130,7 @@ function DialogTeamController($scope, $mdDialog, TeamService, team, Notification
     var save = $scope.creationMode ? TeamService.create(team) : TeamService.update(team);
     save.then(function () {
       NotificationService.show($scope.creationMode ? 'Team created with success!' : 'Team updated with success!');
-
+			
       $mdDialog.hide();
     });
   };
@@ -107,6 +156,35 @@ function DialogUserController($scope, $mdDialog, UserService, user, roles) {
     }).catch(function (error) {
       $scope.error = error;
     });
+  };
+}
+
+function DialogAddMemberController($scope, $mdDialog, TeamService, UserService, team) {
+	'ngInject';
+	$scope.team = team;
+	$scope.member = {};
+	$scope.query = "";
+
+	$scope.searchUsers = function() {
+		UserService.get($scope.query).then(function(response) {
+			$scope.member = response.data;
+			$scope.query = "";
+		}).catch(function (error) {
+			$scope.error = error;
+			$scope.query = "";
+		});
+	};
+
+	$scope.addMember = function(team) {
+		TeamService.addMember(team, $scope.member.username).then(function(response) {
+			NotificationService.show('Member added successfully');
+			$mdDialog.hide();
+		}).catch(function (error) {
+			NotificationService.show('Error while adding member to the team');
+		});
+	}
+	$scope.cancel = function () {
+    $mdDialog.cancel();
   };
 }
 
