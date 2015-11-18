@@ -33,6 +33,7 @@ import org.junit.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLDecoder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -50,7 +51,7 @@ public class ContainerTest {
     @BeforeClass
     public static void setUp() throws Exception {
         URL home = ContainerTest.class.getResource("/gravitee-01/");
-        System.setProperty("gravitee.home", home.getPath());
+        System.setProperty("gravitee.home", URLDecoder.decode(home.getPath(), "UTF-8"));
 
         node = new Container();
         node.start();

@@ -28,7 +28,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import java.net.URL;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -40,11 +41,15 @@ public abstract class AbstractCoreTest implements ApplicationContextAware {
     protected ApplicationContext applicationContext;
 
     public AbstractCoreTest() {
-        System.setProperty("gravitee.home",
-                AbstractCoreTest.class.getResource("/").getPath());
+        try {
+            System.setProperty("gravitee.home",
+                    URLDecoder.decode(AbstractCoreTest.class.getResource("/").getPath(), "UTF-8"));
 
         System.setProperty("gravitee.conf",
-                AbstractCoreTest.class.getResource("/gravitee.yml").getPath());
+                URLDecoder.decode(AbstractCoreTest.class.getResource("/gravitee.yml").getPath(), "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     @Configuration

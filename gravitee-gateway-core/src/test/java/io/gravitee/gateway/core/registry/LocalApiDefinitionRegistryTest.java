@@ -21,8 +21,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -47,7 +47,7 @@ public class LocalApiDefinitionRegistryTest {
     public void test() throws Exception {
         URL resource = LocalApiDefinitionRegistryTest.class.getResource("/registry");
 
-        registry.setRegistryPath(resource.getPath());
+        registry.setRegistryPath(URLDecoder.decode(resource.getPath(), "UTF-8"));
         registry.start();
     }
 }
