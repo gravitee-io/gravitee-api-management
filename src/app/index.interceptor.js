@@ -24,9 +24,6 @@ function interceptorConfig ($httpProvider) {
         var isLoginPage = '/login' === $location.$$path;
 
         $injector.get('NotificationService').error(error, unauthorizedError && isLoginPage ? 'Wrong user or password!' : '');
-        if (unauthorizedError && !isLoginPage) {
-          $location.path('/login');
-        }
 
         return $q.reject(error);
       }
