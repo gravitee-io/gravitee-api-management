@@ -15,34 +15,32 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.OwnerType;
+import io.gravitee.repository.management.model.ApplicationMembership;
+import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
+import io.gravitee.repository.mongodb.management.internal.model.MemberMongo;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
-import io.gravitee.repository.mongodb.management.internal.team.TeamMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * @author David BRASSELY (brasseld at gmail.com)
+ * @author Gravitee.io Team
+ */
 @Component
 public class MongoApplicationRepository implements ApplicationRepository {
 
 	@Autowired
 	private ApplicationMongoRepository internalApplicationRepo;
-
-	@Autowired
-	private TeamMongoRepository internalTeamRepo;
 	
 	@Autowired
 	private UserMongoRepository internalUserRepo;
@@ -52,11 +50,9 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
 	@Override
 	public Set<Application> findAll() throws TechnicalException {
-		
 		List<ApplicationMongo> applications = internalApplicationRepo.findAll();
 		return mapApplications(applications);
 	}
-
 
 	@Override
 	public Application create(Application application) throws TechnicalException {
@@ -67,26 +63,19 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
 	@Override
 	public Application update(Application application) throws TechnicalException {
-		
-    	ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application.getName());
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application.getName());
 		
 		//Update, but don't change invariant other creation information 
 		applicationMongo.setDescription(application.getDescription());
 		applicationMongo.setUpdatedAt(application.getUpdatedAt());
 		applicationMongo.setType(application.getType());
-		
-		if (OwnerType.USER.equals(application.getOwnerType())) {
-			applicationMongo.setOwner(internalUserRepo.findOne(application.getOwner()));
-		} else {
-			applicationMongo.setOwner(internalTeamRepo.findOne(application.getOwner()));
-		}
-		
+
 		ApplicationMongo applicationMongoUpdated = internalApplicationRepo.save(applicationMongo);
 		return mapApplication(applicationMongoUpdated);
 	}
 
 	@Override
-	public Optional<Application> findByName(String applicationName) throws TechnicalException {
+	public Optional<Application> findById(String applicationName) throws TechnicalException {
 		ApplicationMongo application = internalApplicationRepo.findOne(applicationName);
 		return Optional.ofNullable(mapApplication(application));
 	}
@@ -99,82 +88,92 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
 	@Override
 	public Set<Application> findByUser(String username) throws TechnicalException {
-		
 		List<ApplicationMongo> applications = internalApplicationRepo.findByUser(username);
-		return mapApplications(applications);
-	}
-
-
-	@Override
-	public Set<Application> findByTeam(String teamName) throws TechnicalException {
-	
-		List<ApplicationMongo> applications = internalApplicationRepo.findByTeam(teamName);
 		return mapApplications(applications);
 	}
 	
 	@Override
 	public int countByUser(String username) throws TechnicalException {
 		try{
-			return (int) internalApplicationRepo.countByUser(username);
+			return internalApplicationRepo.countByUser(username);
 		}catch(Exception e){
-			throw new TechnicalException("Coun't by user failed", e);
+			throw new TechnicalException("Count by user failed", e);
 		}
 	}
 
 	@Override
-	public int countByTeam(String teamName) throws TechnicalException {
-		return (int) internalApplicationRepo.countByTeam(teamName);	
-	}
-	
-	private Set<Application> mapApplications(Collection<ApplicationMongo> applications){
-		
-		Set<Application> res = new HashSet<>();
-		for (ApplicationMongo application : applications) {
-			res.add(mapApplication(application));
-		}
-		return res;
-	}
-	
-	private Application mapApplication(ApplicationMongo  applicationMongo) {
+	public void addMember(ApplicationMembership membership) throws TechnicalException {
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(membership.getApplication());
+		UserMongo userMongo = internalUserRepo.findOne(membership.getUser());
 
-		if(applicationMongo == null){
-			return null;
-		}
-		
-		Application application = mapper.map(applicationMongo, Application.class);
+		MemberMongo memberMongo = new MemberMongo();
+		memberMongo.setUser(userMongo);
+		memberMongo.setType(membership.getMembershipType().toString());
+		memberMongo.setCreatedAt(membership.getCreatedAt());
+		memberMongo.setUpdatedAt(membership.getUpdatedAt());
 
-		if(applicationMongo.getOwner() != null){
-			application.setOwner(applicationMongo.getOwner().getName());
-			if(applicationMongo.getOwner() instanceof UserMongo){
-				application.setOwnerType(OwnerType.USER);
-			}else{
-				application.setOwnerType(OwnerType.TEAM);
+		applicationMongo.getMembers().add(memberMongo);
+
+		internalApplicationRepo.save(applicationMongo);
+	}
+
+	@Override
+	public void deleteMember(String application, String username) throws TechnicalException {
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application);
+		MemberMongo memberToDelete = null;
+
+		for (MemberMongo memberMongo : applicationMongo.getMembers()) {
+			if (memberMongo.getUser().getName().equalsIgnoreCase(username)) {
+				memberToDelete = memberMongo;
 			}
 		}
-		if(applicationMongo.getCreator()!= null){
-			application.setCreator(applicationMongo.getCreator().getName());
+
+		if (memberToDelete != null) {
+			applicationMongo.getMembers().remove(memberToDelete);
+			internalApplicationRepo.save(applicationMongo);
 		}
-		
-		return application;
+	}
+
+	@Override
+	public Collection<ApplicationMembership> getMembers(String application) throws TechnicalException {
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application);
+		List<MemberMongo> membersMongo = applicationMongo.getMembers();
+		Set<ApplicationMembership> members = new HashSet<>(membersMongo.size());
+
+		for (MemberMongo memberMongo : membersMongo) {
+			ApplicationMembership member = new ApplicationMembership();
+			member.setApplication(applicationMongo.getName());
+			member.setUser(memberMongo.getUser().getName());
+			member.setMembershipType(MembershipType.valueOf(memberMongo.getType()));
+			member.setCreatedAt(memberMongo.getCreatedAt());
+			member.setUpdatedAt(memberMongo.getUpdatedAt());
+			members.add(member);
+		}
+
+		return members;
+	}
+
+	@Override
+	public ApplicationMembership getMember(String application, String username) throws TechnicalException {
+		Collection<ApplicationMembership> members = getMembers(application);
+		for (ApplicationMembership member : members) {
+			if (member.getUser().equalsIgnoreCase(username)) {
+				return member;
+			}
+		}
+
+		return null;
+	}
+
+	private Set<Application> mapApplications(Collection<ApplicationMongo> applications){
+		return applications.stream().map(this::mapApplication).collect(Collectors.toSet());
+	}
+	
+	private Application mapApplication(ApplicationMongo applicationMongo) {
+		return (applicationMongo == null) ? null : mapper.map(applicationMongo, Application.class);
 	}
 	
 	private ApplicationMongo mapApplication(Application application) {
-
-		if(application == null){
-			return null;
-		}
-		
-		ApplicationMongo applicationMongo = mapper.map(application, ApplicationMongo.class);
-
-		if (OwnerType.USER.equals(application.getOwnerType())) {
-			applicationMongo.setOwner(internalUserRepo.findOne(application.getOwner()));
-		} else {
-			applicationMongo.setOwner(internalTeamRepo.findOne(application.getOwner()));
-		}
-		applicationMongo.setCreator(internalUserRepo.findOne(application.getCreator()));
-		
-		return applicationMongo;
+		return (application == null) ? null : mapper.map(application, ApplicationMongo.class);
 	}
-
-	
 }

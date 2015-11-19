@@ -1,0 +1,25 @@
+[
+	{
+		"_id": { "$oid": "55cfc1eba1bee3930f37d4a7" },
+		"_class":"io.gravitee.repository.mongodb.management.internal.model.ApiAssociationMongo",
+		"key":{
+			"key":"d449098d-8c31-4275-ad59-8dd707865a33",
+			"revoked":false,
+			"expiration":{ "$date" : 1439022010883 }
+		},
+		"application": {"$ref" : "applications", "$id" : "application-sample" },
+		"api": {"$ref" : "apis", "$id" : "api1" }
+	},
+	{
+		"_id": { "$oid": "55cfc1eba1bee3930f37d4a8" },
+		"_class":"io.gravitee.repository.mongodb.management.internal.model.ApiAssociationMongo",
+		"key":{
+			"key":"d449098d-8c31-4275-ad59-8dd707865a34",
+			"revoked":false,
+			"expiration":{ "$date" : 1439022010883 }
+		},
+		"application": {"$ref" : "applications", "$id" : "application-sample" },
+		"api": {"$ref" : "apis", "$id" : "api2" }
+	}
+]
+

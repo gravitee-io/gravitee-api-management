@@ -3,101 +3,159 @@
 		"_id" : "findByNameOk",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
-		"publicURI" : "/public/sample/",
-		"targetURI" : "/target/sample/",
-		"privateApi" : false,
+		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
 		"updatedAt"  : { "$date" : 1439022010883 },
 		"lifecycleState" : "STOPPED",
-		"owner" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
-		"creator" : {"$ref" : "users",  "$id" :"creator"}
+		"members": [
+			{
+				"type":"PRIMARY_OWNER",
+				"user":{
+					"$ref":"users",
+					"$id":"findByUserTest"
+				}
+			},
+			{
+				"type":"USER",
+				"user":{
+					"$ref":"users",
+					"$id":"user1"
+				}
+			}
+		]
     },	
 	{
 		"_id" : "findByTeamApiTest1",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
-		"publicURI" : "/public/sample/",
-		"targetURI" : "/target/sample/",
-		"privateApi" : false,
+		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
 		"updatedAt"  : { "$date" : 1439022010883 },
 		"lifecycleState" : "STOPPED",
-		"owner" : {"$ref" : "teams", "$id" : "findByTeamTest" },
-		"creator" : {"$ref" : "users",  "$id" :"creator"}
+		"members": [
+			{
+				"type":"PRIMARY_OWNER",
+				"user":{
+					"$ref":"users",
+					"$id":"findByUserTest"
+				}
+			},
+			{
+				"type":"USER",
+				"user":{
+					"$ref":"users",
+					"$id":"user1"
+				}
+			}
+		]
     },	
 	{
 		"_id" : "findByTeamApiTest2",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
-		"publicURI" : "/public/sample/",
-		"targetURI" : "/target/sample/",
-		"privateApi" : false,
+		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
 		"updatedAt"  : { "$date" : 1439022010883 },
 		"lifecycleState" : "STOPPED",
-		"owner" : {"$ref" : "teams", "$id" : "findByTeamTest" },
-		"creator" : {"$ref" : "users",  "$id" :"creator2"}
+		"members": [
+			{
+				"type":"USER",
+				"user":{
+					"$ref":"users",
+					"$id":"findByUserTest"
+				}
+			},
+			{
+				"type":"PRIMARY_OWNER",
+				"user":{
+					"$ref":"users",
+					"$id":"user1"
+				}
+			}
+		]
     },	
 	{
 		"_id" : "findByUserApiTest1",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
-		"publicURI" : "/public/sample/",
-		"targetURI" : "/target/sample/",
-		"privateApi" : false,
+		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
 		"updatedAt"  : { "$date" : 1439022010883 },
 		"lifecycleState" : "STOPPED",
-		"owner" : {"$ref" : "users", "$id" : "findByUserTest" },
-		"creator" : {"$ref" : "users",  "$id" :"creator"}
+		"members": [
+			{
+				"type":"USER",
+				"user":{
+					"$ref":"users",
+					"$id":"findByUserTest"
+				}
+			},
+			{
+				"type":"USER",
+				"user":{
+					"$ref":"users",
+					"$id":"user1"
+				}
+			}
+		]
 	},
 	{
 		"_id" : "findByUserApiTest2",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
-		"publicURI" : "/public/sample/",
-		"targetURI" : "/target/sample/",
-		"privateApi" : true,
+		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
 		"updatedAt"  : { "$date" : 1439022010883 },
 		"lifecycleState" : "STOPPED",
-		"owner" : {"$ref" : "users", "$id" : "findByUserTest" },
-		"creator" : {"$ref" : "users",  "$id" :"creator"}
+		"members": [
+			{
+				"type":"USER",
+				"user":{
+					"$ref":"users",
+					"$id":"findByUserTest"
+				}
+			},
+			{
+				"type":"USER",
+				"user":{
+					"$ref":"users",
+					"$id":"user1"
+				}
+			}
+		]
 	},
 	{
 		"_id" : "api1",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
-		"publicURI" : "/public/sample/",
-		"targetURI" : "/target/sample/",
-		"privateApi" : false,
+		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
 		"updatedAt"  : { "$date" : 1439022010883 },
 		"lifecycleState" : "STOPPED",
-		"owner" : {"$ref" : "users", "$id" : "creator3" },
-		"creator" : {"$ref" : "users",  "$id" :"creator3"}
+		"members": [
+			{
+				"type":"USER",
+				"user":{
+					"$ref":"users",
+					"$id":"findByUserTest"
+				}
+			},
+			{
+				"type":"USER",
+				"user":{
+					"$ref":"users",
+					"$id":"user1"
+				}
+			}
+		]
     },	
     {
 		"_id" : "api2",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
-		"publicURI" : "/public/sample/",
-		"targetURI" : "/target/sample/",
-		"privateApi" : false,
+		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
 		"updatedAt"  : { "$date" : 1439022010883 },
-		"lifecycleState" : "STOPPED",
-		"owner" : {"$ref" : "users", "$id" : "creator3" },
-		"creator" : {"$ref" : "users",  "$id" :"creator3"},
-		"policies" : [
-			{
-				"configuration" : "{ 'update:'configuration1' }",
-				"policy" :  "policy1"
-			},
-			{
-				"configuration" : "{ 'update:'configuration2' }",
-				"policy" : "policy2"
-			}
-		]
+		"lifecycleState" : "STOPPED"
     }
 ]

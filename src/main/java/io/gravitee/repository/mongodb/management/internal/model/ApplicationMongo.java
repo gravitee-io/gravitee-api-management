@@ -15,42 +15,27 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Date;
-import java.util.Objects;
-
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Mongo object model for application.
  * 
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  */
-@Document(collection="applications")
-public class ApplicationMongo {
+@Document(collection = "applications")
+public class ApplicationMongo extends Auditable {
 
 	@Id
     private String name;
     private String description;
     private String type;
-    private Date createdAt;
-    private Date updatedAt;
-    
-    @DBRef
-    private AbstractUserMongo owner;
-    
-    @DBRef
-    private UserMongo creator;
 
-    
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
+    private List<MemberMongo> members = new ArrayList<>();
 
     public String getDescription() {
         return description;
@@ -76,31 +61,15 @@ public class ApplicationMongo {
         this.type = type;
     }
 
-    public Date getUpdatedAt() {
-        return updatedAt;
+    public List<MemberMongo> getMembers() {
+        return members;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setMembers(List<MemberMongo> members) {
+        this.members = members;
     }
-    
-    public AbstractUserMongo getOwner() {
-		return owner;
-	}
 
-	public void setOwner(AbstractUserMongo owner) {
-		this.owner = owner;
-	}
-
-	public UserMongo getCreator() {
-		return creator;
-	}
-
-	public void setCreator(UserMongo creator) {
-		this.creator = creator;
-	}
-
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

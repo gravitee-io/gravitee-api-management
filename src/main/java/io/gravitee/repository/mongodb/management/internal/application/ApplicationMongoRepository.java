@@ -15,14 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.application;
 
+import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
-
 @Repository
 public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom{
-
 
 }
 

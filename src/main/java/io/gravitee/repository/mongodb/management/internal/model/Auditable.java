@@ -13,17 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.team;
+package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.List;
+import java.util.Date;
 
-import io.gravitee.repository.mongodb.management.internal.model.TeamMemberMongo;
-import io.gravitee.repository.mongodb.management.internal.model.TeamMongo;
+/**
+ * @author David BRASSELY (brasseld at gmail.com)
+ */
+abstract class Auditable {
 
-public interface TeamMongoRepositoryCustom {
+    private Date createdAt;
 
-	public List<TeamMongo> findByUser(String username);
-	
-	public TeamMemberMongo getMember(String username, String teamname);
-	
+    private Date updatedAt;
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

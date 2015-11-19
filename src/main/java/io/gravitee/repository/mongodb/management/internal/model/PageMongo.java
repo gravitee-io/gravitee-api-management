@@ -15,8 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Date;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -25,7 +23,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
  * @author Titouan COMPIEGNE
  */
 @Document(collection = "pages")
-public class PageMongo {
+public class PageMongo extends Auditable {
 
 	@Id
 	@Field(value = "name")
@@ -42,10 +40,6 @@ public class PageMongo {
 	private int order;
 
 	private String apiName;
-
-	private Date createdAt;
-
-	private Date updatedAt;
 
 	private boolean published;
 
@@ -103,22 +97,6 @@ public class PageMongo {
 
 	public void setApiName(String apiName) {
 		this.apiName = apiName;
-	}
-
-	public Date getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public Date getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(Date updatedAt) {
-		this.updatedAt = updatedAt;
 	}
 
 	public boolean isPublished() {

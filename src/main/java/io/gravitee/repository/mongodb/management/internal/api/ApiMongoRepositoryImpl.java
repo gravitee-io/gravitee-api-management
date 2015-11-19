@@ -28,50 +28,35 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	private Query getFindByOwnerQuery(String type, String name, boolean publicOnly){
-		Query query = new Query();
+	@Override
+	public List<ApiMongo> findByUser(String username, String membershipType) {
+		Criteria criteriaMember;
 
-		query.addCriteria(Criteria.where("owner.$id").is(name));
-		query.addCriteria(Criteria.where("owner.$ref").is(type));
-		
-		if(publicOnly){
-			query.addCriteria(Criteria.where("privateApi").is(false));	
+		if (membershipType == null) {
+			criteriaMember = Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username));
+		} else {
+			criteriaMember = Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username).and("type").is(membershipType));
 		}
-		return query;
-	}
-	
 
-	@Override
-	public List<ApiMongo> findByUser(String username, boolean publicOnly) {
+		Query query = new Query();
+		query.addCriteria(criteriaMember);
 
-		Query query = getFindByOwnerQuery("users", username, publicOnly);
-		List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
-		
-		return apis;
-
-	}
-	
-	@Override
-	public List<ApiMongo> findByTeam(String teamname, boolean publicOnly) {
-
-		Query query = getFindByOwnerQuery("teams", teamname, publicOnly);	
-		List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
-		
-		return apis;
+		return mongoTemplate.find(query, ApiMongo.class);
 	}
 
+	@Override
+	public int countByUser(String username, String membershipType) {
+		Criteria criteriaMember;
 
-	@Override
-	public long countByUser(String username, boolean publicOnly) {
-	
-		Query query = getFindByOwnerQuery("users", username, publicOnly);
-		return mongoTemplate.count(query, ApiMongo.class);	
-	}
-	
-	@Override
-	public long countByTeam(String teamname, boolean publicOnly) {
-		
-		Query query = getFindByOwnerQuery("teams", teamname, publicOnly);				
-		return mongoTemplate.count(query, ApiMongo.class);
+		if (membershipType == null) {
+			criteriaMember = Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username));
+		} else {
+			criteriaMember = Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username).and("type").is(membershipType));
+		}
+
+		Query query = new Query();
+		query.addCriteria(criteriaMember);
+
+		return (int) mongoTemplate.count(query, ApiMongo.class);
 	}
 }

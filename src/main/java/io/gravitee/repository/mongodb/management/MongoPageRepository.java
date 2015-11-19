@@ -37,7 +37,7 @@ import java.util.Set;
 @Component
 public class MongoPageRepository implements PageRepository {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private final static Logger logger = LoggerFactory.getLogger(MongoPageRepository.class);
 
 	@Autowired
 	private PageMongoRepository internalPageRepo;
@@ -69,7 +69,7 @@ public class MongoPageRepository implements PageRepository {
 	}
 
 	@Override
-	public Optional<Page> findByName(String name) throws TechnicalException {
+	public Optional<Page> findById(String name) throws TechnicalException {
 		logger.debug("Find page by name [{}]", name);
 
 		PageMongo page = internalPageRepo.findOne(name);

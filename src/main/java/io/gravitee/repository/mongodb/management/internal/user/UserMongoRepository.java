@@ -22,7 +22,7 @@ import org.springframework.stereotype.Repository;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 
 @Repository
-public interface UserMongoRepository extends MongoRepository<UserMongo, String>, UserMongoRepositoryCustom {
+public interface UserMongoRepository extends MongoRepository<UserMongo, String> {
 
 	@Query("{ 'username' : ?0}")
 	UserMongo findByUsername(String username);

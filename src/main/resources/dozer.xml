@@ -16,33 +16,11 @@
   <mapping> 
     <class-a>io.gravitee.repository.management.model.Api</class-a>
     <class-b>io.gravitee.repository.mongodb.management.internal.model.ApiMongo</class-b>
-    <field-exclude>
-    	<a>owner</a>
-    	<b>owner</b>
-    </field-exclude>
-    <field-exclude>
-    	<a>creator</a>
-    	<b>creator</b>
-    </field-exclude>
   </mapping>
   
   <mapping> 
     <class-a>io.gravitee.repository.management.model.Application</class-a>
     <class-b>io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo</class-b>
-    <field-exclude>
-    	<a>owner</a>
-    	<b>owner</b>
-    </field-exclude>
-     <field-exclude>
-    	<a>creator</a>
-    	<b>creator</b>
-    </field-exclude>   
-    
-  </mapping>  
-  
-  <mapping> 
-    <class-a>io.gravitee.repository.management.model.Team</class-a>
-    <class-b>io.gravitee.repository.mongodb.management.internal.model.TeamMongo</class-b>
-  </mapping>  
+  </mapping>
 
 </mappings> 

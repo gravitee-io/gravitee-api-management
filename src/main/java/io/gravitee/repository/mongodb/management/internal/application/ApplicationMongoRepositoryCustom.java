@@ -17,36 +17,22 @@ package io.gravitee.repository.mongodb.management.internal.application;
 
 import java.util.List;
 
+import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 
 public interface ApplicationMongoRepositoryCustom {
-
-	/**
-	 * Find Applications by team name
-	 * @param teamId
-	 * @return
-	 */
-    public List<ApplicationMongo> findByTeam(String name);
     
 	/**
-	 * Find Applications by team name
-	 * @param teamId
+	 * Find applciations by user
+	 * @param username
 	 * @return
 	 */
-    public List<ApplicationMongo> findByUser(String name);
+    List<ApplicationMongo> findByUser(String username);
     
     /**
      * Count api by username (owner)
      * @param username
      * @return
      */
-	public long countByUser(String username);
-    
-    /**
-     * Count api by username (owner)
-     * @param username
-     * @return
-     */	
-	public long countByTeam(String teamname);
-
+	int countByUser(String username);
 }
