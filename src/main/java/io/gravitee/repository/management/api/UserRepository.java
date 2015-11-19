@@ -15,11 +15,11 @@
  */
 package io.gravitee.repository.management.api;
 
-import java.util.Optional;
-import java.util.Set;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.User;
+
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -56,12 +56,4 @@ public interface UserRepository {
 	 * @return Users found
 	 */
     Set<User> findAll() throws TechnicalException;
-
-	/**
-	 * Find all {@link User} in a team
-	 * 
-	 * @param teamName name of the team
-	 * @return users found
-	 */
-    Set<User> findByTeam(String teamName) throws TechnicalException;
 }

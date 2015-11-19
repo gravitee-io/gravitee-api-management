@@ -23,7 +23,22 @@ import java.util.Objects;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class User {
-	
+
+	/**
+	 * The user name
+	 */
+	private String username;
+
+	/**
+	 * The user password
+	 */
+	private String password;
+
+	/**
+	 * The user email
+	 */
+	private String email;
+
 	/**
 	 * The user first name
 	 */
@@ -33,21 +48,6 @@ public class User {
 	 * The user last name
 	 */
 	private String lastname;
-
-	/**
-	 * The user name 
-	 */
-    private String username;
-    
-    /**
-     * The user password
-     */
-    private String password;
-    
-    /**
-     * The user email
-     */
-    private String email;
     
     /**
      * The user roles

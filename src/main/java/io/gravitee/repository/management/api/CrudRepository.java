@@ -13,13 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.repository.management.api;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+
+import java.util.Optional;
 
 /**
- * User team roles
- * 
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum TeamRole {
-    MEMBER, ADMIN;
+interface CrudRepository<T, ID> {
+
+    Optional<T> findById(ID id) throws TechnicalException;
+
+    T create(T item) throws TechnicalException;
+
+    T update(T item) throws TechnicalException;
+
+    void delete(ID id) throws TechnicalException;
 }

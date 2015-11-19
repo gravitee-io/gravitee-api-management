@@ -17,105 +17,55 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Team;
-import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.ApiMembership;
+import io.gravitee.repository.management.model.MembershipType;
 
-import java.util.Optional;
+import java.util.Collection;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ApiRepository {
+public interface ApiRepository extends CrudRepository<Api, String>{
 
     /**
-     * Get an API using its name.
+     * List all APIs.
      *
-     * @param apiName The name of the API to retrieve.
-     * @return An {@link Optional} API.
-     */
-    Optional<Api> findByName(String apiName) throws TechnicalException;
-
-    /**
-     * List all public APIs.
-     *
-     * @return All public APIs.
+     * @return All APIs.
      */
     Set<Api> findAll() throws TechnicalException;
 
     /**
-     * List APIs (public and/or private) hold by a {@link Team}.
-     *
-     * @param teamName The name of the team.
-     * @param publicOnly List only public APIs.
-     * @return List APIs from a team.
-     */
-    Set<Api> findByTeam(String teamName, boolean publicOnly) throws TechnicalException;
-
-    /**
-     * List APIs (public and private) hold by a {@link User}.
+     * List APIs for a given user and a given membership type.
      *
      * @param username The name of the user.
-     * @param publicOnly List only public APIs.
+     * @param membershipType API membership type filter.
      * @return List APIs from a user.
      */
-    Set<Api> findByUser(String username, boolean publicOnly) throws TechnicalException;
+    Set<Api> findByUser(String username, MembershipType membershipType) throws TechnicalException;
 
     /**
-     * Create an API
-     * 
-     * @param api api to create
-     * @return api creaded
-     */
-    Api create(Api api) throws TechnicalException;
-
-    /**
-     * Update an API
-     * 
-     * @param api api to update
-     * @return api updated
-     */
-    Api update(Api api) throws TechnicalException;
-
-    /**
-     * Delete an API
-     * 
-     * @param apiName api name to delete
-     */
-    void delete(String apiName) throws TechnicalException;
-
-    /**
-     * Count all APIs (public and private) owned by a given {@link User}
+     * Count all APIs for a given user and a given membership type.
      * 
      * @param username owner user name 
-     * @param publicOnly List only public APIs.
+     * @param membershipType API membership type filter.
      * @return counted APIs
      */
-    int countByUser(String username, boolean publicOnly) throws TechnicalException;
-   
-    /**
-    * Count all APIs (public and private) owned by a given {@link Team}
-    * 
-    * @param teamName owner team name 
-    * @param publicOnly List only public APIs.
-    * @return counted APIs
-    */
-    int countByTeam(String teamName, boolean publicOnly) throws TechnicalException;
+    int countByUser(String username, MembershipType membershipType) throws TechnicalException;
     
     /**
-     * Find APIs by creator
-     * 
-     * @param userName creator {@link User} name
-     * @return APIs created by the user
-     */
-    Set<Api> findByCreator(String userName) throws TechnicalException;
-    
-    /**
-     * Find Apis associated with an application
+     * Find APIs associated with an application
      * 
      * @param application Application Name
      * @return Apis associated
      */
     Set<Api> findByApplication(String application) throws TechnicalException;
 
+    void addMember(ApiMembership membership) throws TechnicalException;
+
+    void deleteMember(String api, String username) throws TechnicalException;
+
+    Collection<ApiMembership> getMembers(String api) throws TechnicalException;
+
+    ApiMembership getMember(String api, String username) throws TechnicalException;
 }

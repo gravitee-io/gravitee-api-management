@@ -48,21 +48,6 @@ public class Application {
      */
     private Date updatedAt;
 
-    /**
-     * The owner entity (user or team)
-     */
-    private OwnerType ownerType;
-    
-    /**
-     * The owner entity name (user name or team name)
-     */
-    private String owner;
-    
-    /**
-     * The user name that create the application
-     */
-    private String creator;
-
     
     public Date getCreatedAt() {
         return createdAt;
@@ -102,30 +87,6 @@ public class Application {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
-    }
-    
-    public OwnerType getOwnerType() {
-		return ownerType;
-	}
-
-	public void setOwnerType(OwnerType ownerType) {
-		this.ownerType = ownerType;
-	}
-
-	public String getOwner() {
-		return owner;
-	}
-
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
-
-    public String getCreator() {
-        return creator;
-    }
-
-    public void setCreator(String creator) {
-        this.creator = creator;
     }
 
 	@Override

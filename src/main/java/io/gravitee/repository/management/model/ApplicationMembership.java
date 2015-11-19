@@ -20,42 +20,39 @@ import java.util.Date;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class Member {
-
-	/**
-	 * The name of user member
-	 */
-    private String username;
+public class ApplicationMembership {
 
     /**
-     * The role give to the user
+     * The application name
      */
-    private TeamRole role;
+    private String application;
 
     /**
-     * The membership creation date
+     * The user name
+     */
+    private String user;
+
+    /**
+     * Creation date
      */
     private Date createdAt;
 
     /**
-     * The membership last updated date
+     * Last updated date
      */
     private Date updatedAt;
 
-    public TeamRole getRole() {
-        return role;
+    /**
+     * Membership type
+     */
+    private MembershipType membershipType;
+
+    public String getApplication() {
+        return application;
     }
 
-    public void setRole(TeamRole role) {
-        this.role = role;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
+    public void setApplication(String application) {
+        this.application = application;
     }
 
     public Date getCreatedAt() {
@@ -66,11 +63,27 @@ public class Member {
         this.createdAt = createdAt;
     }
 
+    public MembershipType getMembershipType() {
+        return membershipType;
+    }
+
+    public void setMembershipType(MembershipType membershipType) {
+        this.membershipType = membershipType;
+    }
+
     public Date getUpdatedAt() {
         return updatedAt;
     }
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 }

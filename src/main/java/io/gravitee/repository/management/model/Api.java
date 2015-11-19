@@ -52,26 +52,11 @@ public class Api {
      * The Api last updated date
      */
     private Date updatedAt;
-    
-    /**
-     * The api owner entity type (user or team)
-     */
-    private OwnerType ownerType;
-    
-    /**
-     * The api owner entity name (user name or team name)
-     */
-    private String owner;
 
     /**
-     * The api user name creator
+     * The api visibility
      */
-    private String creator;
-
-    /**
-     * The api visibility (private of for all users)
-     */
-    private boolean privateApi;
+    private ApiVisibility visibility;
 
     /**
      * The current api life cycle state.
@@ -118,36 +103,12 @@ public class Api {
         this.version = version;
     }
 
-    public boolean isPrivateApi() {
-        return privateApi;
+    public ApiVisibility getVisibility() {
+        return visibility;
     }
 
-    public void setPrivateApi(boolean privateApi) {
-        this.privateApi = privateApi;
-    }
-
-    public OwnerType getOwnerType() {
-		return ownerType;
-	}
-
-	public void setOwnerType(OwnerType ownerType) {
-		this.ownerType = ownerType;
-	}
-
-	public String getOwner() {
-		return owner;
-	}
-
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
-	
-    public String getCreator() {
-        return creator;
-    }
-
-    public void setCreator(String creator) {
-        this.creator = creator;
+    public void setVisibility(ApiVisibility visibility) {
+        this.visibility = visibility;
     }
 
     public String getDescription() {

@@ -43,6 +43,11 @@ public class ApiKey {
 	private Date createdAt;
 
 	/**
+	 * The API key update date
+	 */
+	private Date updatedAt;
+
+	/**
 	 * The API for which the key is defined.
 	 */
 	private String api;
@@ -77,6 +82,14 @@ public class ApiKey {
 
 	public void setCreatedAt(Date createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
 	}
 
 	public String getApi() {

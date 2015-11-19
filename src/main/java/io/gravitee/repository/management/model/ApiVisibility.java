@@ -13,33 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
-
-import java.util.Set;
-
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Node;
+package io.gravitee.repository.management.model;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface NodeRepository {
+public enum ApiVisibility {
 
-	/**
-	 * Register a gateway {@link Node}
-	 * @param node Node to register
-	 */
-    void register(Node node) throws TechnicalException;
-
-    /**
-     * Unregister a gateway {@link Node}
-     * @param nodename Node name
-     */
-    void unregister(String nodename) throws TechnicalException;
-    
-    /**
-     * Find all {@link Node} (registered an unregistered)
-     * @return Node found
-     */
-    Set<Node> findAll() throws TechnicalException;
+    PUBLIC,
+    PRIVATE,
+    RESTRICTED
 }

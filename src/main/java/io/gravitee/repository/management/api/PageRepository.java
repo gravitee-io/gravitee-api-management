@@ -15,29 +15,19 @@
  */
 package io.gravitee.repository.management.api;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Page;
+
+import java.util.Collection;
 
 /**
  * @author Titouan COMPIEGNE
  */
-public interface PageRepository {
+public interface PageRepository extends CrudRepository<Page, String> {
 
 	Collection<Page> findPublishedByApi(String apiName) throws TechnicalException;
 
 	Collection<Page> findByApi(String apiName) throws TechnicalException;
-	
-	Optional<Page> findByName(String name) throws TechnicalException;
-	
-	Page create(Page page) throws TechnicalException;
-	
-	Page update(Page page) throws TechnicalException;
-	
-	void delete(String name) throws TechnicalException;
-	
+
 	Integer findMaxPageOrderByApiName(String apiName) throws TechnicalException;
 }

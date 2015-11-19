@@ -15,18 +15,19 @@
  */
 package io.gravitee.repository.management.api;
 
-import java.util.Optional;
-import java.util.Set;
-
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.ApiMembership;
 import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.Team;
+import io.gravitee.repository.management.model.ApplicationMembership;
 import io.gravitee.repository.management.model.User;
+
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ApplicationRepository {
+public interface ApplicationRepository extends CrudRepository<Application, String> {
 
     /**
      * List all applications.
@@ -34,14 +35,6 @@ public interface ApplicationRepository {
      * @return All public applications.
      */
     Set<Application> findAll() throws TechnicalException;
-
-    /**
-     * List all applications hold by a {@link Team}.
-     *
-     * @param teamName The name of the team.
-     * @return All applications from a team.
-     */
-    Set<Application> findByTeam(String teamName) throws TechnicalException;
 
     /**
      * List all applications hold by a {@link User}.
@@ -52,37 +45,6 @@ public interface ApplicationRepository {
     Set<Application> findByUser(String userName) throws TechnicalException;
 
     /**
-     * Create an {@link Application}
-     * 
-     * @param application Application to create
-     * @return Application created
-     */
-    Application create(Application application) throws TechnicalException;
-
-    /**
-     * Update an {@link Application}
-     * 
-     * @param application Application to update
-     * @return Application updated
-     */
-    Application update(Application application) throws TechnicalException;
-
-    /**
-     * Get an application using its name.
-     *
-     * @param applicationName The name of the application to retrieve.
-     * @return An {@link Optional} application.
-     */
-    Optional<Application> findByName(String applicationName) throws TechnicalException;
-
-    /**
-     * Delete an {@link Application}
-     * 
-     * @param applicationName Application name to delete
-     */
-    void delete(String applicationName) throws TechnicalException;
-
-    /**
      * Count {@link Application} owner by a given {@link User}
      * 
      * @param userName Application user owner name
@@ -90,11 +52,11 @@ public interface ApplicationRepository {
      */
     int countByUser(String userName) throws TechnicalException;
 
-    /**
-     * Count {@link Team} owner by a given {@link User}
-     * 
-     * @param teamName Application user owner team
-     * @return Counted application
-     */
-    int countByTeam(String teamName) throws TechnicalException;
+    void addMember(ApplicationMembership membership) throws TechnicalException;
+
+    void deleteMember(String application, String username) throws TechnicalException;
+
+    Collection<ApplicationMembership> getMembers(String application) throws TechnicalException;
+
+    ApplicationMembership getMember(String application, String username) throws TechnicalException;
 }

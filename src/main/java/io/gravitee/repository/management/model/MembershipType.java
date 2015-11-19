@@ -15,14 +15,12 @@
  */
 package io.gravitee.repository.management.model;
 
-
 /**
- * Owner types for Api, Application..
- * 
- * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
+ * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum OwnerType {
+public enum MembershipType {
 
-    TEAM, USER;
+    PRIMARY_OWNER,
+    OWNER,
+    USER
 }
-
