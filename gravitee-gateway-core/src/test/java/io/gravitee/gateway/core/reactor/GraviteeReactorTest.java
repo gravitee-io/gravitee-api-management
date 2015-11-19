@@ -61,6 +61,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         reactor.doStop();
     }
 
+    @Ignore
     @Test
     public void processRequest_startedApi() throws Exception {
         // Register API endpoint
