@@ -133,18 +133,21 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
-	public Collection<Membership> getMembers(String application) throws TechnicalException {
+	public Collection<Membership> getMembers(String application, MembershipType membershipType) throws TechnicalException {
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application);
 		List<MemberMongo> membersMongo = applicationMongo.getMembers();
 		Set<Membership> members = new HashSet<>(membersMongo.size());
 
 		for (MemberMongo memberMongo : membersMongo) {
-			Membership member = new Membership();
-			member.setUser(memberMongo.getUser().getName());
-			member.setMembershipType(MembershipType.valueOf(memberMongo.getType()));
-			member.setCreatedAt(memberMongo.getCreatedAt());
-			member.setUpdatedAt(memberMongo.getUpdatedAt());
-			members.add(member);
+			if (membershipType == null || (
+					membershipType != null && memberMongo.getType().equalsIgnoreCase(membershipType.toString()))) {
+				Membership member = new Membership();
+				member.setUser(memberMongo.getUser().getName());
+				member.setMembershipType(MembershipType.valueOf(memberMongo.getType()));
+				member.setCreatedAt(memberMongo.getCreatedAt());
+				member.setUpdatedAt(memberMongo.getUpdatedAt());
+				members.add(member);
+			}
 		}
 
 		return members;
@@ -152,7 +155,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
 	@Override
 	public Membership getMember(String application, String username) throws TechnicalException {
-		Collection<Membership> members = getMembers(application);
+		Collection<Membership> members = getMembers(application, null);
 		for (Membership member : members) {
 			if (member.getUser().equalsIgnoreCase(username)) {
 				return member;
