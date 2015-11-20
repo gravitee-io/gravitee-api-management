@@ -53,7 +53,7 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
 
     void deleteMember(String application, String username) throws TechnicalException;
 
-    Collection<Membership> getMembers(String application) throws TechnicalException;
+    Collection<Membership> getMembers(String application, MembershipType membershipType) throws TechnicalException;
 
     Membership getMember(String application, String username) throws TechnicalException;
 }
