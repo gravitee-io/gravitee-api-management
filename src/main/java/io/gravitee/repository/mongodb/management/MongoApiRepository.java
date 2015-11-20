@@ -137,26 +137,8 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public Collection<Membership> getMembers(String api) throws TechnicalException {
-		ApiMongo apiMongo = internalApiRepo.findOne(api);
-		List<MemberMongo> membersMongo = apiMongo.getMembers();
-		Set<Membership> members = new HashSet<>(membersMongo.size());
-
-		for (MemberMongo memberMongo : membersMongo) {
-			Membership member = new Membership();
-			member.setUser(memberMongo.getUser().getName());
-			member.setMembershipType(MembershipType.valueOf(memberMongo.getType()));
-			member.setCreatedAt(memberMongo.getCreatedAt());
-			member.setUpdatedAt(memberMongo.getUpdatedAt());
-			members.add(member);
-		}
-
-		return members;
-	}
-
-	@Override
 	public Membership getMember(String api, String username) throws TechnicalException {
-		Collection<Membership> members = getMembers(api);
+		Collection<Membership> members = getMembers(api, null);
 		for (Membership member : members) {
 			if (member.getUser().equalsIgnoreCase(username)) {
 				return member;
@@ -164,6 +146,27 @@ public class MongoApiRepository implements ApiRepository {
 		}
 
 		return null;
+	}
+
+	@Override
+	public Collection<Membership> getMembers(String api, MembershipType membershipType) throws TechnicalException {
+		ApiMongo apiMongo = internalApiRepo.findOne(api);
+		List<MemberMongo> membersMongo = apiMongo.getMembers();
+		Set<Membership> members = new HashSet<>(membersMongo.size());
+
+		for (MemberMongo memberMongo : membersMongo) {
+			if (membershipType == null || (
+					membershipType != null && memberMongo.getType().equalsIgnoreCase(membershipType.toString()))) {
+				Membership member = new Membership();
+				member.setUser(memberMongo.getUser().getName());
+				member.setMembershipType(MembershipType.valueOf(memberMongo.getType()));
+				member.setCreatedAt(memberMongo.getCreatedAt());
+				member.setUpdatedAt(memberMongo.getUpdatedAt());
+				members.add(member);
+			}
+		}
+
+		return members;
 	}
 
 	private Set<Api> mapApis(Collection<ApiMongo> apis) {
