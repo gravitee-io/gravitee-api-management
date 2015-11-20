@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.Servlet;
+import java.io.IOException;
+import java.net.ServerSocket;
 
 /**
  * Rule à utiliser pour lancer un serveur Jetty en amont des tests et l'éteindre après la suite de test.
@@ -32,7 +34,7 @@ public class ApiExternalResource extends ExternalResource {
 
     private Server server;
 
-    private final String port;
+    private int port;
 
     private final String path;
 
@@ -40,12 +42,25 @@ public class ApiExternalResource extends ExternalResource {
 
     private final Class<?>[] filters;
 
-    public ApiExternalResource(String port, Class<? extends Servlet> servletClass, String path, Class<?>[] filters) {
+    public ApiExternalResource(Class<? extends Servlet> servletClass, String path, Class<?>[] filters) {
         super();
-        this.port = port;
         this.path = path;
         this.servletClass = servletClass;
         this.filters = filters;
+    }
+
+    /**
+     * Returns a free port number on localhost, or -1 if unable to find a free port.
+     *
+     * @return a free port number on localhost, or -1 if unable to find a free port
+     * @since 3.0
+     */
+    public static int findFreePort() {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        } catch (IOException e) {
+        }
+        return -1;
     }
 
     /**
@@ -53,6 +68,7 @@ public class ApiExternalResource extends ExternalResource {
      */
     @Override
     protected void before() throws Throwable {
+        this.port = findFreePort();
 
         // Création du serveur Jetty.
         this.server = new Server(Integer.valueOf(this.port));
@@ -80,6 +96,10 @@ public class ApiExternalResource extends ExternalResource {
                 LOGGER.info("Jetty server for api management proxy successfully started");
             }
         }
+    }
+
+    public int getPort() {
+        return this.port;
     }
 
     /**

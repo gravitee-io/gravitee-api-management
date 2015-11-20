@@ -25,7 +25,6 @@ import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.external.ApiExternalResource;
 import io.gravitee.gateway.core.external.ApiServlet;
-import io.gravitee.gateway.core.reporter.ReporterManager;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 public class GraviteeReactorTest extends AbstractCoreTest {
 
     @ClassRule
-    public static final ApiExternalResource SERVER_MOCK = new ApiExternalResource("8083", ApiServlet.class, "/*", null);
+    public static final ApiExternalResource SERVER_MOCK = new ApiExternalResource(ApiServlet.class, "/*", null);
 
     @Autowired
     private GraviteeReactor reactor;
@@ -61,7 +60,6 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         reactor.doStop();
     }
 
-    @Ignore
     @Test
     public void processRequest_startedApi() throws Exception {
         // Register API endpoint
@@ -157,9 +155,14 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         Assert.assertEquals(true, lock.await(1000, TimeUnit.MILLISECONDS));
     }
 
-    private Api getApiDefinition() throws IOException {
+    private Api getApiDefinition() throws Exception {
         URL jsonFile = GraviteeReactorTest.class.getResource("/io/gravitee/gateway/core/reactor/api.json");
-        return new GraviteeMapper().readValue(jsonFile, Api.class);
+        Api api = new GraviteeMapper().readValue(jsonFile, Api.class);
+        String endpoint = api.getProxy().getEndpoint();
+        URI uri = URI.create(endpoint);
+        URI newUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), SERVER_MOCK.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+        api.getProxy().setEndpoint(newUri.toString());
+        return api;
     }
 
     private Api getUnreachableApiDefinition() throws IOException {

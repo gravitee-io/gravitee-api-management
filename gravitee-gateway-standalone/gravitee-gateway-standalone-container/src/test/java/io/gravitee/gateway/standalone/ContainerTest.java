@@ -32,6 +32,7 @@ import org.junit.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 
@@ -44,7 +45,7 @@ import static org.junit.Assert.assertTrue;
 public class ContainerTest {
 
     @ClassRule
-    public static final ApiExternalResource SERVER_MOCK = new ApiExternalResource("8083", ApiServlet.class, "/team", null);
+    public static final ApiExternalResource SERVER_MOCK = new ApiExternalResource(ApiServlet.class, "/team", null);
 
     private static Container node;
 
@@ -73,9 +74,14 @@ public class ContainerTest {
         assertEquals(HttpStatusCode.NOT_FOUND_404, returnResponse.getStatusLine().getStatusCode());
     }
 
-    private Api getApiDefinition() throws IOException {
+    private Api getApiDefinition() throws Exception {
         URL jsonFile = ContainerTest.class.getResource("/io/gravitee/gateway/standalone/api.json");
-        return new GraviteeMapper().readValue(jsonFile, Api.class);
+        Api api = new GraviteeMapper().readValue(jsonFile, Api.class);
+        String endpoint = api.getProxy().getEndpoint();
+        URI uri = URI.create(endpoint);
+        URI newUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), SERVER_MOCK.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+        api.getProxy().setEndpoint(newUri.toString());
+        return api;
     }
 
     @Test
