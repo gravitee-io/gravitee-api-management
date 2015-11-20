@@ -66,7 +66,7 @@ public interface ApiRepository extends CrudRepository<Api, String>{
 
     void deleteMember(String api, String username) throws TechnicalException;
 
-    Collection<Membership> getMembers(String api) throws TechnicalException;
+    Collection<Membership> getMembers(String api, MembershipType membershipType) throws TechnicalException;
 
     Membership getMember(String api, String username) throws TechnicalException;
 }

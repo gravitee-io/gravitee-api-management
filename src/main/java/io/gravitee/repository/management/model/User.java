@@ -16,8 +16,8 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -52,7 +52,7 @@ public class User {
     /**
      * The user roles
      */
-    private List<String> roles;
+    private Set<String> roles;
     
     /**
      * The user creation date
@@ -104,11 +104,11 @@ public class User {
 		this.password = password;
 	}
 
-	public List<String> getRoles() {
+	public Set<String> getRoles() {
 		return roles;
 	}
 
-	public void setRoles(List<String> roles) {
+	public void setRoles(Set<String> roles) {
 		this.roles = roles;
 	}
 
@@ -148,7 +148,6 @@ public class User {
         sb.append(", lastname='").append(lastname).append('\'');
         sb.append(", mail='").append(email).append('\'');
         sb.append(", username='").append(username).append('\'');
-        sb.append(", roles='").append(roles).append('\'');
         sb.append('}');
         return sb.toString();
     }
