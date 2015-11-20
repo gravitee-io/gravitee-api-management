@@ -18,10 +18,7 @@ package io.gravitee.management.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.ApiListItem;
-import io.gravitee.management.model.NewApiEntity;
-import io.gravitee.management.model.UpdateApiEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -30,6 +27,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.Visibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -278,6 +277,29 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
+    @Override
+    public Set<MemberEntity> getMembers(String api, io.gravitee.management.model.MembershipType membershipType) {
+        try {
+            LOGGER.debug("Get members for API {}", api);
+
+            Collection<Membership> membersRepo = apiRepository.getMembers(api,
+                    (membershipType == null ) ? null : MembershipType.valueOf(membershipType.toString()));
+
+            final Set<MemberEntity> members = new HashSet<>(membersRepo.size());
+
+            members.addAll(
+                    membersRepo.stream()
+                            .map(member -> convert(member))
+                            .collect(Collectors.toSet())
+            );
+
+            return members;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to get members for API {}", api, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get members for API " + api, ex);
+        }
+    }
+
     private void updateLifecycle(String apiName, LifecycleState lifecycleState) throws TechnicalException {
         Optional<Api> optApi = apiRepository.findById(apiName);
         if (optApi.isPresent()) {
@@ -375,5 +397,16 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         return null;
+    }
+
+    private MemberEntity convert(Membership membership) {
+        MemberEntity member = new MemberEntity();
+
+        member.setUser(membership.getUser());
+        member.setCreatedAt(membership.getCreatedAt());
+        member.setUpdatedAt(membership.getUpdatedAt());
+        member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));
+
+        return member;
     }
 }

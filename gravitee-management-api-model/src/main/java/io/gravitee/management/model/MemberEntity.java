@@ -22,36 +22,47 @@ import java.util.Date;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class MembershipEntity {
+public class MemberEntity {
 
-    private String member;
+    private String user;
 
-    private String role;
+    private MembershipType type;
 
-    @JsonProperty("since")
-    private Date memberSince;
+    @JsonProperty("created_at")
+    private Date createdAt;
 
-    public String getMember() {
-        return member;
+    @JsonProperty("updated_at")
+    private Date updatedAt;
+
+    public Date getCreatedAt() {
+        return createdAt;
     }
 
-    public void setMember(String member) {
-        this.member = member;
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public String getRole() {
-        return role;
+    public MembershipType getType() {
+        return type;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setType(MembershipType type) {
+        this.type = type;
     }
 
-    public Date getMemberSince() {
-        return memberSince;
+    public Date getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setMemberSince(Date memberSince) {
-        this.memberSince = memberSince;
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 }
