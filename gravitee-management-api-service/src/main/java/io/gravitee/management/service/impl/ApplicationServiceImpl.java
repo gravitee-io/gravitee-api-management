@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.service.ApplicationService;
@@ -25,16 +26,14 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
@@ -163,6 +162,29 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         return null;
     }
 
+    @Override
+    public Set<MemberEntity> getMembers(String api, io.gravitee.management.model.MembershipType membershipType) {
+        try {
+            LOGGER.debug("Get members for API {}", api);
+
+            Collection<Membership> membersRepo = applicationRepository.getMembers(api,
+                    (membershipType == null ) ? null : MembershipType.valueOf(membershipType.toString()));
+
+            final Set<MemberEntity> members = new HashSet<>(membersRepo.size());
+
+            members.addAll(
+                    membersRepo.stream()
+                            .map(member -> convert(member))
+                            .collect(Collectors.toSet())
+            );
+
+            return members;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to get members for API {}", api, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get members for API " + api, ex);
+        }
+    }
+
     private static ApplicationEntity convert(Application application) {
         ApplicationEntity applicationEntity = new ApplicationEntity();
 
@@ -193,5 +215,16 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         application.setType(updateApplicationEntity.getType());
 
         return application;
+    }
+
+    private MemberEntity convert(Membership membership) {
+        MemberEntity member = new MemberEntity();
+
+        member.setUser(membership.getUser());
+        member.setCreatedAt(membership.getCreatedAt());
+        member.setUpdatedAt(membership.getUpdatedAt());
+        member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));
+
+        return member;
     }
 }

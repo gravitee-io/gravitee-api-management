@@ -15,9 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.NewApplicationEntity;
-import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.management.model.*;
 
 import java.util.Set;
 
@@ -37,4 +35,6 @@ public interface ApplicationService {
     void delete(String applicationName);
 
     Set<ApplicationEntity> findByApi(String apiName);
+
+    Set<MemberEntity> getMembers(String api, MembershipType membershipType);
 }

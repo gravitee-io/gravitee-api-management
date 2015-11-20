@@ -74,6 +74,12 @@ public class ApplicationResource extends AbstractResource {
         return Response.noContent().build();
     }
 
+    @Path("members")
+    public ApplicationMembersResource getApplicationMembersResource() {
+        return resourceContext.getResource(ApplicationMembersResource.class);
+    }
+
+
     @Path("{apiName}")
     public ApiKeyResource getApiKey() {
         return resourceContext.getResource(ApiKeyResource.class);
