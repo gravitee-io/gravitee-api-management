@@ -18,7 +18,7 @@ package io.gravitee.repository.management.model;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public enum ApiVisibility {
+public enum Visibility {
 
     PUBLIC,
     PRIVATE,

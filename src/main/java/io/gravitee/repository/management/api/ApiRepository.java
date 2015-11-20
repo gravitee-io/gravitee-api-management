@@ -17,7 +17,8 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiMembership;
+import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
 
 import java.util.Collection;
@@ -42,7 +43,7 @@ public interface ApiRepository extends CrudRepository<Api, String>{
      * @param membershipType API membership type filter.
      * @return List APIs from a user.
      */
-    Set<Api> findByUser(String username, MembershipType membershipType) throws TechnicalException;
+    Set<Api> findByMember(String username, MembershipType membershipType, Visibility visibility) throws TechnicalException;
 
     /**
      * Count all APIs for a given user and a given membership type.
@@ -61,11 +62,11 @@ public interface ApiRepository extends CrudRepository<Api, String>{
      */
     Set<Api> findByApplication(String application) throws TechnicalException;
 
-    void addMember(ApiMembership membership) throws TechnicalException;
+    void addMember(String api, String username, MembershipType membershipType) throws TechnicalException;
 
     void deleteMember(String api, String username) throws TechnicalException;
 
-    Collection<ApiMembership> getMembers(String api) throws TechnicalException;
+    Collection<Membership> getMembers(String api) throws TechnicalException;
 
-    ApiMembership getMember(String api, String username) throws TechnicalException;
+    Membership getMember(String api, String username) throws TechnicalException;
 }

@@ -16,10 +16,7 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.ApiMembership;
-import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.ApplicationMembership;
-import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -39,10 +36,10 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
     /**
      * List all applications hold by a {@link User}.
      *
-     * @param userName The name of the user.
+     * @param username The name of the user.
      * @return All applications from a user.
      */
-    Set<Application> findByUser(String userName) throws TechnicalException;
+    Set<Application> findByUser(String username, MembershipType membershipType) throws TechnicalException;
 
     /**
      * Count {@link Application} owner by a given {@link User}
@@ -50,13 +47,13 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @param userName Application user owner name
      * @return Counted application
      */
-    int countByUser(String userName) throws TechnicalException;
+    int countByUser(String userName, MembershipType membershipType) throws TechnicalException;
 
-    void addMember(ApplicationMembership membership) throws TechnicalException;
+    void addMember(String application, String username, MembershipType membershipType) throws TechnicalException;
 
     void deleteMember(String application, String username) throws TechnicalException;
 
-    Collection<ApplicationMembership> getMembers(String application) throws TechnicalException;
+    Collection<Membership> getMembers(String application) throws TechnicalException;
 
-    ApplicationMembership getMember(String application, String username) throws TechnicalException;
+    Membership getMember(String application, String username) throws TechnicalException;
 }

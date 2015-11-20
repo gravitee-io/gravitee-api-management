@@ -56,7 +56,7 @@ public class Api {
     /**
      * The api visibility
      */
-    private ApiVisibility visibility;
+    private Visibility visibility;
 
     /**
      * The current api life cycle state.
@@ -103,11 +103,11 @@ public class Api {
         this.version = version;
     }
 
-    public ApiVisibility getVisibility() {
+    public Visibility getVisibility() {
         return visibility;
     }
 
-    public void setVisibility(ApiVisibility visibility) {
+    public void setVisibility(Visibility visibility) {
         this.visibility = visibility;
     }
 

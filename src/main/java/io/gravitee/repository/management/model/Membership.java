@@ -20,12 +20,7 @@ import java.util.Date;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApplicationMembership {
-
-    /**
-     * The application name
-     */
-    private String application;
+public class Membership {
 
     /**
      * The user name
@@ -46,14 +41,6 @@ public class ApplicationMembership {
      * Membership type
      */
     private MembershipType membershipType;
-
-    public String getApplication() {
-        return application;
-    }
-
-    public void setApplication(String application) {
-        this.application = application;
-    }
 
     public Date getCreatedAt() {
         return createdAt;
