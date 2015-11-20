@@ -33,7 +33,7 @@ import java.util.Set;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Role(RoleType.OWNER)
-public class ApplicationsApiResource extends AbstractResource {
+public class ApiApplicationsResource extends AbstractResource {
 
     @Inject
     private ApplicationService applicationService;
@@ -46,7 +46,7 @@ public class ApplicationsApiResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApplicationEntity> associatedApplications() {
+    public Set<ApplicationEntity> applications() {
         // Check that the API exists
         ApiEntity api = apiService.findByName(apiName);
 
@@ -54,5 +54,4 @@ public class ApplicationsApiResource extends AbstractResource {
 
         return applicationService.findByApi(api.getName());
     }
-
 }

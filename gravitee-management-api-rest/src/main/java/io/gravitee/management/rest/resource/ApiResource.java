@@ -104,8 +104,8 @@ public class ApiResource extends AbstractResource {
     }
 
     @Path("applications")
-    public ApplicationsApiResource getApplicationsApiResource() {
-        return resourceContext.getResource(ApplicationsApiResource.class);
+    public ApiApplicationsResource getApplicationsApiResource() {
+        return resourceContext.getResource(ApiApplicationsResource.class);
     }
 
     @Path("analytics")
