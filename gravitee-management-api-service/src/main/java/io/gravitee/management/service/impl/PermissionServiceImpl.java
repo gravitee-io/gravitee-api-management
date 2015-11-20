@@ -17,7 +17,6 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.Owner;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.PermissionService;
@@ -25,10 +24,7 @@ import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.TeamMembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
-import io.gravitee.repository.management.model.Member;
-import io.gravitee.repository.management.model.TeamRole;
 import io.gravitee.repository.management.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,9 +45,6 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
     private final Logger LOGGER = LoggerFactory.getLogger(PermissionServiceImpl.class);
 
     @Autowired
-    private TeamMembershipRepository teamMembershipRepository;
-
-    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -62,6 +55,7 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
 
     @Override
     public void hasPermission(String username, String apiName, PermissionType permissionType) {
+        /*
         if (permissionType == PermissionType.VIEW_API || permissionType == PermissionType.EDIT_API) {
             validateApi(username, apiName, permissionType);
         } else if (permissionType == PermissionType.VIEW_APPLICATION || permissionType == PermissionType.EDIT_APPLICATION) {
@@ -69,8 +63,10 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
         } else if (permissionType == PermissionType.VIEW_TEAM || permissionType == PermissionType.EDIT_TEAM) {
             validateTeam(username, apiName, permissionType);
         }
+        */
     }
 
+    /*
     private void validateApi(String username, String apiName, PermissionType permissionType) {
         try {
             LOGGER.debug("Validate user rights for API: {}", apiName);
@@ -176,8 +172,5 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
             throw new TechnicalManagementException("An error occurs while trying to validate user's permissions for application: " + applicationName, ex);
         }
     }
-
-    private void validateTeam(String username, String teamName, PermissionType permissionType) {
-        // TODO implements validate team
-    }
+    */
 }

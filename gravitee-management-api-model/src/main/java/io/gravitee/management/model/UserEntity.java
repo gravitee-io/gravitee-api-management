@@ -15,11 +15,11 @@
  */
 package io.gravitee.management.model;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Date;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -54,8 +54,7 @@ public class UserEntity {
     /**
      * The user roles
      */
-    private List<String> roles;
-    
+    private Set<String> roles;
 
     /**
      * The user creation date
@@ -125,11 +124,11 @@ public class UserEntity {
 		this.password = password;
 	}
 
-	public List<String> getRoles() {
+	public Set<String> getRoles() {
 		return roles;
 	}
 
-	public void setRoles(List<String> roles) {
+	public void setRoles(Set<String> roles) {
 		this.roles = roles;
 	}
 

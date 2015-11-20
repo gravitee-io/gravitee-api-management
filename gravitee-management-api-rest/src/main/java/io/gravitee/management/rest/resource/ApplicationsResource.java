@@ -19,17 +19,15 @@ import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.service.ApplicationService;
 
-import java.util.Set;
-
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.validation.Valid;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -42,18 +40,31 @@ public class ApplicationsResource extends AbstractResource {
     
     @Inject
     private ApplicationService applicationService;
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApplicationEntity> all() {
+    public Set<ApplicationEntity> list() {
         return applicationService.findByUser(getAuthenticatedUser());
     }
-    
+
+    /**
+     * Create a new application for the authenticated user.
+     * @param application
+     * @return
+     */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ApplicationEntity create(final NewApplicationEntity application) {
-    	return applicationService.createForUser(application, getAuthenticatedUser());
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response create(@Valid final NewApplicationEntity application) {
+        ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUser());
+        if (newApplication != null) {
+            return Response
+                    .created(URI.create("/applications/" + newApplication.getName()))
+                    .entity(newApplication)
+                    .build();
+        }
+
+        return Response.serverError().build();
     }
 
     @Path("{applicationName}")

@@ -15,25 +15,6 @@
  */
 package io.gravitee.management.service;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
@@ -44,6 +25,20 @@ import io.gravitee.management.service.impl.ApplicationServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.Optional;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -53,7 +48,6 @@ public class ApplicationServiceTest {
 
     private static final String APPLICATION_NAME = "myApplication";
     private static final String USER_NAME = "myUser";
-    private static final String TEAM_NAME = "myTeam";
 
     @InjectMocks
     private ApplicationService applicationService = new ApplicationServiceImpl();
@@ -70,93 +64,34 @@ public class ApplicationServiceTest {
 
     @Test
     public void shouldFindByName() throws TechnicalException {
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenReturn(Optional.of(application));
+        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.of(application));
 
-        final Optional<ApplicationEntity> applicationEntity = applicationService.findByName(APPLICATION_NAME);
+        final ApplicationEntity applicationEntity = applicationService.findByName(APPLICATION_NAME);
 
         assertNotNull(applicationEntity);
-        assertTrue(applicationEntity.isPresent());
     }
 
-    @Test
+    @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotFindByNameBecauseNotExists() throws TechnicalException {
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenReturn(Optional.empty());
-
-        final Optional<ApplicationEntity> applicationEntity = applicationService.findByName(APPLICATION_NAME);
-
-        assertNotNull(applicationEntity);
-        assertFalse(applicationEntity.isPresent());
+        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.empty());
+        applicationService.findByName(APPLICATION_NAME);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByNameBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenThrow(TechnicalException.class);
+        when(applicationRepository.findById(APPLICATION_NAME)).thenThrow(TechnicalException.class);
 
         applicationService.findByName(APPLICATION_NAME);
     }
 
     @Test
-    public void shouldFindByTeam() throws TechnicalException {
-        when(applicationRepository.findByTeam(TEAM_NAME)).thenReturn(new HashSet<>(Arrays.asList(application)));
-
-        final Set<ApplicationEntity> applicationEntity = applicationService.findByTeam(TEAM_NAME);
-
-        assertNotNull(applicationEntity);
-        assertEquals(1, applicationEntity.size());
-    }
-
-    @Test
-    public void shouldNotFindByTeamBecauseNotExists() throws TechnicalException {
-        when(applicationRepository.findByTeam(TEAM_NAME)).thenReturn(null);
-
-        final Set<ApplicationEntity> applicationEntity = applicationService.findByTeam(TEAM_NAME);
-
-        assertNotNull(applicationEntity);
-        assertTrue(applicationEntity.isEmpty());
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldNotFindByTeamBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findByTeam(TEAM_NAME)).thenThrow(TechnicalException.class);
-
-        applicationService.findByTeam(TEAM_NAME);
-    }
-
-    @Test
-    public void shouldFindByUser() throws TechnicalException {
-        when(applicationRepository.findByTeam(USER_NAME)).thenReturn(new HashSet<>(Arrays.asList(application)));
-
-        final Set<ApplicationEntity> applicationEntity = applicationService.findByTeam(USER_NAME);
-
-        assertNotNull(applicationEntity);
-        assertEquals(1, applicationEntity.size());
-    }
-
-    @Test
-    public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
-        when(applicationRepository.findByTeam(USER_NAME)).thenReturn(null);
-
-        final Set<ApplicationEntity> applicationEntity = applicationService.findByTeam(USER_NAME);
-
-        assertNotNull(applicationEntity);
-        assertTrue(applicationEntity.isEmpty());
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldNotFindByTeamUserTechnicalException() throws TechnicalException {
-        when(applicationRepository.findByTeam(USER_NAME)).thenThrow(TechnicalException.class);
-
-        applicationService.findByTeam(USER_NAME);
-    }
-
-    @Test
     public void shouldCreateForUser() throws TechnicalException {
         when(application.getName()).thenReturn(APPLICATION_NAME);
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenReturn(Optional.empty());
+        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.empty());
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
 
-        final ApplicationEntity applicationEntity = applicationService.createForUser(newApplication, USER_NAME);
+        final ApplicationEntity applicationEntity = applicationService.create(newApplication, USER_NAME);
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
@@ -164,52 +99,23 @@ public class ApplicationServiceTest {
 
     @Test(expected = ApplicationAlreadyExistsException.class)
     public void shouldNotCreateForUserBecauseExists() throws TechnicalException {
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenReturn(Optional.of(application));
+        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.of(application));
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
 
-        applicationService.createForUser(newApplication, USER_NAME);
+        applicationService.create(newApplication, USER_NAME);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateForUserBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenThrow(TechnicalException.class);
+        when(applicationRepository.findById(APPLICATION_NAME)).thenThrow(TechnicalException.class);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
 
-        applicationService.createForUser(newApplication, USER_NAME);
-    }
-
-    @Test
-    public void shouldCreateForTeam() throws TechnicalException {
-        when(application.getName()).thenReturn(APPLICATION_NAME);
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenReturn(Optional.empty());
-        when(applicationRepository.create(any())).thenReturn(application);
-        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
-
-        final ApplicationEntity applicationEntity = applicationService.createForTeam(newApplication, TEAM_NAME);
-
-        assertNotNull(applicationEntity);
-        assertEquals(APPLICATION_NAME, applicationEntity.getName());
-    }
-
-    @Test(expected = ApplicationAlreadyExistsException.class)
-    public void shouldNotCreateForTeamBecauseExists() throws TechnicalException {
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenReturn(Optional.of(application));
-        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
-
-        applicationService.createForTeam(newApplication, TEAM_NAME);
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldNotCreateForTeamBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenThrow(TechnicalException.class);
-        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
-
-        applicationService.createForTeam(newApplication, TEAM_NAME);
+        applicationService.create(newApplication, USER_NAME);
     }
 
     @Test
     public void shouldUpdate() throws TechnicalException {
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenReturn(Optional.of(application));
+        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.of(application));
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(applicationRepository.update(any())).thenReturn(application);
 
@@ -229,7 +135,7 @@ public class ApplicationServiceTest {
 
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenReturn(Optional.empty());
+        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.empty());
         when(applicationRepository.update(any())).thenReturn(application);
 
         applicationService.update(APPLICATION_NAME, existingApplication);
@@ -237,7 +143,7 @@ public class ApplicationServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findByName(APPLICATION_NAME)).thenReturn(Optional.of(application));
+        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.of(application));
         when(applicationRepository.update(any())).thenThrow(TechnicalException.class);
 
         applicationService.update(APPLICATION_NAME, existingApplication);

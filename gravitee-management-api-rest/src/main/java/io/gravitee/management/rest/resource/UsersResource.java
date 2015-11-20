@@ -18,23 +18,18 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
-
-import java.net.URI;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import java.net.URI;
 
 /**
  * Defines the REST resources to manage Users.
@@ -79,8 +74,10 @@ public class UsersResource {
         return Response.serverError().build();
     }
 
+    @GET
     @Path("{username}")
-    public UserResource getUserResource() {
-        return resourceContext.getResource(UserResource.class);
+    @Produces(MediaType.APPLICATION_JSON)
+    public UserEntity user(@PathParam("username") String username) {
+        return userService.findByName(username);
     }
 }

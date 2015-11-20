@@ -24,7 +24,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import io.gravitee.management.service.impl.PermissionServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.TeamMembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
 
 /**
@@ -39,8 +38,6 @@ public class PermissionServiceTest {
     @InjectMocks
     private PermissionService permissionService = new PermissionServiceImpl();
 
-    @Mock
-    private TeamMembershipRepository teamMembershipRepository;
     @Mock
     private UserRepository userRepository;
 
@@ -95,29 +92,5 @@ public class PermissionServiceTest {
     @Ignore
     public void shouldNotHavePermissionOnEditApplication() throws TechnicalException {
         permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_APPLICATION);
-    }
-
-    @Test
-    @Ignore
-    public void shouldHavePermissionOnViewTeam() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_TEAM);
-    }
-
-    @Test
-    @Ignore
-    public void shouldNotHavePermissionOnViewTeam() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_TEAM);
-    }
-
-    @Test
-    @Ignore
-    public void shouldHavePermissionOnEditTeam() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_TEAM);
-    }
-
-    @Test
-    @Ignore
-    public void shouldNotHavePermissionOnEditTeam() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_TEAM);
     }
 }

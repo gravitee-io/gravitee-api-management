@@ -80,7 +80,7 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 	public Optional<PageEntity> findByName(String pageName) {
 		try {
 			LOGGER.debug("Find PAGE by name: {}", pageName);
-			return pageRepository.findByName(pageName).map(DocumentationServiceImpl::convert);
+			return pageRepository.findById(pageName).map(DocumentationServiceImpl::convert);
 		} catch (TechnicalException ex) {
 			LOGGER.error("An error occurs while trying to find an PAGE using its name {}", pageName, ex);
 			throw new TechnicalManagementException(
@@ -116,7 +116,7 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 		try {
 			LOGGER.debug("Update Page {}", pageName);
 
-			Optional<Page> optPageToUpdate = pageRepository.findByName(pageName);
+			Optional<Page> optPageToUpdate = pageRepository.findById(pageName);
 			if (!optPageToUpdate.isPresent()) {
 				throw new PageNotFoundException(pageName);
 			}

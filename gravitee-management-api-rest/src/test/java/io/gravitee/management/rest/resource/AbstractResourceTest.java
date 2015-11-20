@@ -15,8 +15,10 @@
  */
 package io.gravitee.management.rest.resource;
 
-import static org.mockito.Mockito.mock;
-
+import io.gravitee.management.rest.JerseySpringTest;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.PermissionService;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -25,11 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import io.gravitee.management.rest.JerseySpringTest;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.PermissionService;
-import io.gravitee.management.service.TeamService;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -40,9 +38,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ApiService apiService;
-
-    @Autowired
-    protected TeamService teamService;
 
     @Autowired
     protected ApplicationService applicationService;
@@ -57,11 +52,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     	public ApiService apiService() {
     		return mock(ApiService.class);
     	}
-
-        @Bean
-        public TeamService teamService() {
-            return mock(TeamService.class);
-        }
 
         @Bean
         public ApplicationService applicationService() {

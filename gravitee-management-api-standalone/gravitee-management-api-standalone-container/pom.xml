@@ -58,11 +58,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!--
         <dependency>
             <groupId>io.gravitee.repository</groupId>
             <artifactId>gravitee-repository-jdbc</artifactId>
             <version>${gravitee-repository-jdbc.version}</version>
         </dependency>
+        -->
         <dependency>
             <groupId>io.gravitee.repository</groupId>
             <artifactId>gravitee-repository-elasticsearch</artifactId>

@@ -15,18 +15,19 @@
  */
 package io.gravitee.management.security.listener;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
+import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 
-import io.gravitee.management.model.NewUserEntity;
-import io.gravitee.management.model.UserEntity;
-import io.gravitee.management.service.UserService;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -39,16 +40,16 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
     @Override
     public void onApplicationEvent(AuthenticationSuccessEvent event) {
         final Authentication authentication = event.getAuthentication();
-        final Optional<UserEntity> user = userService.findByName(authentication.getName());
-        if (!user.isPresent()) {
+        try {
+            userService.findByName(authentication.getName());
+        } catch (UserNotFoundException unfe) {
             final NewUserEntity newUser = new NewUserEntity();
             newUser.setUsername(authentication.getName());
-            final List<String> roles = authentication.getAuthorities().stream().map(
-                grantedAuthority -> grantedAuthority.getAuthority()
-            ).collect(Collectors.toList());
+            final Set<String> roles = authentication.getAuthorities().stream().map(
+                    GrantedAuthority::getAuthority
+            ).collect(Collectors.toSet());
             newUser.setRoles(roles);
             userService.create(newUser);
         }
-        System.out.println("User Logged In: " + authentication);
     }
 }

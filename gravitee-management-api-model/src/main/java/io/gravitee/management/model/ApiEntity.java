@@ -49,9 +49,7 @@ public class ApiEntity {
     @JsonProperty("updated_at")
     private Date updatedAt;
 
-    private boolean isPrivate;
-
-    private Owner owner;
+    private Visibility visibility;
 
     private Lifecycle.State state;
 
@@ -71,20 +69,12 @@ public class ApiEntity {
         this.name = name;
     }
 
-    public Owner getOwner() {
-        return owner;
+    public Visibility getVisibility() {
+        return visibility;
     }
 
-    public void setOwner(Owner owner) {
-        this.owner = owner;
-    }
-
-    public boolean isPrivate() {
-        return isPrivate;
-    }
-
-    public void setPrivate(boolean isPrivate) {
-        this.isPrivate = isPrivate;
+    public void setVisibility(Visibility visibility) {
+        this.visibility = visibility;
     }
 
     public Date getUpdatedAt() {
@@ -154,7 +144,7 @@ public class ApiEntity {
         sb.append("createdAt=").append(createdAt);
         sb.append(", name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
-        sb.append(", privateApi=").append(isPrivate);
+        sb.append(", visibility='").append(visibility).append('\'');
         sb.append(", state=").append(state);
         sb.append('}');
         return sb.toString();

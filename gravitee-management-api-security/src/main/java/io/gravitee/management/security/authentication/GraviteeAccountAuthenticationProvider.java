@@ -18,10 +18,6 @@ package io.gravitee.management.security.authentication;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
-
-import java.util.List;
-import java.util.Optional;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +34,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
 
 /**
  * 
@@ -74,20 +72,15 @@ public class GraviteeAccountAuthenticationProvider extends AbstractUserDetailsAu
 
 	@Override
 	protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
-		Optional<UserEntity> optUser = null;
 		try {
-			optUser = userService.findByName(username);
-			if (optUser == null || (optUser != null && !optUser.isPresent())) {
-				LOGGER.debug("User '" + username + "' not found");
-				throw new UserNotFoundException();
-			}
+			UserEntity user = userService.findByName(username);
+			return mapUserEntityToUserDetails(user);
 		} catch (UserNotFoundException notFound) {
 			throw new UsernameNotFoundException("User '" + username + "' not found", notFound);
 		} catch (Exception repositoryProblem) {
 			LOGGER.error("Failed to retrieveUser : {}", username, repositoryProblem);
 			throw new InternalAuthenticationServiceException(repositoryProblem.getMessage(), repositoryProblem);
 		}
-		return mapUserEntityToUserDetails(optUser.get());
 	}
 
 	public void setPasswordEncoder(PasswordEncoder passwordEncoder) {

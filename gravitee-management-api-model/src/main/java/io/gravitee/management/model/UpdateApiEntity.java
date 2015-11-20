@@ -42,14 +42,15 @@ public class UpdateApiEntity {
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
 
-    private boolean isPrivate;
+    @NotNull
+    private Visibility visibility;
 
-    public boolean isPrivate() {
-        return isPrivate;
+    public Visibility getVisibility() {
+        return visibility;
     }
 
-    public void setPrivate(boolean isPrivate) {
-        this.isPrivate = isPrivate;
+    public void setVisibility(Visibility visibility) {
+        this.visibility = visibility;
     }
 
     public String getVersion() {

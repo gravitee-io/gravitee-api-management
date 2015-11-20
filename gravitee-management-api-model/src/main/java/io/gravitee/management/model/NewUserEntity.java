@@ -15,9 +15,8 @@
  */
 package io.gravitee.management.model;
 
-import java.util.List;
-
 import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -54,7 +53,7 @@ public class NewUserEntity {
     /**
      * The user roles
      */
-    private List<String> roles;
+    private Set<String> roles;
 
     public String getEmail() {
         return email;
@@ -96,11 +95,11 @@ public class NewUserEntity {
 		this.password = password;
 	}
 
-	public List<String> getRoles() {
+	public Set<String> getRoles() {
 		return roles;
 	}
 
-	public void setRoles(List<String> roles) {
+	public void setRoles(Set<String> roles) {
 		this.roles = roles;
 	}
 

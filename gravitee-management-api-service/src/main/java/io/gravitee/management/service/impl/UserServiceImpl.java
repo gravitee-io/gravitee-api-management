@@ -18,10 +18,13 @@ package io.gravitee.management.service.impl;
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +49,17 @@ public class UserServiceImpl extends TransactionalService implements UserService
     private UserRepository userRepository;
 
     @Override
-    public Optional<UserEntity> findByName(String username) {
+    public UserEntity findByName(String username) {
         try {
             LOGGER.debug("Find user by name: {}", username);
-            return userRepository.findByUsername(username).map(UserServiceImpl::convert);
+
+            Optional<User> application = userRepository.findByUsername(username);
+
+            if (application.isPresent()) {
+                return convert(application.get());
+            }
+
+            throw new UserNotFoundException(username);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find a user using its name {}", username, ex);
             throw new TechnicalManagementException("An error occurs while trying to find a user using its name " + username, ex);
@@ -57,10 +67,10 @@ public class UserServiceImpl extends TransactionalService implements UserService
     }
 
     @Override
-    public UserEntity create(NewUserEntity newUserEntity) throws UsernameAlreadyExistsException {
+    public UserEntity create(NewUserEntity newUserEntity) {
         try {
             LOGGER.debug("Create {}", newUserEntity);
-            Optional<UserEntity> checkUser = findByName(newUserEntity.getUsername());
+            Optional<User> checkUser = userRepository.findByUsername(newUserEntity.getUsername());
             if (checkUser.isPresent()) {
                 throw new UsernameAlreadyExistsException(newUserEntity.getUsername());
             }

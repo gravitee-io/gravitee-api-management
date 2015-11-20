@@ -18,6 +18,7 @@ package io.gravitee.management.service;
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
 import io.gravitee.management.service.impl.UserServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -30,12 +31,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
@@ -51,7 +52,7 @@ public class UserServiceTest {
     private static final String FIRST_NAME = "The";
     private static final String LAST_NAME = "User";
     private static final String PASSWORD = "gh2gyf8!zjfnz";
-    private static final List<String> ROLES = Arrays.asList("ROLE_USER");
+    private static final Set<String> ROLES = Collections.singleton("ROLE_USER");
 
     @InjectMocks
     private UserService userService = new UserServiceImpl();
@@ -76,10 +77,8 @@ public class UserServiceTest {
         when(user.getRoles()).thenReturn(ROLES);
         when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(user));
 
-        final Optional<UserEntity> optionalUser = userService.findByName(USER_NAME);
+        final UserEntity userEntity = userService.findByName(USER_NAME);
 
-        assertTrue(optionalUser.isPresent());
-        final UserEntity userEntity = optionalUser.get();
         assertEquals(USER_NAME, userEntity.getUsername());
         assertEquals(FIRST_NAME, userEntity.getFirstname());
         assertEquals(LAST_NAME, userEntity.getLastname());
@@ -88,12 +87,11 @@ public class UserServiceTest {
         assertEquals(ROLES, userEntity.getRoles());
     }
 
-    @Test
+    @Test(expected = UserNotFoundException.class)
     public void shouldNotFindByUsernameBecauseNotExists() throws TechnicalException {
         when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.empty());
 
-        final Optional<UserEntity> optionalUser = userService.findByName(USER_NAME);
-        assertFalse(optionalUser.isPresent());
+        userService.findByName(USER_NAME);
     }
 
     @Test(expected = TechnicalManagementException.class)

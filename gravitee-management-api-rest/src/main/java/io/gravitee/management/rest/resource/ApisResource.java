@@ -16,22 +16,27 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.ApiListItem;
+import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.management.model.Visibility;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.validation.Valid;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Path("/apis")
-public class ApisResource {
+public class ApisResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -39,15 +44,34 @@ public class ApisResource {
     @Inject
     private ApiService apiService;
 
-    /**
-     * List all APIs must return only visible API (ie. non-private API) for both users and teams.
-     *
-     * @return List all publicly visible APIs
-     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApiEntity> all() {
-        return apiService.findAll();
+    public Set<ApiListItem> list() {
+        if (isAuthenticated()) {
+            return apiService.findByUser(getAuthenticatedUser());
+        } else {
+            return apiService.findByVisibility(Visibility.PUBLIC);
+        }
+    }
+
+    /**
+     * Create a new API for the authenticated user.
+     * @param newApiEntity
+     * @return
+     */
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response create(@Valid final NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
+        ApiEntity newApi = apiService.create(newApiEntity, getAuthenticatedUser());
+        if (newApi != null) {
+            return Response
+                    .created(URI.create("/apis/" + newApi.getName()))
+                    .entity(newApi)
+                    .build();
+        }
+
+        return Response.serverError().build();
     }
 
     @Path("{apiName}")

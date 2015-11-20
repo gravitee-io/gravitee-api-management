@@ -35,8 +35,6 @@ public class ApplicationEntity {
     @JsonProperty("updated_at")
     private Date updatedAt;
 
-    private Owner owner;
-
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -59,14 +57,6 @@ public class ApplicationEntity {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Owner getOwner() {
-        return owner;
-    }
-
-    public void setOwner(Owner owner) {
-        this.owner = owner;
     }
 
     public String getType() {
