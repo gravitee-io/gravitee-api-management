@@ -165,7 +165,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     @Override
     public Set<MemberEntity> getMembers(String api, io.gravitee.management.model.MembershipType membershipType) {
         try {
-            LOGGER.debug("Get members for API {}", api);
+            LOGGER.debug("Get members for application {}", api);
 
             Collection<Membership> membersRepo = applicationRepository.getMembers(api,
                     (membershipType == null ) ? null : MembershipType.valueOf(membershipType.toString()));
@@ -180,8 +180,33 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
             return members;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get members for API {}", api, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get members for API " + api, ex);
+            LOGGER.error("An error occurs while trying to get members for application {}", api, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get members for application " + api, ex);
+        }
+    }
+
+    @Override
+    public void addMember(String application, String username, io.gravitee.management.model.MembershipType membershipType) {
+        try {
+            LOGGER.debug("Add a new member for application {}", application);
+
+            applicationRepository.addMember(application, username,
+                    MembershipType.valueOf(membershipType.toString()));
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to add member for application {}", application, ex);
+            throw new TechnicalManagementException("An error occurs while trying to add member for application " + application, ex);
+        }
+    }
+
+    @Override
+    public void deleteMember(String application, String username) {
+        try {
+            LOGGER.debug("Delete member {} for application {}", username, application);
+
+            applicationRepository.deleteMember(application, username);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete member {} for application {}", username, application, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for application " + application, ex);
         }
     }
 

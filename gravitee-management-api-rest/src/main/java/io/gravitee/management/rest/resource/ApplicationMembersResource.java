@@ -16,14 +16,15 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.service.ApiService;
+import io.gravitee.management.rest.resource.param.MembershipTypeParam;
 import io.gravitee.management.service.ApplicationService;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.Set;
 
 /**
@@ -40,9 +41,31 @@ public class ApplicationMembersResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<MemberEntity> members() {
-        // Check that the API exists
+        // Check that the application exists
         applicationService.findByName(applicationName);
 
         return applicationService.getMembers(applicationName, null);
+    }
+
+    @POST
+    public Response create(
+            @NotNull @QueryParam("user") String username,
+            @NotNull @QueryParam("type") MembershipTypeParam membershipType) {
+        // Check that the application exists
+        applicationService.findByName(applicationName);
+
+        applicationService.addMember(applicationName, username, membershipType.getValue());
+
+        return Response.created(URI.create("/applications/" + applicationName + "/members/" + username)).build();
+    }
+
+    @DELETE
+    public Response delete(@NotNull @QueryParam("user") String username) {
+        // Check that the application exists
+        applicationService.findByName(applicationName);
+
+        applicationService.deleteMember(applicationName, username);
+
+        return Response.ok().build();
     }
 }
