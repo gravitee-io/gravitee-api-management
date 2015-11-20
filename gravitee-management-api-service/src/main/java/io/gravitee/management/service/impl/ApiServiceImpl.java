@@ -20,12 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.management.model.Visibility;
@@ -55,10 +55,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private ApiRepository apiRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private ObjectMapper objectMapper;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private UserService userService;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
@@ -132,7 +132,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                                 if (! members.isEmpty()) {
                                     Membership primaryOwner = members.iterator().next();
 
-                                    User user = userRepository.findByUsername(primaryOwner.getUser()).get();
+                                    UserEntity user = userService.findByName(primaryOwner.getUser());
 
                                     ApiListItem.PrimaryOwner owner = new ApiListItem.PrimaryOwner();
                                     owner.setUsername(user.getUsername());
@@ -190,7 +190,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                         Collection<Membership> members = apiRepository.getMembers(api.getName(), MembershipType.PRIMARY_OWNER);
                         if (! members.isEmpty()) {
                             Membership primaryOwner = members.iterator().next();
-                            User user = userRepository.findByUsername(primaryOwner.getUser()).get();
+                            UserEntity user = userService.findByName(primaryOwner.getUser());
 
                             ApiListItem.PrimaryOwner owner = new ApiListItem.PrimaryOwner();
                             owner.setUsername(user.getUsername());

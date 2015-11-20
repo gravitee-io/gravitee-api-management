@@ -18,6 +18,8 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.rest.resource.param.MembershipTypeParam;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -35,6 +37,9 @@ public class ApiMembersResource {
     @Inject
     private ApiService apiService;
 
+    @Inject
+    private UserService userService;
+
     @PathParam("apiName")
     private String apiName;
 
@@ -51,12 +56,18 @@ public class ApiMembersResource {
     public Response create(
             @NotNull @QueryParam("user") String username,
             @NotNull @QueryParam("type") MembershipTypeParam membershipType) {
+        // Check that the API exists
+        apiService.findByName(apiName);
+
         if (membershipType.getValue() == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        // Check that the API exists
-        apiService.findByName(apiName);
+        try {
+            userService.findByName(username);
+        } catch (UserNotFoundException unfe) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
 
         apiService.addMember(apiName, username, membershipType.getValue());
 
@@ -67,6 +78,12 @@ public class ApiMembersResource {
     public Response delete(@NotNull @QueryParam("user") String username) {
         // Check that the API exists
         apiService.findByName(apiName);
+
+        try {
+            userService.findByName(username);
+        } catch (UserNotFoundException unfe) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
 
         apiService.deleteMember(apiName, username);
 

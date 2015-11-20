@@ -18,6 +18,8 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.rest.resource.param.MembershipTypeParam;
 import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -34,6 +36,9 @@ public class ApplicationMembersResource {
 
     @Inject
     private ApplicationService applicationService;
+
+    @Inject
+    private UserService userService;
 
     @PathParam("applicationName")
     private String applicationName;
@@ -54,6 +59,16 @@ public class ApplicationMembersResource {
         // Check that the application exists
         applicationService.findByName(applicationName);
 
+        if (membershipType.getValue() == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        try {
+            userService.findByName(username);
+        } catch (UserNotFoundException unfe) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
         applicationService.addMember(applicationName, username, membershipType.getValue());
 
         return Response.created(URI.create("/applications/" + applicationName + "/members/" + username)).build();
@@ -63,6 +78,12 @@ public class ApplicationMembersResource {
     public Response delete(@NotNull @QueryParam("user") String username) {
         // Check that the application exists
         applicationService.findByName(applicationName);
+
+        try {
+            userService.findByName(username);
+        } catch (UserNotFoundException unfe) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
 
         applicationService.deleteMember(applicationName, username);
 
