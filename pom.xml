@@ -43,6 +43,7 @@
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository</artifactId>
 			<version>${gravitee-repository.version}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
