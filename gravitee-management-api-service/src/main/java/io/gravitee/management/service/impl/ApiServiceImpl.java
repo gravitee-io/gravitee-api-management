@@ -300,6 +300,31 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
+    @Override
+    public void addMember(String api, String username, io.gravitee.management.model.MembershipType membershipType) {
+        try {
+            LOGGER.debug("Add a new member for API {}", api);
+
+            apiRepository.addMember(api, username,
+                    MembershipType.valueOf(membershipType.toString()));
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to add member for API {}", api, ex);
+            throw new TechnicalManagementException("An error occurs while trying to add member for API " + api, ex);
+        }
+    }
+
+    @Override
+    public void deleteMember(String api, String username) {
+        try {
+            LOGGER.debug("Delete member {} for API {}", username, api);
+
+            apiRepository.deleteMember(api, username);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete member {} for API {}", username, api, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for API " + api, ex);
+        }
+    }
+
     private void updateLifecycle(String apiName, LifecycleState lifecycleState) throws TechnicalException {
         Optional<Api> optApi = apiRepository.findById(apiName);
         if (optApi.isPresent()) {

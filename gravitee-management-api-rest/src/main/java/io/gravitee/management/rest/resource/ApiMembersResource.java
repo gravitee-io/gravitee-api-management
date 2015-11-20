@@ -16,13 +16,15 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.rest.resource.param.MembershipTypeParam;
 import io.gravitee.management.service.ApiService;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.Set;
 
 /**
@@ -43,5 +45,31 @@ public class ApiMembersResource {
         apiService.findByName(apiName);
 
         return apiService.getMembers(apiName, null);
+    }
+
+    @POST
+    public Response create(
+            @NotNull @QueryParam("user") String username,
+            @NotNull @QueryParam("type") MembershipTypeParam membershipType) {
+        if (membershipType.getValue() == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        // Check that the API exists
+        apiService.findByName(apiName);
+
+        apiService.addMember(apiName, username, membershipType.getValue());
+
+        return Response.created(URI.create("/apis/" + apiName + "/members/" + username)).build();
+    }
+
+    @DELETE
+    public Response delete(@NotNull @QueryParam("user") String username) {
+        // Check that the API exists
+        apiService.findByName(apiName);
+
+        apiService.deleteMember(apiName, username);
+
+        return Response.ok().build();
     }
 }
