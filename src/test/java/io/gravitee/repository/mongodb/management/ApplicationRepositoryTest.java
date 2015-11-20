@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.MembershipType;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -152,9 +153,33 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 	@Test
 	public void findByUserTest() {
 		try {
-			Set<Application> applications = applicationRepository.findByUser("findByUserTest");
+			Set<Application> applications = applicationRepository.findByUser("findByUserTest", null);
 			Assert.assertNotNull(applications);
-			Assert.assertEquals("Invalid application result in findByUser",applications.size(), 1);
+			Assert.assertEquals("Invalid application result in findByMember", 1, applications.size());
+		} catch (Exception e) {
+			logger.error("Error while finding application by user",e);
+			Assert.fail("Error while finding application by user");
+		}
+	}
+
+	@Test
+	public void findPrimaryOwnerMemberByUserTest() {
+		try {
+			Set<Application> applications = applicationRepository.findByUser("findByUserTest", MembershipType.PRIMARY_OWNER);
+			Assert.assertNotNull(applications);
+			Assert.assertEquals("Invalid application result in findByMember", 1, applications.size());
+		} catch (Exception e) {
+			logger.error("Error while finding application by user",e);
+			Assert.fail("Error while finding application by user");
+		}
+	}
+
+	@Test
+	public void findUserMemberByUserTest() {
+		try {
+			Set<Application> applications = applicationRepository.findByUser("findByUserTest", MembershipType.USER);
+			Assert.assertNotNull(applications);
+			Assert.assertEquals("Invalid application result in findByMember", 0, applications.size());
 		} catch (Exception e) {
 			logger.error("Error while finding application by user",e);
 			Assert.fail("Error while finding application by user");
@@ -164,8 +189,8 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 	@Test
 	public void countByUserTest(){
 		try {
-			int nbApplications = applicationRepository.countByUser("findByUserTest");
-			Assert.assertEquals("Invalid application result in countByUser", nbApplications, 1);
+			int nbApplications = applicationRepository.countByUser("findByUserTest", null);
+			Assert.assertEquals("Invalid application result in countByUser", 1, nbApplications);
 		} catch (Exception e) {
 			logger.error("Error while counting application by user", e);
 			Assert.fail("Error while counting application by user");

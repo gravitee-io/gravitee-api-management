@@ -18,8 +18,9 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiMembership;
+import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiAssociationMongo;
@@ -85,11 +86,8 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public Set<Api> findByUser(String username, MembershipType membershipType) throws TechnicalException {
-		return mapApis(
-				(membershipType == null) ?
-						internalApiRepo.findByUser(username, null) :
-						internalApiRepo.findByUser(username, membershipType.toString()));
+	public Set<Api> findByMember(String username, MembershipType membershipType, Visibility visibility) throws TechnicalException {
+		return mapApis(internalApiRepo.findByMember(username, membershipType, visibility));
 	}
 
 	@Override
@@ -106,15 +104,15 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public void addMember(ApiMembership membership) throws TechnicalException {
-		ApiMongo apiMongo = internalApiRepo.findOne(membership.getApi());
-		UserMongo userMongo = internalUserRepo.findOne(membership.getUser());
+	public void addMember(String api, String username, MembershipType membershipType) throws TechnicalException {
+		ApiMongo apiMongo = internalApiRepo.findOne(api);
+		UserMongo userMongo = internalUserRepo.findOne(username);
 
 		MemberMongo memberMongo = new MemberMongo();
 		memberMongo.setUser(userMongo);
-		memberMongo.setType(membership.getMembershipType().toString());
-		memberMongo.setCreatedAt(membership.getCreatedAt());
-		memberMongo.setUpdatedAt(membership.getUpdatedAt());
+		memberMongo.setType(membershipType.toString());
+		memberMongo.setCreatedAt(new Date());
+		memberMongo.setUpdatedAt(memberMongo.getCreatedAt());
 
 		apiMongo.getMembers().add(memberMongo);
 
@@ -139,14 +137,13 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public Collection<ApiMembership> getMembers(String api) throws TechnicalException {
+	public Collection<Membership> getMembers(String api) throws TechnicalException {
 		ApiMongo apiMongo = internalApiRepo.findOne(api);
 		List<MemberMongo> membersMongo = apiMongo.getMembers();
-		Set<ApiMembership> members = new HashSet<>(membersMongo.size());
+		Set<Membership> members = new HashSet<>(membersMongo.size());
 
 		for (MemberMongo memberMongo : membersMongo) {
-			ApiMembership member = new ApiMembership();
-			member.setApi(apiMongo.getName());
+			Membership member = new Membership();
 			member.setUser(memberMongo.getUser().getName());
 			member.setMembershipType(MembershipType.valueOf(memberMongo.getType()));
 			member.setCreatedAt(memberMongo.getCreatedAt());
@@ -158,9 +155,9 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public ApiMembership getMember(String api, String username) throws TechnicalException {
-		Collection<ApiMembership> members = getMembers(api);
-		for (ApiMembership member : members) {
+	public Membership getMember(String api, String username) throws TechnicalException {
+		Collection<Membership> members = getMembers(api);
+		for (Membership member : members) {
 			if (member.getUser().equalsIgnoreCase(username)) {
 				return member;
 			}

@@ -18,7 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.ApplicationMembership;
+import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
@@ -84,33 +84,31 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	public void delete(String apiName) throws TechnicalException {
 		internalApplicationRepo.delete(apiName);
 	}
-	
 
 	@Override
-	public Set<Application> findByUser(String username) throws TechnicalException {
-		List<ApplicationMongo> applications = internalApplicationRepo.findByUser(username);
-		return mapApplications(applications);
+	public Set<Application> findByUser(String username, MembershipType membershipType) throws TechnicalException {
+		return mapApplications(internalApplicationRepo.findByUser(username, membershipType));
 	}
 	
 	@Override
-	public int countByUser(String username) throws TechnicalException {
+	public int countByUser(String username, MembershipType membershipType) throws TechnicalException {
 		try{
-			return internalApplicationRepo.countByUser(username);
+			return internalApplicationRepo.countByUser(username, membershipType);
 		}catch(Exception e){
 			throw new TechnicalException("Count by user failed", e);
 		}
 	}
 
 	@Override
-	public void addMember(ApplicationMembership membership) throws TechnicalException {
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(membership.getApplication());
-		UserMongo userMongo = internalUserRepo.findOne(membership.getUser());
+	public void addMember(String application, String username, MembershipType membershipType) throws TechnicalException {
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application);
+		UserMongo userMongo = internalUserRepo.findOne(username);
 
 		MemberMongo memberMongo = new MemberMongo();
 		memberMongo.setUser(userMongo);
-		memberMongo.setType(membership.getMembershipType().toString());
-		memberMongo.setCreatedAt(membership.getCreatedAt());
-		memberMongo.setUpdatedAt(membership.getUpdatedAt());
+		memberMongo.setType(membershipType.toString());
+		memberMongo.setCreatedAt(new Date());
+		memberMongo.setUpdatedAt(memberMongo.getCreatedAt());
 
 		applicationMongo.getMembers().add(memberMongo);
 
@@ -135,14 +133,13 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
-	public Collection<ApplicationMembership> getMembers(String application) throws TechnicalException {
+	public Collection<Membership> getMembers(String application) throws TechnicalException {
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application);
 		List<MemberMongo> membersMongo = applicationMongo.getMembers();
-		Set<ApplicationMembership> members = new HashSet<>(membersMongo.size());
+		Set<Membership> members = new HashSet<>(membersMongo.size());
 
 		for (MemberMongo memberMongo : membersMongo) {
-			ApplicationMembership member = new ApplicationMembership();
-			member.setApplication(applicationMongo.getName());
+			Membership member = new Membership();
 			member.setUser(memberMongo.getUser().getName());
 			member.setMembershipType(MembershipType.valueOf(memberMongo.getType()));
 			member.setCreatedAt(memberMongo.getCreatedAt());
@@ -154,9 +151,9 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
-	public ApplicationMembership getMember(String application, String username) throws TechnicalException {
-		Collection<ApplicationMembership> members = getMembers(application);
-		for (ApplicationMembership member : members) {
+	public Membership getMember(String application, String username) throws TechnicalException {
+		Collection<Membership> members = getMembers(application);
+		for (Membership member : members) {
 			if (member.getUser().equalsIgnoreCase(username)) {
 				return member;
 			}

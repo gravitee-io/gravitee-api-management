@@ -3,7 +3,7 @@
 		"_id" : "findByNameOk",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
 		"version" : "1",
-		"visibility" : "PUBLIC",
+		"visibility" : "PRIVATE",
 		"createdAt"  : { "$date" : 1439022010883 },
 		"updatedAt"  : { "$date" : 1439022010883 },
 		"lifecycleState" : "STOPPED",

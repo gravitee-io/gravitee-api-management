@@ -15,13 +15,15 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
+import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
-import java.util.List;
+import java.util.Collection;
 
 public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
@@ -29,17 +31,22 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 	private MongoTemplate mongoTemplate;
 
 	@Override
-	public List<ApiMongo> findByUser(String username, String membershipType) {
-		Criteria criteriaMember;
+	public Collection<ApiMongo> findByMember(String username, MembershipType membershipType, Visibility visibility) {
+		Query query = new Query();
 
-		if (membershipType == null) {
-			criteriaMember = Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username));
-		} else {
-			criteriaMember = Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username).and("type").is(membershipType));
+		if (visibility != null) {
+			query.addCriteria(Criteria.where("visibility").is(visibility.toString()));
 		}
 
-		Query query = new Query();
-		query.addCriteria(criteriaMember);
+		if (username != null) {
+			if (membershipType == null) {
+				query.addCriteria(Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username)));
+			} else {
+				query.addCriteria(Criteria.where("members").elemMatch(
+						Criteria.where("user.$id").is(username)
+								.and("type").is(membershipType)));
+			}
+		}
 
 		return mongoTemplate.find(query, ApiMongo.class);
 	}

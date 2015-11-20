@@ -62,7 +62,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 			api.setName(apiName);
 			api.setVersion("1");
 			api.setLifecycleState(LifecycleState.STOPPED);
-			api.setVisibility(ApiVisibility.PRIVATE);
+			api.setVisibility(Visibility.PRIVATE);
 			api.setDefinition("{}");
 			api.setCreatedAt(new Date());
 			api.setUpdatedAt(new Date());
@@ -111,9 +111,21 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	@Test
 	public void findByUserTest() {
 		try {
-			Set<Api> apis = apiRepository.findByUser("findByUserTest", MembershipType.PRIMARY_OWNER);
+			Set<Api> apis = apiRepository.findByMember("findByUserTest", MembershipType.PRIMARY_OWNER, null);
 			Assert.assertNotNull(apis);
-			Assert.assertEquals("Invalid api result in findByUser", 2, apis.size());
+			Assert.assertEquals("Invalid api result in findByMember", 2, apis.size());
+		} catch (Exception e) {
+			logger.error("Error while finding api by user", e);
+			Assert.fail("Error while finding api by user");
+		}
+	}
+
+	@Test
+	public void findByUserTestAndPrivateApi() {
+		try {
+			Set<Api> apis = apiRepository.findByMember("findByUserTest", MembershipType.PRIMARY_OWNER, Visibility.PRIVATE);
+			Assert.assertNotNull(apis);
+			Assert.assertEquals("Invalid api result in findByMember", 1, apis.size());
 		} catch (Exception e) {
 			logger.error("Error while finding api by user", e);
 			Assert.fail("Error while finding api by user");

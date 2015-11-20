@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.application;
 
-import java.util.List;
-
-import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
+import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
+
+import java.util.Collection;
 
 public interface ApplicationMongoRepositoryCustom {
     
@@ -27,12 +27,12 @@ public interface ApplicationMongoRepositoryCustom {
 	 * @param username
 	 * @return
 	 */
-    List<ApplicationMongo> findByUser(String username);
+	Collection<ApplicationMongo> findByUser(String username, MembershipType membershipType);
     
     /**
      * Count api by username (owner)
      * @param username
      * @return
      */
-	int countByUser(String username);
+	int countByUser(String username, MembershipType membershipType);
 }

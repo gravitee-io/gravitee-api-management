@@ -150,6 +150,9 @@
 						<goals>
 							<goal>start</goal>
 						</goals>
+						<configuration>
+							<port>37017</port>
+						</configuration>
 					</execution>
 					<execution>
 						<id>stop</id>
