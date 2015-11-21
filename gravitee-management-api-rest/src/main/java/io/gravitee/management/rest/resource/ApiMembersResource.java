@@ -53,7 +53,7 @@ public class ApiMembersResource {
     }
 
     @POST
-    public Response create(
+    public Response save(
             @NotNull @QueryParam("user") String username,
             @NotNull @QueryParam("type") MembershipTypeParam membershipType) {
         // Check that the API exists
@@ -66,10 +66,10 @@ public class ApiMembersResource {
         try {
             userService.findByName(username);
         } catch (UserNotFoundException unfe) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
-        apiService.addMember(apiName, username, membershipType.getValue());
+        apiService.addOrUpdateMember(apiName, username, membershipType.getValue());
 
         return Response.created(URI.create("/apis/" + apiName + "/members/" + username)).build();
     }
@@ -82,7 +82,7 @@ public class ApiMembersResource {
         try {
             userService.findByName(username);
         } catch (UserNotFoundException unfe) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
         apiService.deleteMember(apiName, username);

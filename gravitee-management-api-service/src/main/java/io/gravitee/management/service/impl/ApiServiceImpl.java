@@ -84,7 +84,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 Api createdApi = apiRepository.create(api);
 
                 // Add the primary owner of the newly created API
-                apiRepository.addMember(createdApi.getName(), username, MembershipType.PRIMARY_OWNER);
+                apiRepository.saveMember(createdApi.getName(), username, MembershipType.PRIMARY_OWNER);
 
                 return convert(createdApi);
             } else {
@@ -301,15 +301,15 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public void addMember(String api, String username, io.gravitee.management.model.MembershipType membershipType) {
+    public void addOrUpdateMember(String api, String username, io.gravitee.management.model.MembershipType membershipType) {
         try {
-            LOGGER.debug("Add a new member for API {}", api);
+            LOGGER.debug("Add or update a new member for API {}", api);
 
-            apiRepository.addMember(api, username,
+            apiRepository.saveMember(api, username,
                     MembershipType.valueOf(membershipType.toString()));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to add member for API {}", api, ex);
-            throw new TechnicalManagementException("An error occurs while trying to add member for API " + api, ex);
+            LOGGER.error("An error occurs while trying to add or update member for API {}", api, ex);
+            throw new TechnicalManagementException("An error occurs while trying to add or update member for API " + api, ex);
         }
     }
 

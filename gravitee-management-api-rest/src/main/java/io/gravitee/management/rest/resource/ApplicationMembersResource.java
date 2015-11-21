@@ -66,10 +66,10 @@ public class ApplicationMembersResource {
         try {
             userService.findByName(username);
         } catch (UserNotFoundException unfe) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
-        applicationService.addMember(applicationName, username, membershipType.getValue());
+        applicationService.addOrUpdateMember(applicationName, username, membershipType.getValue());
 
         return Response.created(URI.create("/applications/" + applicationName + "/members/" + username)).build();
     }
@@ -82,7 +82,7 @@ public class ApplicationMembersResource {
         try {
             userService.findByName(username);
         } catch (UserNotFoundException unfe) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
         applicationService.deleteMember(applicationName, username);

@@ -38,7 +38,7 @@ public interface ApplicationService {
 
     Set<MemberEntity> getMembers(String api, MembershipType membershipType);
 
-    void addMember(String application, String username, MembershipType membershipType);
+    void addOrUpdateMember(String application, String username, MembershipType membershipType);
 
     void deleteMember(String application, String username);
 }

@@ -114,7 +114,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             Application createdApplication = applicationRepository.create(application);
 
             // Add the primary owner of the newly created API
-            applicationRepository.addMember(createdApplication.getName(), username, MembershipType.PRIMARY_OWNER);
+            applicationRepository.saveMember(createdApplication.getName(), username, MembershipType.PRIMARY_OWNER);
 
             return convert(createdApplication);
         } catch (TechnicalException ex) {
@@ -186,11 +186,11 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     }
 
     @Override
-    public void addMember(String application, String username, io.gravitee.management.model.MembershipType membershipType) {
+    public void addOrUpdateMember(String application, String username, io.gravitee.management.model.MembershipType membershipType) {
         try {
             LOGGER.debug("Add a new member for application {}", application);
 
-            applicationRepository.addMember(application, username,
+            applicationRepository.saveMember(application, username,
                     MembershipType.valueOf(membershipType.toString()));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to add member for application {}", application, ex);

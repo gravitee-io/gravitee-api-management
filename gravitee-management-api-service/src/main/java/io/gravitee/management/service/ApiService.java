@@ -42,7 +42,7 @@ public interface ApiService {
 
     Set<MemberEntity> getMembers(String api, MembershipType membershipType);
 
-    void addMember(String api, String username, MembershipType membershipType);
+    void addOrUpdateMember(String api, String username, MembershipType membershipType);
 
     void deleteMember(String api, String username);
 }
