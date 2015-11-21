@@ -100,19 +100,30 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
-	public void addMember(String application, String username, MembershipType membershipType) throws TechnicalException {
+	public void saveMember(String application, String username, MembershipType membershipType) throws TechnicalException {
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application);
 		UserMongo userMongo = internalUserRepo.findOne(username);
 
-		MemberMongo memberMongo = new MemberMongo();
-		memberMongo.setUser(userMongo);
-		memberMongo.setType(membershipType.toString());
-		memberMongo.setCreatedAt(new Date());
-		memberMongo.setUpdatedAt(memberMongo.getCreatedAt());
+		Membership membership = getMember(application, username);
+		if (membership == null) {
+			MemberMongo memberMongo = new MemberMongo();
+			memberMongo.setUser(userMongo);
+			memberMongo.setType(membershipType.toString());
+			memberMongo.setCreatedAt(new Date());
+			memberMongo.setUpdatedAt(memberMongo.getCreatedAt());
 
-		applicationMongo.getMembers().add(memberMongo);
+			applicationMongo.getMembers().add(memberMongo);
 
-		internalApplicationRepo.save(applicationMongo);
+			internalApplicationRepo.save(applicationMongo);
+		} else {
+			for (MemberMongo memberMongo : applicationMongo.getMembers()) {
+				if (memberMongo.getUser().getName().equalsIgnoreCase(username)) {
+					memberMongo.setType(membershipType.toString());
+					internalApplicationRepo.save(applicationMongo);
+					break;
+				}
+			}
+		}
 	}
 
 	@Override

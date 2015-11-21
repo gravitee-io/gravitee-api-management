@@ -104,19 +104,30 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public void addMember(String api, String username, MembershipType membershipType) throws TechnicalException {
-		ApiMongo apiMongo = internalApiRepo.findOne(api);
+	public void saveMember(String application, String username, MembershipType membershipType) throws TechnicalException {
+		ApiMongo apiMongo = internalApiRepo.findOne(application);
 		UserMongo userMongo = internalUserRepo.findOne(username);
 
-		MemberMongo memberMongo = new MemberMongo();
-		memberMongo.setUser(userMongo);
-		memberMongo.setType(membershipType.toString());
-		memberMongo.setCreatedAt(new Date());
-		memberMongo.setUpdatedAt(memberMongo.getCreatedAt());
+		Membership membership = getMember(application, username);
+		if (membership == null) {
+			MemberMongo memberMongo = new MemberMongo();
+			memberMongo.setUser(userMongo);
+			memberMongo.setType(membershipType.toString());
+			memberMongo.setCreatedAt(new Date());
+			memberMongo.setUpdatedAt(memberMongo.getCreatedAt());
 
-		apiMongo.getMembers().add(memberMongo);
+			apiMongo.getMembers().add(memberMongo);
 
-		internalApiRepo.save(apiMongo);
+			internalApiRepo.save(apiMongo);
+		} else {
+			for (MemberMongo memberMongo : apiMongo.getMembers()) {
+				if (memberMongo.getUser().getName().equalsIgnoreCase(username)) {
+					memberMongo.setType(membershipType.toString());
+					internalApiRepo.save(apiMongo);
+					break;
+				}
+			}
+		}
 	}
 
 	@Override
