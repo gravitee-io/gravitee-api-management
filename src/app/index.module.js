@@ -41,7 +41,7 @@ import ApplicationController from './application/application.controller';
 import ApplicationService from './application/application.service';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
-	'ngMdIcons', 'chart.js', 'ui.codemirror'])
+	'ngMdIcons', 'chart.js', 'ui.codemirror', 'md.data.table'])
   .constant('malarkey', malarkey)
   .constant('moment', moment)
   .constant('baseURL', 'http://tests.gravitee.io/management/')

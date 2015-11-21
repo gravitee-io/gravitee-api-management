@@ -1,0 +1,27 @@
+<md-data-table-toolbar>
+	<h2 class="md-title">APIS</h2>
+</md-data-table-toolbar>
+
+<md-data-table-container>
+	<table md-data-table>
+		<thead>
+		<tr>
+			<th>Name</th>
+			<th>Context path</th>
+			<th>Endpoint</th>
+			<th>State</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr md-auto-select ng-repeat="api in apiCtrl.apis">
+			<td>{{api.name}}</td>
+			<td>{{api.proxy.context_path}}</td>
+			<td>{{api.proxy.endpoint}}</td>
+			<td>
+				<ng-md-icon ng-if="api.state === 'STARTED'" icon="blur_on" size="32" style="fill: green;" title="Started"></ng-md-icon>
+				<ng-md-icon ng-if="api.state !== 'STARTED'" icon="blur_off" size="32" style="fill: red;" title="Stopped"></ng-md-icon>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</md-data-table-container>

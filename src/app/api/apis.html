@@ -23,56 +23,14 @@
     </h1>
 	</section>  
   <md-card>
-    <md-card-content>
-      <table id="api-table" class="gravitee-table table table-bordered table-hover">
-        <thead>
-				  <tr>
-				    <th>Name</th>
-				    <th>Public URI</th>
-				    <th>Target URI</th>
-				    <th>State</th>
-				    <th></th>
-				    <th></th>
-				  </tr>
-        </thead>
-        <tbody>
-				  <tr ng-repeat="api in apiCtrl.apis">
-				    <td><a ng-bind="api.name" ng-href="#/apis/{{api.name}}"></a></td>
-				    <td ng-bind="api.proxy.context_path"></td>
-				    <td><a ng-bind="api.proxy.endpoint" ng-href="{{api.proxy.endpoint}}" target="_blank"></a></td>
-				    <td ng-bind="api.state"></td>
-				    <td ng-switch="api.state">
-        			<div ng-switch-when="STARTED">
-          			<md-button class="md-raised md-warn" ng-click="apiCtrl.stop(api.name)">Stop</md-button>
-        			</div>
-        			<div ng-switch-default>
-          			<md-button class="md-raised md-success" ng-click="apiCtrl.start(api.name)">Start</md-button>
-        			</div>
-      			</td>
-      			<td>
-        			<div>
-          			<ng-md-icon class="md-raised md-warn" ng-click="apiCtrl.delete(api.name)" icon="delete" size="32" style="fill: red;"></ng-md-icon>
-        			</div>
-      			</td>
-					</tr>
-        </tbody>
-		</table>
-    </md-card-content>  
+		<md-switch ng-model="adminMode" class="md-block">
+			Admin mode
+		</md-switch>
+    <md-card-content ng-include="adminMode?'app/api/apisAdmin.html':'app/api/apisVisu.html'">
+    </md-card-content>
   </md-card>  
 
   <md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="apiCtrl.showAddApiModal()">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
 </section>
-
-<script>
-  $(function () {
-    $("#api-table").DataTable({
-			"paging": true,
-      "lengthChange": false,
-      "searching": false,
-      "ordering": true,
-      "info": true
-    });
-  });
-</script>
