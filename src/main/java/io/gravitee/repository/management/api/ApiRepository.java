@@ -62,7 +62,7 @@ public interface ApiRepository extends CrudRepository<Api, String>{
      */
     Set<Api> findByApplication(String application) throws TechnicalException;
 
-    void addMember(String api, String username, MembershipType membershipType) throws TechnicalException;
+    void saveMember(String api, String username, MembershipType membershipType) throws TechnicalException;
 
     void deleteMember(String api, String username) throws TechnicalException;
 

@@ -49,7 +49,7 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      */
     int countByUser(String userName, MembershipType membershipType) throws TechnicalException;
 
-    void addMember(String application, String username, MembershipType membershipType) throws TechnicalException;
+    void saveMember(String application, String username, MembershipType membershipType) throws TechnicalException;
 
     void deleteMember(String application, String username) throws TechnicalException;
 
