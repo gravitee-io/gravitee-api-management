@@ -25,6 +25,22 @@ class ApplicationService {
     return this.$http.get(this.applicationsURL + name);
   }
 	
+	getAssociatedAPIs(name) {
+		return this.$http.get(this.applicationsURL + name + '/apis');
+	}
+
+	getMembers(name) {
+		return this.$http.get(this.applicationsURL + name + '/members');
+	}
+
+	addOrUpdateMember(applicationName, member) {
+		return this.$http.post(this.applicationsURL + applicationName + '/members', member);
+	}
+
+	deleteMember(applicationName, memberUsername) {
+		return this.$http.delete(this.applicationURL + applicationName + '/members/' + memberUsername);
+	}
+	
 	list() {
     return this.$http.get(this.baseURL + 'user/applications/');
   }
@@ -38,6 +54,18 @@ class ApplicationService {
       {'description': application.description, 'type': application.type}
     );
   }
+
+	subscribe(application, apiName, apiKey) {
+		return this.$http.post(this.applicationsURL + application.name + '/' + apiName);
+	}
+
+	unsubscribe(application, apiName, apiKey) {
+		return this.$http.delete(this.applicationsURL + application.name + '/' + apiName + '/' + apiKey);
+	}
+
+	getAPIKey(applicationName, apiName) {
+		return this.$http.get(this.applicationsURL + applicationName + '/' + apiName);
+	}
 
   delete(name) {
     return this.$http.delete(this.applicationsURL + name);

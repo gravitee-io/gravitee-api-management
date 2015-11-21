@@ -15,10 +15,11 @@
  */
 /* global document:false */
 class UserController {
-  constructor(UserService, TeamService, $mdDialog, $stateParams) {
+  constructor(UserService, TeamService, NotificationService, $mdDialog, $stateParams) {
     'ngInject';
     this.UserService = UserService;
     this.TeamService = TeamService;
+		this.NotificationService = NotificationService;
     this.$mdDialog = $mdDialog;
 		if ($stateParams.teamName) {
       this.getTeam($stateParams.teamName);
@@ -74,7 +75,7 @@ class UserController {
 
 	updateTeam(team) {
 		this.TeamService.update(team).then(response => {
-			NotificationService.show('Team updated with success!');
+			this.NotificationService.show('Team updated with success!');
 		});
 	}
 
@@ -159,7 +160,7 @@ function DialogUserController($scope, $mdDialog, UserService, user, roles) {
   };
 }
 
-function DialogAddMemberController($scope, $mdDialog, TeamService, UserService, team) {
+function DialogAddMemberController($scope, $mdDialog, NotificationService, TeamService, UserService, team) {
 	'ngInject';
 	$scope.team = team;
 	$scope.member = {};
@@ -182,7 +183,7 @@ function DialogAddMemberController($scope, $mdDialog, TeamService, UserService, 
 		}).catch(function (error) {
 			NotificationService.show('Error while adding member to the team');
 		});
-	}
+	};
 	$scope.cancel = function () {
     $mdDialog.cancel();
   };

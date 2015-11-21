@@ -19,7 +19,7 @@
   <section class="content-header">
     <h1>
        Gravitee
-       <small>Application 'Application Name' Management (Stub version)</small>
+       <small>Application '{{applicationCtrl.application.name}}' Management</small>
     </h1>
     </section>  
 
@@ -27,101 +27,99 @@
       <md-card-content>
 				<md-tabs md-dynamic-height md-border-bottom>
 				  <md-tab label="dashboard">
-				    <md-content class="md-padding">
-				      <h1 class="md-display-1">Application Stub</h1>
+				    <div class="md-padding">
+				      <h1 class="md-display-1">{{applicationCtrl.application.name}}</h1>
 							<md-divider></md-divider>
-							<p class="inset">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla venenatis ante augue. Phasellus volutpat neque ac dui mattis vulputate. Etiam consequat aliquam cursus. In sodales pretium ultrices. Maecenas lectus est, sollicitudin consectetur felis nec, feugiat ultricies mi.</p>
-							<md-subheader>Visibility</md-subheader>
-							<md-chips>
-								<md-chip>administrators</md-chip>
-								<md-chip>developers</md-chip>
-								<md-chip>guests</md-chip>
-							</md-chips>
-							<md-subheader>Reports</md-subheader>
-							<table class="table">
-								<thead>
-									<tr>
-										<th></th>
-										<th>API calls</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<td>Last 24 hours<td>
-										<td>2456</td>
-									</tr>
-									<tr>
-										<td>Last 7 days<td>
-										<td>12456</td>
-									</tr>
-									<tr>
-										<td>Last month<td>
-										<td>122456</td>
-									</tr>
-								</tbody>
-							</table>
-						</md-content>
+							<p class="inset">{{applicationCtrl.application.description}}</p>
+						</div>
 					</md-tab>
-					 <md-tab label="apis">
-				    <md-content class="md-padding">
-				      <h1 class="md-display-1">APIs</h1>
-							<md-divider></md-divider>
-							<table class="table">
+					<md-tab label="general">
+						<div layout-padding>
+							<form name="formApplication" ng-submit="applicationCtrl.update(applicationCtrl.application)" novalidate>
+								<md-input-container class="md-block">
+									<label>Name</label>
+									<input ng-model="applicationCtrl.application.name" type="text" ng-required="true" ng-disabled="true">
+								</md-input-container>
+								<md-input-container class="md-block">
+									<label>Type</label>
+									<input ng-model="applicationCtrl.application.type" type="text" ng-required="true">
+								</md-input-container>
+								<md-input-container class="md-block">
+									<label>Description</label>
+									<input ng-model="applicationCtrl.application.description" type="text" ng-required="true">
+								</md-input-container>
+								<div class="md-actions gravitee-api-save-button" layout="row">
+									<md-button type="submit" class="md-primary" ng-disabled="formApplication.$invalid || formApplication.$pristine">
+											Save
+									</md-button>
+								</div>
+							</form>
+  					</div>
+					</md-tab>
+				  <md-tab label="apis">
+			      <md-data-table-toolbar>
+					    <h2 class="md-title">APIs</h2>
+					  </md-data-table-toolbar>
+						
+						<md-data-table-container>
+					    <table md-data-table class="md-primary">
 								<thead>
 									<tr>
 										<th>API Name</th>
 										<th>Version</th>
-										<th>Calls</th>
+										<th>API Key</th>
+										<th>API Key's revocation ?</th>
 										<th></th>
 									</tr>
 								</thead>
 								<tbody>
-									<tr>
-										<td>API 1</td>
-										<td>1</td>
-										<td>456789</td>
-										<td><md-button class="md-raised md-warn">Unsubscribe</md-button></td>
-									</tr>
-									<tr>
-										<td>API 1</td>
-										<td>1</td>
-										<td>456789</td>
-										<td><md-button class="md-raised md-warn">Unsubscribe</md-button></td>
+									<tr ng-repeat="associatedAPI in applicationCtrl.associatedAPIs">
+										<td>{{associatedAPI.api.name}}</td>
+										<td>{{associatedAPI.api.version}}</td>
+										<td>{{associatedAPI.apiKey.key}}</td>
+										<td>{{associatedAPI.apiKey.revoked}}</td>
+										<td><md-button class="md-raised md-warn" ng-click="applicationCtrl.unsubscribeAPI(applicationCtrl.application,associatedAPI.api.name, associatedAPI.apiKey.key)">Unsubscribe</md-button></td>
 									</tr>
 								</tbody>
 							</table>
-							<md-button class="md-raised md-primary" >Subscribe new API</md-button>
-						</md-content>
+						</md-data-table-container>
+						<md-button class="md-mini md-fab" ng-click="applicationCtrl.showSubscribeApiModal($event)">
+							<ng-md-icon icon="add"></ng-md-icon>							
+						</md-button>
 					</md-tab>
-					 <md-tab label="settings">
-				    <md-content class="md-padding">
-				      <h1 class="md-display-1">Settings</h1>
-							<md-divider></md-divider>
-							<form name="formApplication" class="md-inline-form" ng-submit="applicationCtrl.update(applicationCtrl.application)" novalidate>
-								<div layout="" layout-sm="column">
-								    <md-input-container class="flex md-icon-float">
-								        <label>Name</label>
-								        <input ng-model="applicationCtrl.application.name" type="text" ng-required="true" ng-disabled="true">
-								    </md-input-container>
+					<md-tab label="members">
+						<md-data-table-toolbar>
+					    <h2 class="md-title">Members</h2>
+					  </md-data-table-toolbar>
 
-								    <md-input-container class="flex md-icon-float">
-								        <label>Type</label>
-								        <input ng-model="applicationCtrl.application.description" type="text" ng-required="true">
-								    </md-input-container>
-								</div>
-								<div layout="" layout-sm="column">
-								    <md-input-container class="flex md-icon-float">
-								        <label>Description</label>
-								        <input ng-model="apiCtrl.api.description" type="text" ng-required="true">
-								    </md-input-container>
-								</div>
-								<div class="md-actions gravitee-api-save-button" layout="row">
-								    <md-button type="submit" class="md-primary" ng-disabled="formApplication.$invalid || formApplication.$pristine">
-								        Save
-								    </md-button>
-								</div>
-						</form>
-						</md-content>
+						<md-data-table-container>
+					    <table md-data-table class="md-primary">
+					      <thead>
+					        <tr>
+					          <th>Member name</th>
+										<th>Role</th>
+										<th></th>
+					        </tr>
+					      </thead>
+					      <tbody>
+					        <tr ng-repeat="member in applicationCtrl.members">
+					          <td>{{member.user}}</td>
+					          <td>
+					            <md-select ng-model="member.type" placeholder="Other">
+					              <md-option ng-value="type" ng-repeat="type in applicationCtrl.membershipTypes">{{type}}</md-option>
+					            </md-select>
+					          </td>
+					          <td>
+											<ng-md-icon ng-click="applicationCtrl.updateMember(member)" icon="save" size="24" style="cursor: pointer;"></ng-md-icon>
+											<ng-md-icon ng-click="applicationCtrl.deleteMember(member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
+										</td>
+					        </tr>
+					      </tbody>
+					    </table>
+					  </md-data-table-container>
+						<md-button class="md-mini md-fab" ng-click="applicationCtrl.showAddMemberModal($event)">
+							<ng-md-icon icon="add"></ng-md-icon>							
+						</md-button>
 					</md-tab>
 				</md-tabs>
       </md-card-content>

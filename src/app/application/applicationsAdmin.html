@@ -15,25 +15,27 @@
     limitations under the License.
 
 -->
-<section>
-  <section class="content-header">
-    <h1>
-       Gravitee
-       <small>Applications Management</small>
-    </h1>
-    </section>  
+<md-data-table-toolbar>
+	<h2 class="md-title">APPLICATIONS</h2>
+</md-data-table-toolbar>
 
-		<md-card>
-			<md-switch ng-model="adminMode" class="md-block">
-				Admin mode
-			</md-switch>
-		  <md-card-content ng-include="adminMode?'app/application/applicationsAdmin.html':'app/application/applicationsVisu.html'">
-		  </md-card-content>
-		</md-card>  
-
-		<md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="applicationCtrl.showAddApplicationModal($event)">
-    	<ng-md-icon icon="add"></ng-md-icon>
-  	</md-button>
-  </section>
-</section>
-
+<md-data-table-container>
+	<table md-data-table>
+		<thead>
+		<tr>
+			<th>Name</th>
+			<th>Type</th>
+			<th></th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr md-auto-select ng-repeat="application in applicationCtrl.applications">
+			<td><a href="#/applications/{{application.name}}">{{application.name}}</a></td>
+			<td>{{application.type}}</td>
+			<td>
+					<md-button ng-click="applicationCtrl.delete(application.name)"><ng-md-icon icon="delete" style="fill:red;"></ng-md-icon></md-button>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</md-data-table-container>

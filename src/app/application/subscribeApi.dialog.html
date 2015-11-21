@@ -1,0 +1,51 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+  <md-dialog aria-label="Subscribe to APIs">
+    <form name="formSubscribeAPI" ng-submit="subscribe(application)" novalidate>
+      <md-toolbar>
+        <div class="md-toolbar-tools">
+          <h2>Subscribe to APIs</h2>
+          <span flex></span>
+          <md-button class="md-icon-button" ng-click="hide()">
+            <ng-md-icon icon="close"></ng-md-icon>
+          </md-button>
+        </div>
+      </md-toolbar>
+      <md-dialog-content>
+				<div class="md-padding">
+					<label ng-repeat="api in apis">
+						<input
+							type="checkbox"
+							name="selectedApis[]"
+							value="{{api.name}}"
+							ng-checked="selection.indexOf(api.name) > -1"
+							ng-click="selectApi(api.name)"
+						> {{api.name}}
+					</label>
+				</div>
+      </md-dialog-content>
+      <div class="md-actions" layout="row">
+        <md-button type="button" ng-click="hide()" class="md-primary">
+          Cancel
+        </md-button>
+        <md-button type="submit" class="md-primary" ng-disabled="formSubscribeAPI.$invalid">
+          Subscribe
+        </md-button>
+      </div>
+    </form>
+  </md-dialog>
