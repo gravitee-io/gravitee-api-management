@@ -16,15 +16,21 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author Titouan COMPIEGNE
  */
 public class Page {
 
+	/**
+	 * The page ID.
+	 */
+	private String id;
+
 	private String name;
 
-	private PageType type;
+	private String type;
 
 	private String title;
 
@@ -35,14 +41,25 @@ public class Page {
 	private int order;
 
 	private boolean published;
-	
-	private String apiName;
+
+	/**
+	 * The api ID.
+	 */
+	private String api;
 
 	private Date createdAt;
 
 	private Date updatedAt;
 
-	public PageType getType() {
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getType() {
 		return type;
 	}
 	
@@ -54,7 +71,7 @@ public class Page {
 		this.name = name;
 	}
 	
-	public void setType(PageType type) {
+	public void setType(String type) {
 		this.type = type;
 	}
 
@@ -90,12 +107,12 @@ public class Page {
 		this.order = order;
 	}
 
-	public String getApiName() {
-		return apiName;
+	public String getApi() {
+		return api;
 	}
 
-	public void setApiName(String apiName) {
-		this.apiName = apiName;
+	public void setApi(String api) {
+		this.api = api;
 	}
 
 	public Date getCreatedAt() {
@@ -120,5 +137,18 @@ public class Page {
 
 	public void setPublished(boolean published) {
 		this.published = published;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Page page = (Page) o;
+		return Objects.equals(id, page.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
 	}
 }

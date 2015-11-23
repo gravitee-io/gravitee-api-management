@@ -24,6 +24,11 @@ import java.util.Objects;
 public class Api {
 
     /**
+     * The api ID.
+     */
+    private String id;
+
+    /**
      * The api name.
      */
     private String name;
@@ -127,6 +132,14 @@ public class Api {
         this.definition = definition;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -144,6 +157,7 @@ public class Api {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Api{");
+        sb.append("id='").append(id).append('\'');
         sb.append("name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", lifecycleState=").append(lifecycleState);

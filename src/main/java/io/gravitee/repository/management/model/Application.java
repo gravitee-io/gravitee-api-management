@@ -24,6 +24,11 @@ import java.util.Objects;
 public class Application {
 
     /**
+     * The application ID.
+     */
+    private String id;
+
+    /**
      * The application name
      */
     private String name;
@@ -89,22 +94,31 @@ public class Application {
         this.updatedAt = updatedAt;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Application that = (Application) o;
-        return Objects.equals(name, that.name);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Application{");
+        sb.append("id='").append(id).append('\'');
         sb.append("name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
         sb.append('}');
