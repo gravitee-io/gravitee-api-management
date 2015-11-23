@@ -15,11 +15,8 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.NewApplicationEntity;
-import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.management.model.*;
 
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -27,19 +24,21 @@ import java.util.Set;
  */
 public interface ApplicationService {
 
-    Optional<ApplicationEntity> findByName(String applicationName);
-
-    Set<ApplicationEntity> findByTeam(String teamName);
+    ApplicationEntity findByName(String applicationName);
 
     Set<ApplicationEntity> findByUser(String username);
 
-    ApplicationEntity createForUser(NewApplicationEntity application, String username);
-
-    ApplicationEntity createForTeam(NewApplicationEntity application, String teamName);
+    ApplicationEntity create(NewApplicationEntity application, String username);
 
     ApplicationEntity update(String applicationName, UpdateApplicationEntity application);
 
     void delete(String applicationName);
 
     Set<ApplicationEntity> findByApi(String apiName);
+
+    Set<MemberEntity> getMembers(String api, MembershipType membershipType);
+
+    void addOrUpdateMember(String application, String username, MembershipType membershipType);
+
+    void deleteMember(String application, String username);
 }

@@ -22,13 +22,14 @@ import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
 
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -49,14 +50,10 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response hits(@BeanParam AnalyticsParam analyticsParam) throws ApiNotFoundException {
-        Optional<ApiEntity> api = apiService.findByName(apiName);
+    public Response hits(@BeanParam AnalyticsParam analyticsParam) {
+        ApiEntity api = apiService.findByName(apiName);
 
-        if (! api.isPresent()) {
-            throw new ApiNotFoundException(apiName);
-        }
-
-        permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.VIEW_API);
+        permissionService.hasPermission(getAuthenticatedUser(), api.getName(), PermissionType.VIEW_API);
 
         analyticsParam.validate();
 
@@ -65,28 +62,28 @@ public class ApiAnalyticsResource extends AbstractResource {
         switch(analyticsParam.getTypeParam().getValue()) {
             case HITS:
                 analytics = analyticsService.apiHits(
-                        apiName,
+                        api.getName(),
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());
                 break;
             case HITS_BY_LATENCY:
                 analytics = analyticsService.apiHitsByLatency(
-                        apiName,
+                        api.getName(),
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());
                 break;
             case HITS_BY_STATUS:
                 analytics = analyticsService.apiHitsByStatus(
-                        apiName,
+                        api.getName(),
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());
                 break;
             case HITS_BY_APIKEY:
                 analytics = analyticsService.apiHitsByApiKey(
-                        apiName,
+                        api.getName(),
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());

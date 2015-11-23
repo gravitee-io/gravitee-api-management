@@ -20,4 +20,14 @@ package io.gravitee.management.service.exceptions;
  */
 public class UserNotFoundException extends AbstractNotFoundException {
 
+    private final String username;
+
+    public UserNotFoundException(String username) {
+        this.username = username;
+    }
+
+    @Override
+    public String getMessage() {
+        return "User [" + username + "] can not be found.";
+    }
 }

@@ -15,32 +15,54 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Date;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class Owner {
+public class MemberEntity {
 
-    private String login;
+    private String user;
 
-    private OwnerType type;
+    private MembershipType type;
 
-    public String getLogin() {
-        return login;
+    @JsonProperty("created_at")
+    private Date createdAt;
+
+    @JsonProperty("updated_at")
+    private Date updatedAt;
+
+    public Date getCreatedAt() {
+        return createdAt;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public OwnerType getType() {
+    public MembershipType getType() {
         return type;
     }
 
-    public void setType(OwnerType type) {
+    public void setType(MembershipType type) {
         this.type = type;
     }
 
-    public enum OwnerType {
-        USER, TEAM;
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 }

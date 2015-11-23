@@ -46,81 +46,8 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     @Ignore
-    public void testGetApis_findAllReturnNull() {
-        Mockito.doReturn(null).when(apiService).findAll();
-        final Response response = target().request().get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        Set<ApiEntity> apis = response.readEntity(Set.class);
-
-        assertTrue(apis.isEmpty());
-    }
-
-    @Test
-    @Ignore
-    public void testGetApis_findAllReturnEmpty() {
-        Mockito.doReturn(new HashSet<>()).when(apiService).findAll();
-        final Response response = target().request().get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        Set<ApiEntity> apis = response.readEntity(Set.class);
-
-        assertTrue(apis.isEmpty());
-    }
-
-    @Test
-    @Ignore
-    public void testGetApis_findAllReturnApis() {
-        Set<ApiEntity> apis = new HashSet<>();
-
-        /*
-        apis.add(new ApiBuilder().name("my-api").origin("http://localhost/my-api").target("http://remote_api/context").build());
-        apis.add(new ApiBuilder().name("my-api2").origin("http://localhost/my-api2").target("http://remote_api2/context").build());
-        */
-
-        Mockito.doReturn(apis).when(apiService).findAll();
-        final Response response = target().request().get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        Set<ApiEntity> retrievedApis = response.readEntity(Set.class);
-
-        assertEquals(apis.size(), retrievedApis.size());
-    }
-
-    @Test
-    @Ignore
     public void testPostApi_nullApi() {
         final Response response = target().request().post(null);
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-    }
-
-    @Test
-    @Ignore
-    public void testPostApi_correctApi() {
-                       /*
- ApiEntity api = new ApiBuilder().name("my-api").build();//.origin("http://localhost/my-api").target("http://remote_api/context").build();
-
-        ApiEntity api2 = new ApiBuilder()
-                .name("my-api")
-                .origin("http://localhost/my-api")
-                .target("http://remote_api/context")
-                .createdAt(new Date())
-                .build();
-
-        Mockito.doReturn(api2).when(apiService).createForUser(Mockito.any(NewApiEntity.class), Mockito.anyString());
-
-        final Response response = target().request().post(Entity.entity(api, MediaType.APPLICATION_JSON_TYPE));
-        ApiEntity createdApi = response.readEntity(ApiEntity.class);
-
-        // Check HTTP response
-        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertTrue(response.getHeaders().containsKey(HttpHeaders.LOCATION));
-
-        // Check Response content
-        assertNotNull(createdApi.getCreatedAt());
-        assertNotNull(createdApi.getUpdatedAt());
-
-        assertEquals(createdApi.getCreatedAt(), createdApi.getUpdatedAt());                */
-
     }
 }

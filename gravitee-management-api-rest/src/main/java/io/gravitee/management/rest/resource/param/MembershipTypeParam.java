@@ -13,45 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.rest.resource.param;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.management.model.MembershipType;
 
-import java.util.Date;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class MembershipEntity {
+public class MembershipTypeParam extends AbstractParam<MembershipType> {
 
-    private String member;
-
-    private String role;
-
-    @JsonProperty("since")
-    private Date memberSince;
-
-    public String getMember() {
-        return member;
+    public MembershipTypeParam(String param) throws WebApplicationException {
+        super(param);
     }
 
-    public void setMember(String member) {
-        this.member = member;
-    }
+    @Override
+    protected MembershipType parse(String param) throws Throwable {
+        try {
+            if (param != null) {
+                return MembershipType.valueOf(param.toUpperCase());
+            }
+        } catch (IllegalArgumentException iae) {
+        }
 
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public Date getMemberSince() {
-        return memberSince;
-    }
-
-    public void setMemberSince(Date memberSince) {
-        this.memberSince = memberSince;
+        return null;
     }
 }

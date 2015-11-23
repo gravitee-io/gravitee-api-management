@@ -20,19 +20,9 @@ import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
-import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.management.service.exceptions.UserNotFoundException;
-
-import java.util.Optional;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -58,22 +48,18 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationEntity get() {
-        Optional<ApplicationEntity> applicationEntity = applicationService.findByName(applicationName);
-
-        if (! applicationEntity.isPresent()) {
-            throw new ApplicationNotFoundException(applicationName);
-        }
+        ApplicationEntity applicationEntity = applicationService.findByName(applicationName);
 
         permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_APPLICATION);
 
-        return applicationEntity.get();
+        return applicationEntity;
     }
     
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationEntity update(final UpdateApplicationEntity application) {
-        ApplicationEntity applicationEntity = getCurrentApplication();
+        ApplicationEntity applicationEntity = applicationService.findByName(applicationName);
 
         permissionService.hasPermission(getAuthenticatedUser(), applicationEntity.getName(), PermissionType.EDIT_APPLICATION);
 
@@ -82,23 +68,20 @@ public class ApplicationResource extends AbstractResource {
 
     @DELETE
     public Response delete() {
-        ApplicationEntity applicationEntity = getCurrentApplication();
+        ApplicationEntity applicationEntity = applicationService.findByName(applicationName);
         applicationService.delete(applicationEntity.getName());
 
         return Response.noContent().build();
     }
 
+    @Path("members")
+    public ApplicationMembersResource getApplicationMembersResource() {
+        return resourceContext.getResource(ApplicationMembersResource.class);
+    }
+
+
     @Path("{apiName}")
     public ApiKeyResource getApiKey() {
         return resourceContext.getResource(ApiKeyResource.class);
-    }
-
-    private ApplicationEntity getCurrentApplication() throws UserNotFoundException {
-        Optional<ApplicationEntity> application = applicationService.findByName(applicationName);
-        if (! application.isPresent()) {
-            throw new ApplicationNotFoundException(applicationName);
-        }
-
-        return application.get();
     }
 }

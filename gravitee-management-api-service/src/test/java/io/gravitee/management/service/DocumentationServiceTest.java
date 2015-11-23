@@ -108,7 +108,7 @@ public class DocumentationServiceTest {
     public void shouldFindByName() throws TechnicalException {
         when(page1.getName()).thenReturn(PAGE_NAME);
         when(page1.getOrder()).thenReturn(1);
-        when(pageRepository.findByName(PAGE_NAME)).thenReturn(Optional.of(page1));
+        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.of(page1));
 
         final Optional<PageEntity> optionalPageEntity = documentationService.findByName(PAGE_NAME);
 
@@ -120,7 +120,7 @@ public class DocumentationServiceTest {
 
     @Test
     public void shouldNotFindByNameBecauseNotFound() throws TechnicalException {
-        when(pageRepository.findByName(PAGE_NAME)).thenReturn(Optional.empty());
+        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.empty());
 
         final Optional<PageEntity> optionalPageEntity = documentationService.findByName(PAGE_NAME);
 
@@ -130,7 +130,7 @@ public class DocumentationServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByNameBecauseTechnicalException() throws TechnicalException {
-        when(pageRepository.findByName(PAGE_NAME)).thenThrow(TechnicalException.class);
+        when(pageRepository.findById(PAGE_NAME)).thenThrow(TechnicalException.class);
 
         documentationService.findByName(PAGE_NAME);
     }
@@ -151,7 +151,7 @@ public class DocumentationServiceTest {
         when(page1.getContent()).thenReturn(content);
 
         when(pageRepository.create(any())).thenReturn(page1);
-        when(pageRepository.findByName(PAGE_NAME)).thenReturn(Optional.empty());
+        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.empty());
 
         when(newPage.getName()).thenReturn(PAGE_NAME);
         when(newPage.getOrder()).thenReturn(1);
@@ -190,7 +190,7 @@ public class DocumentationServiceTest {
     @Test(expected = PageAlreadyExistsException.class)
     public void shouldNotCreateBecauseExists() throws TechnicalException {
         when(newPage.getName()).thenReturn(PAGE_NAME);
-        when(pageRepository.findByName(PAGE_NAME)).thenReturn(Optional.of(new Page()));
+        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.of(new Page()));
 
         documentationService.createPage(newPage);
 
@@ -200,7 +200,7 @@ public class DocumentationServiceTest {
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateBecauseTechnicalException() throws TechnicalException {
         when(newPage.getName()).thenReturn(PAGE_NAME);
-        when(pageRepository.findByName(PAGE_NAME)).thenReturn(Optional.empty());
+        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.empty());
         when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
 
         documentationService.createPage(newPage);
@@ -210,7 +210,7 @@ public class DocumentationServiceTest {
 
     @Test
     public void shouldUpdate() throws TechnicalException {
-        when(pageRepository.findByName(PAGE_NAME)).thenReturn(Optional.of(page1));
+        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.of(page1));
         when(pageRepository.update(any(Page.class))).thenReturn(page1);
 
         documentationService.updatePage(PAGE_NAME, existingPage);
@@ -226,7 +226,7 @@ public class DocumentationServiceTest {
 
     @Test(expected = PageNotFoundException.class)
     public void shouldNotUpdateBecauseNotExists() throws TechnicalException {
-        when(pageRepository.findByName(PAGE_NAME)).thenReturn(Optional.empty());
+        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.empty());
 
         documentationService.updatePage(PAGE_NAME, existingPage);
 
@@ -235,7 +235,7 @@ public class DocumentationServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
-        when(pageRepository.findByName(PAGE_NAME)).thenReturn(Optional.of(page1));
+        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.of(page1));
         when(pageRepository.update(any(Page.class))).thenThrow(TechnicalException.class);
 
         documentationService.updatePage(PAGE_NAME, existingPage);

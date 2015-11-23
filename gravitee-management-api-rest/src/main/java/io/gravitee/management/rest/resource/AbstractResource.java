@@ -29,4 +29,8 @@ public abstract class AbstractResource {
     protected String getAuthenticatedUser() {
         return securityContext.getUserPrincipal().getName();
     }
+
+    protected boolean isAuthenticated() {
+        return securityContext.getUserPrincipal() != null;
+    }
 }

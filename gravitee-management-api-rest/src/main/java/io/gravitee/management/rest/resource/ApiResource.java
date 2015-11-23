@@ -19,12 +19,10 @@ import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
-import io.gravitee.management.rest.provider.ManagementExceptionMapper;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.management.service.exceptions.UnknownMemberException;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -33,7 +31,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Optional;
 
 /**
  * Defines the REST resources to manage API.
@@ -57,29 +54,20 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ApiEntity get() throws ApiNotFoundException {
-        Optional<ApiEntity> api = apiService.findByName(apiName);
-
-        if (! api.isPresent()) {
-            throw new ApiNotFoundException(apiName);
-        }
+        ApiEntity api = apiService.findByName(apiName);
 
         permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.VIEW_API);
 
-        return api.get();
+        return api;
     }
 
     @POST
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     public Response doLifecycleAction(@QueryParam("action") LifecycleActionParam action) {
-        Optional<ApiEntity> optApi = apiService.findByName(apiName);
-
-        if (! optApi.isPresent()) {
-            throw new ApiNotFoundException(apiName);
-        }
+        ApiEntity api = apiService.findByName(apiName);
 
         permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.EDIT_API);
 
-        ApiEntity api = optApi.get();
         switch (action.getAction()) {
             case START:
                 apiService.start(api.getName());
@@ -107,11 +95,7 @@ public class ApiResource extends AbstractResource {
     @DELETE
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     public Response delete() {
-        Optional<ApiEntity> optApi = apiService.findByName(apiName);
-
-        if (!optApi.isPresent()) {
-            throw new ApiNotFoundException(apiName);
-        }
+        apiService.findByName(apiName);
 
         permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.EDIT_API);
 
@@ -120,8 +104,13 @@ public class ApiResource extends AbstractResource {
     }
 
     @Path("applications")
-    public ApplicationsApiResource getApplicationsApiResource() {
-        return resourceContext.getResource(ApplicationsApiResource.class);
+    public ApiApplicationsResource getApplicationsApiResource() {
+        return resourceContext.getResource(ApiApplicationsResource.class);
+    }
+
+    @Path("members")
+    public ApiMembersResource getApiMembersResource() {
+        return resourceContext.getResource(ApiMembersResource.class);
     }
 
     @Path("analytics")

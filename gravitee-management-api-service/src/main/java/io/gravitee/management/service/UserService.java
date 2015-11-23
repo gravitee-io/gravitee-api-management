@@ -15,18 +15,15 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
-
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface UserService {
 
-    Optional<UserEntity> findByName(String username);
+    UserEntity findByName(String username);
 
-    UserEntity create(NewUserEntity newUserEntity) throws UsernameAlreadyExistsException;
+    UserEntity create(NewUserEntity newUserEntity);
 }

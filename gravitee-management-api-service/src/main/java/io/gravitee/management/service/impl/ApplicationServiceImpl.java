@@ -15,20 +15,8 @@
  */
 package io.gravitee.management.service.impl;
 
-import static java.util.Collections.emptySet;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.service.ApplicationService;
@@ -38,7 +26,17 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.OwnerType;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptySet;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -55,38 +53,20 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     private ApplicationRepository applicationRepository;
 
     @Override
-    public Optional<ApplicationEntity> findByName(String applicationName) {
+    public ApplicationEntity findByName(String applicationName) {
         try {
             LOGGER.debug("Find application by name: {}", applicationName);
-            return applicationRepository.findByName(applicationName).map(ApplicationServiceImpl::convert);
+
+            Optional<Application> application = applicationRepository.findById(applicationName);
+
+            if (application.isPresent()) {
+                return convert(application.get());
+            }
+
+            throw new ApplicationNotFoundException(applicationName);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find an application using its name {}", applicationName, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an application using its name " + applicationName, ex);
-        }
-    }
-
-    @Override
-    public Set<ApplicationEntity> findByTeam(String teamName) {
-        try {
-            LOGGER.debug("Find applications for team {}", teamName);
-
-            final Set<Application> applications = applicationRepository.findByTeam(teamName);
-
-            if (applications == null || applications.isEmpty()) {
-                return emptySet();
-            }
-
-            final Set<ApplicationEntity> applicationEntities = new HashSet<>(applications.size());
-
-            applicationEntities.addAll(applications.stream()
-                .map(ApplicationServiceImpl::convert)
-                .collect(Collectors.toSet())
-            );
-
-            return applicationEntities;
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find applications for team {}", teamName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find applications for team " + teamName, ex);
         }
     }
 
@@ -95,7 +75,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Find applications for user {}", username);
 
-            final Set<Application> applications = applicationRepository.findByUser(username);
+            final Set<Application> applications = applicationRepository.findByUser(username, null);
 
             if (applications == null || applications.isEmpty()) {
                 return emptySet();
@@ -116,24 +96,30 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     }
 
     @Override
-    public ApplicationEntity createForUser(NewApplicationEntity newApplicationEntity, String owner) {
+    public ApplicationEntity create(NewApplicationEntity newApplicationEntity, String username) {
         try {
-            LOGGER.debug("Create {} for user {}", newApplicationEntity, owner);
-            return create(newApplicationEntity, OwnerType.USER, owner);
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, owner, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for user " + owner, ex);
-        }
-    }
+            LOGGER.debug("Create {} for user {}", newApplicationEntity, username);
 
-    @Override
-    public ApplicationEntity createForTeam(NewApplicationEntity newApplicationEntity, String owner) {
-        try {
-            LOGGER.debug("Create {} for team {}", newApplicationEntity, owner);
-            return create(newApplicationEntity, OwnerType.TEAM, owner);
+            Optional<Application> checkApplication = applicationRepository.findById(newApplicationEntity.getName());
+            if (checkApplication.isPresent()) {
+                throw new ApplicationAlreadyExistsException(newApplicationEntity.getName());
+            }
+
+            Application application = convert(newApplicationEntity);
+
+            // Set date fields
+            application.setCreatedAt(new Date());
+            application.setUpdatedAt(application.getCreatedAt());
+
+            Application createdApplication = applicationRepository.create(application);
+
+            // Add the primary owner of the newly created API
+            applicationRepository.saveMember(createdApplication.getName(), username, MembershipType.PRIMARY_OWNER);
+
+            return convert(createdApplication);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {} for team {}", newApplicationEntity, owner, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for team " + owner, ex);
+            LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, username, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for user " + username, ex);
         }
     }
 
@@ -142,7 +128,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Update application {}", applicationName);
 
-            Optional<Application> optApplicationToUpdate = applicationRepository.findByName(applicationName);
+            Optional<Application> optApplicationToUpdate = applicationRepository.findById(applicationName);
             if (!optApplicationToUpdate.isPresent()) {
                 throw new ApplicationNotFoundException(applicationName);
             }
@@ -176,25 +162,52 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         return null;
     }
 
-    private ApplicationEntity create(NewApplicationEntity newApplicationEntity, OwnerType ownerType, String owner) throws ApplicationAlreadyExistsException, TechnicalException {
-        Optional<ApplicationEntity> checkApplication = findByName(newApplicationEntity.getName());
-        if (checkApplication.isPresent()) {
-            throw new ApplicationAlreadyExistsException(newApplicationEntity.getName());
+    @Override
+    public Set<MemberEntity> getMembers(String api, io.gravitee.management.model.MembershipType membershipType) {
+        try {
+            LOGGER.debug("Get members for application {}", api);
+
+            Collection<Membership> membersRepo = applicationRepository.getMembers(api,
+                    (membershipType == null ) ? null : MembershipType.valueOf(membershipType.toString()));
+
+            final Set<MemberEntity> members = new HashSet<>(membersRepo.size());
+
+            members.addAll(
+                    membersRepo.stream()
+                            .map(member -> convert(member))
+                            .collect(Collectors.toSet())
+            );
+
+            return members;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to get members for application {}", api, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get members for application " + api, ex);
         }
+    }
 
-        Application application = convert(newApplicationEntity);
+    @Override
+    public void addOrUpdateMember(String application, String username, io.gravitee.management.model.MembershipType membershipType) {
+        try {
+            LOGGER.debug("Add a new member for application {}", application);
 
-        // Set owner and owner type
-        application.setOwner(owner);
-        application.setOwnerType(ownerType);
-        application.setCreator(owner);
+            applicationRepository.saveMember(application, username,
+                    MembershipType.valueOf(membershipType.toString()));
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to add member for application {}", application, ex);
+            throw new TechnicalManagementException("An error occurs while trying to add member for application " + application, ex);
+        }
+    }
 
-        // Set date fields
-        application.setCreatedAt(new Date());
-        application.setUpdatedAt(application.getCreatedAt());
+    @Override
+    public void deleteMember(String application, String username) {
+        try {
+            LOGGER.debug("Delete member {} for application {}", username, application);
 
-        Application createdApplication = applicationRepository.create(application);
-        return convert(createdApplication);
+            applicationRepository.deleteMember(application, username);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete member {} for application {}", username, application, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for application " + application, ex);
+        }
     }
 
     private static ApplicationEntity convert(Application application) {
@@ -227,5 +240,16 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         application.setType(updateApplicationEntity.getType());
 
         return application;
+    }
+
+    private MemberEntity convert(Membership membership) {
+        MemberEntity member = new MemberEntity();
+
+        member.setUser(membership.getUser());
+        member.setCreatedAt(membership.getCreatedAt());
+        member.setUpdatedAt(membership.getUpdatedAt());
+        member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));
+
+        return member;
     }
 }

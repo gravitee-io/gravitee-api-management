@@ -15,35 +15,34 @@
  */
 package io.gravitee.management.service;
 
-import java.util.Optional;
-import java.util.Set;
+import io.gravitee.management.model.*;
 
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.NewApiEntity;
-import io.gravitee.management.model.UpdateApiEntity;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface ApiService {
 
-    Optional<ApiEntity> findByName(String apiName);
+    ApiEntity findByName(String api);
 
-    Set<ApiEntity> findAll();
+    Set<ApiListItem> findByUser(String username);
 
-    Set<ApiEntity> findByTeam(String teamName, boolean publicOnly);
+    Set<ApiListItem> findByVisibility(Visibility visibility);
 
-    Set<ApiEntity> findByUser(String username, boolean publicOnly);
-
-    ApiEntity createForUser(NewApiEntity api, String username);
-
-    ApiEntity createForTeam(NewApiEntity api, String teamName, String currentUser);
+    ApiEntity create(NewApiEntity api, String username);
 
     ApiEntity update(String apiName, UpdateApiEntity api);
 
-    void delete(String apiName);
+    void delete(String api);
 
-    void start(String apiName);
+    void start(String api);
 
-    void stop(String apiName);
+    void stop(String api);
+
+    Set<MemberEntity> getMembers(String api, MembershipType membershipType);
+
+    void addOrUpdateMember(String api, String username, MembershipType membershipType);
+
+    void deleteMember(String api, String username);
 }

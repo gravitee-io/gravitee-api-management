@@ -15,37 +15,30 @@
  */
 package io.gravitee.management.service.impl;
 
-import static java.util.Collections.emptySet;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.NewApiEntity;
-import io.gravitee.management.model.Owner;
-import io.gravitee.management.model.UpdateApiEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.OwnerType;
+import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.Visibility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -64,33 +57,58 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private UserService userService;
+
     @Override
-    public ApiEntity createForUser(NewApiEntity api, String username) throws ApiAlreadyExistsException {
+    public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
         try {
-            LOGGER.debug("Create {} for user {}", api, username);
-            return create(api, OwnerType.USER, username, username);
+            LOGGER.debug("Create {} for user {}", newApiEntity, username);
+
+            Optional<Api> checkApi = apiRepository.findById(newApiEntity.getName());
+            if (checkApi.isPresent()) {
+                throw new ApiAlreadyExistsException(newApiEntity.getName());
+            }
+
+            Api api = convert(newApiEntity);
+
+            if (api != null) {
+                // Set date fields
+                api.setCreatedAt(new Date());
+                api.setUpdatedAt(api.getCreatedAt());
+
+                // Be sure that lifecycle is set to STOPPED by default and visibility is private
+                api.setLifecycleState(LifecycleState.STOPPED);
+                api.setVisibility(Visibility.PRIVATE);
+
+                Api createdApi = apiRepository.create(api);
+
+                // Add the primary owner of the newly created API
+                apiRepository.saveMember(createdApi.getName(), username, MembershipType.PRIMARY_OWNER);
+
+                return convert(createdApi);
+            } else {
+                LOGGER.error("Unable to update API {} because of previous error.");
+                throw new TechnicalManagementException("Unable to update API " + newApiEntity.getName());
+            }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {} for user {}", api, username, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + username, ex);
+            LOGGER.error("An error occurs while trying to create {} for user {}", newApiEntity, username, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + newApiEntity + " for user " + username, ex);
         }
     }
 
     @Override
-    public ApiEntity createForTeam(NewApiEntity api, String teamName, String currentUser) throws ApiAlreadyExistsException {
-        try {
-            LOGGER.debug("Create {} for team {}", api, teamName);
-            return create(api, OwnerType.TEAM, teamName, currentUser);
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {} for team {}", api, teamName, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + api + " for team " + teamName, ex);
-        }
-    }
-
-    @Override
-    public Optional<ApiEntity> findByName(String apiName) {
+    public ApiEntity findByName(String apiName) {
         try {
             LOGGER.debug("Find API by name: {}", apiName);
-            return apiRepository.findByName(apiName).map(this::convert);
+
+            Optional<Api> api = apiRepository.findById(apiName);
+
+            if (api.isPresent()) {
+                return convert(api.get());
+            }
+
+            throw new ApiNotFoundException(apiName);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find an API using its name {}", apiName, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its name " + apiName, ex);
@@ -98,23 +116,41 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findAll() {
+    public Set<ApiListItem> findByVisibility(io.gravitee.management.model.Visibility visibility) {
         try {
-            LOGGER.debug("Find all APIs");
-            final Set<Api> apis = apiRepository.findAll();
+            LOGGER.debug("Find APIs by visibility {}", visibility);
+            Set<Api> publicApis = apiRepository.findByMember(null, null, Visibility.PUBLIC);
 
-            if (apis == null || apis.isEmpty()) {
-                return emptySet();
-            }
+            return publicApis.stream()
+                .map(this::reduce)
+                    .map(new Function<ApiListItem, ApiListItem>() {
 
-            final Set<ApiEntity> publicApis = new LinkedHashSet<>(apis.size());
+                        @Override
+                        public ApiListItem apply(ApiListItem api) {
+                            try {
+                                Collection<Membership> members = apiRepository.getMembers(api.getName(), MembershipType.PRIMARY_OWNER);
+                                if (! members.isEmpty()) {
+                                    Membership primaryOwner = members.iterator().next();
 
-            publicApis.addAll(apis.stream()
-                .map(api -> convert(api))
-                .collect(Collectors.toSet())
-            );
+                                    UserEntity user = userService.findByName(primaryOwner.getUser());
 
-            return publicApis;
+                                    ApiListItem.PrimaryOwner owner = new ApiListItem.PrimaryOwner();
+                                    owner.setUsername(user.getUsername());
+                                    owner.setEmail(user.getEmail());
+                                    owner.setFirstname(user.getFirstname());
+                                    owner.setLastname(user.getLastname());
+                                    api.setPrimaryOwner(owner);
+
+                                    return api;
+                                }
+                            } catch (TechnicalException te) {
+
+                            }
+
+                            return api;
+                        }
+                    })
+                .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -122,53 +158,56 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findByTeam(String teamName, boolean publicOnly) {
+    public Set<ApiListItem> findByUser(String username) {
         try {
-            LOGGER.debug("Find APIs for team {} (public: {})", teamName, publicOnly);
+            LOGGER.debug("Find APIs by user {}", username);
 
-            final Set<Api> apis = apiRepository.findByTeam(teamName, publicOnly);
+            Set<Api> publicApis = apiRepository.findByMember(null, null, Visibility.PUBLIC);
+            Set<Api> restrictedApis = apiRepository.findByMember(null, null, Visibility.RESTRICTED);
+            Set<Api> privateApis = apiRepository.findByMember(username, null, Visibility.PRIVATE);
 
-            if (apis == null || apis.isEmpty()) {
-                return emptySet();
-            }
+            final Set<ApiListItem> apis = new HashSet<>(publicApis.size() + restrictedApis.size() + privateApis.size());
 
-            final Set<ApiEntity> teamApis = new HashSet<>(apis.size());
-
-            teamApis.addAll(apis.stream()
-                    .map(api -> convert(api))
+            apis.addAll(publicApis.stream()
+                    .map(this::reduce)
                     .collect(Collectors.toSet())
             );
 
-            return teamApis;
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find APIs for team {} (public: {})", teamName, publicOnly, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find APIs for team " + teamName +
-                    " (public: " + publicOnly + ")", ex);
-        }
-    }
-
-    @Override
-    public Set<ApiEntity> findByUser(String username, boolean publicOnly) {
-        try {
-            LOGGER.debug("Find APIs for user {} (public: {})", username, publicOnly);
-            final Set<Api> apis = apiRepository.findByUser(username, publicOnly);
-
-            if (apis == null || apis.isEmpty()) {
-                return emptySet();
-            }
-
-            final Set<ApiEntity> userApis = new HashSet<>(apis.size());
-
-            userApis.addAll(apis.stream()
-                    .map(api -> convert(api))
+            apis.addAll(restrictedApis.stream()
+                    .map(this::reduce)
                     .collect(Collectors.toSet())
             );
 
-            return userApis;
+            apis.addAll(privateApis.stream()
+                    .map(this::reduce)
+                    .collect(Collectors.toSet())
+            );
+
+            apis.forEach(new Consumer<ApiListItem>() {
+                @Override
+                public void accept(ApiListItem api) {
+                    try {
+                        Collection<Membership> members = apiRepository.getMembers(api.getName(), MembershipType.PRIMARY_OWNER);
+                        if (! members.isEmpty()) {
+                            Membership primaryOwner = members.iterator().next();
+                            UserEntity user = userService.findByName(primaryOwner.getUser());
+
+                            ApiListItem.PrimaryOwner owner = new ApiListItem.PrimaryOwner();
+                            owner.setUsername(user.getUsername());
+                            owner.setEmail(user.getEmail());
+                            owner.setFirstname(user.getFirstname());
+                            owner.setLastname(user.getLastname());
+                            api.setPrimaryOwner(owner);
+                        }
+                    } catch (TechnicalException te) {
+
+                    }
+                }
+            });
+            return apis;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find APIs for user {} (public: {})", username, publicOnly, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + username +
-                    " (public: " + publicOnly + ")", ex);
+            LOGGER.error("An error occurs while trying to find APIs for user {}", username, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + username, ex);
         }
     }
 
@@ -177,7 +216,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             LOGGER.debug("Update API {}", apiName);
 
-            Optional<Api> optApiToUpdate = apiRepository.findByName(apiName);
+            Optional<Api> optApiToUpdate = apiRepository.findById(apiName);
             if (! optApiToUpdate.isPresent()) {
                 throw new ApiNotFoundException(apiName);
             }
@@ -192,9 +231,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 // Copy fields from existing values
                 api.setCreatedAt(apiToUpdate.getCreatedAt());
                 api.setLifecycleState(LifecycleState.STOPPED);
-                api.setOwner(apiToUpdate.getOwner());
-                api.setOwnerType(apiToUpdate.getOwnerType());
-                api.setCreator(apiToUpdate.getCreator());
 
                 Api updatedApi = apiRepository.update(api);
                 return convert(updatedApi);
@@ -241,8 +277,56 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
+    @Override
+    public Set<MemberEntity> getMembers(String api, io.gravitee.management.model.MembershipType membershipType) {
+        try {
+            LOGGER.debug("Get members for API {}", api);
+
+            Collection<Membership> membersRepo = apiRepository.getMembers(api,
+                    (membershipType == null ) ? null : MembershipType.valueOf(membershipType.toString()));
+
+            final Set<MemberEntity> members = new HashSet<>(membersRepo.size());
+
+            members.addAll(
+                    membersRepo.stream()
+                            .map(member -> convert(member))
+                            .collect(Collectors.toSet())
+            );
+
+            return members;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to get members for API {}", api, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get members for API " + api, ex);
+        }
+    }
+
+    @Override
+    public void addOrUpdateMember(String api, String username, io.gravitee.management.model.MembershipType membershipType) {
+        try {
+            LOGGER.debug("Add or update a new member for API {}", api);
+
+            apiRepository.saveMember(api, username,
+                    MembershipType.valueOf(membershipType.toString()));
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to add or update member for API {}", api, ex);
+            throw new TechnicalManagementException("An error occurs while trying to add or update member for API " + api, ex);
+        }
+    }
+
+    @Override
+    public void deleteMember(String api, String username) {
+        try {
+            LOGGER.debug("Delete member {} for API {}", username, api);
+
+            apiRepository.deleteMember(api, username);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete member {} for API {}", username, api, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for API " + api, ex);
+        }
+    }
+
     private void updateLifecycle(String apiName, LifecycleState lifecycleState) throws TechnicalException {
-        Optional<Api> optApi = apiRepository.findByName(apiName);
+        Optional<Api> optApi = apiRepository.findById(apiName);
         if (optApi.isPresent()) {
             Api api = optApi.get();
             api.setUpdatedAt(new Date());
@@ -251,45 +335,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
-    private ApiEntity create(NewApiEntity newApiEntity, OwnerType ownerType, String owner, String currentUser) throws ApiAlreadyExistsException, TechnicalException {
-        Optional<ApiEntity> checkApi = findByName(newApiEntity.getName());
-        if (checkApi.isPresent()) {
-            throw new ApiAlreadyExistsException(newApiEntity.getName());
-        }
-
-        Api api = convert(newApiEntity);
-
-        if (api != null) {
-            // Set date fields
-            api.setCreatedAt(new Date());
-            api.setUpdatedAt(api.getCreatedAt());
-
-            // Be sure that lifecycle is set to STOPPED by default
-            api.setLifecycleState(LifecycleState.STOPPED);
-
-            // Set owner and owner type
-            api.setOwner(owner);
-            api.setOwnerType(ownerType);
-
-            api.setCreator(currentUser);
-
-            // Private by default
-            api.setPrivateApi(true);
-
-            Api createdApi = apiRepository.create(api);
-            return convert(createdApi);
-        } else {
-            LOGGER.error("Unable to update API {} because of previous error.");
-            throw new TechnicalManagementException("Unable to update API " + newApiEntity.getName());
-        }
-    }
-
     private ApiEntity convert(Api api) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setName(api.getName());
         apiEntity.setCreatedAt(api.getCreatedAt());
-        apiEntity.setPrivate(api.isPrivateApi());
+        apiEntity.setVisibility(io.gravitee.management.model.Visibility.valueOf(api.getVisibility().toString()));
 
         if (api.getDefinition() != null) {
             try {
@@ -308,15 +359,21 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiEntity.setState(Lifecycle.State.valueOf(lifecycleState.name()));
         }
 
-        final Owner owner = new Owner();
-        owner.setLogin(api.getOwner());
-        final OwnerType ownerType = api.getOwnerType();
-        if (ownerType != null) {
-            owner.setType(Owner.OwnerType.valueOf(ownerType.toString()));
-        }
-        apiEntity.setOwner(owner);
-
         return apiEntity;
+    }
+
+    private ApiListItem reduce(Api api) {
+        ApiListItem apiItem = new ApiListItem();
+
+        apiItem.setName(api.getName());
+        apiItem.setVersion(api.getVersion());
+        apiItem.setDescription(api.getDescription());
+        apiItem.setCreatedAt(api.getCreatedAt());
+        apiItem.setUpdatedAt(api.getUpdatedAt());
+        apiItem.setVisibility(io.gravitee.management.model.Visibility.valueOf(api.getVisibility().toString()));
+        apiItem.setState(Lifecycle.State.valueOf(api.getLifecycleState().toString()));
+
+        return apiItem;
     }
 
     private Api convert(NewApiEntity newApiEntity) {
@@ -346,7 +403,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private Api convert(String apiName, UpdateApiEntity updateApiEntity) {
         Api api = new Api();
 
-        api.setPrivateApi(updateApiEntity.isPrivate());
+        api.setVisibility(Visibility.valueOf(updateApiEntity.getVisibility().toString()));
         api.setVersion(updateApiEntity.getVersion());
         api.setDescription(updateApiEntity.getDescription());
 
@@ -365,5 +422,16 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         return null;
+    }
+
+    private MemberEntity convert(Membership membership) {
+        MemberEntity member = new MemberEntity();
+
+        member.setUser(membership.getUser());
+        member.setCreatedAt(membership.getCreatedAt());
+        member.setUpdatedAt(membership.getUpdatedAt());
+        member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));
+
+        return member;
     }
 }
