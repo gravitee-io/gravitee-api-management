@@ -23,9 +23,9 @@ import java.util.Objects;
  */
 public class Api {
 
-	/**
-	 * The api name.
-	 */
+    /**
+     * The api name.
+     */
     private String name;
 
     /**
@@ -47,31 +47,16 @@ public class Api {
      * The Api creation date
      */
     private Date createdAt;
-    
+
     /**
      * The Api last updated date
      */
     private Date updatedAt;
-    
-    /**
-     * The api owner entity type (user or team)
-     */
-    private OwnerType ownerType;
-    
-    /**
-     * The api owner entity name (user name or team name)
-     */
-    private String owner;
 
     /**
-     * The api user name creator
+     * The api visibility
      */
-    private String creator;
-
-    /**
-     * The api visibility (private of for all users)
-     */
-    private boolean privateApi;
+    private Visibility visibility;
 
     /**
      * The current api life cycle state.
@@ -118,36 +103,12 @@ public class Api {
         this.version = version;
     }
 
-    public boolean isPrivateApi() {
-        return privateApi;
+    public Visibility getVisibility() {
+        return visibility;
     }
 
-    public void setPrivateApi(boolean privateApi) {
-        this.privateApi = privateApi;
-    }
-
-    public OwnerType getOwnerType() {
-		return ownerType;
-	}
-
-	public void setOwnerType(OwnerType ownerType) {
-		this.ownerType = ownerType;
-	}
-
-	public String getOwner() {
-		return owner;
-	}
-
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
-	
-    public String getCreator() {
-        return creator;
-    }
-
-    public void setCreator(String creator) {
-        this.creator = creator;
+    public void setVisibility(Visibility visibility) {
+        this.visibility = visibility;
     }
 
     public String getDescription() {
@@ -180,7 +141,7 @@ public class Api {
         return Objects.hash(name, version);
     }
 
-	@Override
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Api{");
         sb.append("name='").append(name).append('\'');

@@ -16,44 +16,19 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.User;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface UserRepository {
+interface CrudRepository<T, ID> {
 
-	/**
-	 * Create a {@link User}
-	 *
-	 * @param user user to create
-	 * @return User created
-	 */
-	User create(User user) throws TechnicalException;
+    Optional<T> findById(ID id) throws TechnicalException;
 
-	/**
-	 * Find a {@link User} by name
-	 *
-	 * @param username Name of the searched user
-	 * @return Option user found
-	 */
-	Optional<User> findByUsername(String username) throws TechnicalException;
+    T create(T item) throws TechnicalException;
 
-	/**
-	 * Find a {@link User} by email
-	 *
-	 * @param email Mail of the searched user
-	 * @return Option user found
-	 */
-	Optional<User> findByEmail(String email) throws TechnicalException;
+    T update(T item) throws TechnicalException;
 
-	/**
-	 * Find all {@link User}s
-	 *
-	 * @return Users found
-	 */
-	Set<User> findAll() throws TechnicalException;
+    void delete(ID id) throws TechnicalException;
 }

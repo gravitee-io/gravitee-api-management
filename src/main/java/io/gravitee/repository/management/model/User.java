@@ -16,55 +16,55 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class User {
-	
+
+	/**
+	 * The user name
+	 */
+	private String username;
+
+	/**
+	 * The user password
+	 */
+	private String password;
+
+	/**
+	 * The user email
+	 */
+	private String email;
+
 	/**
 	 * The user first name
 	 */
 	private String firstname;
-	
+
 	/**
 	 * The user last name
 	 */
 	private String lastname;
 
 	/**
-	 * The user name 
+	 * The user roles
 	 */
-    private String username;
-    
-    /**
-     * The user password
-     */
-    private String password;
-    
-    /**
-     * The user email
-     */
-    private String email;
-    
-    /**
-     * The user roles
-     */
-    private List<String> roles;
-    
-    /**
-     * The user creation date
-     */
-    private Date createdAt;
-    
-    /**
-     * The user last updated date
-     */
-    private Date updatedAt;
-    
-    public String getFirstname() {
+	private Set<String> roles;
+
+	/**
+	 * The user creation date
+	 */
+	private Date createdAt;
+
+	/**
+	 * The user last updated date
+	 */
+	private Date updatedAt;
+
+	public String getFirstname() {
 		return firstname;
 	}
 
@@ -81,22 +81,22 @@ public class User {
 	}
 
 	public String getEmail() {
-        return email;
-    }
+		return email;
+	}
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
-    public String getUsername() {
-        return username;
-    }
+	public String getUsername() {
+		return username;
+	}
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    
-    public String getPassword() {
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
 		return password;
 	}
 
@@ -104,11 +104,11 @@ public class User {
 		this.password = password;
 	}
 
-	public List<String> getRoles() {
+	public Set<String> getRoles() {
 		return roles;
 	}
 
-	public void setRoles(List<String> roles) {
+	public void setRoles(Set<String> roles) {
 		this.roles = roles;
 	}
 
@@ -129,28 +129,27 @@ public class User {
 	}
 
 	@Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return Objects.equals(username, user.username);
-    }
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		User user = (User) o;
+		return Objects.equals(username, user.username);
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(username);
-    }
+	@Override
+	public int hashCode() {
+		return Objects.hash(username);
+	}
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("User{");
-        sb.append("firstname='").append(firstname).append('\'');
-        sb.append(", lastname='").append(lastname).append('\'');
-        sb.append(", mail='").append(email).append('\'');
-        sb.append(", username='").append(username).append('\'');
-        sb.append(", roles='").append(roles).append('\'');
-        sb.append('}');
-        return sb.toString();
-    }
-    
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder("User{");
+		sb.append("firstname='").append(firstname).append('\'');
+		sb.append(", lastname='").append(lastname).append('\'');
+		sb.append(", mail='").append(email).append('\'');
+		sb.append(", username='").append(username).append('\'');
+		sb.append('}');
+		return sb.toString();
+	}
+
 }

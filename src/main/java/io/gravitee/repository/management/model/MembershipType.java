@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
-
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Page;
-
-import java.util.Collection;
+package io.gravitee.repository.management.model;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PageRepository extends CrudRepository<Page, String> {
+public enum MembershipType {
 
-	Collection<Page> findPublishedByApi(String apiName) throws TechnicalException;
-
-	Collection<Page> findByApi(String apiName) throws TechnicalException;
-
-	Integer findMaxPageOrderByApiName(String apiName) throws TechnicalException;
+    PRIMARY_OWNER,
+    OWNER,
+    USER
 }
