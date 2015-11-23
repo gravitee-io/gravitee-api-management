@@ -46,12 +46,16 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
     protected void doStart() throws Exception {
         super.doStart();
 
-        for(Reporter reporter: reporterManager.getReporters()) {
-            try {
-                reporter.start();
-            } catch (Exception ex) {
-                LOGGER.error("Unexpected error while starting reporter", ex);
+        if (! reporterManager.getReporters().isEmpty()) {
+            for (Reporter reporter : reporterManager.getReporters()) {
+                try {
+                    reporter.start();
+                } catch (Exception ex) {
+                    LOGGER.error("Unexpected error while starting reporter", ex);
+                }
             }
+        } else {
+            LOGGER.info("\tThere is no reporter to start");
         }
     }
 

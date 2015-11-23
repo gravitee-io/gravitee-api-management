@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.sync;
+package io.gravitee.gateway.services.sync;
 
 import io.gravitee.common.event.EventManager;
-import io.gravitee.gateway.core.builder.RepositoryApiBuilder;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
-import io.gravitee.gateway.core.sync.impl.SyncManager;
+import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import org.junit.Before;

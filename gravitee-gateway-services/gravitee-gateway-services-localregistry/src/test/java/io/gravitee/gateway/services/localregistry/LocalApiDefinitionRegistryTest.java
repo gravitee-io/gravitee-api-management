@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.registry;
+package io.gravitee.gateway.services.localregistry;
 
 import io.gravitee.gateway.core.manager.ApiManager;
 import org.junit.Before;

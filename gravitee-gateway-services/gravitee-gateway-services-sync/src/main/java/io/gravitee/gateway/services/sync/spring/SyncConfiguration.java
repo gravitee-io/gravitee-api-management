@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.sync.spring;
+package io.gravitee.gateway.services.sync.spring;
 
-import io.gravitee.gateway.core.sync.SyncService;
-import io.gravitee.gateway.core.sync.impl.ScheduledSyncService;
-import io.gravitee.gateway.core.sync.impl.SyncManager;
+import io.gravitee.gateway.services.sync.SyncManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
@@ -30,11 +28,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @Configuration
 @EnableScheduling
 public class SyncConfiguration {
-
-    @Bean
-    public SyncService syncService() {
-        return new ScheduledSyncService();
-    }
 
     @Bean
     public SyncManager syncStateManager() {

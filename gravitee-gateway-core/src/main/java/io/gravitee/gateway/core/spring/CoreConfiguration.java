@@ -33,7 +33,7 @@ import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
 import io.gravitee.gateway.core.registry.LocalApiDefinitionRegistry;
 import io.gravitee.gateway.core.reporter.spring.ReporterConfiguration;
 import io.gravitee.gateway.core.repository.spring.RepositoryConfiguration;
-import io.gravitee.gateway.core.sync.spring.SyncConfiguration;
+import io.gravitee.gateway.core.service.spring.ServiceConfiguration;
 import io.gravitee.plugin.spring.PluginConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -49,7 +49,7 @@ import java.util.Properties;
  */
 @Configuration
 @Import({RepositoryConfiguration.class, PluginConfiguration.class, io.gravitee.gateway.core.plugin.spring.PluginConfiguration.class, PolicyConfiguration.class, ReporterConfiguration.class,
-        PropertiesConfiguration.class, SyncConfiguration.class})
+        PropertiesConfiguration.class, ServiceConfiguration.class})//, SyncConfiguration.class})
 public class CoreConfiguration {
 
     @Bean

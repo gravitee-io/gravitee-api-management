@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.sync.impl;
+package io.gravitee.gateway.services.sync;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.core.sync.SyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +27,9 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Scheduled sync service.
- *
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ScheduledSyncService extends AbstractService implements SyncService, Runnable {
+public class ScheduledSyncService extends AbstractService implements Runnable {
 
     /**
      * Logger.
@@ -42,10 +39,10 @@ public class ScheduledSyncService extends AbstractService implements SyncService
     @Autowired
     private TaskScheduler scheduler;
 
-    @Value("${sync.cron:*/5 * * * * *}")
+    @Value("${services.sync.cron:*/5 * * * * *}")
     private String cronTrigger;
 
-    @Value("${sync.enabled:true}")
+    @Value("${services.sync.enabled:true}")
     private boolean enabled;
 
     @Value("${local.enabled:false}")
@@ -88,5 +85,10 @@ public class ScheduledSyncService extends AbstractService implements SyncService
         syncStateManager.refresh();
 
         logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
+    }
+
+    @Override
+    protected String name() {
+        return "Gateway Sync Service";
     }
 }

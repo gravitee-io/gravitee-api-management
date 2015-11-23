@@ -5,6 +5,9 @@ management:
     dbname: gravitee
     host: localhost
     port: 27017
-  
-sync:
-  cron: '*/5 * * * * *'
+repositories:
+
+services:
+  sync:
+    enabled: true
+    cron: '*/5 * * * * *'

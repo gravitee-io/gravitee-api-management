@@ -63,6 +63,20 @@
             <artifactId>gravitee-gateway-standalone-container</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway.services</groupId>
+            <artifactId>gravitee-gateway-services-monitoring</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway.services</groupId>
+            <artifactId>gravitee-gateway-services-sync</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+        </dependency>
     </dependencies>
     
 	<build>

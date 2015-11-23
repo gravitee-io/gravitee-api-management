@@ -38,6 +38,7 @@
         <module>gravitee-gateway-core</module>
         <module>gravitee-gateway-http-client</module>
         <module>gravitee-gateway-standalone</module>
+        <module>gravitee-gateway-services</module>
     </modules>
 
     <dependencyManagement>
