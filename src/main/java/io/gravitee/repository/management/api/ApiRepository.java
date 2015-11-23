@@ -57,16 +57,16 @@ public interface ApiRepository extends CrudRepository<Api, String>{
     /**
      * Find APIs associated with an application
      *
-     * @param application Application Name
+     * @param applicationId Application ID
      * @return Apis associated
      */
-    Set<Api> findByApplication(String application) throws TechnicalException;
+    Set<Api> findByApplication(String applicationId) throws TechnicalException;
 
-    void saveMember(String api, String username, MembershipType membershipType) throws TechnicalException;
+    void saveMember(String apiId, String username, MembershipType membershipType) throws TechnicalException;
 
-    void deleteMember(String api, String username) throws TechnicalException;
+    void deleteMember(String apiId, String username) throws TechnicalException;
 
-    Collection<Membership> getMembers(String api, MembershipType membershipType) throws TechnicalException;
+    Collection<Membership> getMembers(String apiId, MembershipType membershipType) throws TechnicalException;
 
-    Membership getMember(String api, String username) throws TechnicalException;
+    Membership getMember(String apiId, String username) throws TechnicalException;
 }

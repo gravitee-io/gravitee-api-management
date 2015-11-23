@@ -44,16 +44,16 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
     /**
      * Count {@link Application} owner by a given {@link User}
      *
-     * @param userName Application user owner name
+     * @param username Application user owner name
      * @return Counted application
      */
-    int countByUser(String userName, MembershipType membershipType) throws TechnicalException;
+    int countByUser(String username, MembershipType membershipType) throws TechnicalException;
 
-    void saveMember(String application, String username, MembershipType membershipType) throws TechnicalException;
+    void saveMember(String applicationId, String username, MembershipType membershipType) throws TechnicalException;
 
-    void deleteMember(String application, String username) throws TechnicalException;
+    void deleteMember(String applicationId, String username) throws TechnicalException;
 
-    Collection<Membership> getMembers(String application, MembershipType membershipType) throws TechnicalException;
+    Collection<Membership> getMembers(String applicationId, MembershipType membershipType) throws TechnicalException;
 
-    Membership getMember(String application, String username) throws TechnicalException;
+    Membership getMember(String applicationId, String username) throws TechnicalException;
 }

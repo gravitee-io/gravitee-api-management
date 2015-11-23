@@ -25,9 +25,9 @@ import java.util.Collection;
  */
 public interface PageRepository extends CrudRepository<Page, String> {
 
-	Collection<Page> findPublishedByApi(String apiName) throws TechnicalException;
+	Collection<Page> findPublishedByApi(String apiId) throws TechnicalException;
 
-	Collection<Page> findByApi(String apiName) throws TechnicalException;
+	Collection<Page> findByApi(String apiId) throws TechnicalException;
 
-	Integer findMaxPageOrderByApiName(String apiName) throws TechnicalException;
+	Integer findMaxPageOrderByApi(String apiId) throws TechnicalException;
 }

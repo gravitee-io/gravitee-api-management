@@ -39,11 +39,11 @@ public interface ApiKeyRepository {
 	/**
 	 * Create a new API Key for an {@link Application} and an {@link Api}
 	 *
-	 * @param applicationName Application name
-	 * @param apiName Name of the Api to associate
+	 * @param applicationId Application ID
+	 * @param apiId ID of the Api to associate
 	 * @return Newly created API Key
 	 */
-	ApiKey create(String applicationName, String apiName, ApiKey key) throws TechnicalException;
+	ApiKey create(String applicationId, String apiId, ApiKey key) throws TechnicalException;
 
 	/**
 	 * Update an API Key
@@ -56,28 +56,28 @@ public interface ApiKeyRepository {
 	/**
 	 * Provide an history of all API Keys generated for an {@link Application} and an {@link Api}
 	 *
-	 * @param applicationName Application name
-	 * @param apiName Name of the Api
+	 * @param applicationId Application ID
+	 * @param apiId ID of the Api
 	 * @return List of generated keys for an {@link Application} and an {@link Api}
 	 * @throws TechnicalException
 	 */
-	Set<ApiKey> findByApplicationAndApi(String applicationName, String apiName) throws TechnicalException;
+	Set<ApiKey> findByApplicationAndApi(String applicationId, String apiId) throws TechnicalException;
 
 	/**
 	 * Provide Api Keys for a given application
 	 * 
-	 * @param applicationName
+	 * @param applicationId
 	 * @return
 	 * @throws TechnicalException
 	 */
-	Set<ApiKey> findByApplication(String applicationName) throws TechnicalException;
+	Set<ApiKey> findByApplication(String applicationId) throws TechnicalException;
 
 	/**
 	 * Provide Api Keys for a given API
 	 *
-	 * @param apiName
+	 * @param apiId
 	 * @return
 	 * @throws TechnicalException
 	 */
-	Set<ApiKey> findByApi(String apiName) throws TechnicalException;
+	Set<ApiKey> findByApi(String apiId) throws TechnicalException;
 }
