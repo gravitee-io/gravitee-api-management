@@ -17,7 +17,6 @@ package io.gravitee.management.rest.provider;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 import org.slf4j.Logger;
@@ -27,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 @Provider
-public class ThrowableMapper implements ExceptionMapper<Throwable> {
+public class ThrowableMapper extends AbstractExceptionMapper<Throwable> {
 
     private static Logger LOGGER = LoggerFactory.getLogger(ThrowableMapper.class);
 
@@ -37,7 +36,7 @@ public class ThrowableMapper implements ExceptionMapper<Throwable> {
         return Response
                 .status(Response.Status.INTERNAL_SERVER_ERROR)
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(e.getMessage())
+                .entity(convert(e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()))
                 .build();
     }
 }

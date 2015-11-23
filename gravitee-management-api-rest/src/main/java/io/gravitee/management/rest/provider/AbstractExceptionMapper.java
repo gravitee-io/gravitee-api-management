@@ -15,24 +15,23 @@
  */
 package io.gravitee.management.rest.provider;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
+import javax.ws.rs.ext.ExceptionMapper;
 
+import io.gravitee.management.rest.model.ErrorEntity;
 import io.gravitee.management.service.exceptions.AbstractManagementException;
 
-/**
- * @author David BRASSELY (brasseld at gmail.com)
- */
-@Provider
-public class ManagementExceptionMapper extends AbstractExceptionMapper<AbstractManagementException> {
+public abstract class AbstractExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
 
-    @Override
-    public Response toResponse(AbstractManagementException mex) {
-        return Response
-                .status(mex.getHttpStatusCode())
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(convert(mex))
-                .build();
+    protected ErrorEntity convert(AbstractManagementException e) {
+        return convert(e, e.getHttpStatusCode());
+    }
+
+    protected ErrorEntity convert(final Throwable t, final int status) {
+        final ErrorEntity errorEntity = new ErrorEntity();
+
+        errorEntity.setHttpCode(status);
+        errorEntity.setMessage(t.getMessage());
+
+        return errorEntity;
     }
 }
