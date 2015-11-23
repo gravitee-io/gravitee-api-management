@@ -60,7 +60,8 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 			String name="created-app";
 					
 			Application application = new Application();
-			
+
+			application.setId(name);
 			application.setName(name);
 			application.setDescription("Application description");
 			application.setType("type");
@@ -95,18 +96,18 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 			String applicationName="updated-app";
 			
 			Application application = new Application();
+			application.setId(applicationName);
 			application.setName(applicationName);
 			application.setDescription("Updated description");
 			application.setType("update-type");
 			application.setUpdatedAt(new Date());
 			
 			applicationRepository.update(application);
-			
-			
-			Optional<Application> optionnal = applicationRepository.findById(applicationName);
-			Assert.assertTrue("Application updated not found", optionnal.isPresent());
+
+			Optional<Application> optional = applicationRepository.findById(applicationName);
+			Assert.assertTrue("Application updated not found", optional.isPresent());
 		
-			Application appUpdated = optionnal.get();
+			Application appUpdated = optional.get();
 			
 			Assert.assertEquals("Invalid updated application name.", 		application.getName(), 			appUpdated.getName());
 			Assert.assertEquals("Invalid updated application description.",	application.getDescription(), 	appUpdated.getDescription());
@@ -140,7 +141,7 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 	}
 
 	@Test
-	public void findByNameTest() {
+	public void findByIdTest() {
 		try {
 			Optional<Application> optional = applicationRepository.findById("findByNameOk");
 			Assert.assertTrue("Find application by name return no result ", optional.isPresent());

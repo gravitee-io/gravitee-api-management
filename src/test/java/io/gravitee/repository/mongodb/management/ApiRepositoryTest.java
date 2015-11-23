@@ -54,11 +54,10 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	@Test
 	public void createApiTest() {
 		try {
-			User owner = createUser("user-"+UUID.randomUUID());
-
 			String apiName = "sample-" + new Date().getTime();
 			
 			Api api = new Api();
+			api.setId(apiName);
 			api.setName(apiName);
 			api.setVersion("1");
 			api.setLifecycleState(LifecycleState.STOPPED);
@@ -87,7 +86,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	}
 
 	@Test
-	public void findByNameTest() {
+	public void findByIdTest() {
 		try {
 			Optional<Api> optional = apiRepository.findById("findByNameOk");
 			Assert.assertTrue("Find api by name return no result ", optional.isPresent());
@@ -98,7 +97,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	}
 	
 	@Test
-	public void findByNameMissingTest() {
+	public void findByIdMissingTest() {
 		try {
 			Optional<Api> optional = apiRepository.findById("findByNameMissing");
 			Assert.assertFalse("Find api by name on missing api return a result", optional.isPresent());
@@ -109,7 +108,7 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	}
 	
 	@Test
-	public void findByUserTest() {
+	public void findByMemberTest() {
 		try {
 			Set<Api> apis = apiRepository.findByMember("findByUserTest", MembershipType.PRIMARY_OWNER, null);
 			Assert.assertNotNull(apis);

@@ -31,11 +31,11 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	public int findMaxPageOrderByApiName(String apiName) {
+	public int findMaxPageOrderByApi(String apiId) {
 		Query query = new Query();
 		query.limit(1);
 		query.with(new Sort(Sort.Direction.DESC, "order"));
-		query.addCriteria(Criteria.where("apiName").is(apiName));	
+		query.addCriteria(Criteria.where("api").is(apiId));
 
 		PageMongo page = mongoTemplate.findOne(query, PageMongo.class);
 		return (page != null) ? page.getOrder() : 0;

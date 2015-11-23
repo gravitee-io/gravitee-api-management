@@ -2,6 +2,7 @@
 	{
 		"_id" : "findByNameOk",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
+		"name" : "findByNameOk",
 		"version" : "1",
 		"visibility" : "PRIVATE",
 		"createdAt"  : { "$date" : 1439022010883 },
@@ -27,6 +28,7 @@
 	{
 		"_id" : "findByTeamApiTest1",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
+		"name" : "findByTeamApiTest1",
 		"version" : "1",
 		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
@@ -52,6 +54,7 @@
 	{
 		"_id" : "findByTeamApiTest2",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
+		"name" : "findByTeamApiTest2",
 		"version" : "1",
 		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
@@ -77,6 +80,7 @@
 	{
 		"_id" : "findByUserApiTest1",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
+		"name" : "findByUserApiTest1",
 		"version" : "1",
 		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
@@ -102,6 +106,7 @@
 	{
 		"_id" : "findByUserApiTest2",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
+		"name" : "findByUserApiTest2",
 		"version" : "1",
 		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
@@ -127,6 +132,7 @@
 	{
 		"_id" : "api1",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
+		"name" : "api1",
 		"version" : "1",
 		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },
@@ -152,6 +158,7 @@
     {
 		"_id" : "api2",
 		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
+		"name" : "api2",
 		"version" : "1",
 		"visibility" : "PUBLIC",
 		"createdAt"  : { "$date" : 1439022010883 },

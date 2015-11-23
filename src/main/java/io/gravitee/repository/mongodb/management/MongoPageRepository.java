@@ -47,35 +47,35 @@ public class MongoPageRepository implements PageRepository {
 
 
 	@Override
-	public Collection<Page> findPublishedByApi(String apiName) throws TechnicalException {
-		logger.debug("Find published pages by api {}", apiName);
+	public Collection<Page> findPublishedByApi(String apiId) throws TechnicalException {
+		logger.debug("Find published pages by api {}", apiId);
 
-		List<PageMongo> pages = internalPageRepo.findByApi(apiName);
+		List<PageMongo> pages = internalPageRepo.findByApi(apiId);
 		Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
 
-		logger.debug("Find published pages by api {} - Done", apiName);
+		logger.debug("Find published pages by api {} - Done", apiId);
 		return res;
 	}
 
 	@Override
-	public Collection<Page> findByApi(String apiName) throws TechnicalException {
-		logger.debug("Find pages by api {}", apiName);
+	public Collection<Page> findByApi(String apiId) throws TechnicalException {
+		logger.debug("Find pages by api {}", apiId);
 
-		List<PageMongo> pages = internalPageRepo.findByApi(apiName);
+		List<PageMongo> pages = internalPageRepo.findByApi(apiId);
 		Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
 
-		logger.debug("Find pages by api {} - Done", apiName);
+		logger.debug("Find pages by api {} - Done", apiId);
 		return res;
 	}
 
 	@Override
-	public Optional<Page> findById(String name) throws TechnicalException {
-		logger.debug("Find page by name [{}]", name);
+	public Optional<Page> findById(String pageId) throws TechnicalException {
+		logger.debug("Find page by ID [{}]", pageId);
 
-		PageMongo page = internalPageRepo.findOne(name);
+		PageMongo page = internalPageRepo.findOne(pageId);
 		Page res = mapper.map(page, Page.class);
 
-		logger.debug("Find page by name [{}] - Done", name);
+		logger.debug("Find page by ID [{}] - Done", pageId);
 		return Optional.ofNullable(res);
 	}
 
@@ -100,14 +100,15 @@ public class MongoPageRepository implements PageRepository {
 		}
 		
 		// Search team by name
-		PageMongo pageMongo = internalPageRepo.findOne(page.getName());
+		PageMongo pageMongo = internalPageRepo.findOne(page.getId());
 		
 		if(pageMongo == null){
-			throw new IllegalStateException(String.format("No page found with name [%s]", page.getName()));
+			throw new IllegalStateException(String.format("No page found with name [%s]", page.getId()));
 		}
 		
 		try{
-			//Update 
+			//Update
+			pageMongo.setName(page.getName());
 			pageMongo.setTitle(page.getTitle());
 			pageMongo.setContent(page.getContent());
 			pageMongo.setLastContributor(page.getLastContributor());
@@ -124,21 +125,21 @@ public class MongoPageRepository implements PageRepository {
 	}
 
 	@Override
-	public void delete(String name) throws TechnicalException {
+	public void delete(String pageId) throws TechnicalException {
 		try{
-			internalPageRepo.delete(name);
+			internalPageRepo.delete(pageId);
 		}catch(Exception e){
-			logger.error("An error occured when deleting page [{}]", name, e);
+			logger.error("An error occured when deleting page [{}]", pageId, e);
 			throw new TechnicalException("An error occured when deleting page");
 		}
 	}
 
 	@Override
-	public Integer findMaxPageOrderByApiName(String apiName) throws TechnicalException {
+	public Integer findMaxPageOrderByApi(String apiId) throws TechnicalException {
 		try{
-			return internalPageRepo.findMaxPageOrderByApiName(apiName);
+			return internalPageRepo.findMaxPageOrderByApi(apiId);
 		}catch(Exception e){
-			logger.error("An error occured when searching max order page for api name [{}]", apiName, e);
+			logger.error("An error occured when searching max order page for api name [{}]", apiId, e);
 			throw new TechnicalException("An error occured when searching max order page for api name");
 		}
 	}

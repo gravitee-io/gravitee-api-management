@@ -59,25 +59,25 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 	}
 
 	@Override
-	public Set<ApiKey> findByApplicationAndApi(String applicationName, String apiName) throws TechnicalException {
-		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplicationAndApi(applicationName, apiName);
+	public Set<ApiKey> findByApplicationAndApi(String applicationId, String apiId) throws TechnicalException {
+		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplicationAndApi(applicationId, apiId);
 		
 		return map(apiAssociationMongos);
 	}
 
 	@Override
-	public Set<ApiKey> findByApplication(String applicationName) throws TechnicalException {
-		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplication(applicationName);
+	public Set<ApiKey> findByApplication(String applicationId) throws TechnicalException {
+		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplication(applicationId);
 		
 		return map(apiAssociationMongos);
 	}
 
 
 	@Override
-	public ApiKey create(String applicationName, String apiName, ApiKey key) throws TechnicalException {
+	public ApiKey create(String applicationId, String apiId, ApiKey key) throws TechnicalException {
 		ApiAssociationMongo apiAssociationMongo = new ApiAssociationMongo();
-		apiAssociationMongo.setApi(internalApiRepo.findOne(apiName));
-		apiAssociationMongo.setApplication(internalApplicationRepo.findOne(applicationName));
+		apiAssociationMongo.setApi(internalApiRepo.findOne(apiId));
+		apiAssociationMongo.setApplication(internalApplicationRepo.findOne(applicationId));
 		apiAssociationMongo.setKey(mapper.map(key, ApiKeyMongo.class));
 		
 		internalApiKeyRepo.insert(apiAssociationMongo);
@@ -111,8 +111,8 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 	}
 
 	@Override
-	public Set<ApiKey> findByApi(String apiName) {
-		Collection<ApiAssociationMongo> apiAssociationsMongo = internalApiKeyRepo.findByApi(apiName);
+	public Set<ApiKey> findByApi(String apiId) {
+		Collection<ApiAssociationMongo> apiAssociationsMongo = internalApiKeyRepo.findByApi(apiId);
 		return map(apiAssociationsMongo);
 	}
 }

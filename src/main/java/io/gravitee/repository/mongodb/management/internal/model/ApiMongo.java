@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +30,11 @@ import java.util.Objects;
  */
 @Document(collection = "apis")
 public class ApiMongo extends Auditable {
-    
-	@Id
+
+    @Id
+    private String id;
+
+    @Field("name")
     private String name;
 
     private String version;
@@ -44,6 +48,14 @@ public class ApiMongo extends Auditable {
 	private String visibility;
 
     private List<MemberMongo> members = new ArrayList<>();
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getVisibility() {
         return visibility;
@@ -106,7 +118,7 @@ public class ApiMongo extends Auditable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiMongo api = (ApiMongo) o;
-        return Objects.equals(name, api.name) &&
+        return Objects.equals(id, api.id) &&
                 Objects.equals(version, api.version);
     }
 
@@ -118,6 +130,7 @@ public class ApiMongo extends Auditable {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Api{");
+        sb.append("id='").append(id).append('\'');
         sb.append("name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", state='").append(lifecycleState).append('\'');

@@ -26,16 +26,16 @@ import org.springframework.stereotype.Repository;
 public interface ApiKeyMongoRepository extends MongoRepository<ApiAssociationMongo, String> {
 
 	@Query("{ 'application.$id' : ?0 ,  'api.$id': ?1 }")
-	List<ApiAssociationMongo> findByApplicationAndApi(String applicationName, String apiName);
+	List<ApiAssociationMongo> findByApplicationAndApi(String applicationId, String apiId);
 
 	@Query("{ 'application.$id' : ?0 }")
-	List<ApiAssociationMongo> findByApplication(String applicationName);
+	List<ApiAssociationMongo> findByApplication(String applicationId);
 
 	@Query("{ 'key.key' : ?0 }")
 	ApiAssociationMongo retrieve(String apiKey);
 	
 	@Query("{ 'api.$id': ?0 }")
-	List<ApiAssociationMongo> findByApi(String apiName);
+	List<ApiAssociationMongo> findByApi(String apiId);
 }
 
 

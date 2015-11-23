@@ -17,7 +17,6 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 /**
  * @author Titouan COMPIEGNE
@@ -26,8 +25,9 @@ import org.springframework.data.mongodb.core.mapping.Field;
 public class PageMongo extends Auditable {
 
 	@Id
-	@Field(value = "name")
-	protected String name;
+	private String id;
+
+	private String name;
 
 	private String type;
 
@@ -39,9 +39,17 @@ public class PageMongo extends Auditable {
 
 	private int order;
 
-	private String apiName;
+	private String api;
 
 	private boolean published;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 
 	public String getName() {
 		return name;
@@ -91,12 +99,12 @@ public class PageMongo extends Auditable {
 		this.order = order;
 	}
 
-	public String getApiName() {
-		return apiName;
+	public String getApi() {
+		return api;
 	}
 
-	public void setApiName(String apiName) {
-		this.apiName = apiName;
+	public void setApi(String api) {
+		this.api = api;
 	}
 
 	public boolean isPublished() {
@@ -116,7 +124,7 @@ public class PageMongo extends Auditable {
 		sb.append(", content='").append(content).append('\'');
 		sb.append(", order='").append(order).append('\'');
 		sb.append(", lastContributor='").append(lastContributor).append('\'');
-		sb.append(", apiName='").append(apiName).append('\'');
+		sb.append(", api='").append(api).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}

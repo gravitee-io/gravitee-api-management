@@ -63,9 +63,10 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
 	@Override
 	public Application update(Application application) throws TechnicalException {
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application.getName());
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application.getId());
 		
-		//Update, but don't change invariant other creation information 
+		//Update, but don't change invariant other creation information
+		applicationMongo.setName(application.getName());
 		applicationMongo.setDescription(application.getDescription());
 		applicationMongo.setUpdatedAt(application.getUpdatedAt());
 		applicationMongo.setType(application.getType());
@@ -75,14 +76,14 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
-	public Optional<Application> findById(String applicationName) throws TechnicalException {
-		ApplicationMongo application = internalApplicationRepo.findOne(applicationName);
+	public Optional<Application> findById(String applicationId) throws TechnicalException {
+		ApplicationMongo application = internalApplicationRepo.findOne(applicationId);
 		return Optional.ofNullable(mapApplication(application));
 	}
 
 	@Override
-	public void delete(String apiName) throws TechnicalException {
-		internalApplicationRepo.delete(apiName);
+	public void delete(String applicationId) throws TechnicalException {
+		internalApplicationRepo.delete(applicationId);
 	}
 
 	@Override
@@ -100,11 +101,11 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
-	public void saveMember(String application, String username, MembershipType membershipType) throws TechnicalException {
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application);
+	public void saveMember(String applicationId, String username, MembershipType membershipType) throws TechnicalException {
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationId);
 		UserMongo userMongo = internalUserRepo.findOne(username);
 
-		Membership membership = getMember(application, username);
+		Membership membership = getMember(applicationId, username);
 		if (membership == null) {
 			MemberMongo memberMongo = new MemberMongo();
 			memberMongo.setUser(userMongo);
@@ -127,8 +128,8 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
-	public void deleteMember(String application, String username) throws TechnicalException {
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application);
+	public void deleteMember(String applicationId, String username) throws TechnicalException {
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationId);
 		MemberMongo memberToDelete = null;
 
 		for (MemberMongo memberMongo : applicationMongo.getMembers()) {
@@ -144,8 +145,8 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
-	public Collection<Membership> getMembers(String application, MembershipType membershipType) throws TechnicalException {
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application);
+	public Collection<Membership> getMembers(String applicationId, MembershipType membershipType) throws TechnicalException {
+		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationId);
 		List<MemberMongo> membersMongo = applicationMongo.getMembers();
 		Set<Membership> members = new HashSet<>(membersMongo.size());
 

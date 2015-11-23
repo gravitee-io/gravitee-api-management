@@ -55,8 +55,8 @@ public class MongoApiRepository implements ApiRepository {
 	private GraviteeMapper mapper;
 	
 	@Override
-	public Optional<Api> findById(String apiName) throws TechnicalException {
-		ApiMongo apiMongo =  internalApiRepo.findOne(apiName);
+	public Optional<Api> findById(String apiId) throws TechnicalException {
+		ApiMongo apiMongo =  internalApiRepo.findOne(apiId);
 		return Optional.ofNullable(mapApi(apiMongo));
 	}
 
@@ -81,8 +81,8 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public void delete(String apiName) throws TechnicalException {
-		internalApiRepo.delete(apiName);
+	public void delete(String apiId) throws TechnicalException {
+		internalApiRepo.delete(apiId);
 	}
 
 	@Override
@@ -98,17 +98,17 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public Set<Api> findByApplication(String application) throws TechnicalException {
-		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplication(application);
+	public Set<Api> findByApplication(String applicationId) throws TechnicalException {
+		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplication(applicationId);
 		return apiAssociationMongos.stream().map(t -> mapper.map(t.getApi(), Api.class)).collect(Collectors.toSet());
 	}
 
 	@Override
-	public void saveMember(String application, String username, MembershipType membershipType) throws TechnicalException {
-		ApiMongo apiMongo = internalApiRepo.findOne(application);
+	public void saveMember(String apiId, String username, MembershipType membershipType) throws TechnicalException {
+		ApiMongo apiMongo = internalApiRepo.findOne(apiId);
 		UserMongo userMongo = internalUserRepo.findOne(username);
 
-		Membership membership = getMember(application, username);
+		Membership membership = getMember(apiId, username);
 		if (membership == null) {
 			MemberMongo memberMongo = new MemberMongo();
 			memberMongo.setUser(userMongo);
@@ -131,8 +131,8 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public void deleteMember(String api, String username) throws TechnicalException {
-		ApiMongo apiMongo = internalApiRepo.findOne(api);
+	public void deleteMember(String apiId, String username) throws TechnicalException {
+		ApiMongo apiMongo = internalApiRepo.findOne(apiId);
 		MemberMongo memberToDelete = null;
 
 		for (MemberMongo memberMongo : apiMongo.getMembers()) {
@@ -148,8 +148,8 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public Membership getMember(String api, String username) throws TechnicalException {
-		Collection<Membership> members = getMembers(api, null);
+	public Membership getMember(String apiId, String username) throws TechnicalException {
+		Collection<Membership> members = getMembers(apiId, null);
 		for (Membership member : members) {
 			if (member.getUser().equalsIgnoreCase(username)) {
 				return member;
@@ -160,8 +160,8 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public Collection<Membership> getMembers(String api, MembershipType membershipType) throws TechnicalException {
-		ApiMongo apiMongo = internalApiRepo.findOne(api);
+	public Collection<Membership> getMembers(String apiId, MembershipType membershipType) throws TechnicalException {
+		ApiMongo apiMongo = internalApiRepo.findOne(apiId);
 		List<MemberMongo> membersMongo = apiMongo.getMembers();
 		Set<Membership> members = new HashSet<>(membersMongo.size());
 

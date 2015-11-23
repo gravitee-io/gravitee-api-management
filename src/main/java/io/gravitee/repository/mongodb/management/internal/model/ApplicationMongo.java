@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +32,24 @@ import java.util.Objects;
 public class ApplicationMongo extends Auditable {
 
 	@Id
+    private String id;
+
+    @Field("name")
     private String name;
+
     private String description;
+
     private String type;
 
     private List<MemberMongo> members = new ArrayList<>();
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getDescription() {
         return description;
@@ -74,7 +88,7 @@ public class ApplicationMongo extends Auditable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApplicationMongo that = (ApplicationMongo) o;
-        return Objects.equals(name, that.name);
+        return Objects.equals(id, that.id);
     }
 
     @Override
@@ -85,6 +99,7 @@ public class ApplicationMongo extends Auditable {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Application{");
+        sb.append("id='").append(id).append('\'');
         sb.append("name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
         sb.append('}');

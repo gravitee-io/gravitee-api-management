@@ -25,7 +25,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * 
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  */
-@Document(collection="keys")
+@Document(collection = "keys")
 public class ApiAssociationMongo {
   
 	@Id 
