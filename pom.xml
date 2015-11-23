@@ -85,7 +85,7 @@
                 <artifactId>gravitee-plugin-core</artifactId>
                 <version>${gravitee-plugin-core.version}</version>
             </dependency>
-            
+
             <!-- Logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
