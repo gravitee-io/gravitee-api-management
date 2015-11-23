@@ -39,6 +39,14 @@ public class ApiAssociationMongo {
     
     private ApiKeyMongo key;
 
+	public ObjectId getId() {
+		return id;
+	}
+
+	public void setId(ObjectId id) {
+		this.id = id;
+	}
+
 	public ApplicationMongo getApplication() {
 		return application;
 	}
@@ -62,28 +70,4 @@ public class ApiAssociationMongo {
 	public void setKey(ApiKeyMongo key) {
 		this.key = key;
 	}
- 
-   
-
-//	@Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        ApiAssociationMongo that = (ApiAssociationMongo) o;
-//        return Objects.equals(name, that.name);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(name);
-//    }
-//
-//    @Override
-//    public String toString() {
-//        final StringBuilder sb = new StringBuilder("Application{");
-//        sb.append("name='").append(name).append('\'');
-//        sb.append(", type='").append(type).append('\'');
-//        sb.append('}');
-//        return sb.toString();
-//    }
 }

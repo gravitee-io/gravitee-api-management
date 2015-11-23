@@ -1,17 +1,12 @@
 [
    {
-      "_id":"creator",
+      "_id":"findByUserTest",
       "_class":"io.gravitee.repository.mongodb.management.internal.model.UserMongo",
       "email":"creator@gravitee.io"
    },
    {
-      "_id":"creator2",
+      "_id":"user1",
       "_class":"io.gravitee.repository.mongodb.management.internal.model.UserMongo",
       "email":"creator2@gravitee.io"
-   },
-   {
-      "_id":"creator3",
-      "_class":"io.gravitee.repository.mongodb.management.internal.model.UserMongo",
-      "email":"creator3@gravitee.io"
    }
 ]

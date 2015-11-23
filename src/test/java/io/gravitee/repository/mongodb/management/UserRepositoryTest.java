@@ -26,28 +26,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Optional;
 import java.util.Set;
 
-public class UserRepositoryTest extends  AbstractMongoDBTest{
-	
-	private static final String TESTCASES_PATH = "/data/user-tests/";
-	
-	private static final int NB_USERS_TESTCASES = 6; 
+public class UserRepositoryTest extends AbstractMongoDBTest {
+
+	private final static Logger logger = LoggerFactory.getLogger(UserRepositoryTest.class);
 	
 	@Autowired
 	private UserRepository userRepository;
-	
-	
-	private Logger logger = LoggerFactory.getLogger(UserRepositoryTest.class);
 
 	@Override
 	protected String getTestCasesPath() {
-		return TESTCASES_PATH;
+		return "/data/user-tests/";
 	}
 
 	@Test
 	public void createUserTest() {
-
 		try {
-	
 			String username = "createuser1";
 			
 			User user = new User();
@@ -64,24 +57,20 @@ public class UserRepositoryTest extends  AbstractMongoDBTest{
 			
 			Assert.assertEquals("Invalid saved user name.", user.getUsername(), userFound.getUsername());
 			Assert.assertEquals("Invalid saved user mail.",	user.getEmail(), userFound.getEmail());
-		
-			
 		} catch (Exception e) {
 			logger.error("Error while calling createUser", e);
 			Assert.fail("Error while calling createUser");	
 		}
 	}
 
-
 	@Test
 	public void findAllTest() {
-		try{
+		try {
 			Set<User> users= userRepository.findAll();
 				
 			Assert.assertNotNull(users);
-			Assert.assertEquals("Invalid user numbers in find all", NB_USERS_TESTCASES, users.size());
-			
-		}catch(Exception e){
+			Assert.assertEquals("Invalid user numbers in find all", 6, users.size());
+		} catch (Exception e) {
 			logger.error("Error while finding all users",e);
 			Assert.fail("Error while finding all users");
 		}
@@ -99,8 +88,5 @@ public class UserRepositoryTest extends  AbstractMongoDBTest{
 			logger.error("Error while finding user by email",e);
 			Assert.fail("Error while finding user by email");
 		}
-	}		
-	
-	
-
+	}
 }

@@ -18,7 +18,6 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
-import io.gravitee.repository.mongodb.management.internal.model.TeamMemberMongo;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -27,11 +26,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * @author David BRASSELY (brasseld at gmail.com)
+ */
 @Component
 public class MongoUserRepository implements UserRepository {
 
@@ -45,7 +46,6 @@ public class MongoUserRepository implements UserRepository {
 
 	@Override
 	public Optional<User> findByUsername(String username) throws TechnicalException {
-
 		logger.debug("Find user by name user [{}]", username);
 
 		UserMongo user = internalUserRepo.findOne(username);
@@ -53,12 +53,10 @@ public class MongoUserRepository implements UserRepository {
 
 		logger.debug("Find user by name user [{}] - Done", username);
 		return Optional.ofNullable(res);
-
 	}
 
 	@Override
 	public Set<User> findAll() throws TechnicalException {
-
 		logger.debug("Find all users");
 
 		List<UserMongo> users = internalUserRepo.findAll();
@@ -69,25 +67,7 @@ public class MongoUserRepository implements UserRepository {
 	}
 
 	@Override
-	public Set<User> findByTeam(String teamName) throws TechnicalException {
-
-		logger.debug("Find users by team [{}]", teamName);
-
-		List<TeamMemberMongo> members = internalUserRepo.findByTeam(teamName);
-
-		Set<User> res = new HashSet<>();
-		for (TeamMemberMongo member : members) {
-			res.add(mapper.map(member.getMember(), User.class));
-		}
-
-		logger.debug("Find users by team [{}] - Done", teamName);
-
-		return res;
-	}
-
-	@Override
 	public User create(User user) throws TechnicalException {
-
 		logger.debug("Create user [{}]", user.getUsername());
 		
 		UserMongo userMongo = mapper.map(user, UserMongo.class);
@@ -102,7 +82,6 @@ public class MongoUserRepository implements UserRepository {
 
 	@Override
 	public Optional<User> findByEmail(String email) throws TechnicalException {
-	
 		logger.debug("Find users by email [{}]", email);
 
 		UserMongo userMongo = internalUserRepo.findByEmail(email);
@@ -111,5 +90,4 @@ public class MongoUserRepository implements UserRepository {
 		logger.debug("Find users by email [{}] - Done", email);
 		return Optional.ofNullable(res);
 	}
-
 }

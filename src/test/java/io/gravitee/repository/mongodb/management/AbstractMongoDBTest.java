@@ -15,36 +15,27 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.bson.Document;
-import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.util.JSON;
-
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.bson.Document;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * Allows to start/stop an instance of MongoDB for each tests and inject a data set provided.
@@ -58,8 +49,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-//@RunWith(PowerMockRunner.class)
-//@PowerMockIgnore("javax.management.*")
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { TestRepositoryConfiguration.class })
 @ActiveProfiles("test")
@@ -81,24 +70,20 @@ public abstract class AbstractMongoDBTest {
     
     @Before
     public void setup() throws Exception {
-
         LOG.info("Creating database '{}'...", DATABASE_NAME);
+
         mongoDatabase = ((MongoClient) mongoClient).getDatabase(DATABASE_NAME);
-        //logConnection();
         
         final File file = new File(AbstractMongoDBTest.class.getResource(getTestCasesPath()).toURI());
 
-        File[] collectionsDumps = file.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				return pathname.isFile() && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString()));
-			}
-		});
+        File[] collectionsDumps = file.listFiles(
+                pathname -> pathname.isFile()
+                        && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString())));
         
         importJsonFiles(collectionsDumps);
     }
 
-    private void importJsonFiles(File[] files) throws Exception{
+    private void importJsonFiles(File[] files) throws Exception {
     	if(files != null){
     		for (File file : files) {
 				importJsonFile(file);
@@ -106,7 +91,7 @@ public abstract class AbstractMongoDBTest {
     	}
     }
     
-    private void importJsonFile(File file) throws Exception{
+    private void importJsonFile(File file) throws Exception {
     	
         final String collectionName = FilenameUtils.getBaseName(file.getName());
         
@@ -129,26 +114,6 @@ public abstract class AbstractMongoDBTest {
             collection.insertOne(document);
         }	
     }
-    
-    private void logConnection(){
-		System.out.println(mongoClient.getAddress().getHost());
-		System.out.println("--port="+mongoClient.getAddress().getPort());
-    }
-    
-    /**
-     * Par string ISO date (ex: 2015-08-08T08:20:10.883Z)
-     * @param date string date to parse
-     * @return parsed date
-     * @throws Exception
-     */
-	protected Date getIsoDate(String date) throws Exception{
-		
-		TimeZone tz = TimeZone.getTimeZone("UTC");
-	    DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-	    df.setTimeZone(tz);
-	    return df.parse(date);	
-	}
-	
     
     //@After
     public void teardown() throws Exception {

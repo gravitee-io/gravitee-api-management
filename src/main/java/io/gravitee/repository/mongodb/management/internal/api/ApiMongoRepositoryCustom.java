@@ -15,37 +15,26 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
+import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ApiMongoRepositoryCustom {
-
-	/**
-	 * Find Apis by team name
-	 * @param teamId
-	 * @return
-	 */
-    public List<ApiMongo> findByTeam(String name, boolean publicOnly);
     
 	/**
-	 * Find Apis by team name
-	 * @param teamId
+	 * Find apis by user
+	 * @param username
 	 * @return
 	 */
-    public List<ApiMongo> findByUser(String name, boolean publicOnly);
+    Collection<ApiMongo> findByMember(String username, MembershipType membershipType, Visibility visibility);
     
     /**
-     * Count api by username (owner)
+     * Count api by user
      * @param username
      * @return
      */
-	public long countByUser(String username, boolean publicOnly);
-    
-    /**
-     * Count api by username (owner)
-     * @param username
-     * @return
-     */	
-	public long countByTeam(String teamname, boolean publicOnly);
+	int countByUser(String username, String membershipType);
 }

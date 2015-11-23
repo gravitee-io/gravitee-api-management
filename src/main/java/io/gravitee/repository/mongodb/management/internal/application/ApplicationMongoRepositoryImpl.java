@@ -15,67 +15,48 @@
  */
 package io.gravitee.repository.mongodb.management.internal.application;
 
-import java.util.List;
-
+import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
-import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
+import java.util.Collection;
 
 
-public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositoryCustom{
+public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositoryCustom {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
-	
-	
-	@Override
-	public List<ApplicationMongo> findByTeam(String teamname) {
 
+	@Override
+	public Collection<ApplicationMongo> findByUser(String username, MembershipType membershipType) {
 		Query query = new Query();
 
-		query.addCriteria(Criteria.where("owner.$id").is(teamname));	
-		query.addCriteria(Criteria.where("owner.$ref").is("teams"));
-		
-		List<ApplicationMongo> applications = mongoTemplate.find(query, ApplicationMongo.class);
-		
-		return applications;
+		if (membershipType == null) {
+			query.addCriteria(Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username)));
+		} else {
+			query.addCriteria(Criteria.where("members").elemMatch(
+					Criteria.where("user.$id").is(username)
+							.and("type").is(membershipType)));
+		}
 
+		return mongoTemplate.find(query, ApplicationMongo.class);
 	}
 
 	@Override
-	public List<ApplicationMongo> findByUser(String username) {
-
+	public int countByUser(String username, MembershipType membershipType) {
 		Query query = new Query();
 
-		query.addCriteria(Criteria.where("owner.$id").is(username));	
-		query.addCriteria(Criteria.where("owner.$ref").is("users"));				
-		List<ApplicationMongo> applications = mongoTemplate.find(query, ApplicationMongo.class);
-		
-		return applications;
+		if (membershipType == null) {
+			query.addCriteria(Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username)));
+		} else {
+			query.addCriteria(Criteria.where("members").elemMatch(
+					Criteria.where("user.$id").is(username)
+							.and("type").is(membershipType)));
+		}
 
-	}
-
-	@Override
-	public long countByUser(String username) {
-		Query query = new Query();
-
-		query.addCriteria(Criteria.where("owner.$id").is(username));	
-		query.addCriteria(Criteria.where("owner.$ref").is("users"));	
-		return mongoTemplate.count(query, ApplicationMongo.class);
-		
-	}
-	
-	@Override
-	public long countByTeam(String teamname) {
-		Query query = new Query();
-
-		query.addCriteria(Criteria.where("owner.$id").is(teamname));	
-		query.addCriteria(Criteria.where("owner.$ref").is("teams"));
-				
-		return mongoTemplate.count(query, ApplicationMongo.class);
-		
+		return (int) mongoTemplate.count(query, ApplicationMongo.class);
 	}
 }

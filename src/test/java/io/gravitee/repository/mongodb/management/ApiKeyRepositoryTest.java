@@ -29,17 +29,15 @@ import java.util.Set;
 import java.util.UUID;
 
 public class ApiKeyRepositoryTest extends AbstractMongoDBTest {
-
-	private static final String TESTCASES_PATH = "/data/apikey-tests/";
 	
-	private Logger logger = LoggerFactory.getLogger(ApiKeyRepositoryTest.class);	
+	private final static Logger logger = LoggerFactory.getLogger(ApiKeyRepositoryTest.class);
 	
 	@Autowired
 	private ApiKeyRepository apiKeyRepository;
 	
     @Override
     protected String getTestCasesPath() {
-        return TESTCASES_PATH;
+        return "/data/apikey-tests/";
     }
 
     @Test

@@ -17,10 +17,7 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.UserRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.OwnerType;
-import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -34,12 +31,7 @@ import java.util.UUID;
 
 public class ApiRepositoryTest extends AbstractMongoDBTest {
 
-	private static final String TESTCASES_PATH = "/data/api-tests/";
-
-	private static final int NB_APIS_FOR_CREATOR = 4; 
-	
-	private Logger logger = LoggerFactory.getLogger(ApiRepositoryTest.class);	
-
+	private final static Logger logger = LoggerFactory.getLogger(ApiRepositoryTest.class);
 	
 	@Autowired
 	private ApiRepository apiRepository;
@@ -49,11 +41,10 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 
     @Override
     protected String getTestCasesPath() {
-        return TESTCASES_PATH;
+        return "/data/api-tests/";
     }
 	
 	private User createUser(String userName) throws Exception{
-			
 		User user = new User();
 		user.setUsername(userName);
 		user.setEmail(userName+"@itest.test");
@@ -62,40 +53,32 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 	
 	@Test
 	public void createApiTest() {
-
 		try {
-
 			User owner = createUser("user-"+UUID.randomUUID());
 
-			String apiName = "sample-"+new Date().getTime();
+			String apiName = "sample-" + new Date().getTime();
 			
 			Api api = new Api();
 			api.setName(apiName);
 			api.setVersion("1");
 			api.setLifecycleState(LifecycleState.STOPPED);
-			api.setPrivateApi(true);
+			api.setVisibility(Visibility.PRIVATE);
 			api.setDefinition("{}");
 			api.setCreatedAt(new Date());
 			api.setUpdatedAt(new Date());
-			api.setCreator("creator");
-			api.setOwner(owner.getUsername());
-			api.setOwnerType(OwnerType.USER);
 			
 			apiRepository.create(api);
 					
-			Optional<Api> optional = apiRepository.findByName(apiName);
+			Optional<Api> optional = apiRepository.findById(apiName);
 			Assert.assertTrue("Api saved not found", optional.isPresent());
 			
 			Api apiSaved = optional.get();
-			Assert.assertEquals("Invalid saved api version.", 	api.getVersion(), apiSaved.getVersion());
-			Assert.assertEquals("Invalid api lifecycle.", 		api.getLifecycleState(), apiSaved.getLifecycleState());
-			Assert.assertEquals("Invalid api private api status.", 	api.isPrivateApi(), apiSaved.isPrivateApi());
-			Assert.assertEquals("Invalid api definition.", 		api.getDefinition(), apiSaved.getDefinition());
-			Assert.assertEquals("Invalid api createdAt.", 		api.getCreatedAt(), apiSaved.getCreatedAt());
-			Assert.assertEquals("Invalid api updateAt.", 		api.getUpdatedAt(), apiSaved.getUpdatedAt());
-			Assert.assertEquals("Invalid api Owner.", 			api.getOwner(), apiSaved.getOwner());
-			Assert.assertEquals("Invalid api OwnerType.", 		api.getOwnerType(), apiSaved.getOwnerType());
-			Assert.assertEquals("Invalid api creator.", 		api.getCreator(), apiSaved.getCreator());
+			Assert.assertEquals("Invalid saved api version.", 		api.getVersion(), apiSaved.getVersion());
+			Assert.assertEquals("Invalid api lifecycle.", 			api.getLifecycleState(), apiSaved.getLifecycleState());
+			Assert.assertEquals("Invalid api private api status.", 	api.getVisibility(), apiSaved.getVisibility());
+			Assert.assertEquals("Invalid api definition.", 			api.getDefinition(), apiSaved.getDefinition());
+			Assert.assertEquals("Invalid api createdAt.", 			api.getCreatedAt(), apiSaved.getCreatedAt());
+			Assert.assertEquals("Invalid api updateAt.", 			api.getUpdatedAt(), apiSaved.getUpdatedAt());
 			
 		} catch (Exception e) {
 			logger.error("Error while testing createApi", e);
@@ -105,165 +88,96 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 
 	@Test
 	public void findByNameTest() {
-		try{
-			Optional<Api> optional = apiRepository.findByName("findByNameOk");
+		try {
+			Optional<Api> optional = apiRepository.findById("findByNameOk");
 			Assert.assertTrue("Find api by name return no result ", optional.isPresent());
-		}catch(Exception e){
-			logger.error("Error while calling findByName", e);
-			Assert.fail("Error while calling findByName");		
+		} catch (Exception e) {
+			logger.error("Error while calling findById", e);
+			Assert.fail("Error while calling findById");
 		}
 	}
 	
 	@Test
 	public void findByNameMissingTest() {
-		try{
-		
-			Optional<Api> optional = apiRepository.findByName("findByNameMissing");
+		try {
+			Optional<Api> optional = apiRepository.findById("findByNameMissing");
 			Assert.assertFalse("Find api by name on missing api return a result", optional.isPresent());
-	
-		}catch(Exception e){
-			logger.error("Error while calling findByName on missing api", e);
-			Assert.fail("Error while calling findByName on missing api");		
-		}
-	}
-
-	@Test
-	public void findByCreatorNameTest() {
-		try{
-			Set<Api> apis = apiRepository.findByCreator("creator");
-			
-			Assert.assertNotNull(apis);
-			Assert.assertEquals("Invalid number of creator api found",  NB_APIS_FOR_CREATOR, apis.size());
-	
-		}catch(Exception e){
-			logger.error("Error while finding apis by creator",e);
-			Assert.fail("Error while finding apis by creator");
-		}
-	}
-
-	@Test
-	public void findByTeamTest() {
-		try{
-	
-			Set<Api> apis = apiRepository.findByTeam("findByTeamTest", false);
-			Assert.assertNotNull(apis);
-			Assert.assertEquals("Invalid api result in findByTeam",apis.size(), 2);
-	
-		}catch(Exception e){
-			logger.error("Error while finding api by name",e);
-			Assert.fail("Error while finding api by name");
+		} catch (Exception e) {
+			logger.error("Error while calling findById on missing api", e);
+			Assert.fail("Error while calling findById on missing api");
 		}
 	}
 	
 	@Test
 	public void findByUserTest() {
-		try{
-			
-			Set<Api> apis = apiRepository.findByUser("findByUserTest", false);
+		try {
+			Set<Api> apis = apiRepository.findByMember("findByUserTest", MembershipType.PRIMARY_OWNER, null);
 			Assert.assertNotNull(apis);
-			Assert.assertEquals("Invalid api result in findByUser",apis.size(), 2);
-			
-		}catch(Exception e){
-			logger.error("Error while finding api by user",e);
+			Assert.assertEquals("Invalid api result in findByMember", 2, apis.size());
+		} catch (Exception e) {
+			logger.error("Error while finding api by user", e);
 			Assert.fail("Error while finding api by user");
 		}
-	}	
-	
+	}
+
 	@Test
-	public void findPublicByUserTest() {
-		try{
-			
-			Set<Api> apis = apiRepository.findByUser("findByUserTest", true);
+	public void findByUserTestAndPrivateApi() {
+		try {
+			Set<Api> apis = apiRepository.findByMember("findByUserTest", MembershipType.PRIMARY_OWNER, Visibility.PRIVATE);
 			Assert.assertNotNull(apis);
-			Assert.assertEquals("Invalid api result in findByUser",apis.size(), 1);
-			
-		}catch(Exception e){
-			logger.error("Error while finding api by user",e);
+			Assert.assertEquals("Invalid api result in findByMember", 1, apis.size());
+		} catch (Exception e) {
+			logger.error("Error while finding api by user", e);
 			Assert.fail("Error while finding api by user");
 		}
-	}	
-	
+	}
 	
 	@Test
 	public void findAllTest() {
-		try{
+		try {
 			Set<Api> apis = apiRepository.findAll();
 			
 			Assert.assertNotNull(apis);
 			Assert.assertFalse("Fail to resolve api in findAll", apis.isEmpty());
-			
-		}catch(Exception e){
-			logger.error("Error while finding all apis",e);
+		} catch (Exception e) {
+			logger.error("Error while finding all apis", e);
 			Assert.fail("Error while finding all apise");
 		}
-	}	
-
-	@Test
-	public void countApisByTeamTest(){
-		try{
-			
-			int nbApis = apiRepository.countByTeam("findByTeamTest", false);
-			Assert.assertEquals("Invalid api result in countByTeam", nbApis, 2);
-			
-		}catch(Exception e){
-			logger.error("Error while counting api by team",e);
-			Assert.fail("Error while counting api by team");
-		}
 	}
 	
 	@Test
-	public void countApisByUserTest(){
-		try{
-			
-			int nbApis = apiRepository.countByUser("findByUserTest", false);
-			Assert.assertEquals("Invalid api result in countByUser", nbApis, 2);
-			
-		}catch(Exception e){
-			logger.error("Error while counting api by user",e);
-			Assert.fail("Error while counting api by user");
-		}
-	}
-	
-	
-	@Test
-	public void countPublicApisByUserTest(){
-		try{
-			
-			int nbApis = apiRepository.countByUser("findByUserTest", true);
-			Assert.assertEquals("Invalid api result in countByUser", nbApis, 1);
-			
-		}catch(Exception e){
-			logger.error("Error while counting api by user",e);
+	public void countApisByUserTest() {
+		try {
+			int nbApis = apiRepository.countByUser("findByUserTest", MembershipType.USER);
+			Assert.assertEquals("Invalid api result in countByUser", 4, nbApis);
+		} catch (Exception e) {
+			logger.error("Error while counting api by user", e);
 			Assert.fail("Error while counting api by user");
 		}
 	}
 
 	@Test
 	public void deleteApiTest() {
-		try{
+		try {
 			int nbApiBefore = apiRepository.findAll().size();
 			apiRepository.delete("findByNameOk");
 			int nbApiAfter = apiRepository.findAll().size();
 	
 			Assert.assertEquals(nbApiBefore -1, nbApiAfter);
-			
-		}catch(Exception e){
-			logger.error("Error while deleting api",e);
+		} catch (Exception e) {
+			logger.error("Error while deleting api", e);
 			Assert.fail("Error while deleting api");
 		}
-
 	}
 	
-	//@Test
-	//TODO test correction
-	public void findByApplicationTest(){
-		try{
+	@Test
+	public void findByApplicationTest() {
+		try {
 			Set<Api> apis = apiRepository.findByApplication("application-sample");
 			Assert.assertNotNull(apis);
 			Assert.assertEquals(2, apis.size());
-			
-		}catch(Exception e){
-			logger.error("Error while finding api by application",e);
+		} catch (Exception e) {
+			logger.error("Error while finding api by application", e);
 			Assert.fail("Error while finding api by application");
 		}
 	}

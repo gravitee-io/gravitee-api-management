@@ -5,41 +5,50 @@
 	   "description":"Sample application1 description",
 	   "createdAt"  : { "$date" : 1439022010883 },
 	   "updatedAt"  : { "$date" : 1439022010883 },
-	   "owner" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
-	   "creator" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" }
+		"members": [
+			{
+				"type":"PRIMARY_OWNER",
+				"user":{
+					"$ref":"users",
+					"$id":"findByUserTest"
+				}
+			},
+			{
+				"type":"USER",
+				"user":{
+					"$ref":"users",
+					"$id":"user1"
+				}
+			}
+		]
 	},
 	{
 	   "_id":"findByUser1Test",
 	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application1 description",
 	   "createdAt"  : { "$date" : 1439022010883 },
-	   "updatedAt"  : { "$date" : 1439022010883 },
-	   "owner" : {"$ref" : "users", "$id" : "findByUserTest" }
+	   "updatedAt"  : { "$date" : 1439022010883 }
 	},
 	{
 	   "_id":"findByTeam1Test",
 	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application1 description",
 	   "createdAt"  : { "$date" : 1439022010883 },
-	   "updatedAt"  : { "$date" : 1439022010883 },
-	   "owner" : {"$ref" : "teams", "$id" : "findByTeamTest" }
+	   "updatedAt"  : { "$date" : 1439022010883 }
 	},
 	{
 	   "_id":"findByTeam2Test",
 	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application1 description",
 	   "createdAt"  : { "$date" : 1439022010883 },
-	   "updatedAt"  : { "$date" : 1439022010883 },
-	   "owner" : {"$ref" : "teams", "$id" : "findByTeamTest" }
+	   "updatedAt"  : { "$date" : 1439022010883 }
 	},
 	{
 	   "_id":"deleted-app",
 	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application deleted description",
 	   "createdAt"  : { "$date" : 1439022010883 },
-	   "updatedAt"  : { "$date" : 1439022010883 },
-	   "owner" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
-	   "creator" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" }
+	   "updatedAt"  : { "$date" : 1439022010883 }
 	},	
 	{
 	   "_id":"updated-app",
@@ -47,9 +56,7 @@
 	   "description":"Sample application updated description",
 	   "type" : "type",
 	   "createdAt"  : { "$date" : 1439022010883 },
-	   "updatedAt"  : { "$date" : 1439022010883 },
-	   "owner" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
-	   "creator" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" }
+	   "updatedAt"  : { "$date" : 1439022010883 }
 	},
 		{
 	   "_id":"associated-app",
@@ -58,8 +65,6 @@
 	   "type" : "type",
 	   "createdAt"  : { "$date" : 1439022010883 },
 	   "updatedAt"  : { "$date" : 1439022010883 },
-	   "owner" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
-	   "creator" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
 	   "apis" : [{"$ref" : "apis", "$id" : "api1" }]
 	},
     {
@@ -68,10 +73,7 @@
 	   "description":"Sample application updated description",
 	   "type" : "type",
 	   "createdAt"  : { "$date" : 1439022010883 },
-	   "updatedAt"  : { "$date" : 1439022010883 },
-	   "owner" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" },
-	   "creator" : {"$ref" : "users", "$id" : "user-b6e1b84c-3c0b-4217-b13a-914a801f901c" }
+	   "updatedAt"  : { "$date" : 1439022010883 }
 	}
-	
 ]
 

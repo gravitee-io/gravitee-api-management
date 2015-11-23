@@ -19,7 +19,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 /**
  * Mongo objet model for user
@@ -27,16 +29,26 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  */
 @Document(collection="users")
-public class UserMongo extends AbstractUserMongo {
+public class UserMongo extends Auditable {
+
+    @Id
+    @Field(value="name")
+    private String name;
 
     private String email;
     private String password;
     private String firstname;
     private String lastname;
     private List<String> roles;
-    private Date createdAt;
-    private Date updatedAt;
-	
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -76,22 +88,6 @@ public class UserMongo extends AbstractUserMongo {
 	public void setRoles(List<String> roles) {
 		this.roles = roles;
 	}
-
-	public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 
     @Override
     public boolean equals(Object o) {

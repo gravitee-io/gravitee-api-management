@@ -34,7 +34,4 @@ public interface PageMongoRepository extends MongoRepository<PageMongo, String>,
 
 	@Query("{ 'apiName' : ?0, 'published': true}")
 	List<PageMongo> findPublishedByApi(String apiName);
-
-	@Query("{ 'name' : ?0}")
-	PageMongo findByName(String name);
 }

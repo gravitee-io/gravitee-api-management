@@ -20,5 +20,5 @@ package io.gravitee.repository.mongodb.management.internal.page;
  */
 public interface PageMongoRepositoryCustom {
 
-	public int findMaxPageOrderByApiName(String apiName);
+	int findMaxPageOrderByApiName(String apiName);
 }

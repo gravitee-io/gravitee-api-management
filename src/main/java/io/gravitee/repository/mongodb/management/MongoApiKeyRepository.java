@@ -30,13 +30,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
 public class MongoApiKeyRepository implements ApiKeyRepository {
 
-		
+	private final static Logger logger = LoggerFactory.getLogger(MongoApiKeyRepository.class);
+
 	@Autowired
 	private GraviteeMapper mapper;
 
@@ -48,32 +48,21 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 	
 	@Autowired
 	private ApplicationMongoRepository internalApplicationRepo;
-	
-	
-	private Logger logger = LoggerFactory.getLogger(MongoApiKeyRepository.class);
 
 	private Set<ApiKey> map(Collection<ApiAssociationMongo> apiAssociationMongos){
-		
-		if(apiAssociationMongos == null){
-			return new HashSet<>();
+		if (apiAssociationMongos == null){
+			return Collections.emptySet();
 		}
 		
-		return apiAssociationMongos.stream().map(new Function<ApiAssociationMongo, ApiKey>() {
-
-			@Override
-			public ApiKey apply(ApiAssociationMongo t) {
-				return mapper.map(t.getKey(), ApiKey.class);
-			}
-		}).collect(Collectors.toSet());
+		return apiAssociationMongos.stream().map(
+				t -> mapper.map(t.getKey(), ApiKey.class)).collect(Collectors.toSet());
 	}
 
 	@Override
 	public Set<ApiKey> findByApplicationAndApi(String applicationName, String apiName) throws TechnicalException {
-		
 		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplicationAndApi(applicationName, apiName);
 		
 		return map(apiAssociationMongos);
-
 	}
 
 	@Override
@@ -86,7 +75,6 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
 	@Override
 	public ApiKey create(String applicationName, String apiName, ApiKey key) throws TechnicalException {
-		
 		ApiAssociationMongo apiAssociationMongo = new ApiAssociationMongo();
 		apiAssociationMongo.setApi(internalApiRepo.findOne(apiName));
 		apiAssociationMongo.setApplication(internalApplicationRepo.findOne(applicationName));
@@ -97,10 +85,8 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 		return key;
 	}
 
-
 	@Override
 	public ApiKey update(ApiKey key) throws TechnicalException {
-		
 		ApiAssociationMongo associationMongo = internalApiKeyRepo.retrieve(key.getKey());
 		associationMongo.getKey().setCreatedAt(key.getCreatedAt());
 		associationMongo.getKey().setExpiration(key.getExpiration());
@@ -113,7 +99,6 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
 	@Override
 	public Optional<ApiKey> retrieve(String apiKey) throws TechnicalException {
-
 		ApiAssociationMongo apiAssociationMongo = internalApiKeyRepo.retrieve(apiKey);
 
 		if(apiAssociationMongo != null) {
@@ -127,10 +112,7 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
 	@Override
 	public Set<ApiKey> findByApi(String apiName) {
-		
 		Collection<ApiAssociationMongo> apiAssociationsMongo = internalApiKeyRepo.findByApi(apiName);
 		return map(apiAssociationsMongo);
 	}
-
-	
 }

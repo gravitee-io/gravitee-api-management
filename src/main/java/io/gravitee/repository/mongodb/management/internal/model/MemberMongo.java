@@ -13,9 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.key;
+package io.gravitee.repository.mongodb.management.internal.model;
 
-public interface ApiKeyRepositoryCustom {
+import org.springframework.data.mongodb.core.mapping.DBRef;
 
+/**
+ * @author David BRASSELY (brasseld at gmail.com)
+ */
+public class MemberMongo extends Auditable {
 
+    @DBRef
+    private UserMongo user;
+
+    private String type;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public UserMongo getUser() {
+        return user;
+    }
+
+    public void setUser(UserMongo user) {
+        this.user = user;
+    }
 }

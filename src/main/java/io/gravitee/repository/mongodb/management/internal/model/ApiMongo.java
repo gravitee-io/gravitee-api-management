@@ -15,58 +15,42 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * Mongo model for Api
  * 
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  */
-@Document(collection="apis")
-public class ApiMongo {
+@Document(collection = "apis")
+public class ApiMongo extends Auditable {
     
 	@Id
     private String name;
+
     private String version;
+
     private String description;
 
     private String definition;
 
     private String lifecycleState;
     
-	private boolean privateApi;
-    
-    private Date createdAt;
-    private Date updatedAt;
-    
-    @DBRef 
-    private AbstractUserMongo owner;
-    
-    @DBRef 
-    private UserMongo creator;
-    
-    
-    public boolean isPrivateApi() {
-		return privateApi;
-	}
+	private String visibility;
 
-	public void setPrivateApi(boolean privateApi) {
-		this.privateApi = privateApi;
-	}
-    
-    public Date getCreatedAt() {
-        return createdAt;
+    private List<MemberMongo> members = new ArrayList<>();
+
+    public String getVisibility() {
+        return visibility;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
+    public void setVisibility(String visibility) {
+        this.visibility = visibility;
     }
 
     public String getLifecycleState() {
@@ -93,14 +77,6 @@ public class ApiMongo {
         this.definition = definition;
     }
 
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     public String getVersion() {
         return version;
     }
@@ -109,28 +85,20 @@ public class ApiMongo {
         this.version = version;
     }
 
-    public AbstractUserMongo getOwner() {
-		return owner;
-	}
-
-	public void setOwner(AbstractUserMongo owner) {
-		this.owner = owner;
-	}
-
-	public UserMongo getCreator() {
-		return creator;
-	}
-
-	public void setCreator(UserMongo creator) {
-		this.creator = creator;
-	}
-
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<MemberMongo> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<MemberMongo> members) {
+        this.members = members;
     }
 
     @Override
@@ -152,7 +120,8 @@ public class ApiMongo {
         final StringBuilder sb = new StringBuilder("Api{");
         sb.append("name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
-        sb.append(", lifecycleState=").append(lifecycleState);
+        sb.append(", state='").append(lifecycleState).append('\'');
+        sb.append(", visibility='").append(visibility).append('\'');
         sb.append('}');
         return sb.toString();
     }

@@ -4,9 +4,7 @@
 	   "_class":"io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo",
 	   "description":"Sample application1 description",
 	   "createdAt"  : { "$date" : 1439022010883 },
-	   "updatedAt"  : { "$date" : 1439022010883 },
-	   "owner" : {"$ref" : "users", "$id" : "creator3" },
-	   "creator" : {"$ref" : "users", "$id" : "creator3" },
+	   "updatedAt"  : { "$date" : 1439022010883 }
 	}	
 ]
 

@@ -23,7 +23,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ApiKeyMongoRepository extends MongoRepository<ApiAssociationMongo, String>, ApiKeyRepositoryCustom{
+public interface ApiKeyMongoRepository extends MongoRepository<ApiAssociationMongo, String> {
 
 	@Query("{ 'application.$id' : ?0 ,  'api.$id': ?1 }")
 	List<ApiAssociationMongo> findByApplicationAndApi(String applicationName, String apiName);
