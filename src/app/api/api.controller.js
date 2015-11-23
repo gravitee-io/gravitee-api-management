@@ -84,12 +84,13 @@ class ApiController {
     });
   }
 
-  showAddApiModal() {
+  showApiModal(api) {
     var that = this;
     this.$mdDialog.show({
       controller: DialogApiController,
       templateUrl: 'app/api/api.dialog.html',
-      parent: angular.element(document.body)
+      parent: angular.element(document.body),
+      api: api
     }).then(function (api) {
       if (api) {
         that.list();
@@ -126,23 +127,30 @@ class ApiController {
   // documentation
 }
 
-function DialogApiController($scope, $mdDialog, ApiService, TeamService) {
+function DialogApiController($scope, $mdDialog, ApiService, api) {
   'ngInject';
 
-  TeamService.list().then(response => {
-    $scope.teams = response.data;
-  });
+  $scope.api = api;
+  $scope.editMode = api;
 
   $scope.hide = function () {
     $mdDialog.hide();
   };
 
-  $scope.create = function (api) {
-    ApiService.create(api, $scope.team).then(function () {
-      $mdDialog.hide(api);
-    }).catch(function (error) {
-      $scope.error = error;
-    });
+  $scope.save = function () {
+    if ($scope.editMode) {
+      ApiService.update($scope.api).then(function () {
+        $mdDialog.hide(api);
+      }).catch(function (error) {
+        $scope.error = error;
+      });
+    } else {
+      ApiService.create($scope.api).then(function () {
+        $mdDialog.hide(api);
+      }).catch(function (error) {
+        $scope.error = error;
+      });
+    }
   };
 }
 

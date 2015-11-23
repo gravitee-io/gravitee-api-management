@@ -25,7 +25,7 @@
 
 	<md-card>
 		<md-card-content>
-			<md-tabs class="md-primary" md-dynamic-height md-border-bottom>
+			<md-tabs md-dynamic-height md-border-bottom>
 		    <md-tab label="dashboard">
 		      <md-content class="md-padding">
 		        <h1 class="md-display-1">{{apiCtrl.api.name}}</h1>
@@ -71,6 +71,88 @@
 						</md-card>
 		      </md-content>
 		    </md-tab>
+				<md-tab label="general">
+					<div layout-padding>
+						<form name="formApi" ng-submit="apiCtrl.update(apiCtrl.api)" novalidate>
+
+									<div layout="" layout-sm="column">
+										<md-input-container class="flex">
+											<label>Name</label>
+											<input ng-model="apiCtrl.api.name" type="text" ng-required="true" ng-disabled="true">
+										</md-input-container>
+
+										<md-input-container class="flex">
+											<label>Context path</label>
+											<input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-required="true">
+										</md-input-container>
+									</div>
+									<div layout="" layout-sm="column">
+										<md-input-container class="flex">
+											<label>Description</label>
+											<input ng-model="apiCtrl.api.description" type="text" ng-required="true">
+										</md-input-container>
+
+										<md-input-container class="flex">
+											<label>Endpoint</label>
+											<input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
+										</md-input-container>
+									</div>
+									<div layout="" layout-sm="column">
+										<md-input-container class="flex">
+											<label>Version</label>
+											<input ng-model="apiCtrl.api.version" type="text" ng-required="true">
+										</md-input-container>
+
+										<md-input-container class="flex">
+											<md-checkbox ng-model="apiCtrl.api.private" aria-label="Private?">
+												is Private ?
+											</md-checkbox>
+										</md-input-container>
+
+										<md-input-container class="flex">
+											<md-checkbox ng-model="apiCtrl.api.proxy.strip_context_path" aria-label="Strip context path?">
+												Strip context path ?
+											</md-checkbox>
+										</md-input-container>
+									</div>
+									<div layout="" layout-sm="column">
+										<md-input-container class="flex">
+											<md-switch class="md-primary md-block" md-no-ink aria-label="Switch No Ink" ng-model="apiCtrl.api.proxy.http_client.use_proxy">
+												HTTP PROXY
+											</md-switch>
+										</md-input-container>
+									</div>
+
+									<div layout="" layout-sm="column" ng-show="apiCtrl.api.proxy.http_client.use_proxy">
+										<md-input-container class="flex">
+											<label>HOST</label>
+											<input ng-model="apiCtrl.api.proxy.http_client.http_proxy.host" type="text">
+										</md-input-container>
+
+										<md-input-container class="flex">
+											<label>PORT</label>
+											<input ng-model="apiCtrl.api.proxy.http_client.http_proxy.port" type="text">
+										</md-input-container>
+
+										<md-input-container class="flex">
+											<label>USERNAME</label>
+											<input ng-model="apiCtrl.api.proxy.http_client.http_proxy.principal" type="text">
+										</md-input-container>
+
+										<md-input-container class="flex">
+											<label>PASSWORD</label>
+											<input ng-model="apiCtrl.api.proxy.http_client.http_proxy.password" type="password">
+										</md-input-container>
+									</div>
+
+									<div class="md-actions gravitee-api-save-button" layout="row">
+										<md-button type="submit" ng-disabled="formApi.$invalid || formApi.$pristine">
+											Save
+										</md-button>
+									</div>
+								</form>
+					</div>
+				</md-tab>
 				<md-tab label="policies">
 					<md-content>
 						<div layout="row">
@@ -122,11 +204,11 @@
 						</div>
 					</md-content>
 				</md-tab>
-		     <md-tab label="documentation">
+				<md-tab label="documentation">
 		      <md-content>
 				<div layout="row" ng-controller="DocumentationController as documentationCtrl">
 					<md-list layout="column" class="inset" flex="20">
-						<md-button class="md-fab md-mini md-primary" aria-label="Add" ng-click="documentationCtrl.showNewPageDialog()">
+						<md-button class="md-fab md-mini" aria-label="Add" ng-click="documentationCtrl.showNewPageDialog()">
 							<ng-md-icon icon="add"></ng-md-icon>
 						</md-button>
 						<md-divider></md-divider>
@@ -176,93 +258,6 @@
 						</md-card>
 					</md-content>
 				</div>
-		      </md-content>
-		    </md-tab>
-				<md-tab label="settings">
-		      <md-content class="md-padding">
-		        <h1 class="md-display-1">Settings</h1>
-		       	<md-card>
-							<md-card-content>
-								    <form name="formApi" class="md-inline-form" ng-submit="apiCtrl.update(apiCtrl.api)" novalidate>
-
-        <div layout="" layout-sm="column">
-            <md-input-container class="flex md-icon-float">
-                <label>Name</label>
-                <input ng-model="apiCtrl.api.name" type="text" ng-required="true" ng-disabled="true">
-            </md-input-container>
-
-            <md-input-container class="flex md-icon-float">
-                <label>Public URI</label>
-                <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-required="true">
-            </md-input-container>
-        </div>
-        <div layout="" layout-sm="column">
-            <md-input-container class="flex md-icon-float">
-                <label>Description</label>
-                <input ng-model="apiCtrl.api.description" type="text" ng-required="true">
-            </md-input-container>
-
-            <md-input-container class="flex md-icon-float">
-                <label>Target URI</label>
-                <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
-            </md-input-container>
-        </div>
-        <div layout="" layout-sm="column">
-            <md-input-container class="flex md-icon-float">
-                <label>Version</label>
-                <input ng-model="apiCtrl.api.version" type="text" ng-required="true">
-            </md-input-container>
-
-            <md-input-container class="flex md-icon-float">
-							<md-checkbox ng-model="apiCtrl.api.private" aria-label="Private?">
-  							is Private ?
-							</md-checkbox>
-            </md-input-container>
-
-						<md-input-container class="flexx md-icon-float">
-							<md-checkbox ng-model="apiCtrl.api.proxy.strip_context_path" aria-label="Strip context path?">
-  							Strip context path ?
-							</md-checkbox>
-						</md-input-container>
-        </div>
-				<div layout="" layout-sm="column">
-			 		<md-input-container class="flex md-icon-float">
-        	  <md-switch class="md-primary md-block" md-no-ink aria-label="Switch No Ink" ng-model="apiCtrl.api.proxy.http_client.use_proxy">
-							HTTP PROXY
-						</md-switch>
-          </md-input-container>
-				</div>
-
-				<div layout="" layout-sm="column" ng-show="apiCtrl.api.proxy.http_client.use_proxy">
-		 		 	<md-input-container class="flex md-icon-float">
-            <label>HOST</label>
-            <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.host" type="text">
-          </md-input-container>
-
-      	  <md-input-container class="flex md-icon-float">
-            <label>PORT</label>
-            <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.port" type="text">
-          </md-input-container>
-
-					<md-input-container class="flex md-icon-float">
-            <label>USERNAME</label>
-            <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.principal" type="text">
-          </md-input-container>
-
-      	  <md-input-container class="flex md-icon-float">
-            <label>PASSWORD</label>
-            <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.password" type="password">
-          </md-input-container>
-				</div>
-
-        <div class="md-actions gravitee-api-save-button" layout="row">
-            <md-button type="submit" class="md-primary" ng-disabled="formApi.$invalid || formApi.$pristine">
-                Save
-            </md-button>
-        </div>
-    </form>
-							</md-card-content>
-						</md-card>
 		      </md-content>
 		    </md-tab>
 		  </md-tabs>

@@ -17,10 +17,10 @@
 -->
   <md-dialog aria-label="Creation of a new API">
     <md-content class="md-padding">
-    <form name="formApi" ng-submit="create(api)" novalidate>
+    <form name="formApi" ng-submit="save()" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
-          <h2>Creation of a new API</h2>
+          <h2>{{editMode?'Modification of API ' + api.name:'Creation of a new API'}}</h2>
           <span flex></span>
           <md-button class="md-icon-button" ng-click="hide()">
             X
@@ -29,43 +29,32 @@
       </md-toolbar>
       <md-dialog-content>
         <div layout="">
-          <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
-          <md-input-container>
+          <md-input-container ng-if="!editMode">
             <label>Name *</label>
             <input ng-model="api.name" required>
           </md-input-container>
-				  <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
           <md-input-container>
             <label>Version *</label>
             <input ng-model="api.version" required>
           </md-input-container>
         </div>
-        <div layout="">
-          <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
+        <div>
           <md-input-container>
             <label>Description *</label>
             <input ng-model="api.description" required>
           </md-input-container>
         </div>
-        <div layout="">
-          <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
+        <div>
           <md-input-container>
-            <label>Public URI *</label>
+            <label>Context path *</label>
             <input ng-model="api.proxy.context_path" required>
           </md-input-container>
         </div>
-        <div layout="">
-          <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
+        <div>
           <md-input-container>
-            <label>Target URI *</label>
+            <label>Endpoint *</label>
             <input ng-model="api.proxy.endpoint" required>
           </md-input-container>
-        </div>
-        <div layout="">
-          <md-icon md-svg-src="assets/images/icons/users.svg"></md-icon>
-          <md-select placeholder="Teams *" ng-model="team" required>
-            <md-option ng-repeat="team in teams" value="{{team.name}}">{{team.name}}</md-option>
-          </md-select>
         </div>
         <md-subheader class="md-warn" ng-bind="error"></md-subheader>
       </md-dialog-content>
@@ -75,7 +64,7 @@
           Cancel
         </md-button>
         <md-button type="submit" class="md-primary" ng-disabled="formApi.$invalid">
-          Create
+          Save
         </md-button>
       </div>
     </form>

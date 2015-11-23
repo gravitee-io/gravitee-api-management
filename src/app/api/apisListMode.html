@@ -24,16 +24,18 @@
 		<thead>
 		<tr>
 			<th>Name</th>
+			<th>Version</th>
+			<th>Visibility</th>
 			<th>Context path</th>
-			<th>Endpoint</th>
 			<th>State</th>
 		</tr>
 		</thead>
 		<tbody>
-		<tr md-auto-select ng-repeat="api in apiCtrl.apis">
-			<td>{{api.name}}</td>
+		<tr md-auto-select ng-repeat="api in apiCtrl.apis" title="{{api.description}}">
+			<td><a href="" ng-click="apiCtrl.showApiModal(api)">{{api.name}}</a></td>
+			<td>{{api.version}}</td>
+			<td>{{api.private?'Private':'Public'}}</td>
 			<td>{{api.proxy.context_path}}</td>
-			<td>{{api.proxy.endpoint}}</td>
 			<td>
 				<ng-md-icon ng-if="api.state === 'STARTED'" icon="blur_on" size="32" style="fill: green;" title="Started"></ng-md-icon>
 				<ng-md-icon ng-if="api.state !== 'STARTED'" icon="blur_off" size="32" style="fill: red;" title="Stopped"></ng-md-icon>

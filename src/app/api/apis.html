@@ -23,14 +23,14 @@
     </h1>
 	</section>  
   <md-card>
-		<md-switch ng-model="adminMode" class="md-block">
-			Admin mode
+		<md-switch ng-model="listMode" class="md-block">
+			List mode
 		</md-switch>
-    <md-card-content ng-include="adminMode?'app/api/apisAdmin.html':'app/api/apisVisu.html'">
+    <md-card-content ng-include="listMode?'app/api/apisListMode.html':'app/api/apisThumbMode.html'">
     </md-card-content>
   </md-card>  
 
-  <md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="apiCtrl.showAddApiModal()">
+  <md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="apiCtrl.showApiModal()">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
 </section>

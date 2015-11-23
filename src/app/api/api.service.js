@@ -19,7 +19,6 @@ class ApiService {
     'ngInject';
     this.$http = $http;
     this.apisURL = baseURL + 'apis/';
-    this.teamsURL = baseURL + 'teams/';
   }
 
   get(name) {
@@ -42,8 +41,8 @@ class ApiService {
     return this.$http.post(this.apisURL + 'reload/' + name);
   }
 
-  create(api, team) {
-    return this.$http.post(this.teamsURL + team + '/apis', api);
+  create(api) {
+    return this.$http.post(this.apisURL, api);
   }
 
   update(api) {
