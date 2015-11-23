@@ -58,19 +58,20 @@
             </includes>
             <fileMode>755</fileMode>
         </fileSet>
+
+        <fileSet>
+            <directory>../target/distribution/plugins</directory>
+            <outputDirectory>/plugins</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <fileMode>755</fileMode>
+        </fileSet>
         
         <!-- Just to create an empty logs directory -->
         <fileSet>
             <directory>src/main/assembly</directory>
             <outputDirectory>/logs</outputDirectory>
-            <excludes>
-                <exclude>*</exclude>
-            </excludes>
-        </fileSet>
-
-        <fileSet>
-            <directory>src/main/assembly</directory>
-            <outputDirectory>/plugins</outputDirectory>
             <excludes>
                 <exclude>*</exclude>
             </excludes>

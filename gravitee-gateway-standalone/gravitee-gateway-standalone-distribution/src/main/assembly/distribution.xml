@@ -71,7 +71,15 @@
             <outputDirectory>/lib</outputDirectory>
             <unpack>false</unpack>
             <includes>
-                <include>io.gravitee.*:*</include>
+                <include>io.gravitee.*:*:jar</include>
+            </includes>
+            <useProjectArtifact>false</useProjectArtifact>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>/plugins</outputDirectory>
+            <unpack>false</unpack>
+            <includes>
+                <include>io.gravitee.*:*:zip</include>
             </includes>
             <useProjectArtifact>false</useProjectArtifact>
         </dependencySet>

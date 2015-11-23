@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.sync.impl;
+package io.gravitee.gateway.services.sync;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.core.definition.Api;

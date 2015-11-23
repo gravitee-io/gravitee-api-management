@@ -40,7 +40,7 @@ import java.util.Map;
  */
 public class PolicyManagerImpl implements PolicyManager, PluginHandler {
 
-    protected final Logger LOGGER = LoggerFactory.getLogger(PolicyManagerImpl.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(PolicyManagerImpl.class);
 
     @Autowired
     private PluginContextFactory pluginContextFactory;

@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.core.plugin.impl;
 
-import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.plugin.PluginContextFactory;
 import io.gravitee.plugin.api.Plugin;
+import io.gravitee.plugin.api.PluginType;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -54,7 +54,7 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
 
     @Override
     public ApplicationContext create(Plugin plugin) {
-        LOGGER.info("Create Spring context for plugin: {}", plugin.id());
+        LOGGER.debug("Create Spring context for plugin: {}", plugin.id());
 
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .addClassLoader(plugin.clazz().getClassLoader())
@@ -62,7 +62,7 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
                 .setScanners(new SubTypesScanner(false), new TypeAnnotationsScanner())
                 .filterInputsBy(new FilterBuilder().includePackage(plugin.clazz().getPackage().getName())));
 
-        LOGGER.info("Looking for @Configuration annotated class in package {}", plugin.clazz().getPackage().getName());
+        LOGGER.debug("Looking for @Configuration annotated class in package {}", plugin.clazz().getPackage().getName());
         Set<Class<?>> configurations =
                 reflections.getTypesAnnotatedWith(Configuration.class);
 
@@ -75,19 +75,23 @@ public class PluginContextFactoryImpl implements PluginContextFactory, Applicati
         configurer.setEnvironment(applicationContext.getEnvironment());
         pluginContext.addBeanFactoryPostProcessor(configurer);
 
+        // Copy bean from parent context to plugin context
+//        EventManager eventManager = applicationContext.getBean(EventManager.class);
+        pluginContext.setParent(applicationContext);
+
         if (configurations.isEmpty()) {
             LOGGER.info("\tNo @Configuration annotated class found for plugin {}", plugin.id());
         } else {
-            LOGGER.info("\t{} Spring @Configuration annotated class found for plugin {}", configurations.size(), plugin.id());
+            LOGGER.debug("\t{} Spring @Configuration annotated class found for plugin {}", configurations.size(), plugin.id());
             configurations.forEach(pluginContext::register);
         }
 
-        // Only reporter can be inject by Spring
-        if (Reporter.class.isAssignableFrom(plugin.clazz())) {
+        // Only reporters and services can be inject by Spring
+        if (plugin.type() != PluginType.POLICY) {
             BeanDefinition beanDefinition =
                     BeanDefinitionBuilder.rootBeanDefinition(plugin.clazz().getName()).getBeanDefinition();
 
-            LOGGER.info("\tRegistering a new reporter bean definition: {}", plugin.clazz().getName());
+            LOGGER.debug("\tRegistering a new bean definition for class: {}", plugin.clazz().getName());
             pluginContext.registerBeanDefinition(plugin.clazz().getName(), beanDefinition);
         }
 

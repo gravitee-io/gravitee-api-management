@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.sync;
+package io.gravitee.gateway.core.service;
 
 import io.gravitee.common.service.Service;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface SyncService extends Service {
+public interface ServiceManager extends Service {
 }
