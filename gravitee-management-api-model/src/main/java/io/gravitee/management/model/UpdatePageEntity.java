@@ -23,11 +23,23 @@ import javax.validation.constraints.NotNull;
 public class UpdatePageEntity {
 
 	@NotNull
+	private String name;
+
+	@NotNull
 	private String title;
-	
+
+	@NotNull
 	private String content;
 	
 	private String lastContributor;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 
 	public String getTitle() {
 		return title;

@@ -19,14 +19,14 @@ import static java.util.Collections.emptyList;
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.UpdatePageEntity;
-import io.gravitee.management.service.DocumentationService;
+import io.gravitee.management.service.PageService;
+import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,15 +44,18 @@ import org.springframework.stereotype.Component;
  * @author Titouan COMPIEGNE
  */
 @Component
-public class DocumentationServiceImpl extends TransactionalService implements DocumentationService {
+public class PageServiceImpl extends TransactionalService implements PageService {
 
-	private final Logger LOGGER = LoggerFactory.getLogger(DocumentationServiceImpl.class);
+	private final Logger LOGGER = LoggerFactory.getLogger(PageServiceImpl.class);
 
 	@Autowired
 	private PageRepository pageRepository;
 
+	@Autowired
+	private IdGenerator idGenerator;
+
 	@Override
-	public List<PageEntity> findByApiName(String apiName) {
+	public List<PageEntity> findByApi(String apiName) {
 		try {
 			final Collection<Page> pages = pageRepository.findByApi(apiName);
 
@@ -63,7 +66,7 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 			final List<PageEntity> pageEntities = new ArrayList<>(pages.size());
 
 			pageEntities.addAll(pages.stream()
-					.map(DocumentationServiceImpl::convert)
+					.map(PageServiceImpl::convert)
 					.sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
 					.collect(Collectors.toSet())
 			);
@@ -77,10 +80,10 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 	}
 
 	@Override
-	public Optional<PageEntity> findByName(String pageName) {
+	public Optional<PageEntity> findById(String pageName) {
 		try {
 			LOGGER.debug("Find PAGE by name: {}", pageName);
-			return pageRepository.findById(pageName).map(DocumentationServiceImpl::convert);
+			return pageRepository.findById(pageName).map(PageServiceImpl::convert);
 		} catch (TechnicalException ex) {
 			LOGGER.error("An error occurs while trying to find an PAGE using its name {}", pageName, ex);
 			throw new TechnicalManagementException(
@@ -92,12 +95,14 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 	public PageEntity createPage(NewPageEntity newPageEntity) {
 		try {
 			LOGGER.debug("Create {}", newPageEntity);
-			Optional<PageEntity> checkPage = findByName(newPageEntity.getName());
+			Optional<PageEntity> checkPage = findById(newPageEntity.getName());
 			if (checkPage.isPresent()) {
 				throw new PageAlreadyExistsException(newPageEntity.getName());
 			}
 
 			Page page = convert(newPageEntity);
+
+			page.setId(idGenerator.generate(page.getName()));
 
 			// Set date fields
 			page.setCreatedAt(new Date());
@@ -130,7 +135,7 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 			// Copy fields from existing values
 			page.setCreatedAt(pageToUpdate.getCreatedAt());
 			page.setType(pageToUpdate.getType());
-			page.setApiName(pageToUpdate.getApiName());
+			page.setApi(pageToUpdate.getApi());
 			page.setOrder(pageToUpdate.getOrder());
 
 			Page updatedPage = pageRepository.update(page);
@@ -154,10 +159,10 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 	}
 	
 	@Override
-	public int findMaxPageOrderByApiName(String apiName) {
+	public int findMaxPageOrderByApi(String apiName) {
 		try {
 			LOGGER.debug("Find Max Order Page for api name : {}", apiName);
-			final Integer maxPageOrder = pageRepository.findMaxPageOrderByApiName(apiName);
+			final Integer maxPageOrder = pageRepository.findMaxPageOrderByApi(apiName);
 			return maxPageOrder == null ? 0 : maxPageOrder;
 		} catch (TechnicalException ex) {
 			LOGGER.error("An error occured when searching max order page for api name [{}]", apiName, ex);
@@ -171,19 +176,20 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 		page.setName(newPageEntity.getName());
 		final String type = newPageEntity.getType();
 		if (type != null) {
-			page.setType(PageType.valueOf(type));
+			page.setType(type);
 		}
 		page.setTitle(newPageEntity.getTitle());
 		page.setContent(newPageEntity.getContent());
 		page.setLastContributor(newPageEntity.getLastContributor());
 		page.setOrder(newPageEntity.getOrder());
-		page.setApiName(newPageEntity.getApiName());
+		page.setApi(newPageEntity.getApiName());
 		return page;
 	}
 
 	private static PageEntity convert(Page page) {
 		PageEntity pageEntity = new PageEntity();
 
+		pageEntity.setId(page.getId());
 		pageEntity.setName(page.getName());
 		if (page.getType() != null) {
 			pageEntity.setType(page.getType().toString());
@@ -192,7 +198,7 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 		pageEntity.setContent(page.getContent());
 		pageEntity.setLastContributor(page.getLastContributor());
 		pageEntity.setOrder(page.getOrder());
-		pageEntity.setApiName(page.getApiName());
+		pageEntity.setApi(page.getApi());
 		return pageEntity;
 	}
 
@@ -204,5 +210,13 @@ public class DocumentationServiceImpl extends TransactionalService implements Do
 		page.setLastContributor(updatePageEntity.getLastContributor());
 
 		return page;
+	}
+
+	public IdGenerator getIdGenerator() {
+		return idGenerator;
+	}
+
+	public void setIdGenerator(IdGenerator idGenerator) {
+		this.idGenerator = idGenerator;
 	}
 }

@@ -15,21 +15,28 @@
  */
 package io.gravitee.management.service;
 
-import java.util.Optional;
-import java.util.Set;
+import io.gravitee.management.model.NewPageEntity;
+import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.UpdatePageEntity;
 
-import io.gravitee.management.model.ApiKeyEntity;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Titouan COMPIEGNE
  */
-public interface ApiKeyService {
+public interface PageService {
 
-    ApiKeyEntity generate(String applicationId, String apiId);
-
-    void revoke(String apiKey);
-
-    Optional<ApiKeyEntity> getCurrent(String applicationId, String apiId);
-
-    Set<ApiKeyEntity> findAll(String applicationId, String apiId);
+	List<PageEntity> findByApi(String apiId);
+	
+	Optional<PageEntity> findById(String pageId);
+	
+	PageEntity createPage(NewPageEntity page);
+	
+	PageEntity updatePage(String pageId, UpdatePageEntity updatePageEntity);
+	
+	void deletePage(String pageId);
+	
+	int findMaxPageOrderByApi(String apiId);
 }

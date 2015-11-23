@@ -20,6 +20,7 @@ import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -52,21 +53,24 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     @Autowired
     private ApplicationRepository applicationRepository;
 
-    @Override
-    public ApplicationEntity findByName(String applicationName) {
-        try {
-            LOGGER.debug("Find application by name: {}", applicationName);
+    @Autowired
+    private IdGenerator idGenerator;
 
-            Optional<Application> application = applicationRepository.findById(applicationName);
+    @Override
+    public ApplicationEntity findById(String applicationId) {
+        try {
+            LOGGER.debug("Find application by ID: {}", applicationId);
+
+            Optional<Application> application = applicationRepository.findById(applicationId);
 
             if (application.isPresent()) {
                 return convert(application.get());
             }
 
-            throw new ApplicationNotFoundException(applicationName);
+            throw new ApplicationNotFoundException(applicationId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find an application using its name {}", applicationName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an application using its name " + applicationName, ex);
+            LOGGER.error("An error occurs while trying to find an application using its ID {}", applicationId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find an application using its ID " + applicationId, ex);
         }
     }
 
@@ -100,12 +104,16 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Create {} for user {}", newApplicationEntity, username);
 
-            Optional<Application> checkApplication = applicationRepository.findById(newApplicationEntity.getName());
+            String id = idGenerator.generate(newApplicationEntity.getName());
+
+            Optional<Application> checkApplication = applicationRepository.findById(id);
             if (checkApplication.isPresent()) {
-                throw new ApplicationAlreadyExistsException(newApplicationEntity.getName());
+                throw new ApplicationAlreadyExistsException(id);
             }
 
             Application application = convert(newApplicationEntity);
+
+            application.setId(id);
 
             // Set date fields
             application.setCreatedAt(new Date());
@@ -114,7 +122,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             Application createdApplication = applicationRepository.create(application);
 
             // Add the primary owner of the newly created API
-            applicationRepository.saveMember(createdApplication.getName(), username, MembershipType.PRIMARY_OWNER);
+            applicationRepository.saveMember(createdApplication.getId(), username, MembershipType.PRIMARY_OWNER);
 
             return convert(createdApplication);
         } catch (TechnicalException ex) {
@@ -124,35 +132,35 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     }
 
     @Override
-    public ApplicationEntity update(String applicationName, UpdateApplicationEntity updateApplicationEntity) {
+    public ApplicationEntity update(String applicationId, UpdateApplicationEntity updateApplicationEntity) {
         try {
-            LOGGER.debug("Update application {}", applicationName);
+            LOGGER.debug("Update application {}", applicationId);
 
-            Optional<Application> optApplicationToUpdate = applicationRepository.findById(applicationName);
+            Optional<Application> optApplicationToUpdate = applicationRepository.findById(applicationId);
             if (!optApplicationToUpdate.isPresent()) {
-                throw new ApplicationNotFoundException(applicationName);
+                throw new ApplicationNotFoundException(applicationId);
             }
 
             Application application = convert(updateApplicationEntity);
-            application.setName(applicationName);
+            application.setId(applicationId);
             application.setUpdatedAt(new Date());
 
             Application updatedApplication =  applicationRepository.update(application);
             return convert(updatedApplication);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update application {}", applicationName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to update application " + applicationName, ex);
+            LOGGER.error("An error occurs while trying to update application {}", applicationId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to update application " + applicationId, ex);
         }
     }
 
     @Override
-    public void delete(String applicationName) {
+    public void delete(String applicationId) {
         try {
-            LOGGER.debug("Delete application {}", applicationName);
-            applicationRepository.delete(applicationName);
+            LOGGER.debug("Delete application {}", applicationId);
+            applicationRepository.delete(applicationId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete application {}", applicationName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete application " + applicationName, ex);
+            LOGGER.error("An error occurs while trying to delete application {}", applicationId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete application " + applicationId, ex);
         }
     }
 
@@ -163,11 +171,11 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     }
 
     @Override
-    public Set<MemberEntity> getMembers(String api, io.gravitee.management.model.MembershipType membershipType) {
+    public Set<MemberEntity> getMembers(String applicationId, io.gravitee.management.model.MembershipType membershipType) {
         try {
-            LOGGER.debug("Get members for application {}", api);
+            LOGGER.debug("Get members for application {}", applicationId);
 
-            Collection<Membership> membersRepo = applicationRepository.getMembers(api,
+            Collection<Membership> membersRepo = applicationRepository.getMembers(applicationId,
                     (membershipType == null ) ? null : MembershipType.valueOf(membershipType.toString()));
 
             final Set<MemberEntity> members = new HashSet<>(membersRepo.size());
@@ -180,39 +188,40 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
             return members;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get members for application {}", api, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get members for application " + api, ex);
+            LOGGER.error("An error occurs while trying to get members for application {}", applicationId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get members for application " + applicationId, ex);
         }
     }
 
     @Override
-    public void addOrUpdateMember(String application, String username, io.gravitee.management.model.MembershipType membershipType) {
+    public void addOrUpdateMember(String applicationId, String username, io.gravitee.management.model.MembershipType membershipType) {
         try {
-            LOGGER.debug("Add a new member for application {}", application);
+            LOGGER.debug("Add a new member for applicationId {}", applicationId);
 
-            applicationRepository.saveMember(application, username,
+            applicationRepository.saveMember(applicationId, username,
                     MembershipType.valueOf(membershipType.toString()));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to add member for application {}", application, ex);
-            throw new TechnicalManagementException("An error occurs while trying to add member for application " + application, ex);
+            LOGGER.error("An error occurs while trying to add member for applicationId {}", applicationId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to add member for applicationId " + applicationId, ex);
         }
     }
 
     @Override
-    public void deleteMember(String application, String username) {
+    public void deleteMember(String applicationId, String username) {
         try {
-            LOGGER.debug("Delete member {} for application {}", username, application);
+            LOGGER.debug("Delete member {} for application {}", username, applicationId);
 
-            applicationRepository.deleteMember(application, username);
+            applicationRepository.deleteMember(applicationId, username);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete member {} for application {}", username, application, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for application " + application, ex);
+            LOGGER.error("An error occurs while trying to delete member {} for application {}", username, applicationId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for application " + applicationId, ex);
         }
     }
 
     private static ApplicationEntity convert(Application application) {
         ApplicationEntity applicationEntity = new ApplicationEntity();
 
+        applicationEntity.setId(application.getId());
         applicationEntity.setName(application.getName());
         applicationEntity.setDescription(application.getDescription());
         applicationEntity.setType(application.getType());
@@ -226,9 +235,12 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     private static Application convert(NewApplicationEntity newApplicationEntity) {
         Application application = new Application();
 
-        application.setName(newApplicationEntity.getName());
-        application.setDescription(newApplicationEntity.getDescription());
-        application.setType(newApplicationEntity.getType());
+        application.setName(newApplicationEntity.getName().trim());
+        application.setDescription(newApplicationEntity.getDescription().trim());
+
+        if (newApplicationEntity.getType() != null) {
+            application.setType(newApplicationEntity.getType().trim());
+        }
 
         return application;
     }
@@ -236,8 +248,12 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     private static Application convert(UpdateApplicationEntity updateApplicationEntity) {
         Application application = new Application();
 
-        application.setDescription(updateApplicationEntity.getDescription());
-        application.setType(updateApplicationEntity.getType());
+        application.setName(updateApplicationEntity.getName().trim());
+        application.setDescription(updateApplicationEntity.getDescription().trim());
+
+        if (updateApplicationEntity.getType() != null) {
+            application.setType(updateApplicationEntity.getType().trim());
+        }
 
         return application;
     }
@@ -251,5 +267,13 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));
 
         return member;
+    }
+
+    public IdGenerator getIdGenerator() {
+        return idGenerator;
+    }
+
+    public void setIdGenerator(IdGenerator idGenerator) {
+        this.idGenerator = idGenerator;
     }
 }

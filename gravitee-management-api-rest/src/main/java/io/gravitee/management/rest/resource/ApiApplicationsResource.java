@@ -41,17 +41,17 @@ public class ApiApplicationsResource extends AbstractResource {
     @Inject
     private ApiService apiService;
 
-    @PathParam("apiName")
-    private String apiName;
+    @PathParam("api")
+    private String api;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ApplicationEntity> applications() {
         // Check that the API exists
-        ApiEntity api = apiService.findByName(apiName);
+        ApiEntity api = apiService.findById(this.api);
 
         // Validate user rights : only the owner of the API
 
-        return applicationService.findByApi(api.getName());
+        return applicationService.findByApi(api.getId());
     }
 }

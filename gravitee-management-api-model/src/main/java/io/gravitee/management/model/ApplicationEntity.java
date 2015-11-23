@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class ApplicationEntity {
 
+    private String id;
     private String name;
     private String description;
     private String type;
@@ -34,6 +35,14 @@ public class ApplicationEntity {
 
     @JsonProperty("updated_at")
     private Date updatedAt;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public Date getCreatedAt() {
         return createdAt;
@@ -80,18 +89,19 @@ public class ApplicationEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApplicationEntity that = (ApplicationEntity) o;
-        return Objects.equals(name, that.name);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Application{");
-        sb.append("name='").append(name).append('\'');
+        sb.append("id='").append(id).append('\'');
+        sb.append(", name='").append(name).append('\'');
         sb.append(", createdAt=").append(createdAt);
         sb.append('}');
         return sb.toString();

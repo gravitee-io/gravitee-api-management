@@ -59,7 +59,7 @@ public class ApplicationsResource extends AbstractResource {
         ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUser());
         if (newApplication != null) {
             return Response
-                    .created(URI.create("/applications/" + newApplication.getName()))
+                    .created(URI.create("/applications/" + newApplication.getId()))
                     .entity(newApplication)
                     .build();
         }
@@ -67,7 +67,7 @@ public class ApplicationsResource extends AbstractResource {
         return Response.serverError().build();
     }
 
-    @Path("{applicationName}")
+    @Path("{application}")
     public ApplicationResource getApplicationResource() {
         return resourceContext.getResource(ApplicationResource.class);
     }

@@ -40,16 +40,16 @@ public class ApiMembersResource {
     @Inject
     private UserService userService;
 
-    @PathParam("apiName")
-    private String apiName;
+    @PathParam("api")
+    private String api;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<MemberEntity> members() {
         // Check that the API exists
-        apiService.findByName(apiName);
+        apiService.findById(api);
 
-        return apiService.getMembers(apiName, null);
+        return apiService.getMembers(api, null);
     }
 
     @POST
@@ -57,7 +57,7 @@ public class ApiMembersResource {
             @NotNull @QueryParam("user") String username,
             @NotNull @QueryParam("type") MembershipTypeParam membershipType) {
         // Check that the API exists
-        apiService.findByName(apiName);
+        apiService.findById(api);
 
         if (membershipType.getValue() == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -69,15 +69,15 @@ public class ApiMembersResource {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
-        apiService.addOrUpdateMember(apiName, username, membershipType.getValue());
+        apiService.addOrUpdateMember(api, username, membershipType.getValue());
 
-        return Response.created(URI.create("/apis/" + apiName + "/members/" + username)).build();
+        return Response.created(URI.create("/apis/" + api + "/members/" + username)).build();
     }
 
     @DELETE
     public Response delete(@NotNull @QueryParam("user") String username) {
         // Check that the API exists
-        apiService.findByName(apiName);
+        apiService.findById(api);
 
         try {
             userService.findByName(username);
@@ -85,7 +85,7 @@ public class ApiMembersResource {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
-        apiService.deleteMember(apiName, username);
+        apiService.deleteMember(api, username);
 
         return Response.ok().build();
     }

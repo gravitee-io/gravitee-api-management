@@ -22,13 +22,13 @@ import io.gravitee.management.model.analytics.HistogramAnalytics;
  */
 public interface AnalyticsService {
 
-    HistogramAnalytics apiHits(String apiName, long from, long to, long interval);
+    HistogramAnalytics apiHits(String apiId, long from, long to, long interval);
 
-    HistogramAnalytics apiHitsByStatus(String apiName, long from, long to, long interval);
+    HistogramAnalytics apiHitsByStatus(String apiId, long from, long to, long interval);
 
-    HistogramAnalytics apiHitsByLatency(String apiName, long from, long to, long interval);
+    HistogramAnalytics apiHitsByLatency(String apiId, long from, long to, long interval);
 
-    HistogramAnalytics apiHitsByApiKey(String apiName, long from, long to, long interval);
+    HistogramAnalytics apiHitsByApiKey(String apiId, long from, long to, long interval);
 
     HistogramAnalytics apiKeyHits(String apiKey, long from, long to, long interval);
 

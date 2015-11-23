@@ -23,10 +23,21 @@ import javax.validation.constraints.NotNull;
 public class UpdateApplicationEntity {
 
     @NotNull
+    private String name;
+
+    @NotNull
     private String description;
 
     @NotNull
     private String type;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public String getDescription() {
         return description;

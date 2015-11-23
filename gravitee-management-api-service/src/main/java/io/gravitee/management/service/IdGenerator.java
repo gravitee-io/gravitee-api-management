@@ -15,21 +15,10 @@
  */
 package io.gravitee.management.service;
 
-import java.util.Optional;
-import java.util.Set;
-
-import io.gravitee.management.model.ApiKeyEntity;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ApiKeyService {
+public interface IdGenerator {
 
-    ApiKeyEntity generate(String applicationId, String apiId);
-
-    void revoke(String apiKey);
-
-    Optional<ApiKeyEntity> getCurrent(String applicationId, String apiId);
-
-    Set<ApiKeyEntity> findAll(String applicationId, String apiId);
+    String generate(String name);
 }

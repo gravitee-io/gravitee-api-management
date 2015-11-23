@@ -42,15 +42,15 @@ public class ApplicationResource extends AbstractResource {
     @Inject
     private PermissionService permissionService;
 
-    @PathParam("applicationName")
-    private String applicationName;
+    @PathParam("application")
+    private String application;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationEntity get() {
-        ApplicationEntity applicationEntity = applicationService.findByName(applicationName);
+        ApplicationEntity applicationEntity = applicationService.findById(application);
 
-        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_APPLICATION);
+        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
 
         return applicationEntity;
     }
@@ -58,17 +58,17 @@ public class ApplicationResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ApplicationEntity update(final UpdateApplicationEntity application) {
-        ApplicationEntity applicationEntity = applicationService.findByName(applicationName);
+    public ApplicationEntity update(final UpdateApplicationEntity updatedApplication) {
+        ApplicationEntity applicationEntity = applicationService.findById(this.application);
 
-        permissionService.hasPermission(getAuthenticatedUser(), applicationEntity.getName(), PermissionType.EDIT_APPLICATION);
+        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
 
-        return applicationService.update(applicationEntity.getName(), application);
+        return applicationService.update(application, updatedApplication);
     }
 
     @DELETE
     public Response delete() {
-        ApplicationEntity applicationEntity = applicationService.findByName(applicationName);
+        ApplicationEntity applicationEntity = applicationService.findById(application);
         applicationService.delete(applicationEntity.getName());
 
         return Response.noContent().build();

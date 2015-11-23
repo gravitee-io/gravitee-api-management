@@ -40,16 +40,16 @@ public class ApplicationMembersResource {
     @Inject
     private UserService userService;
 
-    @PathParam("applicationName")
-    private String applicationName;
+    @PathParam("application")
+    private String application;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<MemberEntity> members() {
         // Check that the application exists
-        applicationService.findByName(applicationName);
+        applicationService.findById(application);
 
-        return applicationService.getMembers(applicationName, null);
+        return applicationService.getMembers(application, null);
     }
 
     @POST
@@ -57,7 +57,7 @@ public class ApplicationMembersResource {
             @NotNull @QueryParam("user") String username,
             @NotNull @QueryParam("type") MembershipTypeParam membershipType) {
         // Check that the application exists
-        applicationService.findByName(applicationName);
+        applicationService.findById(application);
 
         if (membershipType.getValue() == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -69,15 +69,15 @@ public class ApplicationMembersResource {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
-        applicationService.addOrUpdateMember(applicationName, username, membershipType.getValue());
+        applicationService.addOrUpdateMember(application, username, membershipType.getValue());
 
-        return Response.created(URI.create("/applications/" + applicationName + "/members/" + username)).build();
+        return Response.created(URI.create("/applications/" + application + "/members/" + username)).build();
     }
 
     @DELETE
     public Response delete(@NotNull @QueryParam("user") String username) {
         // Check that the application exists
-        applicationService.findByName(applicationName);
+        applicationService.findById(application);
 
         try {
             userService.findByName(username);
@@ -85,7 +85,7 @@ public class ApplicationMembersResource {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
-        applicationService.deleteMember(applicationName, username);
+        applicationService.deleteMember(application, username);
 
         return Response.ok().build();
     }

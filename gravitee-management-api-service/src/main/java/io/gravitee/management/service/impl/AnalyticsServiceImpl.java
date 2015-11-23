@@ -46,23 +46,23 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private AnalyticsRepository analyticsRepository;
 
     @Override
-    public HistogramAnalytics apiHits(String apiName, long from, long to, long interval) {
-        return apiHits(HitsByApiQuery.Type.HITS, apiName, from, to, interval);
+    public HistogramAnalytics apiHits(String apiId, long from, long to, long interval) {
+        return apiHits(HitsByApiQuery.Type.HITS, apiId, from, to, interval);
     }
 
     @Override
-    public HistogramAnalytics apiHitsByStatus(String apiName, long from, long to, long interval) {
-        return apiHits(HitsByApiQuery.Type.HITS_BY_STATUS, apiName, from, to, interval);
+    public HistogramAnalytics apiHitsByStatus(String apiId, long from, long to, long interval) {
+        return apiHits(HitsByApiQuery.Type.HITS_BY_STATUS, apiId, from, to, interval);
     }
 
     @Override
-    public HistogramAnalytics apiHitsByLatency(String apiName, long from, long to, long interval) {
-        return apiHits(HitsByApiQuery.Type.HITS_BY_LATENCY, apiName, from, to, interval);
+    public HistogramAnalytics apiHitsByLatency(String apiId, long from, long to, long interval) {
+        return apiHits(HitsByApiQuery.Type.HITS_BY_LATENCY, apiId, from, to, interval);
     }
 
     @Override
-    public HistogramAnalytics apiHitsByApiKey(String apiName, long from, long to, long interval) {
-        return apiHits(HitsByApiQuery.Type.HITS_BY_APIKEY, apiName, from, to, interval);
+    public HistogramAnalytics apiHitsByApiKey(String apiId, long from, long to, long interval) {
+        return apiHits(HitsByApiQuery.Type.HITS_BY_APIKEY, apiId, from, to, interval);
     }
 
     @Override
@@ -97,12 +97,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
     }
 
-    private HistogramAnalytics apiHits(HitsByApiQuery.Type type, String apiName, long from, long to, long interval) {
-        logger.debug("Run analytics query {} for API '{}'", type, apiName);
+    private HistogramAnalytics apiHits(HitsByApiQuery.Type type, String apiId, long from, long to, long interval) {
+        logger.debug("Run analytics query {} for API '{}'", type, apiId);
 
         try {
             return runHistoricalQuery(QueryBuilders.query()
-                    .hitsByApi(apiName)
+                    .hitsByApi(apiId)
                     .period(DateRangeBuilder.between(from, to))
                     .interval(IntervalBuilder.interval(interval))
                     .type(type)

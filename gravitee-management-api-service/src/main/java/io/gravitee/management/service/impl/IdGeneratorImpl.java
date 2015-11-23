@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.impl;
 
-import java.util.List;
-import java.util.Optional;
-
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.UpdatePageEntity;
+import io.gravitee.management.service.IdGenerator;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface DocumentationService {
+@Component
+public class IdGeneratorImpl implements IdGenerator {
 
-	List<PageEntity> findByApiName(String apiName);
-	
-	Optional<PageEntity> findByName(String pageName);
-	
-	PageEntity createPage(NewPageEntity page);
-	
-	PageEntity updatePage(String pageName, UpdatePageEntity updatePageEntity);
-	
-	void deletePage(String pageName);
-	
-	int findMaxPageOrderByApiName(String apiName);
+    @Override
+    public String generate(String name) {
+        return name
+                .trim()
+                .replaceAll(" +", " ")
+                .replaceAll(" ", "-")
+                .replaceAll("[^\\w\\s]","-")
+                .replaceAll("-+", "-");
+    }
 }

@@ -66,7 +66,7 @@ public class ApisResource extends AbstractResource {
         ApiEntity newApi = apiService.create(newApiEntity, getAuthenticatedUser());
         if (newApi != null) {
             return Response
-                    .created(URI.create("/apis/" + newApi.getName()))
+                    .created(URI.create("/apis/" + newApi.getId()))
                     .entity(newApi)
                     .build();
         }
@@ -74,7 +74,7 @@ public class ApisResource extends AbstractResource {
         return Response.serverError().build();
     }
 
-    @Path("{apiName}")
+    @Path("{api}")
     public ApiResource getApiResource() {
         return resourceContext.getResource(ApiResource.class);
     }

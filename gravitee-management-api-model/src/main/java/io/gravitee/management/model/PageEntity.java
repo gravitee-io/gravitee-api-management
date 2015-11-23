@@ -22,6 +22,8 @@ import java.util.Objects;
  */
 public class PageEntity {
 
+	private String id;
+
 	private String name;
 
 	private String type;
@@ -34,7 +36,15 @@ public class PageEntity {
 
 	private String lastContributor;
 
-	private String apiName;
+	private String api;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 
 	public String getName() {
 		return name;
@@ -84,12 +94,12 @@ public class PageEntity {
 		this.lastContributor = lastContributor;
 	}
 
-	public String getApiName() {
-		return apiName;
+	public String getApi() {
+		return api;
 	}
 
-	public void setApiName(String apiName) {
-		this.apiName = apiName;
+	public void setApi(String api) {
+		this.api = api;
 	}
 
 	public boolean equals(Object o) {
@@ -100,23 +110,24 @@ public class PageEntity {
 			return false;
 		}
 		PageEntity that = (PageEntity) o;
-		return Objects.equals(name, that.name);
+		return Objects.equals(id, that.id);
 	}
 
 	public int hashCode() {
-		return Objects.hash(name);
+		return Objects.hash(id);
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("Page{");
-		sb.append("name='").append(name).append('\'');
+		sb.append("id='").append(name).append('\'');
+		sb.append(", name='").append(name).append('\'');
 		sb.append(", type='").append(type).append('\'');
 		sb.append(", title='").append(title).append('\'');
 		sb.append(", content='").append(content).append('\'');
 		sb.append(", order='").append(order).append('\'');
 		sb.append(", lastContributor='").append(lastContributor).append('\'');
-		sb.append(", apiName='").append(apiName).append('\'');
+		sb.append(", api='").append(api).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}

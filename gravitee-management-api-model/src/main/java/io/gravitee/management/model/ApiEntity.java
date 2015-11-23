@@ -32,6 +32,7 @@ import io.gravitee.definition.model.Proxy;
  */
 public class ApiEntity {
 
+    private String id;
     private String name;
     private String version;
     private String description;
@@ -52,6 +53,14 @@ public class ApiEntity {
     private Visibility visibility;
 
     private Lifecycle.State state;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public Date getCreatedAt() {
         return createdAt;
@@ -130,18 +139,20 @@ public class ApiEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiEntity api = (ApiEntity) o;
-        return Objects.equals(name, api.name);
+        return Objects.equals(id, api.id) &&
+                Objects.equals(version, api.version);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(id, version);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Api{");
         sb.append("createdAt=").append(createdAt);
+        sb.append(", id='").append(id).append('\'');
         sb.append(", name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", visibility='").append(visibility).append('\'');

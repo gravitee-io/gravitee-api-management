@@ -77,7 +77,7 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
                 return;
             }
 
-            final Optional<ApiEntity> optionalApi = apiService.findByName(apiName);
+            final Optional<ApiEntity> optionalApi = apiService.findById(apiName);
 
             if (optionalApi != null && optionalApi.isPresent()) {
                 final ApiEntity api = optionalApi.get();
@@ -129,7 +129,7 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
         try {
             LOGGER.debug("Validate user rights for application: {}", applicationName);
 
-            final Optional<ApplicationEntity> optionalApplication = applicationService.findByName(applicationName);
+            final Optional<ApplicationEntity> optionalApplication = applicationService.findById(applicationName);
             if (optionalApplication != null && optionalApplication.isPresent()) {
                 ApplicationEntity application = optionalApplication.get();
                 if (permissionType == PermissionType.VIEW_APPLICATION) {

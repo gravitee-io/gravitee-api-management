@@ -30,6 +30,9 @@ import io.gravitee.definition.model.Proxy;
 public class UpdateApiEntity {
 
     @NotNull
+    private String name;
+
+    @NotNull
     private String version;
 
     @NotNull
@@ -47,6 +50,14 @@ public class UpdateApiEntity {
 
     public Visibility getVisibility() {
         return visibility;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setVisibility(Visibility visibility) {

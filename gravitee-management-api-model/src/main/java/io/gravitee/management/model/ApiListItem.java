@@ -26,6 +26,8 @@ import java.util.Objects;
  */
 public class ApiListItem {
 
+    private String id;
+
     private String name;
 
     private String version;
@@ -44,6 +46,14 @@ public class ApiListItem {
 
     @JsonProperty("primary_owner")
     private PrimaryOwner primaryOwner;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public Date getCreatedAt() {
         return createdAt;
@@ -114,13 +124,13 @@ public class ApiListItem {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiListItem that = (ApiListItem) o;
-        return Objects.equals(name, that.name) &&
+        return Objects.equals(id, that.id) &&
                 Objects.equals(version, that.version);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, version);
+        return Objects.hash(id, version);
     }
 
     public static class PrimaryOwner {

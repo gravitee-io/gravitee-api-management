@@ -24,7 +24,7 @@ import java.util.Set;
  */
 public interface ApiService {
 
-    ApiEntity findByName(String api);
+    ApiEntity findById(String apiId);
 
     Set<ApiListItem> findByUser(String username);
 
@@ -32,17 +32,17 @@ public interface ApiService {
 
     ApiEntity create(NewApiEntity api, String username);
 
-    ApiEntity update(String apiName, UpdateApiEntity api);
+    ApiEntity update(String apiId, UpdateApiEntity api);
 
-    void delete(String api);
+    void delete(String apiId);
 
-    void start(String api);
+    void start(String apiId);
 
-    void stop(String api);
+    void stop(String apiId);
 
-    Set<MemberEntity> getMembers(String api, MembershipType membershipType);
+    Set<MemberEntity> getMembers(String apiId, MembershipType membershipType);
 
-    void addOrUpdateMember(String api, String username, MembershipType membershipType);
+    void addOrUpdateMember(String apiId, String username, MembershipType membershipType);
 
-    void deleteMember(String api, String username);
+    void deleteMember(String apiId, String username);
 }

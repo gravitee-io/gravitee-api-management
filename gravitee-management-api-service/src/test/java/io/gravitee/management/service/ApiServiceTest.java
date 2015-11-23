@@ -24,12 +24,14 @@ import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
+import io.gravitee.management.service.impl.IdGeneratorImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.management.model.Visibility;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -55,7 +57,7 @@ public class ApiServiceTest {
     private static final String USER_NAME = "myUser";
 
     @InjectMocks
-    private ApiService apiService = new ApiServiceImpl();
+    private ApiServiceImpl apiService = new ApiServiceImpl();
 
     @Mock
     private ApiRepository apiRepository;
@@ -70,8 +72,14 @@ public class ApiServiceTest {
     @Mock
     private Api api;
 
+    @Before
+    public void setUp() {
+        apiService.setIdGenerator(new IdGeneratorImpl());
+    }
+
     @Test
     public void shouldCreateForUser() throws TechnicalException {
+        when(api.getId()).thenReturn(API_NAME);
         when(api.getName()).thenReturn(API_NAME);
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(apiRepository.findById(API_NAME)).thenReturn(Optional.empty());
@@ -101,10 +109,10 @@ public class ApiServiceTest {
     }
 
     @Test
-    public void shouldFindByName() throws TechnicalException {
+    public void shouldFindById() throws TechnicalException {
         when(apiRepository.findById(API_NAME)).thenReturn(Optional.of(api));
 
-        final ApiEntity apiEntity = apiService.findByName(API_NAME);
+        final ApiEntity apiEntity = apiService.findById(API_NAME);
 
         assertNotNull(apiEntity);
     }
@@ -113,19 +121,19 @@ public class ApiServiceTest {
     public void shouldNotFindByNameBecauseNotExists() throws TechnicalException {
         when(apiRepository.findById(API_NAME)).thenReturn(Optional.empty());
 
-        final ApiEntity apiEntity = apiService.findByName(API_NAME);
+        final ApiEntity apiEntity = apiService.findById(API_NAME);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByNameBecauseTechnicalException() throws TechnicalException {
         when(apiRepository.findById(API_NAME)).thenThrow(TechnicalException.class);
 
-        apiService.findByName(API_NAME);
+        apiService.findById(API_NAME);
     }
 
     @Test
     public void shouldFindByUser() throws TechnicalException {
-        when(apiRepository.findByMember(USER_NAME, any(MembershipType.class), any(Visibility.class))).thenReturn(new HashSet<>(Arrays.asList(api)));
+        when(apiRepository.findByMember(any(String.class), any(MembershipType.class), any(Visibility.class))).thenReturn(new HashSet<>(Arrays.asList(api)));
 
         final Set<ApiListItem> apiEntities = apiService.findByUser(USER_NAME);
 
@@ -145,7 +153,7 @@ public class ApiServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByUserBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findByMember(USER_NAME, any(MembershipType.class), any(Visibility.class))).thenThrow(TechnicalException.class);
+        when(apiRepository.findByMember(any(String.class), any(MembershipType.class), any(Visibility.class))).thenThrow(TechnicalException.class);
 
         apiService.findByUser(USER_NAME);
     }

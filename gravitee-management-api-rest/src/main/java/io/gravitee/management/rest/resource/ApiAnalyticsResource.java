@@ -51,7 +51,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response hits(@BeanParam AnalyticsParam analyticsParam) {
-        ApiEntity api = apiService.findByName(apiName);
+        ApiEntity api = apiService.findById(apiName);
 
         permissionService.hasPermission(getAuthenticatedUser(), api.getName(), PermissionType.VIEW_API);
 

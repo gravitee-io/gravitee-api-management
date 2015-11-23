@@ -24,21 +24,21 @@ import java.util.Set;
  */
 public interface ApplicationService {
 
-    ApplicationEntity findByName(String applicationName);
+    ApplicationEntity findById(String applicationId);
 
     Set<ApplicationEntity> findByUser(String username);
 
     ApplicationEntity create(NewApplicationEntity application, String username);
 
-    ApplicationEntity update(String applicationName, UpdateApplicationEntity application);
+    ApplicationEntity update(String applicationId, UpdateApplicationEntity application);
 
-    void delete(String applicationName);
+    void delete(String applicationId);
 
-    Set<ApplicationEntity> findByApi(String apiName);
+    Set<ApplicationEntity> findByApi(String applicationId);
 
-    Set<MemberEntity> getMembers(String api, MembershipType membershipType);
+    Set<MemberEntity> getMembers(String applicationId, MembershipType membershipType);
 
-    void addOrUpdateMember(String application, String username, MembershipType membershipType);
+    void addOrUpdateMember(String applicationId, String username, MembershipType membershipType);
 
-    void deleteMember(String application, String username);
+    void deleteMember(String applicationId, String username);
 }

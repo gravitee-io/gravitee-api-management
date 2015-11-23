@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -60,19 +61,25 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private IdGenerator idGenerator;
+
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
         try {
             LOGGER.debug("Create {} for user {}", newApiEntity, username);
 
-            Optional<Api> checkApi = apiRepository.findById(newApiEntity.getName());
+            String id = idGenerator.generate(newApiEntity.getName());
+            Optional<Api> checkApi = apiRepository.findById(id);
             if (checkApi.isPresent()) {
-                throw new ApiAlreadyExistsException(newApiEntity.getName());
+                throw new ApiAlreadyExistsException(id);
             }
 
             Api api = convert(newApiEntity);
 
             if (api != null) {
+                api.setId(id);
+
                 // Set date fields
                 api.setCreatedAt(new Date());
                 api.setUpdatedAt(api.getCreatedAt());
@@ -84,12 +91,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 Api createdApi = apiRepository.create(api);
 
                 // Add the primary owner of the newly created API
-                apiRepository.saveMember(createdApi.getName(), username, MembershipType.PRIMARY_OWNER);
+                apiRepository.saveMember(createdApi.getId(), username, MembershipType.PRIMARY_OWNER);
 
                 return convert(createdApi);
             } else {
-                LOGGER.error("Unable to update API {} because of previous error.");
-                throw new TechnicalManagementException("Unable to update API " + newApiEntity.getName());
+                LOGGER.error("Unable to create API {} because of previous error.");
+                throw new TechnicalManagementException("Unable to create API " + id);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", newApiEntity, username, ex);
@@ -98,20 +105,20 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public ApiEntity findByName(String apiName) {
+    public ApiEntity findById(String apiId) {
         try {
-            LOGGER.debug("Find API by name: {}", apiName);
+            LOGGER.debug("Find API by ID: {}", apiId);
 
-            Optional<Api> api = apiRepository.findById(apiName);
+            Optional<Api> api = apiRepository.findById(apiId);
 
             if (api.isPresent()) {
                 return convert(api.get());
             }
 
-            throw new ApiNotFoundException(apiName);
+            throw new ApiNotFoundException(apiId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find an API using its name {}", apiName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an API using its name " + apiName, ex);
+            LOGGER.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
     }
 
@@ -128,7 +135,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                         @Override
                         public ApiListItem apply(ApiListItem api) {
                             try {
-                                Collection<Membership> members = apiRepository.getMembers(api.getName(), MembershipType.PRIMARY_OWNER);
+                                Collection<Membership> members = apiRepository.getMembers(api.getId(), MembershipType.PRIMARY_OWNER);
                                 if (! members.isEmpty()) {
                                     Membership primaryOwner = members.iterator().next();
 
@@ -187,7 +194,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 @Override
                 public void accept(ApiListItem api) {
                     try {
-                        Collection<Membership> members = apiRepository.getMembers(api.getName(), MembershipType.PRIMARY_OWNER);
+                        Collection<Membership> members = apiRepository.getMembers(api.getId(), MembershipType.PRIMARY_OWNER);
                         if (! members.isEmpty()) {
                             Membership primaryOwner = members.iterator().next();
                             UserEntity user = userService.findByName(primaryOwner.getUser());
@@ -225,7 +232,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Api api = convert(apiName, updateApiEntity);
 
             if (api != null) {
-                api.setName(apiName);
+                api.setName(apiName.trim());
                 api.setUpdatedAt(new Date());
 
                 // Copy fields from existing values
@@ -338,9 +345,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private ApiEntity convert(Api api) {
         ApiEntity apiEntity = new ApiEntity();
 
+        apiEntity.setId(api.getId());
         apiEntity.setName(api.getName());
         apiEntity.setCreatedAt(api.getCreatedAt());
-        apiEntity.setVisibility(io.gravitee.management.model.Visibility.valueOf(api.getVisibility().toString()));
 
         if (api.getDefinition() != null) {
             try {
@@ -358,6 +365,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         if (lifecycleState != null) {
             apiEntity.setState(Lifecycle.State.valueOf(lifecycleState.name()));
         }
+        if (api.getVisibility() != null) {
+            apiEntity.setVisibility(io.gravitee.management.model.Visibility.valueOf(api.getVisibility().toString()));
+        }
 
         return apiEntity;
     }
@@ -365,13 +375,20 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private ApiListItem reduce(Api api) {
         ApiListItem apiItem = new ApiListItem();
 
+        apiItem.setId(api.getId());
         apiItem.setName(api.getName());
         apiItem.setVersion(api.getVersion());
         apiItem.setDescription(api.getDescription());
         apiItem.setCreatedAt(api.getCreatedAt());
         apiItem.setUpdatedAt(api.getUpdatedAt());
-        apiItem.setVisibility(io.gravitee.management.model.Visibility.valueOf(api.getVisibility().toString()));
-        apiItem.setState(Lifecycle.State.valueOf(api.getLifecycleState().toString()));
+
+        if (api.getVisibility() != null) {
+            apiItem.setVisibility(io.gravitee.management.model.Visibility.valueOf(api.getVisibility().toString()));
+        }
+
+        if (api.getLifecycleState() != null) {
+            apiItem.setState(Lifecycle.State.valueOf(api.getLifecycleState().toString()));
+        }
 
         return apiItem;
     }
@@ -379,9 +396,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private Api convert(NewApiEntity newApiEntity) {
         Api api = new Api();
 
-        api.setName(newApiEntity.getName());
-        api.setVersion(newApiEntity.getVersion());
-        api.setDescription(newApiEntity.getDescription());
+        api.setName(newApiEntity.getName().trim());
+        api.setVersion(newApiEntity.getVersion().trim());
+        api.setDescription(newApiEntity.getDescription().trim());
 
         try {
             ApiDefinition apiDefinition = new ApiDefinition();
@@ -403,9 +420,13 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private Api convert(String apiName, UpdateApiEntity updateApiEntity) {
         Api api = new Api();
 
-        api.setVisibility(Visibility.valueOf(updateApiEntity.getVisibility().toString()));
-        api.setVersion(updateApiEntity.getVersion());
-        api.setDescription(updateApiEntity.getDescription());
+        if (updateApiEntity.getVisibility() != null) {
+            api.setVisibility(Visibility.valueOf(updateApiEntity.getVisibility().toString()));
+        }
+
+        api.setVersion(updateApiEntity.getVersion().trim());
+        api.setName(updateApiEntity.getName().trim());
+        api.setDescription(updateApiEntity.getDescription().trim());
 
         try {
             ApiDefinition apiDefinition = new ApiDefinition();
@@ -433,5 +454,13 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));
 
         return member;
+    }
+
+    public IdGenerator getIdGenerator() {
+        return idGenerator;
+    }
+
+    public void setIdGenerator(IdGenerator idGenerator) {
+        this.idGenerator = idGenerator;
     }
 }

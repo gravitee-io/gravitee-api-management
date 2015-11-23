@@ -48,15 +48,15 @@ public class ApiResource extends AbstractResource {
     @Inject
     private PermissionService permissionService;
 
-    @PathParam("apiName")
-    private String apiName;
+    @PathParam("api")
+    private String api;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ApiEntity get() throws ApiNotFoundException {
-        ApiEntity api = apiService.findByName(apiName);
+        ApiEntity api = apiService.findById(this.api);
 
-        permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.VIEW_API);
+        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.VIEW_API);
 
         return api;
     }
@@ -64,9 +64,9 @@ public class ApiResource extends AbstractResource {
     @POST
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     public Response doLifecycleAction(@QueryParam("action") LifecycleActionParam action) {
-        ApiEntity api = apiService.findByName(apiName);
+        ApiEntity api = apiService.findById(this.api);
 
-        permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.EDIT_API);
+        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
 
         switch (action.getAction()) {
             case START:
@@ -87,19 +87,19 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     public ApiEntity update(@Valid final UpdateApiEntity api) {
-        permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.EDIT_API);
+        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
 
-        return apiService.update(apiName, api);
+        return apiService.update(this.api, api);
     }
 
     @DELETE
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     public Response delete() {
-        apiService.findByName(apiName);
+        apiService.findById(api);
 
-        permissionService.hasPermission(getAuthenticatedUser(), apiName, PermissionType.EDIT_API);
+        permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);
 
-        apiService.delete(apiName);
+        apiService.delete(api);
         return Response.noContent().build();
     }
 
@@ -116,5 +116,10 @@ public class ApiResource extends AbstractResource {
     @Path("analytics")
     public ApiAnalyticsResource getApiAnalyticsResource() {
         return resourceContext.getResource(ApiAnalyticsResource.class);
+    }
+
+    @Path("pages")
+    public ApiPagesResource getApiPagesResource() {
+        return resourceContext.getResource(ApiPagesResource.class);
     }
 }
