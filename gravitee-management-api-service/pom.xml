@@ -44,19 +44,16 @@
 		<dependency>
 			<groupId>io.gravitee.definition</groupId>
 			<artifactId>gravitee-definition-jackson</artifactId>
-			<version>${gravitee-definition.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository</artifactId>
-			<version>${gravitee-repository.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.gravitee.plugin</groupId>
 			<artifactId>gravitee-plugin-core</artifactId>
-			<version>${gravitee-plugin-core.version}</version>
 		</dependency>
 
 		<!-- Spring dependencies -->

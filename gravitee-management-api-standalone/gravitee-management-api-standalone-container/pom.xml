@@ -42,7 +42,6 @@
         <dependency>
             <groupId>io.gravitee.repository</groupId>
             <artifactId>gravitee-repository-mongodb</artifactId>
-            <version>${gravitee-repository-mongodb.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -61,12 +60,10 @@
         <dependency>
             <groupId>io.gravitee.repository</groupId>
             <artifactId>gravitee-repository-jdbc</artifactId>
-            <version>${gravitee-repository-jdbc.version}</version>
         </dependency>
         <dependency>
             <groupId>io.gravitee.repository</groupId>
             <artifactId>gravitee-repository-elasticsearch</artifactId>
-            <version>${gravitee-repository-elasticsearch.version}</version>
         </dependency>
 
         <!-- Jetty -->
