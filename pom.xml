@@ -28,12 +28,12 @@
 
 	<groupId>io.gravitee.repository</groupId>
 	<artifactId>gravitee-repository-redis</artifactId>
-	<version>0.2.0-SNAPSHOT</version>
+	<version>0.2.0</version>
 	<name>Gravitee IO - Repository - Redis</name>
 
 	<properties>
 		<jedis.version>2.7.3</jedis.version>
-		<gravitee-repository.version>0.2.0</gravitee-repository.version>
+		<gravitee-repository.version>0.3.0</gravitee-repository.version>
 		<spring-data-redis.version>1.6.0.RELEASE</spring-data-redis.version>
 	</properties>
 
