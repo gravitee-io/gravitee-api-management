@@ -42,6 +42,55 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Gravitee.io -->
+            <dependency>
+                <groupId>io.gravitee.repository</groupId>
+                <artifactId>gravitee-repository</artifactId>
+                <version>${gravitee-repository.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.common</groupId>
+                <artifactId>gravitee-common</artifactId>
+                <version>${gravitee-common.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.definition</groupId>
+                <artifactId>gravitee-definition-jackson</artifactId>
+                <version>${gravitee-definition.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.definition</groupId>
+                <artifactId>gravitee-definition-model</artifactId>
+                <version>${gravitee-definition.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.repository</groupId>
+                <artifactId>gravitee-repository-mongodb</artifactId>
+                <version>${gravitee-repository-mongodb.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.repository</groupId>
+                <artifactId>gravitee-repository-jdbc</artifactId>
+                <version>${gravitee-repository-jdbc.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.repository</groupId>
+                <artifactId>gravitee-repository</artifactId>
+                <version>${gravitee-repository.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-core</artifactId>
+                <version>${gravitee-plugin-core.version}</version>
+            </dependency>
+
             <!-- Logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
