@@ -36,8 +36,8 @@ import javax.ws.rs.core.Response;
  */
 public class ApiAnalyticsResource extends AbstractResource {
 
-    @PathParam("apiName")
-    private String apiName;
+    @PathParam("api")
+    private String api;
 
     @Inject
     private ApiService apiService;
@@ -51,7 +51,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response hits(@BeanParam AnalyticsParam analyticsParam) {
-        ApiEntity api = apiService.findById(apiName);
+        ApiEntity api = apiService.findById(this.api);
 
         permissionService.hasPermission(getAuthenticatedUser(), api.getName(), PermissionType.VIEW_API);
 
