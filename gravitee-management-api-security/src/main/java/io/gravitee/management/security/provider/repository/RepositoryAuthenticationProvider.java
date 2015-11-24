@@ -13,25 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.security.authentication;
+package io.gravitee.management.security.provider.repository;
 
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.security.provider.AuthenticationProvider;
+import io.gravitee.management.security.provider.AuthenticationProviderType;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -42,16 +47,20 @@ import java.util.List;
  * @author Titouan COMPIEGNE
  *
  */
-public class GraviteeAccountAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
+public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider
+		implements AuthenticationProvider {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(GraviteeAccountAuthenticationProvider.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryAuthenticationProvider.class);
 
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private Environment environment;
+
 	private PasswordEncoder passwordEncoder;
 
-	public GraviteeAccountAuthenticationProvider() {
+	public RepositoryAuthenticationProvider() {
 		setPasswordEncoder(NoOpPasswordEncoder.getInstance());
 	}
 
@@ -95,4 +104,16 @@ public class GraviteeAccountAuthenticationProvider extends AbstractUserDetailsAu
 		return new User(userEntity.getUsername(), "unknown", authorities);
 	}
 
+	@Override
+	public AuthenticationProviderType type() {
+		return AuthenticationProviderType.GRAVITEE;
+	}
+
+	@Override
+	public void configure(AuthenticationManagerBuilder authenticationManagerBuilder, int providerIdx) throws Exception {
+		if (environment.getProperty("security.providers[" + providerIdx + "].password-encoding", boolean.class, false)) {
+			setPasswordEncoder(new BCryptPasswordEncoder());
+		}
+		authenticationManagerBuilder.authenticationProvider(this);
+	}
 }

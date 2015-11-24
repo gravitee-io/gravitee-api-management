@@ -15,16 +15,11 @@
  */
 package io.gravitee.management.standalone.jetty;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Map;
 
 import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
 
-import io.gravitee.management.security.config.SecurityConfig;
+import io.gravitee.management.security.SecurityConfiguration;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -32,25 +27,18 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.*;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.Resource;
 import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.management.rest.resource.GraviteeApplication;
 import io.gravitee.management.standalone.jetty.handler.NoContentOutputErrorHandler;
-import io.gravitee.management.standalone.spring.StandaloneConfiguration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -85,7 +73,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, securityImplementation);
 
         AnnotationConfigWebApplicationContext webApplicationContext = new AnnotationConfigWebApplicationContext();
-        webApplicationContext.register(SecurityConfig.class);
+        webApplicationContext.register(SecurityConfiguration.class);
         webApplicationContext.setEnvironment((ConfigurableEnvironment) applicationContext.getEnvironment());
         webApplicationContext.setParent(applicationContext);
 

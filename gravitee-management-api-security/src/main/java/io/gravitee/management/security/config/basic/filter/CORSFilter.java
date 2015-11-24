@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.security.filter;
+package io.gravitee.management.security.config.basic.filter;
+
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpMethod;
 
 import java.io.IOException;
 
@@ -39,14 +42,14 @@ public class CORSFilter implements Filter {
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
 		HttpServletResponse response = (HttpServletResponse) res;
 		HttpServletRequest request = (HttpServletRequest) req;
-		response.setHeader("Access-Control-Allow-Origin", "*");
-		response.setHeader("Access-Control-Allow-Credentials", "true");
-		response.setHeader("Access-Control-Allow-Headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With");
-		response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE, X-XSRF-TOKEN");
-		response.setHeader("Access-Control-Max-Age", "1209600");
-		if (!"OPTIONS".equals(request.getMethod())) {
+		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With");
+		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "POST, PUT, GET, OPTIONS, DELETE, X-XSRF-TOKEN");
+		response.setHeader(HttpHeaders.ACCESS_CONTROL_MAX_AGE, "1209600");
+
+		if (!HttpMethod.OPTIONS.equals(request.getMethod())) {
 			chain.doFilter(req, res);
-		} else {
 		}
 	}
 

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.security.config;
+package io.gravitee.management.security;
 
-import io.gravitee.management.security.adapter.BasicSecurityConfigurerAdapter;
-import io.gravitee.management.security.adapter.OAuth2SecurityConfigurerAdapter;
+import io.gravitee.management.security.config.basic.BasicSecurityConfigurerAdapter;
+import io.gravitee.management.security.config.oauth2.OAuth2SecurityConfigurerAdapter;
 import io.gravitee.management.security.listener.AuthenticationSuccessListener;
+import io.gravitee.management.security.provider.spring.AuthenticationProviderBeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -30,7 +31,12 @@ import org.springframework.security.config.annotation.authentication.configurers
  */
 @Configuration
 @Import({BasicSecurityConfigurerAdapter.class, OAuth2SecurityConfigurerAdapter.class})
-public class SecurityConfig extends GlobalAuthenticationConfigurerAdapter {
+public class SecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
+
+    @Bean
+    public static AuthenticationProviderBeanFactoryPostProcessor authenticationProviderBeanFactoryPostProcessor() {
+        return new AuthenticationProviderBeanFactoryPostProcessor();
+    }
 
     @Bean
     public AuthenticationSuccessListener authenticationSuccessListener() {

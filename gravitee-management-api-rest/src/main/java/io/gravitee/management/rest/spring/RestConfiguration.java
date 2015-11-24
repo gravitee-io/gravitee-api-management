@@ -16,7 +16,7 @@
 package io.gravitee.management.rest.spring;
 
 import io.gravitee.management.rest.repository.RepositoryConfiguration;
-import io.gravitee.management.security.config.SecurityConfig;
+import io.gravitee.management.security.SecurityConfiguration;
 import io.gravitee.management.service.spring.ServiceConfiguration;
 
 import java.util.Properties;
@@ -35,7 +35,7 @@ import org.springframework.core.env.Environment;
  */
 @Configuration
 @ComponentScan({"io.gravitee.management.rest.enhancer"})
-@Import({PropertiesConfiguration.class, RepositoryConfiguration.class, ServiceConfiguration.class, SecurityConfig.class})
+@Import({PropertiesConfiguration.class, RepositoryConfiguration.class, ServiceConfiguration.class, SecurityConfiguration.class})
 public class RestConfiguration {
 
     @Bean
