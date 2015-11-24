@@ -24,6 +24,8 @@ import java.util.Objects;
  */
 public class Api {
 
+    private String id;
+
     private String name;
 
     private String version;
@@ -33,6 +35,14 @@ public class Api {
     private Map<String, Path> paths;
 
     private Map<String, Object> properties;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -79,19 +89,20 @@ public class Api {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Api api = (Api) o;
-        return Objects.equals(name, api.name) &&
+        return Objects.equals(id, api.id) &&
                 Objects.equals(version, api.version);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, version);
+        return Objects.hash(id, version);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Api{");
-        sb.append("name='").append(name).append('\'');
+        sb.append("id='").append(id).append('\'');
+        sb.append(", name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", context_path='").append(proxy.getContextPath()).append('\'');
         sb.append(", endpoint='").append(proxy.getEndpoint()).append('\'');

@@ -44,6 +44,13 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
 
         Api api = new Api();
 
+        JsonNode idNode = node.get("id");
+        if (idNode == null) {
+            throw ctxt.mappingException("ID property is required");
+        } else {
+            api.setId(idNode.asText());
+        }
+
         JsonNode nameNode = node.get("name");
         if (nameNode == null) {
             throw ctxt.mappingException("Name property is required");

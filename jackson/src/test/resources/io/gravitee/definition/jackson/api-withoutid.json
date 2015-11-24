@@ -1,5 +1,4 @@
 {
-  "id": "my-api",
   "name": "my-team-api",
 
   "proxy": {
@@ -11,5 +10,11 @@
   "paths": {
     "/*": [
     ]
+  },
+
+  "properties": {
+    "my_property": true,
+    "my_property2": 123,
+    "my_property3": "text"
   }
 }

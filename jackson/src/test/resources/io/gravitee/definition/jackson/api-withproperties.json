@@ -1,4 +1,5 @@
 {
+  "id": "my-api",
   "name": "my-team-api",
 
   "proxy": {

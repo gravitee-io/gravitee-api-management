@@ -195,6 +195,11 @@ public class JacksonDeserializerTest {
         Assert.assertEquals(properties.get("my_property3"), "text");
     }
 
+    @Test(expected = JsonMappingException.class)
+    public void definition_withoutID() throws Exception {
+        getDefinition("/io/gravitee/definition/jackson/api-withoutid.json");
+    }
+
     private Api getDefinition(String resource) throws Exception {
         URL jsonFile = JacksonDeserializerTest.class.getResource(resource);
         return objectMapper().readValue(jsonFile, Api.class);

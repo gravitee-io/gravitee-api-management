@@ -19,11 +19,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.HttpClient;
-import io.gravitee.definition.model.Path;
 
 import java.io.IOException;
-import java.util.function.BiConsumer;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -38,6 +35,7 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
     @Override
     public void serialize(Api api, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
+        jgen.writeStringField("id", api.getId());
         jgen.writeStringField("name", api.getName());
         jgen.writeObjectField("version", api.getVersion());
 

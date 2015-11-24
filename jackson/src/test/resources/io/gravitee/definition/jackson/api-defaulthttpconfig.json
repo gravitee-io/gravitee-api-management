@@ -1,4 +1,5 @@
 {
+  "id": "my-api",
   "name": "my-api",
   "proxy": {
     "context_path": "/my-api",
