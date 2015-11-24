@@ -29,6 +29,8 @@ public class Monitoring {
 
     private TimeUnit unit;
 
+    private boolean enabled = true;
+
     public String getEndpoint() {
         return endpoint;
     }
@@ -51,5 +53,13 @@ public class Monitoring {
 
     public void setUnit(TimeUnit unit) {
         this.unit = unit;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

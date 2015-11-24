@@ -204,6 +204,7 @@ public class JacksonDeserializerTest {
     public void definition_withMonitoring() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-withmonitoring.json");
         Assert.assertNotNull(api.getMonitoring());
+        Assert.assertTrue(api.getMonitoring().isEnabled());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -215,6 +216,7 @@ public class JacksonDeserializerTest {
     public void definition_withMonitoring_unitInLowerCase() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-withmonitoring-unitInLowerCase.json");
         Assert.assertNotNull(api.getMonitoring());
+        Assert.assertFalse(api.getMonitoring().isEnabled());
     }
 
     private Api getDefinition(String resource) throws Exception {

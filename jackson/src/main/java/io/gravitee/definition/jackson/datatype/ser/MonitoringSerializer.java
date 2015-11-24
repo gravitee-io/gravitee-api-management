@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Monitoring;
-import io.gravitee.definition.model.Proxy;
 
 import java.io.IOException;
 
@@ -39,6 +38,9 @@ public class MonitoringSerializer extends StdScalarSerializer<Monitoring> {
         jgen.writeStringField("endpoint", monitoring.getEndpoint());
         jgen.writeNumberField("interval", monitoring.getInterval());
         jgen.writeStringField("unit", monitoring.getUnit().toString());
+        if (! monitoring.isEnabled()) {
+            jgen.writeBooleanField("enabled", monitoring.isEnabled());
+        }
         jgen.writeEndObject();
     }
 }

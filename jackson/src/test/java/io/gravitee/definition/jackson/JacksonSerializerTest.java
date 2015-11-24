@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.jackson;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
@@ -22,6 +23,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.net.URL;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -103,6 +105,46 @@ public class JacksonSerializerTest {
     @Test
     public void definition_pathwithoutpolicy() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-path-withoutpolicy.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_apiWithoutProperties() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withoutproperties.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_apiWithEmptyProperties() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withemptyproperties.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_apiWithProperties() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withproperties.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_withMonitoring() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withmonitoring.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_withMonitoring_unitInLowerCase() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withmonitoring-unitInLowerCase.json");
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assert.assertNotNull(generatedJsonDefinition);
