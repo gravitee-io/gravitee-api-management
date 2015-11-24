@@ -15,30 +15,30 @@
  */
 package io.gravitee.management.service.impl;
 
-import static java.util.Collections.emptyList;
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.UpdatePageEntity;
-import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.IdGenerator;
+import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import static java.util.Collections.emptyList;
 
 /**
  * @author Titouan COMPIEGNE
@@ -55,54 +55,60 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	private IdGenerator idGenerator;
 
 	@Override
-	public List<PageEntity> findByApi(String apiName) {
+	public List<PageListItem> findByApi(String apiId) {
 		try {
-			final Collection<Page> pages = pageRepository.findByApi(apiName);
+			final Collection<Page> pages = pageRepository.findByApi(apiId);
 
-			if (pages == null || pages.isEmpty()) {
+			if (pages == null) {
 				return emptyList();
 			}
 
-			final List<PageEntity> pageEntities = new ArrayList<>(pages.size());
-
-			pageEntities.addAll(pages.stream()
-					.map(PageServiceImpl::convert)
+			return pages.stream()
+					.map(this::reduce)
 					.sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
-					.collect(Collectors.toSet())
-			);
+					.collect(Collectors.toList());
 
-			return pageEntities;
 		} catch (TechnicalException ex) {
-			LOGGER.error("An error occurs while trying to find an PAGES using its api name {}", apiName, ex);
+			LOGGER.error("An error occurs while trying to get API pages using api ID {}", apiId, ex);
 			throw new TechnicalManagementException(
-					"An error occurs while trying to find an PAGES using its api name " + apiName, ex);
+					"An error occurs while trying to get API pages using api ID " + apiId, ex);
 		}
 	}
 
 	@Override
-	public Optional<PageEntity> findById(String pageName) {
+	public PageEntity findById(String pageId) {
 		try {
-			LOGGER.debug("Find PAGE by name: {}", pageName);
-			return pageRepository.findById(pageName).map(PageServiceImpl::convert);
+			LOGGER.debug("Find page by ID: {}", pageId);
+
+			Optional<Page> page = pageRepository.findById(pageId);
+
+			if (page.isPresent()) {
+				return convert(page.get());
+			}
+
+			throw new PageNotFoundException(pageId);
 		} catch (TechnicalException ex) {
-			LOGGER.error("An error occurs while trying to find an PAGE using its name {}", pageName, ex);
+			LOGGER.error("An error occurs while trying to find a page using its ID {}", pageId, ex);
 			throw new TechnicalManagementException(
-					"An error occurs while trying to find an PAGE using its name " + pageName, ex);
+					"An error occurs while trying to find a page using its ID " + pageId, ex);
 		}
 	}
 
 	@Override
-	public PageEntity createPage(NewPageEntity newPageEntity) {
+	public PageEntity create(String apiId, NewPageEntity newPageEntity) {
 		try {
-			LOGGER.debug("Create {}", newPageEntity);
-			Optional<PageEntity> checkPage = findById(newPageEntity.getName());
+			LOGGER.debug("Create page {} for API {}", newPageEntity, apiId);
+
+			String id = idGenerator.generate(newPageEntity.getName());
+			Optional<Page> checkPage = pageRepository.findById(id);
 			if (checkPage.isPresent()) {
-				throw new PageAlreadyExistsException(newPageEntity.getName());
+				throw new PageAlreadyExistsException(id);
 			}
 
 			Page page = convert(newPageEntity);
 
 			page.setId(idGenerator.generate(page.getName()));
+			page.setApi(apiId);
 
 			// Set date fields
 			page.setCreatedAt(new Date());
@@ -117,19 +123,19 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	}
 
 	@Override
-	public PageEntity updatePage(String pageName, UpdatePageEntity updatePageEntity) {
+	public PageEntity update(String pageId, UpdatePageEntity updatePageEntity) {
 		try {
-			LOGGER.debug("Update Page {}", pageName);
+			LOGGER.debug("Update Page {}", pageId);
 
-			Optional<Page> optPageToUpdate = pageRepository.findById(pageName);
+			Optional<Page> optPageToUpdate = pageRepository.findById(pageId);
 			if (!optPageToUpdate.isPresent()) {
-				throw new PageNotFoundException(pageName);
+				throw new PageNotFoundException(pageId);
 			}
 
 			Page pageToUpdate = optPageToUpdate.get();
 			Page page = convert(updatePageEntity);
 
-			page.setName(pageName);
+			page.setId(pageId);
 			page.setUpdatedAt(new Date());
 
 			// Copy fields from existing values
@@ -142,13 +148,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			return convert(updatedPage);
 
 		} catch (TechnicalException ex) {
-			LOGGER.error("An error occurs while trying to update page {}", pageName, ex);
-			throw new TechnicalManagementException("An error occurs while trying to update page " + pageName, ex);
+			LOGGER.error("An error occurs while trying to update page {}", pageId, ex);
+			throw new TechnicalManagementException("An error occurs while trying to update page " + pageId, ex);
 		}
 	}
 
 	@Override
-	public void deletePage(String pageName) {
+	public void delete(String pageName) {
 		try {
 			LOGGER.debug("Delete PAGE : {}", pageName);
 			pageRepository.delete(pageName);
@@ -170,6 +176,19 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 	}
 
+	private PageListItem reduce(Page page) {
+		PageListItem pageItem = new PageListItem();
+
+		pageItem.setId(page.getId());
+		pageItem.setName(page.getName());
+		pageItem.setType(page.getType());
+		pageItem.setTitle(page.getTitle());
+		pageItem.setOrder(page.getOrder());
+		pageItem.setLastContributor(page.getLastContributor());
+
+		return pageItem;
+	}
+
 	private static Page convert(NewPageEntity newPageEntity) {
 		Page page = new Page();
 
@@ -182,7 +201,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setContent(newPageEntity.getContent());
 		page.setLastContributor(newPageEntity.getLastContributor());
 		page.setOrder(newPageEntity.getOrder());
-		page.setApi(newPageEntity.getApiName());
 		return page;
 	}
 
@@ -198,13 +216,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		pageEntity.setContent(page.getContent());
 		pageEntity.setLastContributor(page.getLastContributor());
 		pageEntity.setOrder(page.getOrder());
-		pageEntity.setApi(page.getApi());
 		return pageEntity;
 	}
 
 	private static Page convert(UpdatePageEntity updatePageEntity) {
 		Page page = new Page();
 
+		page.setName(updatePageEntity.getName());
 		page.setTitle(updatePageEntity.getTitle());
 		page.setContent(updatePageEntity.getContent());
 		page.setLastContributor(updatePageEntity.getLastContributor());

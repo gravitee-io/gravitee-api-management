@@ -36,8 +36,6 @@ public class PageEntity {
 
 	private String lastContributor;
 
-	private String api;
-
 	public String getId() {
 		return id;
 	}
@@ -94,14 +92,6 @@ public class PageEntity {
 		this.lastContributor = lastContributor;
 	}
 
-	public String getApi() {
-		return api;
-	}
-
-	public void setApi(String api) {
-		this.api = api;
-	}
-
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -127,7 +117,6 @@ public class PageEntity {
 		sb.append(", content='").append(content).append('\'');
 		sb.append(", order='").append(order).append('\'');
 		sb.append(", lastContributor='").append(lastContributor).append('\'');
-		sb.append(", api='").append(api).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}

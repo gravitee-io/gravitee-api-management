@@ -36,8 +36,6 @@ public class NewPageEntity {
 	private int order;
 	
 	private String lastContributor;
-	
-	private String apiName;
 
 	public String getName() {
 		return name;
@@ -86,14 +84,6 @@ public class NewPageEntity {
 	public void setLastContributor(String lastContributor) {
 		this.lastContributor = lastContributor;
 	}
-	
-	public String getApiName() {
-		return apiName;
-	}
-
-	public void setApiName(String apiName) {
-		this.apiName = apiName;
-	}
 
 	@Override
     public String toString() {
@@ -104,7 +94,6 @@ public class NewPageEntity {
         sb.append(", content='").append(content).append('\'');
         sb.append(", order='").append(order).append('\'');
         sb.append(", lastContributor='").append(lastContributor).append('\'');
-        sb.append(", apiName='").append(apiName).append('\'');
         sb.append('}');
         return sb.toString();
     }

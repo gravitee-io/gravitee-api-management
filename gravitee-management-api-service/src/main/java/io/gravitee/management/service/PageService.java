@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.UpdatePageEntity;
 
 import java.util.Collection;
@@ -28,15 +29,15 @@ import java.util.Optional;
  */
 public interface PageService {
 
-	List<PageEntity> findByApi(String apiId);
+	List<PageListItem> findByApi(String apiId);
 	
-	Optional<PageEntity> findById(String pageId);
+	PageEntity findById(String pageId);
 	
-	PageEntity createPage(NewPageEntity page);
+	PageEntity create(String apiId, NewPageEntity page);
 	
-	PageEntity updatePage(String pageId, UpdatePageEntity updatePageEntity);
+	PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
 	
-	void deletePage(String pageId);
+	void delete(String pageId);
 	
 	int findMaxPageOrderByApi(String apiId);
 }

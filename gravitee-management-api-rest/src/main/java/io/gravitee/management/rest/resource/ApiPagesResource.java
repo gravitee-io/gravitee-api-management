@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.UpdatePageEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
@@ -27,7 +28,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -45,7 +45,7 @@ public class ApiPagesResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<PageEntity> pages() {
+    public List<PageListItem> pages() {
         // Check that the API exists
         apiService.findById(api);
 
@@ -55,11 +55,14 @@ public class ApiPagesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createPage(NewPageEntity newPageEntity) {
-        int order = pageService.findMaxPageOrderByApi(newPageEntity.getApiName()) + 1;
+    public Response create(NewPageEntity newPageEntity) {
+        // Check that the API exists
+        apiService.findById(api);
+
+        int order = pageService.findMaxPageOrderByApi(api) + 1;
         newPageEntity.setOrder(order);
         newPageEntity.setLastContributor(getAuthenticatedUser());
-        PageEntity newPage = pageService.createPage(newPageEntity);
+        PageEntity newPage = pageService.create(api, newPageEntity);
         if (newPage != null) {
             return Response
                     .created(URI.create("/apis/" + api + "/pages/" + newPage.getId()))
@@ -73,12 +76,10 @@ public class ApiPagesResource extends AbstractResource {
     @GET
     @Path("/page}/content")
     @Produces(MediaType.APPLICATION_JSON)
-    public String contentPage(@PathParam("page") String page) {
-        Optional<PageEntity> optPage = pageService.findById(page);
-        if (optPage != null && optPage.isPresent()) {
-            return optPage.get().getContent();
-        }
-        return Response.status(400).toString();
+    public String getContent(@PathParam("page") String page) {
+        // Check that the API exists
+        apiService.findById(api);
+        return pageService.findById(page).getContent();
     }
 
     @PUT
@@ -86,13 +87,21 @@ public class ApiPagesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{page}")
     public PageEntity update(@PathParam("page") String page, UpdatePageEntity updatePageEntity) {
+        // Check that the API exists
+        apiService.findById(api);
+        pageService.findById(page);
+
         updatePageEntity.setLastContributor(getAuthenticatedUser());
-        return pageService.updatePage(page, updatePageEntity);
+        return pageService.update(page, updatePageEntity);
     }
 
     @DELETE
     @Path("/{page}")
     public void deletePage(@PathParam("page") String page) {
-        pageService.deletePage(page);
+        // Check that the API exists
+        apiService.findById(api);
+        pageService.findById(page);
+
+        pageService.delete(page);
     }
 }
