@@ -43,9 +43,9 @@ public interface ApiManager {
 
     /**
      * Undeploy an API from the {@link io.gravitee.gateway.core.Reactor}.
-     * @param apiName The name of the API to undeploy.
+     * @param apiId The ID of the API to undeploy.
      */
-    void undeploy(String apiName);
+    void undeploy(String apiId);
 
     /**
      * Returns a collection of deployed {@link Api}s.
@@ -54,9 +54,9 @@ public interface ApiManager {
     Collection<Api> apis();
 
     /**
-     * Retrieve a deployed {@link Api} using its name.
-     * @param name The name of the deployed API.
+     * Retrieve a deployed {@link Api} using its ID.
+     * @param apiId The ID of the deployed API.
      * @return A deployed {@link Api}
      */
-    Api get(String name);
+    Api get(String apiId);
 }

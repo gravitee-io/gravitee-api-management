@@ -1,3 +1,15 @@
 {
-  "name": "api-test2"
+  "name": "my-api-test2",
+
+  "proxy": {
+    "context_path": "/my-api",
+    "endpoint": "http://localhost:1234",
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+
+    ]
+  }
 }

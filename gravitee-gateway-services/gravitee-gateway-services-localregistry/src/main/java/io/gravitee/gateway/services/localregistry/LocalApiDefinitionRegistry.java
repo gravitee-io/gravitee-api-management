@@ -109,7 +109,10 @@ public class LocalApiDefinitionRegistry extends AbstractService {
     }
 
     private Api loadDefinition(File apiDefinitionFile) throws IOException {
-        return new GraviteeMapper().readValue(apiDefinitionFile, Api.class);
+        Api api = new GraviteeMapper().readValue(apiDefinitionFile, Api.class);
+        api.setId(IdGenerator.generate(api.getName()));
+
+        return api;
     }
 
     @Override
@@ -150,10 +153,10 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                                 Api loadedDefinition = loadDefinition(fileName.toFile());
                                 Api existingDefinition = definitions.get(fileName);
                                 if (existingDefinition != null) {
-                                    if (apiManager.get(existingDefinition.getName()) != null) {
+                                    if (apiManager.get(existingDefinition.getId()) != null) {
                                         apiManager.update(loadedDefinition);
                                     } else {
-                                        apiManager.undeploy(existingDefinition.getName());
+                                        apiManager.undeploy(existingDefinition.getId());
                                         definitions.remove(fileName);
                                         apiManager.deploy(loadedDefinition);
                                         definitions.put(fileName, loadedDefinition);
@@ -161,7 +164,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                                 }
                             } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
                                 Api loadedDefinition = loadDefinition(fileName.toFile());
-                                Api existingDefinition = apiManager.get(loadedDefinition.getName());
+                                Api existingDefinition = apiManager.get(loadedDefinition.getId());
                                 if (existingDefinition != null) {
                                     apiManager.update(loadedDefinition);
                                 } else {
@@ -170,8 +173,8 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                                 }
                             } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
                                 Api existingDefinition = definitions.get(fileName);
-                                if (existingDefinition != null && apiManager.get(existingDefinition.getName()) != null) {
-                                    apiManager.undeploy(existingDefinition.getName());
+                                if (existingDefinition != null && apiManager.get(existingDefinition.getId()) != null) {
+                                    apiManager.undeploy(existingDefinition.getId());
                                     definitions.remove(fileName);
                                 }
                             }

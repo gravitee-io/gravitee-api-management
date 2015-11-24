@@ -58,7 +58,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
         long proxyInvocationStart = System.currentTimeMillis();
 
-        serverRequest.headers().set(GraviteeHttpHeader.X_GRAVITEE_API_NAME, api.getName());
+        serverRequest.headers().set(GraviteeHttpHeader.X_GRAVITEE_API_NAME, api.getId());
 
         // Calculate policies
         List<Policy> policies = getPolicyResolver().resolve(serverRequest);

@@ -175,7 +175,7 @@ public class GraviteeReactor extends AbstractService implements
 
     public void createHandler(Api api) {
         if (api.isEnabled()) {
-            logger.info("API {} has been deployed in reactor", api.getName());
+            logger.info("API {} has been deployed in reactor", api.getId());
 
             ContextReactorHandler handler = contextHandlerFactory.create(api);
             try {
@@ -185,12 +185,12 @@ public class GraviteeReactor extends AbstractService implements
                 logger.error("Unable to deploy handler", ex);
             }
         } else {
-            logger.warn("Api {} is settled has disable in reactor !", api.getName());
+            logger.warn("Api {} is settled has disable in reactor !", api.getId());
         }
     }
 
     public void removeHandler(Api api) {
-        logger.info("API {} has been disabled (or removed) from reactor", api.getName());
+        logger.info("API {} has been disabled (or removed) from reactor", api.getId());
 
         ReactorHandler handler = handlers.remove(api.getProxy().getContextPath());
         if (handler != null) {

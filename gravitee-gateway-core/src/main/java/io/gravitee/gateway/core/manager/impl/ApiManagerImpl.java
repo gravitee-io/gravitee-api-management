@@ -52,7 +52,7 @@ public class ApiManagerImpl implements ApiManager {
             validator.validate(api);
 
             if (api.isEnabled()) {
-                apis.put(api.getName(), api);
+                apis.put(api.getId(), api);
                 eventManager.publishEvent(ApiEvent.DEPLOY, api);
             } else {
                 logger.debug("{} is not enabled. Skip deployment.", api);
@@ -65,7 +65,7 @@ public class ApiManagerImpl implements ApiManager {
     @Override
     public void update(Api api) {
         logger.debug("Trying to update API {}", api);
-        Api cachedApi = apis.get(api.getName());
+        Api cachedApi = apis.get(api.getId());
 
         // Update only if certain fields has been updated:
         // - Lifecycle
@@ -75,7 +75,7 @@ public class ApiManagerImpl implements ApiManager {
         try {
             validator.validate(api);
 
-            apis.put(api.getName(), api);
+            apis.put(api.getId(), api);
             eventManager.publishEvent(ApiEvent.UPDATE, api);
         } catch (ValidationException ve) {
             logger.error("API Definition can't be updated because of validation errors", ve);
@@ -83,11 +83,11 @@ public class ApiManagerImpl implements ApiManager {
     }
 
     @Override
-    public void undeploy(String apiName) {
-        Api currentApi = apis.remove(apiName);
+    public void undeploy(String apiId) {
+        Api currentApi = apis.remove(apiId);
         if (currentApi != null) {
             eventManager.publishEvent(ApiEvent.UNDEPLOY, currentApi);
-            logger.debug("API {} has been undeployed", apiName);
+            logger.debug("API {} has been undeployed", apiId);
         }
     }
 

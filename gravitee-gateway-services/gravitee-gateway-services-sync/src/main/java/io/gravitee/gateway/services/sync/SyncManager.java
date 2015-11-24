@@ -58,25 +58,25 @@ public class SyncManager {
             Map<String, Api> apisMap = apis.stream()
                     .map(this::convert)
                     .filter(api -> api != null)
-                    .collect(Collectors.toMap(Api::getName, api -> api));
+                    .collect(Collectors.toMap(Api::getId, api -> api));
 
             // Determine APIs to undeploy
             Set<String> apiToRemove = apiManager.apis().stream()
-                    .filter(apiName -> !apisMap.containsKey(apiName))
-                    .map(Api::getName)
+                    .filter(apiId -> !apisMap.containsKey(apiId))
+                    .map(Api::getId)
                     .collect(Collectors.toSet());
 
             apiToRemove.stream().forEach(apiManager::undeploy);
 
             // Determine APIs to update
             apisMap.keySet().stream()
-                    .filter(apiName ->  apiManager.get(apiName) != null)
-                    .forEach(apiName -> {
+                    .filter(apiId ->  apiManager.get(apiId) != null)
+                    .forEach(apiId -> {
                         // Get local cached API
-                        Api deployedApi = apiManager.get(apiName);
+                        Api deployedApi = apiManager.get(apiId);
 
                         // Get API from store
-                        Api remoteApi = apisMap.get(apiName);
+                        Api remoteApi = apisMap.get(apiId);
 
                         if (deployedApi.getDeployedAt().before(remoteApi.getDeployedAt())) {
                             apiManager.update(remoteApi);
@@ -85,9 +85,9 @@ public class SyncManager {
 
             // Determine APIs to create
             apisMap.keySet().stream()
-                    .filter(apiName ->  apiManager.get(apiName) == null)
-                    .forEach(apiName -> {
-                        Api newApi = apisMap.get(apiName);
+                    .filter(apiId ->  apiManager.get(apiId) == null)
+                    .forEach(apiId -> {
+                        Api newApi = apisMap.get(apiId);
                         apiManager.deploy(newApi);
                     });
 
@@ -102,6 +102,7 @@ public class SyncManager {
             if (definition != null && !definition.isEmpty()) {
                 Api api = objectMapper.readValue(definition, Api.class);
 
+                api.setId(remoteApi.getId());
                 api.setName(remoteApi.getName());
                 api.setVersion(remoteApi.getVersion());
                 api.setEnabled(remoteApi.getLifecycleState() == LifecycleState.STARTED);
