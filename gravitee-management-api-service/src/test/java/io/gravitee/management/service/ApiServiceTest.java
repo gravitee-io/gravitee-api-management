@@ -17,7 +17,6 @@ package io.gravitee.management.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.ApiListItem;
 import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
@@ -135,7 +134,7 @@ public class ApiServiceTest {
     public void shouldFindByUser() throws TechnicalException {
         when(apiRepository.findByMember(any(String.class), any(MembershipType.class), any(Visibility.class))).thenReturn(new HashSet<>(Arrays.asList(api)));
 
-        final Set<ApiListItem> apiEntities = apiService.findByUser(USER_NAME);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME);
 
         assertNotNull(apiEntities);
         assertEquals(1, apiEntities.size());
@@ -145,7 +144,7 @@ public class ApiServiceTest {
     public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
         when(apiRepository.findByMember(USER_NAME, null, null)).thenReturn(null);
 
-        final Set<ApiListItem> apiEntities = apiService.findByUser(USER_NAME);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME);
 
         assertNotNull(apiEntities);
         assertTrue(apiEntities.isEmpty());

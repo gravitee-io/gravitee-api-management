@@ -45,7 +45,9 @@ public class ApiListItem {
     private Lifecycle.State state;
 
     @JsonProperty("owner")
-    private PrimaryOwner primaryOwner;
+    private PrimaryOwnerEntity primaryOwner;
+
+    private MembershipType permission;
 
     public String getId() {
         return id;
@@ -111,12 +113,20 @@ public class ApiListItem {
         this.visibility = visibility;
     }
 
-    public PrimaryOwner getPrimaryOwner() {
+    public PrimaryOwnerEntity getPrimaryOwner() {
         return primaryOwner;
     }
 
-    public void setPrimaryOwner(PrimaryOwner primaryOwner) {
+    public void setPrimaryOwner(PrimaryOwnerEntity primaryOwner) {
         this.primaryOwner = primaryOwner;
+    }
+
+    public MembershipType getPermission() {
+        return permission;
+    }
+
+    public void setPermission(MembershipType permission) {
+        this.permission = permission;
     }
 
     @Override
@@ -131,47 +141,5 @@ public class ApiListItem {
     @Override
     public int hashCode() {
         return Objects.hash(id, version);
-    }
-
-    public static class PrimaryOwner {
-        private String username;
-
-        private String firstname;
-
-        private String lastname;
-
-        private String email;
-
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
-        }
-
-        public String getFirstname() {
-            return firstname;
-        }
-
-        public void setFirstname(String firstname) {
-            this.firstname = firstname;
-        }
-
-        public String getLastname() {
-            return lastname;
-        }
-
-        public void setLastname(String lastname) {
-            this.lastname = lastname;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
     }
 }

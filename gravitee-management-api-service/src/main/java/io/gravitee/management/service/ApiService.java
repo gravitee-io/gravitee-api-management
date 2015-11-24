@@ -26,9 +26,9 @@ public interface ApiService {
 
     ApiEntity findById(String apiId);
 
-    Set<ApiListItem> findByUser(String username);
+    Set<ApiEntity> findByUser(String username);
 
-    Set<ApiListItem> findByVisibility(Visibility visibility);
+    Set<ApiEntity> findByVisibility(Visibility visibility);
 
     ApiEntity create(NewApiEntity api, String username);
 
@@ -41,6 +41,8 @@ public interface ApiService {
     void stop(String apiId);
 
     Set<MemberEntity> getMembers(String apiId, MembershipType membershipType);
+
+    MemberEntity getMember(String apiId, String username);
 
     void addOrUpdateMember(String apiId, String username, MembershipType membershipType);
 

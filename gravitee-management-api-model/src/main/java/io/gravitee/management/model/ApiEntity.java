@@ -54,6 +54,11 @@ public class ApiEntity {
 
     private Lifecycle.State state;
 
+    @JsonProperty("owner")
+    private PrimaryOwnerEntity primaryOwner;
+
+    private MembershipType permission;
+
     public String getId() {
         return id;
     }
@@ -132,6 +137,22 @@ public class ApiEntity {
 
     public void setPaths(Map<String, Path> paths) {
         this.paths = paths;
+    }
+
+    public MembershipType getPermission() {
+        return permission;
+    }
+
+    public void setPermission(MembershipType permission) {
+        this.permission = permission;
+    }
+
+    public PrimaryOwnerEntity getPrimaryOwner() {
+        return primaryOwner;
+    }
+
+    public void setPrimaryOwner(PrimaryOwnerEntity primaryOwner) {
+        this.primaryOwner = primaryOwner;
     }
 
     @Override
