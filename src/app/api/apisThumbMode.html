@@ -20,9 +20,8 @@
 		<a ui-sref="apis.admin.dashboard({apiName: api.name})">
 			<md-card class="api-box">
 				<div class="api-box-header" ng-style="{'background-color': apisCtrl.bgColorByIndex($index)}">
-					<h3>{{api.name}}</h3>
-					<h4>{{api.description}}</h4>
-					<h5>{{api.version}}</h5>
+					<h3>{{api.name}} <small>({{api.version}})</small></h3>
+					<h5>{{api.description}}</h5>
 				</div>
 				<div class="widget-user-image">
 				</div>
