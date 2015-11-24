@@ -35,38 +35,9 @@
 							<md-card-content>
 								<h5>Reports (Stub)</h5>
 								<md-divider></md-divider>
-								<div class="column">
-									<div class="chart" layout="row" flex>
-										<div flex="70">
-											<canvas id="line" class="chart chart-line" chart-data="data"
-													chart-labels="labels" chart-legend="true" chart-series="series"
-													chart-click="onClick" >
-											</canvas>
-										</div>
-										<div flex="30">
-											<canvas id="pie" class="chart chart-pie"
-											  chart-data="dataPie" chart-labels="labelsPie" chart-legend="true">
-											</canvas>
-										</div>
-									</div>
-									<div class="chart" layout="row" flex>
-										<div flex="33">
-											<canvas id="radar" class="chart chart-radar"
-											  chart-data="data" chart-labels="labels">
-											</canvas>
-										</div>
-										<div flex="33">
-											<canvas id="polar-area" class="chart chart-polar-area"
-											  chart-data="dataPie" chart-labels="labelsPie">
-											</canvas>
-										</div>
-										<div flex="33">
-											<canvas id="doughnut" class="chart chart-doughnut"
-											  chart-data="dataPie" chart-labels="labelsPie">
-											</canvas>
-										</div>
-									</div>
-								</div>
+
+                <chart config="chartConfig"></chart>
+
 							</md-card-content>
 						</md-card>
 		      </md-content>

@@ -24,6 +24,7 @@ import delegatorConfig from './index.delegator';
 
 import runBlock from './index.run';
 import MainController from './main/main.controller';
+import ChartDirective from './api/chart.directive';
 import ApiService from './api/api.service';
 import ApiController from './api/api.controller';
 import TeamService from './user/team.service';
@@ -44,7 +45,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
 	'ngMdIcons', 'chart.js', 'ui.codemirror', 'md.data.table'])
   .constant('malarkey', malarkey)
   .constant('moment', moment)
-  .constant('baseURL', 'https://demo.gravitee.io/management/')
+  .constant('baseURL', 'http://localhost:8083/management/')
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -70,4 +71,5 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .controller('ApplicationController', ApplicationController)
 	.service('ApplicationService', ApplicationService)
   .directive('graviteeNavbar', () => new NavbarDirective())
+  .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective());
