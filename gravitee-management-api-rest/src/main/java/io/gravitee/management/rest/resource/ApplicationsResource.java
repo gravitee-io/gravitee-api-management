@@ -15,8 +15,8 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.NewApplicationEntity;
+import io.gravitee.management.model.*;
+import io.gravitee.management.rest.enhancer.ApplicationEnhancer;
 import io.gravitee.management.service.ApplicationService;
 
 import javax.inject.Inject;
@@ -41,14 +41,21 @@ public class ApplicationsResource extends AbstractResource {
     @Inject
     private ApplicationService applicationService;
 
+    @Inject
+    private ApplicationEnhancer applicationEnhancer;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ApplicationEntity> list() {
-        return applicationService.findByUser(getAuthenticatedUser());
+        Set<ApplicationEntity> applications = applicationService.findByUser(getAuthenticatedUser());
+
+        applications.forEach(api -> api = applicationEnhancer.enhance(getAuthenticatedUser()).apply(api));
+        return applications;
     }
 
     /**
      * Create a new application for the authenticated user.
+     *
      * @param application
      * @return
      */
@@ -58,6 +65,7 @@ public class ApplicationsResource extends AbstractResource {
     public Response create(@Valid final NewApplicationEntity application) {
         ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUser());
         if (newApplication != null) {
+            newApplication = applicationEnhancer.enhance(getAuthenticatedUser()).apply(newApplication);
             return Response
                     .created(URI.create("/applications/" + newApplication.getId()))
                     .entity(newApplication)

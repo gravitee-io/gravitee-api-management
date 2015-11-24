@@ -38,6 +38,8 @@ public interface ApplicationService {
 
     Set<MemberEntity> getMembers(String applicationId, MembershipType membershipType);
 
+    MemberEntity getMember(String applicationId, String username);
+
     void addOrUpdateMember(String applicationId, String username, MembershipType membershipType);
 
     void deleteMember(String applicationId, String username);

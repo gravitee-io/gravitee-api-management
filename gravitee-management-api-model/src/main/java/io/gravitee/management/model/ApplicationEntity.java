@@ -36,6 +36,11 @@ public class ApplicationEntity {
     @JsonProperty("updated_at")
     private Date updatedAt;
 
+    @JsonProperty("owner")
+    private PrimaryOwnerEntity primaryOwner;
+
+    private MembershipType permission;
+
     public String getId() {
         return id;
     }
@@ -82,6 +87,22 @@ public class ApplicationEntity {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public MembershipType getPermission() {
+        return permission;
+    }
+
+    public void setPermission(MembershipType permission) {
+        this.permission = permission;
+    }
+
+    public PrimaryOwnerEntity getPrimaryOwner() {
+        return primaryOwner;
+    }
+
+    public void setPrimaryOwner(PrimaryOwnerEntity primaryOwner) {
+        this.primaryOwner = primaryOwner;
     }
 
     @Override

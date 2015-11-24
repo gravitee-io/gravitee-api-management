@@ -194,6 +194,24 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     }
 
     @Override
+    public MemberEntity getMember(String applicationId, String username) {
+        try {
+            LOGGER.debug("Get membership for application {} and user {}", applicationId, username);
+
+            Membership membership = applicationRepository.getMember(applicationId, username);
+
+            if (membership != null) {
+                return convert(membership);
+            }
+
+            return null;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to get membership for application {} and user", applicationId, username, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get members for application " + applicationId + " and user " + username, ex);
+        }
+    }
+
+    @Override
     public void addOrUpdateMember(String applicationId, String username, io.gravitee.management.model.MembershipType membershipType) {
         try {
             LOGGER.debug("Add a new member for applicationId {}", applicationId);

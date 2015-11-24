@@ -18,16 +18,14 @@ package io.gravitee.management.rest.spring;
 import io.gravitee.management.rest.repository.RepositoryConfiguration;
 import io.gravitee.management.security.config.SecurityConfig;
 import io.gravitee.management.service.spring.ServiceConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -35,10 +33,9 @@ import java.util.Properties;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
+@ComponentScan({"io.gravitee.management.rest.enhancer"})
 @Import({PropertiesConfiguration.class, RepositoryConfiguration.class, ServiceConfiguration.class, SecurityConfig.class})
 public class RestConfiguration {
-
-    protected final static Logger LOGGER = LoggerFactory.getLogger(RestConfiguration.class);
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer properties(@Qualifier("graviteeProperties") Properties graviteeProperties) {

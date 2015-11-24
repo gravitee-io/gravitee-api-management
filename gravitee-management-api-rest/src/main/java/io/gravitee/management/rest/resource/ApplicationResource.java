@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.management.rest.enhancer.ApplicationEnhancer;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
@@ -42,6 +43,9 @@ public class ApplicationResource extends AbstractResource {
     @Inject
     private PermissionService permissionService;
 
+    @Inject
+    private ApplicationEnhancer applicationEnhancer;
+
     @PathParam("application")
     private String application;
 
@@ -52,7 +56,7 @@ public class ApplicationResource extends AbstractResource {
 
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
 
-        return applicationEntity;
+        return applicationEnhancer.enhance(getAuthenticatedUser()).apply(applicationEntity);
     }
     
     @PUT
@@ -63,7 +67,9 @@ public class ApplicationResource extends AbstractResource {
 
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
 
-        return applicationService.update(application, updatedApplication);
+        return applicationEnhancer.enhance(getAuthenticatedUser()).apply(
+                applicationService.update(application, updatedApplication)
+        );
     }
 
     @DELETE
