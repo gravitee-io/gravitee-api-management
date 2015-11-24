@@ -38,11 +38,11 @@ public class ApiKeyResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @PathParam("applicationName")
-    private String applicationName;
+    @PathParam("application")
+    private String application;
 
-    @PathParam("apiName")
-    private String apiName;
+    @PathParam("api")
+    private String api;
 
     @Inject
     private ApiKeyService apiKeyService;
@@ -53,9 +53,9 @@ public class ApiKeyResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ApiKeyEntity getCurrentApiKeyEntity() {
-        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_APPLICATION);
+        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
 
-        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrent(applicationName, apiName);
+        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrent(application, api);
 
         if (! apiKeyEntity.isPresent()) {
             throw new NoValidApiKeyException();
@@ -68,18 +68,18 @@ public class ApiKeyResource extends AbstractResource {
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ApiKeyEntity> findAllApiKeys() {
-        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_APPLICATION);
+        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
 
-        return apiKeyService.findAll(applicationName, apiName);
+        return apiKeyService.findAll(application, api);
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response generateApiKey() {
-        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.EDIT_APPLICATION);
-        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_API);
+        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
+        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_API);
 
-        ApiKeyEntity apiKeyEntity = apiKeyService.generate(applicationName, apiName);
+        ApiKeyEntity apiKeyEntity = apiKeyService.generate(application, api);
 
         return Response
                 .status(Response.Status.CREATED)
@@ -88,10 +88,10 @@ public class ApiKeyResource extends AbstractResource {
     }
 
     @DELETE
-    @Path("{apiKey}")
+    @Path("{key}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response revokeApiKey(@PathParam("apiKey") String apiKey) {
-        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.EDIT_APPLICATION);
+    public Response revokeApiKey(@PathParam("key") String apiKey) {
+        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
 
         apiKeyService.revoke(apiKey);
 

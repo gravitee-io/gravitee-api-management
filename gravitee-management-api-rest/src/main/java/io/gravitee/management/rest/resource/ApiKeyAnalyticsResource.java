@@ -39,11 +39,11 @@ import java.util.Optional;
  */
 public class ApiKeyAnalyticsResource extends AbstractResource {
 
-    @PathParam("applicationName")
-    private String applicationName;
+    @PathParam("application")
+    private String application;
 
-    @PathParam("apiName")
-    private String apiName;
+    @PathParam("api")
+    private String api;
 
     @Inject
     private ApiKeyService apiKeyService;
@@ -57,9 +57,9 @@ public class ApiKeyAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response hits(@BeanParam AnalyticsParam analyticsParam) throws ApiNotFoundException {
-        permissionService.hasPermission(getAuthenticatedUser(), applicationName, PermissionType.VIEW_APPLICATION);
+        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
 
-        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrent(applicationName, apiName);
+        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrent(application, api);
 
         if (! apiKeyEntity.isPresent()) {
             throw new NoValidApiKeyException();

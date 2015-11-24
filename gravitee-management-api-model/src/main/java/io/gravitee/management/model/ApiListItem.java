@@ -44,7 +44,7 @@ public class ApiListItem {
 
     private Lifecycle.State state;
 
-    @JsonProperty("primary_owner")
+    @JsonProperty("owner")
     private PrimaryOwner primaryOwner;
 
     public String getId() {

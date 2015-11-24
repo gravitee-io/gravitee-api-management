@@ -59,7 +59,7 @@ public class ApplicationResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationEntity update(final UpdateApplicationEntity updatedApplication) {
-        ApplicationEntity applicationEntity = applicationService.findById(this.application);
+        applicationService.findById(this.application);
 
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
 
@@ -80,7 +80,7 @@ public class ApplicationResource extends AbstractResource {
     }
 
 
-    @Path("{apiName}")
+    @Path("{api}")
     public ApiKeyResource getApiKey() {
         return resourceContext.getResource(ApiKeyResource.class);
     }
