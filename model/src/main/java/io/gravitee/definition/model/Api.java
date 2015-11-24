@@ -32,6 +32,8 @@ public class Api {
 
     private Proxy proxy;
 
+    private Monitoring monitoring;
+
     private Map<String, Path> paths;
 
     private Map<String, Object> properties;
@@ -82,6 +84,14 @@ public class Api {
 
     public void setProperties(Map<String, Object> properties) {
         this.properties = properties;
+    }
+
+    public Monitoring getMonitoring() {
+        return monitoring;
+    }
+
+    public void setMonitoring(Monitoring monitoring) {
+        this.monitoring = monitoring;
     }
 
     @Override

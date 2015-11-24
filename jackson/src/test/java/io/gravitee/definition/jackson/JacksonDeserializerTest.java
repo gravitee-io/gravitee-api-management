@@ -200,6 +200,23 @@ public class JacksonDeserializerTest {
         getDefinition("/io/gravitee/definition/jackson/api-withoutid.json");
     }
 
+    @Test
+    public void definition_withMonitoring() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withmonitoring.json");
+        Assert.assertNotNull(api.getMonitoring());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void definition_withMonitoring_badUnit() throws Exception {
+        getDefinition("/io/gravitee/definition/jackson/api-withmonitoring-badUnit.json");
+    }
+
+    @Test
+    public void definition_withMonitoring_unitInLowerCase() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withmonitoring-unitInLowerCase.json");
+        Assert.assertNotNull(api.getMonitoring());
+    }
+
     private Api getDefinition(String resource) throws Exception {
         URL jsonFile = JacksonDeserializerTest.class.getResource(resource);
         return objectMapper().readValue(jsonFile, Api.class);

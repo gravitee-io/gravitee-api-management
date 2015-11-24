@@ -56,6 +56,10 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
             jgen.writeEndObject();
         }
 
+        if (api.getMonitoring() != null) {
+            jgen.writeObjectField("monitoring", api.getMonitoring());
+        }
+
         if (api.getProperties() != null) {
             jgen.writeObjectFieldStart("properties");
             api.getProperties().forEach((s, property) -> {

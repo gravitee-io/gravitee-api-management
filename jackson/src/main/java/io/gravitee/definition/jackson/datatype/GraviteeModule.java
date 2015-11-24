@@ -40,6 +40,7 @@ public class GraviteeModule extends SimpleModule {
         addDeserializer(Proxy.class, new ProxyDeserializer(Proxy.class));
         addDeserializer(HttpClient.class, new HttpClientDeserializer(HttpClient.class));
         addDeserializer(HttpProxy.class, new HttpProxyDeserializer(HttpProxy.class));
+        addDeserializer(Monitoring.class, new MonitoringDeserializer(Monitoring.class));
 
         // then serializers:
         addSerializer(Api.class, new ApiSerializer(Api.class));
@@ -49,6 +50,7 @@ public class GraviteeModule extends SimpleModule {
         addSerializer(Proxy.class, new ProxySerializer(Proxy.class));
         addSerializer(HttpClient.class, new HttpClientSerializer(HttpClient.class));
         addSerializer(HttpProxy.class, new HttpProxySerializer(HttpProxy.class));
+        addSerializer(Monitoring.class, new MonitoringSerializer(Monitoring.class));
     }
 
     @Override

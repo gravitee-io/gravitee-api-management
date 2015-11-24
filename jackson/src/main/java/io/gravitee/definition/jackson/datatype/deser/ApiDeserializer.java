@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Monitoring;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
 
@@ -70,6 +71,11 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
             api.setProxy(proxyNode.traverse(jp.getCodec()).readValueAs(Proxy.class));
         } else {
             throw ctxt.mappingException("Proxy part of API is required");
+        }
+
+        JsonNode monitoringNode = node.get("monitoring");
+        if (monitoringNode != null) {
+            api.setMonitoring(monitoringNode.traverse(jp.getCodec()).readValueAs(Monitoring.class));
         }
 
         JsonNode pathsNode = node.get("paths");
