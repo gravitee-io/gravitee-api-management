@@ -13,28 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
-
-var path = require('path');
-var gulp = require('gulp');
-var conf = require('./conf');
-
-var karma = require('karma');
-
-function runTests (singleRun, done) {
-  karma.server.start({
-    configFile: path.join(__dirname, '/../karma.conf.js'),
-    singleRun: singleRun,
-    autoWatch: !singleRun
-  }, function() {
-    done();
-  });
+class ApiPortalController {
+  constructor () {
+    'ngInject';
+  }
 }
 
-gulp.task('test', ['scripts'], function(done) {
-  //runTests(true, done);
-});
-
-gulp.task('test:dev', ['watch'], function(done) {
-  runTests(false, done);
-});
+export default ApiPortalController;

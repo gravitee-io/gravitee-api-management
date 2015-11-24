@@ -13,28 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+function DialogApiController($scope, $mdDialog, ApiService, api) {
+  'ngInject';
 
-var path = require('path');
-var gulp = require('gulp');
-var conf = require('./conf');
+  $scope.api = api;
+  $scope.editMode = api;
 
-var karma = require('karma');
+  $scope.hide = function () {
+    $mdDialog.hide();
+  };
 
-function runTests (singleRun, done) {
-  karma.server.start({
-    configFile: path.join(__dirname, '/../karma.conf.js'),
-    singleRun: singleRun,
-    autoWatch: !singleRun
-  }, function() {
-    done();
-  });
+  $scope.save = function () {
+    if ($scope.editMode) {
+      ApiService.update($scope.api).then(function () {
+        $mdDialog.hide(api);
+      }).catch(function (error) {
+        $scope.error = error;
+      });
+    } else {
+      ApiService.create($scope.api).then(function () {
+        $mdDialog.hide(api);
+      }).catch(function (error) {
+        $scope.error = error;
+      });
+    }
+  };
 }
 
-gulp.task('test', ['scripts'], function(done) {
-  //runTests(true, done);
-});
-
-gulp.task('test:dev', ['watch'], function(done) {
-  runTests(false, done);
-});
+export default DialogApiController;

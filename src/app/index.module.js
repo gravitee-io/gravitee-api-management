@@ -24,9 +24,12 @@ import delegatorConfig from './index.delegator';
 
 import runBlock from './index.run';
 import MainController from './main/main.controller';
-import ChartDirective from './api/chart.directive';
+import ChartDirective from './components/chart/chart.directive';
 import ApiService from './api/api.service';
-import ApiController from './api/api.controller';
+import ApisController from './api/apis.controller';
+import ApiPortalController from './api/portal/apiPortal.controller';
+import ApiAdminController from './api/admin/apiAdmin.controller';
+import DialogApiController from './api/dialog/apiDialog.controller';
 import TeamService from './user/team.service';
 import UserService from './user/user.service';
 import UserController from './user/user.controller';
@@ -42,23 +45,26 @@ import ApplicationController from './application/application.controller';
 import ApplicationService from './application/application.service';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
-	'ngMdIcons', 'chart.js', 'ui.codemirror', 'md.data.table'])
+    'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies'])
   .constant('malarkey', malarkey)
   .constant('moment', moment)
-  .constant('baseURL', 'http://localhost:8083/management/')
+  .constant('baseURL', 'https://demo.gravitee.io/management/')
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
-	.config(delegatorConfig)
-	.config(function($mdThemingProvider) {
-		$mdThemingProvider.theme('default')
-		  .primaryPalette('blue-grey')
-		  .accentPalette('blue');
-	})
+  .config(delegatorConfig)
+  .config(function ($mdThemingProvider) {
+    $mdThemingProvider.theme('default')
+      .primaryPalette('blue-grey')
+      .accentPalette('blue');
+  })
   .run(runBlock)
   .controller('MainController', MainController)
   .service('ApiService', ApiService)
-  .controller('ApiController', ApiController)
+  .controller('ApisController', ApisController)
+  .controller('ApiAdminController', ApiAdminController)
+  .controller('ApiPortalController', ApiPortalController)
+  .controller('DialogApiController', DialogApiController)
   .service('TeamService', TeamService)
   .service('UserService', UserService)
   .controller('UserController', UserController)
@@ -69,7 +75,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .service('DocumentationService', DocumentationService)
   .controller('ProfileController', ProfileController)
   .controller('ApplicationController', ApplicationController)
-	.service('ApplicationService', ApplicationService)
+  .service('ApplicationService', ApplicationService)
   .directive('graviteeNavbar', () => new NavbarDirective())
   .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective());

@@ -22,41 +22,54 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'MainController',
       controllerAs: 'mainCtrl'
     })
-    .state('login', {
-      url: '/login',
-      templateUrl: 'app/login/login.html',
-      controller: 'LoginController',
-      controllerAs: 'loginCtrl'
-    })
     .state('apis', {
+      abstract: true,
       url: '/apis',
       templateUrl: 'app/api/apis.html',
-      controller: 'ApiController',
+      controller: 'ApisController',
+      controllerAs: 'apisCtrl'
+    })
+    .state('apis.list', {
+      abstract: true,
+      url: '/',
+      templateUrl: 'app/api/apisList.html'
+    })
+    .state('apis.list.table', {
+      url: 'table',
+      templateUrl: 'app/api/apisTableMode.html'
+    })
+    .state('apis.list.thumb', {
+      url: 'thumb',
+      templateUrl: 'app/api/apisThumbMode.html'
+    })
+    .state('apis.portal', {
+      abstract: true,
+      url: '/:apiName',
+      templateUrl: 'app/api/portal/apiPortal.html',
+      controller: 'ApiPortalController',
       controllerAs: 'apiCtrl'
     })
-		.state('apisStub', {
-      url: '/apis_stub',
-      templateUrl: 'app/api/apis_stub.html',
-      controller: 'ApiController',
+    .state('apis.admin', {
+      url: '/:apiName/settings',
+      templateUrl: 'app/api/admin/apiAdmin.html',
+      controller: 'ApiAdminController',
       controllerAs: 'apiCtrl'
     })
-		.state('api', {
-      url: '/apis/:apiName',
-      templateUrl: 'app/api/api.html',
-      controller: 'ApiController',
-      controllerAs: 'apiCtrl'
+    .state('apis.admin.dashboard', {
+      url: '/dashboard',
+      templateUrl: 'app/api/admin/apiDashboard.html'
     })
-    .state('teams', {
-      url: '/teams',
-      templateUrl: 'app/user/users.html',
-      controller: 'UserController',
-      controllerAs: 'userCtrl'
+    .state('apis.admin.policies', {
+      url: '/policies',
+      templateUrl: 'app/api/admin/apiPolicies.html'
     })
-		.state('team', {
-      url: '/teams/:teamName',
-      templateUrl: 'app/user/team.html',
-      controller: 'UserController',
-      controllerAs: 'userCtrl'
+    .state('apis.admin.documentation', {
+      url: '/documentation',
+      templateUrl: 'app/api/admin/apiDocumentation.html'
+    })
+    .state('apis.admin.general', {
+      url: '/general',
+      templateUrl: 'app/api/admin/apiGeneral.html'
     })
     .state('documentation', {
       url: '/documentation',
@@ -76,7 +89,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApplicationController',
       controllerAs: 'applicationCtrl'
     })
-		.state('application', {
+    .state('application', {
       url: '/applications/:applicationName',
       templateUrl: 'app/application/application.html',
       controller: 'ApplicationController',

@@ -1,4 +1,4 @@
-[![Build Status](http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-management-webui)](http://build.gravitee.io/jenkins/view/Tous/job/gravitee-management-webui/)
+[![Build Status](https://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-management-webui)](https://build.gravitee.io/jenkins/view/Tous/job/gravitee-management-webui/)
 # Gravitee Management Webui
 
 # Install

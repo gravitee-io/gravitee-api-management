@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 /* global document:false */
-class ApiController {
-  constructor (ApiService, $stateParams, $mdDialog, NotificationService, $scope) {
+class ApiAdminController {
+  constructor (ApiService, $state, $mdDialog, NotificationService, $scope) {
     'ngInject';
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
@@ -23,9 +23,8 @@ class ApiController {
     this.$scope = $scope;
 
     this.apis = [];
-    if ($stateParams.apiName) {
-      this.get($stateParams.apiName);
-      this.listPolicies($stateParams.apiName);
+    if ($state.params.apiName) {
+      this.get($state.params.apiName);
     } else {
       this.list();
     }
@@ -74,6 +73,16 @@ class ApiController {
         data: [50.0, 6.9, 9.5, 14.5, 18.2, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
       }]
     };
+
+    if ($state.current.name.endsWith('dashboard')) {
+      $scope.selectedTab = 0;
+    } else if ($state.current.name.endsWith('general')) {
+      $scope.selectedTab = 1;
+    } else if ($state.current.name.endsWith('policies')) {
+      $scope.selectedTab = 2;
+    } else if ($state.current.name.endsWith('documentation')) {
+      $scope.selectedTab = 3;
+    }
   }
 
   get(apiName) {
@@ -116,75 +125,6 @@ class ApiController {
       };
     });
   }
-
-  showApiModal(api) {
-    var that = this;
-    this.$mdDialog.show({
-      controller: DialogApiController,
-      templateUrl: 'app/api/api.dialog.html',
-      parent: angular.element(document.body),
-      api: api
-    }).then(function (api) {
-      if (api) {
-        that.list();
-      }
-    });
-  }
-
-  update(api) {
-    this.ApiService.update(api).then(() => {
-      this.$scope.formApi.$setPristine();
-      this.NotificationService.show('Api updated with success');
-    });
-  }
-
-  bgColorByIndex(index) {
-    switch (index % 6) {
-      case 0 :
-        return '#f39c12';
-      case 1 :
-        return '#29b6f6';
-      case 2 :
-        return '#26c6da';
-      case 3 :
-        return '#26a69a';
-      case 4 :
-        return '#259b24';
-      case 5 :
-        return '#26a69a';
-      default :
-        return 'black';
-    }
-  }
-
-  // documentation
 }
 
-function DialogApiController($scope, $mdDialog, ApiService, api) {
-  'ngInject';
-
-  $scope.api = api;
-  $scope.editMode = api;
-
-  $scope.hide = function () {
-    $mdDialog.hide();
-  };
-
-  $scope.save = function () {
-    if ($scope.editMode) {
-      ApiService.update($scope.api).then(function () {
-        $mdDialog.hide(api);
-      }).catch(function (error) {
-        $scope.error = error;
-      });
-    } else {
-      ApiService.create($scope.api).then(function () {
-        $mdDialog.hide(api);
-      }).catch(function (error) {
-        $scope.error = error;
-      });
-    }
-  };
-}
-
-export default ApiController;
+export default ApiAdminController;

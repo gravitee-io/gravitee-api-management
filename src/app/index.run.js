@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function runBlock ($rootScope, $window, $http) {
+function runBlock ($rootScope, $window, $http, $cookieStore) {
   'ngInject';
   var graviteeAuthenticationKey = 'GraviteeAuthentication';
 
   function setAuthorization() {
-    var graviteeAuthentication = $window.sessionStorage.getItem(graviteeAuthenticationKey);
+    var graviteeAuthentication = $cookieStore.get(graviteeAuthenticationKey);
     if (graviteeAuthentication) {
       $http.defaults.headers.common.Authorization = 'Basic ' + graviteeAuthentication;
       $rootScope.authenticated = true;
@@ -35,7 +35,7 @@ function runBlock ($rootScope, $window, $http) {
   });
 
   $rootScope.$on('graviteeLogout', function() {
-    $window.sessionStorage.removeItem(graviteeAuthenticationKey);
+    $cookieStore.remove(graviteeAuthenticationKey);
     $window.location.href = '/';
   });
 

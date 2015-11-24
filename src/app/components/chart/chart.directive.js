@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global FileReader:false */
 class ChartDirective {
   constructor() {
     'ngInject';
@@ -25,22 +24,21 @@ class ChartDirective {
       scope: {
         config: '='
       },
-      link: function (scope, element, attrs) {
+      link: function (scope, element) {
         var chart;
         var process = function () {
           var defaultOptions = {
             chart: { renderTo: element[0] },
           };
 
-          console.log(element[0]);
           var config = angular.extend(defaultOptions, scope.config);
           chart = new Highcharts.Chart(config);
         };
         process();
-        scope.$watch("config.series", function (loading) {
+        scope.$watch('config.series', function () {
           process();
         });
-        scope.$watch("config.loading", function (loading) {
+        scope.$watch('config.loading', function (loading) {
           if (!chart) {
             return;
           }

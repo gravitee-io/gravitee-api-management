@@ -16,10 +16,10 @@
 
 -->
 <div layout="row" layout-wrap class="inset">
-	<div class="apis-box" flex="33" ng-repeat="api in apiCtrl.apis">
-		<a href="#/apis/{{api.name}}">
+	<div class="apis-box" flex="33" ng-repeat="api in apisCtrl.apis">
+		<a ui-sref="apis.admin.dashboard({apiName: api.name})">
 			<md-card class="api-box">
-				<div class="api-box-header" ng-style="{'background-color': apiCtrl.bgColorByIndex($index)}">
+				<div class="api-box-header" ng-style="{'background-color': apisCtrl.bgColorByIndex($index)}">
 					<h3>{{api.name}}</h3>
 					<h4>{{api.description}}</h4>
 					<h5>{{api.version}}</h5>
@@ -48,10 +48,10 @@
 </div>
 <div style="text-align:center;">
 	<ul class="pagination">
-		<li><a href="#">1</a></li>
-		<li><a href="#">2</a></li>
-		<li><a href="#">3</a></li>
-		<li><a href="#">4</a></li>
-		<li><a href="#">5</a></li>
+		<li><a href="">1</a></li>
+		<li><a href="">2</a></li>
+		<li><a href="">3</a></li>
+		<li><a href="">4</a></li>
+		<li><a href="">5</a></li>
 	</ul>
 </div>

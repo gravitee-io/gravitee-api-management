@@ -77,7 +77,7 @@
             </a>
            </md-item>
            <md-item>
-             <a href="#/apis">
+             <a href="" ui-sref="apis.list.thumb">
                <md-item-content md-ink-ripple layout="row" layout-align="start center">
                  <div class="inset">
                    <ng-md-icon icon="dashboard"></ng-md-icon>
@@ -102,7 +102,7 @@
         <header>
           <gravitee-navbar />
         </header>
-			  <section ui-view></section>
+			  <div ui-view></div>
 			</md-content>
     </div>
 
@@ -126,11 +126,8 @@
 
 		<!-- Angular Material icons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-material-icons/0.6.0/angular-material-icons.min.js"></script>
-    <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.10.9/js/dataTables.bootstrap.min.js"></script>
 		<!-- raml console dependencies -->
 		<script src="assets/api-console/distribution/scripts/api-console-vendor.js" type="text/javascript" ></script>
-    <script src="https://code.highcharts.com/highcharts.js"></script>
 		<script src="assets/api-console/distribution/scripts/api-console.js" type="text/javascript"></script>
 		<script type="text/javascript">
 		  $.noConflict();

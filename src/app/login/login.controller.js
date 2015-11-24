@@ -15,12 +15,12 @@
  */
 /* global btoa:false */
 class LoginController {
-  constructor (LoginService, $location, $window, $rootScope, NotificationService) {
+  constructor (LoginService, $location, $cookieStore, $rootScope, NotificationService) {
     'ngInject';
     this.LoginService = LoginService;
     this.NotificationService = NotificationService;
     this.$location = $location;
-		this.$window = $window;
+		this.$cookieStore = $cookieStore;
 		this.$rootScope = $rootScope;
     this.user = {};
   }
@@ -28,7 +28,7 @@ class LoginController {
   login() {
     var that = this;
     this.LoginService.login(this.user).then(function() {
-			that.$window.sessionStorage.setItem('GraviteeAuthentication', btoa(that.user.username + ":" + that.user.password));			
+			that.$cookieStore.put('GraviteeAuthentication', btoa(that.user.username + ":" + that.user.password));
 			that.user = {};
 			that.$rootScope.$broadcast('authenticationSuccess');
       that.$location.path('/');

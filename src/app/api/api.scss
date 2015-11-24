@@ -57,21 +57,21 @@ $flowRadius: 120px;
 }
 
 .content-header {
-		margin-top: 60px;
-    position: relative;
-    padding: 15px 15px 0px;
+  margin-top: 60px;
+  position: relative;
+  padding: 15px 15px 0px;
 }
 
 .content-header > h1 {
-    margin: 0px;
-    font-size: 24px;
+  margin: 10px;
+  font-size: 24px;
 }
 
 .content-header > h1 > small {
-    font-size: 15px;
-    display: inline-block;
-    padding-left: 4px;
-    font-weight: 300;
+  font-size: 15px;
+  display: inline-block;
+  padding-left: 4px;
+  font-weight: 300;
 }
 
 md-toolbar:not(.md-hue-1),
@@ -85,10 +85,10 @@ ng-md-icon {
 }
 
 .demo-container {
-border-radius: 4px;
-margin-bottom: 16px;
--webkit-transition: 0.02s padding cubic-bezier(0.35, 0, 0.25, 1);
-transition: 0.02s padding cubic-bezier(0.35, 0, 0.25, 1);
-position: relative;
-padding-bottom: 0;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  -webkit-transition: 0.02s padding cubic-bezier(0.35, 0, 0.25, 1);
+  transition: 0.02s padding cubic-bezier(0.35, 0, 0.25, 1);
+  position: relative;
+  padding-bottom: 0;
 }

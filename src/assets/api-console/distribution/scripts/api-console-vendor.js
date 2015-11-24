@@ -3751,7 +3751,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
       }
       xhr.setRequestHeader('Accept', 'application/raml+yaml, */*');
       // hack to add specific Gravitee Authentication Header
-			xhr.setRequestHeader('Authorization', 'Basic '+window.sessionStorage.getItem('GraviteeAuthentication'));
+			xhr.setRequestHeader('Authorization', 'Basic '+ getCookie('GraviteeAuthentication'));
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
           if (xhr.status === 200 || xhr.status === 304) {
@@ -3768,6 +3768,12 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
     return FileReader;
 
   })();
+
+  function getCookie(name) {
+    var value = "; " + document.cookie;
+    var parts = value.split("; " + name + "=");
+    if (parts.length == 2) return parts.pop().split(";").shift();
+  }
 
   /*
   OO version of the parser, static functions will be removed after consumers move on to use the OO version
