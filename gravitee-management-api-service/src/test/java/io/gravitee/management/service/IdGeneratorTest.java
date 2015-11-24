@@ -58,4 +58,12 @@ public class IdGeneratorTest {
         String id = generator.generate("My  API#?=");
         Assert.assertEquals("My-API-", id);
     }
+
+    @Test
+    public void shouldGenerateCorrectId5() {
+        IdGenerator generator = new IdGeneratorImpl();
+
+        String id = generator.generate("éererer");
+        Assert.assertEquals("-ererer", id);
+    }
 }
