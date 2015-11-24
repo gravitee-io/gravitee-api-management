@@ -75,7 +75,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 throw new ApiAlreadyExistsException(id);
             }
 
-            Api api = convert(newApiEntity);
+            Api api = convert(id, newApiEntity);
 
             if (api != null) {
                 api.setId(id);
@@ -351,9 +351,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         if (api.getDefinition() != null) {
             try {
-                ApiDefinition definition = objectMapper.readValue(api.getDefinition(), ApiDefinition.class);
-                apiEntity.setProxy(definition.getProxy());
-                apiEntity.setPaths(definition.getPaths());
+                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(api.getDefinition(),
+                        io.gravitee.definition.model.Api.class);
+
+                apiEntity.setProxy(apiDefinition.getProxy());
+                apiEntity.setPaths(apiDefinition.getPaths());
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while generating API definition", ioe);
             }
@@ -393,7 +395,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         return apiItem;
     }
 
-    private Api convert(NewApiEntity newApiEntity) {
+    private Api convert(String apiId, NewApiEntity newApiEntity) {
         Api api = new Api();
 
         api.setName(newApiEntity.getName().trim());
@@ -401,7 +403,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         api.setDescription(newApiEntity.getDescription().trim());
 
         try {
-            ApiDefinition apiDefinition = new ApiDefinition();
+            io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
+            apiDefinition.setId(apiId);
             apiDefinition.setName(newApiEntity.getName());
             apiDefinition.setVersion(newApiEntity.getVersion());
             apiDefinition.setProxy(newApiEntity.getProxy());
@@ -417,7 +420,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         return null;
     }
 
-    private Api convert(String apiName, UpdateApiEntity updateApiEntity) {
+    private Api convert(String apiId, UpdateApiEntity updateApiEntity) {
         Api api = new Api();
 
         if (updateApiEntity.getVisibility() != null) {
@@ -429,8 +432,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         api.setDescription(updateApiEntity.getDescription().trim());
 
         try {
-            ApiDefinition apiDefinition = new ApiDefinition();
-            apiDefinition.setName(apiName);
+            io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
+            apiDefinition.setId(apiId);
+            apiDefinition.setName(updateApiEntity.getName());
             apiDefinition.setVersion(updateApiEntity.getVersion());
             apiDefinition.setProxy(updateApiEntity.getProxy());
             apiDefinition.setPaths(updateApiEntity.getPaths());
