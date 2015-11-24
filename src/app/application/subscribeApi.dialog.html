@@ -28,15 +28,15 @@
       </md-toolbar>
       <md-dialog-content>
 				<div class="md-padding">
-					<label ng-repeat="api in apis">
-						<input
-							type="checkbox"
-							name="selectedApis[]"
-							value="{{api.name}}"
-							ng-checked="selection.indexOf(api.name) > -1"
-							ng-click="selectApi(api.name)"
-						> {{api.name}}
-					</label>
+					<label>Filter: <input ng-model="searchAPI"></label>
+					<span ng-repeat="api in apis | filter:searchAPI"">
+						<md-checkbox 
+							value="{{api.id}}" 
+							aria-label="{{api.name}}" 
+							ng-click="selectApi(api)">
+				      {{ api.name }}
+				    </md-checkbox>
+					</span>
 				</div>
       </md-dialog-content>
       <div class="md-actions" layout="row">

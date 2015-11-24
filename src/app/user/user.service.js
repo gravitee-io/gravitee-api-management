@@ -36,6 +36,10 @@ class UserService {
   create(user) {
     return this.$http.post(this.usersURL, user);
   }
+
+	findLDAP(query) {
+		return this.$http.get(this.usersURL + "ldap?query=" + query);   
+	}	
 }
 
 export default UserService;

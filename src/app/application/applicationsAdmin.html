@@ -30,7 +30,7 @@
 		</thead>
 		<tbody>
 		<tr md-auto-select ng-repeat="application in applicationCtrl.applications">
-			<td><a href="#/applications/{{application.name}}">{{application.name}}</a></td>
+			<td><a href="#/applications/{{application.id}}">{{application.name}}</a></td>
 			<td>{{application.type}}</td>
 			<td>
 					<md-button ng-click="applicationCtrl.delete(application.name)"><ng-md-icon icon="delete" style="fill:red;"></ng-md-icon></md-button>

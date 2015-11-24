@@ -21,50 +21,50 @@ class ApplicationService {
     this.applicationsURL = baseURL + 'applications/';
   }
 
-	get(name) {
-    return this.$http.get(this.applicationsURL + name);
+	get(applicationId) {
+    return this.$http.get(this.applicationsURL + applicationId);
   }
 	
-	getAssociatedAPIs(name) {
-		return this.$http.get(this.applicationsURL + name + '/apis');
+	getAssociatedAPIs(applicationId) {
+		return this.$http.get(this.applicationsURL + applicationId + '/apis');
 	}
 
-	getMembers(name) {
-		return this.$http.get(this.applicationsURL + name + '/members');
+	getMembers(applicationId) {
+		return this.$http.get(this.applicationsURL + applicationId + '/members');
 	}
 
-	addOrUpdateMember(applicationName, member) {
-		return this.$http.post(this.applicationsURL + applicationName + '/members', member);
+	addOrUpdateMember(applicationId, member) {
+		return this.$http.post(this.applicationsURL + applicationId + '/members?user=' + member.user + '&type=' + member.type);
 	}
 
-	deleteMember(applicationName, memberUsername) {
-		return this.$http.delete(this.applicationURL + applicationName + '/members/' + memberUsername);
+	deleteMember(applicationId, memberUsername) {
+		return this.$http.delete(this.applicationsURL + applicationId + '/members?user=' + memberUsername);
 	}
 	
 	list() {
-    return this.$http.get(this.baseURL + 'user/applications/');
+    return this.$http.get(this.applicationsURL);
   }
 
 	create(application) {
-    return this.$http.post(this.baseURL + 'user/applications/', application);
+    return this.$http.post(this.applicationsURL, application);
   }
 
   update(application) {
-    return this.$http.put(this.applicationsURL + application.name,
-      {'description': application.description, 'type': application.type}
+    return this.$http.put(this.applicationsURL + application.id,
+      {'name': application.name, 'description': application.description, 'type': application.type}
     );
   }
 
-	subscribe(application, apiName, apiKey) {
-		return this.$http.post(this.applicationsURL + application.name + '/' + apiName);
+	subscribe(application, apiId) {
+		return this.$http.post(this.applicationsURL + application.id + '/' + apiId);
 	}
 
-	unsubscribe(application, apiName, apiKey) {
-		return this.$http.delete(this.applicationsURL + application.name + '/' + apiName + '/' + apiKey);
+	unsubscribe(application, apiId, apiKey) {
+		return this.$http.delete(this.applicationsURL + application.id + '/' + apiId + '/' + apiKey);
 	}
 
-	getAPIKey(applicationName, apiName) {
-		return this.$http.get(this.applicationsURL + applicationName + '/' + apiName);
+	getAPIKey(applicationId, apiId) {
+		return this.$http.get(this.applicationsURL + applicationId + '/' + apiId);
 	}
 
   delete(name) {

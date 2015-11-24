@@ -16,7 +16,6 @@
 
 -->
   <md-dialog aria-label="Creation of a new application">
-    <md-content class="md-padding">
     <form name="formApplication" ng-submit="create(application)" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
@@ -28,28 +27,27 @@
         </div>
       </md-toolbar>
       <md-dialog-content>
-        <div layout="">
-          <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
-          <md-input-container>
-            <label>Name *</label>
-            <input ng-model="application.name" required>
-          </md-input-container>
-        </div>
-        <div layout="">
-          <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
-          <md-input-container>
-            <label>Description *</label>
-            <input ng-model="application.description" required>
-          </md-input-container>
-        </div>
-        <div layout="">
-          <md-icon md-svg-src="assets/images/icons/rocket.svg"></md-icon>
-          <md-input-container>
-            <label>Type</label>
-            <input ng-model="application.type" required>
-          </md-input-container>
-        </div>
-        <md-subheader class="md-warn" ng-bind="error"></md-subheader>
+				<div class="layout-padding">
+		      <div layout="">
+		        <md-input-container>
+		          <label>Name *</label>
+		          <input ng-model="application.name" required>
+		        </md-input-container>
+		      </div>
+		      <div layout="">
+		        <md-input-container>
+		          <label>Description *</label>
+		          <input ng-model="application.description" required>
+		        </md-input-container>
+		      </div>
+		      <div layout="">
+		        <md-input-container>
+		          <label>Type</label>
+		          <input ng-model="application.type" required>
+		        </md-input-container>
+		      </div>
+		      <md-subheader class="md-warn" ng-bind="error"></md-subheader>
+				</div>
       </md-dialog-content>
 
       <div class="md-actions" layout="row">
@@ -61,5 +59,4 @@
         </md-button>
       </div>
     </form>
-    </md-content>
   </md-dialog>

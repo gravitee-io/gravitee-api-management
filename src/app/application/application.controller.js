@@ -21,105 +21,63 @@ class ApplicationController {
 		this.$q = $q;
 		this.ApplicationService = ApplicationService;
 		this.NotificationService = NotificationService;
-		this.applicationName = $stateParams.applicationName;
+		this.applicationId = $stateParams.applicationId;
 		this.application = {};
 		this.applications = [];
 		this.associatedAPIs = [];
 		this.members = [];
-		this.membershipTypes = [ 'OWNER', 'USER' ];
-		if (this.applicationName) {
-				this.get(this.applicationName);
-				this.getAssociatedAPIs(this.applicationName);
-				this.getMembers(this.applicationName);
+		this.membershipTypes = [ 'PRIMARY_OWNER', 'OWNER', 'USER' ];
+		if (this.applicationId) {
+				this.get(this.applicationId);
+				this.getAssociatedAPIs(this.applicationId);
+				this.getMembers(this.applicationId);
 		} else {
 			this.list();
 		}
 	}
 
-	get(name) {
-		this.application = {
-			"name": name,
-			"description": name + "'s description",
-			"type": "web"
-		};
-		//this.ApplicationService.get(name).then(response => {
-    //  this.application = response.data;
-    //});
+	get(applicationId) {
+		this.ApplicationService.get(applicationId).then(response => {
+      this.application = response.data;
+    });
   }
 
-	getAssociatedAPIs(applicationName) {
-		this.associatedAPIs = [
-			{
-				"api": {
-					"name": "API 1",
-					"version": "v1"
-				},
-				"apiKey": {
-					"key": "16789-fGHJKLM-fgyhujik-123344",
-					"revoked": false
-				}
-			},
-			{
-				"api": {
-					"name": "API 2",
-					"version": "v1"
-				},
-				"apiKey": {
-					"key": "98766-DEDEDE-xcvbnbvn-765678",
-					"revoked": false
-				}
+	getAssociatedAPIs(applicationId) {
+		this.ApplicationService.getAssociatedAPIs(applicationId).then(response => {
+			var _associatedAPIs = response.data;
+			var promises = [];
+			for (var i = 0; i < _associatedAPIs.length; i++) {
+				var api = _associatedAPIs[i];
+				promises.push(this.ApplicationService.getAPIKey(applicationId, api.id));
 			}
-		];
-		//	this.ApplicationService.getAssociatedAPIs(applicationName).then(response => {
-		//	var _associatedAPIs = response.data;
-		//	var promises = [];
-		//	for (var i = 0; i < _associatedAPIs.length; i++) {
-		//		var api = _associatedAPIs[i];
-		//		promises.push(this.ApplicationService.getAPIKey(applicationName, api.name));
-		//	}
-		//	this.$q.all(promises).then(results => {
-		//		for (var i = 0; i < _associatedAPIs.length; i++) {
-		//			var apiKey = { "api": _associatedAPIs[i], "apiKey" : results[i].data };
-		//		  this.associatedAPIs.push(apiKey);
-		//		}	
-		//	});
-		//});
+			this.$q.all(promises).then(results => {
+				for (var i = 0; i < _associatedAPIs.length; i++) {
+					var apiKey = { "api": _associatedAPIs[i], "apiKey" : results[i].data };
+					this.associatedAPIs.push(apiKey);
+				}	
+			});
+		});
 	}
 
-	getMembers(applicationName) {
-		this.members = [ 
-			{
-				"user": "username1",
-				"type" : "OWNER"
-			},
-			{
-				"user": "username2",
-				"type" : "USER"
-			},
-			{
-				"user": "username3",
-				"type" : "USER"
-			}			
-		];
-		//this.ApplicationService.getMembers(applicationName).then(response => {
-		//	this.members = response.data;
-		//});
+	getMembers(applicationId) {
+		this.ApplicationService.getMembers(applicationId).then(response => {
+			this.members = response.data;
+		});
 	}
 
 	updateMember(member) {
-		console.log(member);
-		//this.AppplicationService.addOrUpdateMember(this.application.name, member).then(response => {
-		//});
+		console.log(JSON.stringify(member));
+		this.ApplicationService.addOrUpdateMember(this.application.id, member).then(response => {
+			this.NotificationService.show('Member updated');
+		});
 	}
 
 	deleteMember(member) {
 		var index = this.members.indexOf(member);
-  	this.members.splice(index, 1);
-		this.NotificationService.show("Member " + member.user + " removed");    
-		//this.AppplicationService.deleteMember(this.application.name, member.user).then(response => {
-		//	this.members.splice(index, 1);
-		//	this.NotificationService.show("Member " + member.user + " has been removed successfully");		
-		//});
+		this.ApplicationService.deleteMember(this.application.id, member.user).then(response => {
+			this.members.splice(index, 1);
+			this.NotificationService.show("Member " + member.user + " has been removed successfully");		
+		});
 	}
 
 	list() {
@@ -140,9 +98,16 @@ class ApplicationController {
 		});
   }
 
-	unsubscribeAPI(application, apiName, apiKey) {
-		this.ApplicationService.unsubscribe(application, apiName, apiKey).then(response => {
+	unsubscribeAPI(application, apiId, apiKey) {
+		this.ApplicationService.unsubscribe(application, apiId, apiKey).then(response => {
 			this.NotificationService.show('Application unsubscribed');
+		});
+	}
+
+	generateAPIKey(application, apiId) {
+		this.ApplicationService.subscribe(application, apiId).then(response => {
+			this.NotificationService.show('New API Key created');
+			this.getAssociatedAPIs(application);
 		});
 	}
 
@@ -175,7 +140,7 @@ class ApplicationController {
 			associatedAPIs: that.associatedAPIs
     }).then(function (application) {
       if (application) {
-        that.list();
+        that.getAssociatedAPIs(application.id);
       }
     }, function() {
        // You cancelled the dialog
@@ -193,7 +158,7 @@ class ApplicationController {
 			application: that.application
     }).then(function (application) {
       if (application) {
-        that.list();
+        that.getMembers(application.id);
       }
     }, function() {
        // You cancelled the dialog
@@ -241,6 +206,7 @@ function DialogApplicationController($scope, $mdDialog, ApplicationService, Noti
 function DialogSubscribeApiController($scope, $mdDialog, application, associatedAPIs, ApplicationService, NotificationService, ApiService) {
   'ngInject';
 
+	$scope.searchAPI = "";
 	$scope.apis = [];
 	$scope.apisSelected = [];
 	$scope.application = application;
@@ -251,7 +217,7 @@ function DialogSubscribeApiController($scope, $mdDialog, application, associated
 			var _api = _apis[i];
 			var exist = false;
 			for(var j = 0; j < associatedAPIs.length; j++) {
-				if (_api.name === associatedAPIs[j].api.name) {
+				if (_api.id === associatedAPIs[j].api.id) {
 					exist = true;
 					break;
 				}
@@ -266,55 +232,83 @@ function DialogSubscribeApiController($scope, $mdDialog, application, associated
      $mdDialog.cancel();
   };
 
-	$scope.selectApi = function(apiName) {
-		var idx = $scope.apisSelected.indexOf(apiName);
+	$scope.selectApi = function(api) {
+		var idx = $scope.apisSelected.indexOf(api.id);
     if (idx > -1) {
       $scope.apisSelected.splice(idx, 1);
     }
     else {
-      $scope.apisSelected.push(apiName);
+      $scope.apisSelected.push(api.id);
     }
 	};
 
 	$scope.subscribe = function(application) {
 		for (var i = 0; i < $scope.apisSelected.length; i++) {
-				var apiName = $scope.apisSelected[i];
-				ApplicationService.subscribe(application, apiName).then(function() {
-					NotificationService.show('Application has subscribed to api ' + apiName);
+				var apiId = $scope.apisSelected[i];
+				ApplicationService.subscribe(application, apiId).then(function() {
+					NotificationService.show('Application has subscribed to api ' + apiId);
 				}).catch(function (error) {
-					NotificationService.show('Error while subscribing for api ' + apiName);
+					NotificationService.show('Error while subscribing for api ' + apiId);
 				  $scope.error = error;
 				});
 		}
+		$mdDialog.hide(application);
 	};
 }
 
 function DialogAddMemberController($scope, $mdDialog, application, ApplicationService, UserService, NotificationService) {
   'ngInject';
 
+	$scope.application = application;
 	$scope.user = {};
-
+	$scope.usersFound = [];
+	$scope.usersSelected = [];
+	$scope.searchText = "";
+	
   $scope.hide = function () {
      $mdDialog.cancel();
   };
 
 	$scope.searchUser = function (query) {
-		UserService.findByName(query).then(function(response) {
-			$scope.user = response.data;
-		}).catch(function (error) {
-			NotificationService.show('Error while searching members');
-      $scope.error = error;
-		});
+		if (query) {
+			return UserService.findLDAP(query).then(function(response) {
+				return response.data;
+			});
+		}
 	};
 
-  $scope.addMembers = function (application, member) {
-    ApplicationService.addMember(application.name, member).then(function () {
-			NotificationService.show('Member added');
-      $mdDialog.hide(application);
-    }).catch(function (error) {
-			NotificationService.show('Error while adding members');
-      $scope.error = error;
-    });
+  $scope.selectedItemChange = function(item) {
+		if (item) {
+			$scope.usersFound.push(item);
+			$scope.searchText = "";
+		}
+  }
+
+	$scope.selectMember = function(user) {
+		var idx = $scope.usersSelected.indexOf(user.username);
+    if (idx > -1) {
+      $scope.usersSelected.splice(idx, 1);
+    }
+    else {
+      $scope.usersSelected.push(user.username);
+    }
+	};
+
+  $scope.addMembers = function () {
+		for (var i = 0; i < $scope.usersSelected.length; i++) {
+			var username = $scope.usersSelected[i];
+			var member = {
+				"user" : username,
+				"type" : "USER"
+			};
+			ApplicationService.addOrUpdateMember($scope.application.id, member).then(function() {
+				NotificationService.show('Member ' + username + ' added');
+			}).catch(function (error) {
+				NotificationService.show('Error while adding member ' + username);
+			  $scope.error = error;
+			});
+		}
+		$mdDialog.hide($scope.application);
   };
 }
 

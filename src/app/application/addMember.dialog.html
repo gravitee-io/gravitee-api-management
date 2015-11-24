@@ -29,20 +29,32 @@
 			<div class="md-padding">
 				<form ng-submit="$event.preventDefault()">
 				  <md-autocomplete
-				      md-selected-item="ctrl.selectedItem"
-				      md-search-text="ctrl.searchText"
-				      md-items="item in ctrl.querySearch(ctrl.searchText)"
-				      md-item-text="item.display"
-				      md-min-length="0"
+				      md-selected-item="selectedItem"
+				      md-search-text="searchText"
+							md-search-text-change="searchTextChange(searchText)"
+          		md-selected-item-change="selectedItemChange(item)"
+				      md-items="item in searchUser(searchText)"
+				      md-item-text="item.lastname"
+				      md-min-length="1"
 				      placeholder="Search users ...">
 				    <md-item-template>
-				      <span md-highlight-text="ctrl.searchText" md-highlight-flags="^i">{{item.display}}</span>
+				      <span md-highlight-text="searchText" md-highlight-flags="^i">{{item.lastname}}</span>
 				    </md-item-template>
 				    <md-not-found>
-				      No users matching "{{ctrl.searchText}}" were found.
+				      No users matching "{{searchText}}" were found.
 				    </md-not-found>
 				  </md-autocomplete>
 				</form>
+				<div ng-show="usersFound.length > 0">
+					<span ng-repeat="user in usersFound">
+						<md-checkbox
+							value="{{user.username}}" 
+							aria-label="{{user.username}}" 
+							ng-click="selectMember(user)">
+				      {{ user.lastname }}
+				    </md-checkbox>
+					</span>
+				</div>
 			</div>
     </md-dialog-content>
 
@@ -50,7 +62,7 @@
       <md-button type="button" ng-click="hide()" class="md-primary">
         Cancel
       </md-button>
-      <md-button type="submit" class="md-primary" ng-disabled="formSubscribeAPI.$invalid">
+      <md-button type="submit" class="md-primary" ng-click="addMembers()">
         Save
       </md-button>
     </div>

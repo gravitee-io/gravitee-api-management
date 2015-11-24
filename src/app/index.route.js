@@ -90,7 +90,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controllerAs: 'applicationCtrl'
     })
     .state('application', {
-      url: '/applications/:applicationName',
+      url: '/applications/:applicationId',
       templateUrl: 'app/application/application.html',
       controller: 'ApplicationController',
       controllerAs: 'applicationCtrl'

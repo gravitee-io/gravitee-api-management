@@ -76,9 +76,13 @@
 									<tr ng-repeat="associatedAPI in applicationCtrl.associatedAPIs">
 										<td>{{associatedAPI.api.name}}</td>
 										<td>{{associatedAPI.api.version}}</td>
-										<td>{{associatedAPI.apiKey.key}}</td>
+										<td><code>{{associatedAPI.apiKey.key}}</code></td>
 										<td>{{associatedAPI.apiKey.revoked}}</td>
-										<td><md-button class="md-raised md-warn" ng-click="applicationCtrl.unsubscribeAPI(applicationCtrl.application,associatedAPI.api.name, associatedAPI.apiKey.key)">Unsubscribe</md-button></td>
+										<td>
+												<md-button class="md-raised" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application,associatedAPI.api.id)">Renew API Key</md-button>
+												<md-button class="md-raised md-warn" ng-click="applicationCtrl.unsubscribeAPI(applicationCtrl.application,associatedAPI.api.id, associatedAPI.apiKey.key)">Unsubscribe
+												</md-button>
+										</td>
 									</tr>
 								</tbody>
 							</table>
