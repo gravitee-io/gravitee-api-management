@@ -16,18 +16,27 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.rest.resource.param.MembershipTypeParam;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 
-import javax.inject.Inject;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Set;
+
+import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -66,7 +75,12 @@ public class ApplicationMembersResource {
         try {
             userService.findByName(username);
         } catch (UserNotFoundException unfe) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
+        	// Create user with only user name data
+        	// The others information will be updated during its first connection
+        	NewUserEntity user = new NewUserEntity();
+        	user.setUsername(username);
+        	user.setPassword(StringUtils.EMPTY);
+        	userService.create(user);
         }
 
         applicationService.addOrUpdateMember(application, username, membershipType.getValue());

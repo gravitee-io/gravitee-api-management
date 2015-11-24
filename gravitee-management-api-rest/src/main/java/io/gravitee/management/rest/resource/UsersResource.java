@@ -17,19 +17,29 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.service.LDAPService;
 import io.gravitee.management.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.net.URI;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Defines the REST resources to manage Users.
@@ -44,6 +54,9 @@ public class UsersResource {
 
     @Inject
     private UserService userService;
+    
+    @Inject
+    private LDAPService ldapService;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -79,5 +92,12 @@ public class UsersResource {
     @Produces(MediaType.APPLICATION_JSON)
     public UserEntity user(@PathParam("username") String username) {
         return userService.findByName(username);
+    }
+    
+    @GET
+    @Path("ldap")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<UserEntity> findUsersViaLDAP(@QueryParam("query") String query) {
+    	return ldapService.findByCn(query);
     }
 }

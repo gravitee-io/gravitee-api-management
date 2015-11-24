@@ -23,7 +23,13 @@ import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
 
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -79,12 +85,16 @@ public class ApplicationResource extends AbstractResource {
 
         return Response.noContent().build();
     }
+    
+    @Path("apis")
+    public ApplicationApisResource apis() {
+    	return resourceContext.getResource(ApplicationApisResource.class);
+    }
 
     @Path("members")
     public ApplicationMembersResource getApplicationMembersResource() {
         return resourceContext.getResource(ApplicationMembersResource.class);
     }
-
 
     @Path("{api}")
     public ApiKeyResource getApiKey() {

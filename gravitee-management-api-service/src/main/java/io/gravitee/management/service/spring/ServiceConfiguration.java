@@ -15,16 +15,20 @@
  */
 package io.gravitee.management.service.spring;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.plugin.spring.PluginConfiguration;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -44,4 +48,21 @@ public class ServiceConfiguration {
 	public ObjectMapper objectMapper() {
 		return new GraviteeMapper();
 	}
+	
+    @Bean
+    public LdapContextSource contextSource () {
+    	// Embedded LDAP server (launch via the Security Configuration)
+    	// TODO : Retrieve properties for gravitee.yml
+    	// Make it an Identity Provider
+        LdapContextSource contextSource= new LdapContextSource();
+        contextSource.setUrl("ldap://localhost:33389");
+        contextSource.setBase("dc=gravitee,dc=io");
+        return contextSource;
+    }
+
+    @Bean
+    public LdapTemplate ldapTemplate() {
+        return new LdapTemplate(contextSource());        
+    }
+
 }

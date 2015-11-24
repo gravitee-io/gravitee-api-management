@@ -18,6 +18,9 @@ package io.gravitee.management.rest.spring;
 import io.gravitee.management.rest.repository.RepositoryConfiguration;
 import io.gravitee.management.security.config.SecurityConfig;
 import io.gravitee.management.service.spring.ServiceConfiguration;
+
+import java.util.Properties;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -25,8 +28,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
-
-import java.util.Properties;
 
 /**
  *

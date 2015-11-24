@@ -29,6 +29,8 @@ public interface ApiService {
     Set<ApiEntity> findByUser(String username);
 
     Set<ApiEntity> findByVisibility(Visibility visibility);
+    
+    Set<ApiEntity> findByApplication(String applicationId);
 
     ApiEntity create(NewApiEntity api, String username);
 
