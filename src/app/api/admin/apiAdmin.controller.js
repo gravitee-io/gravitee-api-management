@@ -24,7 +24,6 @@ class ApiAdminController {
     this.api = resolvedApi.data;
     this.apis = [];
 
-    this.selectedPolicy = null;
 
     if ($state.current.name.includes('general')) {
       $scope.selectedTab = 0;
@@ -85,17 +84,6 @@ class ApiAdminController {
 
   update(api) {
     this.ApiService.update(api).then(() => {
-    });
-  }
-
-  listPolicies(apiId) {
-    this.ApiService.listPolicies(apiId).then(response => {
-      // TODO filter request, response and request/response policies
-      this.policies = {
-        'OnRequest': response.data,
-        'OnResponse': [],
-        'OnRequest/OnResponse': []
-      };
     });
   }
 

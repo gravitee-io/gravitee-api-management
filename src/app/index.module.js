@@ -29,6 +29,7 @@ import ApiPortalController from './api/portal/apiPortal.controller';
 import ApiAdminController from './api/admin/apiAdmin.controller';
 import ApiAnalyticsController from './api/admin/analytics.controller';
 import ApiMembersController from './api/admin/members.controller';
+import ApiPoliciesController from './api/admin/policies.controller';
 import DialogAddMemberApiController from './api/admin/members/addMemberDialog.controller';
 import DialogApiController from './api/dialog/apiDialog.controller';
 import TeamService from './user/team.service';
@@ -50,9 +51,11 @@ import DialogAddMemberController from './application/dialog/addMemberDialog.cont
 import ApplicationService from './application/details/application.service';
 import SideNavDirective from './components/sidenav/sidenav.directive';
 import PageController from './api/admin/documentation/page/apiPage.controller';
+import PolicyService from './policy/policy.service';
 
-angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
-    'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies'])
+
+angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
+    'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule'])
   .constant('baseURL', '/management/')
   .config(config)
   .config(routerConfig)
@@ -68,6 +71,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .controller('ApisController', ApisController)
   .controller('ApiAdminController', ApiAdminController)
   .controller('ApiAnalyticsController', ApiAnalyticsController)
+  .controller('ApiPoliciesController', ApiPoliciesController)
   .controller('ApiMembersController', ApiMembersController)
   .controller('ApiPortalController', ApiPortalController)
   .controller('DialogApiController', DialogApiController)
@@ -91,4 +95,5 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .directive('graviteeNavbar', () => new NavbarDirective())
   .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective())
-  .directive('graviteeSidenav', () => new SideNavDirective());
+  .directive('graviteeSidenav', () => new SideNavDirective())
+  .service('PolicyService', PolicyService);

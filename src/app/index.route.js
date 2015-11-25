@@ -67,7 +67,9 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
     .state('apis.admin.policies', {
       url: '/policies',
-      templateUrl: 'app/api/admin/apiPolicies.html'
+      templateUrl: 'app/api/admin/apiPolicies.html',
+      controller: 'ApiPoliciesController',
+      controllerAs: 'apiPoliciesCtrl'
     })
     .state('apis.admin.documentation', {
       url: '/documentation',

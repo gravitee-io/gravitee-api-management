@@ -16,49 +16,55 @@
 
 -->
 <div layout="row">
-  <div flex="30">
-    <md-card>
-      <div class="inset">
-        <h5>Policies</h5>
-        <md-divider></md-divider>
-      </div>
-      <md-card-content>
-        <md-list>
-          <md-list-item class="md-2-line">
+
+  <div flex="25">
+    <div class="inset">
+      <h5>Policies ({{apiPoliciesCtrl.policies.length}})</h5>
+      <md-divider></md-divider>
+    </div>
+    <md-list class="gravitee-policy-draggable" dragular="dragularSrcOptions">
+      <md-list-item ng-repeat="policy in apiPoliciesCtrl.policies">
             <div class="md-list-item-text">
-              <h3>Basic Authentication</h3>
+              <div id="policy-name">{{policy.name}}</div>
+              <div id="policy-version">{{policy.version}}</div>
             </div>
-          </md-list-item>
-          <md-list-item class="md-2-line">
-            <div class="md-list-item-text">
-              <h3>API Key Authentication</h3>
-            </div>
-          </md-list-item>
-          <md-list-item class="md-2-line">
-            <div class="md-list-item-text">
-              <h3>CORS</h3>
-            </div>
-          </md-list-item>
-          <md-list-item class="md-2-line">
-            <div class="md-list-item-text">
-              <h3>Rate limit</h3>
-            </div>
-          </md-list-item>
-        </md-list>
-      </md-card-content>
-    </md-card>
+      </md-list-item>
+    </md-list>
   </div>
-  <div flex="70">
-    <md-card>
+
+  <div flex="50">
       <div class="inset">
-        <h5>API Policies</h5>
+        <h5>/*</h5>
         <md-divider></md-divider>
       </div>
-      <md-card-content>
-        <div style="background-color: #eee; min-height:450px; text-align:center">
-          <span style="vertical-align:middle;"><ng-md-icon icon="add"></ng-md-icon>DROP POLICY</span>
-        </div>
-      </md-card-content>
-    </md-card>
+    <md-list class="gravitee-policy-dropzone" dragular="dragularApiOptions">
+      <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPolicies" ng-click="apiPoliciesCtrl.displayPolicyToConfigure(policy)">
+            <div class="md-list-item-text">
+              <div id="apiPolicy-name">{{policy.name}}</div>
+            </div>
+      </md-list-item>
+      <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPolicies.length == 0">Drag a policy here.</span>
+      <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPolicies.length > 0">Select a policy to configure or drag a new one.</span>
+    </md-list>
+  </div>
+
+  <div flex="25">
+      <div ng-if="apiPoliciesCtrl.selectApiPolicy.name">
+          <div class="inset">
+              <h5>Configuration: {{apiPoliciesCtrl.selectApiPolicy.name}}</h5>
+              <md-divider></md-divider>
+          </div>
+          <form name="projectForm">
+              <md-input-container class="md-block">
+                  <label>PeriodTime</label>
+                  <input  name="description" >
+              </md-input-container>
+              <md-input-container class="md-block">
+                  <label>Limit</label>
+                  <input name="clientName">
+              </md-input-container>
+              <md-button class="md-raised md-warn"> Remove </md-button>
+          </form>
+      </div>
   </div>
 </div>
