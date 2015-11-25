@@ -19,6 +19,7 @@ import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.common.node.Node;
 import io.gravitee.common.utils.ManifestUtils;
 import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
+import io.gravitee.plugin.api.PluginRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -102,6 +103,7 @@ public class ManagementNode implements Node, ApplicationContextAware {
         List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
 
         components.add(JettyEmbeddedContainer.class);
+        components.add(PluginRegistry.class);
 
         return components;
     }
