@@ -1,9 +1,6 @@
-node:
-  home: ${gravitee.home}
 
 plugins:
-  registry:
-    path: ${gravitee.home}/plugins
+  path: ${gravitee.home}/plugins
 
 management:
   type: mongodb
