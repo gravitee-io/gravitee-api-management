@@ -87,7 +87,9 @@ class ApiAdminController {
 
     var that = this;
     $scope.$on('$stateChangeSuccess', function (ev, to, toParams, from) {
-      that.previousState = from.name;
+      if (from.name.startsWith('apis.list.')) {
+        that.previousState = from.name;
+      }
     });
   }
 

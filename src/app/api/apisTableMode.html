@@ -30,7 +30,7 @@
 		<tr md-auto-select ng-repeat="api in apisCtrl.apis" title="{{api.description}}" ui-sref="apis.admin.general({apiId: api.id})">
 			<td>{{api.name}}</td>
 			<td>{{api.version}}</td>
-			<td>{{api.private?'Private':'Public'}}</td>
+			<td>{{api.visibility}}</td>
 			<td>{{api.proxy.context_path}}</td>
 			<td>
 				<ng-md-icon ng-if="api.state === 'STARTED'" icon="blur_on" size="32" style="fill: green;" title="Started"></ng-md-icon>
