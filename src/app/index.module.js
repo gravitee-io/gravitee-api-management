@@ -52,7 +52,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies'])
   .constant('malarkey', malarkey)
   .constant('moment', moment)
-  .constant('baseURL', 'https://demo.gravitee.io/management/')
+  .constant('baseURL', '/management/')
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
