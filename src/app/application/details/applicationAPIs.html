@@ -1,0 +1,50 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-data-table-toolbar>
+  <h2 class="md-title">APIs</h2>
+</md-data-table-toolbar>
+
+<md-data-table-container>
+  <table md-data-table class="md-primary">
+		<thead>
+			<tr>
+				<th>API Name</th>
+				<th>Version</th>
+				<th>API Key</th>
+				<th>API Key's revocation ?</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="associatedAPI in applicationCtrl.associatedAPIs">
+				<td>{{associatedAPI.api.name}}</td>
+				<td>{{associatedAPI.api.version}}</td>
+				<td><code>{{associatedAPI.apiKey.key}}</code></td>
+				<td>{{associatedAPI.apiKey.revoked}}</td>
+				<td>
+						<md-button class="md-raised" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application,associatedAPI.api.id)">Renew API Key</md-button>
+						<md-button class="md-raised md-warn" ng-click="applicationCtrl.unsubscribeAPI(applicationCtrl.application,associatedAPI.api.id, associatedAPI.apiKey.key)">Unsubscribe
+						</md-button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</md-data-table-container>
+<md-button class="md-mini md-fab" ng-click="applicationCtrl.showSubscribeApiModal($event)">
+	<ng-md-icon icon="add"></ng-md-icon>							
+</md-button>

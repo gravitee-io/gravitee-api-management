@@ -16,10 +16,10 @@
 
 -->
 <div layout="row" layout-wrap class="inset">
-	<div class="apis-box" flex="33" ng-repeat="application in applicationCtrl.applications">
-		<a href="#/applications/{{application.id}}">
+	<div class="apis-box" flex="33" ng-repeat="application in applicationsCtrl.applications">
+		<a ui-sref="application.dashboard({applicationId: application.id})">
 			<md-card class="api-box">
-				<div class="api-box-header" ng-style="{'background-color': applicationCtrl.bgColorByIndex($index)}">
+				<div class="api-box-header" ng-style="{'background-color': applicationsCtrl.bgColorByIndex($index)}">
 					<h3>{{application.name}}</h3>
 					<h5>{{application.type}}</h5>
 				</div>

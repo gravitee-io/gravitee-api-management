@@ -19,18 +19,25 @@
   <section class="content-header">
     <h1>
        Gravitee
-       <small>Applications Management</small>
+       <small>Application '{{applicationCtrl.application.name}}' Management</small>
     </h1>
-  </section>  
+    </section>  
 
-	<md-card>
-		<md-switch ng-model="applicationsCtrl.tableMode" ng-change="applicationsCtrl.onModeChange()" class="md-block">
-			Table mode
-		</md-switch>
-		<md-card-content ui-view />
-	</md-card>  
-
-	<md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="applicationCtrl.showAddApplicationModal($event)">
-  	<ng-md-icon icon="add"></ng-md-icon>
-	</md-button>
+    <md-card>
+      <md-card-content>
+				<md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
+        	<md-tab label="dashboard" ui-sref="application.dashboard">
+        	</md-tab>
+		      <md-tab label="general" ui-sref="application.general">
+		      </md-tab>
+		      <md-tab label="apis" ui-sref="application.apis">
+		      </md-tab>
+		      <md-tab label="members" ui-sref="application.members">
+		      </md-tab>
+     		</md-tabs>
+      	<div ui-view></div>
+      </md-card-content>
+    </md-card>
+  </section>
 </section>
+

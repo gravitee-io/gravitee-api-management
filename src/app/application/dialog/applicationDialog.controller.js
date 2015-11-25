@@ -13,33 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class UserService {
+function DialogApplicationController($scope, $mdDialog, ApplicationService, NotificationService) {
+  'ngInject';
 
-  constructor($http, baseURL) {
-    'ngInject';
-    this.$http = $http;
-    this.usersURL = baseURL + 'users/';
-  }
+  $scope.hide = function () {
+     $mdDialog.cancel();
+  };
 
-  list() {
-    return this.$http.get(this.usersURL);
-  }
-
-  get(code) {
-    return this.$http.get(this.usersURL + code);
-  }
-
-  listTeams(code) {
-    return this.$http.get(this.usersURL + code + '/teams');
-  }
-
-  create(user) {
-    return this.$http.post(this.usersURL, user);
-  }
-
-	findLDAP(query) {
-		return this.$http.get(this.usersURL + "?query=" + query);   
-	}	
+  $scope.create = function (application) {
+    ApplicationService.create(application).then(function () {
+			NotificationService.show('Application created');
+      $mdDialog.hide(application);
+    }).catch(function (error) {
+			NotificationService.show('Error while creating the application');
+      $scope.error = error;
+    });
+  };
 }
 
-export default UserService;
+export default DialogApplicationController;

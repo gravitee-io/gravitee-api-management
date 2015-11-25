@@ -15,22 +15,8 @@
     limitations under the License.
 
 -->
-<section>
-  <section class="content-header">
-    <h1>
-       Gravitee
-       <small>Applications Management</small>
-    </h1>
-  </section>  
-
-	<md-card>
-		<md-switch ng-model="applicationsCtrl.tableMode" ng-change="applicationsCtrl.onModeChange()" class="md-block">
-			Table mode
-		</md-switch>
-		<md-card-content ui-view />
-	</md-card>  
-
-	<md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="applicationCtrl.showAddApplicationModal($event)">
-  	<ng-md-icon icon="add"></ng-md-icon>
-	</md-button>
-</section>
+<div class="md-padding">
+  <h1 class="md-display-1">{{applicationCtrl.application.name}}</h1>
+	<md-divider></md-divider>
+	<p class="inset">{{applicationCtrl.application.description}}</p>
+</div>

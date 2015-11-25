@@ -25,16 +25,12 @@
 		<tr>
 			<th>Name</th>
 			<th>Type</th>
-			<th></th>
 		</tr>
 		</thead>
 		<tbody>
-		<tr md-auto-select ng-repeat="application in applicationCtrl.applications">
-			<td><a href="#/applications/{{application.id}}">{{application.name}}</a></td>
+		<tr md-auto-select ng-repeat="application in applicationsCtrl.applications">
+			<td><a ui-sref="application.dashboard({applicationId: application.id})">{{application.name}}</a></td>
 			<td>{{application.type}}</td>
-			<td>
-					<md-button ng-click="applicationCtrl.delete(application.name)"><ng-md-icon icon="delete" style="fill:red;"></ng-md-icon></md-button>
-			</td>
 		</tr>
 		</tbody>
 	</table>

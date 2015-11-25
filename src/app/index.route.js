@@ -84,16 +84,41 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controllerAs: 'profileCtrl'
     })
     .state('applications', {
+			abstract: true,
       url: '/applications',
       templateUrl: 'app/application/applications.html',
-      controller: 'ApplicationController',
-      controllerAs: 'applicationCtrl'
+      controller: 'ApplicationsController',
+      controllerAs: 'applicationsCtrl'
+    })
+		.state('applications.table', {
+      url: '/table',
+      templateUrl: 'app/application/applicationsTableMode.html'
+    })
+    .state('applications.thumb', {
+      url: '/thumb',
+      templateUrl: 'app/application/applicationsThumbMode.html'
     })
     .state('application', {
       url: '/applications/:applicationId',
-      templateUrl: 'app/application/application.html',
+      templateUrl: 'app/application/details/application.html',
       controller: 'ApplicationController',
       controllerAs: 'applicationCtrl'
+    })
+		.state('application.dashboard', {
+      url: '/dashboard',
+      templateUrl: 'app/application/details/applicationDashboard.html'
+    })
+    .state('application.general', {
+      url: '/general',
+      templateUrl: 'app/application/details/applicationGeneral.html'
+    })
+    .state('application.apis', {
+      url: '/apis',
+      templateUrl: 'app/application/details/applicationAPIs.html'
+    })
+    .state('application.members', {
+      url: '/members',
+      templateUrl: 'app/application/details/applicationMembers.html'
     });
 
   $urlRouterProvider.otherwise('/');

@@ -41,14 +41,18 @@ import DocumentationDirective from './documentation/documentation.directive';
 import DocumentationController from './documentation/documentation.controller';
 import DocumentationService from './documentation/documentation.service';
 import ProfileController from './profile/profile.controller';
-import ApplicationController from './application/application.controller';
-import ApplicationService from './application/application.service';
+import ApplicationsController from './application/applications.controller';
+import ApplicationController from './application/details/application.controller';
+import DialogApplicationController from './application/dialog/applicationDialog.controller';
+import DialogSubscribeApiController from './application/dialog/subscribeApiDialog.controller';
+import DialogAddMemberController from './application/dialog/addMemberDialog.controller';
+import ApplicationService from './application/details/application.service';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies'])
   .constant('malarkey', malarkey)
   .constant('moment', moment)
-  .constant('baseURL', 'https://demo.gravitee.io/management/')
+  .constant('baseURL', 'http://localhost:8083/management/')
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -74,7 +78,11 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .controller('DocumentationController', DocumentationController)
   .service('DocumentationService', DocumentationService)
   .controller('ProfileController', ProfileController)
+	.controller('ApplicationsController', ApplicationsController)
   .controller('ApplicationController', ApplicationController)
+	.controller('DialogApplicationController', DialogApplicationController)
+	.controller('DialogSubscribeApiController', DialogSubscribeApiController)
+	.controller('DialogAddMemberController', DialogAddMemberController)
   .service('ApplicationService', ApplicationService)
   .directive('graviteeNavbar', () => new NavbarDirective())
   .directive('chart', () => new ChartDirective())

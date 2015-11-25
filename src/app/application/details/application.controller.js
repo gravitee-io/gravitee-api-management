@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 class ApplicationController {
-  constructor($stateParams, $mdDialog, $q, ApplicationService, NotificationService) {
+  constructor($stateParams, $mdDialog, $q, $state, $scope, ApplicationService, NotificationService) {
 		'ngInject';
 		this.$stateParams = $stateParams;
 		this.$mdDialog = $mdDialog;
 		this.$q = $q;
+		this.$state = $state;
 		this.ApplicationService = ApplicationService;
 		this.NotificationService = NotificationService;
 		this.applicationId = $stateParams.applicationId;
@@ -26,14 +27,21 @@ class ApplicationController {
 		this.applications = [];
 		this.associatedAPIs = [];
 		this.members = [];
-		this.membershipTypes = [ 'PRIMARY_OWNER', 'OWNER', 'USER' ];
+		this.membershipTypes = [ 'primary_owner', 'owner', 'user' ];
 		if (this.applicationId) {
 				this.get(this.applicationId);
 				this.getAssociatedAPIs(this.applicationId);
 				this.getMembers(this.applicationId);
-		} else {
-			this.list();
 		}
+		if ($state.current.name.endsWith('dashboard')) {
+      $scope.selectedTab = 0;
+    } else if ($state.current.name.endsWith('general')) {
+      $scope.selectedTab = 1;
+    } else if ($state.current.name.endsWith('apis')) {
+      $scope.selectedTab = 2;
+    } else if ($state.current.name.endsWith('members')) {
+      $scope.selectedTab = 3;
+    }
 	}
 
 	get(applicationId) {
@@ -80,12 +88,6 @@ class ApplicationController {
 		});
 	}
 
-	list() {
-		this.ApplicationService.list().then(response => {
-			this.applications = response.data;		
-		});
-  }
-
   update(application) {
 		this.ApplicationService.update(application).then(response => {
 			this.NotificationService.show('Application updated');
@@ -111,28 +113,11 @@ class ApplicationController {
 		});
 	}
 
-	showAddApplicationModal(ev) {
-    var that = this;
-    this.$mdDialog.show({
-      controller: DialogApplicationController,
-      templateUrl: 'app/application/application.dialog.html',
-      parent: angular.element(document.body),
-			targetEvent: ev,
-      clickOutsideToClose: true
-    }).then(function (application) {
-      if (application) {
-        that.list();
-      }
-    }, function() {
-       // You cancelled the dialog
-    });
-  }
-
 	showSubscribeApiModal(ev) {
 		var that = this;
     this.$mdDialog.show({
-      controller: DialogSubscribeApiController,
-      templateUrl: 'app/application/subscribeApi.dialog.html',
+      controller: 'DialogSubscribeApiController',
+      templateUrl: 'app/application/dialog/subscribeApi.dialog.html',
       parent: angular.element(document.body),
 			targetEvent: ev,
       clickOutsideToClose: true,
@@ -150,8 +135,8 @@ class ApplicationController {
 	showAddMemberModal(ev) {
 		var that = this;
     this.$mdDialog.show({
-      controller: DialogAddMemberController,
-      templateUrl: 'app/application/addMember.dialog.html',
+      controller: 'DialogAddMemberController',
+      templateUrl: 'app/application/dialog/addMember.dialog.html',
       parent: angular.element(document.body),
 			targetEvent: ev,
       clickOutsideToClose: true,
@@ -183,133 +168,6 @@ class ApplicationController {
         return 'black';
     }
   }
-}
-
-function DialogApplicationController($scope, $mdDialog, ApplicationService, NotificationService) {
-  'ngInject';
-
-  $scope.hide = function () {
-     $mdDialog.cancel();
-  };
-
-  $scope.create = function (application) {
-    ApplicationService.create(application).then(function () {
-			NotificationService.show('Application created');
-      $mdDialog.hide(application);
-    }).catch(function (error) {
-			NotificationService.show('Error while creating the application');
-      $scope.error = error;
-    });
-  };
-}
-
-function DialogSubscribeApiController($scope, $mdDialog, application, associatedAPIs, ApplicationService, NotificationService, ApiService) {
-  'ngInject';
-
-	$scope.searchAPI = "";
-	$scope.apis = [];
-	$scope.apisSelected = [];
-	$scope.application = application;
-
-	ApiService.list().then(function(response) {
-		var _apis = response.data;
-		for(var i = 0; i < _apis.length; i++) {
-			var _api = _apis[i];
-			var exist = false;
-			for(var j = 0; j < associatedAPIs.length; j++) {
-				if (_api.id === associatedAPIs[j].api.id) {
-					exist = true;
-					break;
-				}
-			}
-			if (!exist) {
-				$scope.apis.push(_api);
-			}
-		}
-	});
-
-  $scope.hide = function () {
-     $mdDialog.cancel();
-  };
-
-	$scope.selectApi = function(api) {
-		var idx = $scope.apisSelected.indexOf(api.id);
-    if (idx > -1) {
-      $scope.apisSelected.splice(idx, 1);
-    }
-    else {
-      $scope.apisSelected.push(api.id);
-    }
-	};
-
-	$scope.subscribe = function(application) {
-		for (var i = 0; i < $scope.apisSelected.length; i++) {
-				var apiId = $scope.apisSelected[i];
-				ApplicationService.subscribe(application, apiId).then(function() {
-					NotificationService.show('Application has subscribed to api ' + apiId);
-				}).catch(function (error) {
-					NotificationService.show('Error while subscribing for api ' + apiId);
-				  $scope.error = error;
-				});
-		}
-		$mdDialog.hide(application);
-	};
-}
-
-function DialogAddMemberController($scope, $mdDialog, application, ApplicationService, UserService, NotificationService) {
-  'ngInject';
-
-	$scope.application = application;
-	$scope.user = {};
-	$scope.usersFound = [];
-	$scope.usersSelected = [];
-	$scope.searchText = "";
-	
-  $scope.hide = function () {
-     $mdDialog.cancel();
-  };
-
-	$scope.searchUser = function (query) {
-		if (query) {
-			return UserService.findLDAP(query).then(function(response) {
-				return response.data;
-			});
-		}
-	};
-
-  $scope.selectedItemChange = function(item) {
-		if (item) {
-			$scope.usersFound.push(item);
-			$scope.searchText = "";
-		}
-  }
-
-	$scope.selectMember = function(user) {
-		var idx = $scope.usersSelected.indexOf(user.username);
-    if (idx > -1) {
-      $scope.usersSelected.splice(idx, 1);
-    }
-    else {
-      $scope.usersSelected.push(user.username);
-    }
-	};
-
-  $scope.addMembers = function () {
-		for (var i = 0; i < $scope.usersSelected.length; i++) {
-			var username = $scope.usersSelected[i];
-			var member = {
-				"user" : username,
-				"type" : "USER"
-			};
-			ApplicationService.addOrUpdateMember($scope.application.id, member).then(function() {
-				NotificationService.show('Member ' + username + ' added');
-			}).catch(function (error) {
-				NotificationService.show('Error while adding member ' + username);
-			  $scope.error = error;
-			});
-		}
-		$mdDialog.hide($scope.application);
-  };
 }
 
 export default ApplicationController;
