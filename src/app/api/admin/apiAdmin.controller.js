@@ -23,8 +23,8 @@ class ApiAdminController {
     this.$scope = $scope;
 
     this.apis = [];
-    if ($state.params.apiName) {
-      this.get($state.params.apiName);
+    if ($state.params.apiId) {
+      this.get($state.params.apiId);
     } else {
       this.list();
     }
@@ -85,8 +85,8 @@ class ApiAdminController {
     }
   }
 
-  get(apiName) {
-    this.ApiService.get(apiName).then(response => {
+  get(apiId) {
+    this.ApiService.get(apiId).then(response => {
       this.api = response.data;
     });
   }

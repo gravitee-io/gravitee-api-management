@@ -22,9 +22,8 @@ class ApisController {
     this.$scope = $scope;
     this.$state = $state;
 
-    this.list();
-
     this.tableMode = $state.current.name.endsWith('table')? true : false;
+    this.list();
   }
 
   list() {

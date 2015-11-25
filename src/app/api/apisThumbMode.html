@@ -17,7 +17,7 @@
 -->
 <div layout="row" layout-wrap class="inset">
 	<div class="apis-box" flex="33" ng-repeat="api in apisCtrl.apis">
-		<a ui-sref="apis.admin.dashboard({apiName: api.name})">
+		<a ui-sref="apis.admin.dashboard({apiId: api.id})">
 			<md-card class="api-box">
 				<div class="api-box-header" ng-style="{'background-color': apisCtrl.bgColorByIndex($index)}">
 					<h3>{{api.name}} <small>({{api.version}})</small></h3>

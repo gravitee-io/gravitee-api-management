@@ -44,13 +44,13 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
     .state('apis.portal', {
       abstract: true,
-      url: '/:apiName',
+      url: '/:apiId',
       templateUrl: 'app/api/portal/apiPortal.html',
       controller: 'ApiPortalController',
       controllerAs: 'apiCtrl'
     })
     .state('apis.admin', {
-      url: '/:apiName/settings',
+      url: '/:apiId/settings',
       templateUrl: 'app/api/admin/apiAdmin.html',
       controller: 'ApiAdminController',
       controllerAs: 'apiCtrl'

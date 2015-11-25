@@ -32,7 +32,7 @@
 		</thead>
 		<tbody>
 		<tr md-auto-select ng-repeat="api in apisCtrl.apis" title="{{api.description}}">
-			<td><a href="" ng-click="apisCtrl.showApiModal(api)">{{api.name}}</a></td>
+			<td><a href="" ui-sref="apis.admin.general({apiId: api.id})">{{api.name}}</a></td>
 			<td>{{api.version}}</td>
 			<td>{{api.private?'Private':'Public'}}</td>
 			<td>{{api.proxy.context_path}}</td>
