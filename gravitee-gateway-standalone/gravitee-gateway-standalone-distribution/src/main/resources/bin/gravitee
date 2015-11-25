@@ -84,6 +84,8 @@ echo ""
 
 # Execute the JVM in the foreground
 "$JAVA" $JAVA_OPTS \
+        -Dvertx.disableFileCaching=true \
+        -Dvertx.disableFileCPResolving=true \
         -cp "$GRAVITEE_BOOT_CLASSPATH" \
         $GRAVITEE_OPTS \
         io.gravitee.gateway.standalone.boostrap.Bootstrap \
