@@ -37,7 +37,7 @@ import java.util.Set;
  */
 public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
-    protected final Logger LOGGER = LoggerFactory.getLogger(RepositoryBeanFactoryPostProcessor.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(RepositoryBeanFactoryPostProcessor.class);
 
     private ConfigurationClassPostProcessor configurationClassPostProcessor;
 

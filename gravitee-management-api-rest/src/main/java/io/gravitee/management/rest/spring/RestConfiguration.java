@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.spring;
 
+import io.gravitee.management.providers.core.spring.ProviderBeanFactoryPostProcessor;
 import io.gravitee.management.rest.repository.RepositoryConfiguration;
 import io.gravitee.management.security.SecurityConfiguration;
 import io.gravitee.management.service.spring.ServiceConfiguration;
@@ -22,10 +23,7 @@ import io.gravitee.management.service.spring.ServiceConfiguration;
 import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 
@@ -52,5 +50,12 @@ public class RestConfiguration {
                                                                           Environment environment) {
         // Using this we are now able to use {@link org.springframework.core.env.Environment} in Spring beans
         return new PropertySourceBeanProcessor(graviteeProperties, environment);
+    }
+
+    @Bean
+    public static ProviderBeanFactoryPostProcessor providerBeanFactoryPostProcessor(ConfigurationClassPostProcessor configurationClassPostProcessor) {
+        ProviderBeanFactoryPostProcessor providerBeanFactoryPostProcessor = new ProviderBeanFactoryPostProcessor();
+        providerBeanFactoryPostProcessor.setConfigurationClassPostProcessor(configurationClassPostProcessor);
+        return providerBeanFactoryPostProcessor;
     }
 }

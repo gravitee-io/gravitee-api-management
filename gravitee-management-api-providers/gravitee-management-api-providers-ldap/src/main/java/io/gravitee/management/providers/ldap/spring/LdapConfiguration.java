@@ -13,35 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.spring;
+package io.gravitee.management.providers.ldap.spring;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.event.EventManager;
-import io.gravitee.common.event.impl.EventManagerImpl;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.plugin.spring.PluginConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.core.support.LdapContextSource;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@ComponentScan("io.gravitee.management.service")
-@EnableTransactionManagement
-@Import({PluginConfiguration.class})
-public class ServiceConfiguration {
+public class LdapConfiguration {
 
 	@Bean
-	public EventManager eventManager() {
-		return new EventManagerImpl();
+	public LdapContextSourceFactory contextSourceFactory() {
+		return new LdapContextSourceFactory();
+
 	}
 
+	/*
 	@Bean
-	public ObjectMapper objectMapper() {
-		return new GraviteeMapper();
+	public LdapContextSource contextSource () {
+		// Embedded LDAP server (launch via the Security Configuration)
+		// TODO : Retrieve properties for gravitee.yml
+		// Make it an Identity Provider
+		LdapContextSource contextSource= new LdapContextSource();
+		contextSource.setUrl("ldap://localhost:33389");
+		contextSource.setBase("dc=gravitee,dc=io");
+		return contextSource;
+	}
+	*/
+
+	@Bean
+	public LdapTemplate ldapTemplate(LdapContextSource contextSource) {
+		return new LdapTemplate(contextSource);
 	}
 }

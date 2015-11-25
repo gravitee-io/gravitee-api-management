@@ -15,9 +15,8 @@
  */
 package io.gravitee.management.security.config.basic;
 
+import io.gravitee.management.providers.core.authentication.AuthenticationManager;
 import io.gravitee.management.security.config.basic.filter.CORSFilter;
-import io.gravitee.management.security.provider.AuthenticationProvider;
-import io.gravitee.management.security.provider.AuthenticationProviderType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +53,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 	private Environment environment;
 
 	@Autowired
-	private Collection<AuthenticationProvider> authenticationProviders;
+	private Collection<AuthenticationManager> authenticationManagers;
 
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -63,13 +62,12 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 		List<String> providers = getSecurityProviders();
 
 		for (int idx = 0 ; idx < providers.size() ; idx++) {
-			String sProviderType = providers.get(idx);
-			AuthenticationProviderType providerType = AuthenticationProviderType.valueOf(sProviderType.toUpperCase());
+			String providerType = providers.get(idx);
 
 			boolean found = false;
-			for (AuthenticationProvider provider : authenticationProviders) {
-				if (provider.type() == providerType) {
-					provider.configure(auth, idx);
+			for (AuthenticationManager authenticationManager : authenticationManagers) {
+				if (authenticationManager.canHandle(providerType)) {
+					authenticationManager.configure(auth, idx);
 					found = true;
 					break;
 				}

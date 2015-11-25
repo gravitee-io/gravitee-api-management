@@ -55,20 +55,6 @@
 			<artifactId>spring-security-config</artifactId>
 			<version>${spring.security.version}</version>
 		</dependency>
-		
-		<!-- Spring Security LDAP -->
-		<dependency>
-	        <groupId>org.springframework.security</groupId>
-	        <artifactId>spring-security-ldap</artifactId>
-	        <version>${spring.security.version}</version>
-	    </dependency>
-	    
-	    <!-- Embedded open source LDAP server -->
-	    <dependency>
-	        <groupId>org.apache.directory.server</groupId>
-	        <artifactId>apacheds-server-jndi</artifactId>
-	        <version>${apacheds-server-jndi.version}</version>
-	    </dependency>
 
 		<!-- Spring Security OAuth 2 dependencies -->
 		<dependency>

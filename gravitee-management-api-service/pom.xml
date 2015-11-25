@@ -39,6 +39,11 @@
 			<artifactId>gravitee-management-api-model</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.gravitee.management.providers</groupId>
+			<artifactId>gravitee-management-api-providers-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!-- Gravitee Dependencies -->
 		<dependency>
@@ -66,13 +71,6 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
 			<version>${spring.version}</version>
-		</dependency>
-
-		<!-- Spring LDAP dependencies -->
-		<dependency>
-			<groupId>org.springframework.ldap</groupId>
-			<artifactId>spring-ldap-core</artifactId>
-			<version>2.0.4.RELEASE</version>
 		</dependency>
 		
 		<!-- Test dependencies -->

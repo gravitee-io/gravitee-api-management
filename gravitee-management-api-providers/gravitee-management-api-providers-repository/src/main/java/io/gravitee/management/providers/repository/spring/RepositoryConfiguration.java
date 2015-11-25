@@ -13,35 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.spring;
+package io.gravitee.management.providers.repository.spring;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.event.EventManager;
-import io.gravitee.common.event.impl.EventManagerImpl;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.plugin.spring.PluginConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@ComponentScan("io.gravitee.management.service")
-@EnableTransactionManagement
-@Import({PluginConfiguration.class})
-public class ServiceConfiguration {
+public class RepositoryConfiguration {
 
 	@Bean
-	public EventManager eventManager() {
-		return new EventManagerImpl();
-	}
-
-	@Bean
-	public ObjectMapper objectMapper() {
-		return new GraviteeMapper();
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
 	}
 }

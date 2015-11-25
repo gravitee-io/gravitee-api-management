@@ -17,29 +17,23 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
-import io.gravitee.management.service.LDAPService;
+import io.gravitee.management.model.providers.User;
+import io.gravitee.management.service.IdentityService;
 import io.gravitee.management.service.UserService;
-
-import java.net.URI;
-import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import java.net.URI;
+import java.util.Collection;
 
 /**
  * Defines the REST resources to manage Users.
@@ -56,7 +50,7 @@ public class UsersResource {
     private UserService userService;
     
     @Inject
-    private LDAPService ldapService;
+    private IdentityService identityService;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -95,9 +89,8 @@ public class UsersResource {
     }
     
     @GET
-    @Path("ldap")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<UserEntity> findUsersViaLDAP(@QueryParam("query") String query) {
-    	return ldapService.findByCn(query);
+    public Collection<User> search(@NotNull @QueryParam("query") String query) {
+    	return identityService.search(query);
     }
 }

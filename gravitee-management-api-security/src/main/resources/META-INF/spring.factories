@@ -1,4 +1,0 @@
-io.gravitee.management.security.provider.AuthenticationProvider=\
-io.gravitee.management.security.provider.ldap.LDAPAuthenticationProvider,\
-io.gravitee.management.security.provider.memory.InMemoryAuthentificationProvider,\
-io.gravitee.management.security.provider.repository.RepositoryAuthenticationProvider
