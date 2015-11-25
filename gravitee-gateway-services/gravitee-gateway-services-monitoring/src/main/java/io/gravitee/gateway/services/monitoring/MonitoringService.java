@@ -20,6 +20,7 @@ import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Monitoring;
 import io.gravitee.gateway.core.event.ApiEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,13 +56,7 @@ public class MonitoringService extends AbstractService implements EventListener<
     protected void doStop() throws Exception {
         super.doStop();
 
-        monitors.forEach((api, executorService) -> {
-            ExecutorService executor = monitors.remove(api);
-            if (! executor.isShutdown()) {
-                LOGGER.info("Stop monitor for {}", api);
-                executor.shutdownNow();
-            }
-        });
+        monitors.forEach((api, executorService) -> stopMonitor(api));
     }
 
     @Override
@@ -73,16 +68,50 @@ public class MonitoringService extends AbstractService implements EventListener<
     public void onEvent(Event<ApiEvent, Api> event) {
         final Api api = event.content();
 
-        LOGGER.info("Create an executor to monitor {}", api);
+        switch (event.type()) {
+            case DEPLOY:
+                startMonitor(api);
+                break;
+            case UNDEPLOY:
+                stopMonitor(api);
+                break;
+            case UPDATE:
+        }
+        if (api.getMonitoring() != null && api.getMonitoring().isEnabled()) {
+            startMonitor(api);
+        }
+    }
 
-        EndpointMonitor monitor = new EndpointMonitor(api);
+    private void startMonitor(Api api) {
+        Monitoring monitoring = api.getMonitoring();
+        if (monitoring != null) {
+            if (monitoring.isEnabled()) {
+                LOGGER.info("Create an executor to monitor {}", api);
 
-        ExecutorService executor = Executors.newSingleThreadScheduledExecutor(
-                r -> new Thread(r, "monitor-" + api.getName()));
+                EndpointMonitor monitor = new EndpointMonitor(api);
 
-        monitors.put(api, executor);
+                ExecutorService executor = Executors.newSingleThreadScheduledExecutor(
+                        r -> new Thread(r, "monitor-" + api.getName()));
 
-        LOGGER.info("Start monitor for {}", api);
-        ((ScheduledExecutorService) executor).scheduleWithFixedDelay(monitor, 0, 5, TimeUnit.SECONDS);
+                monitors.put(api, executor);
+
+                LOGGER.info("Start monitor for {}", api);
+                ((ScheduledExecutorService) executor).scheduleWithFixedDelay(monitor, 0, 5, TimeUnit.SECONDS);
+            } else {
+                LOGGER.info("Monitoring is disabled for {}", api);
+            }
+        }
+    }
+
+    private void stopMonitor(Api api) {
+        ExecutorService executor = monitors.remove(api);
+        if (executor != null) {
+            if (! executor.isShutdown()) {
+                LOGGER.info("Stop monitor for {}", api);
+                executor.shutdownNow();
+            } else {
+                LOGGER.info("Monitor already shutdown for {}", api);
+            }
+        }
     }
 }
