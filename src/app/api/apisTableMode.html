@@ -15,10 +15,6 @@
     limitations under the License.
 
 -->
-<md-data-table-toolbar>
-	<h2 class="md-title">APIS</h2>
-</md-data-table-toolbar>
-
 <md-data-table-container>
 	<table md-data-table>
 		<thead>
@@ -31,8 +27,8 @@
 		</tr>
 		</thead>
 		<tbody>
-		<tr md-auto-select ng-repeat="api in apisCtrl.apis" title="{{api.description}}">
-			<td><a href="" ui-sref="apis.admin.general({apiId: api.id})">{{api.name}}</a></td>
+		<tr md-auto-select ng-repeat="api in apisCtrl.apis" title="{{api.description}}" ui-sref="apis.admin.general({apiId: api.id})">
+			<td>{{api.name}}</td>
 			<td>{{api.version}}</td>
 			<td>{{api.private?'Private':'Public'}}</td>
 			<td>{{api.proxy.context_path}}</td>

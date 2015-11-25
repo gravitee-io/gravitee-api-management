@@ -22,7 +22,7 @@ class ApisController {
     this.$scope = $scope;
     this.$state = $state;
 
-    this.tableMode = $state.current.name.endsWith('table')? true : false;
+    this.tableMode = this.$state.current.name.endsWith('table')? true : false;
     this.list();
   }
 

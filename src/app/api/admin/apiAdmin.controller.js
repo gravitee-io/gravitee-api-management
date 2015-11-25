@@ -21,6 +21,7 @@ class ApiAdminController {
     this.$mdDialog = $mdDialog;
     this.NotificationService = NotificationService;
     this.$scope = $scope;
+    this.$state = $state;
 
     this.apis = [];
     if ($state.params.apiId) {
@@ -83,6 +84,11 @@ class ApiAdminController {
     } else if ($state.current.name.endsWith('documentation')) {
       $scope.selectedTab = 3;
     }
+
+    var that = this;
+    $scope.$on('$stateChangeSuccess', function (ev, to, toParams, from) {
+      that.previousState = from.name;
+    });
   }
 
   get(apiId) {
@@ -124,6 +130,13 @@ class ApiAdminController {
         'OnRequest/OnResponse': []
       };
     });
+  }
+
+  backToPreviousState() {
+    if (!this.previousState) {
+      this.previousState = 'apis.list.thumb';
+    }
+    this.$state.go(this.previousState);
   }
 }
 
