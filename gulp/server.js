@@ -26,8 +26,8 @@ var util = require('util');
 
 var proxyMiddleware = require('http-proxy-middleware');
 
-function browserSyncInit(baseDir, browser) {
-  browser = browser === undefined ? 'default' : browser;
+function browserSyncInit(baseDir, browser, demo) {
+  browser = browser ? browser : 'default';
 
   var routes = null;
   if(baseDir === conf.paths.src || (util.isArray(baseDir) && baseDir.indexOf(conf.paths.src) !== -1)) {
@@ -48,7 +48,10 @@ function browserSyncInit(baseDir, browser) {
    *
    * For more details and option, https://github.com/chimurai/http-proxy-middleware/blob/v0.9.0/README.md
    */
-  server.middleware = proxyMiddleware('http://demo.gravitee.io/management', {changeOrigin:true});
+  server.middleware = proxyMiddleware(
+    demo?  'http://demo.gravitee.io/management' : 'http://localhost:8083/management',
+    {changeOrigin:true}
+  );
 
   browserSync.instance = browserSync.init({
     startPath: '/',
@@ -63,6 +66,10 @@ browserSync.use(browserSyncSpa({
 
 gulp.task('serve', ['watch'], function () {
   browserSyncInit([path.join(conf.paths.tmp, '/serve'), conf.paths.src]);
+});
+
+gulp.task('serve:demo', ['watch'], function () {
+  browserSyncInit([path.join(conf.paths.tmp, '/serve'), conf.paths.src], null, true);
 });
 
 gulp.task('serve:dist', ['build'], function () {
