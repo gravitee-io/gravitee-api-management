@@ -92,3 +92,13 @@ ng-md-icon {
   position: relative;
   padding-bottom: 0;
 }
+
+.gravitee-disabled {
+  opacity: 0.4;
+}
+
+.md-button.md-icon-button.md-icon-right {
+  right: 0;
+  position: absolute;
+  border-radius: 0;
+}

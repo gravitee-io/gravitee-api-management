@@ -43,7 +43,6 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/api/apisThumbMode.html'
     })
     .state('apis.portal', {
-      abstract: true,
       url: '/:apiId',
       templateUrl: 'app/api/portal/apiPortal.html',
       controller: 'ApiPortalController',

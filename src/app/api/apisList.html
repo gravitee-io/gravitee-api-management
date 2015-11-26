@@ -17,9 +17,14 @@
 -->
 <md-card>
   <md-card-content class="content-header">
-    <md-switch ng-model="apisCtrl.tableMode" ng-change="apisCtrl.onModeChange()" class="md-block">
-      Table mode
-    </md-switch>
+
+    <ng-md-icon ng-class="{'gravitee-disabled': !apisCtrl.tableMode}"
+                icon="view_list" ng-click="apisCtrl.changeMode(true)">
+    </ng-md-icon>
+
+    <ng-md-icon ng-class="{'gravitee-disabled': apisCtrl.tableMode}"
+                icon="view_module" ng-click="apisCtrl.changeMode(false)">
+    </ng-md-icon>
 
     <div ui-view style="margin-bottom: 100px;"></div>
 

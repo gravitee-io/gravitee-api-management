@@ -24,11 +24,7 @@ class ApiAdminController {
     this.$state = $state;
 
     this.apis = [];
-    if ($state.params.apiId) {
-      this.get($state.params.apiId);
-    } else {
-      this.list();
-    }
+    this.get($state.params.apiId);
 
     this.selectedPolicy = null;
 
@@ -96,30 +92,21 @@ class ApiAdminController {
   get(apiId) {
     this.ApiService.get(apiId).then(response => {
       this.api = response.data;
+      this.$scope.enabled = this.api.state === 'started'? true : false;
     });
   }
 
-  list() {
-    this.ApiService.list().then(response => {
-      this.apis = response.data;
-    });
+  start(id) {
+    this.ApiService.start(id);
   }
 
-  start(name) {
-    this.ApiService.start(name).then(() => {
-      this.list();
-    });
-  }
-
-  stop(name) {
-    this.ApiService.stop(name).then(() => {
-      this.list();
-    });
+  stop(id) {
+    this.ApiService.stop(id);
   }
 
   delete(name) {
     this.ApiService.delete(name).then(() => {
-      this.list();
+      this.backToPreviousState();
     });
   }
 

@@ -77,8 +77,9 @@ class ApisController {
     }
   };
 
-  onModeChange() {
-    this.$state.go(this.tableMode? 'apis.list.table' : 'apis.list.thumb');
+  changeMode(tableMode) {
+    this.tableMode = tableMode;
+    this.$state.go(tableMode? 'apis.list.table' : 'apis.list.thumb');
   };
 }
 

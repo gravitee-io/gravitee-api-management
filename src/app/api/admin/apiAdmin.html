@@ -39,6 +39,9 @@
         <md-tab label="documentation" ui-sref="apis.admin.documentation">
         </md-tab>
       </md-tabs>
+      <md-switch ng-model="enabled" ng-change="enabled?apiCtrl.start(apiCtrl.api.id):apiCtrl.stop(apiCtrl.api.id)" class="md-block">
+        Enabled
+      </md-switch>
       <div ui-view flex></div>
     </md-card-content>
   </md-card>

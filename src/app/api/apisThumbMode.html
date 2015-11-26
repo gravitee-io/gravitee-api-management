@@ -16,14 +16,18 @@
 
 -->
 <div layout="row" layout-wrap class="inset">
-	<div class="apis-box" flex="33" ng-repeat="api in apisCtrl.apis">
-		<a ui-sref="apis.admin.dashboard({apiId: api.id})">
-			<md-card class="api-box">
-				<div class="api-box-header" ng-style="{'background-color': apisCtrl.bgColorByIndex($index)}">
-					<h3>{{api.name}} <small>({{api.version}})</small></h3>
-					<h5>{{api.description}}</h5>
-				</div>
-				<div class="widget-user-image">
+	<div class="apis-box" flex="33" ng-repeat="api in apisCtrl.apis" ng-class="{'gravitee-disabled': api.state === 'stopped'}">
+		<a ui-sref="apis.portal({apiId: api.id})">
+			<md-card class="api-box" style="position: relative;">
+				<div class="api-box-header" ng-style="{'background-color': apisCtrl.bgColorByIndex($index)}" layout="row">
+					<ng-md-icon icon="{{api.visibility === 'public'? 'lock_open' : 'lock'}}"></ng-md-icon>
+					<div layout="column">
+						<h3>{{api.name}} <small>({{api.version}})</small></h3>
+						<h5>{{api.description}}</h5>
+					</div>
+					<md-button class="md-icon-button md-icon-right" ng-click="$event.stopPropagation()">
+						<ng-md-icon icon="settings" ui-sref="apis.admin.dashboard({apiId: api.id})" aria-label="{{api.id}}"></ng-md-icon>
+					</md-button>
 				</div>
 				<md-card-content>
 					<div layout="row">
