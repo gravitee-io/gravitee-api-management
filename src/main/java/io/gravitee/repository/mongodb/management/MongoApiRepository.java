@@ -76,6 +76,9 @@ public class MongoApiRepository implements ApiRepository {
 	@Override
 	public Api update(Api api) throws TechnicalException {
 		ApiMongo apiMongo =	mapApi(api);
+		ApiMongo apiToUpdate = internalApiRepo.findOne(api.getId());
+
+		apiMongo.setMembers(apiToUpdate.getMembers());
 		ApiMongo apiMongoUpdated = internalApiRepo.save(apiMongo);
 		return mapApi(apiMongoUpdated);
 	}
