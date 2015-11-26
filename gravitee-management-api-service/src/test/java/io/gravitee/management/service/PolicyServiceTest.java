@@ -15,28 +15,23 @@
  */
 package io.gravitee.management.service;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
-
-import java.util.Set;
-
+import io.gravitee.management.model.PolicyEntity;
+import io.gravitee.management.service.impl.PolicyServiceImpl;
+import io.gravitee.plugin.policy.PolicyDefinition;
+import io.gravitee.plugin.policy.PolicyManager;
+import io.gravitee.repository.exceptions.TechnicalException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import io.gravitee.management.model.PolicyEntity;
-import io.gravitee.management.service.impl.PolicyServiceImpl;
-import io.gravitee.plugin.api.Plugin;
-import io.gravitee.plugin.api.PluginManifest;
-import io.gravitee.plugin.api.PluginRegistry;
-import io.gravitee.plugin.api.PluginType;
-import io.gravitee.repository.exceptions.TechnicalException;
+import java.util.Collections;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -50,31 +45,19 @@ public class PolicyServiceTest {
     private PolicyService policyService = new PolicyServiceImpl();
 
     @Mock
-    private PluginRegistry pluginRegistry;
+    private PolicyManager policyManager;
 
     @Mock
-    private Plugin plugin;
+    private PolicyDefinition policyDefinition;
 
     @Test
     public void shouldFindAll() throws TechnicalException {
-        final PluginManifest manifest = Mockito.mock(PluginManifest.class);
-        when(manifest.name()).thenReturn(POLICY_NAME);
-        when(plugin.manifest()).thenReturn(manifest);
-        when(pluginRegistry.plugins(PluginType.POLICY)).thenReturn(asList(plugin));
+        when(policyDefinition.id()).thenReturn(POLICY_NAME);
+        when(policyManager.getPolicyDefinitions()).thenReturn(Collections.singletonList(policyDefinition));
 
         final Set<PolicyEntity> policies = policyService.findAll();
 
         assertNotNull(policies);
         assertEquals(POLICY_NAME, policies.iterator().next().getName());
-    }
-
-    @Test
-    public void shouldNotFindAll() throws TechnicalException {
-        when(pluginRegistry.plugins(PluginType.POLICY)).thenReturn(null);
-
-        final Set<PolicyEntity> policies = policyService.findAll();
-
-        assertNotNull(policies);
-        assertTrue(policies.isEmpty());
     }
 }

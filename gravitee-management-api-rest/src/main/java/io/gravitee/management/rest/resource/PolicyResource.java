@@ -40,6 +40,6 @@ public class PolicyResource {
 
     @GET
     public PolicyEntity get() {
-        policyService.
+        return null; //policyService.
     }
 }
