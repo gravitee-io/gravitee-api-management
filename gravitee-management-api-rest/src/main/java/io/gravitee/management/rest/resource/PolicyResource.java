@@ -15,8 +15,31 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.management.model.PolicyEntity;
+import io.gravitee.management.service.PolicyService;
+
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+
 /**
- * Created by david on 18/08/15.
+ * @author David BRASSELY (brasseld at gmail.com)
  */
 public class PolicyResource {
+
+    @Context
+    private ResourceContext resourceContext;
+
+    @Inject
+    private PolicyService policyService;
+
+    @PathParam("policy")
+    private String policy;
+
+    @GET
+    public PolicyEntity get() {
+        policyService.
+    }
 }

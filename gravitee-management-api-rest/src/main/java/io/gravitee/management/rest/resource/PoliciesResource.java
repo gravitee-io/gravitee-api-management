@@ -43,11 +43,11 @@ public class PoliciesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<PolicyEntity> listAll() {
+    public Set<PolicyEntity> list() {
         return policyService.findAll();
     }
 
-    @Path("{policyName}")
+    @Path("{policy}")
     public PolicyResource getPolicyResource() {
         return resourceContext.getResource(PolicyResource.class);
     }
