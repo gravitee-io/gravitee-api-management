@@ -16,6 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.PolicyEntity;
+import io.gravitee.management.model.PolicyListItem;
 import io.gravitee.management.service.PolicyService;
 
 import javax.inject.Inject;
@@ -26,6 +27,7 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Defines the REST resources to manage Policy.
@@ -43,12 +45,23 @@ public class PoliciesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<PolicyEntity> list() {
-        return policyService.findAll();
+    public Set<PolicyListItem> list() {
+        return policyService.findAll().stream().map(this::convert).collect(Collectors.toSet());
     }
 
     @Path("{policy}")
     public PolicyResource getPolicyResource() {
         return resourceContext.getResource(PolicyResource.class);
+    }
+
+    private PolicyListItem convert(PolicyEntity policy) {
+        PolicyListItem item = new PolicyListItem();
+
+        item.setId(policy.getId());
+        item.setName(policy.getName());
+        item.setDescription(policy.getDescription());
+        item.setVersion(policy.getVersion());
+
+        return item;
     }
 }

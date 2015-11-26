@@ -20,7 +20,7 @@ import java.util.Objects;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PolicyEntity {
+public class PolicyListItem {
 
     /**
      * The policy identifier
@@ -88,7 +88,7 @@ public class PolicyEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PolicyEntity that = (PolicyEntity) o;
+        PolicyListItem that = (PolicyListItem) o;
         return Objects.equals(id, that.id);
     }
 

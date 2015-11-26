@@ -51,7 +51,7 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
         entity.setDescription(policyDefinition.plugin().manifest().description());
         entity.setName(policyDefinition.plugin().manifest().name());
         entity.setVersion(policyDefinition.plugin().manifest().version());
-        
+
         return entity;
     }
 }
