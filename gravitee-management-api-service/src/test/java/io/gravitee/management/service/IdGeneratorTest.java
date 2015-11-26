@@ -32,7 +32,7 @@ public class IdGeneratorTest {
         IdGenerator generator = new IdGeneratorImpl();
 
         String id = generator.generate("My  API");
-        Assert.assertEquals("My-API", id);
+        Assert.assertEquals("my-api", id);
     }
 
     @Test
@@ -40,7 +40,7 @@ public class IdGeneratorTest {
         IdGenerator generator = new IdGeneratorImpl();
 
         String id = generator.generate("My  API?123");
-        Assert.assertEquals("My-API-123", id);
+        Assert.assertEquals("my-api-123", id);
     }
 
     @Test
@@ -48,7 +48,7 @@ public class IdGeneratorTest {
         IdGenerator generator = new IdGeneratorImpl();
 
         String id = generator.generate("My  API#?=123");
-        Assert.assertEquals("My-API-123", id);
+        Assert.assertEquals("my-api-123", id);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class IdGeneratorTest {
         IdGenerator generator = new IdGeneratorImpl();
 
         String id = generator.generate("My  API#?=");
-        Assert.assertEquals("My-API-", id);
+        Assert.assertEquals("my-api-", id);
     }
 
     @Test

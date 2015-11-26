@@ -28,6 +28,7 @@ public class IdGeneratorImpl implements IdGenerator {
     public String generate(String name) {
         return name
                 .trim()
+                .toLowerCase()
                 .replaceAll(" +", " ")
                 .replaceAll(" ", "-")
                 .replaceAll("[^\\w\\s]","-")
