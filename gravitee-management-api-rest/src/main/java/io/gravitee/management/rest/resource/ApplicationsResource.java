@@ -28,6 +28,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -50,7 +51,10 @@ public class ApplicationsResource extends AbstractResource {
         Set<ApplicationEntity> applications = applicationService.findByUser(getAuthenticatedUser());
 
         applications.forEach(api -> api = applicationEnhancer.enhance(getAuthenticatedUser()).apply(api));
-        return applications;
+
+        return applications.stream()
+                .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
+                .collect(Collectors.toSet());
     }
 
     /**

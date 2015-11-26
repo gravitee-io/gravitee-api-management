@@ -28,6 +28,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -49,7 +50,9 @@ public class ApiMembersResource {
         // Check that the API exists
         apiService.findById(api);
 
-        return apiService.getMembers(api, null);
+        return apiService.getMembers(api, null).stream()
+                .sorted((o1, o2) -> o1.getUser().compareTo(o2.getUser()))
+                .collect(Collectors.toSet());
     }
 
     @POST

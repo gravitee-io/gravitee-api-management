@@ -46,7 +46,10 @@ public class PoliciesResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<PolicyListItem> list() {
-        return policyService.findAll().stream().map(this::convert).collect(Collectors.toSet());
+        return policyService.findAll().stream()
+                .map(this::convert)
+                .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
+                .collect(Collectors.toSet());
     }
 
     @Path("{policy}")

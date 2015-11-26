@@ -21,22 +21,16 @@ import io.gravitee.management.rest.resource.param.MembershipTypeParam;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
-
-import java.net.URI;
-import java.util.Set;
+import org.apache.commons.lang.StringUtils;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.apache.commons.lang.StringUtils;
+import java.net.URI;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -58,7 +52,9 @@ public class ApplicationMembersResource {
         // Check that the application exists
         applicationService.findById(application);
 
-        return applicationService.getMembers(application, null);
+        return applicationService.getMembers(application, null).stream()
+                .sorted((o1, o2) -> o1.getUser().compareTo(o2.getUser()))
+                .collect(Collectors.toSet());
     }
 
     @POST

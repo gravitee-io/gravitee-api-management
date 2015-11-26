@@ -58,7 +58,10 @@ public class ApisResource extends AbstractResource {
             apis = apiService.findByVisibility(Visibility.PUBLIC);
         }
 
-        return apis.stream().map(api -> convert(api)).collect(Collectors.toSet());
+        return apis.stream()
+                .map(this::convert)
+                .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
+                .collect(Collectors.toSet());
     }
 
     /**

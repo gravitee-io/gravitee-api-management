@@ -20,13 +20,13 @@ import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 
-import java.util.Set;
-
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE
@@ -48,7 +48,9 @@ public class ApplicationApisResource {
 		// Check application exists
 		ApplicationEntity applicationEntity = applicationService.findById(application);
 
-		return apiService.findByApplication(applicationEntity.getId());
+		return apiService.findByApplication(applicationEntity.getId()).stream()
+				.sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
+				.collect(Collectors.toSet());
 	}
 
 }
