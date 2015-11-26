@@ -32,4 +32,6 @@ public interface ApiKeyService {
     Optional<ApiKeyEntity> getCurrent(String applicationId, String apiId);
 
     Set<ApiKeyEntity> findAll(String applicationId, String apiId);
+
+    Set<ApiKeyEntity> findByApplication(String applicationId);
 }

@@ -17,16 +17,16 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApiKeyEntity;
 import io.gravitee.management.service.*;
-import io.gravitee.management.service.exceptions.NoValidApiKeyException;
 
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -38,9 +38,6 @@ public class ApiKeyResource extends AbstractResource {
 
     @PathParam("application")
     private String application;
-
-    @PathParam("api")
-    private String api;
 
     @Inject
     private ApiService apiService;
@@ -54,6 +51,20 @@ public class ApiKeyResource extends AbstractResource {
     @Inject
     private PermissionService permissionService;
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<ApiKeyEntity> keys() {
+        applicationService.findById(this.application);
+
+        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
+
+        return apiKeyService
+                .findByApplication(application).stream()
+                .sorted((o1, o2) -> o1.getApi().compareTo(o2.getApi()))
+                .collect(Collectors.toSet());
+    }
+
+    /*
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ApiKeyEntity getCurrentApiKeyEntity() {
@@ -70,13 +81,14 @@ public class ApiKeyResource extends AbstractResource {
 
         return apiKeyEntity.get();
     }
+    */
 
     @GET
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApiKeyEntity> findAllApiKeys() {
+    public Set<ApiKeyEntity> findAllApiKeys(@NotNull @QueryParam("api") String api) {
         applicationService.findById(this.application);
-        apiService.findById(this.api);
+        apiService.findById(api);
 
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
 
@@ -85,9 +97,9 @@ public class ApiKeyResource extends AbstractResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public Response generateApiKey() {
+    public Response generateApiKey(@NotNull @QueryParam("api") String api) {
         applicationService.findById(this.application);
-        apiService.findById(this.api);
+        apiService.findById(api);
 
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_API);
@@ -105,7 +117,6 @@ public class ApiKeyResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response revokeApiKey(@PathParam("key") String apiKey) {
         applicationService.findById(this.application);
-        apiService.findById(this.api);
 
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
 

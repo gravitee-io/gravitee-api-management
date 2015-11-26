@@ -15,21 +15,6 @@
  */
 package io.gravitee.management.service.impl;
 
-import static java.util.Collections.emptySet;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.management.model.ApiKeyEntity;
 import io.gravitee.management.service.ApiKeyGenerator;
 import io.gravitee.management.service.ApiKeyService;
@@ -38,6 +23,17 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptySet;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -56,23 +52,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Autowired
     private ApiKeyGenerator apiKeyGenerator;
 
-    private static ApiKeyEntity convert(ApiKey apiKey) {
-        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
-
-        apiKeyEntity.setKey(apiKey.getKey());
-        apiKeyEntity.setCreatedAt(apiKey.getCreatedAt());
-        apiKeyEntity.setExpireOn(apiKey.getExpiration());
-        apiKeyEntity.setRevoked(apiKey.isRevoked());
-
-        return apiKeyEntity;
-    }
-
     @Override
     public ApiKeyEntity generate(String applicationName, String apiName) {
         try {
             LOGGER.debug("Generate a new key for {} - {}", applicationName, apiName);
             ApiKey apiKey = new ApiKey();
 
+            apiKey.setApi(apiName);
             apiKey.setCreatedAt(new Date());
             apiKey.setKey(apiKeyGenerator.generate());
             apiKey.setRevoked(false);
@@ -141,6 +127,35 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
+    public Set<ApiKeyEntity> findByApplication(String applicationId) {
+        try {
+            LOGGER.debug("Find all API keys for application {}", applicationId);
+
+            Set<ApiKey> keys = apiKeyRepository.findByApplication(applicationId);
+
+            // Filter by API and latest generated key
+            Set<ApiKey> distinctKeyByApi = new HashSet<>();
+
+            Map<String, List<ApiKey>> keysByApi = new HashMap<>();
+            keys.forEach(apiKey -> {
+                List<ApiKey> values = keysByApi.getOrDefault(apiKey.getApi(), new ArrayList<>());
+                values.add(apiKey);
+                keysByApi.put(apiKey.getApi(), values);
+            });
+
+            keysByApi.forEach(
+                    (api, apiKeys) -> apiKeys.stream().max(
+                            (key1, key2) -> key1.getCreatedAt().compareTo(key2.getCreatedAt()))
+                            .ifPresent(distinctKeyByApi::add));
+
+            return distinctKeyByApi.stream().map(ApiKeyServiceImpl::convert).collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while getting all API keys for application {}", applicationId, ex);
+            throw new TechnicalManagementException("An error occurs while getting all API keys for application " + applicationId, ex);
+        }
+    }
+
+    @Override
     public Set<ApiKeyEntity> findAll(String applicationName, String apiName) {
         try {
             LOGGER.debug("Find all API Keys for {} - {}", applicationName, apiName);
@@ -163,5 +178,17 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             LOGGER.error("An error occurs while trying to find all API Keys for {} - {}", applicationName, apiName);
             throw new TechnicalManagementException("An error occurs while trying to find find all API Keys for " + applicationName + " - " + apiName, ex);
         }
+    }
+
+    private static ApiKeyEntity convert(ApiKey apiKey) {
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+
+        apiKeyEntity.setKey(apiKey.getKey());
+        apiKeyEntity.setCreatedAt(apiKey.getCreatedAt());
+        apiKeyEntity.setExpireOn(apiKey.getExpiration());
+        apiKeyEntity.setRevoked(apiKey.isRevoked());
+        apiKeyEntity.setApi(apiKey.getApi());
+
+        return apiKeyEntity;
     }
 }
