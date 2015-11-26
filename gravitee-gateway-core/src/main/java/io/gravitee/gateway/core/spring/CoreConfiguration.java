@@ -24,17 +24,16 @@ import io.gravitee.gateway.core.definition.validator.Validator;
 import io.gravitee.gateway.core.definition.validator.ValidatorImpl;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
-import io.gravitee.gateway.core.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.core.reactor.GraviteeReactor;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.NotFoundReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
-import io.gravitee.gateway.core.registry.LocalApiDefinitionRegistry;
 import io.gravitee.gateway.core.reporter.spring.ReporterConfiguration;
 import io.gravitee.gateway.core.repository.spring.RepositoryConfiguration;
 import io.gravitee.gateway.core.service.spring.ServiceConfiguration;
-import io.gravitee.plugin.spring.PluginConfiguration;
+import io.gravitee.plugin.core.spring.PluginConfiguration;
+import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,8 +47,16 @@ import java.util.Properties;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@Import({RepositoryConfiguration.class, PluginConfiguration.class, io.gravitee.gateway.core.plugin.spring.PluginConfiguration.class, PolicyConfiguration.class, ReporterConfiguration.class,
-        PropertiesConfiguration.class, ServiceConfiguration.class})//, SyncConfiguration.class})
+@Import({
+        PropertiesConfiguration.class,
+
+        RepositoryConfiguration.class,
+
+        PluginConfiguration.class,
+        PolicyPluginConfiguration.class,
+        ReporterConfiguration.class,
+        ServiceConfiguration.class,
+})
 public class CoreConfiguration {
 
     @Bean
@@ -61,11 +68,6 @@ public class CoreConfiguration {
     @Bean
     public EventManager eventManager() {
         return new EventManagerImpl();
-    }
-
-    @Bean
-    public LocalApiDefinitionRegistry localApiDefinitionRegistry() {
-        return new LocalApiDefinitionRegistry();
     }
 
     @Bean

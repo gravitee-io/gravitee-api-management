@@ -16,11 +16,11 @@
 package io.gravitee.gateway.core.service.impl;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.core.plugin.PluginContextFactory;
-import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.service.ServiceManager;
-import io.gravitee.plugin.api.Plugin;
-import io.gravitee.plugin.api.PluginType;
+import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginContextFactory;
+import io.gravitee.plugin.core.api.PluginHandler;
+import io.gravitee.plugin.core.api.PluginType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

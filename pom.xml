@@ -86,6 +86,12 @@
                 <version>${gravitee-plugin-core.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-policy</artifactId>
+                <version>${gravitee-plugin-policy.version}</version>
+            </dependency>
+
             <!-- Logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -126,6 +132,7 @@
         <gravitee-common.version>0.2.0</gravitee-common.version>
         <gravitee-repository.version>0.4.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-plugin-core.version>0.4.0-SNAPSHOT</gravitee-plugin-core.version>
+        <gravitee-plugin-policy.version>0.4.0-SNAPSHOT</gravitee-plugin-policy.version>
         <gravitee-repository-jdbc.version>0.3.0</gravitee-repository-jdbc.version>
         <gravitee-repository-mongodb.version>0.4.0-SNAPSHOT</gravitee-repository-mongodb.version>
 

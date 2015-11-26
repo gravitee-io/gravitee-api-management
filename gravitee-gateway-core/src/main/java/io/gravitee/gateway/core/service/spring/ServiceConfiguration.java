@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.core.service.spring;
 
-import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.service.impl.ServiceManagerImpl;
+import io.gravitee.plugin.core.api.PluginHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

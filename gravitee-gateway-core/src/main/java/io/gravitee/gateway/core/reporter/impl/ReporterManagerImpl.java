@@ -17,10 +17,10 @@ package io.gravitee.gateway.core.reporter.impl;
 
 import io.gravitee.gateway.api.reporter.MetricsReporter;
 import io.gravitee.gateway.api.reporter.Reporter;
-import io.gravitee.gateway.core.plugin.PluginContextFactory;
-import io.gravitee.gateway.core.plugin.PluginHandler;
 import io.gravitee.gateway.core.reporter.ReporterManager;
-import io.gravitee.plugin.api.Plugin;
+import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginContextFactory;
+import io.gravitee.plugin.core.api.PluginHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

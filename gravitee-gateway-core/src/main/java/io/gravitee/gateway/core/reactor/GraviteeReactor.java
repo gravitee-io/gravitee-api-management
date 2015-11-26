@@ -28,15 +28,14 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
-import io.gravitee.gateway.core.plugin.PluginEventListener;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.reporter.ReporterHandler;
-import io.gravitee.gateway.core.registry.LocalApiDefinitionRegistry;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.service.ServiceManager;
-import io.gravitee.plugin.api.PluginRegistry;
+import io.gravitee.plugin.core.api.PluginRegistry;
+import io.gravitee.plugin.core.internal.PluginEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -233,8 +232,6 @@ public class GraviteeReactor extends AbstractService implements
         applicationContext.getBean(ReporterService.class).start();
 
         eventManager.subscribeForEvents(this, ApiEvent.class);
-
-        applicationContext.getBean(LocalApiDefinitionRegistry.class).start();
     }
 
     @Override
@@ -243,7 +240,6 @@ public class GraviteeReactor extends AbstractService implements
 
         applicationContext.getBean(PluginRegistry.class).stop();
         applicationContext.getBean(PluginEventListener.class).stop();
-        applicationContext.getBean(LocalApiDefinitionRegistry.class).stop();
 
         clearHandlers();
 

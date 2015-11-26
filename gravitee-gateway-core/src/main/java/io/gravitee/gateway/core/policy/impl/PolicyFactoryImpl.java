@@ -18,8 +18,8 @@ package io.gravitee.gateway.core.policy.impl;
 import com.google.common.base.Predicate;
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.core.policy.PolicyDefinition;
 import io.gravitee.gateway.core.policy.PolicyFactory;
+import io.gravitee.plugin.policy.PolicyDefinition;
 import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.reflections.ReflectionUtils.*;
+import static org.reflections.ReflectionUtils.withModifier;
+import static org.reflections.ReflectionUtils.withParametersCount;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
