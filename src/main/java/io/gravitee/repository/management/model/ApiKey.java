@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -51,6 +52,11 @@ public class ApiKey {
 	 * The API for which the key is defined.
 	 */
 	private String api;
+
+	/**
+	 * The application for which the key is defined.
+	 */
+	private String application;
 
 	public boolean isRevoked() {
 		return revoked;
@@ -98,5 +104,26 @@ public class ApiKey {
 
 	public void setApi(String api) {
 		this.api = api;
+	}
+
+	public String getApplication() {
+		return application;
+	}
+
+	public void setApplication(String application) {
+		this.application = application;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		ApiKey apiKey = (ApiKey) o;
+		return Objects.equals(key, apiKey.key);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(key);
 	}
 }
