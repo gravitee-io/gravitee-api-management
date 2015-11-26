@@ -17,10 +17,10 @@
 -->
   <md-dialog aria-label="Creation of a new API">
     <md-content class="md-padding">
-    <form name="formApi" ng-submit="save()" novalidate>
+    <form name="formApi" ng-submit="dialogApiCtrl.save()" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
-          <h2>{{editMode?'Modification of API ' + api.name:'Creation of a new API'}}</h2>
+          <h2>Creation of a new API'</h2>
           <span flex></span>
           <md-button class="md-icon-button" ng-click="hide()">
             X
@@ -60,7 +60,7 @@
       </md-dialog-content>
 
       <div class="md-actions" layout="row">
-        <md-button type="button" ng-click="hide()" class="md-primary">
+        <md-button type="button" ng-click="dialogApiCtrl.hide()" class="md-primary">
           Cancel
         </md-button>
         <md-button type="submit" class="md-primary" ng-disabled="formApi.$invalid">

@@ -36,9 +36,31 @@ function runBlock ($rootScope, $window, $http, $cookieStore) {
 
   $rootScope.$on('graviteeLogout', function() {
     $cookieStore.remove(graviteeAuthenticationKey);
+    setAuthorization();
     $window.location.href = '/';
   });
 
+  // Progress Bar
+  var interval, intervalTimeInMs = 500;
+  $rootScope.$watch(function () {
+    return $http.pendingRequests.length > 0;
+  }, function (hasPendingRequests) {
+    if (hasPendingRequests) {
+      $rootScope.progressValue = 0;
+      interval = setInterval(function () {
+        $rootScope.$apply(function () {
+          if ($rootScope.progressValue === 100) {
+            $rootScope.progressValue = 0;
+          } else {
+            $rootScope.progressValue += 10;
+          }
+        });
+      }, intervalTimeInMs);
+    } else {
+      clearInterval(interval);
+      $rootScope.progressValue = 100;
+    }
+  });
 }
 
 export default runBlock;

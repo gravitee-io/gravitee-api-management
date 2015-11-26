@@ -24,6 +24,11 @@ class ApisController {
 
     this.tableMode = this.$state.current.name.endsWith('table')? true : false;
     this.list();
+
+    var that = this;
+    $scope.$on('authenticationSuccess', function() {
+      that.list();
+    });
   }
 
   list() {
@@ -32,15 +37,15 @@ class ApisController {
     });
   }
 
-  showApiModal(api) {
+  showApiModal() {
     var that = this;
     this.$mdDialog.show({
       controller: 'DialogApiController',
+      controllerAs: 'dialogApiCtrl',
       templateUrl: 'app/api/dialog/api.dialog.html',
-      parent: angular.element(document.body),
-      api: api
-    }).then(function (api) {
-      if (api) {
+      clickOutsideToClose: true
+    }).then(function (saved) {
+      if (saved) {
         that.list();
       }
     });

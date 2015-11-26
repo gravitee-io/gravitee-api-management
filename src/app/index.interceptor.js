@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function interceptorConfig ($httpProvider) {
+function interceptorConfig($httpProvider) {
   'ngInject';
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-  var interceptorUnauthorized = ['$location', '$q', '$injector', function($location, $q, $injector) {
+  var interceptorUnauthorized = function ($location, $q, $injector) {
     return {
       responseError: function (error) {
         var unauthorizedError = !error || error.status === 401;
@@ -28,9 +28,27 @@ function interceptorConfig ($httpProvider) {
         return $q.reject(error);
       }
     };
-  }];
+  };
+
+  var interceptorTimeout = function ($q, $injector) {
+    return {
+      request: function (config) {
+        config.timeout = 5000;
+        return config;
+      },
+      responseError: function (error) {
+        if (error && error.status <= 0) {
+          $injector.get('NotificationService').error('Server unavailable');
+        }
+        return $q.reject(error);
+      }
+    };
+  };
+
+
   if ($httpProvider.interceptors) {
     $httpProvider.interceptors.push(interceptorUnauthorized);
+    $httpProvider.interceptors.push(interceptorTimeout);
   }
 }
 

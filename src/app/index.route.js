@@ -19,8 +19,8 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     .state('home', {
       url: '/',
       templateUrl: 'app/main/main.html',
-      controller: 'MainController',
-      controllerAs: 'mainCtrl'
+      controller: 'ApisController',
+      controllerAs: 'apisCtrl'
     })
     .state('apis', {
       abstract: true,

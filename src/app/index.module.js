@@ -23,7 +23,6 @@ import interceptorConfig from './index.interceptor';
 import delegatorConfig from './index.delegator';
 
 import runBlock from './index.run';
-import MainController from './main/main.controller';
 import ChartDirective from './components/chart/chart.directive';
 import ApiService from './api/api.service';
 import ApisController from './api/apis.controller';
@@ -34,7 +33,6 @@ import TeamService from './user/team.service';
 import UserService from './user/user.service';
 import UserController from './user/user.controller';
 import LoginService from './login/login.service';
-import LoginController from './login/login.controller';
 import NavbarDirective from './components/navbar/navbar.directive';
 import NotificationService from './components/notification/notification.service';
 import DocumentationDirective from './documentation/documentation.directive';
@@ -63,7 +61,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
       .accentPalette('blue');
   })
   .run(runBlock)
-  .controller('MainController', MainController)
   .service('ApiService', ApiService)
   .controller('ApisController', ApisController)
   .controller('ApiAdminController', ApiAdminController)
@@ -74,7 +71,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .controller('UserController', UserController)
   .service('LoginService', LoginService)
   .service('NotificationService', NotificationService)
-  .controller('LoginController', LoginController)
   .controller('DocumentationController', DocumentationController)
   .service('DocumentationService', DocumentationService)
   .controller('ProfileController', ProfileController)

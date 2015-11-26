@@ -13,30 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogApiController($scope, $mdDialog, ApiService, api) {
+function DialogApiController($scope, $mdDialog, ApiService) {
   'ngInject';
 
-  $scope.api = api;
-  $scope.editMode = api;
-
-  $scope.hide = function () {
+  this.hide = function () {
     $mdDialog.hide();
   };
 
-  $scope.save = function () {
-    if ($scope.editMode) {
-      ApiService.update($scope.api).then(function () {
-        $mdDialog.hide(api);
-      }).catch(function (error) {
-        $scope.error = error;
-      });
-    } else {
-      ApiService.create($scope.api).then(function () {
-        $mdDialog.hide(api);
-      }).catch(function (error) {
-        $scope.error = error;
-      });
-    }
+  this.save = function () {
+    ApiService.create($scope.api).then(function () {
+      $mdDialog.hide(true);
+    }).catch(function (error) {
+      $scope.error = error;
+    });
   };
 }
 

@@ -98,6 +98,14 @@ tr[ui-sref] {
   cursor: pointer;
 }
 
+md-switch {
+  display: inline-flex;
+}
+
+md-progress-linear {
+  top: 64px;
+}
+
 /**
  *  Do not remove this comments bellow. It's the markers used by gulp-inject to inject
  *  all your sass files automatically

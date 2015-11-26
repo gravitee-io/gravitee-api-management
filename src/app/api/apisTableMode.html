@@ -17,26 +17,26 @@
 -->
 <md-data-table-container>
 	<table md-data-table>
-		<thead>
+		<thead md-order="order">
 		<tr>
-			<th>Name</th>
-			<th>Version</th>
-			<th>Visibility</th>
-			<th>Context path</th>
-			<th>State</th>
+			<th name="Name" order-by="name"></th>
+			<th name="Version" order-by="version"></th>
+			<th name="Visibility" order-by="visibility"></th>
+			<th name="Context path" order-by="proxy.context_path"></th>
+			<th name="State" order-by="state"></th>
 		</tr>
 		</thead>
 		<tbody>
-		<tr md-auto-select ng-repeat="api in apisCtrl.apis" title="{{api.description}}" ui-sref="apis.admin.general({apiId: api.id})">
-			<td>{{api.name}}</td>
-			<td>{{api.version}}</td>
-			<td>{{api.visibility}}</td>
-			<td>{{api.proxy.context_path}}</td>
-			<td>
-				<ng-md-icon ng-if="api.state === 'STARTED'" icon="blur_on" size="32" style="fill: green;" title="Started"></ng-md-icon>
-				<ng-md-icon ng-if="api.state !== 'STARTED'" icon="blur_off" size="32" style="fill: red;" title="Stopped"></ng-md-icon>
-			</td>
-		</tr>
+			<tr ng-repeat="api in apisCtrl.apis | orderBy: order" title="{{api.description}}" ui-sref="apis.admin.general({apiId: api.id})">
+				<td>{{api.name}}</td>
+				<td>{{api.version}}</td>
+				<td>{{api.visibility}}</td>
+				<td>{{api.proxy.context_path}}</td>
+				<td>
+					<ng-md-icon ng-if="api.state === 'STARTED'" icon="blur_on" size="32" style="fill: green;" title="Started"></ng-md-icon>
+					<ng-md-icon ng-if="api.state !== 'STARTED'" icon="blur_off" size="32" style="fill: red;" title="Stopped"></ng-md-icon>
+				</td>
+			</tr>
 		</tbody>
 	</table>
 </md-data-table-container>
