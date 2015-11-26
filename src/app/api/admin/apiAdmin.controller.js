@@ -92,16 +92,37 @@ class ApiAdminController {
   get(apiId) {
     this.ApiService.get(apiId).then(response => {
       this.api = response.data;
-      this.$scope.enabled = this.api.state === 'started'? true : false;
+      this.initState();
     });
   }
 
-  start(id) {
-    this.ApiService.start(id);
+  initState() {
+    this.$scope.enabled = this.api.state === 'started'? true : false;
   }
 
-  stop(id) {
-    this.ApiService.stop(id);
+  changeLifecycle(id) {
+    var started = this.api.state === 'started';
+    var alert = this.$mdDialog.confirm({
+      title: 'Warning',
+      content: 'Are you sure you want to ' + (started?'':'un') +'publish the api ' + id + '?',
+      ok: 'OK',
+      cancel: 'Cancel'
+    });
+
+    var that = this;
+
+    this.$mdDialog
+      .show(alert)
+      .then(function () {
+        if (started) {
+          that.ApiService.stop(id);
+        } else {
+          that.ApiService.start(id);
+        }
+      })
+      .catch(function () {
+        that.initState();
+      });
   }
 
   delete(name) {

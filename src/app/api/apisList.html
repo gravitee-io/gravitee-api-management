@@ -18,13 +18,15 @@
 <md-card>
   <md-card-content class="content-header">
 
-    <ng-md-icon ng-class="{'gravitee-disabled': !apisCtrl.tableMode}"
-                icon="view_list" ng-click="apisCtrl.changeMode(true)">
-    </ng-md-icon>
+    <div layout="row" layout-align="end center" style="padding-right: 30px;">
+      <ng-md-icon ng-class="{'gravitee-disabled': !apisCtrl.tableMode}"
+                  icon="view_list" ng-click="apisCtrl.changeMode(true)">
+      </ng-md-icon>
 
-    <ng-md-icon ng-class="{'gravitee-disabled': apisCtrl.tableMode}"
-                icon="view_module" ng-click="apisCtrl.changeMode(false)">
-    </ng-md-icon>
+      <ng-md-icon ng-class="{'gravitee-disabled': apisCtrl.tableMode}"
+                  icon="view_module" ng-click="apisCtrl.changeMode(false)">
+      </ng-md-icon>
+    </div>
 
     <div ui-view style="margin-bottom: 100px;"></div>
 
