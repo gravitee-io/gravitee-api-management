@@ -20,9 +20,12 @@ import io.gravitee.management.service.PolicyService;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -39,7 +42,18 @@ public class PolicyResource {
     private String policy;
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public PolicyEntity get() {
-        return null; //policyService.
+        return policyService.findById(policy);
+    }
+
+    @GET
+    @Path("schema")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String schema() {
+        // Check that the policy exists
+        policyService.findById(policy);
+
+        return policyService.getSchema(policy);
     }
 }

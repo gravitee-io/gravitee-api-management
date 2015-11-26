@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 /**
@@ -41,6 +43,14 @@ public class PolicyEntity {
      * The policy version
      */
     private String version;
+
+    private PolicyType type;
+
+    @JsonProperty("plugin")
+    private PluginEntity plugin;
+
+    @JsonProperty("dev")
+    private PolicyDevelopmentEntity development;
 
     public String getDescription() {
         return description;
@@ -74,12 +84,37 @@ public class PolicyEntity {
         this.version = version;
     }
 
+    public PolicyType getType() {
+        return type;
+    }
+
+    public void setType(PolicyType type) {
+        this.type = type;
+    }
+
+    public PluginEntity getPlugin() {
+        return plugin;
+    }
+
+    public void setPlugin(PluginEntity plugin) {
+        this.plugin = plugin;
+    }
+
+    public PolicyDevelopmentEntity getDevelopment() {
+        return development;
+    }
+
+    public void setDevelopment(PolicyDevelopmentEntity development) {
+        this.development = development;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("PolicyEntity{");
         sb.append("id='").append(id).append('\'');
         sb.append(", name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
+        sb.append(", type='").append(type).append('\'');
         sb.append('}');
         return sb.toString();
     }

@@ -1,0 +1,18 @@
+{
+  "type" : "object",
+  "id" : "urn:jsonschema:io:gravitee:policy:cors:CorsPolicyConfigurationProperty",
+  "properties" : {
+    "name" : {
+      "type" : "string"
+    },
+    "overridden" : {
+      "type" : "boolean"
+    },
+    "value" : {
+      "type" : "any"
+    },
+    "enabled" : {
+      "type" : "boolean"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "type" : "object",
+  "id" : "urn:jsonschema:io:gravitee:policy:cors:CorsPolicyConfiguration",
+  "properties" : {
+    "accessControlExposeHeaders" : {
+      "type" : "object",
+      "$ref" : "urn:jsonschema:io:gravitee:policy:cors:CorsPolicyConfigurationProperty<java:lang:String>"
+    },
+    "accessControlMaxAge" : {
+      "type" : "object",
+      "$ref" : "urn:jsonschema:io:gravitee:policy:cors:CorsPolicyConfigurationProperty<java:lang:String>"
+    },
+    "accessControlAllowCredentials" : {
+      "type" : "object",
+      "$ref" : "urn:jsonschema:io:gravitee:policy:cors:CorsPolicyConfigurationProperty<java:lang:String>"
+    },
+    "accessControlAllowOrigin" : {
+      "type" : "object",
+      "id" : "urn:jsonschema:io:gravitee:policy:cors:CorsPolicyConfigurationProperty<java:lang:String>",
+      "properties" : {
+        "name" : {
+          "type" : "string"
+        },
+        "overridden" : {
+          "type" : "boolean"
+        },
+        "value" : {
+          "type" : "string"
+        },
+        "enabled" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "accessControlAllowHeaders" : {
+      "type" : "object",
+      "$ref" : "urn:jsonschema:io:gravitee:policy:cors:CorsPolicyConfigurationProperty<java:lang:String>"
+    },
+    "accessControlAllowMethods" : {
+      "type" : "object",
+      "$ref" : "urn:jsonschema:io:gravitee:policy:cors:CorsPolicyConfigurationProperty<java:lang:String>"
+    }
+  }
+}

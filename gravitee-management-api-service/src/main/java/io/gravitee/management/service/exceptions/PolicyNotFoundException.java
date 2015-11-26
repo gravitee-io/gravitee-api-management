@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.PolicyEntity;
-
-import java.util.Set;
+package io.gravitee.management.service.exceptions;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface PolicyService {
+public class PolicyNotFoundException extends AbstractNotFoundException {
 
-    Set<PolicyEntity> findAll();
+    private final String policy;
 
-    PolicyEntity findById(String policy);
+    public PolicyNotFoundException(String policy) {
+        this.policy = policy;
+    }
 
-    String getSchema(String policy);
+    @Override
+    public String getMessage() {
+        return "Policy [" + policy + "] can not be found.";
+    }
 }

@@ -64,6 +64,7 @@ public class PoliciesResource {
         item.setName(policy.getName());
         item.setDescription(policy.getDescription());
         item.setVersion(policy.getVersion());
+        item.setType(policy.getType());
 
         return item;
     }

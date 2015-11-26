@@ -42,6 +42,8 @@ public class PolicyListItem {
      */
     private String version;
 
+    private PolicyType type;
+
     public String getDescription() {
         return description;
     }
@@ -74,12 +76,21 @@ public class PolicyListItem {
         this.version = version;
     }
 
+    public PolicyType getType() {
+        return type;
+    }
+
+    public void setType(PolicyType type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("PolicyEntity{");
         sb.append("id='").append(id).append('\'');
         sb.append(", name='").append(name).append('\'');
         sb.append(", version='").append(version).append('\'');
+        sb.append(", type='").append(type).append('\'');
         sb.append('}');
         return sb.toString();
     }
