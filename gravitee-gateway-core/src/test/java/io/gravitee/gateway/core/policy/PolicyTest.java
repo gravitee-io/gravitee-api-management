@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.policy.annotations.OnRequest;
 import io.gravitee.gateway.api.policy.annotations.OnResponse;
 import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
 import io.gravitee.gateway.core.policy.impl.PolicyImpl;
+import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.policy.PolicyDefinition;
 import org.junit.Before;
 import org.junit.Test;
@@ -174,6 +175,11 @@ public class PolicyTest {
 
             @Override
             public Method onResponseMethod() {
+                return null;
+            }
+
+            @Override
+            public Plugin plugin() {
                 return null;
             }
         };

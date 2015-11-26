@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
+import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.policy.PolicyDefinition;
 import org.junit.Assert;
 import org.junit.Before;
@@ -105,6 +106,11 @@ public class PolicyFactoryTest {
             public Method onResponseMethod() {
                 return null;
             }
+
+            @Override
+            public Plugin plugin() {
+                return null;
+            }
         };
     }
 
@@ -132,6 +138,11 @@ public class PolicyFactoryTest {
 
             @Override
             public Method onResponseMethod() {
+                return null;
+            }
+
+            @Override
+            public Plugin plugin() {
                 return null;
             }
         };
