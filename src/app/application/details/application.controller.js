@@ -112,10 +112,10 @@ class ApplicationController {
 			targetEvent: ev,
       clickOutsideToClose: true,
 			application: that.application,
-			associatedAPIs: that.associatedAPIs
+			apiKeys: that.apiKeys
     }).then(function (application) {
       if (application) {
-        that.getAssociatedAPIs(application.id);
+        that.getAPIKeys(application.id);
       }
     }, function() {
        // You cancelled the dialog
