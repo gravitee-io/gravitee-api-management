@@ -49,7 +49,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public void handle(Plugin plugin) {
         try {
-            LOGGER.info("Register a new service: {}" + plugin.clazz());
+            LOGGER.info("Register a new service: {}", plugin.clazz());
             ApplicationContext context = pluginContextFactory.create(plugin);
             services.add((AbstractService) context.getBean(plugin.clazz()));
 

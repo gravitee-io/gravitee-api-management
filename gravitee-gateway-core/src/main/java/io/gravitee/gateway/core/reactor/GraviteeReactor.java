@@ -228,10 +228,11 @@ public class GraviteeReactor extends AbstractService implements
 
         applicationContext.getBean(PluginEventListener.class).start();
         applicationContext.getBean(PluginRegistry.class).start();
-        applicationContext.getBean(ServiceManager.class).start();
-        applicationContext.getBean(ReporterService.class).start();
 
         eventManager.subscribeForEvents(this, ApiEvent.class);
+
+        applicationContext.getBean(ServiceManager.class).start();
+        applicationContext.getBean(ReporterService.class).start();
     }
 
     @Override
