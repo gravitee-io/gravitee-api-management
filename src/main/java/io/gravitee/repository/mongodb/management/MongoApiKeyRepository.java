@@ -54,8 +54,13 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 			return Collections.emptySet();
 		}
 		
-		return apiAssociationMongos.stream().map(
-				t -> mapper.map(t.getKey(), ApiKey.class)).collect(Collectors.toSet());
+		return apiAssociationMongos.stream().map(apiAssociationMongo -> {
+            ApiKey key = mapper.map(apiAssociationMongo.getKey(), ApiKey.class);
+            key.setApi(apiAssociationMongo.getApi().getId());
+			key.setApplication(apiAssociationMongo.getApplication().getId());
+
+            return key;
+        }).collect(Collectors.toSet());
 	}
 
 	@Override
