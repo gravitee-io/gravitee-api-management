@@ -70,10 +70,10 @@ public class ApiResource extends AbstractResource {
 
         switch (action.getAction()) {
             case START:
-                apiService.start(api.getName());
+                apiService.start(api.getId());
                 break;
             case STOP:
-                apiService.stop(api.getName());
+                apiService.stop(api.getId());
                 break;
             default:
                 break;
