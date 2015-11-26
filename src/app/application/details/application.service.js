@@ -25,8 +25,8 @@ class ApplicationService {
     return this.$http.get(this.applicationsURL + applicationId);
   }
 	
-	getAssociatedAPIs(applicationId) {
-		return this.$http.get(this.applicationsURL + applicationId + '/apis');
+	getAPIKeys(applicationId) {
+		return this.$http.get(this.applicationsURL + applicationId + '/keys');
 	}
 
 	getMembers(applicationId) {
@@ -56,15 +56,11 @@ class ApplicationService {
   }
 
 	subscribe(application, apiId) {
-		return this.$http.post(this.applicationsURL + application.id + '/' + apiId);
+		return this.$http.post(this.applicationsURL + application.id + '/keys?api=' + apiId);
 	}
 
-	unsubscribe(application, apiId, apiKey) {
-		return this.$http.delete(this.applicationsURL + application.id + '/' + apiId + '/' + apiKey);
-	}
-
-	getAPIKey(applicationId, apiId) {
-		return this.$http.get(this.applicationsURL + applicationId + '/' + apiId);
+	unsubscribe(application, apiKey) {
+		return this.$http.delete(this.applicationsURL + application.id + '/keys/' + apiKey);
 	}
 
   delete(name) {

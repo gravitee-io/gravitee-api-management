@@ -23,22 +23,20 @@
   <table md-data-table class="md-primary">
 		<thead>
 			<tr>
-				<th>API Name</th>
-				<th>Version</th>
+				<th>API</th>
 				<th>API Key</th>
 				<th>API Key's revocation ?</th>
 				<th></th>
 			</tr>
 		</thead>
 		<tbody>
-			<tr ng-repeat="associatedAPI in applicationCtrl.associatedAPIs">
-				<td>{{associatedAPI.api.name}}</td>
-				<td>{{associatedAPI.api.version}}</td>
-				<td><code>{{associatedAPI.apiKey.key}}</code></td>
-				<td>{{associatedAPI.apiKey.revoked}}</td>
+			<tr ng-repeat="apiKey in applicationCtrl.apiKeys">
+				<td>{{apiKey.api}}</td>
+				<td><code>{{apiKey.key}}</code></td>
+				<td>{{apiKey.revoked}}</td>
 				<td>
-						<md-button class="md-raised" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application,associatedAPI.api.id)">Renew API Key</md-button>
-						<md-button class="md-raised md-warn" ng-click="applicationCtrl.unsubscribeAPI(applicationCtrl.application,associatedAPI.api.id, associatedAPI.apiKey.key)">Unsubscribe
+						<md-button class="md-raised" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application,apiKey.api)">Renew API Key</md-button>
+						<md-button class="md-raised md-warn" ng-click="applicationCtrl.unsubscribeAPI(applicationCtrl.application,apiKey.api, apiKey.key)">Unsubscribe
 						</md-button>
 				</td>
 			</tr>

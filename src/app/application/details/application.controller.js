@@ -25,12 +25,12 @@ class ApplicationController {
 		this.applicationId = $stateParams.applicationId;
 		this.application = {};
 		this.applications = [];
-		this.associatedAPIs = [];
+		this.apiKeys = [];
 		this.members = [];
 		this.membershipTypes = [ 'primary_owner', 'owner', 'user' ];
 		if (this.applicationId) {
 				this.get(this.applicationId);
-				this.getAssociatedAPIs(this.applicationId);
+				this.getAPIKeys(this.applicationId);
 				this.getMembers(this.applicationId);
 		}
 		if ($state.current.name.endsWith('dashboard')) {
@@ -50,20 +50,9 @@ class ApplicationController {
     });
   }
 
-	getAssociatedAPIs(applicationId) {
-		this.ApplicationService.getAssociatedAPIs(applicationId).then(response => {
-			var _associatedAPIs = response.data;
-			var promises = [];
-			for (var i = 0; i < _associatedAPIs.length; i++) {
-				var api = _associatedAPIs[i];
-				promises.push(this.ApplicationService.getAPIKey(applicationId, api.id));
-			}
-			this.$q.all(promises).then(results => {
-				for (var i = 0; i < _associatedAPIs.length; i++) {
-					var apiKey = { "api": _associatedAPIs[i], "apiKey" : results[i].data };
-					this.associatedAPIs.push(apiKey);
-				}	
-			});
+	getAPIKeys(applicationId) {
+		this.ApplicationService.getAPIKeys(applicationId).then(response => {
+			this.apiKeys = response.data;
 		});
 	}
 
@@ -101,15 +90,16 @@ class ApplicationController {
   }
 
 	unsubscribeAPI(application, apiId, apiKey) {
-		this.ApplicationService.unsubscribe(application, apiId, apiKey).then(response => {
+		this.ApplicationService.unsubscribe(application, apiKey).then(response => {
 			this.NotificationService.show('Application unsubscribed');
+			this.getAPIKeys(application.id);
 		});
 	}
 
 	generateAPIKey(application, apiId) {
 		this.ApplicationService.subscribe(application, apiId).then(response => {
 			this.NotificationService.show('New API Key created');
-			this.getAssociatedAPIs(application);
+			this.getAPIKeys(application.id);
 		});
 	}
 

@@ -36,6 +36,8 @@ function runBlock ($rootScope, $window, $http, $cookieStore) {
 
   $rootScope.$on('graviteeLogout', function() {
     $cookieStore.remove(graviteeAuthenticationKey);
+		$cookieStore.remove('authenticatedUser');
+		$rootScope.authenticated = false;
     setAuthorization();
     $window.location.href = '/';
   });

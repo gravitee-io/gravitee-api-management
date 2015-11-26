@@ -45,6 +45,7 @@ import DialogApplicationController from './application/dialog/applicationDialog.
 import DialogSubscribeApiController from './application/dialog/subscribeApiDialog.controller';
 import DialogAddMemberController from './application/dialog/addMemberDialog.controller';
 import ApplicationService from './application/details/application.service';
+import SideNavDirective from './components/sidenav/sidenav.directive';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies'])
@@ -82,4 +83,5 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .service('ApplicationService', ApplicationService)
   .directive('graviteeNavbar', () => new NavbarDirective())
   .directive('chart', () => new ChartDirective())
-  .directive('filecontent', () => new DocumentationDirective());
+  .directive('filecontent', () => new DocumentationDirective())
+	.directive('graviteeSidenav', () => new SideNavDirective());

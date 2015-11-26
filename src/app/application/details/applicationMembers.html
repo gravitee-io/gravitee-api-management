@@ -31,14 +31,19 @@
     <tbody>
       <tr ng-repeat="member in applicationCtrl.members">
         <td>{{member.user}}</td>
-        <td>
-          <md-select ng-model="member.type" placeholder="Other">
-            <md-option ng-value="type" ng-repeat="type in applicationCtrl.membershipTypes">{{type}}</md-option>
-          </md-select>
+        <td ng-show="member.type != 'primary_owner'">
+					<md-select ng-model="member.type" placeholder="Other">
+		        <md-option ng-value="type" ng-repeat="type in applicationCtrl.membershipTypes">{{type}}</md-option>
+		      </md-select>
+				</td>
+				<td ng-hide="member.type != 'primary_owner'">
+					<span ng-hide="member.type != 'primary_owner'">{{member.type}}</span>
         </td>
         <td>
-					<ng-md-icon ng-click="applicationCtrl.updateMember(member)" icon="save" size="24" style="cursor: pointer;"></ng-md-icon>
-					<ng-md-icon ng-click="applicationCtrl.deleteMember(member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
+					<div ng-if="member.type != 'primary_owner'">
+						<ng-md-icon ng-click="applicationCtrl.updateMember(member)" icon="save" size="24" style="cursor: pointer;"></ng-md-icon>
+						<ng-md-icon ng-click="applicationCtrl.deleteMember(member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
+					</div>
 				</td>
       </tr>
     </tbody>

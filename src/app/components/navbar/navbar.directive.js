@@ -48,9 +48,10 @@ class NavbarController {
 
 	login() {
     var that = this;
-    this.LoginService.login(this.user).then(function() {
+    this.LoginService.login(this.user).then(function(response) {
 			that.$cookieStore.put('GraviteeAuthentication', btoa(that.user.username + ":" + that.user.password));
 			that.user = {};
+			that.$cookieStore.put('authenticatedUser', response.data);
 			that.$rootScope.$broadcast('authenticationSuccess');
     });
   }

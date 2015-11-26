@@ -47,57 +47,9 @@
     <![endif]-->
 
     <div style="height:100%;">
-      <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left">
-		<md-toolbar class="md-tall md-hue-2 md-whiteframe-z2">
-          <div layout="column" class="md-toolbar-tools-bottom inset">
-			<div ng-if="!authenticated">
-			  <img src="../assets/images/GRAVITEE_LOGOclair-04.png" width="64px" height="64px" />
-			  <h3>Gravitee.io</h3>
-			  </div>
-
-
-				 <a href="#/profile" ng-if="authenticated" layout="row">
-		           <ng-md-icon icon="account_circle" size="64" style="fill: white;"></ng-md-icon>
-           <div layout="column">
-             <span flex></span>
-             <span style="color:white;">Firstname Lastname</span>
-           </div>
-				</a>
-             </div>
-		 </md-toolbar>
-         <md-list>
-           <md-item>
-             <a href="#/">
-                 <md-item-content md-ink-ripple layout="row" layout-align="start center">
-                 <div class="inset">
-                   <ng-md-icon icon="home"></ng-md-icon>
-                 </div>
-                 <div class="inset">Home</div>
-               </md-item-content>
-            </a>
-           </md-item>
-           <md-item>
-             <a href="" ui-sref="apis.list.thumb">
-               <md-item-content md-ink-ripple layout="row" layout-align="start center">
-                 <div class="inset">
-                   <ng-md-icon icon="dashboard"></ng-md-icon>
-                 </div>
-                 <div class="inset">APIs</div>
-               </md-item-content>
-             </a>
-           </md-item>
-          <md-item>
-             <a href="" ui-sref="applications.thumb">
-                 <md-item-content md-ink-ripple layout="row" layout-align="start center">
-                 <div class="inset">
-                   <ng-md-icon icon="list"></ng-md-icon>
-                 </div>
-                 <div class="inset">Applications</div>
-               </md-item-content>
-            </a>
-          </md-item>
-        </md-list>
-			</md-sidenav>
+			<div>     	
+				<gravitee-sidenav />
+			</div>     
       <md-content style="height:100%;">
         <header>
           <gravitee-navbar />
