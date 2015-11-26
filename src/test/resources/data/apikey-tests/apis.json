@@ -10,5 +10,18 @@
 		"createdAt"  : { "$date" : 1439022010883 },
 		"updatedAt"  : { "$date" : 1439022010883 },
 		"lifecycleState" : "STOPPED"
-    }
+    },
+
+	{
+		"_id" : "api2",
+		"_class" : "io.gravitee.repository.mongodb.management.internal.model.ApiMongo",
+		"name" : "api1",
+		"version" : "1",
+		"publicURI" : "/public/sample/",
+		"targetURI" : "/target/sample/",
+		"privateApi" : false,
+		"createdAt"  : { "$date" : 1439022010883 },
+		"updatedAt"  : { "$date" : 1439022010883 },
+		"lifecycleState" : "STOPPED"
+	}
 ]
