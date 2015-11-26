@@ -75,12 +75,18 @@ public class MongoApiRepository implements ApiRepository {
 
 	@Override
 	public Api update(Api api) throws TechnicalException {
-		ApiMongo apiMongo =	mapApi(api);
-		ApiMongo apiToUpdate = internalApiRepo.findOne(api.getId());
+		ApiMongo apiMongo = internalApiRepo.findOne(api.getId());
 
-		apiMongo.setMembers(apiToUpdate.getMembers());
-		ApiMongo apiMongoUpdated = internalApiRepo.save(apiMongo);
-		return mapApi(apiMongoUpdated);
+		// Update, but don't change invariant other creation information
+		apiMongo.setName(api.getName());
+		apiMongo.setDescription(api.getDescription());
+		apiMongo.setUpdatedAt(api.getUpdatedAt());
+		apiMongo.setLifecycleState(api.getLifecycleState().toString());
+		apiMongo.setDefinition(api.getDefinition());
+		apiMongo.setVisibility(api.getVisibility().toString());
+
+		ApiMongo applicationMongoUpdated = internalApiRepo.save(apiMongo);
+		return mapApi(applicationMongoUpdated);
 	}
 
 	@Override

@@ -65,7 +65,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	public Application update(Application application) throws TechnicalException {
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application.getId());
 		
-		//Update, but don't change invariant other creation information
+		// Update, but don't change invariant other creation information
 		applicationMongo.setName(application.getName());
 		applicationMongo.setDescription(application.getDescription());
 		applicationMongo.setUpdatedAt(application.getUpdatedAt());
