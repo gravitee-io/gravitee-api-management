@@ -29,9 +29,9 @@ import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 @Repository
 public interface PageMongoRepository extends MongoRepository<PageMongo, String>, PageMongoRepositoryCustom {
 
-	@Query("{ 'apiName' : ?0}")
+	@Query("{ 'api' : ?0}")
 	List<PageMongo> findByApi(String apiName);
 
-	@Query("{ 'apiName' : ?0, 'published': true}")
+	@Query("{ 'api' : ?0, 'published': true}")
 	List<PageMongo> findPublishedByApi(String apiName);
 }
