@@ -19,83 +19,35 @@
   <md-list layout="column" class="inset" flex="20" style="background-color: #f2f4f5; border-right: solid 1px #dadddf; opacity: 0.5;">
     <h4>REPORTS</h4>
     <md-divider></md-divider>
-    <md-item>
-      <a href="#" style="color: #303940;">
+    <md-item ng-repeat="report in analyticsCtrl.analytics.reports">
         <md-item-content md-ink-ripple layout="row">
-          <md-button ng-click="documentationCtrl.selectPage(p)">
-            <ng-md-icon icon="equalizer"></ng-md-icon>Response Status
+          <md-button ng-click="analyticsCtrl.changeReport(report.id);">
+            <ng-md-icon icon="equalizer"></ng-md-icon>{{report.title}}
           </md-button>
         </md-item-content>
-      </a>
-    </md-item>
-    <md-item>
-      <a href="#" style="color: #303940;">
-        <md-item-content md-ink-ripple layout="row">
-          <md-button ng-click="documentationCtrl.selectPage(p)">
-            <ng-md-icon icon="equalizer"></ng-md-icon>Response Times
-          </md-button>
-        </md-item-content>
-      </a>
-    </md-item>
-    <md-item>
-      <a href="#" style="color: #303940;">
-        <md-item-content md-ink-ripple layout="row">
-          <md-button ng-click="documentationCtrl.selectPage(p)">
-            <ng-md-icon icon="equalizer"></ng-md-icon>Payload Sizes
-          </md-button>
-        </md-item-content>
-      </a>
     </md-item>
   </md-list>
+
   <md-content flex="80" style="background-color: rgb(232, 235, 237);">
     <md-card style="box-shadow:none;">
       <div style="border: 1px solid #e7eaec; border-bottom: 0; padding: 30px 20px 20px;">
         <div layout="row">
-          <md-content flex="20" style="background: none">
-            <h3 style="color: #303940; clear:both;">Response Status</h3>
+          <md-content flex="30" style="background: none; margin-left: 50px;">
+            <h4 style="color: #303940; clear:both;">{{report.title}}</h4>
           </md-content>
 
-          <md-content flex="60" style="background: none"></md-content>
+          <md-content flex="40" style="background: none"></md-content>
 
-          <md-content flex="20" style="background: none">
+          <md-content flex="30" style="background: none">
+            <label style="color: #b1bdc5;">Timeframe:</label>
               <md-menu>
                 <md-button aria-label="Timeframe: " ng-click="analyticsCtrl.openMenu($mdOpenMenu, $event)" style="color: #b1bdc5;">
-                  TIMEFRAME:
+                  {{timeframe.title}}<ng-md-icon icon="expand_more" style="fill: #b1bdc5;"></ng-md-icon>
                 </md-button>
-                <md-menu-content width="20">
-                  <md-menu-item>
-                    <md-button ng-click="ctrl.redial($event)">
-                      Last 5 minutes
-                    </md-button>
-                  </md-menu-item>
-                  <md-menu-item>
-                    <md-button ng-click="ctrl.checkVoicemail()">
-                      Last hour
-                    </md-button>
-                  </md-menu-item>
-                  <md-menu-item>
-                    <md-button ng-click="ctrl.checkVoicemail()">
-                      Last 24 hours
-                    </md-button>
-                  </md-menu-item>
-                  <md-menu-item>
-                    <md-button ng-click="ctrl.checkVoicemail()">
-                      Last 3 days
-                    </md-button>
-                  </md-menu-item>
-                  <md-menu-item>
-                    <md-button ng-click="ctrl.checkVoicemail()">
-                      Last 14 days
-                    </md-button>
-                  </md-menu-item>
-                  <md-menu-item>
-                    <md-button ng-click="ctrl.checkVoicemail()">
-                      Last 30 days
-                    </md-button>
-                  </md-menu-item>
-                  <md-menu-item>
-                    <md-button ng-click="ctrl.checkVoicemail()">
-                      Last 90 days
+                <md-menu-content width="30">
+                  <md-menu-item ng-repeat="timeframe in analyticsCtrl.analytics.timeframes">
+                    <md-button ng-click="analyticsCtrl.updateTimeframe(timeframe.id)">
+                      {{timeframe.title}}
                     </md-button>
                   </md-menu-item>
 
@@ -103,13 +55,20 @@
 
                   <md-menu-item>
                     <md-list layout="column" class="inset">
-                      <h5>CUSTOM TIMEFRAME</h5>
-                      <md-content>
-                        <div ng-click="$event.stopPropagation();"><md-datepicker ng-model="from" md-placeholder="Enter date" ></md-datepicker></div>
-                      </md-content>
-                      <md-content>
-                        <div ng-click="$event.stopPropagation();"><md-datepicker ng-model="to" md-placeholder="Enter date" ></md-datepicker></div>
-                      </md-content>
+                      <h6>CUSTOM TIMEFRAME</h6>
+                      <md-list layout="row" class="inset">
+                        <md-content>
+                          <div><md-datepicker ng-model="from" md-placeholder="Enter date"></md-datepicker></div>
+                        </md-content>
+                        <md-content>
+                          <div><md-datepicker ng-model="to" md-placeholder="Enter date"></md-datepicker></div>
+                        </md-content>
+                        <md-content>
+                          <md-button class="md-fab md-mini" aria-label="Validate custom timeframe">
+                            <md-icon icon="check"></md-icon>
+                          </md-button>
+                        </md-content>
+                      </md-list>
                     </md-list>
                   </md-menu-item>
                 </md-menu-content>

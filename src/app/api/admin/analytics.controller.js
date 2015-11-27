@@ -28,20 +28,65 @@ class ApiAnalyticsController {
     this.api = resolvedApi.data;
     this.$q = $q;
 
-    this.analytics_apiHits($state.params.apiId);
+    this.analytics = this.analytics();
+
+    this.setTimeframe('3d');
+    this.changeReport(this.analytics.reports[0].id);
   }
 
   openMenu($mdOpenMenu, ev) {
-    //originatorEv = ev;
-    console.log('open');
     $mdOpenMenu(ev);
   };
 
-  analytics_apiHits(apiId) {
-    this.$q.all([
-      this.ApiService.apiHits(apiId, 1000000, 1448538051104, 1448581251104),
-      this.ApiService.apiHitsByStatus(apiId, 1000000, 1448538051104, 1448581251104)]).then(response => {
+  changeReport(reportId) {
+    var report = _.find(this.analytics.reports, function(report) {
+      return report.id == reportId;
+    });
 
+    this.$scope.analytics.report = report;
+
+    this.updateChart();
+  };
+
+  updateTimeframe(timeframeId) {
+    this.setTimeframe(timeframeId);
+
+    this.updateChart();
+  }
+
+  setTimeframe(timeframeId) {
+    var timeframe = _.find(this.analytics.timeframes, function(timeframe) {
+      return timeframe.id == timeframeId;
+    });
+
+    var now = Date.now();
+
+    var oldReport = (this.$scope.analytics == undefined) ? undefined : this.$scope.analytics.report;
+
+    this.$scope.analytics = {
+      timeframe: timeframe,
+      report: oldReport,
+      range: {
+        interval: 10000000,
+        from: now - timeframe.range,
+        to: now
+      }
+    };
+  }
+
+  updateChart() {
+    var _this = this;
+
+    var requests = _.map(this.$scope.analytics.report.requests, function(req) {
+      return req.call(_this.ApiService, _this.api.id,
+        _this.$scope.analytics.range.interval,
+        _this.$scope.analytics.range.from,
+        _this.$scope.analytics.range.to);
+    });
+
+    console.log(moment.duration(24, "hours").asMilliseconds());
+
+    this.$q.all(requests).then(response => {
       this.$scope.chartConfig = {
         credits: {
           enabled: false
@@ -52,9 +97,10 @@ class ApiAnalyticsController {
         xAxis: {
           type: 'datetime',
           categories: response[0].data.timestamps,
-          labels:{
-            formatter:function(){
-              return Highcharts.dateFormat('%Y %M %d', this.value);
+          minTickInterval: moment.duration(24, "hours").asMilliseconds(),
+          labels: {
+            formatter: function() {
+              return moment(this.value).format("YYYY-MM-DD HH:mm:ss");
             }
           }
         },
@@ -87,7 +133,7 @@ class ApiAnalyticsController {
         tooltip: {
           pointFormat: '{series.name}: <b>{point.y}</b> calls'
         },
-        data: response[0].data.values[0].buckets[0].data
+        data: response[0].data.values[0].buckets[0].data,
       });
 
       // Push data for hits by status
@@ -95,13 +141,67 @@ class ApiAnalyticsController {
         this.$scope.chartConfig.series.push({
           type: 'column',
           tooltip: {
-            pointFormat: 'HTTP Status <b>{series.name}</b>: <b>{point.y}</b> calls'
+            pointFormat: this.$scope.analytics.report.tooltip
           },
           name: response[1].data.values[0].buckets[i].name,
           data: response[1].data.values[0].buckets[i].data
         });
       }
     });
+  };
+
+  analytics() {
+    return {
+      reports: [
+        {
+          id: 'response-status',
+          title: 'Response Status',
+          tooltip: 'HTTP Status <b>[{series.name}]</b>: <b>{point.y}</b> calls',
+          requests : [ this.ApiService.apiHits, this.ApiService.apiHitsByStatus]
+        }, {
+          id: 'response-time',
+          title: 'Response Times',
+          tooltip: 'Latency <b>[{series.name} ms]</b>: <b>{point.y}</b> calls',
+          requests : [ this.ApiService.apiHits, this.ApiService.apiHitsByLatency]
+        }, {
+          id: 'response-payload-size',
+          title: 'Payload Sizes',
+          tooltip: 'Size <b>[{series.name}]</b>: <b>{point.y}</b> calls',
+          requests : [ this.ApiService.apiHits, this.ApiService.apiHitsByLatency]
+        }
+      ],
+      timeframes: [
+        {
+          id: '5m',
+          title: 'Last 5 minutes',
+          range: 1000 * 60 * 5
+        }, {
+          id: '1h',
+          title: 'Last hour',
+          range: 1000 * 60 * 60
+        }, {
+          id: '24h',
+          title: 'Last 24 hours',
+          range: 1000 * 60 * 60 * 24
+        }, {
+          id: '3d',
+          title: 'Last 3 days',
+          range: 1000 * 60 * 60 * 24 * 3
+        }, {
+          id: '14d',
+          title: 'Last 14 days',
+          range: 1000 * 60 * 60 * 24 * 14
+        }, {
+          id: '30d',
+          title: 'Last 30 days',
+          range: 1000 * 60 * 60 * 24 * 30
+        }, {
+          id: '90d',
+          title: 'Last 90 days',
+          range: 1000 * 60 * 60 * 24 * 90
+        }
+      ]
+    }
   }
 }
 

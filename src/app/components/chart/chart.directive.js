@@ -27,6 +27,12 @@ class ChartDirective {
       link: function (scope, element) {
         var chart;
         var process = function () {
+          Highcharts.setOptions({
+            global: {
+              useUTC: false
+            }
+          });
+          
           var defaultOptions = {
             chart: { renderTo: element[0] },
           };
