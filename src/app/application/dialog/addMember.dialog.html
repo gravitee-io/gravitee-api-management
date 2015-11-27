@@ -56,7 +56,10 @@
 							value="{{user.id}}" 
 							aria-label="{{user.id}}" 
 							ng-click="selectMember(user)">
-				      {{ user.lastname }}
+				      <span>
+								{{user.id}}
+          		  <span ng-show="user.lastname">( {{user.lastname}} )</span>
+          		</span>
 				    </md-checkbox>
 					</span>
 				</div>
