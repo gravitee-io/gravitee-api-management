@@ -30,18 +30,15 @@
   <md-card>
     <md-card-content>
       <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
-        <md-tab label="dashboard" ui-sref="apis.admin.dashboard">
-        </md-tab>
         <md-tab label="general" ui-sref="apis.admin.general">
         </md-tab>
         <md-tab label="policies" ui-sref="apis.admin.policies">
         </md-tab>
         <md-tab label="documentation" ui-sref="apis.admin.documentation">
         </md-tab>
+        <md-tab label="analytics" ui-sref="apis.admin.analytics">
+        </md-tab>
       </md-tabs>
-      <md-switch ng-model="enabled" ng-change="apiCtrl.changeLifecycle(apiCtrl.api.id)" class="md-block">
-        Enabled
-      </md-switch>
       <div ui-view flex></div>
     </md-card-content>
   </md-card>

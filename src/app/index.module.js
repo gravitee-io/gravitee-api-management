@@ -28,6 +28,7 @@ import ApiService from './api/api.service';
 import ApisController from './api/apis.controller';
 import ApiPortalController from './api/portal/apiPortal.controller';
 import ApiAdminController from './api/admin/apiAdmin.controller';
+import ApiAnalyticsController from './api/admin/analytics.controller';
 import DialogApiController from './api/dialog/apiDialog.controller';
 import TeamService from './user/team.service';
 import UserService from './user/user.service';
@@ -65,6 +66,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .service('ApiService', ApiService)
   .controller('ApisController', ApisController)
   .controller('ApiAdminController', ApiAdminController)
+  .controller('ApiAnalyticsController', ApiAnalyticsController)
   .controller('ApiPortalController', ApiPortalController)
   .controller('DialogApiController', DialogApiController)
   .service('TeamService', TeamService)

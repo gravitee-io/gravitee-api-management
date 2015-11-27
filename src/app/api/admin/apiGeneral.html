@@ -18,6 +18,11 @@
 <form name="formApi" ng-submit="apiCtrl.update(apiCtrl.api)" novalidate>
 
   <div layout="" layout-sm="column">
+    <md-switch ng-model="enabled" ng-change="apiCtrl.changeLifecycle(apiCtrl.api.id)" class="md-block">
+      Enabled
+    </md-switch>
+  </div>
+  <div layout="" layout-sm="column">
     <md-input-container class="flex">
       <label>Name</label>
       <input ng-model="apiCtrl.api.name" type="text" ng-required="true" ng-disabled="true">

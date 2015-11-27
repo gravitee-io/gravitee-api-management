@@ -52,11 +52,18 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       url: '/:apiId/settings',
       templateUrl: 'app/api/admin/apiAdmin.html',
       controller: 'ApiAdminController',
-      controllerAs: 'apiCtrl'
+      controllerAs: 'apiCtrl',
+      resolve: {
+        resolvedApi:['$stateParams', 'ApiService', function ($stateParams, ApiService) {
+          return ApiService.get($stateParams.apiId);
+        }]
+      }
     })
-    .state('apis.admin.dashboard', {
-      url: '/dashboard',
-      templateUrl: 'app/api/admin/apiDashboard.html'
+    .state('apis.admin.analytics', {
+      url: '/analytics',
+      templateUrl: 'app/api/admin/analytics.html',
+      controller: 'ApiAnalyticsController',
+      controllerAs: 'analyticsCtrl'
     })
     .state('apis.admin.policies', {
       url: '/policies',

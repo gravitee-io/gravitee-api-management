@@ -50,7 +50,7 @@ function browserSyncInit(baseDir, browser, demo) {
    */
   server.middleware = proxyMiddleware(
     demo?  'http://demo.gravitee.io/management' : 'http://localhost:8083/management',
-    {changeOrigin:true}
+    {changeOrigin: demo}
   );
 
   browserSync.instance = browserSync.init({

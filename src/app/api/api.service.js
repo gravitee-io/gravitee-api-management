@@ -58,6 +58,14 @@ class ApiService {
   listPolicies(apiName) {
     return this.$http.get(this.apisURL + apiName + '/policies');
   }
+
+  apiHits(api, interval, from, to) {
+    return this.$http.get(this.apisURL + api + '/analytics?type=hits&interval=' + interval + '&from=' + from + '&to=' + to);
+  }
+
+  apiHitsByStatus(api, interval, from, to) {
+    return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_status&interval=' + interval + '&from=' + from + '&to=' + to);
+  }
 }
 
 export default ApiService;
