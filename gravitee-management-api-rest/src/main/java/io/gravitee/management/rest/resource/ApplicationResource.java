@@ -81,7 +81,7 @@ public class ApplicationResource extends AbstractResource {
     @DELETE
     public Response delete() {
         ApplicationEntity applicationEntity = applicationService.findById(application);
-        applicationService.delete(applicationEntity.getName());
+        applicationService.delete(applicationEntity.getId());
 
         return Response.noContent().build();
     }
