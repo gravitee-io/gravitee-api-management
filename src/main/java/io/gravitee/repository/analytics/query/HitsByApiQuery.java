@@ -43,6 +43,7 @@ public class HitsByApiQuery extends TimeRangedQuery {
         HITS,
         HITS_BY_LATENCY,
         HITS_BY_APIKEY,
-        HITS_BY_STATUS
+        HITS_BY_STATUS,
+        HITS_BY_PAYLOAD_SIZE,
     }
 }
