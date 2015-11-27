@@ -16,23 +16,40 @@
 
 -->
 <div layout-padding>
-	<form name="formApplication" ng-submit="applicationCtrl.update(applicationCtrl.application)" novalidate>
-		<md-input-container class="md-block">
-			<label>Name</label>
-			<input ng-model="applicationCtrl.application.name" type="text" ng-required="true" ng-disabled="true">
-		</md-input-container>
-		<md-input-container class="md-block">
-			<label>Type</label>
-			<input ng-model="applicationCtrl.application.type" type="text" ng-required="true">
-		</md-input-container>
-		<md-input-container class="md-block">
-			<label>Description</label>
-			<input ng-model="applicationCtrl.application.description" type="text" ng-required="true">
-		</md-input-container>
-		<div class="md-actions gravitee-api-save-button" layout="row">
-			<md-button type="submit" class="md-primary" ng-disabled="formApplication.$invalid || formApplication.$pristine">
-					Save
-			</md-button>
+	<div class="application-general-container">
+		<h3>Update application</h3>
+		<div class="application-general-content">
+			<form name="formApplication" ng-submit="applicationCtrl.update(applicationCtrl.application)" novalidate>
+				<md-input-container class="md-block">
+					<label>Name</label>
+					<input ng-model="applicationCtrl.application.name" type="text" ng-required="true" ng-disabled="true">
+				</md-input-container>
+				<md-input-container class="md-block">
+					<label>Type</label>
+					<input ng-model="applicationCtrl.application.type" type="text" ng-required="true">
+				</md-input-container>
+				<md-input-container class="md-block">
+					<label>Description</label>
+					<input ng-model="applicationCtrl.application.description" type="text" ng-required="true">
+				</md-input-container>
+				<div class="md-actions gravitee-api-save-button" layout="row">
+					<md-button type="submit" class="md-primary" ng-disabled="formApplication.$invalid || formApplication.$pristine">
+							Save
+					</md-button>
+				</div>
+			</form>
 		</div>
-	</form>
-</div>
+	</div>
+
+	<div class="application-general-container dangerzone">
+		<h3>Delete application</h3>
+		<div layout="row" flex class="application-general-content">
+			<div flex="70" class="inset">
+				<p>Your application will be permanently deleted !</p>
+			</div>
+			<div flex="30">
+				<md-button class="md-raised" ng-click="applicationCtrl.showConfirm($event)">Delete</md-button>
+			</div>
+		</div>
+	</div>
+</div>	

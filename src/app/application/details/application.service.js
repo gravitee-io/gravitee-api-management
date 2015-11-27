@@ -63,8 +63,8 @@ class ApplicationService {
 		return this.$http.delete(this.applicationsURL + application.id + '/keys/' + apiKey);
 	}
 
-  delete(name) {
-    return this.$http.delete(this.applicationsURL + name);
+  delete(application) {
+    return this.$http.delete(this.applicationsURL + application.id);
   }
 }
 

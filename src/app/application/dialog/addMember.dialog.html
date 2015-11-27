@@ -36,10 +36,15 @@
 				      md-items="item in searchUser(searchText)"
 				      md-item-text="item.lastname"
 				      md-min-length="1"
-				      placeholder="Search users ...">
-				    <md-item-template>
-				      <span md-highlight-text="searchText" md-highlight-flags="^i">{{item.lastname}}</span>
-				    </md-item-template>
+				      placeholder="Search users ..." 
+							md-menu-class="autocomplete-custom-template">
+        		
+						<md-item-template>
+          		<span>
+								{{item.id}}
+          		  <span ng-show="item.lastname">( {{item.lastname}} )</span>
+          		</span>
+        		</md-item-template>
 				    <md-not-found>
 				      No users matching "{{searchText}}" were found.
 				    </md-not-found>
@@ -48,8 +53,8 @@
 				<div ng-show="usersFound.length > 0">
 					<span ng-repeat="user in usersFound">
 						<md-checkbox
-							value="{{user.username}}" 
-							aria-label="{{user.username}}" 
+							value="{{user.id}}" 
+							aria-label="{{user.id}}" 
 							ng-click="selectMember(user)">
 				      {{ user.lastname }}
 				    </md-checkbox>

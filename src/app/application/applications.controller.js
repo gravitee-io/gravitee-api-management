@@ -20,7 +20,6 @@ class ApplicationsController {
 		this.$state = $state;
 		this.ApplicationService = ApplicationService;
 		this.NotificationService = NotificationService;
-		this.application = {};
 		this.applications = [];
 		this.list();
 		this.tableMode = $state.current.name.endsWith('table')? true : false;

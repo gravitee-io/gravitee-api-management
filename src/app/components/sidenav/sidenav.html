@@ -16,51 +16,46 @@
 
 -->
 <md-sidenav class="md-sidenav-left md-whiteframe-z2 md-default-theme" md-component-id="left">
-	<md-toolbar class="md-tall md-hue-2 md-whiteframe-z2">
+	<md-toolbar class="md-hue-2">
     <div layout="column" class="md-toolbar-tools-bottom inset">
 			<div ng-if="!authenticated">
   			<img src="../assets/images/GRAVITEE_LOGOclair-04.png" width="64px" height="64px" />
   			<h3>Gravitee.io</h3>
   		</div>
-	 		<a href="#/profile" ng-if="authenticated" layout="row">
-      	<ng-md-icon icon="account_circle" size="64" style="fill: white;"></ng-md-icon>
-    		<div layout="column">
-   				<span flex></span>
+	 		<a href="" ui-sref="profile" ng-click="sidenavCtrl.close()" ng-if="authenticated" layout="row">
+    		<div>
+      		<img src="../assets/images/GRAVITEE_LOGOclair-04.png" width="64px" height="64px" style="vertical-align:middle;" />
 	  			<span style="color:white;">{{sidenavCtrl.user.principal.username}}</span>
   			</div>
 			</a>
   	</div>
 	</md-toolbar>
-  <md-list>
-  	<md-item>
-    	<a href="#/">
-           <md-item-content md-ink-ripple layout="row" layout-align="start center">
-           <div class="inset">
-             <ng-md-icon icon="home"></ng-md-icon>
-           </div>
-           <div class="inset">Home</div>
-         </md-item-content>
-      </a>
-    </md-item>
-    <md-item>
-       <a href="" ui-sref="apis.list.thumb">
-         <md-item-content md-ink-ripple layout="row" layout-align="start center">
-           <div class="inset">
-             <ng-md-icon icon="dashboard"></ng-md-icon>
-           </div>
-           <div class="inset">APIs</div>
-         </md-item-content>
-       </a>
-    </md-item>
-    <md-item>
-       <a href="" ui-sref="applications.thumb">
-           <md-item-content md-ink-ripple layout="row" layout-align="start center">
-           <div class="inset">
-             <ng-md-icon icon="list"></ng-md-icon>
-           </div>
-           <div class="inset">Applications</div>
-         </md-item-content>
-      </a>
-    </md-item>
-  </md-list>
+	<div>
+		<md-list class="sidenav-list">
+			<md-list-item>
+				<md-button ng-click="sidenavCtrl.close()" ui-sref="home" class="sidenav-list-button">
+					<div class="inset">
+			   		<ng-md-icon icon="home" class="vertical-align: middle;"></ng-md-icon>
+						<span>Home</span>
+					</div> 
+				</md-button>
+	 	  </md-list-item>
+			<md-list-item>
+				<md-button ng-click="sidenavCtrl.close()" ui-sref="apis.list.thumb" class="sidenav-list-button">
+					<div class="inset">
+			   		<ng-md-icon icon="dashboard" class="vertical-align: middle;"></ng-md-icon>
+						<span>APIs</span>
+					</div> 
+				</md-button>
+		  </md-list-item>
+			<md-list-item>
+				<md-button ng-click="sidenavCtrl.close()" ui-sref="applications.thumb" class="sidenav-list-button">
+					<div class="inset">
+			   		<ng-md-icon icon="list" class="vertical-align: middle;"></ng-md-icon>
+						<span>Applications</span>
+					</div> 
+				</md-button>
+		  </md-list-item>
+		</md-list>
+	</div>
 </md-sidenav>

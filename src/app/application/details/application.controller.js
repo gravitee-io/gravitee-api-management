@@ -83,9 +83,10 @@ class ApplicationController {
 		});
   }
 
-  delete(name) {
-		this.ApplicationService.delete(name).then(response => {
-			this.list();
+  delete(application) {
+		this.ApplicationService.delete(application).then(response => {
+			this.NotificationService.show('Application ' + application.name + ' deleted');
+			this.$state.go('applications.thumb');
 		});
   }
 
@@ -102,6 +103,22 @@ class ApplicationController {
 			this.getAPIKeys(application.id);
 		});
 	}
+
+	showConfirm(ev) {
+    var confirm = this.$mdDialog.confirm()
+      .title('Would you like to delete your application?')
+      .ariaLabel('delete-application')
+      .ok('OK')
+      .cancel('Cancel')
+      .targetEvent(ev);
+	
+		var self = this;
+    this.$mdDialog.show(confirm).then(function() {
+      self.delete(self.application)
+    }, function() {
+      self.$mdDialog.cancel();
+    });
+  };
 
 	showSubscribeApiModal(ev) {
 		var that = this;

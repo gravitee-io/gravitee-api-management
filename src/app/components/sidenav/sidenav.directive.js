@@ -28,10 +28,11 @@ class SideNavDirective {
 }
 
 class SideNavController {
-  constructor ($rootScope, $cookieStore) {
+  constructor ($rootScope, $cookieStore, $mdSidenav) {
     'ngInject';
 		this.$rootScope = $rootScope;
 		this.$cookieStore = $cookieStore;
+		this.$mdSidenav = $mdSidenav;
 		this.getUser();
 		var self = this;
 		this.$rootScope.$watch('authenticated', function() {
@@ -42,6 +43,10 @@ class SideNavController {
 	getUser() {
 		this.user = this.$cookieStore.get('authenticatedUser');
 	}
+
+	close() {
+ 		this.$mdSidenav('left').close();
+  }
 }
 
 export default SideNavDirective;
