@@ -27,14 +27,14 @@ import java.util.Set;
  */
 public class HistogramResponse implements Response {
 
-    private final Set<Long> timestamps = new HashSet<>();
+    private final List<Long> timestamps = new ArrayList<>();
     private final List<Bucket> values = new ArrayList<>();
 
     public List<Bucket> values() {
         return values;
     }
 
-    public Set<Long> timestamps() {
+    public List<Long> timestamps() {
         return timestamps;
     }
 }
