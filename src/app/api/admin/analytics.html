@@ -33,7 +33,7 @@
       <div style="border: 1px solid #e7eaec; border-bottom: 0; padding: 30px 20px 20px;">
         <div layout="row">
           <md-content flex="30" style="background: none; margin-left: 50px;">
-            <h4 style="color: #303940; clear:both;">{{report.title}}</h4>
+            <h4 style="color: #303940; clear:both;">{{analytics.report.title}}</h4>
           </md-content>
 
           <md-content flex="40" style="background: none"></md-content>
@@ -42,7 +42,7 @@
             <label style="color: #b1bdc5;">Timeframe:</label>
               <md-menu>
                 <md-button aria-label="Timeframe: " ng-click="analyticsCtrl.openMenu($mdOpenMenu, $event)" style="color: #b1bdc5;">
-                  {{timeframe.title}}<ng-md-icon icon="expand_more" style="fill: #b1bdc5;"></ng-md-icon>
+                  {{analytics.timeframe.title}}<ng-md-icon icon="expand_more" style="fill: #b1bdc5;"></ng-md-icon>
                 </md-button>
                 <md-menu-content width="30">
                   <md-menu-item ng-repeat="timeframe in analyticsCtrl.analytics.timeframes">

@@ -67,7 +67,7 @@ class ApiAnalyticsController {
       timeframe: timeframe,
       report: oldReport,
       range: {
-        interval: 10000000,
+        interval: timeframe.interval,
         from: now - timeframe.range,
         to: now
       }
@@ -84,8 +84,6 @@ class ApiAnalyticsController {
         _this.$scope.analytics.range.to);
     });
 
-    console.log(moment.duration(24, "hours").asMilliseconds());
-
     this.$q.all(requests).then(response => {
       this.$scope.chartConfig = {
         credits: {
@@ -97,7 +95,6 @@ class ApiAnalyticsController {
         xAxis: {
           type: 'datetime',
           categories: response[0].data.timestamps,
-          minTickInterval: moment.duration(24, "hours").asMilliseconds(),
           labels: {
             formatter: function() {
               return moment(this.value).format("YYYY-MM-DD HH:mm:ss");
@@ -166,39 +163,46 @@ class ApiAnalyticsController {
         }, {
           id: 'response-payload-size',
           title: 'Payload Sizes',
-          tooltip: 'Size <b>[{series.name}]</b>: <b>{point.y}</b> calls',
-          requests : [ this.ApiService.apiHits, this.ApiService.apiHitsByLatency]
+          tooltip: 'Content-length <b>[{series.name}]</b>: <b>{point.y}</b> calls',
+          requests : [ this.ApiService.apiHits, this.ApiService.apiHitsByPayloadSize]
         }
       ],
       timeframes: [
         {
           id: '5m',
           title: 'Last 5 minutes',
-          range: 1000 * 60 * 5
+          range: 1000 * 60 * 5,
+          interval: 10000,
         }, {
           id: '1h',
           title: 'Last hour',
-          range: 1000 * 60 * 60
+          range: 1000 * 60 * 60,
+          interval: 1000 * 60,
         }, {
           id: '24h',
           title: 'Last 24 hours',
-          range: 1000 * 60 * 60 * 24
+          range: 1000 * 60 * 60 * 24,
+          interval: 1000 * 60 * 60,
         }, {
           id: '3d',
           title: 'Last 3 days',
-          range: 1000 * 60 * 60 * 24 * 3
+          range: 1000 * 60 * 60 * 24 * 3,
+          interval: 1000 * 60 * 60 * 3,
         }, {
           id: '14d',
           title: 'Last 14 days',
-          range: 1000 * 60 * 60 * 24 * 14
+          range: 1000 * 60 * 60 * 24 * 14,
+          interval: 1000 * 60 * 60 * 5,
         }, {
           id: '30d',
           title: 'Last 30 days',
-          range: 1000 * 60 * 60 * 24 * 30
+          range: 1000 * 60 * 60 * 24 * 30,
+          interval: 10000000,
         }, {
           id: '90d',
           title: 'Last 90 days',
-          range: 1000 * 60 * 60 * 24 * 90
+          range: 1000 * 60 * 60 * 24 * 90,
+          interval: 10000000,
         }
       ]
     }

@@ -70,6 +70,10 @@ class ApiService {
   apiHitsByLatency(api, interval, from, to) {
     return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_latency&interval=' + interval + '&from=' + from + '&to=' + to);
   }
+
+  apiHitsByPayloadSize(api, interval, from, to) {
+    return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_payload_size&interval=' + interval + '&from=' + from + '&to=' + to);
+  }
 }
 
 export default ApiService;
