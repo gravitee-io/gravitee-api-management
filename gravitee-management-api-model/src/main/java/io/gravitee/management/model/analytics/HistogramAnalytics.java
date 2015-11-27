@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public class HistogramAnalytics {
 
-    private Set<Long> timestamps = new HashSet<>();
+    private List<Long> timestamps = new ArrayList<>();
     private List<Bucket> values = new ArrayList<>();
 
     public List<Bucket> getValues() {
@@ -36,11 +36,11 @@ public class HistogramAnalytics {
         this.values = values;
     }
 
-    public Set<Long> getTimestamps() {
+    public List<Long> getTimestamps() {
         return timestamps;
     }
 
-    public void setTimestamps(Set<Long> timestamps) {
+    public void setTimestamps(List<Long> timestamps) {
         this.timestamps = timestamps;
     }
 }

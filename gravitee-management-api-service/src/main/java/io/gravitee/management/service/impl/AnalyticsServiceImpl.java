@@ -29,7 +29,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -63,6 +62,11 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public HistogramAnalytics apiHitsByApiKey(String apiId, long from, long to, long interval) {
         return apiHits(HitsByApiQuery.Type.HITS_BY_APIKEY, apiId, from, to, interval);
+    }
+
+    @Override
+    public HistogramAnalytics apiHitsByPayloadSize(String apiId, long from, long to, long interval) {
+        return apiHits(HitsByApiQuery.Type.HITS_BY_PAYLOAD_SIZE, apiId, from, to, interval);
     }
 
     @Override
@@ -130,7 +134,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return analytics;
     }
 
-    private Bucket convertBucket(Set<Long> timestamps, long from, long interval, io.gravitee.repository.analytics.query.response.histogram.Bucket bucket) {
+    private Bucket convertBucket(List<Long> timestamps, long from, long interval, io.gravitee.repository.analytics.query.response.histogram.Bucket bucket) {
         Bucket analyticsBucket = new Bucket();
         analyticsBucket.setName(bucket.name());
 

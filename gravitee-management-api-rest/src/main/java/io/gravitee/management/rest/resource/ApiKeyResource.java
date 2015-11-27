@@ -127,7 +127,7 @@ public class ApiKeyResource extends AbstractResource {
                 .build();
     }
 
-    @Path("analytics")
+    @Path("{key}/analytics")
     public ApiKeyAnalyticsResource getApiKeyAnalyticsResource() {
         return resourceContext.getResource(ApiKeyAnalyticsResource.class);
     }

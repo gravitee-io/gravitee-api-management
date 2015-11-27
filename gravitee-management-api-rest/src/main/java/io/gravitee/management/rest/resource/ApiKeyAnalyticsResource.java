@@ -42,8 +42,8 @@ public class ApiKeyAnalyticsResource extends AbstractResource {
     @PathParam("application")
     private String application;
 
-    @PathParam("api")
-    private String api;
+    @PathParam("key")
+    private String key;
 
     @Inject
     private ApiKeyService apiKeyService;
@@ -59,7 +59,7 @@ public class ApiKeyAnalyticsResource extends AbstractResource {
     public Response hits(@BeanParam AnalyticsParam analyticsParam) throws ApiNotFoundException {
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
 
-        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrent(application, api);
+        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrent(application, null);
 
         if (! apiKeyEntity.isPresent()) {
             throw new NoValidApiKeyException();
@@ -72,21 +72,21 @@ public class ApiKeyAnalyticsResource extends AbstractResource {
         switch(analyticsParam.getTypeParam().getValue()) {
             case HITS:
                 analytics = analyticsService.apiKeyHits(
-                        apiKeyEntity.get().getKey(),
+                        key,
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());
                 break;
             case HITS_BY_LATENCY:
                 analytics = analyticsService.apiKeyHitsByLatency(
-                        apiKeyEntity.get().getKey(),
+                        key,
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());
                 break;
             case HITS_BY_STATUS:
                 analytics = analyticsService.apiKeyHitsByStatus(
-                        apiKeyEntity.get().getKey(),
+                        key,
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());

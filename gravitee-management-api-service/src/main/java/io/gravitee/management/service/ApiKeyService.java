@@ -25,6 +25,8 @@ import io.gravitee.management.model.ApiKeyEntity;
  */
 public interface ApiKeyService {
 
+    ApiKeyEntity findByKey(String apiKey);
+
     ApiKeyEntity generate(String applicationId, String apiId);
 
     void revoke(String apiKey);

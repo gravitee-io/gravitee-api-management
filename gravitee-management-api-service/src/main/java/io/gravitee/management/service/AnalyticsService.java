@@ -30,6 +30,10 @@ public interface AnalyticsService {
 
     HistogramAnalytics apiHitsByApiKey(String apiId, long from, long to, long interval);
 
+    HistogramAnalytics apiHitsByPayloadSize(String apiId, long from, long to, long interval);
+
+
+
     HistogramAnalytics apiKeyHits(String apiKey, long from, long to, long interval);
 
     HistogramAnalytics apiKeyHitsByStatus(String apiKey, long from, long to, long interval);

@@ -53,6 +53,24 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     private ApiKeyGenerator apiKeyGenerator;
 
     @Override
+    public ApiKeyEntity findByKey(String sApiKey) {
+//        try {
+            LOGGER.debug("Find API Key by key: {}", sApiKey);
+
+            Optional<ApiKey> key = Optional.empty(); //apiKeyRepository.findById(apiKey);
+
+            if (key.isPresent()) {
+                return convert(key.get());
+            }
+
+            throw new ApiKeyNotFoundException();
+//        } catch (TechnicalException ex) {
+//            LOGGER.error("An error occurs while trying to find an API Key by key: {}", sApiKey, ex);
+//            throw new TechnicalManagementException("An error occurs while trying to find an API Key by key: " + sApiKey, ex);
+//        }
+    }
+
+    @Override
     public ApiKeyEntity generate(String applicationName, String apiName) {
         try {
             LOGGER.debug("Generate a new key for {} - {}", applicationName, apiName);

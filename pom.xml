@@ -39,7 +39,7 @@
 		<gravitee-plugin-core.version>0.4.0-SNAPSHOT</gravitee-plugin-core.version>
 		<gravitee-plugin-policy.version>0.4.0-SNAPSHOT</gravitee-plugin-policy.version>
 		<gravitee-repository.version>0.4.0-SNAPSHOT</gravitee-repository.version>
-		<gravitee-repository-elasticsearch.version>0.3.0</gravitee-repository-elasticsearch.version>
+		<gravitee-repository-elasticsearch.version>0.4.0-SNAPSHOT</gravitee-repository-elasticsearch.version>
 		<gravitee-repository-mongodb.version>0.4.0-SNAPSHOT</gravitee-repository-mongodb.version>
 		<gravitee-repository-jdbc.version>0.3.0</gravitee-repository-jdbc.version>
 

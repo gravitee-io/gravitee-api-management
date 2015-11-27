@@ -62,28 +62,35 @@ public class ApiAnalyticsResource extends AbstractResource {
         switch(analyticsParam.getTypeParam().getValue()) {
             case HITS:
                 analytics = analyticsService.apiHits(
-                        api.getName(),
+                        api.getId(),
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());
                 break;
             case HITS_BY_LATENCY:
                 analytics = analyticsService.apiHitsByLatency(
-                        api.getName(),
+                        api.getId(),
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());
                 break;
             case HITS_BY_STATUS:
                 analytics = analyticsService.apiHitsByStatus(
-                        api.getName(),
+                        api.getId(),
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());
                 break;
             case HITS_BY_APIKEY:
                 analytics = analyticsService.apiHitsByApiKey(
-                        api.getName(),
+                        api.getId(),
+                        analyticsParam.getFrom(),
+                        analyticsParam.getTo(),
+                        analyticsParam.getInterval());
+                break;
+            case HITS_BY_PAYLOAD_SIZE:
+                analytics = analyticsService.apiHitsByPayloadSize(
+                        api.getId(),
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());
