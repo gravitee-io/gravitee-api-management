@@ -15,12 +15,15 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.UpdatePageEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
+import io.gravitee.management.service.PermissionType;
+import io.gravitee.management.service.exceptions.ApiNotFoundException;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -42,6 +45,22 @@ public class ApiPagesResource extends AbstractResource {
 
     @PathParam("api")
     private String api;
+
+    @GET
+    @Path("/{page}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PageEntity get(@PathParam("page") String page) {
+        // Check that the API exists
+        apiService.findById(api);
+        return pageService.findById(page);
+    }
+
+    @GET
+    @Path("/{page}/content")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getContent(@PathParam("page") String page) {
+        return get(page).getContent();
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -71,15 +90,6 @@ public class ApiPagesResource extends AbstractResource {
         }
 
         return Response.serverError().build();
-    }
-
-    @GET
-    @Path("/page}/content")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getContent(@PathParam("page") String page) {
-        // Check that the API exists
-        apiService.findById(api);
-        return pageService.findById(page).getContent();
     }
 
     @PUT
