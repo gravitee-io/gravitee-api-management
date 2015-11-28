@@ -39,13 +39,6 @@ class ApiAdminController {
       }
     });
   }
-
-  backToPreviousState() {
-    if (!this.previousState) {
-      this.previousState = 'apis.list.thumb';
-    }
-    this.$state.go(this.previousState);
-  }
 }
 
 export default ApiAdminController;

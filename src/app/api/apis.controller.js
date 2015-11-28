@@ -80,6 +80,13 @@ class ApisController {
     this.tableMode = tableMode;
     this.$state.go(tableMode? 'apis.list.table' : 'apis.list.thumb');
   }
+
+  backToPreviousState() {
+    if (!this.previousState) {
+      this.previousState = 'apis.list.thumb';
+    }
+    this.$state.go(this.previousState);
+  }
 }
 
 export default ApisController;

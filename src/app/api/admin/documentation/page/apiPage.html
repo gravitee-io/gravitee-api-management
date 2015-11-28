@@ -18,14 +18,14 @@
 <md-card style="box-shadow:none;">
   <div style="border: 1px solid #e7eaec; border-bottom: 0; padding: 0 20px 10px 20px;">
     <div layout="row">
-      <div layout="row" layout-align="start end" flex="70">
+      <div layout="row" layout-align="start end" flex="60">
         <h3 style="color: #676a6c; clear:both;">{{pageCtrl.page.title}}</h3>
         <md-button ng-show="pageCtrl.editMode" ng-click="pageCtrl.reset()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Reset"><ng-md-icon icon="undo" size="16"></ng-md-icon></md-button>
       </div>
-      <div class="documentation-tool-bar" layout="row" layout-align="end end" style="width: 100%;" flex="30">
+      <div class="documentation-tool-bar" layout="row" layout-align="end end" style="width: 100%;" flex="40">
         <md-switch ng-model="pagePublished">Published</md-switch>
         <md-button ng-show="!pageCtrl.editMode" ng-click="pageCtrl.edit()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Edit"><ng-md-icon icon="mode_edit" size="16"></ng-md-icon></md-button>
-        <md-button ng-show="pageCtrl.editMode" ng-click="pageCtrl.edit()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Save"><ng-md-icon icon="save" size="16"></ng-md-icon></md-button>
+        <md-button ng-show="pageCtrl.editMode" ng-click="pageCtrl.update()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Save"><ng-md-icon icon="save" size="16"></ng-md-icon></md-button>
         <md-button ng-click="pageCtrl.delete()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Delete"><ng-md-icon icon="delete" size="16"></ng-md-icon></md-button>
       </div>
     </div>

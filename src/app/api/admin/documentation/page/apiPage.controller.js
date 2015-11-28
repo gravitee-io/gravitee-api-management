@@ -41,7 +41,7 @@ class PageController {
     this.$scope.pagePublished = this.page.state === 'published'? true : false;
   }
 
-  edit() {
+  update() {
     var editPage = {
       'title' : this.page.title,
       'name': this.page.name,
