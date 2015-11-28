@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div layout="row" layout-wrap class="inset">
+<div layout="row" layout-wrap class="inset" ng-init="apisCtrl.list()">
 	<div class="apis-box" flex="33" ng-repeat="api in apisCtrl.apis" ng-class="{'gravitee-disabled': api.state === 'stopped'}">
 		<a ui-sref="apis.portal({apiId: api.id})">
 			<md-card class="api-box" style="position: relative;">

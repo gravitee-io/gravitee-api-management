@@ -54,9 +54,9 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiAdminController',
       controllerAs: 'apiCtrl',
       resolve: {
-        resolvedApi:['$stateParams', 'ApiService', function ($stateParams, ApiService) {
+        resolvedApi:function ($stateParams, ApiService) {
           return ApiService.get($stateParams.apiId);
-        }]
+        }
       }
     })
     .state('apis.admin.analytics', {
@@ -91,9 +91,9 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiMembersController',
       controllerAs: 'apiCtrl',
       resolve: {
-        resolvedMembers:['$stateParams', 'ApiService', function ($stateParams, ApiService) {
+        resolvedMembers:function ($stateParams, ApiService) {
           return ApiService.getMembers($stateParams.apiId);
-        }]
+        }
       }
     })
     .state('documentation', {
