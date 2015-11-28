@@ -1,3 +1,17 @@
+.landing-header-image {
+	height: 450px;	
+	background-image: url('../../app/images/landing-page-main-image.jpg');
+	background-position: bottom center;
+  background-repeat: no-repeat;
+  background-size: cover;
+	@media screen and (max-width: 1600px) {
+		height: 600px;
+	}
+	@media screen and (max-width: 1799px) {
+		height: 700px;
+	}
+}
+
 .landing-header-content ul > li {
 	display: inline-block;
 	margin-left: 0.3em;

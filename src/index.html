@@ -49,7 +49,7 @@
         <header>
           <gravitee-navbar />
         </header>
-        <md-progress-linear md-mode="buffer" value="{{progressValue}}" md-buffer-value="{{progressValue}}"></md-progress-linear>
+        <md-progress-linear ng-show="isLoading" md-mode="buffer" value="{{progressValue}}" md-buffer-value="{{progressValue}}"></md-progress-linear>
 			  <div ui-view></div>
 			</md-content>
     </div>

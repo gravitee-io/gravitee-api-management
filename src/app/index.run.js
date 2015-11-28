@@ -49,6 +49,7 @@ function runBlock ($rootScope, $window, $http, $cookieStore) {
     return $http.pendingRequests.length > 0;
   }, function (hasPendingRequests) {
     if (hasPendingRequests) {
+			$rootScope.isLoading = true;
       $rootScope.progressValue = 0;
       interval = setInterval(function () {
         $rootScope.$apply(function () {
@@ -62,6 +63,7 @@ function runBlock ($rootScope, $window, $http, $cookieStore) {
     } else {
       clearInterval(interval);
       $rootScope.progressValue = 100;
+			$rootScope.isLoading = false;
     }
   });
 }
