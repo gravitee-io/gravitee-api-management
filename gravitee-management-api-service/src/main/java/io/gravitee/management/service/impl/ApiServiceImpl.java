@@ -15,6 +15,19 @@
  */
 package io.gravitee.management.service.impl;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
@@ -30,15 +43,11 @@ import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.Visibility;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -182,20 +191,20 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public ApiEntity update(String apiName, UpdateApiEntity updateApiEntity) {
+    public ApiEntity update(String apiId, UpdateApiEntity updateApiEntity) {
         try {
-            LOGGER.debug("Update API {}", apiName);
+            LOGGER.debug("Update API {}", apiId);
 
-            Optional<Api> optApiToUpdate = apiRepository.findById(apiName);
+            Optional<Api> optApiToUpdate = apiRepository.findById(apiId);
             if (! optApiToUpdate.isPresent()) {
-                throw new ApiNotFoundException(apiName);
+                throw new ApiNotFoundException(apiId);
             }
 
             Api apiToUpdate = optApiToUpdate.get();
-            Api api = convert(apiName, updateApiEntity);
+            Api api = convert(apiId, updateApiEntity);
 
             if (api != null) {
-                api.setName(apiName.trim());
+                api.setId(apiId.trim());
                 api.setUpdatedAt(new Date());
 
                 // Copy fields from existing values
@@ -206,11 +215,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 return convert(updatedApi);
             } else {
                 LOGGER.error("Unable to update API {} because of previous error.");
-                throw new TechnicalManagementException("Unable to update API " + apiName);
+                throw new TechnicalManagementException("Unable to update API " + apiId);
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update API {}", apiName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to update API " + apiName, ex);
+            LOGGER.error("An error occurs while trying to update API {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to update API " + apiId, ex);
         }
     }
 
