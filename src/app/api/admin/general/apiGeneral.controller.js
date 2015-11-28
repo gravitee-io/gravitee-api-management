@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor (ApiService, $scope, $mdDialog) {
+  constructor (ApiService, $scope, $mdDialog, resolvedApi) {
     'ngInject';
     this.ApiService = ApiService;
     this.$scope = $scope;
     this.$mdDialog = $mdDialog;
+    this.initialApi = _.cloneDeep(resolvedApi.data);
 
     this.initState();
   }
@@ -52,10 +53,28 @@ class ApiAdminController {
       });
   }
 
+  reset() {
+    this.$scope.$parent.apiCtrl.api = _.cloneDeep(this.initialApi);
+    this.$scope.formApi.$setPristine();
+  }
+
   delete(id) {
-    this.ApiService.delete(id).then(() => {
-      this.backToPreviousState();
+    var alert = this.$mdDialog.confirm({
+      title: 'Warning',
+      content: 'Are you sure you want to delete the api ' + this.$scope.$parent.apiCtrl.api.id + '?',
+      ok: 'OK',
+      cancel: 'Cancel'
     });
+
+    var that = this;
+
+    this.$mdDialog
+      .show(alert)
+      .then(function () {
+        that.ApiService.delete(id).then(() => {
+          that.$scope.$parent.apiCtrl.backToPreviousState();
+        });
+      });
   }
 
   update(api) {

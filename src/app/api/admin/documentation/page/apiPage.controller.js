@@ -41,7 +41,7 @@ class PageController {
     this.$scope.pagePublished = this.page.state === 'published'? true : false;
   }
 
-  editPage() {
+  edit() {
     var editPage = {
       'title' : this.page.title,
       'name': this.page.name,
@@ -53,12 +53,12 @@ class PageController {
     });
   }
 
-  undoPage() {
+  reset() {
     this.editMode = false;
     this.page = _.clone(this.initialPage);
   }
 
-  deletePage() {
+  delete() {
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
       content: 'Are you sure you want to remove the page ' + this.page.id + '?',

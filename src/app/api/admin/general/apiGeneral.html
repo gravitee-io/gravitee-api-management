@@ -50,19 +50,27 @@
       <input ng-model="apiCtrl.api.version" type="text" ng-required="true">
     </md-input-container>
 
-    <md-input-container class="flex" layout-align="center center">
-      <md-radio-group ng-model="apiCtrl.api.visibility">
-        <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public" title="Public">
-          <ng-md-icon icon="public"></ng-md-icon>
-        </md-radio-button>
-        <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private" title="Private">
-          <ng-md-icon icon="lock"></ng-md-icon>
-        </md-radio-button>
-        <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted" title="Restricted">
-          <ng-md-icon icon="vpn_lock"></ng-md-icon>
-        </md-radio-button>
-      </md-radio-group>
-    </md-input-container>
+    <div layout="column">
+      <md-input-container class="flex" layout-align="center center">
+        <md-radio-group ng-model="apiCtrl.api.visibility">
+          <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public" title="Public">
+            <ng-md-icon icon="public"></ng-md-icon>
+          </md-radio-button>
+          <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private" title="Private">
+            <ng-md-icon icon="lock"></ng-md-icon>
+          </md-radio-button>
+          <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted" title="Restricted">
+            <ng-md-icon icon="vpn_lock"></ng-md-icon>
+          </md-radio-button>
+        </md-radio-group>
+      </md-input-container>
+
+      <div class="gravitee-api-visibility-explanation" ng-switch="apiCtrl.api.visibility">
+        <label ng-switch-when="public">API is visible by all</label>
+        <label ng-switch-when="private">API is visible only by its creator</label>
+        <label ng-switch-when="restricted">API is subject to access rules</label>
+      </div>
+    </div>
 
     <md-input-container class="flex">
       <md-checkbox ng-model="apiCtrl.api.proxy.strip_context_path" aria-label="Strip context path?">
@@ -71,11 +79,9 @@
     </md-input-container>
   </div>
   <div layout="" layout-sm="column">
-    <md-input-container class="flex">
-      <md-switch class="md-primary md-block" md-no-ink aria-label="Switch No Ink" ng-model="apiCtrl.api.proxy.http_client.use_proxy">
-        HTTP PROXY
-      </md-switch>
-    </md-input-container>
+    <md-switch class="md-primary md-block" md-no-ink aria-label="Switch No Ink" ng-model="apiCtrl.api.proxy.http_client.use_proxy">
+      HTTP PROXY
+    </md-switch>
   </div>
 
   <div layout="" layout-sm="column" ng-if="apiCtrl.api.proxy.http_client.use_proxy">
@@ -101,8 +107,14 @@
   </div>
 
   <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button type="submit" ng-disabled="formApi.$invalid || formApi.$pristine">
+    <md-button class="md-accent" type="submit" ng-disabled="formApi.$invalid || formApi.$pristine">
       Save
+    </md-button>
+    <md-button class="md-warn" type="button" ng-click="generalCtrl.reset()" ng-disabled="formApi.$invalid || formApi.$pristine">
+      Reset
+    </md-button>
+    <md-button class="md-warn pull-right" type="button" ng-click="generalCtrl.delete(apiCtrl.api.id)">
+      Delete
     </md-button>
   </div>
 </form>
