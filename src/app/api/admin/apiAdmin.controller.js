@@ -35,6 +35,8 @@ class ApiAdminController {
       $scope.selectedTab = 2;
     } else if ($state.current.name.endsWith('analytics')) {
       $scope.selectedTab = 3;
+    } else if ($state.current.name.endsWith('members')) {
+      $scope.selectedTab = 4;
     }
 
     var that = this;

@@ -59,6 +59,9 @@ class ApiService {
     return this.$http.get(this.apisURL + apiName + '/policies');
   }
 
+  /*
+   * Analytics
+   */
   apiHits(api, interval, from, to) {
     return this.$http.get(this.apisURL + api + '/analytics?type=hits&interval=' + interval + '&from=' + from + '&to=' + to);
   }
@@ -73,6 +76,21 @@ class ApiService {
 
   apiHitsByPayloadSize(api, interval, from, to) {
     return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_payload_size&interval=' + interval + '&from=' + from + '&to=' + to);
+  }
+
+  /*
+   * Members
+   */
+  getMembers(api) {
+    return this.$http.get(this.apisURL + api + '/members');
+  }
+
+  addOrUpdateMember(api, member) {
+    return this.$http.post(this.apisURL + api + '/members?user=' + member.user + '&type=' + member.type);
+  }
+
+  deleteMember(api, memberUsername) {
+    return this.$http.delete(this.apisURL + api + '/members?user=' + memberUsername);
   }
 }
 
