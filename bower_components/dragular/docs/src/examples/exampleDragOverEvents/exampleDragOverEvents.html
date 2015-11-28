@@ -1,0 +1,151 @@
+<div class='parent'>
+  <h2>Drag-over events</h2>
+  <p>You can interact with dragging element by litening to dragOver events. Usually you want to containers show wheather they accepts element or not, but you can use it anywhere. DragOver events are: dragenter, dragleave and dragrelease. On dragOver events dragularService reveals several useful properties.</p>
+
+<div class="table-responsive">
+  <table class="table table-hover">
+    <tr>
+      <td>dragularService.shared.item</td>
+      <td>item beeing dragged (it is copy of item if copy is enabled via options)</td>
+    </tr>
+    <tr>
+      <td>dragularService.shared.source</td>
+      <td>source container item is dragged from</td>
+    </tr>
+    <tr>
+      <td>dragularService.shared.sourceModel</td>
+      <td>source container model representation if model was porvided</td>
+    </tr>
+    <tr>
+      <td>dragularService.shared.initialIndex</td>
+      <td>original index of item, can be used to get item model from sourceModel</td>
+    </tr>
+    <tr>
+      <td>dragularService.shared.extra</td>
+      <td>contains accepting information (boolean) on dragenter, element drag is leaving to on dragleave and element behind the cursor on dragrelease</td>
+    </tr>
+  </table>
+</div>
+
+  <p> Try to drag over the not-container too.</p>
+  <div class='wrapper' ng-controller="DragOverEvents">
+    <div class='containerVertical width25'>
+      <div>apples and oranges cannot be mixed</div>
+      <div>apple 2</div>
+      <div>apple 3</div>
+      <div>apple 4</div>
+    </div>
+    <div class='containerVertical width25'>
+      <div>orange 1</div>
+      <div>orange 2</div>
+      <div>orange 3</div>
+      <div>orange 4</div>
+    </div>
+    <div class='containerVertical width25'>
+      <div>apple 5</div>
+      <div>apple 6</div>
+      <div>apple 7</div>
+      <div>apple 8</div>
+    </div>
+    <div class='containerVertical width25'>
+      <div>orange 5</div>
+      <div>orange 6</div>
+      <div>orange 7</div>
+      <div>orange 8</div>
+    </div>
+  </div>
+  <div class="notContainer gu-over-active"> Test active class on NOT container.</div>
+
+  <pre>
+    <code>
+&lt;!-- HTML --&gt;
+  &lt;div class='wrapper' ng-controller=&quot;DragOverEvents&quot;&gt;
+    &lt;div class='container width25'&gt;
+      &lt;div&gt;apples and oranges cannot be mixed&lt;/div&gt;
+      &lt;div&gt;apple 2&lt;/div&gt;
+      ...
+    &lt;/div&gt;
+    &lt;div class='container width25'&gt;
+      &lt;div&gt;orange 1&lt;/div&gt;
+      &lt;div&gt;orange 2&lt;/div&gt;
+      ...
+    &lt;/div&gt;
+    &lt;div class='container width25'&gt;
+      &lt;div&gt;apple 5&lt;/div&gt;
+      &lt;div&gt;apple 6&lt;/div&gt;
+      ...
+    &lt;/div&gt;
+    &lt;div class='container width25'&gt;
+      &lt;div&gt;orange 5&lt;/div&gt;
+      &lt;div&gt;orange 6&lt;/div&gt;
+      ...
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;notContainer&quot;&gt; Test active class on NOT container.&lt;/div&gt;
+    </code>
+  </pre>
+
+  <pre>
+    <code>
+  // CSS
+  
+.notContainer.gu-over {
+  background-color: yellow;
+}
+
+.containerVertical.gu-over-accept {
+  background-color: green;
+}
+
+.containerVertical.gu-over-decline {
+  background-color: red;
+}
+    </code>
+  </pre>
+
+  <pre>
+    <code>
+  // JS
+  controller('DragOverEvents', ['$element', 'dragularService', function TodoCtrl($element, dragularService) {
+    dragularService.cleanEnviroment();
+    dragularService([$element.children()[0], $element.children()[2]], {
+      nameSpace: 'apples'
+    });
+    dragularService([$element.children()[1], $element.children()[3]], {
+      nameSpace: 'oranges'
+    });
+
+    // containers events handling
+    function registerEvents(el) {
+      el.on('dragularenter', function(e) {
+        if (el[0] === e.target) { // filter bubbled
+          el.addClass(dragularService.shared.extra ? 'gu-over-accept' : 'gu-over-decline');
+        }
+      });
+      el.on('dragularleave dragularrelease', function(e) {
+        if ((el[0] === e.target && // filter bubbled
+          dragularService.shared.extra && // extra on dragleave contains element the drag is leaving to
+          dragularService.shared.extra.parentElement !== e.target) // is that element child of this container?
+          || e.type === 'dragularrelease') {
+          el.removeClass('gu-over-accept');
+          el.removeClass('gu-over-decline');
+        }
+      });
+    }
+
+    angular.forEach($element.children(), function forEachChild(el) {
+      registerEvents(angular.element(el));
+    });
+
+    // notContainer events handling
+    var notContainer = angular.element(document.getElementsByClassName('notContainer'));
+    notContainer.on('dragularenter', function() {
+      notContainer.addClass('gu-over');
+    });
+    notContainer.on('dragularleave dragularrelease', function() {
+      notContainer.removeClass('gu-over');
+    });
+  }])
+    </code>
+  </pre>
+</div>

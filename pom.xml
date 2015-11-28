@@ -49,9 +49,6 @@
                         <fileset>
                             <directory>node_modules</directory>
                         </fileset>
-                        <fileset>
-                            <directory>bower_components</directory>
-                        </fileset>
                     </filesets>
                 </configuration>
             </plugin>

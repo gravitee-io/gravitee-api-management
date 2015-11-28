@@ -1,0 +1,35 @@
+<div class='parent'>
+    <h2>Custom classes</h2>
+    <label for='hy'>You can overwrite buildin classes by providing classes names in object via options.classes.</label>
+    <div class='wrapper' ng-controller="CustomClasses">
+        <div id='left4' class='containerVertical'>
+            <div>Move me, but you can only drop me in one of these containers.</div>
+            <div>If you try to drop me somewhere other than these containers, I'll just come back.</div>
+            <div>Item 3.</div>
+            <div>Item 6.</div>
+        </div>
+        <div id='right3' class='containerVertical'>
+            <div>You can drop me in the left container, otherwise I'll stay here.</div>
+            <div>Item 4.</div>
+            <div>Item 5.</div>
+        </div>
+    </div>
+    <pre>
+        <code>
+  dragularService([document.getElementById(left), document.getElementById(right)], { classes: {
+    mirror: 'custom-green-mirror'
+  } });
+
+  // Default classes are:
+  option.classes = {
+    mirror: 'gu-mirror',
+    hide: 'gu-hide',
+    unselectable: 'gu-unselectable',
+    transit: 'gu-transit',
+    overActive: 'gu-over-active',
+    overAccepts: 'gu-over-accept',
+    overDeclines: 'gu-over-decline'
+  };
+        </code>
+      </pre>
+</div>

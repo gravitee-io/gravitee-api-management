@@ -1,0 +1,24 @@
+        <div class='parent'>
+            <h2>BoundingBox</h2>
+            <label for='hy'>You can provide element in options.boundingBox to limit crossing element borders.</label>
+            <div class='wrapper' ng-controller="BoundingBox">
+                <div class='containerVertical'>
+                    <div>This items cannot cross its example element, just try it your selves.</div>
+                    <div>Item 2.</div>
+                    <div>Item 3.</div>
+                    <div>Item 6.</div>
+                </div>
+                <div class='containerVertical'>
+                    <div>This items cannot cross its example element, just try it your selves.</div>
+                    <div>Item 4.</div>
+                    <div>Item 5.</div>
+                </div>
+            </div>
+            <pre>
+        <code>
+  dragularService([$element.children(), {
+    boundingBox: $element
+  });
+        </code>
+      </pre>
+        </div>

@@ -1,0 +1,78 @@
+<!doctype html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <meta name="description" content="dragular api-demo page">
+  <meta name="author" content="Luckylooke">
+  <!-- <link rel="icon" href="../../favicon.ico"> -->
+  <!-- Latest compiled and minified CSS -->
+  <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"> -->
+  <!-- <link href='dist/dragular.css' rel='stylesheet' type='text/css' /> -->
+  <link href="dist/examples.css" rel='stylesheet' type='text/css' />
+  <link href="src/vendor/highlight.github.css" rel='stylesheet' type='text/css' />
+  <link href="src/vendor/bootstrap.min.css" rel='stylesheet' type='text/css' />
+  <title>dragular-api</title>
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body ng-app="examplesApp" ng-controller="ExAppCtrl">
+  <nav class="navbar navbar-fixed-top navbar-inverse" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar" ng-init="isCollapsed = true" ng-click="isCollapsed = !isCollapsed">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" ui-sref="home">Dragular</a>
+      </div>
+      <div id="navbar" class="collapse navbar-collapse" ng-class="!isCollapsed && 'in'">
+        <ul class="nav navbar-nav">
+          <li ui-sref-active="active" ng-click="navbarCollapsed = !navbarCollapsed"><a ui-sref="home">Home</a></li>
+          <li ui-sref-active="active" ng-click="navbarCollapsed = !navbarCollapsed"><a ui-sref="docs">Docs</a></li>
+          <li ui-sref-active="active" ng-click="navbarCollapsed = !navbarCollapsed"><a ui-sref="contribute">Contribute</a></li>
+        </ul>
+      </div>
+      <!-- /.nav-collapse -->
+    </div>
+    <!-- /.container -->
+  </nav>
+  <!-- gh-fork -->
+  <a href='http://github.com/luckylooke/dragular'>
+    <img class='gh-fork' src='https://camo.githubusercontent.com/52760788cde945287fbb584134c4cbc2bc36f904/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f77686974655f6666666666662e706e67' alt='Fork me on GitHub' data-canonical-src='https://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png' />
+  </a>
+  <!-- page main content -->
+  <div ui-view></div>
+  <hr>
+  <footer>
+    <p>Dragular 2015 | Coded with <span style="font-size:140%">&hearts;</span> by Luckylooke</p>
+  </footer>
+  <script src="src/vendor/angular.js"></script>
+  <script src="src/vendor/angular-touch.js"></script>
+  <script src="src/vendor/ui-bootstrap-tpls-0.13.2.js"></script>
+  <script src='src/vendor/angular-ui-router.js'></script>
+  <script src='dist/examples.js'></script>
+  <script src='src/vendor/highlight.pack.js'></script>
+  <script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-64333581-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script');
+    ga.type = 'text/javascript';
+    ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(ga, s);
+  })();
+  </script>
+</body>

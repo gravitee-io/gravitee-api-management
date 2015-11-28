@@ -1,0 +1,47 @@
+<div class='parent'>
+  <h2>Basic</h2>
+  <label for='hy'>Move stuff between these two containers. Note how the stuff gets inserted near the mouse pointer? Great stuff.</label>
+  <div class='wrapper' ng-controller="Basic">
+    <div class='containerVertical'>
+      <div>Move me, but you can only drop me in one of these containers.</div>
+      <div>If you try to drop me somewhere other than these containers, I'll just come back.</div>
+      <div>Item 3.</div>
+      <div>Item 6.</div>
+    </div>
+    <div class='containerVertical'>
+      <div>You can drop me in the left container, otherwise I'll stay here.</div>
+      <div ng-click="clicked = !clicked" ng-class="clicked && 'clickedClass'">Try to click me, dragular distinguish drag from click</div>
+      <div>Item 5.</div>
+    </div>
+  </div>
+  <pre>
+        <code>
+// JS
+  controller('Basic', ['$element', 'dragularService', function TodoCtrl($element, dragularService) {
+    dragularService('.containerVertical');
+  }])
+        </code>
+        <code>
+// CSS
+.clickedClass {
+  background-color: orange !important;
+}
+        </code>
+        <code>
+&lt;!-- HTML --&gt;
+  &lt;div class='wrapper' ng-controller=&quot;Basic&quot;&gt;
+    &lt;div class='containerVertical'&gt;
+        &lt;div&gt;Move me, but you can only drop me in one of these containers.&lt;/div&gt;
+        &lt;div&gt;If you try to drop me somewhere other than these containers, I'll just come back.&lt;/div&gt;
+        &lt;div&gt;Item 3.&lt;/div&gt;
+        &lt;div&gt;Item 6.&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class='containerVertical'&gt;
+        &lt;div&gt;You can drop me in the left container, otherwise I'll stay here.&lt;/div&gt;
+        &lt;div ng-click="clicked = !clicked" ng-class="clicked && 'clickedClass'"&gt;Try to click me, dragular distinguish drag from click&lt;/div&gt;
+        &lt;div&gt;Item 5.&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+        </code>
+      </pre>
+</div>

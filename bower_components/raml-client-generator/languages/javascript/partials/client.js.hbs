@@ -1,0 +1,18 @@
+function Client (options) {
+  this.options = extend({
+    baseUri: {{{stringify baseUri}}},
+    baseUriParameters: {{{stringify (object (keys baseUriParameters) (pluck baseUriParameters 'default'))}}}
+  }, options);
+
+  this.resources = new {{pascalCase resources.id}}('', this);
+};
+
+Client.prototype.resource = function (route, parameters) {
+  var path = '/' + template(route, parameters).replace(/^\//, '');
+
+  return new CustomResource(path, this);
+};
+
+Client.prototype.request = popsicle;
+Client.prototype.form = Client.form = popsicle.form;
+Client.prototype.version  = {{{stringify version}}};

@@ -1,0 +1,33 @@
+        <div class='parent'>
+            <h2>ngRepeat</h2>
+            <label for='hy'>Example of using ng-repeat with dragular and adding/removing items dynamicaly.</label>
+            <div class='wrapper' ng-controller="NgRepeat">
+                <div class='containerVertical'>
+                    <div ng-repeat="item in items">
+                        {{item.content}}
+                    </div>
+                </div>
+            </div>
+            <pre>
+        <code>
+  // HTML:
+  &lt;div class='containerVertical'&gt;
+    &lt;div ng-repeat=&quot;item in items&quot;&gt;
+      {{item.content}}
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  // JS:
+  dragularService($element.children());
+  $scope.items = [{
+    content: 'Try to add or remove some elements (click on +- buttons), you will see that it is not problem for dragular.'
+  },{
+    content: 'Item 2'
+  },{
+    content: 'Item 3'
+  },{
+    content: 'Item 4'
+  }];
+        </code>
+      </pre>
+        </div>

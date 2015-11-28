@@ -1,0 +1,43 @@
+        <div class='parent'>
+            <h2>NameSpaces</h2>
+            <label for='hy'>Try to mix apples and oranges. You cannot place apples into oranges, but notice that you can place it into mixed. Mixed can be placed into apples and oranges. Notice that mixed becomes orange or apple if placed into their container. <b>So remember if you are using namespacing, then item is namespaced according to actual container it is placed in. If you need to item preserve thier state you need to use classes in combination with options.accepts and optionally options.isContainer.</b> It depends on setup. (See <a href="https://github.com/luckylooke/dragular/issues/9">issue #9</a>.)</label>
+            <div class='wrapper' ng-controller="NameSpaces">
+                <div class='containerVertical width25'>
+                    <div>try to mix oranges and apples</div>
+                    <div>apple 2</div>
+                    <div>apple 3</div>
+                    <div>apple 4</div>
+                </div>
+                <div class='containerVertical width25'>
+                    <div>orange 1</div>
+                    <div>orange 2</div>
+                    <div>orange 3</div>
+                    <div>orange 4</div>
+                </div>
+                <div class='containerVertical width25'>
+                    <div>apple 5</div>
+                    <div>apple 6</div>
+                    <div>apple 7</div>
+                    <div>apple 8</div>
+                </div>
+                <div class='containerVertical width25'>
+                    <div>mixed 1</div>
+                    <div>mixed 2</div>
+                    <div>mixed 3</div>
+                    <div>mixed 4</div>
+                </div>
+            </div>
+            <pre>
+      <code>
+dragularService([$element.children()[0], $element.children()[2]], {
+  nameSpace: 'apples'
+});
+dragularService($element.children()[1], {
+  nameSpace: 'oranges'
+});
+dragularService($element.children()[3], { // mixed
+  nameSpace: ['oranges', 'apples']
+});
+      </code>
+    </pre>
+        </div>

@@ -1,0 +1,230 @@
+.gh-fork {
+  position: fixed;
+  top: 0;
+  right: 0;
+  border: 0;
+  z-index: 10000;
+}
+
+
+/* dragular-specific example page styles */
+
+.wrapper {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.containerVertical {
+  display: table-cell;
+  background-color: rgba(255, 255, 255, 0.2);
+  width: 50%;
+}
+
+.containerHorizontal {
+  display: table-row;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.containerHorizontal div {
+  border-spacing: 5px;
+  display: table-cell;
+  margin: 10px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  transition: opacity 0.4s ease-in-out;
+  cursor: move;
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+}
+
+.width25 {
+  width: 25%;
+}
+
+.containerVertical:nth-child(odd) {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.containerVertical:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.containerVertical pre {
+  border: 0;
+  background-color: transparent;
+}
+
+label b{
+  color: darkorange;
+}
+
+/*
+ * note that styling gu-mirror directly is a bad practice because it's too generic.
+ * you're better off giving the draggable elements a unique class and styling that directly!
+ */
+
+.containerVertical div,
+.gu-mirror {
+  margin: 10px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  transition: opacity 0.4s ease-in-out;
+  cursor: move;
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+}
+
+.gu-unselectable {
+  cursor: grabbing;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+}
+
+.containerVertical .ex-moved {
+  background-color: #e74c3c;
+}
+
+.handle {
+  padding: 0 5px;
+  margin-right: 5px;
+  background-color: rgba(0, 0, 0, 0.4);
+  cursor: move;
+}
+
+.custom-green-mirror {
+  background-color: #56AB1C;
+  margin: 10px;
+  padding: 10px;
+  cursor: move;
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+  opacity: 0.8;
+  position: fixed !important;
+  margin: 0 !important;
+  z-index: 9999 !important;
+}
+
+.containerVertical.width25.gu-over-active.gu-over-accept {
+  background-color: green !important;
+}
+
+.containerVertical.width25.gu-over-active.gu-over-decline {
+  background-color: red !important;
+}
+
+pre.gu-over-active.gu-over-decline {
+  background-color: yellow !important;
+}
+
+div.limitBox {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.cursorDefault {
+  cursor: default !important;
+}
+
+.exampleRow {
+  display: flex;
+  flex-direction: row;
+}
+
+.exampleCell {
+  flex-grow: 1;
+}
+
+.exampleRow,
+.exampleCell {
+  margin: 10px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  cursor: move;
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+}
+
+.tableRow {
+  display: table-row;
+}
+
+
+/* OFF CANVAS TEMPLATE CSS */
+
+
+/*
+ * Style tweaks
+ * --------------------------------------------------
+ */
+
+html,
+body {
+  overflow-x: hidden;
+  /* Prevent scroll on narrow devices */
+}
+
+body {
+  padding-top: 70px;
+}
+
+footer {
+  padding: 30px 0;
+  text-align: center;
+}
+
+.jumbotron {
+  text-align: center;
+}
+
+
+/*
+ * Off Canvas
+ * --------------------------------------------------
+ */
+
+@media screen and (max-width: 767px) {
+  .gh-fork {
+    top: 50px !important;
+    z-index: auto;
+  }
+  .row-offcanvas {
+    position: relative;
+    -webkit-transition: all .25s ease-out;
+    -o-transition: all .25s ease-out;
+    transition: all .25s ease-out;
+  }
+  .row-offcanvas-right {
+    right: 0;
+  }
+  .row-offcanvas-left {
+    left: 0;
+  }
+  .row-offcanvas-right .sidebar-offcanvas {
+    right: -50%;
+    /* 6 columns */
+  }
+  .row-offcanvas-left .sidebar-offcanvas {
+    left: -50%;
+    /* 6 columns */
+  }
+  .row-offcanvas-right.active {
+    right: 50%;
+    /* 6 columns */
+  }
+  .row-offcanvas-left.active {
+    left: 50%;
+    /* 6 columns */
+  }
+  .sidebar-offcanvas {
+    position: absolute !important;
+    top: 0;
+    width: 50%;
+    /* 6 columns */
+  }
+}

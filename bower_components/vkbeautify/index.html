@@ -1,0 +1,128 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"--> 
+<html  xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" itemscope itemtype="http://schema.org/Article">
+<head>
+<meta itemprop="name" content="vkBeautify">
+<meta itemprop="description" content="Beautify or Minify XML JSON CSS SQL text">
+
+<script src="jquery.1.5.0.js" type="text/javascript"></script>
+<script src="vkbeautify.js"></script>
+
+<script type="text/javascript" src="main.js"></script>
+<link rel="stylesheet" type="text/css" href="main.css" media="screen" />
+<title>vkBeautify - javascript plugin</title>
+
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script>
+</head>
+<body>
+
+<!-- ================= header ======================= -->
+<div id="header">
+	<h1>vkBeautify </h1>
+	<ul>
+		&nbsp;|&nbsp;<li onclick="loadTemplate('overview')">Overview</li>
+		&nbsp;|&nbsp;<li onclick="loadTemplate('doc')">Documentation</li>
+		&nbsp;|&nbsp;<li><a href="http://vadimkir.blogspot.com/2012/01/vkbeautify.html" target="_blank">Blog</a></li>
+		&nbsp;|&nbsp;<li ><a href="http://code.google.com/p/vkbeautify/downloads/list" title="Download from Google Code" target="_blank">Download</a></li>
+		&nbsp;|&nbsp;<li ><a href="https://github.com/vkiryukhin/vkBeautify" title="Source on GitHub" target="_blank">GitHub</a></li>&nbsp;|&nbsp;
+		
+	</ul>
+	<div style="inline-block;position:relative;top:-41px" ><g:plusone size="small" annotation="none"></g:plusone></div>
+</div> <!-- /header -->
+<!-- ================= container ======================= -->
+
+<div id="container" >
+
+<!-- ================= left panel ======================= -->
+<div id="menu" >
+	<div>&nbsp;&nbsp;<b>XML</b> </div>
+
+	<ul>
+		<!--li onclick="loadTemplate('test')">test</li-->
+		<li onclick="loadTemplate('basic')">Basic</li>
+		<li onclick="loadTemplate('yahoorss')" title='http://weather.yahooapis.com/forecastrss?w=2459115'>Yahoo Weather RSS</li>
+	</ul>
+	<div>&nbsp;&nbsp;<b>JSON</b></div>
+	<ul>
+		<!--li onclick="loadTemplate('test')">test</li-->
+		<li onclick="loadTemplate('basicjson')">Basic</li>
+		<li onclick="loadTemplate('yahoojson')" title='http://weather.yahooapis.com/forecastjson?w=2459115'>Yahoo Weather JSON</li>
+		<!--li onclick="loadTemplate('googlenewsjson')" title='https://ajax.googleapis.com/ajax/services/search/news?v=1.0&q=barack%20obama'>Google News JSON</li-->
+	</ul>
+	<div>&nbsp;&nbsp;<b>CSS</b></div>
+	<ul>
+		<!--li onclick="loadTemplate('test')">test</li-->
+		<li onclick="loadTemplate('basiccss')">Basic</li>
+		<li onclick="loadTemplate('yahoocss')" title='http://ssl.gstatic.com/codesite/ph/3604335043632762799/css/core.css'>Google CSS Example</li>
+	</ul>
+	<div>&nbsp;&nbsp;<b>SQL</b></div>
+	<ul>
+		<!--li onclick="loadTemplate('test')">test</li-->
+		<li onclick="loadTemplate('basicsql')">Basic</li>
+		<!--li onclick="loadTemplate('yahoocss')" title='http://ssl.gstatic.com/codesite/ph/3604335043632762799/css/core.css'>Google CSS Example</li-->
+	</ul>
+</div> <!-- /menu -->
+
+<!-- ================= right panel ======================= -->
+
+	<div id="content"> 
+
+		<div id="leftpanel">
+			<div id="mode">XML  </div> 	
+			 <div style="float:left; margin-left:7em;"><input id="count" type="text" size="5" /> chars</div><br clear="all"/>
+			<textarea id="ta" style="height:400px;" onclick="countChars()"></textarea>
+			<!--div>
+				<input type="button" onclick="beautify()" value="Pretty Print"/>
+				<span style="display:inline-block;border:solid 1px #cccccc;padding:5px;margin-left:2em;margin-right:2em;">
+					<input type="button" onclick="minify()" value="Minify"/>
+					<input id="preservews" type="checkbox" /> 
+					<span style="display:inline-block;width:7em; margin:0px;font-size:75%;">
+						Preserve Comments
+					</span>
+				</span>
+				<input type="button" onclick="document.getElementById('ta').value='';" value="Clear"/>
+			</div-->
+		<table style=""><tr>
+		<td><input type="button" onclick="beautify()" value="Pretty Print"/></td>
+		<td><span style="display:inline-block;border:solid 1px #cccccc;padding:5px;margin-left:1em;margin-right:2em;">
+					<input type="button" onclick="minify()" value="Minify"/>
+					<input id="preservews" type="checkbox" /> 
+					<span style="display:inline-block;width:7em; margin:0px;font-size:75%;">
+						Preserve Comments
+					</span>
+				</span></td>
+		<td>
+			<div style="width:8em; margin:0px;font-size:75%;">custom puttern</div>
+			<input id="custom_pattern" type="text" size="12" value=""/>
+		</td>
+		</tr></table>			
+			
+		</div>
+
+		
+		<div id="rightpanel"></div>
+	
+	</div>
+
+	<br clear="both"/>
+
+</div> <!-- /container -->	
+
+<!-- ================= footer ======================= -->
+<div style="clear:both;"></div>
+
+	<br/><hr/>
+	
+<div id="footer">&copy; 2010 - 2012 Vadim Kiryukhin </div> 
+
+
+</body>
+</html>

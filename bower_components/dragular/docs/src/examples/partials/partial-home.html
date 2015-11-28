@@ -1,0 +1,53 @@
+<div class='container'>
+  <div class="row">
+    <!--/.sidebar-offcanvas-->
+    <div class="col-lg-12">
+      <div class="jumbotron">
+        <h1>DRAGULAR</h1>
+        <p>Angular drag&drop based on <a href="http://github.com/bevacqua/dragula">dragula</a>.</p>
+        <p><a class="btn btn-primary btn-lg" ui-sref="docs" role="button">Live examples in docs</a></p>
+      </div>
+      <div class="row">
+        <div class="col-lg-12">
+          <p>Browser support includes every sane browser and **IE7+**. <sub>_(Granted you polyfill the functional `Array` methods in ES5)_</sub></p>
+          <h2>Inspiration</h2>
+          <p>I am working on huge angular project and I am using several drag&drop libraries in it, one for UI, one for lists, etc.. I want to use one full-featured drag&drop library for whole project. As I could not find any suitable, I decided to create one. I have choosen great library <a href="http://github.com/bevacqua/dragula">dragula</a> by <a href="https://github.com/bevacqua">Nicolas Bevacqua</a> as my starting point, make it more angular and started to put features in it! If you wish light-weight angular version of dragula, there is <a href="http://github.com/bevacqua/angular-dragula">official angular version of dragula</a>.</p>
+          <p><b>Actual version 3.2.0 is based on dragula 3.5.2 and tested with angular 1.4.3.</b></p>
+          <h2>Differences of dragular (against dragula)</h2>
+          <ul>
+            <li>replaced dragula crossvent with angulars event binding</li>
+            <li>replaced dragula contra.emitter with $scope.$emit if scope provided in options (options.scope)</li>
+            <li>provided as service or directive dragular where options can be passed via atribute dragular</li>
+            <li>automatic direction if not provided in options, instead of default vertical</li>
+            <li>accepting arraylike objects as containers array (jQuery, jQlite collections etc..)</li>
+            <li>accepting custom classes via option.classes</li>
+            <li>namespaced containers groups available via option.nameSpace (containers in same nameSpace cooperate)</li>
+            <li>boundingBox (dragging element can me moved only in specific area)</li>
+            <li>lockX/Y (dragging element can me moved only in specific direction)</li>
+            <li>DOM can be synced with scope model</li>
+            <li>support css selectors to define containers</li>
+            <li>added syntax highlighter to example codes</li>
+            <li>etc..</li>
+          </ul>
+          <h2>Todo</h2>
+          <ul>
+            <li>improve docs</li>
+          </ul>
+          <h2>Features</h2>
+          <ul>
+            <li>provided as service and also as directive</li>
+            <li>Super easy to set up</li>
+            <li>No bloated dependencies</li>
+            <li><strong>Figures out sort order</strong> on its own</li>
+            <li>A shadow where the item would be dropped offers <strong>visual feedback</strong></li>
+            <li>Touch events!</li>
+          </ul>
+          <h2>For installation, usage and examples go to <a ui-sref="docs">docs</a></h2>
+        </div>
+      </div>
+      <!--/row-->
+    </div>
+    <!--/.col-xs-12.col-sm-9-->
+  </div>
+  <!--/row-->
+</div>

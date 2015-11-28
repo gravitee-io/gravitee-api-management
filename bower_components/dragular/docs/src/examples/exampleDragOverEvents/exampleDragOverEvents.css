@@ -1,0 +1,20 @@
+.notContainer {
+  width: 100%;
+  padding: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.notContainer.gu-over {
+  background-color: yellow;
+}
+
+.containerVertical.gu-over-accept {
+  background-color: green;
+}
+
+.containerVertical.gu-over-decline {
+  background-color: red;
+}

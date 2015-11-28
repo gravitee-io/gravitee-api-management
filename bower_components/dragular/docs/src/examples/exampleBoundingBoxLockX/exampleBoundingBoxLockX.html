@@ -1,0 +1,22 @@
+<div class='parent'>
+            <h2>BoundingBox and lockX</h2>
+            <label for='hy'>Movement can be locked to X or Y axis and also you can provide element in options.boundingBox to limit crossing element borders.</label>
+            <div class='wrapper' ng-controller="BoundingBoxLockX">
+                <div class='containerHorizontal'>
+                    <div class='boundingBox'>
+                        <div class="width25">Items are locked in X axis movement and cannot cross its closest parent div.boundingBox, just try it your selves.</div>
+                        <div class="width25">item 2</div>
+                        <div class="width25">item 3</div>
+                        <div class="width25">item 4</div>
+                    </div>
+                </div>
+            </div>
+            <pre>
+        <code>
+  dragularService([$element.children()[0].children(), {
+    boundingBox: $element.children()[0],
+    lockX: true
+  });
+        </code>
+      </pre>
+        </div>

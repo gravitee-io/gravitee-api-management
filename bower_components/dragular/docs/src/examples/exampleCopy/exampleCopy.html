@@ -1,0 +1,35 @@
+<div class='parent'>
+  <h2>Copy</h2>
+  <label for='hy'>Copying stuff is great too.</label>
+  <div class='wrapper' ng-controller="Copy" ng-hide="globals.showModelExamples">
+    <div id='left2' class='containerVertical'>
+      <div>Move me, and make copy on drop.</div>
+      <div>If you try to drop me somewhere other than these containers, I'll just come back.</div>
+    </div>
+    <div id='right2' class='containerVertical'>
+      <div>You can drop me in the left container, otherwise I'll stay here.</div>
+    </div>
+  </div>
+  <pre>
+        <code>
+// JS
+  controller('Copy', ['$element', 'dragularService', function TodoCtrl($element, dragularService) {
+    dragularService($element.children(), {
+      copy: true
+    });
+  }])
+        </code>
+        <code>
+&lt;!-- HTML --&gt;
+&lt;div class='wrapper' ng-controller=&quot;Copy&quot; ng-hide=&quot;globals.showModelExamples&quot;&gt;
+    &lt;div id='left2' class='containerVertical'&gt;
+      &lt;div&gt;Move me, and make copy on drop.&lt;/div&gt;
+      &lt;div&gt;If you try to drop me somewhere other than these containers, I'll just come back.&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div id='right2' class='containerVertical'&gt;
+      &lt;div&gt;You can drop me in the left container, otherwise I'll stay here.&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+        </code>
+      </pre>
+</div>

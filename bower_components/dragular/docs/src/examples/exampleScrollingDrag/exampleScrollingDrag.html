@@ -1,0 +1,143 @@
+<div class='parent'>
+  <h2>Scrolling drag</h2>
+  <label for='hy'> Containers can be scrolled by hovering up/down bar near containers. Bars on right side are transparent and moved a bit over containers. It can be scrolled also by mouse wheel.
+  </label>
+  <div ng-controller="ScrollingDrag">
+    <div class="containerVertical scrollingDrag">
+      <div class="scrollBar" id="leftTopBar">up</div>
+      <div id="leftScroll" class="scrollingDragInner">
+        <div>Item 1.</div>
+        <div>Item 2.</div>
+        <div>Item 3.</div>
+        <div>Item 4.</div>
+        <div>Item 5.</div>
+        <div>Item 6.</div>
+        <div>Item 7.</div>
+        <div>Item 9.</div>
+        <div>Item 10.</div>
+        <div>Item 11.</div>
+        <div>Item 12.</div>
+        <div>Item 13.</div>
+      </div>
+      <div class="scrollBar" id="leftBottomBar">down</div>
+    </div>
+    <div class="containerVertical scrollingDrag">
+      <div class="scrollBar" id="rightTopBar"></div>
+      <div id="rightScroll" class="scrollingDragInner">
+        <div>Item 1.</div>
+        <div>Item 2.</div>
+        <div>Item 3.</div>
+        <div>Item 4.</div>
+        <div>Item 5.</div>
+        <div>Item 6.</div>
+        <div>Item 7.</div>
+        <div>Item 9.</div>
+        <div>Item 10.</div>
+        <div>Item 11.</div>
+        <div>Item 12.</div>
+        <div>Item 13.</div>
+      </div>
+      <div class="scrollBar" id="rightBottomBar"></div>
+    </div>
+  </div>
+   <pre>
+        <code>
+// JS
+controller('ScrollingDrag', ['$interval', '$element', 'dragularService', function TodoCtrl($interval, $element, dragularService) {
+
+
+    var timer,
+      leftScrollContainer = document.getElementById('leftScroll'),
+      rightScrollContainer = document.getElementById('rightScroll'),
+      leftTopBar = document.getElementById('leftTopBar'),
+      leftBottomBar = document.getElementById('leftBottomBar'),
+      rightTopBar = document.getElementById('rightTopBar'),
+      rightBottomBar = document.getElementById('rightBottomBar');
+
+    dragularService.cleanEnviroment();
+    dragularService([leftScrollContainer, rightScrollContainer]);
+
+    registerEvents(leftTopBar, leftScrollContainer, -5);
+    registerEvents(leftBottomBar, leftScrollContainer, 5);
+    registerEvents(rightTopBar, rightScrollContainer, -5);
+    registerEvents(rightBottomBar, rightScrollContainer, 5);
+
+    function registerEvents(bar, container, inc, speed) {
+      if (!speed) {
+        speed = 20;
+      }
+      angular.element(bar).on('dragularenter', function() {
+        container.scrollTop += inc;
+        timer = $interval(function moveScroll() {
+          container.scrollTop += inc;
+        }, speed);
+      });
+      angular.element(bar).on('dragularleave dragularrelease', function() {
+        $interval.cancel(timer);
+      });
+    }
+  }])
+        </code>
+      </pre>
+      <pre>
+        <code>
+&lt;!-- HTML --&gt;
+&lt;div ng-controller=&quot;ScrollingDrag&quot;&gt;
+    &lt;div class=&quot;containerVertical scrollingDrag&quot;&gt;
+      &lt;div class=&quot;scrollBar&quot; id=&quot;leftTopBar&quot;&gt;up&lt;/div&gt;
+      &lt;div id=&quot;leftScroll&quot; class=&quot;scrollingDragInner&quot;&gt;
+        &lt;div&gt;Item 1&lt;/div&gt;
+        &lt;div&gt;Item 2&lt;/div&gt;
+            ...
+      &lt;/div&gt;
+      &lt;div class=&quot;scrollBar&quot; id=&quot;leftBottomBar&quot;&gt;down&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;containerVertical scrollingDrag&quot;&gt;
+      &lt;div class=&quot;scrollBar&quot; id=&quot;rightTopBar&quot;&gt;up&lt;/div&gt;
+      &lt;div id=&quot;rightScroll&quot; class=&quot;scrollingDragInner&quot;&gt;
+        &lt;div&gt;Item 1&lt;/div&gt;
+        &lt;div&gt;Item 2&lt;/div&gt;
+            ...
+      &lt;/div&gt;
+      &lt;div class=&quot;scrollBar&quot; id=&quot;rightBottomBar&quot;&gt;down&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+        </code>
+      </pre>
+       <pre>
+        <code>
+// CSS
+.scrollingDrag {
+  width: 45%;
+  display: inline-block;
+}
+
+.scrollingDragInner {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#rightTopBar,
+#rightBottomBar {
+  background: transparent;
+  position: relative;
+  height: 20px;
+}
+
+#rightTopBar {
+  top: 10px;
+}
+
+#rightBottomBar {
+  bottom: 10px;
+}
+
+div.scrollBar {
+  background: yellow;
+  text-align: center;
+  padding: 1px;
+}
+
+        </code>
+      </pre>
+</div>

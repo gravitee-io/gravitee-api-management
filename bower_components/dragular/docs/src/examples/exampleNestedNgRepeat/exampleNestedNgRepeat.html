@@ -1,0 +1,104 @@
+<div class='parent'>
+    <h2>Nested ngRepeat</h2>
+    <label for='hy'> You can move whole rows by grabing row title, all items it selves. Try it out!
+        <hr/>
+        <b>Old IE doesnt support Flexible Box Layout</b> so it can look weird. But in modern browsers it is awsome! Dragular will be working well also in old IE but you have to use different css for layout.
+        <hr/>
+    </label>
+    <div ng-controller="NestedNgRepeat">
+        <div ng-repeat="item in items" class='exampleRow'>
+            <div class="row-handle">Row {{$index}}</div>
+            <div ng-repeat="item in item.items" class="exampleCell">{{item.content}}</div>
+        </div>
+    </div>
+    <pre>
+        <code>
+  // HTML
+
+  &lt;div ng-controller=&quot;Example15&quot;&gt;
+    &lt;div ng-repeat=&quot;item in items&quot; class='exampleRow'&gt;
+      &lt;div class=&quot;row-handle&quot;&gt;Row {{$index}}&lt;/div&gt;
+      &lt;div ng-repeat=&quot;item in item.items&quot; class=&quot;exampleCell&quot;&gt;{{item.content}}&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+        </code>
+      </pre>
+    <pre>
+        <code>
+  // CSS
+
+  .exampleRow {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .exampleCell {
+    flex-grow: 1;
+  }
+
+  .exampleRow,
+  .exampleCell {
+    margin: 10px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    cursor: move;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+  }
+        </code>
+      </pre>
+    <pre>
+        <code>
+  // JS
+
+  .controller('NestedNgRepeat', ['$timeout', '$scope', '$element', 'dragularService', function NestedNgRepeatCtrl($timeout, $scope, $element, dragularService) {
+    $timeout(function() { // timeount due to ngRepeat to be ready
+      dragularService($element, {
+        nameSpace: 'rows',
+        moves: function rowOnly (el, container, handle) {
+          return handle.classList.contains('row-handle');
+        }
+      });
+      dragularService($element.children(), {
+        nameSpace: 'cells',
+        moves: function excludeHandle (el, container, handle) {
+          return !handle.classList.contains('row-handle');
+        }
+      });
+    }, 0);
+    $scope.items = [{
+      items: [{
+        content: 'Item a1'
+      }, {
+        content: 'Item a2'
+      }, {
+        content: 'Item a3'
+      }, {
+        content: 'Item a4'
+      }]
+    }, {
+      items: [{
+        content: 'Item b1'
+      }, {
+        content: 'Item b2'
+      }, {
+        content: 'Item b3'
+      }, {
+        content: 'Item b4'
+      }]
+    }, {
+      items: [{
+        content: 'Item c1'
+      }, {
+        content: 'Item c2'
+      }, {
+        content: 'Item c3'
+      }, {
+        content: 'Item c4'
+      }]
+    }];
+  }])
+        </code>
+      </pre>
+</div>

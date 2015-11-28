@@ -1,0 +1,43 @@
+<h1 id="how-to-contribute">How to contribute</h1>
+<p>It&#39;s important to us that you feel you can contribute towards the evolution of Dragular. This can take many forms: from helping to fix bugs or improve the docs, to adding in new features to the source. This guide should help you in making that process as smooth as possible.</p>
+<p>Before contributing, please read the <a href="https://github.com/luckylooke/dragular/blob/master/CODE_OF_CONDUCT.md">code of conduct</a>.</p>
+<h2 id="reporting-issues">Reporting issues</h2>
+<p><a href="https://github.com/luckylooke/dragular/issues">GitHub Issues</a> is the place to report bugs you may have found in either the core library or any of the examples that are part of the repository. When submitting a bug please do the following:</p>
+<p><strong>1. Search for existing issues.</strong> Your bug may have already been fixed or addressed in a development branch version of Dragular, so be sure to search the issues first before putting in a duplicate issue.</p>
+<p><strong>2. Not sure if it&#39;s a bug?.</strong> Then please ask via issues and tag it [question].</p>
+<p><strong>3. Create an isolated and reproducible test case.</strong> If you are reporting a bug, make sure you also have a minimal, runnable, code example that reproduces the problem you have.</p>
+<p><strong>4. Include a live example.</strong> After narrowing your code down to only the problem areas, make use of <a href="http://jsfiddle.net">jsFiddle</a>, <a href="http://jsbin.com/">jsBin</a>, or a link to your live site so that we can view a live example of the problem.</p>
+<p><strong>5. Share as much information as possible.</strong> Include browser version affected, your OS, version of the library, steps to reproduce, etc. &quot;X isn&#39;t working!!!1!&quot; will probably just be closed.</p>
+<h2 id="dev-vs-master">Dev vs. Master</h2>
+<p>The dev branch of Dragular is our &#39;current working&#39; version. It is always ahead of the master branch in terms of features and fixes. However it&#39;s also bleeding-edge and experimental and we cannot and do not guarantee it will compile or work for you. Very often we have to break things for a few days while we rebuild and patch. So by all means please export the dev branch and contribute towards it, indeed that is where all Pull Requests should be sent, but do so understanding the API may change beneath you.</p>
+<h2 id="making-changes">Making Changes</h2>
+<p>To take advantage of our npm build script and jshint config it will be easiest for you if you have node.js installed locally.</p>
+<p>You can download node.js from <a href="http://nodejs.org">nodejs.org</a>.</p>
+<p>After that you can clone the repository and run <code>npm i</code> inside the cloned folder. This will install dependencies necessary for building the project. For development workflow automation dragular uses <code>gulp &gt;= 3.9.0</code>. Before starting development, make sure that <code>gulp</code> is installed on your machine globally: <code>npm i -g gulp</code>.</p>
+<h3 id="developing">Developing</h3>
+<p>There are several gulp tasks that are used for generating different builds:</p>
+<ul>
+<li><code>gulp dev</code> - Serves files with BrowserSync server, watches &amp; automatically refreshes connected browsers on changes, generates non-minified but concatenated styles &amp; scripts from the dragular source.</li>
+<li><code>gulp dev:docs</code> - Does exactly the same as <code>gulp dev</code>, except it works with the documentation source.</li>
+<li><code>gulp build</code> - Concatenates and minifies dragular source files.</li>
+<li><code>gulp build:docs</code> - Concatenates and minifies documentation source files.</li>
+</ul>
+<h3 id="linting">Linting</h3>
+<ul>
+<li><code>gulp lint</code> &amp; <code>gulp lint:docs</code> - Lint JavaScript files.</li>
+</ul>
+<h3 id="making-a-pull-request">Making a pull request</h3>
+<p>Once that is ready, make your changes and submit a Pull Request:</p>
+<ul>
+<li><p><strong>Send Pull Requests to the <code>dev</code> branch.</strong> All Pull Requests must be sent to the <code>dev</code> branch, <code>master</code> is the latest release and PRs to that branch will be closed.</p>
+</li>
+<li><p><strong>Ensure changes are jshint validated.</strong> Our JSHint configuration file is provided in the repository and you should check against it before submitting.</p>
+</li>
+<li><p><strong>Only commit relevant changes.</strong> Don&#39;t include changes that are not directly relevant to the fix you are making. The more focused a PR is, the faster it will get attention and be merged. Extra files changing only whitespace or trash files will likely get your PR closed.</p>
+</li>
+</ul>
+<p>Dependencies for building from source and running tests:</p>
+<h2 id="coding-style-preferences-are-not-contributions">Coding style preferences are not contributions</h2>
+<p>If your PR is doing little more than changing the Dragular source code into a format / coding style that you prefer then we will automatically close it. All PRs must adhere to the coding style already set-out across the lines of code in Dragular. Your personal preferences for how things should &quot;look&quot; or be structured do not apply here, sorry. PRs should fix bugs, fix documentation or add features. No changes for the sake of change.</p>
+<h2 id="i-don-t-really-like-git-node-js-but-i-can-fix-this-bug">I don&#39;t really like git / node.js, but I can fix this bug</h2>
+<p>That is fine too. While Pull Requests are the best thing in the world for us, they are not the only way to help. You&#39;re welcome to post fixes to our forum or even just email them to us. All we ask is that you still adhere to the guidelines presented here re: JSHint, etc.</p>

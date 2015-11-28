@@ -1,0 +1,72 @@
+<style type="text/css">
+#doc {margin:1em;}
+#doc ul li {margin:0.5em;}
+#tab1 td {padding-right:15px;}
+</style>
+<div id="doc">
+<div class="h6">Documentation</div>
+<p>
+
+<ul>
+	<li>No configuration is needed</li>
+	<li>No third party libraries are involved</li>
+	<!--li><b>nodeJS</b> versions of this plugin is available at GitHub "nodejs" branch. </li-->
+	<li>Include in the page head: <code>&lt;script type="text/javascript" src="vkbeautify.js"&gt;&lt;/script&gt;</code>
+
+	<li>Usage:
+		<ul>
+		<li><b>Pretty print</b> <br/><br/>
+		<code>vkbeautify.xml(text [,indent_pattern]);</code>
+		<br/><code>vkbeautify.json(text [,indent_pattern]);</code>
+		<br/><code>vkbeautify.css(text [,indent_pattern]);</code>
+		<br/><code>vkbeautify.sql(text [,indent_pattern]);</code>
+		<br/><br/>
+		<code>@text</code>   - String; text to beatufy;
+		<br/>
+		
+		<code>@indent_pattern</code>   - Integer | String; 
+		<br/>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>Integer</code> - number of white spaces;<br/>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>String</code> - character string to visualize indentation ( can also be a set of white spaces )<br/>
+		</li>
+		<!--li>Minify: <code>vkbeautify.xmlmin|jsonmin|cssmin|sqlmin(text [,preserveComments]);</code></li-->
+		</ul>
+		
+		<ul>
+		<li><b>Minify</b> <br/><br/>
+		<code>vkbeautify.xmlmin(text [,preserve_comments]);</code>
+		<br/><code>vkbeautify.jsonmin(text);</code>
+		<br/><code>vkbeautify.cssmin(text [,preserve_comments]);</code>
+		<br/><code>vkbeautify.sqlmin(text);</code><br/><br/>
+		<code>@text</code>   - String; text to minify;
+		<br/>
+		<code>@preserve_comments</code>   - Bool; [optional];<br/>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Set this flag to true to prevent removing comments from <code>@text</code>
+		 ( <code>minxml</code> and <code>mincss</code> functions only.  )
+		<br/>
+		
+		</li>
+		<!--li>Minify: <code>vkbeautify.xmlmin|jsonmin|cssmin|sqlmin(text [,preserveComments]);</code></li-->
+		</ul>
+		<br/>
+	</li>
+	
+
+	<li>Examples:<br/>
+		<ul>
+			<li><code>vkbeautify.xml(text);</code> <span class="comment">// pretty print XML</span></li> 
+			<li><code>vkbeautify.json(text, 4 );</code>  <span class="comment">// pretty print JSON </span></li>
+			<li><code>vkbeautify.css(text, '. . . .');</code>  <span class="comment">// pretty print CSS</span> </li>
+			<li><code>vkbeautify.sql(text, '----');</code>  <span class="comment">// pretty print SQL</span> <br/><br/></li>
+			
+			
+			<li><code>vkbeautify.xmlmin(text, true);</code><span class="comment">// minify XML, preserve comments</span> </li>
+			<li><code>vkbeautify.jsonmin(text);</code><span class="comment">// minify JSON</span> </li>
+			<li><code>vkbeautify.cssmin(text);</code><span class="comment">// minify CSS, remove comments ( default )</span> </li>
+			<li><code>vkbeautify.sqlmin(text);</code><span class="comment">// minify SQL </span></li>
+		</ul>
+	</li>
+</ul>
+
+</p>
+</div>

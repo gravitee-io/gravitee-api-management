@@ -1,0 +1,39 @@
+<table >
+<tr><td>
+<div class="h6">Basic</div>
+</td></tr>
+<tr>
+<td class="functionDoc">
+<p>This is an example of a SQL statement.</p>
+
+<p>
+vkBeautify SQL parser covers only SELECT statement as most javascript developers have deal with SELECT-based queries. 
+As SELECT syntax itself is very large and flexible, some complex nested statements can be formatted not as perfect as you'd 
+make it manually. But anyway, it helps you to save time on reading unformatted SQL statement. 
+<br/><br/>
+Note: <span style="color:#aa0000;font-size:85%;font-style:italic"> "Preserve Comments" is not implemented for SQL part of the application.</span>  
+</p>
+<p>Click on "<b>Pretty Print</b>" button to beatify the text. </p>
+<p>Click on "<b>Minify</b>" button to minify the text <sup><a href="#note" title="minify() function works only with whitespace pattern">*</a></sup>  (not sure if anybody needs it, but I keep it for consistency :) 
+</p>
+<p>
+<b>Custom Indent Pattern:</b>  <br/>
+By default indent pattern is 4 white spaces. However, user can customize as pattern size 
+as pattern characters. 
+There are 2 ways to customize indent pattern: 
+<ul><li>
+set number of white spaces as numeric value:<br/> 2, 4, etc.<br/> 
+</li><li>
+set desired pattern as a string, for example:<br/>
+<b>'. . . .'</b><br/>
+<b>'____'</b><br/>
+<b>'- - - -'</b><br/>
+<b>'&nbsp; &nbsp; &nbsp; &nbsp;'</b>&nbsp; - &nbsp;string of white spaces is also valid.<br/>
+</li></ul>
+Clear input to return to the default indent pattern. <br/><br/>
+<b><sup><a name="note">*</a></sup></b> <span style="color:#aa0000;font-size:85%;font-style:italic">minify() function works only with whitespace pattern.</span>
+</p>
+<p></p>
+</td>
+
+</tr></table>

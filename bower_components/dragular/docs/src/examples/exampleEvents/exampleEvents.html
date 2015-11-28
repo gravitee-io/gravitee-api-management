@@ -1,0 +1,51 @@
+<div class='parent'>
+    <h2>Events</h2>
+    <label for='hy'>Add some fantastic events!</label>
+    <div class='wrapper' ng-controller="Events">
+        <div id='left3' class='containerVertical'>
+            <div>Move me, but you can only drop me in one of these containers.</div>
+            <div>If you try to drop me somewhere other than these containers, I'll just come back.</div>
+            <div>Item 3.</div>
+            <div>Item 6.</div>
+        </div>
+        <div id='right3' class='containerVertical'>
+            <div>You can drop me in the left container, otherwise I'll stay here.</div>
+            <div>Item 4.</div>
+            <div>Item 5.</div>
+        </div>
+    </div>
+    <pre>
+        <code>
+.controller('Events', ['$scope', '$element', 'dragularService', '$timeout', function TodoCtrl($scope, $element, dragularService, $timeout) {
+    dragularService($element.children(), {
+      scope: $scope
+    });
+    $scope.$on('dragulardrag', function(e, el) {
+      e.stopPropagation();
+      el.className = el.className.replace(' ex-moved', '');
+    });
+    $scope.$on('dragulardrop', function(e, el) {
+      e.stopPropagation();
+      $timeout(function() {
+        el.className += ' ex-moved';
+      }, 0);
+    });
+
+    $scope.$on('dragularcloned', myFn('cloned'));
+    $scope.$on('dragulardrag', myFn('drag'));
+    $scope.$on('dragularcancel', myFn('cancel'));
+    $scope.$on('dragulardrop', myFn('drop'));
+    $scope.$on('dragularremove', myFn('remove'));
+    $scope.$on('dragulardragend', myFn('dragend'));
+    $scope.$on('dragularshadow', myFn('shadow'));
+
+    function myFn(eventName) {
+      return function() {
+        console.log(eventName, arguments);
+      };
+    }
+
+  }]);
+        </code>
+      </pre>
+</div>

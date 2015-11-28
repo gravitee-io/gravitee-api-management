@@ -1,0 +1,78 @@
+<div class='parent'>
+  <h2>Remove on spill - with model</h2>
+  <label for='hy'>Need to be able to quickly delete stuff when it spills out of the chosen containers?</label>
+  <div class='wrapper' ng-controller="RemoveOnSpillWithModel">
+    <div class='tableRow'>
+      <div class='containerVertical'>
+        <div ng-repeat="item in items1">{{item.content}}</div>
+      </div>
+      <div class='containerVertical'>
+        <div ng-repeat="item in items2">{{item.content}}</div>
+      </div>
+    </div>
+    <div class="tableRow">
+      <div class='containerVertical'>
+        <pre>Items1:
+          <br/>{{items1 | json}}</pre>
+      </div>
+      <div class='containerVertical'>
+        <pre>Items2:
+          <br/>{{items2 | json}}</pre>
+      </div>
+    </div>
+  </div>
+   <pre>
+        <code>
+// JS
+  .controller('RemoveOnSpillWithModel', ['$scope', '$element', 'dragularService', function TodoCtrl($scope, $element, dragularService) {
+    $scope.items1 = [{
+      content: 'Move me, but you can only drop me in containers.'
+    }, {
+      content: 'If you try to drop me somewhere other than containers, I\'ll die a fiery death.'
+    }, {
+      content: 'Item 3'
+    }, {
+      content: 'Item 4'
+    }];
+    $scope.items2 = [{
+      content: 'You can drop me in the left container.'
+    }, {
+      content: 'Item 6'
+    }, {
+      content: 'Item 7'
+    }, {
+      content: 'Item 8'
+    }];
+    var containers = $element.children().eq(0).children();
+    dragularService.cleanEnviroment();
+    dragularService([containers[0],containers[1]],{
+      containersModel: [$scope.items1, $scope.items2],
+      removeOnSpill: true
+    });
+  }])
+        </code>
+        <code>
+&lt;!-- HTML --&gt;
+&lt;div class='wrapper' ng-controller=&quot;Basic&quot;&gt;
+    &lt;div class='tableRow'&gt;
+        &lt;div class='containerVertical'&gt;
+            &lt;div ng-repeat=&quot;item in items1&quot;&gt;{{item.content}}&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class='containerVertical'&gt;
+            &lt;div ng-repeat=&quot;item in items2&quot;&gt;{{item.content}}&lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;tableRow&quot;&gt;
+        &lt;div class=&quot;container&quot;&gt;
+            &lt;div&gt;Items1:
+                &lt;br/&gt;{{items1 | json}}&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;container&quot;&gt;
+            &lt;div&gt;Items2:
+                &lt;br/&gt;{{items2 | json}}&lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+        </code>
+      </pre>
+</div>

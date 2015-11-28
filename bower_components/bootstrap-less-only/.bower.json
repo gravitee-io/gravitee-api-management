@@ -1,0 +1,21 @@
+{
+  "name": "bootstrap-less-only",
+  "version": "3.3.4",
+  "main": "less/bootstrap.less",
+  "ignore": [
+    ".jshintrc",
+    "**/*.txt"
+  ],
+  "dependencies": {},
+  "devDependencies": {},
+  "homepage": "https://github.com/IberaSoft/bower-bootstrap-less",
+  "_release": "3.3.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "v3.3.4",
+    "commit": "cd0b540afa5a973403ed250fafc670619a6dbae3"
+  },
+  "_source": "git://github.com/IberaSoft/bower-bootstrap-less.git",
+  "_target": "~3.3",
+  "_originalSource": "bootstrap-less-only"
+}

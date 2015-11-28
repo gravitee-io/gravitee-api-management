@@ -1,0 +1,30 @@
+.scrollingDrag {
+  width: 45%;
+  display: inline-block;
+}
+
+.scrollingDragInner {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#rightTopBar,
+#rightBottomBar {
+  background: transparent;
+  position: relative;
+  height: 20px;
+}
+
+#rightTopBar {
+  top: 10px;
+}
+
+#rightBottomBar {
+  bottom: 10px;
+}
+
+div.scrollBar {
+  background: yellow;
+  text-align: center;
+  padding: 1px;
+}

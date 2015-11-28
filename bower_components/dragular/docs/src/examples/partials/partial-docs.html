@@ -1,0 +1,19 @@
+<div class='container'>
+  <div id="rowOffcanvas" class="row row-offcanvas row-offcanvas-left">
+    <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar">
+      <div class="list-group">
+        <a ng-repeat="example in examplesList" ui-sref="docs.detail({link:example.link})" ui-sref-active="active" class="list-group-item">{{example.title}}</a>
+      </div>
+    </div>
+    <!--/.sidebar-offcanvas-->
+    <div class="col-xs-12 col-sm-9">
+      <p class="pull-left visible-xs">
+        <button type="button" ng-click="toggleSidebar()" class="btn btn-primary btn-xs">Toggle nav</button>
+      </p>
+      <!-- docs.detail -->
+      <div ui-view onload="highlightCode()"></div>
+    </div>
+    <!--/.col-xs-12.col-sm-9-->
+  </div>
+  <!--/row-->
+</div>
