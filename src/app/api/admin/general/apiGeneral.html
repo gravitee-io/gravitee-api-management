@@ -36,7 +36,7 @@
   <div layout="" layout-sm="column">
     <md-input-container class="flex">
       <label>Description</label>
-      <input ng-model="apiCtrl.api.description" type="text" ng-required="true">
+      <textarea ng-model="apiCtrl.api.description" ng-required="true"></textarea>
     </md-input-container>
 
     <md-input-container class="flex">
@@ -47,7 +47,7 @@
   <div layout="" layout-sm="column">
     <md-input-container class="flex">
       <label>Version</label>
-      <input ng-model="apiCtrl.api.version" type="text" ng-required="true">
+      <input ng-model="apiCtrl.api.version" type="text" ng-required="true" ng-disabled="true">
     </md-input-container>
 
     <div layout="column">
