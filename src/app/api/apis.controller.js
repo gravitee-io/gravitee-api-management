@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global document:false */
 class ApisController {
   constructor (ApiService, $mdDialog, $scope, $state) {
     'ngInject';
@@ -23,7 +22,6 @@ class ApisController {
     this.$state = $state;
 
     this.tableMode = this.$state.current.name.endsWith('table')? true : false;
-    this.list();
 
     var that = this;
     $scope.$on('authenticationSuccess', function() {
@@ -32,6 +30,7 @@ class ApisController {
   }
 
   list() {
+    this.apis = [];
     this.ApiService.list().then(response => {
       this.apis = response.data;
     });
@@ -75,12 +74,12 @@ class ApisController {
       default :
         return 'black';
     }
-  };
+  }
 
   changeMode(tableMode) {
     this.tableMode = tableMode;
     this.$state.go(tableMode? 'apis.list.table' : 'apis.list.thumb');
-  };
+  }
 }
 
 export default ApisController;

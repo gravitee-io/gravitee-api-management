@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global malarkey:false, moment:false */
 import config from './index.config';
 
 import routerConfig from './index.route';
@@ -38,9 +37,10 @@ import UserController from './user/user.controller';
 import LoginService from './login/login.service';
 import NavbarDirective from './components/navbar/navbar.directive';
 import NotificationService from './components/notification/notification.service';
-import DocumentationDirective from './documentation/documentation.directive';
-import DocumentationController from './documentation/documentation.controller';
-import DocumentationService from './documentation/documentation.service';
+import DocumentationDirective from './api/admin/documentation/apiDocumentation.directive';
+import DocumentationController from './api/admin/documentation/apiDocumentation.controller';
+import DocumentationService from './api/admin/documentation/apiDocumentation.service';
+import DialogDocumentationController from './api/admin/documentation/dialog/apiDocumentationDialog.controller';
 import ProfileController from './profile/profile.controller';
 import ApplicationsController from './application/applications.controller';
 import ApplicationController from './application/details/application.controller';
@@ -49,11 +49,11 @@ import DialogSubscribeApiController from './application/dialog/subscribeApiDialo
 import DialogAddMemberController from './application/dialog/addMemberDialog.controller';
 import ApplicationService from './application/details/application.service';
 import SideNavDirective from './components/sidenav/sidenav.directive';
+import PageController from './api/admin/documentation/page/apiPage.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies'])
   .constant('malarkey', malarkey)
-  .constant('moment', moment)
   .constant('baseURL', '/management/')
   .config(config)
   .config(routerConfig)
@@ -73,6 +73,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .controller('ApiPortalController', ApiPortalController)
   .controller('DialogApiController', DialogApiController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
+  .controller('DialogDocumentationController', DialogDocumentationController)
   .service('TeamService', TeamService)
   .service('UserService', UserService)
   .controller('UserController', UserController)
@@ -81,13 +82,14 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleA
   .controller('DocumentationController', DocumentationController)
   .service('DocumentationService', DocumentationService)
   .controller('ProfileController', ProfileController)
-	.controller('ApplicationsController', ApplicationsController)
+  .controller('ApplicationsController', ApplicationsController)
   .controller('ApplicationController', ApplicationController)
-	.controller('DialogApplicationController', DialogApplicationController)
-	.controller('DialogSubscribeApiController', DialogSubscribeApiController)
-	.controller('DialogAddMemberController', DialogAddMemberController)
+  .controller('DialogApplicationController', DialogApplicationController)
+  .controller('DialogSubscribeApiController', DialogSubscribeApiController)
+  .controller('DialogAddMemberController', DialogAddMemberController)
+  .controller('PageController', PageController)
   .service('ApplicationService', ApplicationService)
   .directive('graviteeNavbar', () => new NavbarDirective())
   .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective())
-	.directive('graviteeSidenav', () => new SideNavDirective());
+  .directive('graviteeSidenav', () => new SideNavDirective());

@@ -12,6 +12,12 @@
   "globals": {
     "angular": false,
     "inject": false,
-    "module": false
+    "module": false,
+    "document": false,
+    "_": false,
+    "setInterval": false,
+    "clearInterval": false,
+    "FileReader": false,
+    "btoa": false
   }
 }

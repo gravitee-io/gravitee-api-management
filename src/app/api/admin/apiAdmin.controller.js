@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global document:false */
 class ApiAdminController {
   constructor (ApiService, resolvedApi, $state, $mdDialog, NotificationService, $scope) {
     'ngInject';
@@ -27,13 +26,13 @@ class ApiAdminController {
 
     this.selectedPolicy = null;
 
-    if ($state.current.name.endsWith('general')) {
+    if ($state.current.name.includes('general')) {
       $scope.selectedTab = 0;
-    } else if ($state.current.name.endsWith('policies')) {
+    } else if ($state.current.name.includes('policies')) {
       $scope.selectedTab = 1;
-    } else if ($state.current.name.endsWith('documentation')) {
+    } else if ($state.current.name.includes('documentation')) {
       $scope.selectedTab = 2;
-    } else if ($state.current.name.endsWith('analytics')) {
+    } else if ($state.current.name.includes('analytics')) {
       $scope.selectedTab = 3;
     } else if ($state.current.name.endsWith('members')) {
       $scope.selectedTab = 4;
@@ -45,17 +44,19 @@ class ApiAdminController {
         that.previousState = from.name;
       }
     });
+
+    this.initState();
   }
 
   initState() {
-    this.$scope.enabled = this.api.state === 'started'? true : false;
+    this.$scope.apiEnabled = this.api.state === 'started'? true : false;
   }
 
   changeLifecycle(id) {
     var started = this.api.state === 'started';
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
-      content: 'Are you sure you want to ' + (started?'':'un') +'publish the api ' + id + '?',
+      content: 'Are you sure you want to ' + (started?'un':'') +'publish the api ' + id + '?',
       ok: 'OK',
       cancel: 'Cancel'
     });
@@ -76,14 +77,19 @@ class ApiAdminController {
       });
   }
 
-  delete(name) {
-    this.ApiService.delete(name).then(() => {
+  delete(id) {
+    this.ApiService.delete(id).then(() => {
       this.backToPreviousState();
     });
   }
 
-  listPolicies(apiName) {
-    this.ApiService.listPolicies(apiName).then(response => {
+  update(api) {
+    this.ApiService.update(api).then(() => {
+    });
+  }
+
+  listPolicies(apiId) {
+    this.ApiService.listPolicies(apiId).then(response => {
       // TODO filter request, response and request/response policies
       this.policies = {
         'OnRequest': response.data,

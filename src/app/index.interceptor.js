@@ -33,12 +33,12 @@ function interceptorConfig($httpProvider) {
   var interceptorTimeout = function ($q, $injector) {
     return {
       request: function (config) {
-        config.timeout = 5000;
+        config.timeout = 10000;
         return config;
       },
       responseError: function (error) {
         if (error && error.status <= 0) {
-          $injector.get('NotificationService').error('Server unavailable');
+          $injector.get('NotificationService').error('Server unreachable');
         }
         return $q.reject(error);
       }

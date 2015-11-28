@@ -62,12 +62,12 @@ $flowRadius: 120px;
   padding: 15px 15px 0px;
 }
 
-.content-header > h1 {
+.content-header h1 {
   margin: 10px;
   font-size: 24px;
 }
 
-.content-header > h1 > small {
+.content-header h1 > small {
   font-size: 15px;
   display: inline-block;
   padding-left: 4px;
@@ -101,4 +101,10 @@ ng-md-icon {
   right: 0;
   position: absolute;
   border-radius: 0;
+}
+
+.gravitee-api-page-menu-item {
+  min-width: 0;
+  padding: 0 10px;
+  margin-left: 0;
 }

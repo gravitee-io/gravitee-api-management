@@ -103,7 +103,17 @@ md-switch {
 }
 
 md-progress-linear {
+  position: fixed;
   top: 64px;
+  z-index: 100;
+}
+
+md-toolbar {
+  z-index: 101;
+}
+
+md-sidenav {
+  z-index: 102;
 }
 
 /**

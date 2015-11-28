@@ -18,27 +18,33 @@
   constructor($http, baseURL) {
     'ngInject';
     this.$http = $http;
-    this.documentationURL = baseURL + 'documentation/';
+    this.documentationURL = function (apiId) {
+      return baseURL + 'apis/' + apiId + '/pages/';
+    };
   }
 
-   list(apiName) {
-     return this.$http.get(this.documentationURL + 'pages/' + apiName);
+   list(apiId) {
+     return this.$http.get(this.documentationURL(apiId));
    }
 
-   getContentUrl(pageName) {
-     return this.documentationURL + 'pages/' + pageName + '/content';
+   get(apiId, pageId) {
+     return this.$http.get(this.documentationURL(apiId) + pageId);
    }
 
-  createPage(newPage) {
-    return this.$http.post(this.documentationURL, newPage);
+   getContentUrl(apiId, pageId) {
+     return this.documentationURL(apiId) + pageId + '/content';
+   }
+
+  createPage(apiId, newPage) {
+    return this.$http.post(this.documentationURL(apiId), newPage);
   }
 
-  deletePage(name) {
-    return this.$http.post(this.documentationURL + 'pages/' + name + '/delete');
+  deletePage(apiId, pageId) {
+    return this.$http.delete(this.documentationURL(apiId) + pageId);
   }
 
-  editPage(name, editPage) {
-  	return this.$http.post(this.documentationURL + 'pages/' + name + '/edit', editPage);
+  editPage(apiId, pageId, editPage) {
+  	return this.$http.put(this.documentationURL(apiId) + pageId, editPage);
   }
 }
 

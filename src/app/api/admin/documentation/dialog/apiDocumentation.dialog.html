@@ -16,12 +16,12 @@
 
 -->
 <md-dialog aria-label="Mango (Fruit)">
-  <form name="formPage" ng-submit="createPage()" novalidate>
+  <form name="formPage" ng-submit="dialogDocumentationCtrl.createPage()" novalidate>
   <md-toolbar>
     <div class="md-toolbar-tools">
       <h2>Creation of documentation on API {{apiName}}</h2>
       <span flex></span>
-      <md-button class="md-icon-button" ng-click="hide()">
+      <md-button type="button" class="md-icon-button" ng-click="dialogDocumentationCtrl.hide()">
         X
       </md-button>
     </div>
@@ -29,14 +29,16 @@
   <md-dialog-content style="max-width:800px;max-height:810px; ">
     <div layout="row">
       <div flex>
-        <md-button type="button" ng-click="selectPageType(MARKDOWN_PAGE)" ng-class="{'selected' : MARKDOWN_PAGE === selectedPageType}">
+        <md-button type="button" ng-click="dialogDocumentationCtrl.selectPageType(MARKDOWN_PAGE)"
+                   ng-class="{'selected' : MARKDOWN_PAGE === dialogDocumentationCtrl.selectedPageType}">
             <md-icon class="avatar"></md-icon>
             <h4>Markdown Page</h4>
             Start with a blank Markdown page.
         </md-button>
       </div>
       <div flex>
-        <md-button type="button" ng-click="selectPageType(RAML_PAGE)" ng-class="{'selected' : RAML_PAGE === selectedPageType}">
+        <md-button type="button" ng-click="dialogDocumentationCtrl.selectPageType(RAML_PAGE)"
+                   ng-class="{'selected' : RAML_PAGE === dialogDocumentationCtrl.selectedPageType}">
             <md-icon class="avatar"></md-icon>
             <h4>Raml Page</h4>
             Start with a blank RAML page.
@@ -45,7 +47,8 @@
     </div>
     <div layout="row">
       <div flex>
-        <md-button type="button" ng-click="selectPageType(SWAGGER_PAGE)" ng-class="{'selected' : SWAGGER_PAGE === selectedPageType}">
+        <md-button type="button" ng-click="dialogDocumentationCtrl.selectPageType(SWAGGER_PAGE)"
+                   ng-class="{'selected' : SWAGGER_PAGE === dialogDocumentationCtrl.selectedPageType}">
           <md-icon class="avatar"></md-icon>
           <h4>Swagger Page</h4>
           Start with a blank Swagger page.
@@ -58,7 +61,7 @@
         </md-button>
       </div>
     </div>
-    <div layout="row" ng-show="selectedPageType != null">
+    <div layout="row" ng-show="dialogDocumentationCtrl.selectedPageType != null">
       <md-input-container>
         <label>Title *</label>
         <input type="text" ng-model="pageTitle" required>
@@ -66,7 +69,7 @@
     </div>
   </md-dialog-content>
   <div class="md-actions" layout="row">
-    <md-button md-no-ink class="md-primary" ng-click="hide()" style="margin-right:20px;">
+    <md-button type="button" md-no-ink class="md-primary" ng-click="dialogDocumentationCtrl.hide()" style="margin-right:20px;">
       Close
     </md-button>
     <md-button class="md-raised" type="submit" ng-disabled="formPage.$invalid">

@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global document:false */
 class ApiAnalyticsController {
   constructor (ApiService, resolvedApi, $q, $state, $mdDialog, NotificationService, $scope) {
     'ngInject';

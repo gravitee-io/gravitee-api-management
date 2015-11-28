@@ -18,7 +18,7 @@
 <form name="formApi" ng-submit="apiCtrl.update(apiCtrl.api)" novalidate>
 
   <div layout="" layout-sm="column">
-    <md-switch ng-model="enabled" ng-change="apiCtrl.changeLifecycle(apiCtrl.api.id)" class="md-block">
+    <md-switch ng-model="apiEnabled" ng-change="apiCtrl.changeLifecycle(apiCtrl.api.id)" class="md-block">
       Enabled
     </md-switch>
   </div>

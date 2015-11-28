@@ -19,12 +19,12 @@
 	<md-toolbar class="md-hue-2">
     <div layout="column" class="md-toolbar-tools-bottom inset">
 			<div ng-if="!authenticated">
-  			<img src="../assets/images/GRAVITEE_LOGOclair-04.png" width="64px" height="64px" />
+  			<img src="app/images/GRAVITEE_LOGOclair-04.png" width="64px" height="64px" />
   			<h3>Gravitee.io</h3>
   		</div>
 	 		<a href="" ui-sref="profile" ng-click="sidenavCtrl.close()" ng-if="authenticated" layout="row">
     		<div>
-      		<img src="../assets/images/GRAVITEE_LOGOclair-04.png" width="64px" height="64px" style="vertical-align:middle;" />
+      		<img src="app/images/GRAVITEE_LOGOclair-04.png" width="64px" height="64px" style="vertical-align:middle;" />
 	  			<span style="color:white;">{{sidenavCtrl.user.principal.username}}</span>
   			</div>
 			</a>

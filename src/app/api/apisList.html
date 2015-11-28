@@ -15,10 +15,10 @@
     limitations under the License.
 
 -->
-<md-card>
+<md-card ng-init="apisCtrl.list()">
   <md-card-content class="content-header">
 
-    <div layout="row" layout-align="end center" style="padding-right: 30px;">
+    <div layout="row" layout-align="end center" layout-padding>
       <ng-md-icon ng-class="{'gravitee-disabled': !apisCtrl.tableMode}"
                   icon="view_list" ng-click="apisCtrl.changeMode(true)">
       </ng-md-icon>

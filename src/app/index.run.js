@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* global setInterval:false, clearInterval:false */
 function runBlock ($rootScope, $window, $http, $cookieStore) {
   'ngInject';
   var graviteeAuthenticationKey = 'GraviteeAuthentication';

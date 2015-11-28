@@ -71,7 +71,15 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
     .state('apis.admin.documentation', {
       url: '/documentation',
-      templateUrl: 'app/api/admin/apiDocumentation.html'
+      templateUrl: 'app/api/admin/documentation/apiDocumentation.html',
+      controller: 'DocumentationController',
+      controllerAs: 'documentationCtrl'
+    })
+    .state('apis.admin.documentation.page', {
+      url: '/:pageId',
+      templateUrl: 'app/api/admin/documentation/page/apiPage.html',
+      controller: 'PageController',
+      controllerAs: 'pageCtrl'
     })
     .state('apis.admin.general', {
       url: '/general',

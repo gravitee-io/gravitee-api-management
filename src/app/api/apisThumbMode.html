@@ -20,24 +20,30 @@
 		<a ui-sref="apis.portal({apiId: api.id})">
 			<md-card class="api-box" style="position: relative;">
 				<div class="api-box-header" ng-style="{'background-color': apisCtrl.bgColorByIndex($index)}" layout="row">
-					<ng-md-icon icon="{{api.visibility === 'public'? 'lock_open' : 'lock'}}"></ng-md-icon>
 					<div layout="column">
 						<h3>{{api.name}} <small>({{api.version}})</small></h3>
 						<h5>{{api.description}}</h5>
 					</div>
 					<md-button class="md-icon-button md-icon-right" ng-click="$event.stopPropagation()">
-						<ng-md-icon icon="settings" ui-sref="apis.admin.analytics({apiId: api.id})" aria-label="{{api.id}}"></ng-md-icon>
+						<ng-md-icon icon="settings" ui-sref="apis.admin.general({apiId: api.id})" aria-label="{{api.id}}"></ng-md-icon>
 					</md-button>
 				</div>
 				<md-card-content>
 					<div layout="row">
-						<div flex="50" class="border-right">
+						<div flex="33" class="border-right">
+							<div class="description-block">
+								<ng-md-icon ng-if="api.visibility === 'public'" icon="public"></ng-md-icon>
+								<ng-md-icon ng-if="api.visibility === 'restricted'" icon="vpn_lock"></ng-md-icon>
+								<ng-md-icon ng-if="api.visibility === 'private'" icon="lock"></ng-md-icon>
+							</div>
+						</div>
+						<div flex="33" class="border-right">
 							<div class="description-block">
 								<h5 class="description-header">0</h5>
 								<span class="description-text">APPLICATIONS</span>
 							</div>
 						</div>
-						<div flex="50">
+						<div flex="33">
 							<div class="description-block">
 								<h5 class="description-header">0</h5>
 								<span class="description-text">LIKERS</span>
