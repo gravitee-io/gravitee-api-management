@@ -15,13 +15,13 @@
     limitations under the License.
 
 -->
-<form name="formApi" ng-submit="apiCtrl.update(apiCtrl.api)" novalidate>
 
-  <div layout="" layout-sm="column">
-    <md-switch ng-model="apiEnabled" ng-change="apiCtrl.changeLifecycle(apiCtrl.api.id)" class="md-block">
-      Enabled
-    </md-switch>
-  </div>
+<div layout="" layout-sm="column">
+  <md-switch ng-model="apiEnabled" ng-change="generalCtrl.changeLifecycle(apiCtrl.api.id)" class="md-block">
+    Enabled
+  </md-switch>
+</div>
+<form name="formApi" ng-submit="generalCtrl.update(apiCtrl.api)" novalidate>
   <div layout="" layout-sm="column">
     <md-input-container class="flex">
       <label>Name</label>
@@ -50,10 +50,18 @@
       <input ng-model="apiCtrl.api.version" type="text" ng-required="true">
     </md-input-container>
 
-    <md-input-container class="flex">
-      <md-checkbox ng-model="apiCtrl.api.private" aria-label="Private?">
-        is Private ?
-      </md-checkbox>
+    <md-input-container class="flex" layout-align="center center">
+      <md-radio-group ng-model="apiCtrl.api.visibility">
+        <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public" title="Public">
+          <ng-md-icon icon="public"></ng-md-icon>
+        </md-radio-button>
+        <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private" title="Private">
+          <ng-md-icon icon="lock"></ng-md-icon>
+        </md-radio-button>
+        <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted" title="Restricted">
+          <ng-md-icon icon="vpn_lock"></ng-md-icon>
+        </md-radio-button>
+      </md-radio-group>
     </md-input-container>
 
     <md-input-container class="flex">
@@ -70,7 +78,7 @@
     </md-input-container>
   </div>
 
-  <div layout="" layout-sm="column" ng-show="apiCtrl.api.proxy.http_client.use_proxy">
+  <div layout="" layout-sm="column" ng-if="apiCtrl.api.proxy.http_client.use_proxy">
     <md-input-container class="flex">
       <label>HOST</label>
       <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.host" type="text">

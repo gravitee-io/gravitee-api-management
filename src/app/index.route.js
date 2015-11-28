@@ -85,7 +85,9 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
     .state('apis.admin.general', {
       url: '/general',
-      templateUrl: 'app/api/admin/apiGeneral.html'
+      templateUrl: 'app/api/admin/general/apiGeneral.html',
+      controller: 'ApiGeneralController',
+      controllerAs: 'generalCtrl'
     })
     .state('apis.admin.members', {
       url: '/members',

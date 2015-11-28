@@ -26,6 +26,8 @@ function interceptorConfig($httpProvider) {
 
         if (unauthorizedError && isHomePage) {
           errorMessage = 'Wrong user or password';
+        } else if (error.status === 500) {
+          errorMessage = 'Unexpected error';
         } else if (error.status === 503) {
           errorMessage = 'Server unavailable';
         }

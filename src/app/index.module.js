@@ -26,6 +26,7 @@ import ChartDirective from './components/chart/chart.directive';
 import ApiService from './api/api.service';
 import ApisController from './api/apis.controller';
 import ApiPortalController from './api/portal/apiPortal.controller';
+import ApiGeneralController from './api/admin/general/apiGeneral.controller';
 import ApiAdminController from './api/admin/apiAdmin.controller';
 import ApiAnalyticsController from './api/admin/analytics.controller';
 import ApiMembersController from './api/admin/members.controller';
@@ -74,6 +75,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('ApiPoliciesController', ApiPoliciesController)
   .controller('ApiMembersController', ApiMembersController)
   .controller('ApiPortalController', ApiPortalController)
+  .controller('ApiGeneralController', ApiGeneralController)
   .controller('DialogApiController', DialogApiController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
   .controller('DialogDocumentationController', DialogDocumentationController)

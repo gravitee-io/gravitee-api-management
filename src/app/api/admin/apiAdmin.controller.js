@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor (ApiService, resolvedApi, $state, $mdDialog, NotificationService, $scope) {
+  constructor (resolvedApi, $state, $scope) {
     'ngInject';
-    this.ApiService = ApiService;
-    this.$mdDialog = $mdDialog;
-    this.NotificationService = NotificationService;
     this.$scope = $scope;
     this.$state = $state;
     this.api = resolvedApi.data;
-    this.apis = [];
-
 
     if ($state.current.name.includes('general')) {
       $scope.selectedTab = 0;
@@ -42,48 +37,6 @@ class ApiAdminController {
       if (from.name.startsWith('apis.list.')) {
         that.previousState = from.name;
       }
-    });
-
-    this.initState();
-  }
-
-  initState() {
-    this.$scope.apiEnabled = this.api.state === 'started'? true : false;
-  }
-
-  changeLifecycle(id) {
-    var started = this.api.state === 'started';
-    var alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to ' + (started?'un':'') +'publish the api ' + id + '?',
-      ok: 'OK',
-      cancel: 'Cancel'
-    });
-
-    var that = this;
-
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
-        if (started) {
-          that.ApiService.stop(id);
-        } else {
-          that.ApiService.start(id);
-        }
-      })
-      .catch(function () {
-        that.initState();
-      });
-  }
-
-  delete(id) {
-    this.ApiService.delete(id).then(() => {
-      this.backToPreviousState();
-    });
-  }
-
-  update(api) {
-    this.ApiService.update(api).then(() => {
     });
   }
 

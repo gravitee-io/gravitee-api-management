@@ -15,7 +15,7 @@
  */
 class DocumentationController {
   
-	constructor(DocumentationService, $mdDialog, $scope, $state, resolvedApi) {
+	constructor(DocumentationService, $mdDialog, $scope, $state) {
     'ngInject';
     this.DocumentationService = DocumentationService;
     this.$mdDialog = $mdDialog;
@@ -27,8 +27,7 @@ class DocumentationController {
     this.RAML_PAGE = 'RAML';
   	this.SWAGGER_PAGE = 'SWAGGER';
     this.$state = $state;
-
-    this.api = resolvedApi.data;
+    this.$scope = $scope;
 
     var that = this;
     $scope.$on('onGraviteePageDeleted', function () {
@@ -38,11 +37,9 @@ class DocumentationController {
   }
 
   list() {
-    if (this.api) {
-      this.DocumentationService.list(this.api.id).then(response => {
-        this.pages = response.data;
-      });
-    }
+    this.DocumentationService.list(this.$scope.$parent.apiCtrl.api.id).then(response => {
+      this.pages = response.data;
+    });
   }
 
   showNewPageDialog() {
@@ -51,7 +48,7 @@ class DocumentationController {
       controller: 'DialogDocumentationController',
       controllerAs: 'dialogDocumentationCtrl',
       templateUrl: 'app/api/admin/documentation/dialog/apiDocumentation.dialog.html',
-      apiId: this.api.id
+      apiId: this.$scope.$parent.apiCtrl.api.id
     }).then(function (response) {
       if (response) {
         that.$state.go('apis.admin.documentation.page', {pageId: response.data.id});

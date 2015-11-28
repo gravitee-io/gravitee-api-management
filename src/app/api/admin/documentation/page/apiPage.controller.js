@@ -15,12 +15,12 @@
  */
 class PageController {
   
-	constructor(DocumentationService, $state, $mdDialog, resolvedApi, $rootScope, $timeout) {
+	constructor(DocumentationService, $state, $mdDialog, $rootScope, $scope) {
     'ngInject';
     this.DocumentationService = DocumentationService;
     this.$state = $state;
     this.$rootScope = $rootScope;
-    this.$timeout = $timeout;
+    this.$scope = $scope;
     this.$mdDialog = $mdDialog;
     this.selected = null;
     this.pages = [];
@@ -29,8 +29,6 @@ class PageController {
     this.MARKDOWN_PAGE = 'MARKDOWN';
     this.RAML_PAGE = 'RAML';
     this.SWAGGER_PAGE = 'SWAGGER';
-
-    this.api = resolvedApi.data;
 
     var that = this;
     DocumentationService.get($state.params.apiId, $state.params.pageId).then(function (response) {
@@ -50,7 +48,7 @@ class PageController {
       'content': this.page.content
     };
     var that = this;
-    this.DocumentationService.editPage(this.api.id, this.page.id, editPage).then(function () {
+    this.DocumentationService.editPage(this.$scope.$parent.apiCtrl.api.id, this.page.id, editPage).then(function () {
       that.$state.go(that.$state.current, that.$state.params, {reload: true});
     });
   }
@@ -73,14 +71,14 @@ class PageController {
     this.$mdDialog
       .show(alert)
       .then(function () {
-        that.DocumentationService.deletePage(that.api.id, that.page.id).then(function () {
+        that.DocumentationService.deletePage(that.$scope.$parent.apiCtrl.api.id, that.page.id).then(function () {
           that.$rootScope.$broadcast('onGraviteePageDeleted');
         });
       });
   }
 
   getContentUrl() {
-    return this.DocumentationService.getContentUrl(this.api.id, this.page.id);
+    return this.DocumentationService.getContentUrl(this.$scope.$parent.apiCtrl.api.id, this.page.id);
   }
 
   edit() {
