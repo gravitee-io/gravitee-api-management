@@ -92,7 +92,7 @@ public class AnalyticsParam {
                     .build());
         }
 
-        if (interval < 1_000 || interval > 10_000_000) {
+        if (interval < 1_000 || interval > 20_000_000) {
             throw new WebApplicationException(Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 10000000")
