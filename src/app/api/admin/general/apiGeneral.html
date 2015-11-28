@@ -65,18 +65,21 @@
         </md-radio-group>
       </md-input-container>
 
-      <div class="gravitee-api-visibility-explanation" ng-switch="apiCtrl.api.visibility">
+      <div class="gravitee-api-explanation" ng-switch="apiCtrl.api.visibility">
         <label ng-switch-when="public">API is visible by all</label>
         <label ng-switch-when="private">API is visible only by its creator</label>
         <label ng-switch-when="restricted">API is subject to access rules</label>
       </div>
     </div>
 
-    <md-input-container class="flex">
-      <md-checkbox ng-model="apiCtrl.api.proxy.strip_context_path" aria-label="Strip context path?">
-        Strip context path ?
-      </md-checkbox>
-    </md-input-container>
+    <div class="flex" layout="column">
+      <md-input-container layout-align="center center">
+        <md-checkbox ng-model="apiCtrl.api.proxy.strip_context_path" aria-label="Strip context path?">
+          Strip context path
+        </md-checkbox>
+      </md-input-container>
+      <label class="gravitee-api-explanation" ng-bind="generalCtrl.getStripContextExample()"></label>
+    </div>
   </div>
   <div layout="" layout-sm="column">
     <md-switch class="md-primary md-block" md-no-ink aria-label="Switch No Ink" ng-model="apiCtrl.api.proxy.http_client.use_proxy">
