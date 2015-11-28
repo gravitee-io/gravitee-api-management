@@ -24,6 +24,10 @@ class PolicyService {
   list() {
     return this.$http.get(this.policiesURL);
   }
+
+  getSchema(policyId) {
+    return this.$http.get(this.policiesURL + policyId + '/schema')
+  }
 }
 
 export default PolicyService;

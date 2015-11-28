@@ -22,26 +22,27 @@
       <h5>Policies ({{apiPoliciesCtrl.policies.length}})</h5>
       <md-divider></md-divider>
     </div>
-    <md-list class="gravitee-policy-draggable" dragular="dragularSrcOptions">
+    <md-list class="gravitee-policy-draggable">
       <md-list-item ng-repeat="policy in apiPoliciesCtrl.policies">
-            <div class="md-list-item-text">
-              <div id="policy-name">{{policy.name}}</div>
-              <div id="policy-version">{{policy.version}}</div>
-            </div>
+        <div class="md-list-item-text">
+          <div id="policy-name">{{policy.name}}</div>
+          <div id="policy-version">{{policy.version}}</div>
+          <div>{{policy.type}}</div>
+        </div>
       </md-list-item>
     </md-list>
   </div>
 
   <div flex="50">
-      <div class="inset">
-        <h5>/*</h5>
-        <md-divider></md-divider>
-      </div>
-    <md-list class="gravitee-policy-dropzone" dragular="dragularApiOptions">
+    <div class="inset">
+      <h5>/*</h5>
+      <md-divider></md-divider>
+    </div>
+    <md-list class="gravitee-policy-dropzone">
       <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPolicies" ng-click="apiPoliciesCtrl.displayPolicyToConfigure(policy)">
-            <div class="md-list-item-text">
-              <div id="apiPolicy-name">{{policy.name}}</div>
-            </div>
+        <div class="md-list-item-text">
+          <div id="apiPolicy-name">{{policy.name}}</div>
+        </div>
       </md-list-item>
       <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPolicies.length == 0">Drag a policy here.</span>
       <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPolicies.length > 0">Select a policy to configure or drag a new one.</span>
@@ -49,22 +50,22 @@
   </div>
 
   <div flex="25">
-      <div ng-if="apiPoliciesCtrl.selectApiPolicy.name">
-          <div class="inset">
-              <h5>Configuration: {{apiPoliciesCtrl.selectApiPolicy.name}}</h5>
-              <md-divider></md-divider>
-          </div>
-          <form name="projectForm">
-              <md-input-container class="md-block">
-                  <label>PeriodTime</label>
-                  <input  name="description" >
-              </md-input-container>
-              <md-input-container class="md-block">
-                  <label>Limit</label>
-                  <input name="clientName">
-              </md-input-container>
-              <md-button class="md-raised md-warn"> Remove </md-button>
-          </form>
+    <div ng-if="apiPoliciesCtrl.selectApiPolicy.name">
+      <div class="inset">
+        <h5>Configuration: {{apiPoliciesCtrl.selectApiPolicy.name}}</h5>
+        <md-divider></md-divider>
       </div>
+      <form name="projectForm">
+        <md-input-container class="md-block">
+          <label>PeriodTime</label>
+          <input  name="description" >
+        </md-input-container>
+        <md-input-container class="md-block">
+          <label>Limit</label>
+          <input name="clientName">
+        </md-input-container>
+        <md-button class="md-raised md-warn"> Remove </md-button>
+      </form>
+    </div>
   </div>
 </div>

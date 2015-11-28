@@ -15,10 +15,11 @@
  */
 /* global document:false */
 class ApiPoliciesController {
-  constructor (ApiService, resolvedApi, PolicyService, $state, $mdDialog, NotificationService, $scope) {
+  constructor (ApiService, resolvedApi, PolicyService, $state, $mdDialog, NotificationService, $scope, dragularService) {
     'ngInject';
     this.ApiService = ApiService;
     this.PolicyService = PolicyService;
+    this.DragularService = dragularService;
     this.$mdDialog = $mdDialog;
     this.NotificationService = NotificationService;
     this.$scope = $scope;
@@ -27,53 +28,52 @@ class ApiPoliciesController {
 
     this.policies = [];
     this.apiPolicies = [];
+    this.policiesSchemaMap = new Map();
     this.selectApiPolicy = {};
-    this.listAllPolicies();
-    $scope.dragularSrcOptions = {
+    this.listAllPoliciesWithSchema();
+  }
+
+  initDragular() {
+    var dragularSrcOptions= document.querySelector('.gravitee-policy-draggable'),
+      dragularApiOptions = document.querySelector('.gravitee-policy-dropzone');
+    this.DragularService([dragularSrcOptions], {
       copy: true,
+      scope: this.$scope,
       containersModel: this.policies,
       classes: {
         unselectable: 'gravitee-policy-draggable-selected'
       },
       nameSpace: 'policies',
       accepts: this.acceptDragDrop
-    };
-    $scope.dragularApiOptions = {
+    });
+
+    this.DragularService([dragularApiOptions], {
       copy: true,
+      scope: this.$scope,
       containersModel: this.apiPolicies,
       classes: {
         unselectable: 'gravitee-policy-draggable-selected'
       },
       nameSpace: 'policies',
       accepts: this.acceptDragDrop
-    };
-    this.selectedPolicy = null;
+    });
+
+    this.$scope.$on('dragulardrop', function(e, el, a , z, r ,t ,y ) {
+      console.log("drop", e, el, a , z, r ,t ,y );
+
+    });
   }
 
-  listAllPolicies() {
-    /*this.PolicyService.list().then(response => {
-     this.policies = response.data;
-     });*/
-    this.policies = [
-      {
-        "id": "rate-limit",
-        "name": "Rate Limit",
-        "description": "Description of the Rate Limit Gravitee Policy",
-        "version": "0.1.0-SNAPSHOT"
-      },
-      {
-        "id": "cors",
-        "name": "Cors",
-        "description": "Description of the Cors Gravitee Policy",
-        "version": "0.1.0-SNAPSHOT"
-      },
-      {
-        "id": "api-key",
-        "name": "ApiKey",
-        "description": "Description of the ApiKey Gravitee Policy",
-        "version": "0.1.0-SNAPSHOT"
+  listAllPoliciesWithSchema() {
+    this.PolicyService.list().then(response => {
+      this.policies = response.data;
+      this.initDragular();
+      for (var policy of this.policies) {
+        this.PolicyService.getSchema(policy.id).then(response => {
+          this.policiesSchemaMap.set(policy.id, response.data);
+        });
       }
-    ];
+     });
   }
 
   acceptDragDrop(el, target, source) {
