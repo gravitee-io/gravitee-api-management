@@ -24,8 +24,8 @@
 						<h3>{{api.name}} <small>({{api.version}})</small></h3>
 						<h5>{{api.description}}</h5>
 					</div>
-					<md-button class="md-icon-button md-icon-right" ng-click="$event.stopPropagation()">
-						<ng-md-icon icon="settings" ui-sref="apis.admin.general({apiId: api.id})" aria-label="{{api.id}}"></ng-md-icon>
+					<md-button class="md-icon-button md-icon-right" ng-click="$event.stopPropagation()" ui-sref="apis.admin.general({apiId: api.id})">
+						<ng-md-icon icon="settings" aria-label="{{api.id}}"></ng-md-icon>
 					</md-button>
 				</div>
 				<md-card-content>
