@@ -27,7 +27,7 @@ class ApplicationController {
 		this.applications = [];
 		this.apiKeys = [];
 		this.members = [];
-		this.membershipTypes = [ 'primary_owner', 'owner', 'user' ];
+		this.membershipTypes = [ 'owner', 'user' ];
 		if (this.applicationId) {
 				this.get(this.applicationId);
 				this.getAPIKeys(this.applicationId);

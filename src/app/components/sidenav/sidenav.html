@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<md-sidenav class="md-sidenav-left md-whiteframe-z2 md-default-theme" md-component-id="left">
+<md-sidenav class="md-sidenav-left md-whiteframe-z1 md-default-theme" md-component-id="left">
 	<md-toolbar class="md-hue-2">
     <div layout="column" class="md-toolbar-tools-bottom inset">
 			<div ng-if="!authenticated">
@@ -36,7 +36,7 @@
 				<md-button ng-click="sidenavCtrl.close()" ui-sref="home" class="sidenav-list-button">
 					<div class="inset">
 			   		<ng-md-icon icon="home" class="vertical-align: middle;"></ng-md-icon>
-						<span>Home</span>
+						<span class="inset">Home</span>
 					</div> 
 				</md-button>
 	 	  </md-list-item>
@@ -44,7 +44,7 @@
 				<md-button ng-click="sidenavCtrl.close()" ui-sref="apis.list.thumb" class="sidenav-list-button">
 					<div class="inset">
 			   		<ng-md-icon icon="dashboard" class="vertical-align: middle;"></ng-md-icon>
-						<span>APIs</span>
+						<span class="inset">APIs</span>
 					</div> 
 				</md-button>
 		  </md-list-item>
@@ -52,7 +52,7 @@
 				<md-button ng-click="sidenavCtrl.close()" ui-sref="applications.thumb" class="sidenav-list-button">
 					<div class="inset">
 			   		<ng-md-icon icon="list" class="vertical-align: middle;"></ng-md-icon>
-						<span>Applications</span>
+						<span class="inset">Applications</span>
 					</div> 
 				</md-button>
 		  </md-list-item>

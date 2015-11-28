@@ -24,9 +24,18 @@
   </section>  
 
 	<md-card>
-		<md-switch ng-model="applicationsCtrl.tableMode" ng-change="applicationsCtrl.onModeChange()" class="md-block">
-			Table mode
-		</md-switch>
+		<div layout="row" layout-align="end center" layout-padding>
+			<span class="btn-group">
+				<button ng-class="{'active': !applicationsCtrl.tableMode}" class="btn btn-default" 
+								ng-click="applicationsCtrl.changeMode(false)" type="button">
+					<ng-md-icon icon="apps"></ng-md-icon>
+				</button>
+				<button ng-class="{'active': applicationsCtrl.tableMode}" class="btn btn-default" 
+								ng-click="applicationsCtrl.changeMode(true)" type="button">
+					<ng-md-icon icon="list"></ng-md-icon>
+				</button>
+			</span>
+		</div>
 		<md-card-content ui-view />
 	</md-card>  
 

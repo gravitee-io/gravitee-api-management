@@ -15,34 +15,32 @@
     limitations under the License.
 
 -->
-<md-data-table-toolbar>
-  <h2 class="md-title">APIs</h2>
-</md-data-table-toolbar>
-
-<md-data-table-container>
-  <table md-data-table class="md-primary">
-		<thead>
-			<tr>
-				<th>API</th>
-				<th>API Key</th>
-				<th>API Key's revocation ?</th>
-				<th></th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat="apiKey in applicationCtrl.apiKeys">
-				<td>{{apiKey.api}}</td>
-				<td><code>{{apiKey.key}}</code></td>
-				<td>{{apiKey.revoked}}</td>
-				<td>
-						<md-button class="md-raised" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application,apiKey.api)">Renew API Key</md-button>
-						<md-button class="md-raised md-warn" ng-click="applicationCtrl.unsubscribeAPI(applicationCtrl.application,apiKey.api, apiKey.key)">Unsubscribe
-						</md-button>
-				</td>
-			</tr>
-		</tbody>
-	</table>
-</md-data-table-container>
-<md-button class="md-mini md-fab" ng-click="applicationCtrl.showSubscribeApiModal($event)">
-	<ng-md-icon icon="add"></ng-md-icon>							
-</md-button>
+<div layout-padding>
+	<md-data-table-container class="application-data-table" ng-show="applicationCtrl.apiKeys.length > 0">
+		<table md-data-table class="md-primary">
+			<thead>
+				<tr>
+					<th>API</th>
+					<th>API Key</th>
+					<th>API Key's revocation ?</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="apiKey in applicationCtrl.apiKeys">
+					<td>{{apiKey.api}}</td>
+					<td><code>{{apiKey.key}}</code></td>
+					<td>{{apiKey.revoked}}</td>
+					<td>
+							<md-button class="md-raised" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application,apiKey.api)">Renew API Key</md-button>
+							<md-button class="md-raised md-warn" ng-click="applicationCtrl.unsubscribeAPI(applicationCtrl.application,apiKey.api, apiKey.key)">Unsubscribe
+							</md-button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</md-data-table-container>
+	<md-button class="md-mini md-fab" ng-click="applicationCtrl.showSubscribeApiModal($event)">
+		<ng-md-icon icon="add"></ng-md-icon>							
+	</md-button>
+</div>

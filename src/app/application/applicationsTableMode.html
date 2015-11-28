@@ -15,21 +15,18 @@
     limitations under the License.
 
 -->
-<md-data-table-toolbar>
-	<h2 class="md-title">APPLICATIONS</h2>
-</md-data-table-toolbar>
-
-<md-data-table-container>
+<md-data-table-container ng-show="applicationsCtrl.applications.length > 0">
 	<table md-data-table>
-		<thead>
+		<thead md-order="order">
 		<tr>
-			<th>Name</th>
-			<th>Type</th>
+			<th name="Name" order-by="name"></th>
+			<th name="Type" order-by="type"></th>
 		</tr>
 		</thead>
 		<tbody>
-		<tr md-auto-select ng-repeat="application in applicationsCtrl.applications">
-			<td><a ui-sref="application.dashboard({applicationId: application.id})">{{application.name}}</a></td>
+		<tr md-auto-select ng-repeat="application in applicationsCtrl.applications | orderBy: order" 
+				title="{{application.description}}" ui-sref="application.dashboard({applicationId: application.id})">
+			<td>{{application.name}}</td>
 			<td>{{application.type}}</td>
 		</tr>
 		</tbody>

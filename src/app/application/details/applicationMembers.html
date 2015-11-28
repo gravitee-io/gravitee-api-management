@@ -15,40 +15,38 @@
     limitations under the License.
 
 -->
-<md-data-table-toolbar>
-  <h2 class="md-title">Members</h2>
-</md-data-table-toolbar>
-
-<md-data-table-container>
-  <table md-data-table class="md-primary">
-    <thead>
-      <tr>
-        <th>Member name</th>
-				<th>Role</th>
-				<th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat="member in applicationCtrl.members">
-        <td>{{member.user}}</td>
-        <td ng-show="member.type != 'primary_owner'">
-					<md-select ng-model="member.type" placeholder="Other">
-		        <md-option ng-value="type" ng-repeat="type in applicationCtrl.membershipTypes">{{type}}</md-option>
-		      </md-select>
-				</td>
-				<td ng-hide="member.type != 'primary_owner'">
-					<span ng-hide="member.type != 'primary_owner'">{{member.type}}</span>
-        </td>
-        <td>
-					<div ng-if="member.type != 'primary_owner'">
-						<ng-md-icon ng-click="applicationCtrl.updateMember(member)" icon="save" size="24" style="cursor: pointer;"></ng-md-icon>
-						<ng-md-icon ng-click="applicationCtrl.deleteMember(member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
-					</div>
-				</td>
-      </tr>
-    </tbody>
-  </table>
-</md-data-table-container>
-<md-button class="md-mini md-fab" ng-click="applicationCtrl.showAddMemberModal($event)">
-	<ng-md-icon icon="add"></ng-md-icon>							
-</md-button>
+<div layout-padding>
+	<md-data-table-container class="application-data-table" ng-show="applicationCtrl.members.length > 0">
+		<table md-data-table class="md-primary">
+		  <thead md-order="order">
+		    <tr>
+		      <th name="Member name" order-by="user"></th>
+					<th name="Role" order-by="type"></th>
+					<th></th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    <tr ng-repeat="member in applicationCtrl.members | orderBy: order">
+		      <td>{{member.user}}</td>
+		      <td ng-show="member.type != 'primary_owner'">
+						<md-select ng-model="member.type" placeholder="Other">
+				      <md-option ng-value="type" ng-repeat="type in applicationCtrl.membershipTypes">{{type}}</md-option>
+				    </md-select>
+					</td>
+					<td ng-hide="member.type != 'primary_owner'">
+						<span ng-hide="member.type != 'primary_owner'">{{member.type}}</span>
+		      </td>
+		      <td>
+						<div ng-if="member.type != 'primary_owner'">
+							<ng-md-icon ng-click="applicationCtrl.updateMember(member)" icon="save" size="24" style="cursor: pointer;"></ng-md-icon>
+							<ng-md-icon ng-click="applicationCtrl.deleteMember(member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
+						</div>
+					</td>
+		    </tr>
+		  </tbody>
+		</table>
+	</md-data-table-container>
+	<md-button class="md-mini md-fab" ng-click="applicationCtrl.showAddMemberModal($event)">
+		<ng-md-icon icon="add"></ng-md-icon>							
+	</md-button>
+</div>
