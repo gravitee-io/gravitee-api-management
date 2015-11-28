@@ -18,6 +18,7 @@
     "setInterval": false,
     "clearInterval": false,
     "FileReader": false,
-    "btoa": false
+    "btoa": false,
+    "Highcharts": false
   }
 }
