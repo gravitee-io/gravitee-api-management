@@ -17,13 +17,20 @@ function interceptorConfig($httpProvider) {
   'ngInject';
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-  var interceptorUnauthorized = function ($location, $q, $injector) {
+  var interceptorUnauthorized = function ($q, $injector) {
     return {
       responseError: function (error) {
+        var isHomePage = $injector.get('$state').current.name === 'home';
         var unauthorizedError = !error || error.status === 401;
-        var isLoginPage = '/login' === $location.$$path;
+        var errorMessage = '';
 
-        $injector.get('NotificationService').error(error, unauthorizedError && isLoginPage ? 'Wrong user or password!' : '');
+        if (unauthorizedError && isHomePage) {
+          errorMessage = 'Wrong user or password';
+        } else if (error.status === 503) {
+          errorMessage = 'Server unavailable';
+        }
+
+        $injector.get('NotificationService').error(error, errorMessage);
 
         return $q.reject(error);
       }
