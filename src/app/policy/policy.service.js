@@ -26,7 +26,7 @@ class PolicyService {
   }
 
   getSchema(policyId) {
-    return this.$http.get(this.policiesURL + policyId + '/schema')
+    return this.$http.get(this.policiesURL + policyId + '/schema');
   }
 }
 

@@ -33,15 +33,7 @@
 
   <md-card-content style="background-color: #fff; border: 1px solid #e7eaec; padding-top: 0px;">
     <div ng-show="!pageCtrl.editMode">
-      <div ng-if="pageCtrl.markdownType()" btf-markdown="pageCtrl.page.content">
-      </div>
-
-      <raml-console ng-if="pageCtrl.ramlType() && pageCtrl.page.content" src="{{pageCtrl.getContentUrl()}}" resources-collapsed disable-try-it
-                    disable-title disable-theme-switcher disable-raml-client-generator>
-      </raml-console>
-
-      <div ng-if="pageCtrl.swaggerType()" swagger-ui url="pageCtrl.getContentUrl()" api-explorer="false" validator-url="false">
-      </div>
+      <gravitee-page page="pageCtrl.page" enable-try-it="false"></gravitee-page>
     </div>
 
     <div ng-show="pageCtrl.editMode">

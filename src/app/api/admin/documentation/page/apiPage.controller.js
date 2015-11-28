@@ -22,13 +22,7 @@ class PageController {
     this.$rootScope = $rootScope;
     this.$scope = $scope;
     this.$mdDialog = $mdDialog;
-    this.selected = null;
-    this.pages = [];
-    this.previewMode = true;
     this.editMode = false;
-    this.MARKDOWN_PAGE = 'MARKDOWN';
-    this.RAML_PAGE = 'RAML';
-    this.SWAGGER_PAGE = 'SWAGGER';
 
     var that = this;
     DocumentationService.get($state.params.apiId, $state.params.pageId).then(function (response) {
@@ -77,30 +71,12 @@ class PageController {
       });
   }
 
-  getContentUrl() {
-    return this.DocumentationService.getContentUrl(this.$scope.$parent.apiCtrl.api.id, this.page.id);
-  }
-
   edit() {
     this.editMode = true;
-    this.previewMode = false;
   }
 
   preview() {
     this.editMode = false;
-    this.previewMode = true;
-  }
-
-  ramlType() {
-    return this.page && this.RAML_PAGE === this.page.type;
-  }
-
-  markdownType() {
-    return this.page && this.MARKDOWN_PAGE === this.page.type;
-  }
-
-  swaggerType() {
-    return this.page && this.SWAGGER_PAGE === this.page.type;
   }
 }
 

@@ -53,10 +53,11 @@ import ApplicationService from './application/details/application.service';
 import SideNavDirective from './components/sidenav/sidenav.directive';
 import PageController from './api/admin/documentation/page/apiPage.controller';
 import PolicyService from './policy/policy.service';
+import PageDirective from './components/documentation/page.directive';
 
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
-    'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule'])
+    'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore'])
   .constant('baseURL', '/management/')
   .config(config)
   .config(routerConfig)
@@ -98,4 +99,5 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
+  .directive('graviteePage', () => new PageDirective())
   .service('PolicyService', PolicyService);

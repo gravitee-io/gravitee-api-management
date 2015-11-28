@@ -63,42 +63,41 @@ class ApplicationController {
 	}
 
 	updateMember(member) {
-		console.log(JSON.stringify(member));
-		this.ApplicationService.addOrUpdateMember(this.application.id, member).then(response => {
+		this.ApplicationService.addOrUpdateMember(this.application.id, member).then(() => {
 			this.NotificationService.show('Member updated');
 		});
 	}
 
 	deleteMember(member) {
 		var index = this.members.indexOf(member);
-		this.ApplicationService.deleteMember(this.application.id, member.user).then(response => {
+		this.ApplicationService.deleteMember(this.application.id, member.user).then(() => {
 			this.members.splice(index, 1);
 			this.NotificationService.show("Member " + member.user + " has been removed successfully");		
 		});
 	}
 
   update(application) {
-		this.ApplicationService.update(application).then(response => {
+		this.ApplicationService.update(application).then(() => {
 			this.NotificationService.show('Application updated');
 		});
   }
 
   delete(application) {
-		this.ApplicationService.delete(application).then(response => {
+		this.ApplicationService.delete(application).then(() => {
 			this.NotificationService.show('Application ' + application.name + ' deleted');
 			this.$state.go('applications.thumb');
 		});
   }
 
 	unsubscribeAPI(application, apiId, apiKey) {
-		this.ApplicationService.unsubscribe(application, apiKey).then(response => {
+		this.ApplicationService.unsubscribe(application, apiKey).then(() => {
 			this.NotificationService.show('Application unsubscribed');
 			this.getAPIKeys(application.id);
 		});
 	}
 
 	generateAPIKey(application, apiId) {
-		this.ApplicationService.subscribe(application, apiId).then(response => {
+		this.ApplicationService.subscribe(application, apiId).then(() => {
 			this.NotificationService.show('New API Key created');
 			this.getAPIKeys(application.id);
 		});
@@ -114,11 +113,11 @@ class ApplicationController {
 	
 		var self = this;
     this.$mdDialog.show(confirm).then(function() {
-      self.delete(self.application)
+      self.delete(self.application);
     }, function() {
       self.$mdDialog.cancel();
     });
-  };
+  }
 
 	showSubscribeApiModal(ev) {
 		var that = this;

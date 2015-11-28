@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global document:false */
 class ApiMembersController {
   constructor (ApiService, resolvedApi, resolvedMembers, $state, $mdDialog, NotificationService, $scope) {
     'ngInject';
@@ -31,14 +30,14 @@ class ApiMembersController {
   }
 
   updateMember(member) {
-    this.ApiService.addOrUpdateMember(this.api.id, member).then(response => {
+    this.ApiService.addOrUpdateMember(this.api.id, member).then(() => {
       this.NotificationService.show('Member updated');
     });
   }
 
   deleteMember(member) {
     var index = this.members.indexOf(member);
-    this.ApiService.deleteMember(this.api.id, member.user).then(response => {
+    this.ApiService.deleteMember(this.api.id, member.user).then(() => {
       this.members.splice(index, 1);
       this.NotificationService.show("Member " + member.user + " has been removed successfully");
     });

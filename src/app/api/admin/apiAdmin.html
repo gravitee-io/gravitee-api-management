@@ -16,15 +16,7 @@
 
 -->
 <section class="content-header">
-  <div layout="row" layout-align="start center" layout-padding>
-    <ng-md-icon ng-click="apisCtrl.backToPreviousState()" icon="menu"></ng-md-icon>
-
-    <h1>
-      {{apiCtrl.api.name}}
-      <small>{{apiCtrl.api.description}}</small>
-    </h1>
-  </div>
-
+  <div ng-include="'app/api/apiHeader.html'"></div>
   <md-card>
     <md-card-content>
       <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global document:false */
 class ApiPoliciesController {
   constructor (ApiService, resolvedApi, PolicyService, $state, $mdDialog, NotificationService, $scope, dragularService) {
     'ngInject';
@@ -56,11 +55,6 @@ class ApiPoliciesController {
       },
       nameSpace: 'policies',
       accepts: this.acceptDragDrop
-    });
-
-    this.$scope.$on('dragulardrop', function(e, el, a , z, r ,t ,y ) {
-      console.log("drop", e, el, a , z, r ,t ,y );
-
     });
   }
 

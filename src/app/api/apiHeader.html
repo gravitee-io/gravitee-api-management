@@ -15,16 +15,11 @@
     limitations under the License.
 
 -->
-<section class="content-header">
-  <div ng-include="'app/api/apiHeader.html'"></div>
+<div layout="row" layout-align="start start">
+  <ng-md-icon ng-click="apisCtrl.backToPreviousState()" icon="menu" style="padding-top: 7px;"></ng-md-icon>
 
-  <md-card>
-    <md-card-content>
-      <md-tabs md-dynamic-height md-border-bottom>
-        <md-tab label="{{page.name}}" md-on-select="apiCtrl.fetchPage(page)" ng-repeat="page in apiCtrl.pages">
-          <gravitee-page page="apiCtrl.page" enable-try-it="false"></gravitee-page>
-        </md-tab>
-      </md-tabs>
-    </md-card-content>
-  </md-card>
-</section>
+  <h1>
+    {{apiCtrl.api.name}}
+    <small><div read-more ng-model="apiCtrl.api.description" words="false" length="150"></div></small>
+  </h1>
+</div>

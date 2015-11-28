@@ -32,17 +32,17 @@ class ApiAnalyticsController {
 
   openMenu($mdOpenMenu, ev) {
     $mdOpenMenu(ev);
-  };
+  }
 
   changeReport(reportId) {
     var report = _.find(this.analytics.reports, function(report) {
-      return report.id == reportId;
+      return report.id === reportId;
     });
 
     this.$scope.analytics.report = report;
 
     this.updateChart();
-  };
+  }
 
   updateTimeframe(timeframeId) {
     this.setTimeframe(timeframeId);
@@ -52,12 +52,12 @@ class ApiAnalyticsController {
 
   setTimeframe(timeframeId) {
     var timeframe = _.find(this.analytics.timeframes, function(timeframe) {
-      return timeframe.id == timeframeId;
+      return timeframe.id === timeframeId;
     });
 
     var now = Date.now();
 
-    var oldReport = (this.$scope.analytics == undefined) ? undefined : this.$scope.analytics.report;
+    var oldReport = (this.$scope.analytics === undefined) ? undefined : this.$scope.analytics.report;
 
     this.$scope.analytics = {
       timeframe: timeframe,
@@ -141,7 +141,7 @@ class ApiAnalyticsController {
         });
       }
     });
-  };
+  }
 
   analytics() {
     return {
@@ -201,7 +201,7 @@ class ApiAnalyticsController {
           interval: 10000000,
         }
       ]
-    }
+    };
   }
 }
 

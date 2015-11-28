@@ -46,7 +46,15 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       url: '/:apiId',
       templateUrl: 'app/api/portal/apiPortal.html',
       controller: 'ApiPortalController',
-      controllerAs: 'apiCtrl'
+      controllerAs: 'apiCtrl',
+      resolve: {
+        resolvedApi:function ($stateParams, ApiService) {
+          return ApiService.get($stateParams.apiId);
+        },
+        resolvedPage:function ($stateParams, DocumentationService) {
+          return DocumentationService.list($stateParams.apiId);
+        }
+      }
     })
     .state('apis.admin', {
       url: '/:apiId/settings',

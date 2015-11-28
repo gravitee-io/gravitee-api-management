@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 class ApiPortalController {
-  constructor () {
+  constructor (DocumentationService, resolvedApi, resolvedPage) {
     'ngInject';
+    this.DocumentationService = DocumentationService;
+    this.api = resolvedApi.data;
+    this.pages = resolvedPage.data;
+  }
+
+  fetchPage(page) {
+    var that = this;
+    this.DocumentationService.get(this.api.id, page.id).then(function(response) {
+      that.page = response.data;
+    });
   }
 }
 

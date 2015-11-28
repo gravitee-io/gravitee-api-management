@@ -39,10 +39,9 @@ function DialogAddMemberController($scope, $mdDialog, application, ApplicationSe
 			$scope.usersFound.push(item);
 			$scope.searchText = "";
 		}
-  }
+  };
 
 	$scope.selectMember = function(user) {
-		console.log(JSON.stringify(user));
 		var idx = $scope.usersSelected.indexOf(user.id);
     if (idx > -1) {
       $scope.usersSelected.splice(idx, 1);

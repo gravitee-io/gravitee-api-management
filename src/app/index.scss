@@ -103,6 +103,12 @@ md-sidenav, .md-open-menu-container {
   z-index: 102;
 }
 
+.color3 {
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
+}
+
 /**
  *  Do not remove this comments bellow. It's the markers used by gulp-inject to inject
  *  all your sass files automatically

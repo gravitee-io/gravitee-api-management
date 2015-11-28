@@ -73,7 +73,7 @@ class UserController {
   }
 
 	updateTeam(team) {
-		this.TeamService.update(team).then(response => {
+		this.TeamService.update(team).then(() => {
 			this.NotificationService.show('Team updated with success!');
 		});
 	}
@@ -176,10 +176,10 @@ function DialogAddMemberController($scope, $mdDialog, NotificationService, TeamS
 	};
 
 	$scope.addMember = function(team) {
-		TeamService.addMember(team, $scope.member.username).then(function(response) {
+		TeamService.addMember(team, $scope.member.username).then(function() {
 			NotificationService.show('Member added successfully');
 			$mdDialog.hide();
-		}).catch(function (error) {
+		}).catch(function () {
 			NotificationService.show('Error while adding member to the team');
 		});
 	};

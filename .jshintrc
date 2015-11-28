@@ -19,6 +19,7 @@
     "clearInterval": false,
     "FileReader": false,
     "btoa": false,
-    "Highcharts": false
+    "Highcharts": false,
+    "moment": false
   }
 }
