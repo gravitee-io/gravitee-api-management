@@ -82,10 +82,10 @@ class ApisController {
   }
 
   backToPreviousState() {
-    if (!this.previousState) {
-      this.previousState = 'apis.list.thumb';
+    if (!this.$scope.previousState) {
+      this.$scope.previousState = 'apis.list.thumb';
     }
-    this.$state.go(this.previousState);
+    this.$state.go(this.$scope.previousState);
   }
 }
 

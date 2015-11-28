@@ -19,10 +19,9 @@
 	<table md-data-table>
 		<thead md-order="order">
 		<tr>
-			<th></th>
+			<th name="Visibility" order-by="visibility"></th>
 			<th name="Name" order-by="name"></th>
 			<th name="Version" order-by="version"></th>
-			<th name="Visibility" order-by="visibility"></th>
 			<th name="Context path" order-by="proxy.context_path"></th>
 			<th name="State" order-by="state"></th>
 			<th></th>
@@ -33,7 +32,6 @@
 				<td><ng-md-icon icon="{{api.visibility === 'public'? 'lock_open' : 'lock'}}"></ng-md-icon></td>
 				<td>{{api.name}}</td>
 				<td>{{api.version}}</td>
-				<td>{{api.visibility}}</td>
 				<td>{{api.proxy.context_path}}</td>
 				<td>
 					<ng-md-icon ng-if="api.state === 'started'" icon="blur_on" size="32" style="fill: green;" title="Started"></ng-md-icon>

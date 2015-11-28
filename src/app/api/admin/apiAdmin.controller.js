@@ -20,22 +20,21 @@ class ApiAdminController {
     this.$state = $state;
     this.api = resolvedApi.data;
 
-    if ($state.current.name.includes('general')) {
-      $scope.selectedTab = 0;
-    } else if ($state.current.name.includes('policies')) {
-      $scope.selectedTab = 1;
-    } else if ($state.current.name.includes('documentation')) {
-      $scope.selectedTab = 2;
-    } else if ($state.current.name.includes('analytics')) {
-      $scope.selectedTab = 3;
-    } else if ($state.current.name.endsWith('members')) {
-      $scope.selectedTab = 4;
-    }
-
-    var that = this;
     $scope.$on('$stateChangeSuccess', function (ev, to, toParams, from) {
       if (from.name.startsWith('apis.list.')) {
-        that.previousState = from.name;
+        $scope.$parent.previousState = from.name;
+      }
+
+      if ($state.current.name.includes('general')) {
+        $scope.selectedTab = 0;
+      } else if ($state.current.name.includes('policies')) {
+        $scope.selectedTab = 1;
+      } else if ($state.current.name.includes('documentation')) {
+        $scope.selectedTab = 2;
+      } else if ($state.current.name.includes('analytics')) {
+        $scope.selectedTab = 3;
+      } else if ($state.current.name.endsWith('members')) {
+        $scope.selectedTab = 4;
       }
     });
   }
