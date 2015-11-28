@@ -53,7 +53,6 @@ import PageController from './api/admin/documentation/page/apiPage.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'dndLists', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies'])
-  .constant('malarkey', malarkey)
   .constant('baseURL', '/management/')
   .config(config)
   .config(routerConfig)
