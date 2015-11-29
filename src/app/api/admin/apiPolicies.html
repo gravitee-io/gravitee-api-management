@@ -42,9 +42,9 @@
       <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPolicies" ng-click="apiPoliciesCtrl.editPolicy($index)">
         <div class="md-list-item-text">
           <div id="apiPolicy-name">{{policy.name}}</div>
-          <span class="badge" ng-if="policy.values.methods.length === apiPoliciesCtrl.httpVerbs.length">ALL</span>
+          <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-if="policy.values.methods.length === apiPoliciesCtrl.httpVerbs.length">ALL</span>
           <div ng-if="policy.values.methods.length != apiPoliciesCtrl.httpVerbs.length">
-            <span class="badge" ng-repeat="method in policy.values.methods">{{method | uppercase}}</span>
+            <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-repeat="method in policy.values.methods">{{method | uppercase}}</span>
           </div>
         </div>
       </md-list-item>
@@ -55,10 +55,10 @@
   <div flex="25">
     <div ng-if="apiPoliciesCtrl.selectedApiPolicy.id">
       <div class="inset">
-        <h5>Configuration: {{apiPoliciesCtrl.selectedApiPolicy.name}}</h5>
+        <h5>{{apiPoliciesCtrl.selectedApiPolicy.name}}</h5>
         <md-divider></md-divider>
       </div>
-      <form name="projectForm">
+      <form name="projectForm" novalidate>
         <div layout="row" layout-wrap>
           <span flex="20" class="badge gravitee-policy-method-badge"
                 ng-class="apiPoliciesCtrl.getHttpVerbClass(httpVerb)"
@@ -68,6 +68,30 @@
             {{httpVerb | uppercase}}
           </span>
         </div>
+        <md-input-container class="md-block" ng-repeat="prop in apiPoliciesCtrl.selectedApiPolicyProperties">
+
+          <md-checkbox ng-if="'boolean' === apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type"
+                       ng-model="apiPoliciesCtrl.selectedApiPolicy.values[prop]"
+                       aria-label="{{prop}}"> {{prop}} </md-checkbox>
+          <span ng-if="'string'=== apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type
+                    || 'integer'=== apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type">
+            <label>{{prop}}</label>
+            <input ng-if="'integer' === apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type"
+                   ng-model="apiPoliciesCtrl.selectedApiPolicy.values[prop]"
+                   type="number" >
+            <input ng-if="'string' === apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type
+                       && !apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].enum"
+                   ng-model="apiPoliciesCtrl.selectedApiPolicy.values[prop]"
+                   type="text" >
+            <md-select ng-if="'string' === apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type
+                       && apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].enum"
+                   ng-model="apiPoliciesCtrl.selectedApiPolicy.values[prop]">
+              <md-option ng-repeat="enum in apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].enum" value="{{enum}}">
+                {{enum}}
+              </md-option>
+            </md-select>
+          </span>
+        </md-input-container>
       </form>
     </div>
   </div>

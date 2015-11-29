@@ -28,6 +28,7 @@ class ApiPoliciesController {
     this.policies = [];
     this.apiPolicies = [];
     this.selectedApiPolicy = {};
+    this.selectedApiPolicyProperties = [];
     this.listAllPoliciesWithSchema().then(
       this.initDragular()
     );
@@ -63,10 +64,9 @@ class ApiPoliciesController {
       accepts: this.acceptDragDrop
     });
 
-   /* this.$scope.$on('dragulardrop', function(event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList) {
+    /*this.$scope.$on('dragulardrop', function(event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList) {
       console.log(draggableObjList ,"\n", draggableIndex ,"\n", dropzoneObjList );
-    });
-    */
+    });*/
   }
 
   listAllPoliciesWithSchema() {
@@ -107,10 +107,12 @@ class ApiPoliciesController {
 
   editPolicy(index) {
     this.selectedApiPolicy = this.apiPolicies[index];
+    this.selectedApiPolicyProperties = Object.keys(this.selectedApiPolicy.schema.properties);
   }
 
   getHttpVerbClass(verb) {
-    return "gravitee-policy-method-badge-" + (this.selectedApiPolicy.values.methods.indexOf(verb) > -1 ? "selected" : "unselected")
+    return "gravitee-policy-method-badge-" +
+      (this.selectedApiPolicy.values.methods.indexOf(verb) > -1 ? "selected" : "unselected");
   }
 
   toggleHttpVerb(verb) {
