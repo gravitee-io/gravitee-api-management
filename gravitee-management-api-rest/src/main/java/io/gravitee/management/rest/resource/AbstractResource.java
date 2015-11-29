@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
+import java.security.Principal;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -26,8 +27,12 @@ public abstract class AbstractResource {
     @Context
     private SecurityContext securityContext;
 
-    protected String getAuthenticatedUser() {
+    protected String getAuthenticatedUsername() {
         return securityContext.getUserPrincipal().getName();
+    }
+
+    protected Principal getAuthenticatedUser() {
+        return securityContext.getUserPrincipal();
     }
 
     protected boolean isAuthenticated() {

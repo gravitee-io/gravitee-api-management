@@ -41,6 +41,7 @@ import io.gravitee.management.rest.resource.GraviteeApplication;
 public abstract class JerseySpringTest {
 
     protected static final String USER_NAME = "UnitTests";
+    protected final static Principal PRINCIPAL = () -> USER_NAME;
 
     private JerseyTest _jerseyTest;
 

@@ -15,15 +15,12 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.UpdatePageEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
-import io.gravitee.management.service.PermissionType;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -80,7 +77,7 @@ public class ApiPagesResource extends AbstractResource {
 
         int order = pageService.findMaxPageOrderByApi(api) + 1;
         newPageEntity.setOrder(order);
-        newPageEntity.setLastContributor(getAuthenticatedUser());
+        newPageEntity.setLastContributor(getAuthenticatedUsername());
         PageEntity newPage = pageService.create(api, newPageEntity);
         if (newPage != null) {
             return Response
@@ -101,7 +98,7 @@ public class ApiPagesResource extends AbstractResource {
         apiService.findById(api);
         pageService.findById(page);
 
-        updatePageEntity.setLastContributor(getAuthenticatedUser());
+        updatePageEntity.setLastContributor(getAuthenticatedUsername());
         return pageService.update(page, updatePageEntity);
     }
 

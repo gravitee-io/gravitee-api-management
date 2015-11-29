@@ -15,10 +15,12 @@
  */
 package io.gravitee.management.service;
 
+import java.security.Principal;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface PermissionService {
 
-    void hasPermission(String username, String apiName, PermissionType permissionType);
+    void hasPermission(Principal principal, String item, PermissionType permissionType);
 }

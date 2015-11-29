@@ -62,7 +62,7 @@ public class ApplicationResource extends AbstractResource {
 
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
 
-        return applicationEnhancer.enhance(getAuthenticatedUser()).apply(applicationEntity);
+        return applicationEnhancer.enhance(getAuthenticatedUsername()).apply(applicationEntity);
     }
     
     @PUT
@@ -73,7 +73,7 @@ public class ApplicationResource extends AbstractResource {
 
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
 
-        return applicationEnhancer.enhance(getAuthenticatedUser()).apply(
+        return applicationEnhancer.enhance(getAuthenticatedUsername()).apply(
                 applicationService.update(application, updatedApplication)
         );
     }

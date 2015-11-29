@@ -26,6 +26,8 @@ import io.gravitee.management.service.impl.PermissionServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 
+import java.security.Principal;
+
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
@@ -34,6 +36,8 @@ public class PermissionServiceTest {
 
     private static final String USER_NAME = "myUser";
     private static final String API_NAME = "myAPI";
+
+    private final static Principal PRINCIPAL = () -> USER_NAME;
 
     @InjectMocks
     private PermissionService permissionService = new PermissionServiceImpl();
@@ -49,48 +53,48 @@ public class PermissionServiceTest {
     @Test
     @Ignore
     public void shouldHavePermissionOnViewAPI() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_API);
+        permissionService.hasPermission(PRINCIPAL, API_NAME, PermissionType.VIEW_API);
     }
 
     @Test
     @Ignore
     public void shouldNotHavePermissionOnViewAPI() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_API);
+        permissionService.hasPermission(PRINCIPAL, API_NAME, PermissionType.VIEW_API);
     }
 
     @Test
     @Ignore
     public void shouldHavePermissionOnEditAPI() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        permissionService.hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
     }
 
     @Test
     @Ignore
     public void shouldNotHavePermissionOnEditAPI() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        permissionService.hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
     }
 
     @Test
     @Ignore
     public void shouldHavePermissionOnViewApplication() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_APPLICATION);
+        permissionService.hasPermission(PRINCIPAL, API_NAME, PermissionType.VIEW_APPLICATION);
     }
 
     @Test
     @Ignore
     public void shouldNotHavePermissionOnViewApplication() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_APPLICATION);
+        permissionService.hasPermission(PRINCIPAL, API_NAME, PermissionType.VIEW_APPLICATION);
     }
 
     @Test
     @Ignore
     public void shouldHavePermissionOnEditApplication() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_APPLICATION);
+        permissionService.hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_APPLICATION);
     }
 
     @Test
     @Ignore
     public void shouldNotHavePermissionOnEditApplication() throws TechnicalException {
-        permissionService.hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_APPLICATION);
+        permissionService.hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_APPLICATION);
     }
 }

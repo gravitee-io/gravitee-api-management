@@ -15,23 +15,15 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.PermissionService;
-import io.gravitee.management.service.PermissionType;
+import io.gravitee.management.model.*;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.UserRepository;
-import io.gravitee.repository.management.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import java.security.Principal;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -45,7 +37,7 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
     private final Logger LOGGER = LoggerFactory.getLogger(PermissionServiceImpl.class);
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Autowired
     private ApiService apiService;
@@ -54,123 +46,78 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
     private ApplicationService applicationService;
 
     @Override
-    public void hasPermission(String username, String apiName, PermissionType permissionType) {
-        /*
-        if (permissionType == PermissionType.VIEW_API || permissionType == PermissionType.EDIT_API) {
-            validateApi(username, apiName, permissionType);
-        } else if (permissionType == PermissionType.VIEW_APPLICATION || permissionType == PermissionType.EDIT_APPLICATION) {
-            validateApplication(username, apiName, permissionType);
-        } else if (permissionType == PermissionType.VIEW_TEAM || permissionType == PermissionType.EDIT_TEAM) {
-            validateTeam(username, apiName, permissionType);
-        }
-        */
-    }
-
-    /*
-    private void validateApi(String username, String apiName, PermissionType permissionType) {
-        try {
-            LOGGER.debug("Validate user rights for API: {}", apiName);
-
-            final Optional<User> user = userRepository.findByUsername(username);
-            if (user != null && user.isPresent() && user.get().getRoles().contains("ROLE_ADMIN")) {
-                LOGGER.debug("User {} has full access because has role admin", username);
+    public void hasPermission(Principal principal, String item, PermissionType permissionType) {
+        if (principal != null) {
+            final UserEntity user = userService.findByName(principal.getName());
+            if (user != null && user.getRoles().contains("ROLE_ADMIN")) {
+                LOGGER.debug("User {} has full access because of admin role", principal.getName());
                 return;
             }
+        }
 
-            final Optional<ApiEntity> optionalApi = apiService.findById(apiName);
-
-            if (optionalApi != null && optionalApi.isPresent()) {
-                final ApiEntity api = optionalApi.get();
-
-                if (permissionType == PermissionType.VIEW_API) {
-                    if (api.isPrivate()) {
-                        if (api.getOwner().getType() == Owner.OwnerType.TEAM) {
-                            // Check if the user is a member of the team
-                            Member member = teamMembershipRepository.getMember(api.getOwner().getLogin(), username);
-                            if (member == null) {
-                                LOGGER.error("User {} does not have correct rights to view team's API {}", username, apiName);
-                                throw new ForbiddenAccessException();
-                            }
-                        } else {
-                            // In case of user owner
-                            if (!api.getOwner().getLogin().equalsIgnoreCase(username)) {
-                                LOGGER.error("User {} does not have correct rights to view user's API {}", username, apiName);
-                                throw new ForbiddenAccessException();
-                            }
-                        }
-                    }
-                } else {
-                    if (api.getOwner().getType() == Owner.OwnerType.TEAM) {
-                        // Check if the user is an admin member of the team
-                        Member member = teamMembershipRepository.getMember(api.getOwner().getLogin(), username);
-                        if (member == null || member.getRole() != TeamRole.ADMIN) {
-                            LOGGER.error("User {} does not have correct rights to edit team's API {}", username, apiName);
-                            throw new ForbiddenAccessException();
-                        }
-                    } else {
-                        // In case of user owner
-                        if (!api.getOwner().getLogin().equalsIgnoreCase(username)) {
-                            LOGGER.error("User {} does not have correct rights to edit user's API {}", username, apiName);
-                            throw new ForbiddenAccessException();
-                        }
-                    }
-                }
-            } else {
-                LOGGER.error("API {} does not exists", apiName);
-                throw new ForbiddenAccessException();
-            }
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to validate user's permissions for API: {}", apiName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to validate user's permissions for API: " + apiName, ex);
+        if (permissionType == PermissionType.VIEW_API || permissionType == PermissionType.EDIT_API) {
+            validateApi(principal, item, permissionType);
+        } else if (permissionType == PermissionType.VIEW_APPLICATION || permissionType == PermissionType.EDIT_APPLICATION) {
+            validateApplication(principal, item, permissionType);
         }
     }
 
-    private void validateApplication(String username, String applicationName, PermissionType permissionType) {
-        try {
-            LOGGER.debug("Validate user rights for application: {}", applicationName);
+    private void validateApi(Principal principal, String apiId, PermissionType permissionType) {
+        LOGGER.debug("Validate user rights for API: {}", apiId);
 
-            final Optional<ApplicationEntity> optionalApplication = applicationService.findById(applicationName);
-            if (optionalApplication != null && optionalApplication.isPresent()) {
-                ApplicationEntity application = optionalApplication.get();
-                if (permissionType == PermissionType.VIEW_APPLICATION) {
-                    if (application.getOwner().getType() == Owner.OwnerType.TEAM) {
-                        // Check if the user is a member of the team
-                        Member member = teamMembershipRepository.getMember(application.getOwner().getLogin(), username);
-                        if (member == null) {
-                            LOGGER.error("User {} does not have correct rights to view team's application {}", username, applicationName);
-                            throw new ForbiddenAccessException();
-                        }
-                    } else {
-                        // In case of user owner
-                        if (!application.getOwner().getLogin().equalsIgnoreCase(username)) {
-                            LOGGER.error("User {} does not have correct rights to view user's application {}", username, applicationName);
-                            throw new ForbiddenAccessException();
-                        }
+        final ApiEntity api = apiService.findById(apiId);
+        if (permissionType == PermissionType.VIEW_API) {
+
+            switch (api.getVisibility()) {
+                case PRIVATE:
+                case RESTRICTED:
+                    if (principal == null) {
+                        LOGGER.error("Anonymous user does not have rights to view API {}", api);
+                        throw new ForbiddenAccessException();
                     }
-                } else {
-                    if (application.getOwner().getType() == Owner.OwnerType.TEAM) {
-                        // Check if the user is an admin member of the team
-                        Member member = teamMembershipRepository.getMember(application.getOwner().getLogin(), username);
-                        if (member == null || member.getRole() != TeamRole.ADMIN) {
-                            LOGGER.error("User {} does not have correct rights to edit team's application {}", username, applicationName);
-                            throw new ForbiddenAccessException();
-                        }
-                    } else {
-                        // In case of user owner
-                        if (!application.getOwner().getLogin().equalsIgnoreCase(username)) {
-                            LOGGER.error("User {} does not have correct rights to edit user's application {}", username, applicationName);
-                            throw new ForbiddenAccessException();
-                        }
+
+                    MemberEntity member = apiService.getMember(apiId, principal.getName());
+                    if (member == null) {
+                        LOGGER.error("User {} does not have rights to view API {}", principal.getName(), api);
+                        throw new ForbiddenAccessException();
                     }
-                }
-            } else {
-                LOGGER.error("Application {} does not exists", applicationName);
+                    break;
+            }
+        } else if (permissionType == PermissionType.EDIT_API) {
+            if (principal == null) {
+                LOGGER.error("Anonymous user does not have rights to edit API {}", api);
                 throw new ForbiddenAccessException();
             }
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to validate user's permissions for application: {}", applicationName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to validate user's permissions for application: " + applicationName, ex);
+
+            MemberEntity member = apiService.getMember(apiId, principal.getName());
+            if (member == null || member.getType() == MembershipType.USER) {
+                LOGGER.error("User {} does not have rights to view API {}", principal.getName(), api);
+                throw new ForbiddenAccessException();
+            }
         }
     }
-    */
+
+    private void validateApplication(Principal principal, String applicationId, PermissionType permissionType) {
+        LOGGER.debug("Validate user rights for application: {}", applicationId);
+
+        if (principal == null) {
+            LOGGER.error("Anonymous user does not have rights to view application {}", applicationId);
+            throw new ForbiddenAccessException();
+        }
+
+        final ApplicationEntity application = applicationService.findById(applicationId);
+
+        MemberEntity member = applicationService.getMember(applicationId, principal.getName());
+        if (member == null) {
+            LOGGER.error("User {} does not have correct rights to view application {}",
+                    principal.getName(), application);
+            throw new ForbiddenAccessException();
+        } else {
+            if (permissionType == PermissionType.EDIT_APPLICATION && member.getType() == MembershipType.USER) {
+                LOGGER.error("User {} does not have correct rights to edit application {}",
+                        principal.getName(), application);
+                throw new ForbiddenAccessException();
+            }
+        }
+    }
 }

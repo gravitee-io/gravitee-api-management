@@ -48,9 +48,9 @@ public class ApplicationsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ApplicationEntity> list() {
-        Set<ApplicationEntity> applications = applicationService.findByUser(getAuthenticatedUser());
+        Set<ApplicationEntity> applications = applicationService.findByUser(getAuthenticatedUsername());
 
-        applications.forEach(api -> api = applicationEnhancer.enhance(getAuthenticatedUser()).apply(api));
+        applications.forEach(api -> api = applicationEnhancer.enhance(getAuthenticatedUsername()).apply(api));
 
         return applications.stream()
                 .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
@@ -67,9 +67,9 @@ public class ApplicationsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid final NewApplicationEntity application) {
-        ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUser());
+        ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUsername());
         if (newApplication != null) {
-            newApplication = applicationEnhancer.enhance(getAuthenticatedUser()).apply(newApplication);
+            newApplication = applicationEnhancer.enhance(getAuthenticatedUsername()).apply(newApplication);
             return Response
                     .created(URI.create("/applications/" + newApplication.getId()))
                     .entity(newApplication)

@@ -53,7 +53,7 @@ public class ApisResource extends AbstractResource {
     public Set<ApiListItem> list() {
         Set<ApiEntity> apis;
         if (isAuthenticated()) {
-            apis = apiService.findByUser(getAuthenticatedUser());
+            apis = apiService.findByUser(getAuthenticatedUsername());
         } else {
             apis = apiService.findByVisibility(Visibility.PUBLIC);
         }
@@ -73,7 +73,7 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid final NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
-        ApiEntity newApi = apiService.create(newApiEntity, getAuthenticatedUser());
+        ApiEntity newApi = apiService.create(newApiEntity, getAuthenticatedUsername());
         if (newApi != null) {
             return Response
                     .created(URI.create("/apis/" + newApi.getId()))
@@ -123,7 +123,7 @@ public class ApisResource extends AbstractResource {
 
         // Add permission for current user (if authenticated)
         if(isAuthenticated()) {
-            MemberEntity member = apiService.getMember(apiItem.getId(), getAuthenticatedUser());
+            MemberEntity member = apiService.getMember(apiItem.getId(), getAuthenticatedUsername());
             if (member != null) {
                 apiItem.setPermission(member.getType());
             } else {

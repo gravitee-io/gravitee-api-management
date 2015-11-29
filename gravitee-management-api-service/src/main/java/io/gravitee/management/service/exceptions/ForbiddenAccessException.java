@@ -29,6 +29,6 @@ public class ForbiddenAccessException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "You do not have sufficient rights to access this ressource";
+        return "You do not have sufficient rights to access this resource";
     }
 }

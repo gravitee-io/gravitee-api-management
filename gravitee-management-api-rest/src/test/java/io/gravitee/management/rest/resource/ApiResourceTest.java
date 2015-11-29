@@ -52,7 +52,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(mockApi).when(apiService).findById(API_NAME);
-        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_API);
+        doNothing().when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.VIEW_API);
 
         final Response response = target(API_NAME).request().get();
 
@@ -69,7 +69,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(Optional.empty()).when(apiService).findById(API_NAME);
-        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_API);
+        doNothing().when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.VIEW_API);
 
         final Response response = target(API_NAME).request().get();
 
@@ -82,7 +82,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(new ApiEntity()).when(apiService).findById(API_NAME);
-        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.VIEW_API);
+        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.VIEW_API);
 
         final Response response = target(API_NAME).request().get();
 
@@ -95,7 +95,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
-        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        doNothing().when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
 
         final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
 
@@ -110,7 +110,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(Optional.empty()).when(apiService).findById(API_NAME);
-        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        doNothing().when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
 
         final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
 
@@ -123,7 +123,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
-        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
 
         final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
 
@@ -136,7 +136,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
-        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        doNothing().when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
 
         final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
 
@@ -149,7 +149,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(Optional.empty()).when(apiService).findById(API_NAME);
-        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        doNothing().when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
 
         final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
 
@@ -162,7 +162,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
-        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
 
         final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
 
@@ -177,7 +177,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setProxy(new Proxy());
 
         doReturn(new ApiEntity()).when(apiService).update(API_NAME, mockApi);
-        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        doNothing().when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
 
         final Response response = target(API_NAME).request().put(Entity.json(mockApi));
 
@@ -191,7 +191,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setDescription("Description of my API");
         mockApi.setProxy(new Proxy());
 
-        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
 
         final Response response = target(API_NAME).request().put(Entity.json(mockApi));
 
@@ -204,7 +204,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
-        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        doNothing().when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
 
         final Response response = target(API_NAME).request().delete();
 
@@ -216,7 +216,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotDeleteApiBecauseNotFound() {
         doReturn(Optional.empty()).when(apiService).findById(API_NAME);
-        doNothing().when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        doNothing().when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
 
         final Response response = target(API_NAME).request().delete();
 
@@ -229,7 +229,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setName(API_NAME);
 
         doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
-        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(USER_NAME, API_NAME, PermissionType.EDIT_API);
+        doThrow(ForbiddenAccessException.class).when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.EDIT_API);
 
         final Response response = target(API_NAME).request().delete();
 
