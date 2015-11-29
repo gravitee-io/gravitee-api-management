@@ -25,7 +25,7 @@ import java.util.List;
 public class Path {
     private String path;
 
-    private List<Method> methods = new ArrayList<>();
+    private List<Rule> rules = new ArrayList<>();
 
     public String getPath() {
         return path;
@@ -35,11 +35,11 @@ public class Path {
         this.path = path;
     }
 
-    public List<Method> getMethods() {
-        return methods;
+    public List<Rule> getRules() {
+        return rules;
     }
 
-    public void setMethods(List<Method> methods) {
-        this.methods = methods;
+    public void setRules(List<Rule> rules) {
+        this.rules = rules;
     }
 }

@@ -18,8 +18,8 @@ package io.gravitee.definition.jackson.datatype.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.Method;
 import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
 
 import java.io.IOException;
 
@@ -35,9 +35,9 @@ public class PathSerializer extends StdScalarSerializer<Path> {
 
     @Override
     public void serialize(Path path, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-        jgen.writeStartArray(path.getMethods().size());
-        for(Method method : path.getMethods()) {
-            jgen.writeObject(method);
+        jgen.writeStartArray(path.getRules().size());
+        for(Rule rule : path.getRules()) {
+            jgen.writeObject(rule);
         }
         jgen.writeEndArray();
     }

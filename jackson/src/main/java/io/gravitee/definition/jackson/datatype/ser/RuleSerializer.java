@@ -18,8 +18,7 @@ package io.gravitee.definition.jackson.datatype.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.Method;
-import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.Rule;
 
 import java.io.IOException;
 
@@ -27,25 +26,21 @@ import java.io.IOException;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author Gravitee.io Team
  */
-public class MethodSerializer extends StdScalarSerializer<Method> {
+public class RuleSerializer extends StdScalarSerializer<Rule> {
 
-    public MethodSerializer(Class<Method> t) {
+    public RuleSerializer(Class<Rule> t) {
         super(t);
     }
 
     @Override
-    public void serialize(Method method, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-        if (! method.getPolicies().isEmpty()) {
-            jgen.writeStartObject();
+    public void serialize(Rule rule, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+        jgen.writeStartObject();
 
-            jgen.writeFieldName("methods");
-            jgen.writeObject(method.getMethods());
+        jgen.writeFieldName("methods");
+        jgen.writeObject(rule.getMethods());
 
-            for (Policy policy : method.getPolicies()) {
-                jgen.writeObject(policy);
-            }
+        jgen.writeObject(rule.getPolicy());
 
-            jgen.writeEndObject();
-        }
+        jgen.writeEndObject();
     }
 }

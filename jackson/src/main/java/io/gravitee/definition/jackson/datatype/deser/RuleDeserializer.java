@@ -20,26 +20,27 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.Method;
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.Rule;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author Gravitee.io Team
  */
-public class MethodDeserializer extends StdScalarDeserializer<Method> {
+public class RuleDeserializer extends StdScalarDeserializer<Rule> {
 
-    public MethodDeserializer(Class<Method> vc) {
+    public RuleDeserializer(Class<Rule> vc) {
         super(vc);
     }
 
     @Override
-    public Method deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException {
+    public Rule deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        Method methodDefinition = new Method();
+
+        Rule rule = new Rule();
 
         node.fieldNames().forEachRemaining(field -> {
             JsonNode subNode = node.findValue(field);
@@ -47,14 +48,14 @@ public class MethodDeserializer extends StdScalarDeserializer<Method> {
             switch(field) {
                 case "methods":
                     if (subNode != null && subNode.isArray()) {
-                        HttpMethod [] methods = new HttpMethod[subNode.size()];
+                        HttpMethod[] methods = new HttpMethod[subNode.size()];
 
                         final int[] idx = {0};
                         subNode.elements().forEachRemaining(jsonNode -> {
                             methods[idx[0]++] = HttpMethod.valueOf(jsonNode.asText().toUpperCase());
                         });
 
-                        methodDefinition.setMethods(methods);
+                        rule.getMethods().addAll(Arrays.asList(methods));
                     }
                     break;
                 default:
@@ -69,13 +70,18 @@ public class MethodDeserializer extends StdScalarDeserializer<Method> {
                     policy.setName(field);
                     policy.setConfiguration(subNode.toString());
 
-                    methodDefinition.getPolicies().add(policy);
+                    rule.setPolicy(policy);
 
                     break;
             }
         });
 
-        return methodDefinition;
+        if (rule.getMethods().isEmpty()) {
+            rule.getMethods().addAll(Arrays.asList(
+                    HttpMethod.CONNECT, HttpMethod.DELETE, HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS,
+                    HttpMethod.PATCH, HttpMethod.POST, HttpMethod.PUT, HttpMethod.TRACE));
+        }
+
+        return rule;
     }
 }
-

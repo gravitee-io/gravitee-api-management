@@ -14,11 +14,28 @@
         "methods": ["GET", "POST"],
         "access-control": {
           "enabled": false
-        },
+        }
+      },
+      {
+        "methods": ["GET", "POST"],
+        "cors": {
+          "enabled": false
+        }
+      },
+      {
+        "methods": ["GET"],
         "rate-limit": {
-          "rate": 1000,
-          "per": 60,
-          "unit": "SECOND"
+          "periodTime": 60,
+          "limit": 20,
+          "periodTimeUnit": "SECONDS"
+        }
+      },
+      {
+        "methods": ["GET"],
+        "rate-limit": {
+          "periodTime": 1,
+          "limit": 200,
+          "periodTimeUnit": "HOURS"
         }
       }
     ]

@@ -20,14 +20,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Method;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.Rule;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.net.URL;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -76,8 +75,8 @@ public class JacksonDeserializerTest {
         Map<String, Path> paths = api.getPaths();
         Assert.assertEquals("/*", paths.keySet().iterator().next());
 
-        List<Method> subPaths = paths.get("/*").getMethods();
-        Assert.assertEquals(1, subPaths.size());
+        List<Rule> rules = paths.get("/*").getRules();
+        Assert.assertEquals(4, rules.size());
     }
 
     @Test
@@ -97,11 +96,11 @@ public class JacksonDeserializerTest {
 
         Map<String, Path> paths = api.getPaths();
 
-        List<Method> Methods = paths.get("/*").getMethods();
-        Assert.assertEquals(1, Methods.size());
+        List<Rule> rules = paths.get("/*").getRules();
+        Assert.assertEquals(4, rules.size());
 
-        HttpMethod[] methods = Methods.iterator().next().getMethods();
-        Assert.assertEquals(2, methods.length);
+        List<HttpMethod> methods = rules.iterator().next().getMethods();
+        Assert.assertEquals(2, methods.size());
     }
 
     @Test
@@ -113,55 +112,44 @@ public class JacksonDeserializerTest {
 
         Map<String, Path> paths = api.getPaths();
 
-        List<Method> Methods = paths.get("/*").getMethods();
-        Assert.assertEquals(1, Methods.size());
+        List<Rule> rules = paths.get("/*").getRules();
+        Assert.assertEquals(1, rules.size());
 
-        HttpMethod[] methods = Methods.iterator().next().getMethods();
-        Assert.assertEquals(9, methods.length);
+        List<HttpMethod> methods = rules.iterator().next().getMethods();
+        Assert.assertEquals(9, methods.size());
     }
 
     @Test
     public void definition_pathwithpolicies() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-defaultpath.json");
         Map<String, Path> paths = api.getPaths();
-        List<Method> Methods = paths.get("/*").getMethods();
+        List<Rule> rules = paths.get("/*").getRules();
 
-        List<Policy> policies = Methods.iterator().next().getPolicies();
-        Assert.assertEquals(2, policies.size());
-
-        Iterator<Policy> policyNames = policies.iterator();
-        Assert.assertEquals("access-control", policyNames.next().getName());
-        Assert.assertEquals("rate-limit", policyNames.next().getName());
+        Policy policy = rules.iterator().next().getPolicy();
+        Assert.assertNotNull(policy);
+        Assert.assertEquals("access-control", policy.getName());
     }
 
     @Test
     public void definition_pathwithpolicies_disabled() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-defaultpath.json");
         Map<String, Path> paths = api.getPaths();
-        List<Method> Methods = paths.get("/*").getMethods();
+        List<Rule> rules= paths.get("/*").getRules();
 
-        List<Policy> policies = Methods.iterator().next().getPolicies();
-        Assert.assertEquals(2, policies.size());
+        Policy policy = rules.iterator().next().getPolicy();
+        Assert.assertNotNull(policy);
 
-        Iterator<Policy> policyNames = policies.iterator();
-
-        Policy accessControlPolicy = policyNames.next();
-        Policy rateLimitPolicy = policyNames.next();
-
-        Assert.assertEquals("access-control", accessControlPolicy.getName());
-        Assert.assertFalse(accessControlPolicy.isEnabled());
-
-        Assert.assertEquals("rate-limit", rateLimitPolicy.getName());
-        Assert.assertTrue(rateLimitPolicy.isEnabled());
+        Assert.assertEquals("access-control", policy.getName());
+        Assert.assertFalse(policy.isEnabled());
     }
 
     @Test
     public void definition_pathwithoutpolicy() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-path-withoutpolicy.json");
         Map<String, Path> paths = api.getPaths();
-        List<Method> Methods = paths.get("/*").getMethods();
+        List<Rule> rules = paths.get("/*").getRules();
 
-        Assert.assertEquals(1, Methods.size());
+        Assert.assertEquals(0, rules.size());
     }
 
     @Test

@@ -24,28 +24,25 @@ import java.util.List;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author Gravitee.io Team
  */
-public class Method {
+public class Rule {
 
-    private HttpMethod[] methods = new HttpMethod[] {
-            HttpMethod.CONNECT, HttpMethod.DELETE, HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS,
-            HttpMethod.PATCH, HttpMethod.POST, HttpMethod.PUT, HttpMethod.TRACE
-    };
+    private List<HttpMethod> methods = new ArrayList<>();
 
-    private List<Policy> policies = new ArrayList<>();
+    private Policy policy;
 
-    public HttpMethod[] getMethods() {
+    public List<HttpMethod> getMethods() {
         return methods;
     }
 
-    public void setMethods(HttpMethod[] methods) {
+    public void setMethods(List<HttpMethod> methods) {
         this.methods = methods;
     }
 
-    public List<Policy> getPolicies() {
-        return policies;
+    public Policy getPolicy() {
+        return policy;
     }
 
-    public void setPolicies(List<Policy> policies) {
-        this.policies = policies;
+    public void setPolicy(Policy policy) {
+        this.policy = policy;
     }
 }

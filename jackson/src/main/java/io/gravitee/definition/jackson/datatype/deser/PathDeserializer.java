@@ -19,8 +19,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.Method;
 import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
 
 import java.io.IOException;
 
@@ -42,19 +42,14 @@ public class PathDeserializer extends StdScalarDeserializer<Path> {
         Path pathDefinition = new Path();
 
         if (node.isArray()) {
-            if (node.elements().hasNext()) {
-                node.elements().forEachRemaining(jsonNode -> {
-                    try {
-                        Method spd = jsonNode.traverse(jp.getCodec()).readValueAs(Method.class);
-                        pathDefinition.getMethods().add(spd);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-            } else {
-                // register default handler /* with no policy
-                pathDefinition.getMethods().add(new Method());
-            }
+            node.elements().forEachRemaining(jsonNode -> {
+                try {
+                    Rule rule = jsonNode.traverse(jp.getCodec()).readValueAs(Rule.class);
+                    pathDefinition.getRules().add(rule);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
 
         return pathDefinition;
