@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.reporter.impl;
 
-import io.gravitee.gateway.api.reporter.MetricsReporter;
 import io.gravitee.gateway.api.reporter.Reporter;
 import io.gravitee.gateway.core.reporter.ReporterManager;
 import io.gravitee.plugin.core.api.Plugin;
@@ -38,7 +37,7 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ReporterManagerImpl.class);
 
-    private final Collection<MetricsReporter> reporters = new ArrayList<>();
+    private final Collection<Reporter> reporters = new ArrayList<>();
 
     @Autowired
     private Environment environment;
@@ -47,7 +46,7 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
     private PluginContextFactory pluginContextFactory;
 
     @Override
-    public Collection<MetricsReporter> getReporters() {
+    public Collection<Reporter> getReporters() {
         return reporters;
     }
 
@@ -68,8 +67,8 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
         if (enabled) {
             try {
                 ApplicationContext context = pluginContextFactory.create(plugin);
-                MetricsReporter metricsReporter = createAsyncReporter(plugin, context);
-                reporters.add(metricsReporter);
+                Reporter reporter = createAsyncReporter(plugin, context);
+                reporters.add(reporter);
             } catch (Exception iae) {
                 LOGGER.error("Unexpected error while create reporter instance", iae);
                 // Be sure that the context does not exist anymore.
@@ -86,12 +85,12 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
         return enabled;
     }
 
-    private MetricsReporter createAsyncReporter(Plugin reporterPlugin, ApplicationContext applicationContext) {
-        AsyncReporterWrapper metricsReporter = new AsyncReporterWrapper(applicationContext.getBean(MetricsReporter.class));
-        metricsReporter.setReporterName(reporterPlugin.id());
-        metricsReporter.setQueueCapacity(environment.getProperty("reporter." + reporterPlugin.id() + ".queue.size", int.class, 10240));
-        metricsReporter.setPollingTimeout(environment.getProperty("reporter." + reporterPlugin.id() + ".queue.pollingTimeout", long.class, 1000l));
+    private Reporter createAsyncReporter(Plugin reporterPlugin, ApplicationContext applicationContext) {
+        AsyncReporterWrapper reporter = new AsyncReporterWrapper(applicationContext.getBean(Reporter.class));
+        reporter.setReporterName(reporterPlugin.id());
+        reporter.setQueueCapacity(environment.getProperty("reporter." + reporterPlugin.id() + ".queue.size", int.class, 10240));
+        reporter.setPollingTimeout(environment.getProperty("reporter." + reporterPlugin.id() + ".queue.pollingTimeout", long.class, 1000l));
 
-        return metricsReporter;
+        return reporter;
     }
 }

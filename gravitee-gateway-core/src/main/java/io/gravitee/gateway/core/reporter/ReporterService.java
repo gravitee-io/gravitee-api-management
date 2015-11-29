@@ -16,12 +16,12 @@
 package io.gravitee.gateway.core.reporter;
 
 import io.gravitee.common.service.Service;
-import io.gravitee.gateway.api.metrics.Metrics;
+import io.gravitee.gateway.api.reporter.Reportable;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface ReporterService extends Service {
 
-    void report(Metrics metrics);
+    void report(Reportable reportable);
 }

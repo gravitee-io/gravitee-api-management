@@ -15,9 +15,15 @@
  */
 package io.gravitee.gateway.services.monitoring;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.api.reporter.monitor.HealthStatus;
+import io.gravitee.gateway.core.reporter.ReporterService;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -31,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
+import java.net.SocketTimeoutException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -44,6 +51,8 @@ public class EndpointMonitor implements Runnable {
 
     private final static int GLOBAL_TIMEOUT = 2000;
 
+    private ReporterService reporterService;
+
     private final HttpClient httpClient;
 
     private final Api api;
@@ -56,21 +65,20 @@ public class EndpointMonitor implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.debug("Running monitor for ", api);
+        LOGGER.debug("Running monitor for {}", api);
 
-        /*
-        HealthStatus health = (HealthStatus) HealthStatus
-                .forApi(api)
+        HealthStatus health = HealthStatus
+                .forApi(api.getId())
                 .on(System.currentTimeMillis())
                 .build();
 
         // Bullshit from Apache HTTP client
         HttpRequestBase request = (HttpRequestBase)
-                RequestBuilder.get().setUri(monitor.getUrl()).build();
+                RequestBuilder.get().setUri(api.getMonitoring().getEndpoint()).build();
 
         try {
             HttpResponse resp = httpClient.execute(request);
-            LOGGER.debug("{} ::: {}", monitor.getUrl(), resp.getStatusLine().getStatusCode());
+            LOGGER.debug("{} ::: {}", api.getMonitoring().getEndpoint(), resp.getStatusLine().getStatusCode());
 
             health.setStatus(resp.getStatusLine().getStatusCode());
         } catch (SocketTimeoutException ste) {
@@ -82,9 +90,8 @@ public class EndpointMonitor implements Runnable {
             request.releaseConnection();
         }
 
-        LOGGER.debug("Report health results for " + api.getName());
-        reporter.report(health);
-        */
+        LOGGER.debug("Report health results for {}", api);
+        reporterService.report(health);
     }
 
     private HttpClient createHttpClient() {
@@ -137,5 +144,9 @@ public class EndpointMonitor implements Runnable {
                 .setDefaultRequestConfig(requestConfig);
 
         return clientBuilder.build();
+    }
+
+    public void setReporterService(ReporterService reporterService) {
+        this.reporterService = reporterService;
     }
 }

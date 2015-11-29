@@ -22,4 +22,5 @@ import io.gravitee.common.service.Service;
  */
 public interface Reporter extends Service {
 
+    void report(Reportable data);
 }

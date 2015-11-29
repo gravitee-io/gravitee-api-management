@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.api.reporter;
 
-import io.gravitee.gateway.api.metrics.Metrics;
+import java.time.Instant;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface MetricsReporter extends Reporter {
+public interface Reportable {
 
-    void report(Metrics metrics);
+    Instant timestamp();
 }

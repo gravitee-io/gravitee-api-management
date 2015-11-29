@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.api.metrics;
+package io.gravitee.gateway.api.reporter.metrics;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.gateway.api.reporter.Reportable;
 
 import java.time.Instant;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class Metrics {
+public class Metrics implements Reportable {
 
     private long proxyResponseTimeMs = -1;
 
@@ -182,5 +183,10 @@ public class Metrics {
 
     public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
+    }
+
+    @Override
+    public Instant timestamp() {
+        return this.requestTimestamp;
     }
 }

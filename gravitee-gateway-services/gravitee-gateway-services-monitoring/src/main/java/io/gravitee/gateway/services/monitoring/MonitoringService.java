@@ -22,11 +22,13 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Monitoring;
 import io.gravitee.gateway.core.event.ApiEvent;
+import io.gravitee.gateway.core.reporter.ReporterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,6 +45,9 @@ public class MonitoringService extends AbstractService implements EventListener<
     @Autowired
     private EventManager eventManager;
 
+    @Autowired
+    private ReporterService reporterService;
+
     private final Map<Api, ExecutorService> monitors = new HashMap<>();
 
     @Override
@@ -56,7 +61,13 @@ public class MonitoringService extends AbstractService implements EventListener<
     protected void doStop() throws Exception {
         super.doStop();
 
-        monitors.forEach((api, executorService) -> stopMonitor(api));
+        Iterator<Map.Entry<Api, ExecutorService>> ite = monitors.entrySet().iterator();
+        while (ite.hasNext())
+        {
+            Map.Entry<Api, ExecutorService> entry = ite.next();
+            stopMonitor(entry.getKey(), entry.getValue());
+            ite.remove();
+        }
     }
 
     @Override
@@ -76,35 +87,41 @@ public class MonitoringService extends AbstractService implements EventListener<
                 stopMonitor(api);
                 break;
             case UPDATE:
-        }
-        if (api.getMonitoring() != null && api.getMonitoring().isEnabled()) {
-            startMonitor(api);
+                stopMonitor(api);
+                startMonitor(api);
+                break;
         }
     }
 
     private void startMonitor(Api api) {
-        Monitoring monitoring = api.getMonitoring();
-        if (monitoring != null) {
-            if (monitoring.isEnabled()) {
-                LOGGER.info("Create an executor to monitor {}", api);
+        Monitoring monitoring = new Monitoring();
+        monitoring.setEnabled(true);
+        monitoring.setInterval(5000);
+        monitoring.setUnit(TimeUnit.MILLISECONDS);
+        monitoring.setEndpoint(api.getProxy().getEndpoint());
+        api.setMonitoring(monitoring);
 
-                EndpointMonitor monitor = new EndpointMonitor(api);
+        //    Monitoring monitoring = api.getMonitoring();
+        if (monitoring != null && monitoring.isEnabled()) {
+            LOGGER.info("Create an executor to monitor {}", api);
 
-                ExecutorService executor = Executors.newSingleThreadScheduledExecutor(
-                        r -> new Thread(r, "monitor-" + api.getName()));
+            EndpointMonitor monitor = new EndpointMonitor(api);
+            monitor.setReporterService(reporterService);
 
-                monitors.put(api, executor);
+            ExecutorService executor = Executors.newSingleThreadScheduledExecutor(
+                    r -> new Thread(r, "monitor-" + api.getName()));
 
-                LOGGER.info("Start monitor for {}", api);
-                ((ScheduledExecutorService) executor).scheduleWithFixedDelay(monitor, 0, 5, TimeUnit.SECONDS);
-            } else {
-                LOGGER.info("Monitoring is disabled for {}", api);
-            }
+            monitors.put(api, executor);
+
+            LOGGER.info("Start monitor for {}", api);
+            ((ScheduledExecutorService) executor).scheduleWithFixedDelay(
+                    monitor, 0, monitoring.getInterval(), monitoring.getUnit());
+        } else {
+            LOGGER.info("Monitoring is disabled for {}", api);
         }
     }
 
-    private void stopMonitor(Api api) {
-        ExecutorService executor = monitors.remove(api);
+    private void stopMonitor(Api api, ExecutorService executor) {
         if (executor != null) {
             if (! executor.isShutdown()) {
                 LOGGER.info("Stop monitor for {}", api);
@@ -113,5 +130,9 @@ public class MonitoringService extends AbstractService implements EventListener<
                 LOGGER.info("Monitor already shutdown for {}", api);
             }
         }
+    }
+
+    private void stopMonitor(Api api) {
+        stopMonitor(api, monitors.get(api));
     }
 }

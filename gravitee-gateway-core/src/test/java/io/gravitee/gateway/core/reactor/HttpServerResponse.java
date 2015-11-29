@@ -18,7 +18,7 @@ package io.gravitee.gateway.core.reactor;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.http.BodyPart;
-import io.gravitee.gateway.api.metrics.Metrics;
+import io.gravitee.gateway.api.reporter.metrics.Metrics;
 
 /**
  *

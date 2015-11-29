@@ -45,7 +45,7 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
     @Value("${services.sync.enabled:true}")
     private boolean enabled;
 
-    @Value("${local.enabled:false}")
+    @Value("${services.local.enabled:false}")
     private boolean localRegistryEnabled;
 
     @Autowired

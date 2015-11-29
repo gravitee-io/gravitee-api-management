@@ -16,17 +16,17 @@
 package io.gravitee.gateway.core.reporter;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.api.metrics.Metrics;
-import io.gravitee.gateway.api.reporter.MetricsReporter;
+import io.gravitee.gateway.api.reporter.Reportable;
+import io.gravitee.gateway.api.reporter.Reporter;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ConsoleReporter extends AbstractService implements MetricsReporter {
+public class ConsoleReporter extends AbstractService implements Reporter {
 
     @Override
-    public void report(Metrics metrics) {
-        System.out.println(metrics);
+    public void report(Reportable reportable) {
+        System.out.println(reportable);
     }
 
 }

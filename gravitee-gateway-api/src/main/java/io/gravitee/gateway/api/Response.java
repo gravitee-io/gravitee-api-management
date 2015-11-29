@@ -17,7 +17,7 @@ package io.gravitee.gateway.api;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.http.BodyPart;
-import io.gravitee.gateway.api.metrics.Metrics;
+import io.gravitee.gateway.api.reporter.metrics.Metrics;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

@@ -16,8 +16,8 @@
 package io.gravitee.gateway.core.reporter.impl;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.api.metrics.Metrics;
-import io.gravitee.gateway.api.reporter.MetricsReporter;
+import io.gravitee.gateway.api.reporter.Reportable;
+import io.gravitee.gateway.api.reporter.Reporter;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,13 +28,13 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public final class AsyncReporterWrapper extends AbstractService implements MetricsReporter {
+public final class AsyncReporterWrapper extends AbstractService implements Reporter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncReporterWrapper.class);
 
-    private final MetricsReporter metricsReporter;
+    private final Reporter reporter;
 
-    private BlockingQueue<Metrics> queue;
+    private BlockingQueue<Reportable> queue;
 
     private transient WriterThread thread;
 
@@ -46,8 +46,8 @@ public final class AsyncReporterWrapper extends AbstractService implements Metri
 
     private long pollingTimeout;
 
-    public AsyncReporterWrapper(MetricsReporter metricsReporter) {
-        this.metricsReporter = metricsReporter;
+    public AsyncReporterWrapper(Reporter reporter) {
+        this.reporter = reporter;
     }
 
     @Override
@@ -60,7 +60,7 @@ public final class AsyncReporterWrapper extends AbstractService implements Metri
         this.thread = new WriterThread();
         this.thread.start();
 
-        this.metricsReporter.start();
+        this.reporter.start();
         LOGGER.info("Start async reporter for {} : DONE", getReporterName());
     }
 
@@ -71,13 +71,13 @@ public final class AsyncReporterWrapper extends AbstractService implements Metri
         thread.join();
         super.doStop();
         thread = null;
-        this.metricsReporter.stop();
+        this.reporter.stop();
         LOGGER.info("Stop async reporter for {} : DONE", getReporterName());
     }
 
     @Override
-    public void report(Metrics metrics) {
-        if (!this.queue.offer(metrics)) {
+    public void report(Reportable reportable) {
+        if (!this.queue.offer(reportable)) {
             if (this.warnedFull) {
                 // TODO: provide a programmatic overflow to disk feature
                 LOGGER.warn("Async reporter's queue overflow !");
@@ -125,15 +125,15 @@ public final class AsyncReporterWrapper extends AbstractService implements Metri
         public void run() {
             while (running) {
                 try {
-                    Metrics metrics = AsyncReporterWrapper.this.queue.poll(getPollingTimeout(), TimeUnit.MILLISECONDS);
-                    if (metrics != null) {
-                        AsyncReporterWrapper.this.metricsReporter.report(metrics);
+                    Reportable reportable = AsyncReporterWrapper.this.queue.poll(getPollingTimeout(), TimeUnit.MILLISECONDS);
+                    if (reportable != null) {
+                        AsyncReporterWrapper.this.report(reportable);
                     }
 
                     while (!AsyncReporterWrapper.this.queue.isEmpty()) {
-                        metrics = AsyncReporterWrapper.this.queue.poll();
-                        if (metrics != null) {
-                            AsyncReporterWrapper.this.metricsReporter.report(metrics);
+                        reportable = AsyncReporterWrapper.this.queue.poll();
+                        if (reportable != null) {
+                            AsyncReporterWrapper.this.reporter.report(reportable);
                         }
                     }
                 } catch (InterruptedException ie) {
