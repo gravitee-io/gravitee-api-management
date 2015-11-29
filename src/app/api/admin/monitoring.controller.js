@@ -22,19 +22,19 @@ class ApiMonitoringController {
     this.$scope = $scope;
     this.$state = $state;
     this.api = resolvedApi.data;
+    this.timeUnits = [ 'milliseconds', 'seconds', 'minutes' ];
   }
 
-  changeMonitoringState(id) {
-    console.log('cool: ' + id);
-
+  switchEnabled(enabled) {
+    this.api.monitoring.enabled = enabled;
+    this.update();
   }
 
-  update(api) {
+  update() {
     var _this = this;
-    this.ApiService.update(api).then((updatedApi) => {
+    this.ApiService.update(this.api).then((updatedApi) => {
       _this.api = updatedApi.data;
-    //  this.initState();
-      _this.formApiMonitoring.$setPristine();
+      _this.$scope.formApiMonitoring.$setPristine();
     });
   }
 }

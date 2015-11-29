@@ -17,18 +17,21 @@
 -->
 
 <div layout="" layout-sm="column">
-  <md-switch ng-model="monitoringEnabled" ng-change="monitoringCtrl.changeMonitoringState(monitoringCtrl.api.id)" class="md-block">
+  <md-switch ng-model="api.monitoring.enabled"
+             ng-change="monitoringCtrl.switchEnabled(api.monitoring.enabled)" class="md-block">
     Enabled
   </md-switch>
 </div>
 
-<form name="formApiMonitoring" ng-submit="monitoringCtrl.update(monitoringCtrl.api)" novalidate>
-  <div layout="column" layout-sm="column">
+<form name="formApiMonitoring" ng-submit="monitoringCtrl.update()" novalidate>
+  <div layout="column" layout-sm="column" flex="20">
     <md-input-container class="flex">
       <label>Endpoint</label>
       <input ng-model="monitoringCtrl.api.monitoring.endpoint" type="text" ng-required="true">
     </md-input-container>
+  </div>
 
+  <div layout="" layout-sm="column" flex="20">
     <md-input-container class="flex">
       <label>Interval</label>
       <input ng-model="monitoringCtrl.api.monitoring.interval" type="number" ng-required="true">
@@ -36,7 +39,9 @@
 
     <md-input-container class="flex">
       <label>Time Unit</label>
-      <input ng-model="monitoringCtrl.api.monitoring.unit" type="text" ng-required="true">
+      <md-select ng-model="monitoringCtrl.api.monitoring.unit" placeholder="Time unit" ng-required="true">
+        <md-option ng-repeat="timeUnit in monitoringCtrl.timeUnits">{{timeUnit}}</md-option>
+      </md-select>
     </md-input-container>
   </div>
 
