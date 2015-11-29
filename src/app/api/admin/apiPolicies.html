@@ -39,32 +39,35 @@
       <md-divider></md-divider>
     </div>
     <md-list class="gravitee-policy-dropzone">
-      <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPolicies" ng-click="apiPoliciesCtrl.displayPolicyToConfigure(policy)">
+      <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPolicies" ng-click="apiPoliciesCtrl.editPolicy($index)">
         <div class="md-list-item-text">
           <div id="apiPolicy-name">{{policy.name}}</div>
+          <span class="badge" ng-if="policy.values.methods.length === apiPoliciesCtrl.httpVerbs.length">ALL</span>
+          <div ng-if="policy.values.methods.length != apiPoliciesCtrl.httpVerbs.length">
+            <span class="badge" ng-repeat="method in policy.values.methods">{{method | uppercase}}</span>
+          </div>
         </div>
       </md-list-item>
       <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPolicies.length == 0">Drag a policy here.</span>
-      <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPolicies.length > 0">Select a policy to configure or drag a new one.</span>
     </md-list>
   </div>
 
   <div flex="25">
-    <div ng-if="apiPoliciesCtrl.selectApiPolicy.name">
+    <div ng-if="apiPoliciesCtrl.selectedApiPolicy.id">
       <div class="inset">
-        <h5>Configuration: {{apiPoliciesCtrl.selectApiPolicy.name}}</h5>
+        <h5>Configuration: {{apiPoliciesCtrl.selectedApiPolicy.name}}</h5>
         <md-divider></md-divider>
       </div>
       <form name="projectForm">
-        <md-input-container class="md-block">
-          <label>PeriodTime</label>
-          <input  name="description" >
-        </md-input-container>
-        <md-input-container class="md-block">
-          <label>Limit</label>
-          <input name="clientName">
-        </md-input-container>
-        <md-button class="md-raised md-warn"> Remove </md-button>
+        <div layout="row" layout-wrap>
+          <span flex="20" class="badge gravitee-policy-method-badge"
+                ng-class="apiPoliciesCtrl.getHttpVerbClass(httpVerb)"
+                ng-repeat="httpVerb in apiPoliciesCtrl.httpVerbs"
+                ng-click="apiPoliciesCtrl.toggleHttpVerb(httpVerb)"
+          >
+            {{httpVerb | uppercase}}
+          </span>
+        </div>
       </form>
     </div>
   </div>

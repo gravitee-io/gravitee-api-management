@@ -27,14 +27,20 @@ class ApiPoliciesController {
 
     this.policies = [];
     this.apiPolicies = [];
-    this.policiesSchemaMap = new Map();
-    this.selectApiPolicy = {};
-    this.listAllPoliciesWithSchema();
+    this.selectedApiPolicy = {};
+    this.listAllPoliciesWithSchema().then(
+      this.initDragular()
+    );
+    this.httpVerbs = ['get','post','put','delete','head','patch','options','trace','connect'];
+    this.defaultPolicyValues = { values: {
+      methods: this.httpVerbs
+    }};
   }
 
   initDragular() {
     var dragularSrcOptions= document.querySelector('.gravitee-policy-draggable'),
       dragularApiOptions = document.querySelector('.gravitee-policy-dropzone');
+
     this.DragularService([dragularSrcOptions], {
       copy: true,
       scope: this.$scope,
@@ -47,7 +53,7 @@ class ApiPoliciesController {
     });
 
     this.DragularService([dragularApiOptions], {
-      copy: true,
+      copy: false,
       scope: this.$scope,
       containersModel: this.apiPolicies,
       classes: {
@@ -56,18 +62,31 @@ class ApiPoliciesController {
       nameSpace: 'policies',
       accepts: this.acceptDragDrop
     });
+
+   /* this.$scope.$on('dragulardrop', function(event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList) {
+      console.log(draggableObjList ,"\n", draggableIndex ,"\n", dropzoneObjList );
+    });
+    */
   }
 
   listAllPoliciesWithSchema() {
-    this.PolicyService.list().then(response => {
-      this.policies = response.data;
-      this.initDragular();
-      for (var policy of this.policies) {
-        this.PolicyService.getSchema(policy.id).then(response => {
-          this.policiesSchemaMap.set(policy.id, response.data);
-        });
-      }
-     });
+    return Promise.resolve(
+      this.PolicyService.list().then(response => {
+        for (var originalPolicy of response.data) {
+          ((service, originalPolicy, policies, defaultValues) => {
+            service.getSchema(originalPolicy.id).then(response => {
+              var schema = { schema: response.data };
+              var properties = Object.keys(response.data.properties);
+              var valuesObj = {};
+              angular.copy(defaultValues, valuesObj);
+              for ( var property of properties ) {
+                valuesObj.values[property] = null;
+              }
+              policies.push(Object.assign({}, originalPolicy, schema, valuesObj));
+            });
+          })(this.PolicyService, originalPolicy, this.policies, this.defaultPolicyValues);
+        }
+      }));
   }
 
   acceptDragDrop(el, target, source) {
@@ -86,8 +105,21 @@ class ApiPoliciesController {
     });
   }
 
-  displayPolicyToConfigure(policy) {
-    this.selectApiPolicy = policy;
+  editPolicy(index) {
+    this.selectedApiPolicy = this.apiPolicies[index];
+  }
+
+  getHttpVerbClass(verb) {
+    return "gravitee-policy-method-badge-" + (this.selectedApiPolicy.values.methods.indexOf(verb) > -1 ? "selected" : "unselected")
+  }
+
+  toggleHttpVerb(verb) {
+    var index = this.selectedApiPolicy.values.methods.indexOf(verb);
+    if ( index > -1 ) {
+      this.selectedApiPolicy.values.methods.splice(index, 1);
+    } else {
+      this.selectedApiPolicy.values.methods.push(verb);
+    }
   }
 }
 
