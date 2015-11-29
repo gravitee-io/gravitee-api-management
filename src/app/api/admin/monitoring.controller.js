@@ -22,11 +22,13 @@ class ApiMonitoringController {
     this.$scope = $scope;
     this.$state = $state;
     this.api = resolvedApi.data;
+    this.monitoringEnabled = this.api.monitoring.enabled;
     this.timeUnits = [ 'milliseconds', 'seconds', 'minutes' ];
   }
 
-  switchEnabled(enabled) {
-    this.api.monitoring.enabled = enabled;
+  switchEnabled() {
+    this.api.monitoring.enabled = this.monitoringEnabled;
+    console.log(this.api.monitoring.enabled);
     this.update();
   }
 
