@@ -9,10 +9,8 @@
     font-weight: bold;
   }
   md-list-item {
-    border: thin solid #546E7A;
-    border-top-width: 0;
-    border-right-width: 0;
-    border-left-width: 0;
+    border: 0 solid #546E7A;
+    border-bottom-width: thin;
     margin: -1px 0;
     min-height: 33px;
   }
@@ -20,9 +18,7 @@
 
 .gravitee-policy-draggable {
   md-list-item {
-    border-left-width: medium;
-    border-left-style: dotted;
-    border-left-color: #546E7A;
+    border-left: medium dotted #546E7A;
     margin: 15px 0;
     min-height: 33px;
     cursor: grab;

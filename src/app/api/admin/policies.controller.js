@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApiPoliciesController {
-  constructor (ApiService, resolvedApi, PolicyService, $state, $mdDialog, NotificationService, $scope, dragularService) {
+  constructor (ApiService, resolvedApi, PolicyService, $state, $mdDialog, NotificationService, $scope, dragularService, $q) {
     'ngInject';
     this.ApiService = ApiService;
     this.PolicyService = PolicyService;
@@ -23,19 +23,44 @@ class ApiPoliciesController {
     this.NotificationService = NotificationService;
     this.$scope = $scope;
     this.$state = $state;
-    this.initialApi = _.cloneDeep(resolvedApi.data);
+    this.$q = $q;
+    this.apiPoliciesByPath = new Map();
+    if ( resolvedApi.data.paths["/*"] ) {
+      this.apiPoliciesByPath.set("/*", _.cloneDeep(resolvedApi.data.paths["/*"]));
+    } else {
+      this.apiPoliciesByPath.set("/*", []);
+    }
+    this.completeApiPolicies(this.apiPoliciesByPath);
+    this.policySchemaMap = new Map();
+    this.policyMap = new Map();
+    this.policiesToCopy = [];
 
-    this.policies = [];
-    this.apiPolicies = [];
     this.selectedApiPolicy = {};
-    this.selectedApiPolicyProperties = [];
-    this.listAllPoliciesWithSchema().then(
+    this.listAllPoliciesWithSchema().then( () => {
       this.initDragular()
-    );
+    });
     this.httpVerbs = ['GET','POST','PUT','DELETE','HEAD','PATCH','OPTIONS','TRACE','CONNECT'];
-    this.defaultPolicyValues = { values: {
-      methods: this.httpVerbs
-    }};
+  }
+
+  completeApiPolicies(pathMap) {
+    for ( var pathPolicies of pathMap.values()) {
+      for ( var apiPolicy of pathPolicies ) {
+        for (var property of Object.keys(apiPolicy)) {
+          if (property != "methods") {
+            apiPolicy.policyId = property;
+          }
+        }
+        if ( !apiPolicy.methods ) {
+          apiPolicy.methods = _.clone(this.httpVerbs);
+        }
+        //TODO hack temporaire à supprimer lors de la mise a jour de demo
+        else {
+          for ( var idx = 0 ; idx < apiPolicy.methods.length; idx++ ) {
+            apiPolicy.methods[idx] = apiPolicy.methods[idx].toUpperCase();
+          }
+        }
+      }
+    }
   }
 
   initDragular() {
@@ -45,7 +70,7 @@ class ApiPoliciesController {
     this.DragularService([dragularSrcOptions], {
       copy: true,
       scope: this.$scope,
-      containersModel: this.policies,
+      containersModel: this.policiesToCopy,
       classes: {
         unselectable: 'gravitee-policy-draggable-selected'
       },
@@ -56,7 +81,7 @@ class ApiPoliciesController {
     this.DragularService([dragularApiOptions], {
       copy: false,
       scope: this.$scope,
-      containersModel: this.apiPolicies,
+      containersModel: this.apiPoliciesByPath.get("/*"),
       classes: {
         unselectable: 'gravitee-policy-draggable-selected'
       },
@@ -70,23 +95,28 @@ class ApiPoliciesController {
   }
 
   listAllPoliciesWithSchema() {
-    return Promise.resolve(
-      this.PolicyService.list().then(response => {
-        for (var originalPolicy of response.data) {
-          ((service, originalPolicy, policies, defaultValues) => {
-            service.getSchema(originalPolicy.id).then(response => {
-              var schema = { schema: response.data };
-              var properties = Object.keys(response.data.properties);
-              var valuesObj = {};
-              angular.copy(defaultValues, valuesObj);
-              for ( var property of properties ) {
-                valuesObj.values[property] = null;
-              }
-              policies.push(Object.assign({}, originalPolicy, schema, valuesObj));
-            });
-          })(this.PolicyService, originalPolicy, this.policies, this.defaultPolicyValues);
-        }
-      }));
+    return this.$q( (resolve) => {
+      resolve(
+        this.PolicyService.list().then(response => {
+          for (var originalPolicy of response.data) {
+            this.policyMap.set(originalPolicy.id, originalPolicy);
+            ((service, originalPolicy, policiesToCopy, httpVerbs, policySchemaMap) => {
+              service.getSchema(originalPolicy.id).then(response => {
+                var policy = {};
+                policy.policyId = originalPolicy.id;
+                policy.methods = httpVerbs;
+                policy[originalPolicy.id] = {};
+                var properties = Object.keys(response.data.properties);
+                for (var property of properties) {
+                  policy[originalPolicy.id][property] = null;
+                }
+                policySchemaMap.set(originalPolicy.id, response.data.properties);
+                policiesToCopy.push(policy);
+              });
+            })(this.PolicyService, originalPolicy, this.policiesToCopy, this.httpVerbs, this.policySchemaMap);
+          }
+        }))
+    });
   }
 
   acceptDragDrop(el, target, source) {
@@ -94,33 +124,21 @@ class ApiPoliciesController {
     return (source === draggable || source === target);
   }
 
-  listPolicies(apiName) {
-    this.ApiService.listPolicies(apiName).then(response => {
-      // TODO filter request, response and request/response policies
-      this.policies = {
-        'OnRequest': response.data,
-        'OnResponse': [],
-        'OnRequest/OnResponse': []
-      };
-    });
-  }
-
   editPolicy(index) {
-    this.selectedApiPolicy = this.apiPolicies[index];
-    this.selectedApiPolicyProperties = Object.keys(this.selectedApiPolicy.schema.properties);
+    this.selectedApiPolicy = this.apiPoliciesByPath.get("/*")[index];
   }
 
   getHttpVerbClass(verb) {
     return "gravitee-policy-method-badge-" +
-      (this.selectedApiPolicy.values.methods.indexOf(verb) > -1 ? "selected" : "unselected");
+      (this.selectedApiPolicy.methods.indexOf(verb) > -1 ? "selected" : "unselected");
   }
 
   toggleHttpVerb(verb) {
-    var index = this.selectedApiPolicy.values.methods.indexOf(verb);
+    var index = this.selectedApiPolicy.methods.indexOf(verb);
     if ( index > -1 ) {
-      this.selectedApiPolicy.values.methods.splice(index, 1);
+      this.selectedApiPolicy.methods.splice(index, 1);
     } else {
-      this.selectedApiPolicy.values.methods.push(verb);
+      this.selectedApiPolicy.methods.push(verb);
     }
   }
 
@@ -137,9 +155,9 @@ class ApiPoliciesController {
     this.$mdDialog
       .show(alert)
       .then(function () {
-        for ( var idx = 0; idx < that.apiPolicies.length; idx++ ) {
-          if ( that.apiPolicies[idx].$$hashKey === that.selectedApiPolicy.$$hashKey ) {
-            that.apiPolicies.splice(idx, 1);
+        for ( var idx = 0; idx < that.apiPoliciesByPath.get("/*").length; idx++ ) {
+          if ( that.apiPoliciesByPath.get("/*")[idx].$$hashKey === that.selectedApiPolicy.$$hashKey ) {
+            that.apiPoliciesByPath.get("/*").splice(idx, 1);
             that.selectedApiPolicy = null;
           }
         }
@@ -147,18 +165,10 @@ class ApiPoliciesController {
   }
 
   savePaths() {
-    var pathPolicy = [];
-    for ( var policy of this.apiPolicies ) {
-      var p = {};
-      p.methods = policy.values.methods;
-      p[policy.id] = {};
-      var props = Object.keys(policy.schema.properties);
-      for ( var prop of props ) {
-        p[policy.id][prop] = policy.values[prop];
-      }
-      pathPolicy.push(p);
+    this.$scope.$parent.apiCtrl.api.paths["/*"] = _.cloneDeep(this.apiPoliciesByPath.get("/*"));
+    for ( var policy of this.$scope.$parent.apiCtrl.api.paths["/*"] ) {
+      delete policy.policyId;
     }
-    this.$scope.$parent.apiCtrl.api.paths["/*"] = pathPolicy;
     this.ApiService.update(this.$scope.$parent.apiCtrl.api);
   }
 }

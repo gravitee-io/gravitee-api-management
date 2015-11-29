@@ -19,15 +19,15 @@
 
   <div flex="25">
     <div class="inset">
-      <h5>Policies ({{apiPoliciesCtrl.policies.length}})</h5>
+      <h5>Policies ({{apiPoliciesCtrl.policiesToCopy.length}})</h5>
       <md-divider></md-divider>
     </div>
     <md-list class="gravitee-policy-draggable">
-      <md-list-item ng-repeat="policy in apiPoliciesCtrl.policies">
+      <md-list-item ng-repeat="policy in apiPoliciesCtrl.policiesToCopy">
         <div class="md-list-item-text">
-          <div id="policy-name">{{policy.name}}</div>
-          <div id="policy-version">{{policy.version}}</div>
-          <div>{{policy.type}}</div>
+          <div id="policy-name">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</div>
+          <div id="policy-version">{{apiPoliciesCtrl.policyMap.get(policy.policyId).version}}</div>
+          <div>{{apiPoliciesCtrl.policyMap.get(policy.policyId).type}}</div>
         </div>
       </md-list-item>
     </md-list>
@@ -39,23 +39,23 @@
       <md-divider></md-divider>
     </div>
     <md-list class="gravitee-policy-dropzone">
-      <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPolicies" ng-click="apiPoliciesCtrl.editPolicy($index)">
+      <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath.get('/*')" ng-click="apiPoliciesCtrl.editPolicy($index)">
         <div class="md-list-item-text">
-          <div id="apiPolicy-name">{{policy.name}}</div>
-          <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-if="policy.values.methods.length === apiPoliciesCtrl.httpVerbs.length">ALL</span>
-          <div ng-if="policy.values.methods.length != apiPoliciesCtrl.httpVerbs.length">
-            <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-repeat="method in policy.values.methods">{{method}}</span>
+          <div id="apiPolicy-name">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</div>
+          <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpVerbs.length">ALL</span>
+          <div ng-if="policy.methods.length != apiPoliciesCtrl.httpVerbs.length">
+            <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
           </div>
         </div>
       </md-list-item>
-      <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPolicies.length == 0">Drag a policy here.</span>
+      <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPoliciesByPath.get('/*').length == 0">Drag a policy here.</span>
     </md-list>
   </div>
 
   <div flex="25">
-    <div ng-if="apiPoliciesCtrl.selectedApiPolicy.id">
+    <div ng-if="apiPoliciesCtrl.selectedApiPolicy.policyId">
       <div class="inset">
-        <h5>{{apiPoliciesCtrl.selectedApiPolicy.name}}</h5>
+        <h5>{{apiPoliciesCtrl.policyMap.get(apiPoliciesCtrl.selectedApiPolicy.policyId).name}}</h5>
         <md-divider></md-divider>
       </div>
       <form name="projectForm" novalidate>
@@ -63,32 +63,25 @@
           <span flex="20" class="badge gravitee-policy-method-badge"
                 ng-class="apiPoliciesCtrl.getHttpVerbClass(httpVerb)"
                 ng-repeat="httpVerb in apiPoliciesCtrl.httpVerbs"
-                ng-click="apiPoliciesCtrl.toggleHttpVerb(httpVerb)"
-          >
-            {{httpVerb}}
+                ng-click="apiPoliciesCtrl.toggleHttpVerb(httpVerb)">
+            {{httpVerb | uppercase}}
           </span>
         </div>
-        <md-input-container class="md-block" ng-repeat="prop in apiPoliciesCtrl.selectedApiPolicyProperties">
-
-          <md-checkbox ng-if="'boolean' === apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type"
-                       ng-model="apiPoliciesCtrl.selectedApiPolicy.values[prop]"
-                       aria-label="{{prop}}"> {{prop}} </md-checkbox>
-          <span ng-if="'string'=== apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type
-                    || 'integer'=== apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type">
-            <label>{{prop}}</label>
-            <input ng-if="'integer' === apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type"
-                   ng-model="apiPoliciesCtrl.selectedApiPolicy.values[prop]"
+        <md-input-container class="md-block" ng-repeat="(k,v) in apiPoliciesCtrl.policySchemaMap.get(apiPoliciesCtrl.selectedApiPolicy.policyId)">
+          <md-checkbox ng-if="'boolean' === v.type"
+                       ng-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId][k]"
+                       aria-label="{{k}}"> {{k}} </md-checkbox>
+          <span ng-if="'string'=== v.type || 'integer'=== v.type">
+            <label>{{k}}</label>
+            <input ng-if="'integer' === v.type"
+                   ng-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId][k]"
                    type="number" >
-            <input ng-if="'string' === apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type
-                       && !apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].enum"
-                   ng-model="apiPoliciesCtrl.selectedApiPolicy.values[prop]"
+            <input ng-if="'string' === v.type && !v.enum"
+                   ng-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId][k]"
                    type="text" >
-            <md-select ng-if="'string' === apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type
-                       && apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].enum"
-                       ng-model="apiPoliciesCtrl.selectedApiPolicy.values[prop]">
-              <md-option ng-repeat="enum in apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].enum" value="{{enum}}">
-                {{enum}}
-              </md-option>
+            <md-select ng-if="'string' === v.type && v.enum"
+                       ng-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId][k]">
+              <md-option ng-repeat="enum in v.enum" value="{{enum}}">{{enum}}</md-option>
             </md-select>
           </span>
         </md-input-container>
