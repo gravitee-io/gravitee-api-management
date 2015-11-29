@@ -44,7 +44,7 @@
           <div id="apiPolicy-name">{{policy.name}}</div>
           <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-if="policy.values.methods.length === apiPoliciesCtrl.httpVerbs.length">ALL</span>
           <div ng-if="policy.values.methods.length != apiPoliciesCtrl.httpVerbs.length">
-            <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-repeat="method in policy.values.methods">{{method | uppercase}}</span>
+            <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-repeat="method in policy.values.methods">{{method}}</span>
           </div>
         </div>
       </md-list-item>
@@ -65,7 +65,7 @@
                 ng-repeat="httpVerb in apiPoliciesCtrl.httpVerbs"
                 ng-click="apiPoliciesCtrl.toggleHttpVerb(httpVerb)"
           >
-            {{httpVerb | uppercase}}
+            {{httpVerb}}
           </span>
         </div>
         <md-input-container class="md-block" ng-repeat="prop in apiPoliciesCtrl.selectedApiPolicyProperties">
@@ -85,7 +85,7 @@
                    type="text" >
             <md-select ng-if="'string' === apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].type
                        && apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].enum"
-                   ng-model="apiPoliciesCtrl.selectedApiPolicy.values[prop]">
+                       ng-model="apiPoliciesCtrl.selectedApiPolicy.values[prop]">
               <md-option ng-repeat="enum in apiPoliciesCtrl.selectedApiPolicy.schema.properties[prop].enum" value="{{enum}}">
                 {{enum}}
               </md-option>
@@ -94,6 +94,18 @@
         </md-input-container>
         <button class="md-raised md-warn md-button" ng-click="apiPoliciesCtrl.removePolicy();">Remove</button>
       </form>
+    </div>
+  </div>
+</div>
+<div layout="row">
+  <div flex="100">
+    <div class="md-actions gravitee-api-save-button" layout="row">
+      <md-button class="md-accent" type="button" ng-click="apiPoliciesCtrl.savePaths();">
+        Save
+      </md-button>
+      <md-button class="md-warn" type="button">
+        Reset
+      </md-button>
     </div>
   </div>
 </div>

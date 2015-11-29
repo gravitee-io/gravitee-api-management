@@ -23,7 +23,7 @@ class ApiPoliciesController {
     this.NotificationService = NotificationService;
     this.$scope = $scope;
     this.$state = $state;
-    this.api = resolvedApi.data;
+    this.initialApi = _.cloneDeep(resolvedApi.data);
 
     this.policies = [];
     this.apiPolicies = [];
@@ -32,7 +32,7 @@ class ApiPoliciesController {
     this.listAllPoliciesWithSchema().then(
       this.initDragular()
     );
-    this.httpVerbs = ['get','post','put','delete','head','patch','options','trace','connect'];
+    this.httpVerbs = ['GET','POST','PUT','DELETE','HEAD','PATCH','OPTIONS','TRACE','CONNECT'];
     this.defaultPolicyValues = { values: {
       methods: this.httpVerbs
     }};
@@ -144,6 +144,22 @@ class ApiPoliciesController {
           }
         }
       });
+  }
+
+  savePaths() {
+    var pathPolicy = [];
+    for ( var policy of this.apiPolicies ) {
+      var p = {};
+      p.methods = policy.values.methods;
+      p[policy.id] = {};
+      var props = Object.keys(policy.schema.properties);
+      for ( var prop of props ) {
+        p[policy.id][prop] = policy.values[prop];
+      }
+      pathPolicy.push(p);
+    }
+    this.$scope.$parent.apiCtrl.api.paths["/*"] = pathPolicy;
+    this.ApiService.update(this.$scope.$parent.apiCtrl.api);
   }
 }
 
