@@ -26,7 +26,6 @@ import io.gravitee.definition.model.Policy;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.net.URI;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;

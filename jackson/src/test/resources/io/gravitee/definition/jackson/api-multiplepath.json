@@ -24,7 +24,7 @@
     ],
     "/users/{id}": [
       {
-        "methods": ["GET"],
+        "methods": ["get"],
         "transform": [
           {
             "delete_headers": ["authorization"],

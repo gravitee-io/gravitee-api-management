@@ -51,7 +51,7 @@ public class MethodDeserializer extends StdScalarDeserializer<Method> {
 
                         final int[] idx = {0};
                         subNode.elements().forEachRemaining(jsonNode -> {
-                            methods[idx[0]++] = HttpMethod.valueOf(jsonNode.asText());
+                            methods[idx[0]++] = HttpMethod.valueOf(jsonNode.asText().toUpperCase());
                         });
 
                         methodDefinition.setMethods(methods);
