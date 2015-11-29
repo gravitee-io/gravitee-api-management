@@ -51,7 +51,8 @@ class ApiMembersController {
       parent: angular.element(document.body),
       targetEvent: ev,
       clickOutsideToClose: true,
-      api: _this.api
+      api: _this.api,
+			apiMembers: _this.members
     }).then(function (api) {
       if (api) {
         //that.getMembers(api.id);

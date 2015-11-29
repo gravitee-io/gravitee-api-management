@@ -146,7 +146,8 @@ class ApplicationController {
       parent: angular.element(document.body),
 			targetEvent: ev,
       clickOutsideToClose: true,
-			application: that.application
+			application: that.application,
+			applicationMembers : that.members
     }).then(function (application) {
       if (application) {
         that.getMembers(application.id);

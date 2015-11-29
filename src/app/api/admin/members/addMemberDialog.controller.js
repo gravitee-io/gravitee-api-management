@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogAddMemberApiController($scope, $mdDialog, api, ApiService, UserService, NotificationService) {
+function DialogAddMemberApiController($scope, $mdDialog, api, apiMembers, ApiService, UserService, NotificationService) {
   'ngInject';
 
 	$scope.api = api;
+	$scope.apiMembers = apiMembers;
 	$scope.user = {};
 	$scope.usersFound = [];
 	$scope.usersSelected = [];
@@ -28,8 +29,22 @@ function DialogAddMemberApiController($scope, $mdDialog, api, ApiService, UserSe
 
 	$scope.searchUser = function (query) {
 		if (query) {
-			return UserService.findLDAP(query).then(function(response) {
-				return response.data;
+			return UserService.search(query).then(function(response) {
+				var membersFound = response.data;				
+				var filterMembers = [];
+				for(var i = 0; i < membersFound.length; i++) {
+					var found = false
+					for (var j = 0; j < $scope.apiMembers.length; j++) {
+						if (membersFound[i].id == $scope.apiMembers[j].user) {
+							found = true;
+							break;
+						}
+					}
+					if (!found) {
+						filterMembers.push(membersFound[i]);
+					}				
+				}
+				return filterMembers;
 			});
 		}
 	};

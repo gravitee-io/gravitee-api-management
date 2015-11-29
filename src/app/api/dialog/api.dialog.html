@@ -16,7 +16,6 @@
 
 -->
   <md-dialog aria-label="Creation of a new API">
-    <md-content class="md-padding">
     <form name="formApi" ng-submit="dialogApiCtrl.save()" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
@@ -28,35 +27,37 @@
         </div>
       </md-toolbar>
       <md-dialog-content>
-        <div layout="">
-          <md-input-container>
-            <label>Name *</label>
-            <input ng-model="api.name" required>
-          </md-input-container>
-          <md-input-container>
-            <label>Version *</label>
-            <input ng-model="api.version" required>
-          </md-input-container>
-        </div>
-        <div>
-          <md-input-container>
-            <label>Description *</label>
-            <input ng-model="api.description" required>
-          </md-input-container>
-        </div>
-        <div>
-          <md-input-container>
-            <label>Context path *</label>
-            <input ng-model="api.proxy.context_path" required>
-          </md-input-container>
-        </div>
-        <div>
-          <md-input-container>
-            <label>Endpoint *</label>
-            <input ng-model="api.proxy.endpoint" required>
-          </md-input-container>
-        </div>
-        <md-subheader class="md-warn" ng-bind="error"></md-subheader>
+				<md-content class="md-padding">
+		      <div layout="">
+		        <md-input-container>
+		          <label>Name *</label>
+		          <input ng-model="api.name" required>
+		        </md-input-container>
+		        <md-input-container>
+		          <label>Version *</label>
+		          <input ng-model="api.version" required>
+		        </md-input-container>
+		      </div>
+		      <div>
+		        <md-input-container>
+		          <label>Description *</label>
+		          <input ng-model="api.description" required>
+		        </md-input-container>
+		      </div>
+		      <div>
+		        <md-input-container>
+		          <label>Context path *</label>
+		          <input ng-model="api.proxy.context_path" required>
+		        </md-input-container>
+		      </div>
+		      <div>
+		        <md-input-container>
+		          <label>Endpoint *</label>
+		          <input ng-model="api.proxy.endpoint" required>
+		        </md-input-container>
+		      </div>
+		      <md-subheader class="md-warn" ng-bind="error"></md-subheader>
+    		</md-content>
       </md-dialog-content>
 
       <div class="md-actions" layout="row">
@@ -68,5 +69,4 @@
         </md-button>
       </div>
     </form>
-    </md-content>
   </md-dialog>

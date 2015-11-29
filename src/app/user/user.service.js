@@ -37,7 +37,7 @@ class UserService {
     return this.$http.post(this.usersURL, user);
   }
 
-	findLDAP(query) {
+	search(query) {
 		return this.$http.get(this.usersURL + "?query=" + query);   
 	}	
 }
