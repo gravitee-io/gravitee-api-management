@@ -100,9 +100,10 @@ ng-md-icon {
 }
 
 .gravitee-api-page-menu-item {
+  cursor: move;
+  margin-left: 0;
   min-width: 0;
   padding: 0 10px;
-  margin-left: 0;
 }
 
 .gravitee-api-visibility {

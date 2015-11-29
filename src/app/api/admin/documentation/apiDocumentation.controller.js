@@ -19,13 +19,7 @@ class DocumentationController {
     'ngInject';
     this.DocumentationService = DocumentationService;
     this.$mdDialog = $mdDialog;
-    this.selected = null;
-    this.pages = [];
-		this.previewMode = true;
 		this.editMode = false;
-		this.MARKDOWN_PAGE = 'MARKDOWN';
-    this.RAML_PAGE = 'RAML';
-  	this.SWAGGER_PAGE = 'SWAGGER';
     this.$state = $state;
     this.$scope = $scope;
 
@@ -34,11 +28,20 @@ class DocumentationController {
       that.$state.go('apis.admin.documentation');
       that.list();
     });
+
+    $scope.$on('pages-list.drop', function(e, el, source, target) {
+      var sourcePage = source.scope().page, targetPage = target.scope().page;
+      // call service reorder and update list of pages
+    });
   }
 
   list() {
     this.DocumentationService.list(this.$scope.$parent.apiCtrl.api.id).then(response => {
       this.pages = response.data;
+
+      this.$scope.dragularOptions = {
+        scope: this.$scope
+      };
     });
   }
 
