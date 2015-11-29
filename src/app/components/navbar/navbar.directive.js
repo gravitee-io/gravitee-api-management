@@ -54,10 +54,6 @@ class NavbarController {
 			that.$rootScope.$broadcast('authenticationSuccess');
     });
   }
-
-  logout() {
-    this.$rootScope.$broadcast('graviteeLogout');
-  }
 }
 
 export default NavbarDirective;

@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<md-toolbar layout="row" layout-align="start center" class="md-whiteframe-z2" style="position:fixed;">
+<md-toolbar layout="row" layout-align="start center" class="md-whiteframe-z1 md-hue-1" style="position:fixed;" id="navbar-main-toolbar">
   <md-button ng-if="authenticated" ng-click="navbarCtrl.toggleSidenav('left')" aria-label="Menu">
     <ng-md-icon icon="menu"></ng-md-icon>
   </md-button>
@@ -47,5 +47,4 @@
 			</md-menu-content>
 		</md-menu>
 	</div>
-  <md-button ng-if="authenticated" type="button" ng-click="navbarCtrl.logout()"><ng-md-icon icon="logout"></ng-md-icon> Log out</md-button>
 </md-toolbar>

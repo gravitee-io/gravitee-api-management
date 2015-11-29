@@ -69,6 +69,11 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
     $mdThemingProvider.theme('default')
       .primaryPalette('blue-grey')
       .accentPalette('blue');
+		
+		$mdThemingProvider.theme('sidenav')
+			.backgroundPalette('blue-grey', {
+         'default': '600'
+      });
   })
   .run(runBlock)
   .service('ApiService', ApiService)

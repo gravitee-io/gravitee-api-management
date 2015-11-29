@@ -47,6 +47,10 @@ class SideNavController {
 	close() {
  		this.$mdSidenav('left').close();
   }
+
+	logout() {
+    this.$rootScope.$broadcast('graviteeLogout');
+  }
 }
 
 export default SideNavDirective;

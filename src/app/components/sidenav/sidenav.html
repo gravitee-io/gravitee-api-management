@@ -15,47 +15,40 @@
     limitations under the License.
 
 -->
-<md-sidenav class="md-sidenav-left md-whiteframe-z1 md-default-theme" md-component-id="left">
-	<md-toolbar class="md-hue-2">
-    <div layout="column" class="md-toolbar-tools-bottom inset">
-			<div ng-if="!authenticated">
-  			<img src="app/images/GRAVITEE_LOGOclair-04.png" width="64px" height="64px" />
-  			<h3>Gravitee.io</h3>
-  		</div>
-	 		<a href="" ui-sref="profile" ng-click="sidenavCtrl.close()" ng-if="authenticated" layout="row">
-    		<div>
-      		<img src="app/images/GRAVITEE_LOGOclair-04.png" width="64px" height="64px" style="vertical-align:middle;" />
-	  			<span style="color:white;">{{sidenavCtrl.user.principal.username}}</span>
-  			</div>
-			</a>
-  	</div>
-	</md-toolbar>
+<md-sidenav class="md-sidenav-left md-whiteframe-z1 md-sidenav-theme" md-component-id="left">
 	<div>
+		<div class="sidenav-user-contents">
+			<div>
+				<img src="app/images/GRAVITEE_LOGOclair-04.png" width="64px" height="64px" style="vertical-align:middle;" />
+				<span id="sidenav-user-name">{{sidenavCtrl.user.principal.username}}</span>
+			</div>
+			<md-divider></md-divider>
+		</div>
 		<md-list class="sidenav-list">
 			<md-list-item>
-				<md-button ng-click="sidenavCtrl.close()" ui-sref="home" class="sidenav-list-button">
-					<div class="inset">
-			   		<ng-md-icon icon="home" class="vertical-align: middle;"></ng-md-icon>
-						<span class="inset">Home</span>
-					</div> 
-				</md-button>
+				<div>
+		   		<ng-md-icon icon="home" class="vertical-align: middle;"></ng-md-icon>
+					<span class="inset"><a href="" ng-click="sidenavCtrl.close()" ui-sref="home">Home</a></span>
+				</div> 
 	 	  </md-list-item>
 			<md-list-item>
-				<md-button ng-click="sidenavCtrl.close()" ui-sref="apis.list.thumb" class="sidenav-list-button">
-					<div class="inset">
-			   		<ng-md-icon icon="dashboard" class="vertical-align: middle;"></ng-md-icon>
-						<span class="inset">APIs</span>
-					</div> 
-				</md-button>
+				<div>
+		   		<ng-md-icon icon="dashboard" style="class="vertical-align: middle;"></ng-md-icon>
+					<span class="inset"><a href="" ng-click="sidenavCtrl.close()" ui-sref="apis.list.thumb">APIs</a></span>
+				</div> 
 		  </md-list-item>
 			<md-list-item>
-				<md-button ng-click="sidenavCtrl.close()" ui-sref="applications.thumb" class="sidenav-list-button">
-					<div class="inset">
-			   		<ng-md-icon icon="list" class="vertical-align: middle;"></ng-md-icon>
-						<span class="inset">Applications</span>
-					</div> 
-				</md-button>
+				<div>
+		   		<ng-md-icon icon="list" class="vertical-align: middle;"></ng-md-icon>
+					<span class="inset"><a href="" ng-click="sidenavCtrl.close()" ui-sref="applications.thumb">Applications</a></span>
+				</div> 
 		  </md-list-item>
 		</md-list>
+	</div>
+	<div id="sidenav-footer" style="position:fixed; bottom: 20px;">
+		<ul>
+			<li><a href="#">Documentation <ng-md-icon icon="find_in_page"></ng-md-icon></a></li>
+			<li><a href="#" ng-click="sidenavCtrl.logout()">Sign Out <ng-md-icon icon="logout"></ng-md-icon></a></li>
+		</ul>
 	</div>
 </md-sidenav>
