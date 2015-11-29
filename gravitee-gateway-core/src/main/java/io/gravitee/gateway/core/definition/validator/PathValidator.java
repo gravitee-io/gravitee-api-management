@@ -27,12 +27,12 @@ public class PathValidator implements Validator {
     @Override
     public void validate(Api definition) {
 
-        definition.getPaths().entrySet().stream().filter(path -> path.getValue().getMethods() == null).forEach(path -> {
+        definition.getPaths().entrySet().stream().filter(path -> path.getValue().getRules() == null).forEach(path -> {
             if (! path.getKey().matches(CONTEXT_PATH_PATTERN)) {
                 throw new ValidationException("A path definition is not valid and must start with '/'");
             }
-            if (path.getValue().getMethods() == null || path.getValue().getMethods().isEmpty()) {
-                throw new ValidationException("A path definition must have at least, one declaration of HTTP methods");
+            if (path.getValue().getRules() == null || path.getValue().getRules().isEmpty()) {
+                throw new ValidationException("A path definition must have at least, one rule");
             }
         });
     }

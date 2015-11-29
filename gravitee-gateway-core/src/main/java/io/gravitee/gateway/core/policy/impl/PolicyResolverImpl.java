@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.policy.PolicyContext;
 import io.gravitee.gateway.core.definition.Api;
@@ -54,26 +56,25 @@ public class PolicyResolverImpl implements PolicyResolver, ApplicationContextAwa
     @Override
     public List<Policy> resolve(Request request) {
         List<Policy> policies = new ArrayList<>();
+        Path path = getApi().getPaths().get("/*");
 
-        List<io.gravitee.definition.model.Policy> definedPolicies = getApi().getPaths()
-                .get("/*").getMethods().iterator().next().getPolicies();
+        PolicyContext policyContext = getPolicyContext();
 
-        if (definedPolicies != null) {
-            PolicyContext policyContext = getPolicyContext();
-
-            definedPolicies.stream().forEach(policy -> {
-                PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(policy.getName());
+        for (Rule rule : path.getRules()) {
+            if (rule.getMethods().contains(request.method())) {
+                PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(rule.getPolicy().getName());
                 if (policyDefinition == null) {
-                    LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}", policy.getName(), request.id());
+                    LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}",
+                            rule.getPolicy().getName(), request.id());
                 } else {
-                    Object policyInst = policyFactory.create(policyDefinition, policy.getConfiguration());
+                    Object policyInst = policyFactory.create(policyDefinition, rule.getPolicy().getConfiguration());
 
                     if (policyInst != null) {
                         LOGGER.debug("Policy {} has been added to the chain for request {}", policyDefinition.id(), request.id());
                         policies.add(new PolicyImpl(policyInst, policyContext, policyDefinition.onRequestMethod(), policyDefinition.onResponseMethod()));
                     }
                 }
-            });
+            }
         }
 
         return policies;
