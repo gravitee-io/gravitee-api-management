@@ -15,19 +15,6 @@
  */
 package io.gravitee.management.service.impl;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
@@ -43,11 +30,15 @@ import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipType;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -346,6 +337,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
                 apiEntity.setProxy(apiDefinition.getProxy());
                 apiEntity.setPaths(apiDefinition.getPaths());
+                apiEntity.setMonitoring(apiDefinition.getMonitoring());
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while generating API definition", ioe);
             }
@@ -407,6 +399,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiDefinition.setVersion(updateApiEntity.getVersion());
             apiDefinition.setProxy(updateApiEntity.getProxy());
             apiDefinition.setPaths(updateApiEntity.getPaths());
+            apiDefinition.setMonitoring(updateApiEntity.getMonitoring());
 
             String definition = objectMapper.writeValueAsString(apiDefinition);
             api.setDefinition(definition);

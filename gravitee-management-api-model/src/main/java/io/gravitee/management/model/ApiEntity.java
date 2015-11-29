@@ -24,6 +24,7 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.Monitoring;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
 
@@ -58,6 +59,8 @@ public class ApiEntity {
     private PrimaryOwnerEntity primaryOwner;
 
     private MembershipType permission;
+
+    private Monitoring monitoring;
 
     public String getId() {
         return id;
@@ -153,6 +156,14 @@ public class ApiEntity {
 
     public void setPrimaryOwner(PrimaryOwnerEntity primaryOwner) {
         this.primaryOwner = primaryOwner;
+    }
+
+    public Monitoring getMonitoring() {
+        return monitoring;
+    }
+
+    public void setMonitoring(Monitoring monitoring) {
+        this.monitoring = monitoring;
     }
 
     @Override

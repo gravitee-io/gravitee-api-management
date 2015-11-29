@@ -21,6 +21,7 @@ import java.util.Map;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Monitoring;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
 
@@ -44,6 +45,9 @@ public class UpdateApiEntity {
 
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
+
+    @JsonProperty(value = "monitoring")
+    private Monitoring monitoring;
 
     @NotNull
     private Visibility visibility;
@@ -94,5 +98,13 @@ public class UpdateApiEntity {
 
     public void setPaths(Map<String, Path> paths) {
         this.paths = paths;
+    }
+
+    public Monitoring getMonitoring() {
+        return monitoring;
+    }
+
+    public void setMonitoring(Monitoring monitoring) {
+        this.monitoring = monitoring;
     }
 }
