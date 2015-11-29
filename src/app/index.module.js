@@ -31,6 +31,7 @@ import ApiAdminController from './api/admin/apiAdmin.controller';
 import ApiAnalyticsController from './api/admin/analytics.controller';
 import ApiMembersController from './api/admin/members.controller';
 import ApiPoliciesController from './api/admin/policies.controller';
+import ApiMonitoringController from './api/admin/monitoring.controller';
 import DialogAddMemberApiController from './api/admin/members/addMemberDialog.controller';
 import DialogApiController from './api/dialog/apiDialog.controller';
 import TeamService from './user/team.service';
@@ -77,6 +78,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('ApiMembersController', ApiMembersController)
   .controller('ApiPortalController', ApiPortalController)
   .controller('ApiGeneralController', ApiGeneralController)
+  .controller('ApiMonitoringController', ApiMonitoringController)
   .controller('DialogApiController', DialogApiController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
   .controller('DialogDocumentationController', DialogDocumentationController)

@@ -35,6 +35,8 @@ class ApiAdminController {
         $scope.selectedTab = 3;
       } else if ($state.current.name.endsWith('members')) {
         $scope.selectedTab = 4;
+      } else if ($state.current.name.endsWith('monitoring')) {
+        $scope.selectedTab = 5;
       }
     });
   }

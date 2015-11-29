@@ -108,6 +108,12 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
         }
       }
     })
+    .state('apis.admin.monitoring', {
+      url: '/monitoring',
+      templateUrl: 'app/api/admin/apiMonitoring.html',
+      controller: 'ApiMonitoringController',
+      controllerAs: 'monitoringCtrl'
+    })
     .state('documentation', {
       url: '/documentation',
       templateUrl: 'app/documentation/documentation.html',
