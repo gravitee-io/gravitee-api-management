@@ -38,7 +38,7 @@ public class MonitoringSerializer extends StdScalarSerializer<Monitoring> {
         jgen.writeStringField("endpoint", monitoring.getEndpoint());
         jgen.writeNumberField("interval", monitoring.getInterval());
         jgen.writeStringField("unit", monitoring.getUnit().toString());
-        if (! monitoring.isEnabled()) {
+        if (monitoring.isEnabled()) {
             jgen.writeBooleanField("enabled", monitoring.isEnabled());
         }
         jgen.writeEndObject();
