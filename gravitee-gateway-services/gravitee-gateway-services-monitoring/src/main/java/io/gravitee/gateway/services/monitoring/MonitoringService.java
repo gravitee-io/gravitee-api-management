@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -94,14 +93,7 @@ public class MonitoringService extends AbstractService implements EventListener<
     }
 
     private void startMonitor(Api api) {
-        Monitoring monitoring = new Monitoring();
-        monitoring.setEnabled(true);
-        monitoring.setInterval(5000);
-        monitoring.setUnit(TimeUnit.MILLISECONDS);
-        monitoring.setEndpoint(api.getProxy().getEndpoint());
-        api.setMonitoring(monitoring);
-
-        //    Monitoring monitoring = api.getMonitoring();
+        Monitoring monitoring = api.getMonitoring();
         if (monitoring != null && monitoring.isEnabled()) {
             LOGGER.info("Create an executor to monitor {}", api);
 
