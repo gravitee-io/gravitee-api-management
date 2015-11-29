@@ -32,9 +32,7 @@
 					<div layout="row">
 						<div flex="33" class="border-right">
 							<div class="description-block">
-								<ng-md-icon ng-if="api.visibility === 'public'" icon="public"></ng-md-icon>
-								<ng-md-icon ng-if="api.visibility === 'restricted'" icon="vpn_lock"></ng-md-icon>
-								<ng-md-icon ng-if="api.visibility === 'private'" icon="lock"></ng-md-icon>
+								<ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}"></ng-md-icon>
 							</div>
 						</div>
 						<div flex="33" class="border-right">

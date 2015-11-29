@@ -87,6 +87,17 @@ class ApisController {
     }
     this.$state.go(this.$scope.previousState);
   }
+
+  getVisibilityIcon(api) {
+    switch (api.visibility) {
+      case 'public':
+        return 'public';
+      case 'restricted':
+        return 'vpn_lock';
+      case 'private':
+        return 'lock';
+    }
+  }
 }
 
 export default ApisController;

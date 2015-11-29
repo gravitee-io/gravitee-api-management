@@ -29,7 +29,9 @@
 		</thead>
 		<tbody>
 			<tr ng-repeat="api in apisCtrl.apis | orderBy: order" title="{{api.description}}" ui-sref="apis.portal({apiId: api.id})">
-				<td><ng-md-icon icon="{{api.visibility === 'public'? 'lock_open' : 'lock'}}"></ng-md-icon></td>
+				<td>
+					<ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}"></ng-md-icon>
+				</td>
 				<td>{{api.name}}</td>
 				<td>{{api.version}}</td>
 				<td>{{api.proxy.context_path}}</td>
