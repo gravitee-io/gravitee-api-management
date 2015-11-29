@@ -123,6 +123,28 @@ class ApiPoliciesController {
       this.selectedApiPolicy.values.methods.push(verb);
     }
   }
+
+  removePolicy() {
+    var alert = this.$mdDialog.confirm({
+      title: 'Warning',
+      content: 'Are you sure you want to remove this policy ?',
+      ok: 'OK',
+      cancel: 'Cancel'
+    });
+
+    var that = this;
+
+    this.$mdDialog
+      .show(alert)
+      .then(function () {
+        for ( var idx = 0; idx < that.apiPolicies.length; idx++ ) {
+          if ( that.apiPolicies[idx].$$hashKey === that.selectedApiPolicy.$$hashKey ) {
+            that.apiPolicies.splice(idx, 1);
+            that.selectedApiPolicy = null;
+          }
+        }
+      });
+  }
 }
 
 export default ApiPoliciesController;
