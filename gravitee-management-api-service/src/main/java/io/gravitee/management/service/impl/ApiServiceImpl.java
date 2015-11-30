@@ -338,6 +338,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 apiEntity.setProxy(apiDefinition.getProxy());
                 apiEntity.setPaths(apiDefinition.getPaths());
                 apiEntity.setMonitoring(apiDefinition.getMonitoring());
+                apiEntity.setProperties(apiDefinition.getProperties());
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while generating API definition", ioe);
             }
@@ -400,6 +401,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiDefinition.setProxy(updateApiEntity.getProxy());
             apiDefinition.setPaths(updateApiEntity.getPaths());
             apiDefinition.setMonitoring(updateApiEntity.getMonitoring());
+            apiDefinition.setProperties(updateApiEntity.getProperties());
 
             String definition = objectMapper.writeValueAsString(apiDefinition);
             api.setDefinition(definition);

@@ -49,6 +49,9 @@ public class UpdateApiEntity {
     @JsonProperty(value = "monitoring")
     private Monitoring monitoring;
 
+    @JsonProperty(value = "properties")
+    private Map<String, Object> properties;
+
     @NotNull
     private Visibility visibility;
 
@@ -106,5 +109,13 @@ public class UpdateApiEntity {
 
     public void setMonitoring(Monitoring monitoring) {
         this.monitoring = monitoring;
+    }
+
+    public Map<String, Object> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, Object> properties) {
+        this.properties = properties;
     }
 }

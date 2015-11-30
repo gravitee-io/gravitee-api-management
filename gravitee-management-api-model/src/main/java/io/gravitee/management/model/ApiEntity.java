@@ -58,6 +58,9 @@ public class ApiEntity {
     @JsonProperty("owner")
     private PrimaryOwnerEntity primaryOwner;
 
+    @JsonProperty(value = "properties")
+    private Map<String, Object> properties;
+
     private MembershipType permission;
 
     private Monitoring monitoring;
@@ -164,6 +167,14 @@ public class ApiEntity {
 
     public void setMonitoring(Monitoring monitoring) {
         this.monitoring = monitoring;
+    }
+
+    public Map<String, Object> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, Object> properties) {
+        this.properties = properties;
     }
 
     @Override
