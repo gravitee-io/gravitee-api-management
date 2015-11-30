@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.management.model.analytics.HealthAnalytics;
 import io.gravitee.management.model.analytics.HistogramAnalytics;
 
 /**
@@ -33,10 +34,11 @@ public interface AnalyticsService {
     HistogramAnalytics apiHitsByPayloadSize(String apiId, long from, long to, long interval);
 
 
-
     HistogramAnalytics apiKeyHits(String apiKey, long from, long to, long interval);
 
     HistogramAnalytics apiKeyHitsByStatus(String apiKey, long from, long to, long interval);
 
     HistogramAnalytics apiKeyHitsByLatency(String apiKey, long from, long to, long interval);
+
+    HealthAnalytics health(String api, long from, long to, long interval);
 }

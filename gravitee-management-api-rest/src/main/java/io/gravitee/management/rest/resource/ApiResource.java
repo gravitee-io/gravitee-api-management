@@ -118,6 +118,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiAnalyticsResource.class);
     }
 
+    @Path("health")
+    public ApiHealthResource getApiHealthResource() {
+        return resourceContext.getResource(ApiHealthResource.class);
+    }
+
     @Path("pages")
     public ApiPagesResource getApiPagesResource() {
         return resourceContext.getResource(ApiPagesResource.class);

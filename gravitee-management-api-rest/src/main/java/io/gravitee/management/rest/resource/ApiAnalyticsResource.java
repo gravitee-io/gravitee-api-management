@@ -18,6 +18,7 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.analytics.HistogramAnalytics;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
+import io.gravitee.management.rest.resource.param.HealthParam;
 import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PermissionService;

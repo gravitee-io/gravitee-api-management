@@ -16,10 +16,12 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.analytics.Bucket;
+import io.gravitee.management.model.analytics.HealthAnalytics;
 import io.gravitee.management.model.analytics.HistogramAnalytics;
 import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.*;
+import io.gravitee.repository.analytics.query.response.HealthResponse;
 import io.gravitee.repository.analytics.query.response.histogram.Data;
 import io.gravitee.repository.analytics.query.response.histogram.HistogramResponse;
 import org.slf4j.Logger;
@@ -82,6 +84,18 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public HistogramAnalytics apiKeyHitsByLatency(String apiKey, long from, long to, long interval) {
         return apiKeyHits(HitsByApiKeyQuery.Type.HITS_BY_LATENCY, apiKey, from, to, interval);
+    }
+
+    @Override
+    public HealthAnalytics health(String api, long from, long to, long interval) {
+        logger.debug("Run health query for API '{}'", api);
+
+        try {
+            return convert(analyticsRepository.query(api, interval, from, to));
+        } catch (Exception ex) {
+            logger.error("An unexpected error occurs while searching for health data.", ex);
+            return null;
+        }
     }
 
     private HistogramAnalytics apiKeyHits(HitsByApiKeyQuery.Type type, String apiKey, long from, long to, long interval) {
@@ -157,5 +171,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
 
         return analyticsBucket;
+    }
+
+    private HealthAnalytics convert(HealthResponse response) {
+        HealthAnalytics healthAnalytics = new HealthAnalytics();
+
+        healthAnalytics.setTimestamps(response.timestamps());
+        healthAnalytics.setBuckets(response.buckets());
+
+        return healthAnalytics;
     }
 }
