@@ -114,6 +114,12 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiMonitoringController',
       controllerAs: 'monitoringCtrl'
     })
+    .state('apis.admin.properties', {
+      url: '/properties',
+      templateUrl: 'app/api/admin/properties.html',
+      controller: 'ApiPropertiesController',
+      controllerAs: 'propertiesCtrl'
+    })
     .state('documentation', {
       url: '/documentation',
       templateUrl: 'app/documentation/documentation.html',

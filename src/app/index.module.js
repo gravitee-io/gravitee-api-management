@@ -32,6 +32,7 @@ import ApiAnalyticsController from './api/admin/analytics.controller';
 import ApiMembersController from './api/admin/members.controller';
 import ApiPoliciesController from './api/admin/policies.controller';
 import ApiMonitoringController from './api/admin/monitoring.controller';
+import ApiPropertiesController from './api/admin/properties.controller';
 import DialogAddMemberApiController from './api/admin/members/addMemberDialog.controller';
 import DialogApiController from './api/dialog/apiDialog.controller';
 import TeamService from './user/team.service';
@@ -69,7 +70,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
     $mdThemingProvider.theme('default')
       .primaryPalette('blue-grey')
       .accentPalette('blue');
-		
+
 		$mdThemingProvider.theme('sidenav')
 			.backgroundPalette('blue-grey', {
          'default': '600'
@@ -85,6 +86,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('ApiPortalController', ApiPortalController)
   .controller('ApiGeneralController', ApiGeneralController)
   .controller('ApiMonitoringController', ApiMonitoringController)
+  .controller('ApiPropertiesController', ApiPropertiesController)
   .controller('DialogApiController', DialogApiController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
   .controller('DialogDocumentationController', DialogDocumentationController)
