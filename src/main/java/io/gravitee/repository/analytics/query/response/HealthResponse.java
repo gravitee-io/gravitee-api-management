@@ -13,19 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.api;
+package io.gravitee.repository.analytics.query.response;
 
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.query.Query;
-import io.gravitee.repository.analytics.query.response.HealthResponse;
-import io.gravitee.repository.analytics.query.response.Response;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface AnalyticsRepository {
+public class HealthResponse implements Response {
 
-   <T extends Response> T query(Query<T> query) throws AnalyticsException;
+    private long [] timestamps;
 
-   HealthResponse query(String api, long interval, long from, long to) throws AnalyticsException;
+    private Map<Integer, long[]> buckets;
+
+    public long [] timestamps() {
+        return timestamps;
+    }
+
+    public void timestamps(long[] timestamps) {
+        this.timestamps = timestamps;
+    }
+
+    public Map<Integer, long[]> buckets() {
+        return buckets;
+    }
+
+    public void buckets(Map<Integer, long[]> buckets) {
+        this.buckets = buckets;
+    }
 }
