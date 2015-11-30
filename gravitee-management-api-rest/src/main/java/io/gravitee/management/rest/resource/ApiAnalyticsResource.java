@@ -53,7 +53,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     public Response hits(@BeanParam AnalyticsParam analyticsParam) {
         ApiEntity api = apiService.findById(this.api);
 
-        permissionService.hasPermission(getAuthenticatedUser(), api.getName(), PermissionType.VIEW_API);
+        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
 
         analyticsParam.validate();
 
