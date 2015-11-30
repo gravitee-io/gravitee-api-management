@@ -226,7 +226,7 @@ class ChartDirective {
             maskColor: 'rgba(255,255,255,0.3)'
           };
 
-          Highcharts.setOptions(Highcharts.theme);
+//          Highcharts.setOptions(Highcharts.theme);
 
           Highcharts.setOptions({
             global: {
