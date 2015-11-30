@@ -15,18 +15,16 @@
     limitations under the License.
 
 -->
-<md-toolbar layout="row" layout-align="start center" class="md-whiteframe-z1 md-hue-1" style="position:fixed;" id="navbar-main-toolbar">
+<md-toolbar layout="row" layout-align="start center" class="md-whiteframe-z1 md-hue-1" id="navbar-main-toolbar">
   <md-button ng-if="authenticated" ng-click="navbarCtrl.toggleSidenav('left')" aria-label="Menu">
     <ng-md-icon icon="menu"></ng-md-icon>
   </md-button>
-  <md-button href="#/">
-    Gravitee.IO API Portal
-  </md-button>
+  <span ng-if="authenticated" ncy-breadcrumb></span>
 	<span flex></span>
 	<div class="navbar-login" ng-if="!authenticated">
 		<md-menu>
 			<md-button aria-label="Login form" ng-click="navbarCtrl.openMenu($mdOpenMenu, $event)">
-				<ng-md-icon md-menu-origin icon="login" style="fill:white;"></ng-md-icon> Login
+				<ng-md-icon md-menu-origin icon="login"></ng-md-icon> Login
 			</md-button>
 			<md-menu-content width="4" layout-padding>
 				<form name="formUser" ng-submit="navbarCtrl.login()" class="gravitee-login-container" style="padding-top:20px;">

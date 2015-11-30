@@ -15,10 +15,9 @@
     limitations under the License.
 
 -->
-<section class="content-header">
+<section>
   <div ng-include="'app/api/apiHeader.html'"></div>
-
-  <md-card>
+  <md-card style="margin: 0 !important">
     <md-card-content>
       <md-tabs md-dynamic-height md-border-bottom>
         <md-tab label="{{page.name}}" md-on-select="apiCtrl.fetchPage(page)" ng-repeat="page in apiCtrl.pages">

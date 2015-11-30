@@ -20,7 +20,10 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       url: '/',
       templateUrl: 'app/main/main.html',
       controller: 'ApisController',
-      controllerAs: 'apisCtrl'
+      controllerAs: 'apisCtrl',
+			ncyBreadcrumb: {
+    		label: 'Home'
+  		}
     })
     .state('apis', {
       abstract: true,
@@ -36,11 +39,19 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
     .state('apis.list.table', {
       url: 'table',
-      templateUrl: 'app/api/apisTableMode.html'
+      templateUrl: 'app/api/apisTableMode.html',
+			ncyBreadcrumb: {
+				label: 'APIs',
+				parent: 'home'
+			}
     })
     .state('apis.list.thumb', {
       url: 'thumb',
-      templateUrl: 'app/api/apisThumbMode.html'
+      templateUrl: 'app/api/apisThumbMode.html',
+			ncyBreadcrumb: {
+				label: 'APIs',
+				parent: 'home'
+			}
     })
     .state('apis.portal', {
       url: '/:apiId',
@@ -54,7 +65,11 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
         resolvedPage:function ($stateParams, DocumentationService) {
           return DocumentationService.list($stateParams.apiId);
         }
-      }
+      },
+			ncyBreadcrumb: {
+				label: '{{apiCtrl.api.name}}',
+				parent: 'apis.list.thumb'
+			}
     })
     .state('apis.admin', {
       url: '/:apiId/settings',
@@ -65,37 +80,56 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
         resolvedApi:function ($stateParams, ApiService) {
           return ApiService.get($stateParams.apiId);
         }
-      }
+      },
+			ncyBreadcrumb: {
+				label: '{{apiCtrl.api.name}}',
+				parent: 'apis.list.thumb'
+			}
     })
     .state('apis.admin.analytics', {
       url: '/analytics',
       templateUrl: 'app/api/admin/analytics.html',
       controller: 'ApiAnalyticsController',
-      controllerAs: 'analyticsCtrl'
+      controllerAs: 'analyticsCtrl',
+			ncyBreadcrumb: {
+				skip: true
+			}
     })
     .state('apis.admin.policies', {
       url: '/policies',
       templateUrl: 'app/api/admin/apiPolicies.html',
       controller: 'ApiPoliciesController',
-      controllerAs: 'apiPoliciesCtrl'
+      controllerAs: 'apiPoliciesCtrl',
+			ncyBreadcrumb: {
+				skip: true
+			}
     })
     .state('apis.admin.documentation', {
       url: '/documentation',
       templateUrl: 'app/api/admin/documentation/apiDocumentation.html',
       controller: 'DocumentationController',
-      controllerAs: 'documentationCtrl'
+      controllerAs: 'documentationCtrl',
+			ncyBreadcrumb: {
+				skip: true
+			}
     })
     .state('apis.admin.documentation.page', {
       url: '/:pageId',
       templateUrl: 'app/api/admin/documentation/page/apiPage.html',
       controller: 'PageController',
-      controllerAs: 'pageCtrl'
+      controllerAs: 'pageCtrl',
+			ncyBreadcrumb: {
+				skip: true
+			}
     })
     .state('apis.admin.general', {
       url: '/general',
       templateUrl: 'app/api/admin/general/apiGeneral.html',
       controller: 'ApiGeneralController',
-      controllerAs: 'generalCtrl'
+      controllerAs: 'generalCtrl',
+			ncyBreadcrumb: {
+				skip: true
+			}
     })
     .state('apis.admin.members', {
       url: '/members',
@@ -106,13 +140,19 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
         resolvedMembers:function ($stateParams, ApiService) {
           return ApiService.getMembers($stateParams.apiId);
         }
-      }
+      },
+			ncyBreadcrumb: {
+				skip: true
+			}
     })
     .state('apis.admin.monitoring', {
       url: '/monitoring',
       templateUrl: 'app/api/admin/apiMonitoring.html',
       controller: 'ApiMonitoringController',
-      controllerAs: 'monitoringCtrl'
+      controllerAs: 'monitoringCtrl',
+			ncyBreadcrumb: {
+				skip: true
+			}
     })
     .state('apis.admin.properties', {
       url: '/properties',
@@ -141,33 +181,57 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
 		.state('applications.table', {
       url: '/table',
-      templateUrl: 'app/application/applicationsTableMode.html'
+      templateUrl: 'app/application/applicationsTableMode.html',
+			ncyBreadcrumb: {
+				label: 'Applications',
+				parent: 'home'
+			}
     })
     .state('applications.thumb', {
       url: '/thumb',
-      templateUrl: 'app/application/applicationsThumbMode.html'
+      templateUrl: 'app/application/applicationsThumbMode.html',
+			ncyBreadcrumb: {
+				label: 'Applications',
+				parent: 'home'
+			}
     })
     .state('application', {
       url: '/applications/:applicationId',
       templateUrl: 'app/application/details/application.html',
       controller: 'ApplicationController',
-      controllerAs: 'applicationCtrl'
+      controllerAs: 'applicationCtrl',
+			ncyBreadcrumb: {
+				label: '{{applicationCtrl.application.name}}',
+				parent: 'applications.thumb'
+			}
     })
 		.state('application.dashboard', {
       url: '/dashboard',
-      templateUrl: 'app/application/details/applicationDashboard.html'
+      templateUrl: 'app/application/details/applicationDashboard.html',
+			ncyBreadcrumb: {
+				skip: true
+			}
     })
     .state('application.general', {
       url: '/general',
-      templateUrl: 'app/application/details/applicationGeneral.html'
+      templateUrl: 'app/application/details/applicationGeneral.html',
+			ncyBreadcrumb: {
+				skip: true
+			}
     })
     .state('application.apis', {
       url: '/apis',
-      templateUrl: 'app/application/details/applicationAPIs.html'
+      templateUrl: 'app/application/details/applicationAPIs.html',
+			ncyBreadcrumb: {
+				skip: true
+			}
     })
     .state('application.members', {
       url: '/members',
-      templateUrl: 'app/application/details/applicationMembers.html'
+      templateUrl: 'app/application/details/applicationMembers.html',
+			ncyBreadcrumb: {
+				skip: true
+			}
     });
 
   $urlRouterProvider.otherwise('/');

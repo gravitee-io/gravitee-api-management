@@ -74,16 +74,6 @@ $flowRadius: 120px;
   font-weight: 300;
 }
 
-md-toolbar:not(.md-hue-1),
-.md-fab {
-  fill: #fff;
-}
-
-ng-md-icon {
-  position: relative;
-  top: 5px; // adjust for svg viewbox
-}
-
 .demo-container {
   border-radius: 4px;
   margin-bottom: 16px;
@@ -135,4 +125,24 @@ ng-md-icon {
   @media screen and (max-width: 768px) {
     width: 100px;
   }
+}
+
+.gravitee-api-header {
+	height: 320px;
+	background: url('../app/images/api-header-background.jpg') center center no-repeat; 
+	background-size: cover; 
+}
+
+.gravitee-api-header-go-back {
+	margin-top: 70px;
+	color: white; 
+}
+
+.gravitee-api-header-content {
+	color: white; 
+	padding-left: 20px !important;
+}
+
+.gravitee-api-header-content ng-md-icon, .gravitee-api-header-go-back ng-md-icon {
+	fill: white;
 }

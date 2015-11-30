@@ -15,29 +15,21 @@
     limitations under the License.
 
 -->
-<section>
-  <section class="content-header">
-    <h1>
-       Gravitee
-       <small>Application '{{applicationCtrl.application.name}}' Management</small>
-    </h1>
-    </section>  
+<section class="content-header">
+</section>  
 
-    <md-card>
-      <md-card-content>
-				<md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
-        	<md-tab label="dashboard" ui-sref="application.dashboard">
-        	</md-tab>
-		      <md-tab label="general" ui-sref="application.general">
-		      </md-tab>
-		      <md-tab label="apis" ui-sref="application.apis">
-		      </md-tab>
-		      <md-tab label="members" ui-sref="application.members">
-		      </md-tab>
-     		</md-tabs>
-      	<div ui-view></div>
-      </md-card-content>
-    </md-card>
-  </section>
-</section>
-
+<md-card>
+  <md-card-content>
+		<md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
+    	<md-tab label="dashboard" ui-sref="application.dashboard">
+    	</md-tab>
+      <md-tab label="general" ui-sref="application.general">
+      </md-tab>
+      <md-tab label="apis" ui-sref="application.apis">
+      </md-tab>
+      <md-tab label="members" ui-sref="application.members">
+      </md-tab>
+ 		</md-tabs>
+  	<div ui-view></div>
+  </md-card-content>
+</md-card>

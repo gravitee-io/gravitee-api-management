@@ -1,10 +1,15 @@
+md-sidenav {
+	width: 256px;
+	min-width: 256px;
+	max-width: 256px;
+}
+
 .sidenav-list {
  	padding: .5rem 1.5rem 1rem;
 	color: #fff;
 }
 
 .sidenav-list a {
-	font-weight: 700;
 	color: #fff;
 }
 
@@ -21,7 +26,6 @@
 
 #sidenav-user-name {	
 	font-size: 1.725rem;
-	font-weight: 700;
   white-space: nowrap;
   color: #fff;
 }

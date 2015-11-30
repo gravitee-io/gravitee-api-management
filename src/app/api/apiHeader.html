@@ -15,11 +15,16 @@
     limitations under the License.
 
 -->
-<div layout="row" layout-align="start start">
-  <ng-md-icon ng-click="apisCtrl.backToPreviousState()" icon="view_list" style="padding-top: 7px;"></ng-md-icon>
-
-  <h1>
-    {{apiCtrl.api.name}}
-    <small><div read-more ng-model="apiCtrl.api.description" words="false" length="150"></div></small>
-  </h1>
+<div layout="column" layout-align="end-start" layout-padding class="gravitee-api-header" flex>
+	<div class="gravitee-api-header-content inset">
+	  <h3>{{apiCtrl.api.name}}</h3>
+	  <p>
+			<small><div read-more ng-model="apiCtrl.api.description" words="false" length="150"></div></small>
+		</p>
+		<p ng-switch="apiCtrl.api.visibility">
+			<span ng-switch-when="public"><ng-md-icon icon="public"></ng-md-icon> {{apiCtrl.api.visibility}}</span>
+			<span ng-switch-when="private"><ng-md-icon icon="lock"></ng-md-icon> {{apiCtrl.api.visibility}}</span>
+			<span ng-switch-when="restricted"><ng-md-icon icon="vpn_lock"></ng-md-icon> {{apiCtrl.api.visibility}}</span>
+    </p>
+	 </div>
 </div>

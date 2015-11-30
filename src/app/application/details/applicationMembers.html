@@ -39,14 +39,14 @@
 		      <td>
 						<div ng-if="member.type != 'primary_owner'">
 							<ng-md-icon ng-click="applicationCtrl.updateMember(member)" icon="save" size="24" style="cursor: pointer;"></ng-md-icon>
-							<ng-md-icon ng-click="applicationCtrl.deleteMember(member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
+							<ng-md-icon ng-click="applicationCtrl.showDeleteMemberConfirm($event, member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
 						</div>
 					</td>
 		    </tr>
 		  </tbody>
 		</table>
 	</md-data-table-container>
-	<md-button class="md-mini md-fab" ng-click="applicationCtrl.showAddMemberModal($event)">
-		<ng-md-icon icon="add"></ng-md-icon>							
-	</md-button>
 </div>
+<md-button class="md-fab md-fab-bottom-right" aria-label="Add"  ng-click="applicationCtrl.showAddMemberModal($event)">
+	<ng-md-icon icon="add"></ng-md-icon>
+</md-button>

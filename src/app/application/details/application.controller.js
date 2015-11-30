@@ -110,10 +110,24 @@ class ApplicationController {
       .ok('OK')
       .cancel('Cancel')
       .targetEvent(ev);
-	
 		var self = this;
     this.$mdDialog.show(confirm).then(function() {
       self.delete(self.application);
+    }, function() {
+      self.$mdDialog.cancel();
+    });
+  }
+
+	showDeleteMemberConfirm(ev, member) {
+    var confirm = this.$mdDialog.confirm()
+      .title('Would you like to remove the member?')
+      .ariaLabel('delete-application')
+      .ok('OK')
+      .cancel('Cancel')
+      .targetEvent(ev);
+		var self = this;
+    this.$mdDialog.show(confirm).then(function() {
+      self.deleteMember(member);
     }, function() {
       self.$mdDialog.cancel();
     });

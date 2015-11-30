@@ -60,7 +60,7 @@ import PageDirective from './components/documentation/page.directive';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
-    angularDragula(angular)])
+    angularDragula(angular), 'ncy-angular-breadcrumb'])
   .constant('baseURL', '/management/')
   .config(config)
   .config(routerConfig)

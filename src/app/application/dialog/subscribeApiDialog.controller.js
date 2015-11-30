@@ -19,6 +19,7 @@ function DialogSubscribeApiController($scope, $mdDialog, application, apiKeys, A
 	$scope.searchAPI = "";
 	$scope.apis = [];
 	$scope.apisSelected = [];
+	$scope.apisFound = [];
 	$scope.application = application;
 
 	ApiService.list().then(function(response) {
@@ -42,7 +43,13 @@ function DialogSubscribeApiController($scope, $mdDialog, application, apiKeys, A
      $mdDialog.cancel();
   };
 
-	$scope.selectApi = function(api) {
+	$scope.selectedItemChange = function(item) {
+		if (item) {
+			$scope.apisFound.push(item);
+		}
+  };
+
+	$scope.selectAPI = function(api) {
 		var idx = $scope.apisSelected.indexOf(api.id);
     if (idx > -1) {
       $scope.apisSelected.splice(idx, 1);
