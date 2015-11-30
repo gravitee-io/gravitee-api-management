@@ -39,7 +39,8 @@ class ApiPoliciesController {
     this.listAllPoliciesWithSchema().then( () => {
       this.initDragular()
     });
-    this.httpVerbs = ['GET','POST','PUT','DELETE','HEAD','PATCH','OPTIONS','TRACE','CONNECT'];
+    this.httpMethods = ['GET','POST','PUT','DELETE','HEAD','PATCH','OPTIONS','TRACE','CONNECT'];
+    this.httpMethodsFilter = _.clone(this.httpMethods);
   }
 
   completeApiPolicies(pathMap) {
@@ -51,7 +52,7 @@ class ApiPoliciesController {
           }
         }
         if ( !apiPolicy.methods ) {
-          apiPolicy.methods = _.clone(this.httpVerbs);
+          apiPolicy.methods = _.clone(this.httpMethods);
         }
         //TODO hack temporaire à supprimer lors de la mise a jour de demo
         else {
@@ -100,11 +101,11 @@ class ApiPoliciesController {
         this.PolicyService.list().then(response => {
           for (var originalPolicy of response.data) {
             this.policyMap.set(originalPolicy.id, originalPolicy);
-            ((service, originalPolicy, policiesToCopy, httpVerbs, policySchemaMap) => {
+            ((service, originalPolicy, policiesToCopy, httpMethods, policySchemaMap) => {
               service.getSchema(originalPolicy.id).then(response => {
                 var policy = {};
                 policy.policyId = originalPolicy.id;
-                policy.methods = httpVerbs;
+                policy.methods = httpMethods;
                 policy[originalPolicy.id] = {};
                 var properties = Object.keys(response.data.properties);
                 for (var property of properties) {
@@ -113,7 +114,7 @@ class ApiPoliciesController {
                 policySchemaMap.set(originalPolicy.id, response.data.properties);
                 policiesToCopy.push(policy);
               });
-            })(this.PolicyService, originalPolicy, this.policiesToCopy, this.httpVerbs, this.policySchemaMap);
+            })(this.PolicyService, originalPolicy, this.policiesToCopy, this.httpMethods, this.policySchemaMap);
           }
         }))
     });
@@ -128,18 +129,28 @@ class ApiPoliciesController {
     this.selectedApiPolicy = this.apiPoliciesByPath.get("/*")[index];
   }
 
-  getHttpVerbClass(verb) {
+  getHttpMethodClass(method, methods) {
     return "gravitee-policy-method-badge-" +
-      (this.selectedApiPolicy.methods.indexOf(verb) > -1 ? "selected" : "unselected");
+      (methods.indexOf(method) > -1 ? "selected" : "unselected");
   }
 
-  toggleHttpVerb(verb) {
-    var index = this.selectedApiPolicy.methods.indexOf(verb);
+  toggleHttpMethod(method, methods) {
+    var index = methods.indexOf(method);
     if ( index > -1 ) {
-      this.selectedApiPolicy.methods.splice(index, 1);
+      methods.splice(index, 1);
     } else {
-      this.selectedApiPolicy.methods.push(verb);
+      methods.push(method);
     }
+  }
+
+  filterByMethod(policy) {
+    for ( var method of policy.methods ) {
+      console.log(method)
+      if ( this.httpMethodsFilter.indexOf(method) > -1 ) {
+        return false;
+      }
+    }
+    return true;
   }
 
   removePolicy() {

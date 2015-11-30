@@ -17,7 +17,7 @@
 -->
 <div layout="row">
 
-  <div flex="25">
+  <div flex="20">
     <div class="inset">
       <h5>Policies ({{apiPoliciesCtrl.policiesToCopy.length}})</h5>
       <md-divider></md-divider>
@@ -38,12 +38,20 @@
       <h5>/*</h5>
       <md-divider></md-divider>
     </div>
+    <div layout="row" layout-wrap>
+      <span flex class="badge gravitee-policy-method-badge"
+            ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.httpMethodsFilter)"
+            ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
+            ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.httpMethodsFilter)">
+        {{httpMethod | uppercase}}
+      </span>
+    </div>
     <md-list class="gravitee-policy-dropzone">
-      <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath.get('/*')" ng-click="apiPoliciesCtrl.editPolicy($index)">
+      <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath.get('/*')" ng-click="apiPoliciesCtrl.editPolicy($index)" ng-hide="apiPoliciesCtrl.filterByMethod(policy)">
         <div class="md-list-item-text">
           <div id="apiPolicy-name">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</div>
-          <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpVerbs.length">ALL</span>
-          <div ng-if="policy.methods.length != apiPoliciesCtrl.httpVerbs.length">
+          <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
+          <div ng-if="policy.methods.length != apiPoliciesCtrl.httpMethods.length">
             <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
           </div>
         </div>
@@ -52,7 +60,7 @@
     </md-list>
   </div>
 
-  <div flex="25">
+  <div flex="30">
     <div ng-if="apiPoliciesCtrl.selectedApiPolicy.policyId">
       <div class="inset">
         <h5>{{apiPoliciesCtrl.policyMap.get(apiPoliciesCtrl.selectedApiPolicy.policyId).name}}</h5>
@@ -61,10 +69,10 @@
       <form name="projectForm" novalidate>
         <div layout="row" layout-wrap>
           <span flex="20" class="badge gravitee-policy-method-badge"
-                ng-class="apiPoliciesCtrl.getHttpVerbClass(httpVerb)"
-                ng-repeat="httpVerb in apiPoliciesCtrl.httpVerbs"
-                ng-click="apiPoliciesCtrl.toggleHttpVerb(httpVerb)">
-            {{httpVerb | uppercase}}
+                ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)"
+                ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
+                ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)">
+            {{httpMethod | uppercase}}
           </span>
         </div>
         <md-input-container class="md-block" ng-repeat="(k,v) in apiPoliciesCtrl.policySchemaMap.get(apiPoliciesCtrl.selectedApiPolicy.policyId)">
