@@ -16,42 +16,68 @@
 
 -->
 
-<div layout="" layout-sm="column">
-  <md-switch ng-model="monitoringCtrl.monitoringEnabled"
-             ng-change="monitoringCtrl.switchEnabled()" class="md-block">
-    Enabled
-  </md-switch>
+<div layout="row">
+  <md-content flex="30" style="background-color: white;">
+    <div layout="column" layout-sm="column">
+      <md-switch ng-model="monitoringCtrl.monitoringEnabled"
+                 ng-change="monitoringCtrl.switchEnabled()" class="md-block">
+        Enabled
+      </md-switch>
+    </div>
+
+    <form name="formApiMonitoring" ng-submit="monitoringCtrl.update()" novalidate>
+      <div layout="column" layout-sm="column" flex="80">
+        <md-input-container class="flex">
+          <label>Endpoint</label>
+          <input ng-model="monitoringCtrl.api.monitoring.endpoint" type="text" ng-required="true">
+        </md-input-container>
+      </div>
+
+      <div layout="" layout-sm="column" flex="80">
+        <md-input-container class="flex">
+          <label>Interval</label>
+          <input ng-model="monitoringCtrl.api.monitoring.interval" type="number" ng-required="true">
+        </md-input-container>
+
+        <md-input-container class="flex">
+          <label>Time Unit</label>
+          <md-select ng-model="monitoringCtrl.api.monitoring.unit" placeholder="Time unit" ng-required="true">
+            <md-option ng-repeat="timeUnit in monitoringCtrl.timeUnits">{{timeUnit}}</md-option>
+          </md-select>
+        </md-input-container>
+      </div>
+
+      <div class="md-actions gravitee-api-save-button" layout="row">
+        <md-button class="md-accent" type="submit" ng-disabled="formApiMonitoring.$invalid || formApiMonitoring.$pristine">
+          Save
+        </md-button>
+        <md-button class="md-warn" type="button" ng-click="monitoringCtrl.reset()"
+                   ng-disabled="formApiMonitoring.$invalid || formApiMonitoring.$pristine">
+          Reset
+        </md-button>
+      </div>
+    </form>
+  </md-content>
+
+  <md-content flex="70" style="background-color: white;">
+    <md-content style="background: none">
+      <label style="color: #b1bdc5;">Timeframe:</label>
+      <md-menu>
+        <md-button aria-label="Timeframe: " ng-click="monitoringCtrl.openMenu($mdOpenMenu, $event)" style="color: #b1bdc5;">
+          {{analytics.timeframe.title}}<ng-md-icon icon="expand_more" style="fill: #b1bdc5;"></ng-md-icon>
+        </md-button>
+        <md-menu-content>
+          <md-menu-item ng-repeat="timeframe in monitoringCtrl.analytics.timeframes">
+            <md-button ng-click="monitoringCtrl.updateTimeframe(timeframe.id)">
+              {{timeframe.title}}
+            </md-button>
+          </md-menu-item>
+        </md-menu-content>
+      </md-menu>
+    </md-content>
+
+    <md-card-content style="background-color: #fff">
+      <chart config="chartConfig"></chart>
+    </md-card-content>
+  </md-content>
 </div>
-
-<form name="formApiMonitoring" ng-submit="monitoringCtrl.update()" novalidate>
-  <div layout="column" layout-sm="column" flex="20">
-    <md-input-container class="flex">
-      <label>Endpoint</label>
-      <input ng-model="monitoringCtrl.api.monitoring.endpoint" type="text" ng-required="true">
-    </md-input-container>
-  </div>
-
-  <div layout="" layout-sm="column" flex="20">
-    <md-input-container class="flex">
-      <label>Interval</label>
-      <input ng-model="monitoringCtrl.api.monitoring.interval" type="number" ng-required="true">
-    </md-input-container>
-
-    <md-input-container class="flex">
-      <label>Time Unit</label>
-      <md-select ng-model="monitoringCtrl.api.monitoring.unit" placeholder="Time unit" ng-required="true">
-        <md-option ng-repeat="timeUnit in monitoringCtrl.timeUnits">{{timeUnit}}</md-option>
-      </md-select>
-    </md-input-container>
-  </div>
-
-  <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button class="md-accent" type="submit" ng-disabled="formApiMonitoring.$invalid || formApiMonitoring.$pristine">
-      Save
-    </md-button>
-    <md-button class="md-warn" type="button" ng-click="monitoringCtrl.reset()"
-               ng-disabled="formApiMonitoring.$invalid || formApiMonitoring.$pristine">
-      Reset
-    </md-button>
-  </div>
-</form>

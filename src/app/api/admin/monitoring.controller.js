@@ -24,6 +24,10 @@ class ApiMonitoringController {
     this.api = resolvedApi.data;
     this.monitoringEnabled = this.api.monitoring.enabled;
     this.timeUnits = [ 'milliseconds', 'seconds', 'minutes' ];
+    this.analytics = this.analytics();
+
+    this.setTimeframe('3d');
+    this.updateChart();
   }
 
   switchEnabled() {
@@ -32,12 +36,144 @@ class ApiMonitoringController {
     this.update();
   }
 
+  openMenu($mdOpenMenu, ev) {
+    $mdOpenMenu(ev);
+  }
+
+  updateTimeframe(timeframeId) {
+    this.setTimeframe(timeframeId);
+
+    this.updateChart();
+  }
+
+  setTimeframe(timeframeId) {
+    var timeframe = _.find(this.analytics.timeframes, function(timeframe) {
+      return timeframe.id === timeframeId;
+    });
+
+    var now = Date.now();
+
+    this.$scope.analytics = {
+      timeframe: timeframe,
+      range: {
+        interval: timeframe.interval,
+        from: now - timeframe.range,
+        to: now
+      }
+    };
+  }
+
   update() {
     var _this = this;
     this.ApiService.update(this.api).then((updatedApi) => {
       _this.api = updatedApi.data;
       _this.$scope.formApiMonitoring.$setPristine();
     });
+  }
+
+  updateChart() {
+    var _this = this;
+
+    this.ApiService.apiHealth(
+      _this.api.id,
+      _this.$scope.analytics.range.interval,
+      _this.$scope.analytics.range.from,
+      _this.$scope.analytics.range.to).then(response => {
+      this.$scope.chartConfig = {
+        type: 'area',
+        credits: {
+          enabled: false
+        },
+        title: {
+          text: 'Health status'
+        },
+        subtitle: {
+          text: ''
+        },
+        xAxis: {
+          type: 'datetime',
+          categories: response.data.timestamps,
+          labels: {
+            formatter: function () {
+              return moment(this.value).format("YYYY-MM-DD HH:mm:ss");
+            }
+          },
+          tickmarkPlacement: 'on',
+          title: {
+            enabled: false
+          }
+        },
+        yAxis: {title: {text: 'Health'}},
+        tooltip: {
+          pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.percentage:.1f}%</b><br/>',
+          shared: true
+        },
+        plotOptions: {
+          area: {
+            stacking: 'percent',
+            lineColor: '#ffffff',
+            lineWidth: 1,
+            marker: {
+              lineWidth: 1,
+              lineColor: '#ffffff'
+            }
+          }
+        },
+        series: []
+      };
+
+      // Push data for hits by status
+      for (var property in response.data.buckets) {
+        this.$scope.chartConfig.series.push({
+          type: 'area',
+          name: property,
+          data: response.data.buckets[property]
+        });
+      }
+    });
+  }
+
+  analytics() {
+    return {
+      timeframes: [
+        {
+          id: '5m',
+          title: 'Last 5 minutes',
+          range: 1000 * 60 * 5,
+          interval: 10000,
+        }, {
+          id: '1h',
+          title: 'Last hour',
+          range: 1000 * 60 * 60,
+          interval: 1000 * 60,
+        }, {
+          id: '24h',
+          title: 'Last 24 hours',
+          range: 1000 * 60 * 60 * 24,
+          interval: 1000 * 60 * 60,
+        }, {
+          id: '3d',
+          title: 'Last 3 days',
+          range: 1000 * 60 * 60 * 24 * 3,
+          interval: 1000 * 60 * 60 * 3,
+        }, {
+          id: '14d',
+          title: 'Last 14 days',
+          range: 1000 * 60 * 60 * 24 * 14,
+          interval: 1000 * 60 * 60 * 5,
+        }, {
+          id: '30d',
+          title: 'Last 30 days',
+          range: 1000 * 60 * 60 * 24 * 30,
+          interval: 10000000,
+        }, {
+          id: '90d',
+          title: 'Last 90 days',
+          range: 1000 * 60 * 60 * 24 * 90,
+          interval: 10000000,
+        }
+      ]
+    };
   }
 }
 

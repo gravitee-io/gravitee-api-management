@@ -80,6 +80,13 @@ class ApiService {
   }
 
   /*
+   * Health
+   */
+  apiHealth(api, interval, from, to) {
+    return this.$http.get(this.apisURL + api + '/health?interval=' + interval + '&from=' + from + '&to=' + to);
+  }
+
+  /*
    * Members
    */
   getMembers(api) {
