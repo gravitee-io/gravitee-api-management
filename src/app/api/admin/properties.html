@@ -23,13 +23,13 @@
   <table md-data-table class="md-primary">
     <thead>
       <tr>
-        <th>Member name</th>
-				<th>Role</th>
+        <th>Name</th>
+				<th>Value</th>
 				<th></th>
       </tr>
     </thead>
     <tbody>
-      <tr ng-repeat="member in apiCtrl.members">
+      <tr ng-repeat="property in apiCtrl.api.properties">
         <td>{{member.user}}</td>
         <td ng-show="member.type != 'primary_owner'">
 					<md-select ng-model="member.type" placeholder="Other">

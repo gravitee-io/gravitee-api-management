@@ -21,6 +21,7 @@ class ApiPropertiesController {
     this.NotificationService = NotificationService;
     this.$scope = $scope;
     this.$state = $state;
+    this.api = resolvedApi.data;
   }
 
 }
