@@ -43,10 +43,10 @@ function runBlock ($rootScope, $window, $http, $cookieStore, $state) {
     $window.location.href = '/';
   });
 
-	$rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){ 
+	$rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){
     $rootScope.contentIsActive = (toState.name.indexOf("application.") === 0
-																	|| toState.name.indexOf("apis.admin.") === 0
-																	|| toState.name.indexOf("apis.portal.") === 0);
+																	|| toState.name.indexOf("apis.admin") === 0
+																	|| toState.name.indexOf("apis.portal") === 0);
 	});
 
   // Progress Bar
