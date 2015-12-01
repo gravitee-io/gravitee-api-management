@@ -21,19 +21,17 @@
       <ng-md-icon icon="add"></ng-md-icon>
     </md-button>
     <md-divider></md-divider>
-    <md-item dragula="'pages-list'" dragula-scope="$parent" dragula-model="dpages" ng-repeat="page in documentationCtrl.pages">
-      <a ui-sref="apis.admin.documentation.page({pageId: page.id})" style="color: #333;">
-        <md-item-content layout="row" layout-align="start center">
+    <md-item dragula="'pages-list'" dragula-scope="$parent" ng-repeat="page in documentationCtrl.pages">
+        <md-item-content layout="row" layout-align="start center" ui-sref="apis.admin.documentation.page({pageId: page.id})">
           <md-button class="gravitee-api-page-menu-item" ng-click="documentationCtrl.selectPage(p)"
                      ng-class="{'selected' : page.id === documentationCtrl.$state.params.pageId }">
             <div class="inset">
               <ng-md-icon icon="more_vert"></ng-md-icon>
               <ng-md-icon icon="insert_drive_file"></ng-md-icon>
-              {{page.title}}
+              {{page.name}}
             </div>
           </md-button>
         </md-item-content>
-      </a>
     </md-item>
   </md-list>
   <md-content flex="80" ui-view></md-content>

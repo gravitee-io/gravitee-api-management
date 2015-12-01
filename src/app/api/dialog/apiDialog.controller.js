@@ -23,8 +23,6 @@ function DialogApiController($scope, $mdDialog, ApiService) {
   this.save = function () {
     ApiService.create($scope.api).then(function () {
       $mdDialog.hide(true);
-    }).catch(function (error) {
-      $scope.error = error;
     });
   };
 }

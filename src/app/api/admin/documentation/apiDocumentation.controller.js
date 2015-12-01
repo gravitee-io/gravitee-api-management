@@ -29,19 +29,19 @@ class DocumentationController {
       that.list();
     });
 
-    $scope.$on('pages-list.drop', function(e, el, source, target) {
+    $scope.$on('pages-list.drop', function(e, el, target, source) {
       var sourcePage = source.scope().page, targetPage = target.scope().page;
-      // call service reorder and update list of pages
+      sourcePage.order = targetPage.order;
+      DocumentationService.editPage(that.$scope.$parent.apiCtrl.api.id, sourcePage.id, sourcePage).then(function () {
+        // sync list from server because orders has been changed
+        that.list();
+      });
     });
   }
 
   list() {
     this.DocumentationService.list(this.$scope.$parent.apiCtrl.api.id).then(response => {
       this.pages = response.data;
-
-      this.$scope.dragularOptions = {
-        scope: this.$scope
-      };
     });
   }
 

@@ -15,13 +15,14 @@
  */
 class PageController {
   
-	constructor(DocumentationService, $state, $mdDialog, $rootScope, $scope) {
+	constructor(DocumentationService, $state, $mdDialog, $rootScope, $scope, NotificationService) {
     'ngInject';
     this.DocumentationService = DocumentationService;
     this.$state = $state;
     this.$rootScope = $rootScope;
     this.$scope = $scope;
     this.$mdDialog = $mdDialog;
+    this.NotificationService = NotificationService;
     this.editMode = false;
 
     var that = this;
@@ -31,15 +32,10 @@ class PageController {
     });
   }
 
-  initState() {
-    this.$scope.pagePublished = this.page.state === 'published'? true : false;
-  }
-
   update() {
     var editPage = {
-      'title' : this.page.title,
-      'name': this.page.name,
-      'content': this.page.content
+      name: this.page.name,
+      content: this.page.content
     };
     var that = this;
     this.DocumentationService.editPage(this.$scope.$parent.apiCtrl.api.id, this.page.id, editPage).then(function () {
@@ -77,6 +73,15 @@ class PageController {
 
   preview() {
     this.editMode = false;
+  }
+
+  changePublication() {
+    var editPage = _.clone(this.initialPage);
+    editPage.published = this.page.published;
+    var that = this;
+    this.DocumentationService.editPage(this.$scope.$parent.apiCtrl.api.id, this.page.id, editPage).then(function () {
+      that.NotificationService.show('Page ' + editPage.name + ' has been ' + (editPage.published ? '':'un') + 'published with success');
+    });
   }
 }
 

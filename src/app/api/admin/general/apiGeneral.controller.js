@@ -72,7 +72,7 @@ class ApiAdminController {
       .show(alert)
       .then(function () {
         that.ApiService.delete(id).then(() => {
-          that.$scope.$parent.apiCtrl.backToPreviousState();
+          that.$scope.$parent.apisCtrl.backToPreviousState();
         });
       });
   }

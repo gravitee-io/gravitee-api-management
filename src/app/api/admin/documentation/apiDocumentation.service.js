@@ -44,7 +44,15 @@
   }
 
   editPage(apiId, pageId, editPage) {
-  	return this.$http.put(this.documentationURL(apiId) + pageId, editPage);
+    return this.$http.put(this.documentationURL(apiId) + pageId,
+      {
+        name: editPage.name,
+        description: editPage.description,
+        order: editPage.order,
+        published: editPage.published,
+        content: editPage.content
+      }
+    );
   }
 }
 

@@ -64,7 +64,6 @@ function DialogDocumentationController($scope, $mdDialog, DocumentationService, 
       var newPage = {
         'name' : $scope.pageTitle.replace(/\s/g, '-').toLowerCase(),
         'type' : selectedPageType,
-        'title' : $scope.pageTitle,
         'content' : $scope.pageContentFile.content
       };
       DocumentationService.createPage(apiId, newPage).then(function (page) {

@@ -20,7 +20,7 @@ class NotificationService {
     this.show = function (message) {
       $mdToast.show(
         $mdToast.simple()
-          .content(message)
+          .content(message.statusText || message)
           .position('bottom right')
           .hideDelay(3000)
       );
