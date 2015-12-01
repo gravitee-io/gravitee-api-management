@@ -130,8 +130,8 @@ class ApiPoliciesController {
   }
 
   getHttpMethodClass(method, methods) {
-    return "gravitee-policy-method-badge-" +
-      (methods.indexOf(method) > -1 ? "selected" : "unselected");
+    return "gravitee-policy-method-badge-" + method +
+      (methods.indexOf(method) > -1 ? "-selected" : "-unselected");
   }
 
   toggleHttpMethod(method, methods) {

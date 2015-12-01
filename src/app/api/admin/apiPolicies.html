@@ -35,24 +35,26 @@
 
   <div flex="50">
     <div class="inset">
-      <h5>/*</h5>
+      <h3>/*</h3>
       <md-divider></md-divider>
     </div>
     <div layout="row" layout-wrap>
-      <span flex class="badge gravitee-policy-method-badge"
-            ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.httpMethodsFilter)"
-            ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
-            ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.httpMethodsFilter)">
+      <div class="gravitee-policy-filters">
+        <span flex class="badge gravitee-policy-method-badge"
+              ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.httpMethodsFilter)"
+              ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
+              ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.httpMethodsFilter)">
         {{httpMethod | uppercase}}
-      </span>
+        </span>
+      </div>
     </div>
     <md-list class="gravitee-policy-dropzone">
       <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath.get('/*')" ng-click="apiPoliciesCtrl.editPolicy($index)" ng-hide="apiPoliciesCtrl.filterByMethod(policy)">
         <div class="md-list-item-text">
           <div id="apiPolicy-name">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</div>
-          <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
+          <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-GET-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
           <div ng-if="policy.methods.length != apiPoliciesCtrl.httpMethods.length">
-            <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-selected" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
+            <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-{{method}}-selected" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
           </div>
         </div>
       </md-list-item>

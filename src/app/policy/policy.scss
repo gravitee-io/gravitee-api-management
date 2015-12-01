@@ -44,6 +44,44 @@
   font-size: .8em;
 }
 
-.gravitee-policy-method-badge-selected {
-  background-color: green;
+.gravitee-policy-method-badge-GET-selected {
+  background-color: #43a047;
+}
+
+.gravitee-policy-method-badge-POST-selected {
+  background-color: #fb8c00;
+}
+
+.gravitee-policy-method-badge-PUT-selected {
+  background-color: #039be5;
+}
+
+.gravitee-policy-method-badge-DELETE-selected {
+  background-color: #e53935;
+}
+
+.gravitee-policy-method-badge-HEAD-selected,
+.gravitee-policy-method-badge-PATCH-selected,
+.gravitee-policy-method-badge-OPTIONS-selected,
+.gravitee-policy-method-badge-TRACE-selected,
+.gravitee-policy-method-badge-CONNECT-selected {
+  background-color: #757575;
+}
+
+.gravitee-policy-method-badge-GET-unselected,
+.gravitee-policy-method-badge-POST-unselected,
+.gravitee-policy-method-badge-PUT-unselected,
+.gravitee-policy-method-badge-DELETE-unselected,
+.gravitee-policy-method-badge-HEAD-unselected,
+.gravitee-policy-method-badge-PATCH-unselected,
+.gravitee-policy-method-badge-OPTIONS-unselected,
+.gravitee-policy-method-badge-TRACE-unselected,
+.gravitee-policy-method-badge-CONNECT-unselected {
+  background-color: #e0e0e0;
+  color: #757575;
+}
+
+.gravitee-policy-filters {
+  width: 100%;
+  padding: 10px 0;
 }
