@@ -156,9 +156,12 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
     .state('apis.admin.properties', {
       url: '/properties',
-      templateUrl: 'app/api/admin/properties.html',
+      templateUrl: 'app/api/admin/properties/properties.html',
       controller: 'ApiPropertiesController',
-      controllerAs: 'propertiesCtrl'
+      controllerAs: 'apiPropertiesCtrl',
+      ncyBreadcrumb: {
+        skip: true
+      }
     })
     .state('documentation', {
       url: '/documentation',

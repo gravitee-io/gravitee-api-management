@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ApiPropertiesController {
-  constructor (ApiService, resolvedApi, $state, $mdDialog, NotificationService, $scope) {
-    'ngInject';
-    this.ApiService = ApiService;
-    this.$mdDialog = $mdDialog;
-    this.NotificationService = NotificationService;
-    this.$scope = $scope;
-    this.$state = $state;
-    this.api = resolvedApi.data;
-  }
+function DialogAddPropertyController($scope, $mdDialog) {
+  'ngInject';
 
+  this.hide = function () {
+    $mdDialog.hide();
+  };
+
+  this.save = function () {
+    var property = {};
+    property[$scope.property.name] = $scope.property.value;
+
+    $mdDialog.hide(property);
+  };
 }
 
-export default ApiPropertiesController;
+export default DialogAddPropertyController;
