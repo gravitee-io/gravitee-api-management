@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogApiController($scope, $mdDialog, ApiService) {
+function DialogApiController($scope, $mdDialog, ApiService, NotificationService) {
   'ngInject';
 
   this.hide = function () {
@@ -21,8 +21,12 @@ function DialogApiController($scope, $mdDialog, ApiService) {
   };
 
   this.save = function () {
-    ApiService.create($scope.api).then(function () {
-      $mdDialog.hide(true);
+    ApiService.create($scope.api).then(function (result) {
+      NotificationService.show('API created');
+      $mdDialog.hide(result);
+    }).catch(function (error) {
+      NotificationService.show('Error while creating the API');
+      $scope.error = error;
     });
   };
 }

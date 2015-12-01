@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor (ApiService, $mdDialog, $scope, $state) {
+  constructor ($window, ApiService, $mdDialog, $scope, $state) {
     'ngInject';
+    this.$window = $window;
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
     this.$scope = $scope;
@@ -37,15 +38,15 @@ class ApisController {
   }
 
   showApiModal() {
-    var that = this;
+    var _that = this;
     this.$mdDialog.show({
       controller: 'DialogApiController',
       controllerAs: 'dialogApiCtrl',
       templateUrl: 'app/api/dialog/api.dialog.html',
       clickOutsideToClose: true
-    }).then(function (saved) {
-      if (saved) {
-        that.list();
+    }).then(function (api) {
+      if (api) {
+        _that.$window.location.href = '#/apis/' + api.data.id + '/settings/general';
       }
     });
   }
