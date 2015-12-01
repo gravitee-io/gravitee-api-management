@@ -15,21 +15,22 @@
     limitations under the License.
 
 -->
-<section class="content-header">
-</section>  
+<section>
+	<div layout="column" layout-align="end-start" layout-padding class="gravitee-application-header" flex>
+		<div class="gravitee-application-header-content inset">
+			<h3>{{applicationCtrl.application.name}}</h3>
+			<p>
+				<small>{{applicationCtrl.application.description}}</small>
+			</p>
+		</div>
+	</div>
 
-<md-card>
-  <md-card-content>
-		<md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
-    	<md-tab label="dashboard" ui-sref="application.dashboard">
-    	</md-tab>
-      <md-tab label="general" ui-sref="application.general">
-      </md-tab>
-      <md-tab label="apis" ui-sref="application.apis">
-      </md-tab>
-      <md-tab label="members" ui-sref="application.members">
-      </md-tab>
- 		</md-tabs>
-  	<div ui-view></div>
-  </md-card-content>
-</md-card>
+	<md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
+		<md-tab label="dashboard" ui-sref="application.dashboard"></md-tab>
+		<md-tab label="general" ui-sref="application.general"></md-tab>
+		<md-tab label="apis" ui-sref="application.apis"></md-tab>
+		<md-tab label="members" ui-sref="application.members"></md-tab>
+	</md-tabs>
+
+	<div ui-view></div>
+</section>

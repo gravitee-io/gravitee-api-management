@@ -17,13 +17,9 @@
 -->
 <section>
   <div ng-include="'app/api/apiHeader.html'"></div>
-  <md-card style="margin: 0 !important">
-    <md-card-content>
-      <md-tabs md-dynamic-height md-border-bottom>
-        <md-tab label="{{page.name}}" md-on-select="apiCtrl.fetchPage(page)" ng-repeat="page in apiCtrl.pages">
-          <gravitee-page page="apiCtrl.page" enable-try-it="false"></gravitee-page>
-        </md-tab>
-      </md-tabs>
-    </md-card-content>
-  </md-card>
+  <md-tabs md-dynamic-height md-border-bottom>
+    <md-tab label="{{page.name}}" md-on-select="apiCtrl.fetchPage(page)" ng-repeat="page in apiCtrl.pages">
+      <gravitee-page page="apiCtrl.page" enable-try-it="false" class="inset"></gravitee-page>
+    </md-tab>
+  </md-tabs>
 </section>

@@ -18,19 +18,15 @@
 <section>
   <div ng-include="'app/api/apiHeader.html'"></div>
 
-  <md-card style="margin: 0;">
-    <md-card-content>
-      <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
-        <md-tab label="general" ui-sref="apis.admin.general"></md-tab>
-        <md-tab label="policies" ui-sref="apis.admin.policies"></md-tab>
-        <md-tab label="documentation" ui-sref="apis.admin.documentation"></md-tab>
-        <md-tab label="members" ui-sref="apis.admin.members"></md-tab>
-        <md-tab label="properties" ui-sref="apis.admin.properties"></md-tab>
-        <md-tab label="analytics" ui-sref="apis.admin.analytics"></md-tab>
-        <md-tab label="monitoring" ui-sref="apis.admin.monitoring"></md-tab>
-      </md-tabs>
+  <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
+    <md-tab label="general" ui-sref="apis.admin.general"></md-tab>
+		<md-tab label="policies" ui-sref="apis.admin.policies"></md-tab>
+    <md-tab label="documentation" ui-sref="apis.admin.documentation"></md-tab>
+    <md-tab label="members" ui-sref="apis.admin.members"></md-tab>
+    <md-tab label="properties" ui-sref="apis.admin.properties"></md-tab>
+    <md-tab label="analytics" ui-sref="apis.admin.analytics"></md-tab>
+    <md-tab label="monitoring" ui-sref="apis.admin.monitoring"></md-tab>
+  </md-tabs>
 
-      <div ui-view flex></div>
-    </md-card-content>
-  </md-card>
+  <div ui-view flex class="inset"></div>
 </section>

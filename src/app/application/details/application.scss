@@ -37,3 +37,18 @@
 	color: #666;
 	font-size: 13px;
 }
+
+.gravitee-application-header {
+	height: 320px;
+	background: url('../app/images/application-header-background.png') center center no-repeat; 
+	background-size: cover; 
+}
+
+.gravitee-application-header-content {
+	color: white; 
+	padding-left: 20px !important;
+}
+
+.gravitee-application-header-content ng-md-icon {
+	fill: white;
+}

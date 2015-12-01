@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /* global setInterval:false, clearInterval:false */
-function runBlock ($rootScope, $window, $http, $cookieStore) {
+function runBlock ($rootScope, $window, $http, $cookieStore, $state) {
   'ngInject';
   var graviteeAuthenticationKey = 'GraviteeAuthentication';
 
@@ -30,7 +30,7 @@ function runBlock ($rootScope, $window, $http, $cookieStore) {
   }
 
   setAuthorization();
-
+	
   $rootScope.$on('authenticationSuccess', function() {
     setAuthorization();
   });
@@ -42,6 +42,12 @@ function runBlock ($rootScope, $window, $http, $cookieStore) {
     setAuthorization();
     $window.location.href = '/';
   });
+
+	$rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){ 
+    $rootScope.contentIsActive = (toState.name.indexOf("application.") === 0
+																	|| toState.name.indexOf("apis.admin.") === 0
+																	|| toState.name.indexOf("apis.portal.") === 0);
+	});
 
   // Progress Bar
   var interval, intervalTimeInMs = 500;

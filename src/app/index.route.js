@@ -161,7 +161,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controllerAs: 'apiPropertiesCtrl',
       ncyBreadcrumb: {
         skip: true
-      }
+      }															
     })
     .state('documentation', {
       url: '/documentation',

@@ -113,6 +113,10 @@
 	display: none !important;
 }
 
+md-content.active {
+	background: #fff;
+}
+
 md-content {
 	background: #fafafa;
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
