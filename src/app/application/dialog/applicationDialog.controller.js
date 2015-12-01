@@ -21,9 +21,9 @@ function DialogApplicationController($scope, $mdDialog, ApplicationService, Noti
   };
 
   $scope.create = function (application) {
-    ApplicationService.create(application).then(function () {
+    ApplicationService.create(application).then(function (result) {
 			NotificationService.show('Application created');
-      $mdDialog.hide(application);
+      $mdDialog.hide(result);
     }).catch(function (error) {
 			NotificationService.show('Error while creating the application');
       $scope.error = error;

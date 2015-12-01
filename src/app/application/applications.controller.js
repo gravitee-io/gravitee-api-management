@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 class ApplicationsController {
-  constructor($mdDialog, $state, ApplicationService, NotificationService) {
+  constructor($window, $mdDialog, $state, ApplicationService, NotificationService) {
 		'ngInject';
+    this.$window = $window;
 		this.$mdDialog = $mdDialog;
 		this.$state = $state;
 		this.ApplicationService = ApplicationService;
@@ -27,12 +28,12 @@ class ApplicationsController {
 
 	list() {
 		this.ApplicationService.list().then(response => {
-			this.applications = response.data;		
+			this.applications = response.data;
 		});
   }
 
 	showAddApplicationModal(ev) {
-    var that = this;
+    var _that = this;
     this.$mdDialog.show({
       controller: 'DialogApplicationController',
       templateUrl: 'app/application/dialog/application.dialog.html',
@@ -41,7 +42,7 @@ class ApplicationsController {
       clickOutsideToClose: true
     }).then(function (application) {
       if (application) {
-        that.list();
+        _that.$window.location.href = '#/applications/' + application.data.id + '/general';
       }
     }, function() {
        // You cancelled the dialog
