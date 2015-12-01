@@ -65,12 +65,6 @@ public class ApiManagerImpl implements ApiManager {
     @Override
     public void update(Api api) {
         logger.debug("Trying to update API {}", api);
-        Api cachedApi = apis.get(api.getId());
-
-        // Update only if certain fields has been updated:
-        // - Lifecycle
-        // - TargetURL
-        // - PublicURL
 
         try {
             validator.validate(api);

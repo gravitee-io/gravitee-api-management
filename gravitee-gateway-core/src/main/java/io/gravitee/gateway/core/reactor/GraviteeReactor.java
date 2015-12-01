@@ -31,6 +31,7 @@ import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.impl.ApiReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.reporter.ReporterHandler;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.service.ServiceManager;
@@ -163,8 +164,7 @@ public class GraviteeReactor extends AbstractService implements
                 createHandler(event.content());
                 break;
             case UPDATE:
-                removeHandler(event.content());
-                createHandler(event.content());
+                updateHandler(event.content());
                 break;
             case UNDEPLOY:
                 removeHandler(event.content());
@@ -185,6 +185,21 @@ public class GraviteeReactor extends AbstractService implements
             }
         } else {
             logger.warn("Api {} is settled has disable in reactor !", api.getId());
+        }
+    }
+
+    public void updateHandler(Api api) {
+        ApiReactorHandler handler = (ApiReactorHandler) handlers.get(api);
+        Api previousApi = handler.getApi();
+
+        if (previousApi.isEnabled() != api.isEnabled() ||
+                previousApi.getProxy().isStripContextPath() != api.getProxy().isStripContextPath() ||
+                ! previousApi.getProxy().getContextPath().equals(api.getProxy().getContextPath()) ||
+                ! previousApi.getProxy().getEndpoint().equals(api.getProxy().getEndpoint())) {
+            removeHandler(api);
+            createHandler(api);
+        } else {
+            logger.info("API {} doesn't need to be refreshed in the gateway. Skipping...", api.getId());
         }
     }
 

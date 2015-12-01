@@ -191,4 +191,8 @@ public class ApiReactorHandler extends ContextReactorHandler {
         sb.append('}');
         return sb.toString();
     }
+
+    public Api getApi() {
+        return api;
+    }
 }
