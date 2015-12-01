@@ -23,7 +23,7 @@
   <table md-data-table class="md-primary">
     <thead>
       <tr>
-        <th>Member name</th>
+        <th>Member</th>
 				<th>Role</th>
 				<th></th>
       </tr>
@@ -49,6 +49,7 @@
     </tbody>
   </table>
 </md-data-table-container>
-<md-button class="md-mini md-fab" ng-click="apiCtrl.showAddMemberModal($event)">
-	<ng-md-icon icon="add"></ng-md-icon>
+
+<md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="apiCtrl.showAddMemberModal($event)">
+  <ng-md-icon icon="add"></ng-md-icon>
 </md-button>
