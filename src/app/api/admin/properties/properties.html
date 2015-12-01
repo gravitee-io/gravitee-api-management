@@ -18,7 +18,7 @@
 <form name="formApiProperties" ng-submit="apiPropertiesCtrl.update(apiPropertiesCtrl.api)" novalidate>
   <md-data-table-container>
     <table md-data-table class="md-primary">
-      <thead>
+      <thead ng-if="apiPropertiesCtrl.api.properties">
         <tr>
           <th>Name</th>
           <th>Value</th>
@@ -39,7 +39,7 @@
       </tbody>
     </table>
   </md-data-table-container>
-  <div class="md-actions gravitee-api-save-button" layout="row">
+  <div ng-if="apiPropertiesCtrl.api.properties" class="md-actions gravitee-api-save-button" layout="row">
     <md-button class="md-accent" type="submit" ng-disabled="formApiProperties.$invalid">
       Save
     </md-button>
