@@ -15,11 +15,11 @@
     limitations under the License.
 
 -->
-  <md-dialog aria-label="Creation of a new API">
+  <md-dialog aria-label="New API" style="width: 60%">
     <form name="formApi" ng-submit="dialogApiCtrl.save()" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
-          <h2>Creation of a new API</h2>
+          <h2>New API</h2>
           <span flex></span>
           <md-button type="button" class="md-icon-button" ng-click="dialogApiCtrl.hide()">
             X
@@ -64,7 +64,7 @@
           Cancel
         </md-button>
         <md-button type="submit" class="md-primary" ng-disabled="formApi.$invalid">
-          Save
+          Create
         </md-button>
       </div>
     </form>
