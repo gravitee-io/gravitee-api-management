@@ -174,6 +174,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
 	private User mapUser(final UserMongo userMongo) {
 		final User user = new User();
+		user.setUsername(userMongo.getName());
 		user.setCreatedAt(userMongo.getCreatedAt());
 		user.setEmail(userMongo.getEmail());
 		user.setFirstname(userMongo.getFirstname());
