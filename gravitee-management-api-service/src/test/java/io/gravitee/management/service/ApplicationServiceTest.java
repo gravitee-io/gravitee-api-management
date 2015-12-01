@@ -15,18 +15,14 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.NewApplicationEntity;
-import io.gravitee.management.model.UpdateApplicationEntity;
-import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
-import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.impl.ApplicationServiceImpl;
-import io.gravitee.management.service.impl.IdGeneratorImpl;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.model.Application;
-import org.junit.Before;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.*;
+
+import java.util.Optional;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,13 +31,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Optional;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.*;
+import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.NewApplicationEntity;
+import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
+import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.impl.ApplicationServiceImpl;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.model.Application;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -49,6 +48,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ApplicationServiceTest {
 
+    private static final String APPLICATION_ID = "id-app";
     private static final String APPLICATION_NAME = "myApplication";
     private static final String USER_NAME = "myUser";
 
@@ -59,45 +59,45 @@ public class ApplicationServiceTest {
     private ApplicationRepository applicationRepository;
 
     @Mock
+    private IdGenerator idGenerator;
+    @Mock
     private NewApplicationEntity newApplication;
     @Mock
     private UpdateApplicationEntity existingApplication;
     @Mock
     private Application application;
 
-    @Before
-    public void setUp() {
-        applicationService.setIdGenerator(new IdGeneratorImpl());
-    }
-
     @Test
     public void shouldFindByName() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.of(application));
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
 
-        final ApplicationEntity applicationEntity = applicationService.findById(APPLICATION_NAME);
+        final ApplicationEntity applicationEntity = applicationService.findById(APPLICATION_ID);
 
         assertNotNull(applicationEntity);
     }
 
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotFindByNameBecauseNotExists() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.empty());
-        applicationService.findById(APPLICATION_NAME);
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
+        applicationService.findById(APPLICATION_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByNameBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_NAME)).thenThrow(TechnicalException.class);
+        when(applicationRepository.findById(APPLICATION_ID)).thenThrow(TechnicalException.class);
 
-        applicationService.findById(APPLICATION_NAME);
+        applicationService.findById(APPLICATION_ID);
     }
 
     @Test
     public void shouldCreateForUser() throws TechnicalException {
         when(application.getName()).thenReturn(APPLICATION_NAME);
-        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.empty());
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+
+        when(idGenerator.generate(APPLICATION_NAME)).thenReturn(APPLICATION_ID);
 
         final ApplicationEntity applicationEntity = applicationService.create(newApplication, USER_NAME);
 
@@ -107,16 +107,22 @@ public class ApplicationServiceTest {
 
     @Test(expected = ApplicationAlreadyExistsException.class)
     public void shouldNotCreateForUserBecauseExists() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.of(application));
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+
+        when(idGenerator.generate(APPLICATION_NAME)).thenReturn(APPLICATION_ID);
 
         applicationService.create(newApplication, USER_NAME);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateForUserBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_NAME)).thenThrow(TechnicalException.class);
+        when(applicationRepository.findById(APPLICATION_ID)).thenThrow(TechnicalException.class);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+
+        when(idGenerator.generate(APPLICATION_NAME)).thenReturn(APPLICATION_ID);
 
         applicationService.create(newApplication, USER_NAME);
     }
@@ -124,7 +130,7 @@ public class ApplicationServiceTest {
     @Test
     @Ignore
     public void shouldUpdate() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.of(application));
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(applicationRepository.update(any())).thenReturn(application);
 
@@ -144,31 +150,34 @@ public class ApplicationServiceTest {
 
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.empty());
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
         when(applicationRepository.update(any())).thenReturn(application);
 
-        applicationService.update(APPLICATION_NAME, existingApplication);
+        applicationService.update(APPLICATION_ID, existingApplication);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_NAME)).thenReturn(Optional.of(application));
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(applicationRepository.update(any())).thenThrow(TechnicalException.class);
 
-        applicationService.update(APPLICATION_NAME, existingApplication);
+        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getDescription()).thenReturn("My description");
+
+        applicationService.update(APPLICATION_ID, existingApplication);
     }
 
     @Test
     public void shouldDelete() throws TechnicalException {
-        applicationService.delete(APPLICATION_NAME);
+        applicationService.delete(APPLICATION_ID);
 
-        verify(applicationRepository).delete(APPLICATION_NAME);
+        verify(applicationRepository).delete(APPLICATION_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotDeleteBecauseTechnicalException() throws TechnicalException {
-        doThrow(TechnicalException.class).when(applicationRepository).delete(APPLICATION_NAME);
+        doThrow(TechnicalException.class).when(applicationRepository).delete(APPLICATION_ID);
 
-        applicationService.delete(APPLICATION_NAME);
+        applicationService.delete(APPLICATION_ID);
     }
 }

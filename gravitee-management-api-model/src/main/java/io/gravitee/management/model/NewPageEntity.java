@@ -28,9 +28,6 @@ public class NewPageEntity {
 	@NotNull
 	private String type;
 	
-	@NotNull
-	private String title;
-	
 	private String content;
 	
 	private int order;
@@ -51,14 +48,6 @@ public class NewPageEntity {
 
 	public void setType(String type) {
 		this.type = type;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
 	}
 
 	public String getContent() {
@@ -89,8 +78,7 @@ public class NewPageEntity {
     public String toString() {
         final StringBuilder sb = new StringBuilder("Page{");
         sb.append("name='").append(name).append('\'');
-        sb.append(", title='").append(type).append('\'');
-        sb.append(", title='").append(title).append('\'');
+        sb.append(", type='").append(type).append('\'');
         sb.append(", content='").append(content).append('\'');
         sb.append(", order='").append(order).append('\'');
         sb.append(", lastContributor='").append(lastContributor).append('\'');

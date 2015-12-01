@@ -15,6 +15,20 @@
  */
 package io.gravitee.management.service.impl;
 
+import static java.util.Collections.emptySet;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.NewApplicationEntity;
@@ -29,15 +43,6 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.emptySet;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -279,7 +284,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     private MemberEntity convert(Membership membership) {
         MemberEntity member = new MemberEntity();
 
-        member.setUser(membership.getUser());
+        member.setUser(membership.getUser().getUsername());
         member.setCreatedAt(membership.getCreatedAt());
         member.setUpdatedAt(membership.getUpdatedAt());
         member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));

@@ -15,23 +15,26 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.PolicyEntity;
-import io.gravitee.management.service.impl.PolicyServiceImpl;
-import io.gravitee.plugin.policy.PolicyDefinition;
-import io.gravitee.plugin.policy.PolicyManager;
-import io.gravitee.repository.exceptions.TechnicalException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
+
+import java.util.Collections;
+import java.util.Set;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Collections;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
+import io.gravitee.management.model.PolicyEntity;
+import io.gravitee.management.service.impl.PolicyServiceImpl;
+import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginManifest;
+import io.gravitee.plugin.policy.PolicyDefinition;
+import io.gravitee.plugin.policy.PolicyManager;
+import io.gravitee.repository.exceptions.TechnicalException;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -39,7 +42,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class PolicyServiceTest {
 
-    private static final String POLICY_NAME = "myPolicy";
+    private static final String POLICY_ID = "myPolicy";
 
     @InjectMocks
     private PolicyService policyService = new PolicyServiceImpl();
@@ -49,15 +52,21 @@ public class PolicyServiceTest {
 
     @Mock
     private PolicyDefinition policyDefinition;
+    @Mock
+    private Plugin plugin;
+    @Mock
+    private PluginManifest manifest;
 
     @Test
     public void shouldFindAll() throws TechnicalException {
-        when(policyDefinition.id()).thenReturn(POLICY_NAME);
+        when(policyDefinition.id()).thenReturn(POLICY_ID);
         when(policyManager.getPolicyDefinitions()).thenReturn(Collections.singletonList(policyDefinition));
+        when(policyDefinition.plugin()).thenReturn(plugin);
+        when(plugin.manifest()).thenReturn(manifest);
 
         final Set<PolicyEntity> policies = policyService.findAll();
 
         assertNotNull(policies);
-        assertEquals(POLICY_NAME, policies.iterator().next().getName());
+        assertEquals(POLICY_ID, policies.iterator().next().getId());
     }
 }

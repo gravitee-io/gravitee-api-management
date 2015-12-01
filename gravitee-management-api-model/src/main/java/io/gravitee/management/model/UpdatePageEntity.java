@@ -26,12 +26,13 @@ public class UpdatePageEntity {
 	private String name;
 
 	@NotNull
-	private String title;
-
-	@NotNull
 	private String content;
-	
+
 	private String lastContributor;
+
+	private int order;
+
+	private boolean published;
 
 	public String getName() {
 		return name;
@@ -39,14 +40,6 @@ public class UpdatePageEntity {
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
 	}
 
 	public String getContent() {
@@ -63,5 +56,21 @@ public class UpdatePageEntity {
 
 	public void setLastContributor(String lastContributor) {
 		this.lastContributor = lastContributor;
+	}
+
+	public int getOrder() {
+		return order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
+	public boolean isPublished() {
+		return published;
+	}
+
+	public void setPublished(boolean published) {
+		this.published = published;
 	}
 }

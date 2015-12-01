@@ -28,11 +28,11 @@ public class PageListItem {
 
     private String type;
 
-    private String title;
-
     private int order;
 
     private String lastContributor;
+
+    private boolean published;
 
     public String getId() {
         return id;
@@ -66,20 +66,20 @@ public class PageListItem {
         this.order = order;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public String getType() {
         return type;
     }
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public boolean getPublished() {
+        return published;
+    }
+
+    public void setPublished(boolean published) {
+        this.published = published;
     }
 
     @Override

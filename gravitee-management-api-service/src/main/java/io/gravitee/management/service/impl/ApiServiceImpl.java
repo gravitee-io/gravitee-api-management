@@ -15,6 +15,19 @@
  */
 package io.gravitee.management.service.impl;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
@@ -24,21 +37,16 @@ import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.IdGenerator;
-import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.Visibility;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -56,9 +64,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private IdGenerator idGenerator;
@@ -354,6 +359,15 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiEntity.setVisibility(io.gravitee.management.model.Visibility.valueOf(api.getVisibility().toString()));
         }
 
+        if (api.getMembers() != null) {
+            final Optional<Membership> member = api.getMembers().stream().filter(
+                membership -> MembershipType.PRIMARY_OWNER.equals(membership.getMembershipType())
+            ).findFirst();
+            if (member.isPresent()) {
+                apiEntity.setAuthor(member.get().getUser().getUsername());
+            }
+        }
+
         return apiEntity;
     }
 
@@ -416,19 +430,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private MemberEntity convert(Membership membership) {
         MemberEntity member = new MemberEntity();
 
-        member.setUser(membership.getUser());
+        member.setUser(membership.getUser().getUsername());
         member.setCreatedAt(membership.getCreatedAt());
         member.setUpdatedAt(membership.getUpdatedAt());
         member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));
 
         return member;
-    }
-
-    public IdGenerator getIdGenerator() {
-        return idGenerator;
-    }
-
-    public void setIdGenerator(IdGenerator idGenerator) {
-        this.idGenerator = idGenerator;
     }
 }

@@ -16,29 +16,18 @@
 package io.gravitee.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.ws.rs.core.Response;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.service.ApiService;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class ApisResourceTest extends AbstractResourceTest {
-
-    @Autowired
-    private ApiService apiService;
 
     protected String contextPath() {
         return "apis";

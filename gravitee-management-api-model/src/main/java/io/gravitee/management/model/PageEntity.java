@@ -28,13 +28,13 @@ public class PageEntity {
 
 	private String type;
 
-	private String title;
-
 	private String content;
 
 	private int order;
 
 	private String lastContributor;
+
+	private boolean published;
 
 	public String getId() {
 		return id;
@@ -58,14 +58,6 @@ public class PageEntity {
 
 	public void setType(String type) {
 		this.type = type;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
 	}
 
 	public String getContent() {
@@ -92,6 +84,14 @@ public class PageEntity {
 		this.lastContributor = lastContributor;
 	}
 
+	public boolean isPublished() {
+		return published;
+	}
+
+	public void setPublished(boolean published) {
+		this.published = published;
+	}
+
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -113,10 +113,10 @@ public class PageEntity {
 		sb.append("id='").append(name).append('\'');
 		sb.append(", name='").append(name).append('\'');
 		sb.append(", type='").append(type).append('\'');
-		sb.append(", title='").append(title).append('\'');
 		sb.append(", content='").append(content).append('\'');
 		sb.append(", order='").append(order).append('\'');
 		sb.append(", lastContributor='").append(lastContributor).append('\'');
+		sb.append(", published='").append(published).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}

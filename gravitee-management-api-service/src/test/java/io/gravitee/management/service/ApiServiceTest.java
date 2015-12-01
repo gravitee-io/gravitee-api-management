@@ -15,6 +15,21 @@
  */
 package io.gravitee.management.service;
 
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.NewApiEntity;
@@ -23,28 +38,12 @@ import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
-import io.gravitee.management.service.impl.IdGeneratorImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.management.model.Visibility;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -52,6 +51,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiServiceTest {
 
+    private static final String API_ID = "id-api";
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
 
@@ -65,25 +65,27 @@ public class ApiServiceTest {
     private ObjectMapper objectMapper;
 
     @Mock
+    private IdGenerator idGenerator;
+    @Mock
     private NewApiEntity newApi;
     @Mock
     private UpdateApiEntity existingApi;
     @Mock
     private Api api;
 
-    @Before
-    public void setUp() {
-        apiService.setIdGenerator(new IdGeneratorImpl());
-    }
-
     @Test
     public void shouldCreateForUser() throws TechnicalException {
-        when(api.getId()).thenReturn(API_NAME);
+        when(api.getId()).thenReturn(API_ID);
         when(api.getName()).thenReturn(API_NAME);
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
-        when(apiRepository.findById(API_NAME)).thenReturn(Optional.empty());
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
         when(newApi.getName()).thenReturn(API_NAME);
+
+        when(newApi.getVersion()).thenReturn("v1");
+        when(newApi.getDescription()).thenReturn("Ma description");
+
+        when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 
@@ -93,41 +95,51 @@ public class ApiServiceTest {
 
     @Test(expected = ApiAlreadyExistsException.class)
     public void shouldNotCreateForUserBecauseExists() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenReturn(Optional.of(api));
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(newApi.getName()).thenReturn(API_NAME);
+
+        when(newApi.getVersion()).thenReturn("v1");
+        when(newApi.getDescription()).thenReturn("Ma description");
+
+        when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
 
         apiService.create(newApi, USER_NAME);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateForUserBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenThrow(TechnicalException.class);
+        when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
         when(newApi.getName()).thenReturn(API_NAME);
+
+        when(newApi.getVersion()).thenReturn("v1");
+        when(newApi.getDescription()).thenReturn("Ma description");
+
+        when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
 
         apiService.create(newApi, USER_NAME);
     }
 
     @Test
     public void shouldFindById() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenReturn(Optional.of(api));
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        final ApiEntity apiEntity = apiService.findById(API_NAME);
+        final ApiEntity apiEntity = apiService.findById(API_ID);
 
         assertNotNull(apiEntity);
     }
 
     @Test(expected = ApiNotFoundException.class)
     public void shouldNotFindByNameBecauseNotExists() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenReturn(Optional.empty());
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
-        final ApiEntity apiEntity = apiService.findById(API_NAME);
+        apiService.findById(API_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByNameBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenThrow(TechnicalException.class);
+        when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
 
-        apiService.findById(API_NAME);
+        apiService.findById(API_ID);
     }
 
     @Test
@@ -159,11 +171,15 @@ public class ApiServiceTest {
 
     @Test
     public void shouldUpdate() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenReturn(Optional.of(api));
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
         when(api.getName()).thenReturn(API_NAME);
 
-        final ApiEntity apiEntity = apiService.update(API_NAME, existingApi);
+        when(existingApi.getName()).thenReturn(API_NAME);
+        when(existingApi.getVersion()).thenReturn("v1");
+        when(existingApi.getDescription()).thenReturn("Ma description");
+
+        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
@@ -171,39 +187,43 @@ public class ApiServiceTest {
 
     @Test(expected = ApiNotFoundException.class)
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenReturn(Optional.empty());
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
         when(apiRepository.update(any())).thenReturn(api);
 
-        apiService.update(API_NAME, existingApi);
+        apiService.update(API_ID, existingApi);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenReturn(Optional.of(api));
+        when(existingApi.getName()).thenReturn(API_NAME);
+        when(existingApi.getVersion()).thenReturn("v1");
+        when(existingApi.getDescription()).thenReturn("Ma description");
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenThrow(TechnicalException.class);
 
-        apiService.update(API_NAME, existingApi);
+        apiService.update(API_ID, existingApi);
     }
 
     @Test
     public void shouldDelete() throws TechnicalException {
-        apiService.delete(API_NAME);
+        apiService.delete(API_ID);
 
-        verify(apiRepository).delete(API_NAME);
+        verify(apiRepository).delete(API_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotDeleteBecauseTechnicalException() throws TechnicalException {
-        doThrow(TechnicalException.class).when(apiRepository).delete(API_NAME);
+        doThrow(TechnicalException.class).when(apiRepository).delete(API_ID);
 
-        apiService.delete(API_NAME);
+        apiService.delete(API_ID);
     }
 
     @Test
     public void shouldStart() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenReturn(Optional.of(api));
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        apiService.start(API_NAME);
+        apiService.start(API_ID);
 
         verify(api).setUpdatedAt(any());
         verify(api).setLifecycleState(LifecycleState.STARTED);
@@ -212,25 +232,25 @@ public class ApiServiceTest {
 
     @Test
     public void shouldNotStartBecauseNotFound() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenReturn(Optional.empty());
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
-        apiService.start(API_NAME);
+        apiService.start(API_ID);
 
         verify(apiRepository, never()).update(api);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotStartBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenThrow(TechnicalException.class);
+        when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
 
-        apiService.start(API_NAME);
+        apiService.start(API_ID);
     }
 
     @Test
     public void shouldStop() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenReturn(Optional.of(api));
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        apiService.stop(API_NAME);
+        apiService.stop(API_ID);
 
         verify(api).setUpdatedAt(any());
         verify(api).setLifecycleState(LifecycleState.STOPPED);
@@ -239,17 +259,17 @@ public class ApiServiceTest {
 
     @Test
     public void shouldNotStopBecauseNotFound() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenReturn(Optional.empty());
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
-        apiService.stop(API_NAME);
+        apiService.stop(API_ID);
 
         verify(apiRepository, never()).update(api);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotStopBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findById(API_NAME)).thenThrow(TechnicalException.class);
+        when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
 
-        apiService.stop(API_NAME);
+        apiService.stop(API_ID);
     }
 }

@@ -15,19 +15,17 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.PageListItem;
-import io.gravitee.management.model.UpdatePageEntity;
-import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
-import io.gravitee.management.service.exceptions.PageNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.impl.IdGeneratorImpl;
-import io.gravitee.management.service.impl.PageServiceImpl;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PageRepository;
-import io.gravitee.repository.management.model.Page;
-import org.junit.Before;
+import static java.util.Arrays.asList;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.*;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -35,15 +33,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.*;
+import io.gravitee.management.model.NewPageEntity;
+import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.PageListItem;
+import io.gravitee.management.model.UpdatePageEntity;
+import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
+import io.gravitee.management.service.exceptions.PageNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.impl.PageServiceImpl;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.model.Page;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -51,14 +51,17 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class PageServiceTest {
 
-    private static final String API_NAME = "myAPI";
-    private static final String PAGE_NAME = "myPage";
+    private static final String API_ID = "myAPI";
+    private static final String PAGE_ID = "my-page";
 
     @InjectMocks
     private PageServiceImpl pageService = new PageServiceImpl();
 
     @Mock
     private PageRepository pageRepository;
+
+    @Mock
+    private IdGenerator idGenerator;
 
     @Mock
     private NewPageEntity newPage;
@@ -68,11 +71,6 @@ public class PageServiceTest {
     private Page page1;
     @Mock
     private Page page2;
-
-    @Before
-    public void setUp() {
-        pageService.setIdGenerator(new IdGeneratorImpl());
-    }
 
     @Test
     public void shouldFindByApi() throws TechnicalException {
@@ -84,9 +82,9 @@ public class PageServiceTest {
         when(page2.getId()).thenReturn("Page 2");
         when(page1.getOrder()).thenReturn(1);
         when(page2.getOrder()).thenReturn(2);
-        when(pageRepository.findByApi(API_NAME)).thenReturn(pages);
+        when(pageRepository.findByApi(API_ID)).thenReturn(pages);
 
-        final List<PageListItem> pageEntities = pageService.findByApi(API_NAME);
+        final List<PageListItem> pageEntities = pageService.findByApi(API_ID);
 
         assertNotNull(pageEntities);
         assertEquals(2, pageEntities.size());
@@ -95,9 +93,9 @@ public class PageServiceTest {
 
     @Test
     public void shouldNotFindByApiBecauseNotFound() throws TechnicalException {
-        when(pageRepository.findByApi(API_NAME)).thenReturn(null);
+        when(pageRepository.findByApi(API_ID)).thenReturn(null);
 
-        final List<PageListItem> pageEntities = pageService.findByApi(API_NAME);
+        final List<PageListItem> pageEntities = pageService.findByApi(API_ID);
 
         assertNotNull(pageEntities);
         assertTrue(pageEntities.isEmpty());
@@ -105,71 +103,71 @@ public class PageServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByApiNameBecauseTechnicalException() throws TechnicalException {
-        when(pageRepository.findByApi(API_NAME)).thenThrow(TechnicalException.class);
+        when(pageRepository.findByApi(API_ID)).thenThrow(TechnicalException.class);
 
-        pageService.findByApi(API_NAME);
+        pageService.findByApi(API_ID);
     }
 
     @Test
     public void shouldFindByName() throws TechnicalException {
-        when(page1.getName()).thenReturn(PAGE_NAME);
+        when(page1.getId()).thenReturn(PAGE_ID);
         when(page1.getOrder()).thenReturn(1);
-        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.of(page1));
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
 
-        final PageEntity pageEntity = pageService.findById(PAGE_NAME);
+        final PageEntity pageEntity = pageService.findById(PAGE_ID);
 
         assertNotNull(pageEntity);
         assertEquals(1, pageEntity.getOrder());
-        assertEquals(PAGE_NAME, pageEntity.getName());
+        assertEquals(PAGE_ID, pageEntity.getId());
     }
 
     @Test(expected = PageNotFoundException.class)
     public void shouldNotFindByNameBecauseNotFound() throws TechnicalException {
-        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.empty());
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.empty());
 
-        pageService.findById(PAGE_NAME);
+        pageService.findById(PAGE_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByNameBecauseTechnicalException() throws TechnicalException {
-        when(pageRepository.findById(PAGE_NAME)).thenThrow(TechnicalException.class);
+        when(pageRepository.findById(PAGE_ID)).thenThrow(TechnicalException.class);
 
-        pageService.findById(PAGE_NAME);
+        pageService.findById(PAGE_ID);
     }
 
     @Test
     public void shouldCreatePage() throws TechnicalException {
-        final String title = "title";
+        final String name = "MARKDOWN";
         final String contrib = "contrib";
         final String content = "content";
         final String type = "MARKDOWN";
 
-        when(page1.getName()).thenReturn(PAGE_NAME);
-        when(page1.getApi()).thenReturn(API_NAME);
-        when(page1.getType()).thenReturn("MARKDOWN");
-        when(page1.getTitle()).thenReturn(title);
+        when(page1.getId()).thenReturn(PAGE_ID);
+        when(page1.getName()).thenReturn(name);
+        when(page1.getApi()).thenReturn(API_ID);
+        when(page1.getType()).thenReturn(type);
         when(page1.getLastContributor()).thenReturn(contrib);
         when(page1.getOrder()).thenReturn(1);
         when(page1.getContent()).thenReturn(content);
 
+        when(idGenerator.generate(name)).thenReturn(PAGE_ID);
+        when(pageRepository.findById(API_ID + '_' + PAGE_ID)).thenReturn(Optional.empty());
         when(pageRepository.create(any())).thenReturn(page1);
-        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.empty());
 
-        when(newPage.getName()).thenReturn(PAGE_NAME);
+        when(newPage.getName()).thenReturn(name);
         when(newPage.getOrder()).thenReturn(1);
         when(newPage.getContent()).thenReturn(content);
         when(newPage.getLastContributor()).thenReturn(contrib);
-        when(newPage.getTitle()).thenReturn(title);
         when(newPage.getType()).thenReturn(type);
 
-        final PageEntity createdPage = pageService.create(API_NAME, newPage);
+        final PageEntity createdPage = pageService.create(API_ID, newPage);
 
         verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
             public boolean matches(Object argument) {
                 final Page pageToCreate = (Page) argument;
-                return PAGE_NAME.equals(pageToCreate.getName()) &&
-                    API_NAME.equals(pageToCreate.getApi()) &&
-                    title.equals(pageToCreate.getTitle()) &&
+                return (API_ID + '_' + PAGE_ID).equals(pageToCreate.getId()) &&
+                    API_ID.equals(pageToCreate.getApi()) &&
+                    name.equals(pageToCreate.getName()) &&
                     contrib.equals(pageToCreate.getLastContributor()) &&
                     content.equals(pageToCreate.getContent()) &&
                     type.equals(pageToCreate.getType()) &&
@@ -179,102 +177,196 @@ public class PageServiceTest {
             }
         }));
         assertNotNull(createdPage);
-        assertEquals(PAGE_NAME, createdPage.getName());
+        assertEquals(PAGE_ID, createdPage.getId());
         assertEquals(1, createdPage.getOrder());
         assertEquals(content, createdPage.getContent());
         assertEquals(contrib, createdPage.getLastContributor());
-        assertEquals(title, createdPage.getTitle());
         assertEquals(type, createdPage.getType());
     }
 
     @Test(expected = PageAlreadyExistsException.class)
     public void shouldNotCreateBecauseExists() throws TechnicalException {
-        when(newPage.getName()).thenReturn(PAGE_NAME);
-        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.of(new Page()));
+        final String name = "PAGE_NAME";
+        when(newPage.getName()).thenReturn(name);
+        when(idGenerator.generate(name)).thenReturn(PAGE_ID);
+        when(pageRepository.findById(API_ID + '_' + PAGE_ID)).thenReturn(Optional.of(new Page()));
 
-        pageService.create(API_NAME, newPage);
+        pageService.create(API_ID, newPage);
 
         verify(pageRepository, never()).create(any());
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateBecauseTechnicalException() throws TechnicalException {
-        when(newPage.getName()).thenReturn(PAGE_NAME);
-        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.empty());
+        final String name = "PAGE_NAME";
+        when(newPage.getName()).thenReturn(name);
+
+        when(idGenerator.generate(name)).thenReturn(PAGE_ID);
+        when(pageRepository.findById(API_ID + '_' + PAGE_ID)).thenReturn(Optional.empty());
         when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
 
-        pageService.create(API_NAME, newPage);
+        pageService.create(API_ID, newPage);
 
         verify(pageRepository, never()).create(any());
     }
 
     @Test
     public void shouldUpdate() throws TechnicalException {
-        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.of(page1));
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
         when(pageRepository.update(any(Page.class))).thenReturn(page1);
 
-        pageService.update(PAGE_NAME, existingPage);
+        pageService.update(PAGE_ID, existingPage);
 
         verify(pageRepository).update(argThat(new ArgumentMatcher<Page>() {
             public boolean matches(Object argument) {
                 final Page pageToUpdate = (Page) argument;
-                return PAGE_NAME.equals(pageToUpdate.getName()) &&
+                return PAGE_ID.equals(pageToUpdate.getId()) &&
                     pageToUpdate.getUpdatedAt() != null;
+            }
+        }));
+    }
+
+    @Test
+    public void shouldUpdateOrderIncrement() throws TechnicalException {
+        final Page pageOrder1 = new Page();
+        pageOrder1.setId(PAGE_ID);
+        pageOrder1.setOrder(1);
+        pageOrder1.setApi(API_ID);
+
+        final Page pageOrder2 = new Page();
+        pageOrder2.setId("2");
+        pageOrder2.setOrder(2);
+        pageOrder2.setApi(API_ID);
+
+        final Page pageOrder3 = new Page();
+        pageOrder3.setId("3");
+        pageOrder3.setOrder(3);
+        pageOrder3.setApi(API_ID);
+
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(pageOrder1));
+
+        when(pageRepository.findByApi(API_ID)).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
+        when(pageRepository.update(any(Page.class))).thenReturn(pageOrder1);
+
+        final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setOrder(2);
+
+        pageService.update(PAGE_ID, updatePageEntity);
+
+        verify(pageRepository, times(3)).update(argThat(new ArgumentMatcher<Page>() {
+            public boolean matches(Object argument) {
+                final Page pageToUpdate = (Page) argument;
+
+                if (PAGE_ID.equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 2;
+                }
+                if ("2".equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 1;
+                }
+                if ("3".equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 3;
+                }
+                return false;
+            }
+        }));
+    }
+
+    @Test
+    public void shouldUpdateOrderDecrement() throws TechnicalException {
+        final Page pageOrder1 = new Page();
+        pageOrder1.setId(PAGE_ID);
+        pageOrder1.setOrder(1);
+        pageOrder1.setApi(API_ID);
+
+        final Page pageOrder2 = new Page();
+        pageOrder2.setId("2");
+        pageOrder2.setOrder(2);
+        pageOrder2.setApi(API_ID);
+
+        final Page pageOrder3 = new Page();
+        pageOrder3.setId("3");
+        pageOrder3.setOrder(3);
+        pageOrder3.setApi(API_ID);
+
+        when(pageRepository.findById("3")).thenReturn(Optional.of(pageOrder3));
+
+        when(pageRepository.findByApi(API_ID)).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
+        when(pageRepository.update(any(Page.class))).thenReturn(pageOrder1);
+
+        final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setOrder(1);
+
+        pageService.update("3", updatePageEntity);
+
+        verify(pageRepository, times(3)).update(argThat(new ArgumentMatcher<Page>() {
+            public boolean matches(Object argument) {
+                final Page pageToUpdate = (Page) argument;
+
+                if (PAGE_ID.equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 2;
+                }
+                if ("2".equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 3;
+                }
+                if ("3".equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 1;
+                }
+                return false;
             }
         }));
     }
 
     @Test(expected = PageNotFoundException.class)
     public void shouldNotUpdateBecauseNotExists() throws TechnicalException {
-        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.empty());
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.empty());
 
-        pageService.update(PAGE_NAME, existingPage);
+        pageService.update(PAGE_ID, existingPage);
 
         verify(pageRepository, never()).update(any());
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
-        when(pageRepository.findById(PAGE_NAME)).thenReturn(Optional.of(page1));
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
         when(pageRepository.update(any(Page.class))).thenThrow(TechnicalException.class);
 
-        pageService.update(PAGE_NAME, existingPage);
+        pageService.update(PAGE_ID, existingPage);
 
         verify(pageRepository, never()).update(any());
     }
 
     @Test
     public void shouldDeletePage() throws TechnicalException {
-        pageService.delete(PAGE_NAME);
+        pageService.delete(PAGE_ID);
 
-        verify(pageRepository).delete(PAGE_NAME);
+        verify(pageRepository).delete(PAGE_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotDeletePageBecauseTechnicalException() throws TechnicalException {
-        doThrow(TechnicalException.class).when(pageRepository).delete(PAGE_NAME);
+        doThrow(TechnicalException.class).when(pageRepository).delete(PAGE_ID);
 
-        pageService.delete(PAGE_NAME);
+        pageService.delete(PAGE_ID);
     }
 
     @Test
     public void shouldFindMaxPageOrderByApiName() throws TechnicalException {
-        when(pageRepository.findMaxPageOrderByApi(API_NAME)).thenReturn(10);
+        when(pageRepository.findMaxPageOrderByApi(API_ID)).thenReturn(10);
 
-        assertEquals(10, pageService.findMaxPageOrderByApi(API_NAME));
+        assertEquals(10, pageService.findMaxPageOrderByApi(API_ID));
     }
 
     @Test
     public void shouldFindMaxPageOrderByApiNameWhenNull() throws TechnicalException {
-        when(pageRepository.findMaxPageOrderByApi(API_NAME)).thenReturn(null);
+        when(pageRepository.findMaxPageOrderByApi(API_ID)).thenReturn(null);
 
-        assertEquals(0, pageService.findMaxPageOrderByApi(API_NAME));
+        assertEquals(0, pageService.findMaxPageOrderByApi(API_ID));
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindMaxPageOrderByApiNameBecauseTechnicalException() throws TechnicalException {
-        doThrow(TechnicalException.class).when(pageRepository).findMaxPageOrderByApi(API_NAME);
+        doThrow(TechnicalException.class).when(pageRepository).findMaxPageOrderByApi(API_ID);
 
-        pageService.findMaxPageOrderByApi(API_NAME);
+        pageService.findMaxPageOrderByApi(API_ID);
     }
 }

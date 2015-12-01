@@ -15,6 +15,20 @@
  */
 package io.gravitee.management.service.impl;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageListItem;
@@ -27,18 +41,6 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyList;
 
 /**
  * @author Titouan COMPIEGNE
@@ -99,7 +101,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		try {
 			LOGGER.debug("Create page {} for API {}", newPageEntity, apiId);
 
-			String id = idGenerator.generate(newPageEntity.getName());
+			String id = apiId + '_' + idGenerator.generate(newPageEntity.getName());
 			Optional<Page> checkPage = pageRepository.findById(id);
 			if (checkPage.isPresent()) {
 				throw new PageAlreadyExistsException(id);
@@ -107,7 +109,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			Page page = convert(newPageEntity);
 
-			page.setId(idGenerator.generate(page.getName()));
+			page.setId(apiId + '_' + idGenerator.generate(page.getName()));
 			page.setApi(apiId);
 
 			// Set date fields
@@ -142,18 +144,54 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			page.setCreatedAt(pageToUpdate.getCreatedAt());
 			page.setType(pageToUpdate.getType());
 			page.setApi(pageToUpdate.getApi());
-			page.setOrder(pageToUpdate.getOrder());
+
+			// if order change, reorder all pages
+			if (page.getOrder() != pageToUpdate.getOrder()) {
+				reorderAndSavePages(page);
+			}
 
 			Page updatedPage = pageRepository.update(page);
 			return convert(updatedPage);
 
 		} catch (TechnicalException ex) {
-			LOGGER.error("An error occurs while trying to update page {}", pageId, ex);
-			throw new TechnicalManagementException("An error occurs while trying to update page " + pageId, ex);
+            throw onUpdateFail(pageId, ex);
 		}
 	}
 
-	@Override
+    private void reorderAndSavePages(final Page pageToReorder) throws TechnicalException {
+		final Collection<Page> pages = pageRepository.findByApi(pageToReorder.getApi());
+        final List<Boolean> increment = asList(true);
+        pages.stream()
+            .sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
+            .forEachOrdered(page -> {
+	            try {
+		            if (page.equals(pageToReorder)) {
+			            increment.set(0, false);
+		            } else {
+			            final int newOrder;
+			            final Boolean isIncrement = increment.get(0);
+			            if (page.getOrder() < pageToReorder.getOrder()) {
+				            newOrder = page.getOrder() - (isIncrement ? 0 : 1);
+			            } else if (page.getOrder() > pageToReorder.getOrder())  {
+				            newOrder = page.getOrder() + (isIncrement? 1 : 0);
+			            } else {
+				            newOrder = page.getOrder() + (isIncrement? 1 : -1);
+			            }
+			            page.setOrder(newOrder);
+			            pageRepository.update(page);
+		            }
+	            } catch (final TechnicalException ex) {
+		            throw onUpdateFail(page.getId(), ex);
+	            }
+            });
+	}
+
+    private TechnicalManagementException onUpdateFail(String pageId, TechnicalException ex) {
+        LOGGER.error("An error occurs while trying to update page {}", pageId, ex);
+        return new TechnicalManagementException("An error occurs while trying to update page " + pageId, ex);
+    }
+
+    @Override
 	public void delete(String pageName) {
 		try {
 			LOGGER.debug("Delete PAGE : {}", pageName);
@@ -163,7 +201,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			throw new TechnicalManagementException("An error occurs while trying to delete PAGE " + pageName, ex);
 		}
 	}
-	
+
 	@Override
 	public int findMaxPageOrderByApi(String apiName) {
 		try {
@@ -182,7 +220,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		pageItem.setId(page.getId());
 		pageItem.setName(page.getName());
 		pageItem.setType(page.getType());
-		pageItem.setTitle(page.getTitle());
 		pageItem.setOrder(page.getOrder());
 		pageItem.setLastContributor(page.getLastContributor());
 
@@ -197,7 +234,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		if (type != null) {
 			page.setType(type);
 		}
-		page.setTitle(newPageEntity.getTitle());
 		page.setContent(newPageEntity.getContent());
 		page.setLastContributor(newPageEntity.getLastContributor());
 		page.setOrder(newPageEntity.getOrder());
@@ -212,10 +248,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		if (page.getType() != null) {
 			pageEntity.setType(page.getType().toString());
 		}
-		pageEntity.setTitle(page.getTitle());
 		pageEntity.setContent(page.getContent());
 		pageEntity.setLastContributor(page.getLastContributor());
 		pageEntity.setOrder(page.getOrder());
+		pageEntity.setPublished(page.isPublished());
 		return pageEntity;
 	}
 
@@ -223,9 +259,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		Page page = new Page();
 
 		page.setName(updatePageEntity.getName());
-		page.setTitle(updatePageEntity.getTitle());
 		page.setContent(updatePageEntity.getContent());
-		page.setLastContributor(updatePageEntity.getLastContributor());
+        page.setLastContributor(updatePageEntity.getLastContributor());
+		page.setOrder(updatePageEntity.getOrder());
+		page.setPublished(updatePageEntity.isPublished());
 
 		return page;
 	}

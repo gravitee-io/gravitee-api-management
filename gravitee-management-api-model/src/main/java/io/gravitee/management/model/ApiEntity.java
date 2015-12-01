@@ -65,6 +65,8 @@ public class ApiEntity {
 
     private Monitoring monitoring;
 
+    private String author;
+
     public String getId() {
         return id;
     }
@@ -177,6 +179,14 @@ public class ApiEntity {
         this.properties = properties;
     }
 
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -191,16 +201,22 @@ public class ApiEntity {
         return Objects.hash(id, version);
     }
 
-    @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Api{");
-        sb.append("createdAt=").append(createdAt);
-        sb.append(", id='").append(id).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", version='").append(version).append('\'');
-        sb.append(", visibility='").append(visibility).append('\'');
-        sb.append(", state=").append(state);
-        sb.append('}');
-        return sb.toString();
+        return "ApiEntity{" +
+            "id='" + id + '\'' +
+            ", name='" + name + '\'' +
+            ", version='" + version + '\'' +
+            ", description='" + description + '\'' +
+            ", proxy=" + proxy +
+            ", paths=" + paths +
+            ", createdAt=" + createdAt +
+            ", updatedAt=" + updatedAt +
+            ", visibility=" + visibility +
+            ", state=" + state +
+            ", primaryOwner=" + primaryOwner +
+            ", permission=" + permission +
+            ", monitoring=" + monitoring +
+            ", author='" + author + '\'' +
+            '}';
     }
 }
