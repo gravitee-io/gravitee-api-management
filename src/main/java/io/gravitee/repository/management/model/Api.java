@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -67,6 +68,8 @@ public class Api {
      * The current api life cycle state.
      */
     private LifecycleState lifecycleState = LifecycleState.STOPPED;
+
+    private List<Membership> members;
 
     public Date getCreatedAt() {
         return createdAt;
@@ -140,6 +143,14 @@ public class Api {
         this.id = id;
     }
 
+    public List<Membership> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<Membership> members) {
+        this.members = members;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -154,14 +165,18 @@ public class Api {
         return Objects.hash(name, version);
     }
 
-    @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Api{");
-        sb.append("id='").append(id).append('\'');
-        sb.append("name='").append(name).append('\'');
-        sb.append(", version='").append(version).append('\'');
-        sb.append(", lifecycleState=").append(lifecycleState);
-        sb.append('}');
-        return sb.toString();
+        return "Api{" +
+            "id='" + id + '\'' +
+            ", name='" + name + '\'' +
+            ", description='" + description + '\'' +
+            ", version='" + version + '\'' +
+            ", definition='" + definition + '\'' +
+            ", createdAt=" + createdAt +
+            ", updatedAt=" + updatedAt +
+            ", visibility=" + visibility +
+            ", lifecycleState=" + lifecycleState +
+            ", members=" + members +
+            '}';
     }
 }

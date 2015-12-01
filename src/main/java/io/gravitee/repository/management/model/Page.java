@@ -32,8 +32,6 @@ public class Page {
 
 	private String type;
 
-	private String title;
-
 	private String content;
 
 	private String lastContributor;
@@ -73,14 +71,6 @@ public class Page {
 	
 	public void setType(String type) {
 		this.type = type;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
 	}
 
 	public String getContent() {
@@ -150,5 +140,20 @@ public class Page {
 	@Override
 	public int hashCode() {
 		return Objects.hash(id);
+	}
+
+	public String toString() {
+		return "Page{" +
+				"id='" + id + '\'' +
+				", name='" + name + '\'' +
+				", type='" + type + '\'' +
+				", content='" + content + '\'' +
+				", lastContributor='" + lastContributor + '\'' +
+				", order=" + order +
+				", published=" + published +
+				", api='" + api + '\'' +
+				", createdAt=" + createdAt +
+				", updatedAt=" + updatedAt +
+				'}';
 	}
 }

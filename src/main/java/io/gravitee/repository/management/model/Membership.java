@@ -25,7 +25,7 @@ public class Membership {
     /**
      * The user name
      */
-    private String user;
+    private User user;
 
     /**
      * Creation date
@@ -66,11 +66,11 @@ public class Membership {
         this.updatedAt = updatedAt;
     }
 
-    public String getUser() {
+    public User getUser() {
         return user;
     }
 
-    public void setUser(String user) {
+    public void setUser(User user) {
         this.user = user;
     }
 }
