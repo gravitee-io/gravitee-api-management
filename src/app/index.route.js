@@ -161,7 +161,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controllerAs: 'apiPropertiesCtrl',
       ncyBreadcrumb: {
         skip: true
-      }															
+      }
     })
     .state('documentation', {
       url: '/documentation',
@@ -206,13 +206,6 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
 			ncyBreadcrumb: {
 				label: '{{applicationCtrl.application.name}}',
 				parent: 'applications.thumb'
-			}
-    })
-		.state('application.dashboard', {
-      url: '/dashboard',
-      templateUrl: 'app/application/details/applicationDashboard.html',
-			ncyBreadcrumb: {
-				skip: true
 			}
     })
     .state('application.general', {

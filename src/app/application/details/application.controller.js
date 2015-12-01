@@ -33,14 +33,12 @@ class ApplicationController {
 				this.getAPIKeys(this.applicationId);
 				this.getMembers(this.applicationId);
 		}
-		if ($state.current.name.endsWith('dashboard')) {
+		if ($state.current.name.endsWith('general')) {
       $scope.selectedTab = 0;
-    } else if ($state.current.name.endsWith('general')) {
-      $scope.selectedTab = 1;
     } else if ($state.current.name.endsWith('apis')) {
-      $scope.selectedTab = 2;
+      $scope.selectedTab = 1;
     } else if ($state.current.name.endsWith('members')) {
-      $scope.selectedTab = 3;
+      $scope.selectedTab = 2;
     }
 	}
 
@@ -72,7 +70,7 @@ class ApplicationController {
 		var index = this.members.indexOf(member);
 		this.ApplicationService.deleteMember(this.application.id, member.user).then(() => {
 			this.members.splice(index, 1);
-			this.NotificationService.show("Member " + member.user + " has been removed successfully");		
+			this.NotificationService.show("Member " + member.user + " has been removed successfully");
 		});
 	}
 
