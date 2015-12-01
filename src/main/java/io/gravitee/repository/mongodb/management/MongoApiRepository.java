@@ -15,11 +15,23 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
@@ -29,11 +41,6 @@ import io.gravitee.repository.mongodb.management.internal.model.MemberMongo;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -84,6 +91,7 @@ public class MongoApiRepository implements ApiRepository {
 		apiMongo.setLifecycleState(api.getLifecycleState().toString());
 		apiMongo.setDefinition(api.getDefinition());
 		apiMongo.setVisibility(api.getVisibility().toString());
+		apiMongo.setVersion(api.getVersion());
 
 		ApiMongo applicationMongoUpdated = internalApiRepo.save(apiMongo);
 		return mapApi(applicationMongoUpdated);
@@ -160,7 +168,7 @@ public class MongoApiRepository implements ApiRepository {
 	public Membership getMember(String apiId, String username) throws TechnicalException {
 		Collection<Membership> members = getMembers(apiId, null);
 		for (Membership member : members) {
-			if (member.getUser().equalsIgnoreCase(username)) {
+			if (member.getUser().getUsername().equalsIgnoreCase(username)) {
 				return member;
 			}
 		}
@@ -178,7 +186,7 @@ public class MongoApiRepository implements ApiRepository {
 			if (membershipType == null || (
 					membershipType != null && memberMongo.getType().equalsIgnoreCase(membershipType.toString()))) {
 				Membership member = new Membership();
-				member.setUser(memberMongo.getUser().getName());
+				member.setUser(mapUser(memberMongo.getUser()));
 				member.setMembershipType(MembershipType.valueOf(memberMongo.getType()));
 				member.setCreatedAt(memberMongo.getCreatedAt());
 				member.setUpdatedAt(memberMongo.getUpdatedAt());
@@ -187,6 +195,19 @@ public class MongoApiRepository implements ApiRepository {
 		}
 
 		return members;
+	}
+
+	private User mapUser(final UserMongo userMongo) {
+		final User user = new User();
+		user.setUsername(userMongo.getName());
+		user.setCreatedAt(userMongo.getCreatedAt());
+		user.setEmail(userMongo.getEmail());
+		user.setFirstname(userMongo.getFirstname());
+		user.setLastname(userMongo.getLastname());
+		user.setPassword(userMongo.getPassword());
+		user.setUpdatedAt(userMongo.getUpdatedAt());
+		user.setRoles(new HashSet<>(userMongo.getRoles()));
+		return user;
 	}
 
 	private Set<Api> mapApis(Collection<ApiMongo> apis) {

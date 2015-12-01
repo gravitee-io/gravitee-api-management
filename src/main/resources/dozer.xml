@@ -11,11 +11,20 @@
       <a>username</a>
       <b>name</b>
     </field>
-  </mapping>  
-  
-  <mapping> 
+  </mapping>
+
+  <mapping>
     <class-a>io.gravitee.repository.management.model.Api</class-a>
     <class-b>io.gravitee.repository.mongodb.management.internal.model.ApiMongo</class-b>
+  </mapping>
+
+  <mapping>
+    <class-a>io.gravitee.repository.management.model.Membership</class-a>
+    <class-b>io.gravitee.repository.mongodb.management.internal.model.MemberMongo</class-b>
+    <field>
+      <a>membershipType</a>
+      <b>type</b>
+    </field>
   </mapping>
   
   <mapping> 
