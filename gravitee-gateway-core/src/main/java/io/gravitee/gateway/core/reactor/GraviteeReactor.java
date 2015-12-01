@@ -190,16 +190,20 @@ public class GraviteeReactor extends AbstractService implements
 
     public void updateHandler(Api api) {
         ApiReactorHandler handler = (ApiReactorHandler) handlers.get(api);
-        Api previousApi = handler.getApi();
+        if (handler != null) {
+            Api previousApi = handler.getApi();
 
-        if (previousApi.isEnabled() != api.isEnabled() ||
-                previousApi.getProxy().isStripContextPath() != api.getProxy().isStripContextPath() ||
-                ! previousApi.getProxy().getContextPath().equals(api.getProxy().getContextPath()) ||
-                ! previousApi.getProxy().getEndpoint().equals(api.getProxy().getEndpoint())) {
-            removeHandler(api);
-            createHandler(api);
+            if (previousApi.isEnabled() != api.isEnabled() ||
+                    previousApi.getProxy().isStripContextPath() != api.getProxy().isStripContextPath() ||
+                    !previousApi.getProxy().getContextPath().equals(api.getProxy().getContextPath()) ||
+                    !previousApi.getProxy().getEndpoint().equals(api.getProxy().getEndpoint())) {
+                removeHandler(api);
+                createHandler(api);
+            } else {
+                logger.info("API {} doesn't need to be refreshed in the gateway. Skipping...", api.getId());
+            }
         } else {
-            logger.info("API {} doesn't need to be refreshed in the gateway. Skipping...", api.getId());
+            createHandler(api);
         }
     }
 
