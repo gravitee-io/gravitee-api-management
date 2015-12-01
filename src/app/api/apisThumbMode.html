@@ -30,24 +30,18 @@
 				</div>
 				<md-card-content>
 					<div layout="row">
-						<div flex="25" class="border-right">
+						<div flex="33" class="border-right">
 							<div class="description-block">
 								<ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}"></ng-md-icon>
 							</div>
 						</div>
-						<div flex="25" class="border-right">
+						<div flex="34" class="border-right">
 							<div class="description-block">
 								<h5 class="description-header">0</h5>
 								<span class="description-text">APPLICATIONS</span>
 							</div>
 						</div>
-						<div flex="25" class="border-right">
-							<div class="description-block">
-								<h5 class="description-header">0</h5>
-								<span class="description-text">LIKERS</span>
-							</div>
-						</div>
-						<div flex="25">
+						<div flex="33">
 							<div class="description-block">
 								<ng-md-icon ng-if="api.state === 'started'" icon="blur_on" size="32" style="fill: green;" title="Started"></ng-md-icon>
 								<ng-md-icon ng-if="api.state !== 'started'" icon="blur_off" size="32" style="fill: red;" title="Stopped"></ng-md-icon>
