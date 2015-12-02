@@ -24,10 +24,15 @@
     </div>
     <md-list class="gravitee-policy-draggable">
       <md-list-item ng-repeat="policy in apiPoliciesCtrl.policiesToCopy">
-        <div class="md-list-item-text">
+        <div class="md-list-item-text" layout="row" layout-align="space-between center">
+          <md-tooltip md-direction="right">
+            version: {{apiPoliciesCtrl.policyMap.get(policy.policyId).version}}
+          </md-tooltip>
           <div id="policy-name">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</div>
-          <div id="policy-version">{{apiPoliciesCtrl.policyMap.get(policy.policyId).version}}</div>
-          <div>{{apiPoliciesCtrl.policyMap.get(policy.policyId).type}}</div>
+          <div>
+            <ng-md-icon icon="arrow_back" size="1.2em" ng-if='"request" !== apiPoliciesCtrl.policyMap.get(policy.policyId).type'></ng-md-icon>
+            <ng-md-icon icon="arrow_forward" size="1.2em" ng-if='"response" !== apiPoliciesCtrl.policyMap.get(policy.policyId).type'></ng-md-icon>
+          </div>
         </div>
       </md-list-item>
     </md-list>
@@ -48,7 +53,7 @@
         </span>
       </div>
     </div>
-    <md-list class="gravitee-policy-dropzone">
+    <md-list ng-class="apiPoliciesCtrl.getDropzoneClass()">
       <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath.get('/*')" ng-click="apiPoliciesCtrl.editPolicy($index)" ng-hide="apiPoliciesCtrl.filterByMethod(policy)">
         <div class="md-list-item-text">
           <div id="apiPolicy-name">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</div>
@@ -58,7 +63,7 @@
           </div>
         </div>
       </md-list-item>
-      <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPoliciesByPath.get('/*').length == 0">Drag a policy here.</span>
+      <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPoliciesByPath.get('/*').length < 2">Drag a policy here.</span>
     </md-list>
   </div>
 

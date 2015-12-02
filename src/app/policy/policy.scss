@@ -16,12 +16,19 @@
   }
 }
 
+.gravitee-policy-dropzone-filled {
+  border-width: thin;
+}
+
 .gravitee-policy-draggable {
   md-list-item {
     border-left: medium dotted #546E7A;
     margin: 15px 0;
     min-height: 33px;
     cursor: grab;
+  }
+  .md-list-item-text {
+    width: 95%;
   }
   #policy-name {
     font-size: 1.4em;

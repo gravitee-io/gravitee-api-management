@@ -134,6 +134,10 @@ class ApiPoliciesController {
       (methods.indexOf(method) > -1 ? "-selected" : "-unselected");
   }
 
+  getDropzoneClass() {
+    return "gravitee-policy-dropzone " +((this.apiPoliciesByPath.get('/*').length < 2) ? '': 'gravitee-policy-dropzone-filled');
+  }
+
   toggleHttpMethod(method, methods) {
     var index = methods.indexOf(method);
     if ( index > -1 ) {
