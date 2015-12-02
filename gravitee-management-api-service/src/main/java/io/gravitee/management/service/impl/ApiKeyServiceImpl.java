@@ -178,6 +178,30 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
+    public ApiKeyEntity update(String apiKey, ApiKeyEntity apiKeyEntity) {
+        try {
+            LOGGER.debug("Trying to update key {}", apiKey);
+            Optional<ApiKey> optKey = apiKeyRepository.retrieve(apiKey);
+            if (!optKey.isPresent()) {
+                throw new ApiKeyNotFoundException();
+            }
+
+            ApiKey key = optKey.get();
+
+            if (!key.isRevoked()) {
+                key.setExpiration(apiKeyEntity.getExpireOn());
+
+                apiKeyRepository.update(key);
+            }
+
+            return convert(key);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to update a key {}", apiKey, ex);
+            throw new TechnicalManagementException("An error occurs while trying to update a key " + apiKey, ex);
+        }
+    }
+
+    @Override
     public Set<ApiKeyEntity> findAll(String applicationName, String apiName) {
         try {
             LOGGER.debug("Find all API Keys for {} - {}", applicationName, apiName);

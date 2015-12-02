@@ -38,4 +38,6 @@ public interface ApiKeyService {
     Map<String, List<ApiKeyEntity>> findByApplication(String applicationId);
 
     Map<String, List<ApiKeyEntity>> findByApi(String apiId);
+
+    ApiKeyEntity update(String apiKey, ApiKeyEntity apiKeyEntity);
 }

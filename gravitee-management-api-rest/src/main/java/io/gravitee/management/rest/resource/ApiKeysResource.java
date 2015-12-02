@@ -96,16 +96,12 @@ public class ApiKeysResource extends AbstractResource {
     @Path("{key}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("key") String apiKey, @Valid ApiKeyEntity apiKeyEntity) {
+    public ApiKeyEntity update(@PathParam("key") String apiKey, @Valid ApiKeyEntity apiKeyEntity) {
         apiService.findById(this.api);
 
         permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);
 
-//        apiKeyService.revoke(apiKey);
-
-        return Response
-                .status(Response.Status.NO_CONTENT)
-                .build();
+        return apiKeyService.update(apiKey, apiKeyEntity);
     }
 
     @Path("{key}/analytics")
