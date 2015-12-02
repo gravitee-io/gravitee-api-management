@@ -15,7 +15,10 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ApiKeyEntity;
+import io.gravitee.management.model.ApiListItem;
+import io.gravitee.management.model.KeysByApiEntity;
 import io.gravitee.management.service.*;
 
 import javax.inject.Inject;
@@ -25,8 +28,10 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -53,15 +58,26 @@ public class ApiKeyResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApiKeyEntity> keys() {
+    public Map<String, KeysByApiEntity> keys() {
         applicationService.findById(this.application);
 
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
 
-        return apiKeyService
-                .findByApplication(application).stream()
-                .sorted((o1, o2) -> o1.getApi().compareTo(o2.getApi()))
-                .collect(Collectors.toSet());
+        Map<String, List<ApiKeyEntity>> keys = apiKeyService.findByApplication(application);
+        Map<String, KeysByApiEntity> keysByApi = new HashMap<>(keys.size());
+
+        keys.forEach((api, apiKeyEntities) -> {
+            ApiEntity apiEntity = apiService.findById(api);
+            KeysByApiEntity keysByApiEntity = new KeysByApiEntity();
+
+            keysByApiEntity.setName(apiEntity.getName());
+            keysByApiEntity.setVersion(apiEntity.getVersion());
+            keysByApiEntity.setKeys(apiKeyEntities);
+
+            keysByApi.put(api, keysByApiEntity);
+        });
+
+        return keysByApi;
     }
 
     /*

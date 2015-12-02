@@ -28,8 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,21 +74,18 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             LOGGER.debug("Generate a new key for {} - {}", applicationName, apiName);
             ApiKey apiKey = new ApiKey();
 
+            apiKey.setApplication(applicationName);
             apiKey.setApi(apiName);
             apiKey.setCreatedAt(new Date());
             apiKey.setKey(apiKeyGenerator.generate());
             apiKey.setRevoked(false);
 
-            // Previously generated keys should be set with an expiration date or set as revoked
-
-            // TODO: put rules in configuration
-            Instant expirationInst = apiKey.getCreatedAt().toInstant().plus(Duration.ofHours(12));
-            Date expirationDate = Date.from(expirationInst);
-
+            // Previously generated keys should be set as revoked
             Set<ApiKey> oldKeys = apiKeyRepository.findByApplicationAndApi(applicationName, apiName);
             for (ApiKey oldKey : oldKeys) {
-                if (!oldKey.isRevoked() && oldKey.getExpiration() == null) {
-                    oldKey.setExpiration(expirationDate);
+                if (!oldKey.isRevoked()) {
+                    oldKey.setRevoked(true);
+                    oldKey.setRevokeAt(new Date());
                     apiKeyRepository.update(oldKey);
                 }
             }
@@ -115,7 +110,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             ApiKey key = optKey.get();
             if (!key.isRevoked()) {
                 key.setRevoked(true);
-                key.setExpiration(new Date());
+                key.setRevokeAt(new Date());
 
                 apiKeyRepository.update(key);
             }
@@ -145,28 +140,27 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public Set<ApiKeyEntity> findByApplication(String applicationId) {
+    public Map<String, List<ApiKeyEntity>> findByApplication(String applicationId) {
         try {
             LOGGER.debug("Find all API keys for application {}", applicationId);
 
             Set<ApiKey> keys = apiKeyRepository.findByApplication(applicationId);
 
-            // Filter by API and latest generated key
-            Set<ApiKey> distinctKeyByApi = new HashSet<>();
-
-            Map<String, List<ApiKey>> keysByApi = new HashMap<>();
+            Map<String, Set<ApiKey>> keysByApi = new HashMap<>();
             keys.forEach(apiKey -> {
-                List<ApiKey> values = keysByApi.getOrDefault(apiKey.getApi(), new ArrayList<>());
+                Set<ApiKey> values = keysByApi.getOrDefault(apiKey.getApi(), new HashSet<>());
                 values.add(apiKey);
                 keysByApi.put(apiKey.getApi(), values);
             });
 
-            keysByApi.forEach(
-                    (api, apiKeys) -> apiKeys.stream().max(
-                            (key1, key2) -> key1.getCreatedAt().compareTo(key2.getCreatedAt()))
-                            .ifPresent(distinctKeyByApi::add));
+            Map<String, List<ApiKeyEntity>> keysByApiResult = new HashMap<>(keysByApi.size());
 
-            return distinctKeyByApi.stream().map(ApiKeyServiceImpl::convert).collect(Collectors.toSet());
+            keysByApi.forEach((api, apiKeys) -> keysByApiResult.put(api,
+                apiKeys.stream().sorted(
+                        (key1, key2) -> key2.getCreatedAt().compareTo(
+                                key1.getCreatedAt())).map(ApiKeyServiceImpl::convert).collect(Collectors.toList())));
+
+            return keysByApiResult;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while getting all API keys for application {}", applicationId, ex);
             throw new TechnicalManagementException("An error occurs while getting all API keys for application " + applicationId, ex);
@@ -205,7 +199,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         apiKeyEntity.setCreatedAt(apiKey.getCreatedAt());
         apiKeyEntity.setExpireOn(apiKey.getExpiration());
         apiKeyEntity.setRevoked(apiKey.isRevoked());
+        apiKeyEntity.setRevokeAt(apiKey.getRevokeAt());
         apiKeyEntity.setApi(apiKey.getApi());
+        apiKeyEntity.setApplication(apiKey.getApplication());
 
         return apiKeyEntity;
     }

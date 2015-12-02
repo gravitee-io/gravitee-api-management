@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,5 +37,5 @@ public interface ApiKeyService {
 
     Set<ApiKeyEntity> findAll(String applicationId, String apiId);
 
-    Set<ApiKeyEntity> findByApplication(String applicationId);
+    Map<String, List<ApiKeyEntity>> findByApplication(String applicationId);
 }

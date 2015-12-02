@@ -30,10 +30,13 @@ public class ApiKeyEntity {
     @JsonProperty("expire_on")
     private Date expireOn;
 
-    private boolean revoked;
-
     @JsonProperty("created_at")
     private Date createdAt;
+
+    private boolean revoked;
+
+    @JsonProperty("revoked_at")
+    private Date revokeAt;
 
     private String api;
 
@@ -85,6 +88,14 @@ public class ApiKeyEntity {
 
     public void setApplication(String application) {
         this.application = application;
+    }
+
+    public Date getRevokeAt() {
+        return revokeAt;
+    }
+
+    public void setRevokeAt(Date revokeAt) {
+        this.revokeAt = revokeAt;
     }
 
     @Override
