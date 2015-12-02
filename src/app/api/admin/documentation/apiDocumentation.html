@@ -17,10 +17,6 @@
 -->
 <div layout="row" ng-init="documentationCtrl.list()">
   <md-list layout="column" class="inset" flex="20">
-    <md-button class="md-fab md-mini" aria-label="Add" ng-click="documentationCtrl.showNewPageDialog()">
-      <ng-md-icon icon="add"></ng-md-icon>
-    </md-button>
-    <md-divider></md-divider>
     <md-item dragula="'pages-list'" dragula-scope="$parent" ng-repeat="page in documentationCtrl.pages">
         <md-item-content layout="row" layout-align="start center" ui-sref="apis.admin.documentation.page({pageId: page.id})">
           <md-button class="gravitee-api-page-menu-item" ng-click="documentationCtrl.selectPage(p)"
@@ -35,5 +31,8 @@
         </md-item-content>
     </md-item>
   </md-list>
-  <md-content flex="80" ui-view></md-content>
+  <div flex="80" ui-view></div>
 </div>
+<md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="documentationCtrl.showNewPageDialog()">
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

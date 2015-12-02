@@ -19,8 +19,11 @@
   <div style="border: 1px solid #e7eaec; border-bottom: 0; padding: 0 20px 10px 20px;">
     <div layout="row">
       <div layout="row" layout-align="start center" flex="50">
+        <img ng-if="'MARKDOWN' === pageCtrl.page.type" src="app/images/logo_md.png" style="margin: 10px 5px 0 0;width:32px" />
+        <img ng-if="'SWAGGER' === pageCtrl.page.type" src="app/images/logo_swagger.png" style="margin: 10px 5px 0 0;width:32px" />
+        <img ng-if="'RAML' === pageCtrl.page.type" src="app/images/logo_raml.png" style="margin: 10px 5px 0 0;width:32px" />
         <h3 style="color: #676a6c; clear:both;">{{pageCtrl.page.name}}</h3>
-        <md-button ng-show="pageCtrl.editMode" ng-click="pageCtrl.reset()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Reset"><ng-md-icon icon="undo" size="16"></ng-md-icon></md-button>
+        <md-button ng-show="pageCtrl.editMode" ng-click="pageCtrl.reset()" class="md-icon-button" aria-label="Reset"><ng-md-icon icon="undo" size="16"></ng-md-icon></md-button>
       </div>
       <div layout="row" layout-align="end center" flex="10">
         <ng-md-icon icon="timer"></ng-md-icon>
@@ -28,9 +31,9 @@
       </div>
       <div class="documentation-tool-bar" layout="row" layout-align="end end" style="width: 100%;" flex="40">
         <md-switch ng-model="pageCtrl.page.published" ng-change="pageCtrl.changePublication()">Published</md-switch>
-        <md-button ng-show="!pageCtrl.editMode" ng-click="pageCtrl.edit()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Edit"><ng-md-icon icon="mode_edit" size="16"></ng-md-icon></md-button>
-        <md-button ng-show="pageCtrl.editMode" ng-click="pageCtrl.update()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Save"><ng-md-icon icon="save" size="16"></ng-md-icon></md-button>
-        <md-button ng-click="pageCtrl.delete()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Delete"><ng-md-icon icon="delete" size="16"></ng-md-icon></md-button>
+        <md-button ng-show="!pageCtrl.editMode" ng-click="pageCtrl.edit()" class="md-icon-button" aria-label="Edit"><ng-md-icon icon="mode_edit" size="16"></ng-md-icon></md-button>
+        <md-button ng-show="pageCtrl.editMode" ng-click="pageCtrl.update()" class="md-icon-button" aria-label="Save"><ng-md-icon icon="save" size="16"></ng-md-icon></md-button>
+        <md-button ng-click="pageCtrl.delete()" class="md-icon-button" aria-label="Delete"><ng-md-icon icon="delete" size="16"></ng-md-icon></md-button>
       </div>
     </div>
   </div>
