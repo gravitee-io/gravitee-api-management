@@ -229,8 +229,8 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
 				skip: true
 			}
     })
-    .state('application.apis', {
-      url: '/apis',
+    .state('application.apikeys', {
+      url: '/apikeys',
       templateUrl: 'app/application/details/applicationAPIs.html',
 			ncyBreadcrumb: {
 				skip: true

@@ -39,7 +39,7 @@ class ApplicationController {
 		}
 		if ($state.current.name.endsWith('general')) {
       $scope.selectedTab = 0;
-    } else if ($state.current.name.endsWith('apis')) {
+    } else if ($state.current.name.endsWith('apikeys')) {
       $scope.selectedTab = 1;
     } else if ($state.current.name.endsWith('members')) {
       $scope.selectedTab = 2;
