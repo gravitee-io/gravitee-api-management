@@ -34,6 +34,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.management.model.PrimaryOwnerEntity;
 import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.IdGenerator;
@@ -46,6 +47,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.Visibility;
 
 /**
@@ -364,7 +366,13 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 membership -> MembershipType.PRIMARY_OWNER.equals(membership.getMembershipType())
             ).findFirst();
             if (member.isPresent()) {
-                apiEntity.setAuthor(member.get().getUser().getUsername());
+                final User user = member.get().getUser();
+                final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+                primaryOwnerEntity.setUsername(user.getUsername());
+                primaryOwnerEntity.setLastname(user.getLastname());
+                primaryOwnerEntity.setFirstname(user.getFirstname());
+                primaryOwnerEntity.setEmail(user.getEmail());
+                apiEntity.setPrimaryOwner(primaryOwnerEntity);
             }
         }
 

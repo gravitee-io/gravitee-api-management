@@ -65,8 +65,6 @@ public class ApiEntity {
 
     private Monitoring monitoring;
 
-    private String author;
-
     public String getId() {
         return id;
     }
@@ -179,14 +177,6 @@ public class ApiEntity {
         this.properties = properties;
     }
 
-    public String getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -216,7 +206,6 @@ public class ApiEntity {
             ", primaryOwner=" + primaryOwner +
             ", permission=" + permission +
             ", monitoring=" + monitoring +
-            ", author='" + author + '\'' +
             '}';
     }
 }

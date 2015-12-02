@@ -16,7 +16,10 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.MembershipType;
 import io.gravitee.management.model.UpdateApiEntity;
+import io.gravitee.management.model.Visibility;
 import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.service.ApiService;
@@ -57,6 +60,18 @@ public class ApiResource extends AbstractResource {
         ApiEntity api = apiService.findById(this.api);
 
         permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.VIEW_API);
+
+        if(isAuthenticated()) {
+            MemberEntity member = apiService.getMember(api.getId(), getAuthenticatedUsername());
+            if (member != null) {
+                api.setPermission(member.getType());
+            } else {
+                if (api.getVisibility() == Visibility.PUBLIC) {
+                    // If API is public, all users have the user permission
+                    api.setPermission(MembershipType.USER);
+                }
+            }
+        }
 
         return api;
     }

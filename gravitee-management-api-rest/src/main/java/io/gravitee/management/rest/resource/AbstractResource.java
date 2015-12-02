@@ -15,9 +15,13 @@
  */
 package io.gravitee.management.rest.resource;
 
+import java.security.Principal;
+
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
-import java.security.Principal;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

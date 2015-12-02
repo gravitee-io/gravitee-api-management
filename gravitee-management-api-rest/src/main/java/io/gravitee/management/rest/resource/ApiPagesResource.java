@@ -15,19 +15,35 @@
  */
 package io.gravitee.management.rest.resource;
 
+import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.UpdatePageEntity;
+import io.gravitee.management.model.Visibility;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.List;
+import io.gravitee.repository.management.model.MembershipType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -63,9 +79,28 @@ public class ApiPagesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<PageListItem> pages() {
         // Check that the API exists
-        apiService.findById(api);
+        final ApiEntity apiEntity = apiService.findById(api);
 
-        return pageService.findByApi(api);
+        final List<PageListItem> pages = pageService.findByApi(api);
+
+        final List<PageListItem> filteredPages = pages.stream()
+            .filter(page -> {
+                if (isAuthenticated()) {
+                    MemberEntity member = apiService.getMember(apiEntity.getId(), getAuthenticatedUsername());
+                    if (member != null) {
+                        return !MembershipType.USER.equals(member.getType());
+                    }
+                }
+
+                if (apiEntity.getVisibility() == Visibility.PUBLIC) {
+                    return page.isPublished();
+                } else {
+                    return false;
+                }
+            })
+            .collect(Collectors.toList());
+
+        return filteredPages;
     }
 
     @POST

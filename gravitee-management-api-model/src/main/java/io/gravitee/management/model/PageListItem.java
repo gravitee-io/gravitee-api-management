@@ -74,7 +74,7 @@ public class PageListItem {
         this.type = type;
     }
 
-    public boolean getPublished() {
+    public boolean isPublished() {
         return published;
     }
 

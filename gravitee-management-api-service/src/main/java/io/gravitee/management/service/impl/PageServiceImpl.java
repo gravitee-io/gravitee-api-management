@@ -148,11 +148,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			// if order change, reorder all pages
 			if (page.getOrder() != pageToUpdate.getOrder()) {
 				reorderAndSavePages(page);
+				return null;
+			} else {
+				Page updatedPage = pageRepository.update(page);
+				return convert(updatedPage);
 			}
-
-			Page updatedPage = pageRepository.update(page);
-			return convert(updatedPage);
-
 		} catch (TechnicalException ex) {
             throw onUpdateFail(pageId, ex);
 		}
@@ -167,6 +167,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	            try {
 		            if (page.equals(pageToReorder)) {
 			            increment.set(0, false);
+			            page.setOrder(pageToReorder.getOrder());
 		            } else {
 			            final int newOrder;
 			            final Boolean isIncrement = increment.get(0);
@@ -178,8 +179,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				            newOrder = page.getOrder() + (isIncrement? 1 : -1);
 			            }
 			            page.setOrder(newOrder);
-			            pageRepository.update(page);
 		            }
+		            pageRepository.update(page);
 	            } catch (final TechnicalException ex) {
 		            throw onUpdateFail(page.getId(), ex);
 	            }
@@ -222,6 +223,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		pageItem.setType(page.getType());
 		pageItem.setOrder(page.getOrder());
 		pageItem.setLastContributor(page.getLastContributor());
+		pageItem.setPublished(page.isPublished());
 
 		return pageItem;
 	}
@@ -250,6 +252,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 		pageEntity.setContent(page.getContent());
 		pageEntity.setLastContributor(page.getLastContributor());
+		pageEntity.setLastModificationDate(page.getUpdatedAt());
 		pageEntity.setOrder(page.getOrder());
 		pageEntity.setPublished(page.isPublished());
 		return pageEntity;

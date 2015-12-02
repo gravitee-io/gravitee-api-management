@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.model;
 
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -35,6 +36,8 @@ public class PageEntity {
 	private String lastContributor;
 
 	private boolean published;
+
+	private Date lastModificationDate;
 
 	public String getId() {
 		return id;
@@ -92,6 +95,14 @@ public class PageEntity {
 		this.published = published;
 	}
 
+	public Date getLastModificationDate() {
+		return lastModificationDate;
+	}
+
+	public void setLastModificationDate(Date lastModificationDate) {
+		this.lastModificationDate = lastModificationDate;
+	}
+
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -117,6 +128,7 @@ public class PageEntity {
 		sb.append(", order='").append(order).append('\'');
 		sb.append(", lastContributor='").append(lastContributor).append('\'');
 		sb.append(", published='").append(published).append('\'');
+		sb.append(", lastModificationDate='").append(lastModificationDate).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}
