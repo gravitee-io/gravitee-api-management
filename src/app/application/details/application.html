@@ -17,8 +17,15 @@
 -->
 <section>
 	<div layout="column" layout-align="end-start" layout-padding class="gravitee-application-header" flex>
+		<div class="gravitee-application-header-content-right" style="position:absolute; right:20px;">
+			<span><ng-md-icon icon="person"></ng-md-icon></span>
+			<span>{{applicationCtrl.application.owner.username}}</span>
+			<span><ng-md-icon icon="timer"></ng-md-icon></span>
+			<span>{{applicationCtrl.application.created_at | date}}</span>
+		</div>
 		<div class="gravitee-application-header-content inset">
 			<h3>{{applicationCtrl.application.name}}</h3>
+			<h5>{{applicationCtrl.application.type}}</h5>
 			<p>
 				<small>{{applicationCtrl.application.description}}</small>
 			</p>

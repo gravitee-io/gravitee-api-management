@@ -37,6 +37,7 @@
 				      md-item-text="item.lastname"
 				      md-min-length="1"
 				      placeholder="Search users ..."
+							md-autofocus="true"
 							md-menu-class="autocomplete-custom-template">
 
 						<md-item-template>
@@ -55,7 +56,8 @@
 						<md-checkbox
 							value="{{user.id}}"
 							aria-label="{{user.id}}"
-							ng-click="selectMember(user)">
+							ng-click="selectMember(user)"
+							ng-checked="isUserSelected(user)">
 				      <span>
 								{{user.id}}
           		  <span ng-show="user.lastname">( {{user.lastname}} )</span>
@@ -71,7 +73,7 @@
         Cancel
       </md-button>
       <md-button type="submit" class="md-primary" ng-click="addMembers()">
-        Save
+        Add
       </md-button>
     </div>
   </md-dialog>

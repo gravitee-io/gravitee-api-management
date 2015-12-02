@@ -18,11 +18,27 @@
 <div layout="row" layout-wrap class="inset">
 	<div class="apis-box" flex="33" ng-repeat="application in applicationsCtrl.applications">
 		<a ui-sref="application.general({applicationId: application.id})">
-			<md-card class="api-box">
+			<md-card class="api-box gravitee-card">
 				<div class="api-box-header" ng-style="{'background-color': applicationsCtrl.bgColorByIndex($index)}">
 					<h3>{{application.name}}</h3>
-					<h5>{{application.type}}</h5>
+					<h5><span ng-if="application.type">{{application.type}}</span><span ng-if="!application.type"><br/></span></h5>
 				</div>
+				<md-card-content>
+					<div layout="row">
+						<div class="border-right" flex>
+							<div class="description-block">
+								<h5 class="description-header">-</h5>
+								<span class="description-text">APIS</span>
+							</div>
+						</div>
+						<div flex>
+							<div class="description-block">
+								<h5 class="description-header">-</h5>
+								<span class="description-text">MEMBERS</span>
+							</div>
+						</div>
+					</div>
+				</md-card-content>
 			</md-card>
 		</a>
 	</div>

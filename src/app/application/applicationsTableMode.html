@@ -15,20 +15,24 @@
     limitations under the License.
 
 -->
-<md-data-table-container ng-show="applicationsCtrl.applications.length > 0">
-	<table md-data-table>
-		<thead md-order="order">
-		<tr>
-			<th name="Name" order-by="name"></th>
-			<th name="Type" order-by="type"></th>
-		</tr>
-		</thead>
-		<tbody>
-		<tr md-auto-select ng-repeat="application in applicationsCtrl.applications | orderBy: order"
-				title="{{application.description}}" ui-sref="application.general({applicationId: application.id})">
-			<td>{{application.name}}</td>
-			<td>{{application.type}}</td>
-		</tr>
-		</tbody>
-	</table>
-</md-data-table-container>
+<md-card>
+	<md-card-content>
+		<md-data-table-container ng-show="applicationsCtrl.applications.length > 0">
+			<table md-data-table>
+				<thead md-order="order">
+				<tr>
+					<th name="Name" order-by="name"></th>
+					<th name="Type" order-by="type"></th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr md-auto-select ng-repeat="application in applicationsCtrl.applications | orderBy: order"
+						title="{{application.description}}" ui-sref="application.general({applicationId: application.id})">
+					<td>{{application.name}}</td>
+					<td>{{application.type}}</td>
+				</tr>
+				</tbody>
+			</table>
+		</md-data-table-container>
+	</md-card-content>
+</md-card>

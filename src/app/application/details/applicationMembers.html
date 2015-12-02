@@ -16,7 +16,7 @@
 
 -->
 <div layout-padding>
-	<md-data-table-container class="application-data-table" ng-show="applicationCtrl.members.length > 0">
+	<md-data-table-container class="application-data-table" ng-show="applicationCtrl.members.length > 1">
 		<table md-data-table class="md-primary">
 		  <thead md-order="order">
 		    <tr>
@@ -26,19 +26,21 @@
 		    </tr>
 		  </thead>
 		  <tbody>
-		    <tr ng-repeat="member in applicationCtrl.members | orderBy: order">
-		      <td>{{member.user}}</td>
+		    <tr ng-repeat="member in applicationCtrl.members | filter: { type: '!primary_owner' } | orderBy: order">
+		      <td ng-switch="member.type">
+						<span ng-switch-when="primary_owner"><b>{{member.user}}</b></span>
+						<span ng-switch-default>{{member.user}}</span>
+					</td>
 		      <td ng-show="member.type != 'primary_owner'">
-						<md-select ng-model="member.type" placeholder="Other">
+						<md-select ng-model="member.type" placeholder="Other" ng-change="applicationCtrl.updateMember(member)">
 				      <md-option ng-value="type" ng-repeat="type in applicationCtrl.membershipTypes">{{type}}</md-option>
 				    </md-select>
 					</td>
 					<td ng-hide="member.type != 'primary_owner'">
-						<span ng-hide="member.type != 'primary_owner'">{{member.type}}</span>
+						<span ng-hide="member.type != 'primary_owner'"><b>{{member.type}}</b></span>
 		      </td>
 		      <td>
 						<div ng-if="member.type != 'primary_owner'">
-							<ng-md-icon ng-click="applicationCtrl.updateMember(member)" icon="save" size="24" style="cursor: pointer;"></ng-md-icon>
 							<ng-md-icon ng-click="applicationCtrl.showDeleteMemberConfirm($event, member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
 						</div>
 					</td>

@@ -26,7 +26,7 @@ class ApiMembersController {
     this.$state = $state;
     this.api = resolvedApi.data;
     this.members = resolvedMembers.data;
-    this.membershipTypes = [ 'primary_owner', 'owner', 'user' ];
+    this.membershipTypes = [ 'owner', 'user' ];
   }
 
   updateMember(member) {
@@ -55,12 +55,30 @@ class ApiMembersController {
 			apiMembers: _this.members
     }).then(function (api) {
       if (api) {
-        //that.getMembers(api.id);
+				_this.ApiService.getMembers(api.id).then(function(response) {
+					_this.members = response.data;
+				});
       }
     }, function() {
       // You cancelled the dialog
     });
   }
+
+	showDeleteMemberConfirm(ev, member) {
+    var confirm = this.$mdDialog.confirm()
+      .title('Would you like to remove the member?')
+      .ariaLabel('delete-member')
+      .ok('OK')
+      .cancel('Cancel')
+      .targetEvent(ev);
+		var self = this;
+    this.$mdDialog.show(confirm).then(function() {
+      self.deleteMember(member);
+    }, function() {
+      self.$mdDialog.cancel();
+    });
+  }
+
 }
 
 export default ApiMembersController;

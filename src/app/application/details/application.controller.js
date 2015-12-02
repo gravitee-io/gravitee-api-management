@@ -24,6 +24,7 @@ class ApplicationController {
 		this.NotificationService = NotificationService;
 		this.applicationId = $stateParams.applicationId;
 		this.application = {};
+		this.initialApplication = {};
 		this.applications = [];
 		this.apiKeys = undefined;
 		this.members = [];
@@ -48,6 +49,7 @@ class ApplicationController {
 	get(applicationId) {
 		this.ApplicationService.get(applicationId).then(response => {
       this.application = response.data;
+			this.initialApplication = _.cloneDeep(this.application);
     });
   }
 
@@ -83,6 +85,7 @@ class ApplicationController {
 
   update(application) {
 		this.ApplicationService.update(application).then(() => {
+			this.initialApplication = _.cloneDeep(application);
 			this.NotificationService.show('Application updated');
 		});
   }
@@ -125,6 +128,11 @@ class ApplicationController {
       });
 	}
 
+	reset() {
+		this.application = _.cloneDeep(this.initialApplication);
+    this.$scope.formApplication.$setPristine();
+  }
+
 	showConfirm(ev) {
     var confirm = this.$mdDialog.confirm()
       .title('Would you like to delete your application?')
@@ -143,7 +151,7 @@ class ApplicationController {
 	showDeleteMemberConfirm(ev, member) {
     var confirm = this.$mdDialog.confirm()
       .title('Would you like to remove the member?')
-      .ariaLabel('delete-application')
+      .ariaLabel('delete-member')
       .ok('OK')
       .cancel('Cancel')
       .targetEvent(ev);

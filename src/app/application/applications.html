@@ -18,7 +18,6 @@
 <section class="content-header">
 </section>  
 
-<md-card>
 	<div layout="row" layout-align="end center" layout-padding>
 		<span class="btn-group">
 			<button ng-class="{'active': !applicationsCtrl.tableMode}" class="btn btn-default" 
@@ -31,8 +30,7 @@
 			</button>
 		</span>
 	</div>
-	<md-card-content ui-view />
-</md-card>  
+	<div ui-view />
 
 <md-button class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="applicationsCtrl.showAddApplicationModal($event)">
 	<ng-md-icon icon="add"></ng-md-icon>

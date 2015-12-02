@@ -51,7 +51,10 @@ function DialogAddMemberApiController($scope, $mdDialog, api, apiMembers, ApiSer
 
   $scope.selectedItemChange = function(item) {
 		if (item) {
-			$scope.usersFound.push(item);
+			if (!$scope.isUserSelected(item)) {
+				$scope.usersFound.push(item);
+				$scope.selectMember(item);
+			}
 			$scope.searchText = "";
 		}
   };
@@ -65,6 +68,16 @@ function DialogAddMemberApiController($scope, $mdDialog, api, apiMembers, ApiSer
       $scope.usersSelected.push(user.id);
     }
 	};
+
+	$scope.isUserSelected = function(user) {
+		var idx = $scope.usersSelected.indexOf(user.id);
+    if (idx > -1) {
+      return true;
+    }
+    else {
+      return false;
+    }
+	}
 
   $scope.addMembers = function () {
 		for (var i = 0; i < $scope.usersSelected.length; i++) {
