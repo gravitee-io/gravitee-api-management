@@ -21,6 +21,7 @@ import io.gravitee.management.model.KeysByApplicationEntity;
 import io.gravitee.management.service.*;
 
 import javax.inject.Inject;
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -79,12 +80,28 @@ public class ApiKeysResource extends AbstractResource {
     @DELETE
     @Path("{key}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response revokeApiKey(@PathParam("key") String apiKey) {
+    public Response revoke(@PathParam("key") String apiKey) {
         apiService.findById(this.api);
 
         permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);
 
         apiKeyService.revoke(apiKey);
+
+        return Response
+                .status(Response.Status.NO_CONTENT)
+                .build();
+    }
+
+    @PUT
+    @Path("{key}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response update(@PathParam("key") String apiKey, @Valid ApiKeyEntity apiKeyEntity) {
+        apiService.findById(this.api);
+
+        permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);
+
+//        apiKeyService.revoke(apiKey);
 
         return Response
                 .status(Response.Status.NO_CONTENT)
