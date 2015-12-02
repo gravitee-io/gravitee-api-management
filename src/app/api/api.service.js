@@ -100,6 +100,17 @@ class ApiService {
   deleteMember(api, memberUsername) {
     return this.$http.delete(this.apisURL + api + '/members?user=' + memberUsername);
   }
+
+  /*
+   * API Keys
+   */
+  getApiKeys(api) {
+    return this.$http.get(this.apisURL + api + '/keys');
+  }
+
+  revokeApiKey(api, apiKey) {
+    return this.$http.delete(this.apisURL + api + '/keys/' + apiKey);
+  }
 }
 
 export default ApiService;

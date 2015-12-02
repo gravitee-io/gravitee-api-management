@@ -94,18 +94,35 @@ class ApplicationController {
 		});
   }
 
+  /*
 	unsubscribeAPI(application, apiId, apiKey) {
 		this.ApplicationService.unsubscribe(application, apiKey).then(() => {
 			this.NotificationService.show('Application unsubscribed');
 			this.getAPIKeys(application.id);
 		});
 	}
+	*/
 
 	generateAPIKey(application, apiId) {
-		this.ApplicationService.subscribe(application, apiId).then(() => {
-			this.NotificationService.show('New API Key created');
-			this.getAPIKeys(application.id);
-		});
+    var alert = this.$mdDialog.confirm({
+      title: 'Warning',
+      content: 'Are you sure you want to renew your API Key ? <br /> Your previous API Key will no longer be valid !',
+      ok: 'Renew',
+      cancel: 'Cancel'
+    });
+
+    var _this = this;
+
+    this.$mdDialog
+      .show(alert)
+      .then(function () {
+        _this.ApplicationService.subscribe(application, apiId).then(() => {
+          _this.NotificationService.show('A new API Key has been generated');
+          _this.getAPIKeys(application.id);
+        });
+      })
+      .catch(function () {
+      });
 	}
 
 	showConfirm(ev) {

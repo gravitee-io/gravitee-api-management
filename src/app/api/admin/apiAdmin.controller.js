@@ -31,14 +31,16 @@ class ApiAdminController {
         $scope.selectedTab = 1;
       } else if ($state.current.name.includes('documentation')) {
         $scope.selectedTab = 2;
-      } else if ($state.current.name.endsWith('members')) {
-        $scope.selectedTab = 3;
-      }  else if ($state.current.name.endsWith('properties')) {
+      } else if ($state.current.name.endsWith('apikeys')) {
         $scope.selectedTab = 4;
-      } else if ($state.current.name.includes('analytics')) {
+      } else if ($state.current.name.endsWith('members')) {
         $scope.selectedTab = 5;
-      } else if ($state.current.name.endsWith('monitoring')) {
+      } else if ($state.current.name.endsWith('properties')) {
         $scope.selectedTab = 6;
+      } else if ($state.current.name.includes('analytics')) {
+        $scope.selectedTab = 7;
+      } else if ($state.current.name.endsWith('monitoring')) {
+        $scope.selectedTab = 8;
       }
     });
   }

@@ -163,6 +163,20 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
         skip: true
       }
     })
+    .state('apis.admin.apikeys', {
+      url: '/apikeys',
+      templateUrl: 'app/api/admin/apikeys/apikeys.html',
+      controller: 'ApiKeysController',
+      controllerAs: 'apiKeysCtrl',
+      resolve: {
+        resolvedApiKeys:function ($stateParams, ApiService) {
+          return ApiService.getApiKeys($stateParams.apiId);
+        }
+      },
+      ncyBreadcrumb: {
+        skip: true
+      }
+    })
     .state('documentation', {
       url: '/documentation',
       templateUrl: 'app/documentation/documentation.html',

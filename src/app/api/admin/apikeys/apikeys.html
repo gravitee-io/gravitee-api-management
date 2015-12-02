@@ -16,29 +16,25 @@
 
 -->
 <div layout-padding>
-	<md-data-table-container class="application-data-table" ng-show="applicationCtrl.hasKeysDefined()">
+	<md-data-table-container class="application-data-table" ng-show="apiKeysCtrl.hasKeysDefined()">
 		<table md-data-table class="md-primary">
 			<thead>
 				<tr>
 					<th>API Key</th>
           <th>Revocation Date</th>
           <th>Expiration Date</th>
-					<th>
-            <md-checkbox md-no-ink aria-label="Show all API keys" ng-model="applicationCtrl.showRevokedKeys" class="md-primary">
+          <th>
+            <md-checkbox md-no-ink aria-label="Show all API keys" ng-model="apiKeysCtrl.showRevokedKeys" class="md-primary">
               Show revoked API Keys
             </md-checkbox>
           </th>
 				</tr>
 			</thead>
-			<tbody ng-repeat="(api, value) in applicationCtrl.apiKeys">
-        <tr style="background-color: #9fb9be">
-          <td colspan="3" style="font-weight: bold">{{value.name}} ({{value.version}})</td>
-          <td>
-            <md-tooltip md-direction="left">Renew your API Key</md-tooltip>
-            <ng-md-icon icon="autorenew" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application, api)"></ng-md-icon>
-          </td>
+			<tbody ng-repeat="(api, value) in apiKeysCtrl.apiKeys">
+        <tr style="background-color: #9fb9be;">
+          <td colspan="4" style="font-weight: bold">{{value.name}}</td>
         </tr>
-				<tr ng-repeat="apikey in value.keys | filter: applicationCtrl.showRevokedKeys">
+				<tr ng-repeat="apikey in value.keys | filter: apiKeysCtrl.showRevokedKeys">
           <td>
             <ng-md-icon ng-show="!apikey.revoked" icon="done" style="fill: #107F20"></ng-md-icon>
             <ng-md-icon ng-show="apikey.revoked" icon="clear" style="fill: #BE2628"></ng-md-icon>
@@ -46,12 +42,18 @@
           </td>
           <td>{{apikey.revoked_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           <td>{{apikey.expire_on | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-          <td></td>
+          <td>
+            <span>
+            <md-tooltip md-direction="left">Revoke this API Key</md-tooltip>
+            <ng-md-icon ng-show="!apikey.revoked" icon="not_interested" ng-click="apiKeysCtrl.revoke(apikey.key)"></ng-md-icon>
+            </span>
+            <span>
+            <md-tooltip md-direction="right">Set expiration for this API Key</md-tooltip>
+            <ng-md-icon ng-show="!apikey.revoked" icon="schedule" ng-click="apiKeysCtrl.expire(apikey.key)"></ng-md-icon>
+            </span>
+          </td>
 				</tr>
 			</tbody>
 		</table>
 	</md-data-table-container>
 </div>
-<md-button class="md-fab md-fab-bottom-right" aria-label="Add"  ng-click="applicationCtrl.showSubscribeApiModal($event)">
-	<ng-md-icon icon="add"></ng-md-icon>
-</md-button>
