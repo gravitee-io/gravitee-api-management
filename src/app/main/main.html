@@ -15,56 +15,19 @@
     limitations under the License.
 
 -->
-<section layout="column">
+<section layout="column" style="margin-top:30px;">
 	<md-content>
 	  <section class="landing-header">
-			<div class="landing-header-image"></div>
-			<section class="landing-header-content" layout-padding style="text-align:center;">		
-				<div layout="row" layout-padding>
-          <div flex="33">
-            <div class="wow fadeInUp animated" data-wow-duration="400ms" data-wow-delay="0ms" style="visibility: visible; -webkit-animation: fadeInUp 400ms 0ms;">
-							<a href="#/apis">
-                <div class="icon-circle">
-                  <ng-md-icon icon="dashboard" style="fill:#08c;"></ng-md-icon>
-                </div>
-							</a>
-              <h3>Explore APIs</h3>
-          </div>
-        </div>
-        <div flex="33">
-            <div class="wow fadeInUp animated" data-wow-duration="400ms" data-wow-delay="100ms" style="visibility: visible; -webkit-animation: fadeInUp 400ms 100ms;">
-							<a href="#">
-                <div class="icon-circle">
-                  <ng-md-icon icon="my_library_add" style="fill:#08c;"></ng-md-icon>
-                </div>
-							</a>
-              <h3>Create your application</h3>
-            </div>
-          </div>
-          <div flex="33">
-            <div class="wow fadeInUp animated" data-wow-duration="400ms" data-wow-delay="200ms" style="visibility: visible; -webkit-animation: fadeInUp 400ms 200ms;">
-							<a href="#/static/documentation">
-                <div class="icon-circle">
-                  <ng-md-icon icon="find_in_page" style="fill:#08c"></ng-md-icon>
-                </div>
-							</a>	
-              <h3>Learn more</h3>
-            </div>
-          </div>
-        </div>
-			</section>
-			<section id="apis" layout-padding>
-				<md-divider></md-divider>
-				<div class="section-main-header" style="text-align:center;">
-					<h2 style="visibility: visible; animation-name: fadeInDown;" class="section-title text-center wow fadeInDown animated">
-						API
-					</h2>
-					<p style="visibility: visible; animation-name: fadeInDown;" class="text-center wow fadeInDown animated">
-						Learn more about your APIs
-					</p>
+			<div layout="row" layout-align="center-center" flex class="landing-header-image">
+				<img src="app/images/GRAVITEE_LOGOclair-04.png" width="200" height="200" />
+				<div class="landing-header-image-text">				
+					<h1>Portal</h1>
+					<h3>Do more with your APIs</h3>
 				</div>
+			</div>			
+			<section id="apis" layout-padding>
 				<div ng-include="'app/api/apisThumbMode.html'"></div>
-		</section>
-	 </section>
+			</section>	
+	 	</section>
 	</md-content>
 </section>

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor ($window, ApiService, $mdDialog, $scope, $state) {
+  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope) {
     'ngInject';
     this.$window = $window;
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
     this.$scope = $scope;
     this.$state = $state;
+		this.$rootScope = $rootScope;
 
     this.tableMode = this.$state.current.name.endsWith('table')? true : false;
   }
@@ -98,6 +99,18 @@ class ApisController {
   isOwner(api) {
     return api.permission && (api.permission === 'owner' || api.permission === 'primary_owner');
   }
+
+	login() {
+		this.$rootScope.$broadcast("authenticationRequired");
+	}
+
+	createInitAPI() {
+		if (!this.$rootScope.authenticated) {
+			this.$rootScope.$broadcast("authenticationRequired");
+		} else {
+			this.$state.go('apis.list.thumb');
+		}
+	}
 }
 
 export default ApisController;

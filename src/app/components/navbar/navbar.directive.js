@@ -37,7 +37,15 @@ class NavbarController {
     this.LoginService = LoginService;
     this.$window = $window;
 		this.user = {};
+		this.init();
   }
+
+	init() {
+		var self = this;
+		this.$rootScope.$on("authenticationRequired", function() {
+			self.showLoginModal();
+		});
+	}
 
   toggleSidenav(menuId) {
     this.$mdSidenav(menuId).toggle();

@@ -1,15 +1,23 @@
 .landing-header-image {
-	height: 450px;	
-	background-image: url('../../app/images/landing-page-main-image.jpg');
-	background-position: bottom center;
-  background-repeat: no-repeat;
-  background-size: cover;
-	@media screen and (max-width: 1600px) {
-		height: 600px;
-	}
-	@media screen and (max-width: 1799px) {
-		height: 700px;
-	}
+	padding-top: 20px;
+  height: 280px;        
+	background: #16222A; /* fallback for old browsers */
+	background: -webkit-linear-gradient(to left, #16222A , #3A6073); /* Chrome 10-25, Safari 5.1-6 */
+	background: linear-gradient(to left, #16222A , #3A6073); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+.landing-header-image-text {
+	font-family: 'Whitney SSm A', 'Whitney SSm B', 'Open Sans', 'sans-serif';
+	color:white;
+}
+
+.landing-header-image-text h1 {
+	margin-bottom: 0px;
+}
+
+.landing-header-image-text h3 {
+	margin-top: 0px;
+	color: #424E5A;
 }
 
 .landing-header-content ul > li {
