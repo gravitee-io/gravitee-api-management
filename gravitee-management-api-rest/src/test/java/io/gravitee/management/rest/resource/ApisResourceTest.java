@@ -17,8 +17,10 @@ package io.gravitee.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
+import io.gravitee.management.model.NewApiEntity;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -34,9 +36,17 @@ public class ApisResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    @Ignore
     public void testPostApi_nullApi() {
         final Response response = target().request().post(null);
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void testPostApi_newApiWithoutPath() {
+        final NewApiEntity apiEntity = new NewApiEntity();
+        apiEntity.setName("My beautiful api");
+
+        final Response response = target().request().post(Entity.json(apiEntity));
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
     }
 }

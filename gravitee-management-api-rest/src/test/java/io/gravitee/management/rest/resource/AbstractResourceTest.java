@@ -19,6 +19,7 @@ import io.gravitee.management.rest.JerseySpringTest;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.UserService;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +46,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected PermissionService permissionService;
 
+    @Autowired
+    protected UserService userService;
+
     @Configuration
     static class ContextConfiguration {
 
@@ -61,6 +65,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public PermissionService permissionService() {
             return mock(PermissionService.class);
+        }
+
+        @Bean
+        public UserService userService() {
+            return mock(UserService.class);
         }
     }
 }
