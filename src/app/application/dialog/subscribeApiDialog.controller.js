@@ -27,8 +27,8 @@ function DialogSubscribeApiController($scope, $mdDialog, application, apiKeys, A
 		for(var i = 0; i < _apis.length; i++) {
 			var _api = _apis[i];
 			var exist = false;
-			for(var j = 0; j < apiKeys.length; j++) {
-				if (_api.id === apiKeys[j].api) {
+			for (var key in apiKeys) {
+				if (_api.id === key) {
 					exist = true;
 					break;
 				}
@@ -45,7 +45,10 @@ function DialogSubscribeApiController($scope, $mdDialog, application, apiKeys, A
 
 	$scope.selectedItemChange = function(item) {
 		if (item) {
-			$scope.apisFound.push(item);
+			if (!$scope.isAPISelected(item)) {
+				$scope.apisFound.push(item);
+				$scope.selectAPI(item);
+			}
 		}
   };
 
@@ -58,6 +61,16 @@ function DialogSubscribeApiController($scope, $mdDialog, application, apiKeys, A
       $scope.apisSelected.push(api.id);
     }
 	};
+
+	$scope.isAPISelected = function(api) {
+		var idx = $scope.apisSelected.indexOf(api.id);
+    if (idx > -1) {
+      return true;
+    }
+    else {
+      return false;
+    }
+	}
 
 	$scope.subscribe = function(application) {
 		for (var i = 0; i < $scope.apisSelected.length; i++) {

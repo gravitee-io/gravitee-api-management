@@ -55,7 +55,8 @@
 					<md-checkbox
 						value="{{api.id}}" 
 						aria-label="{{api.id}}" 
-						ng-click="selectAPI(api)">
+						ng-click="selectAPI(api)"
+						ng-checked="isAPISelected(api)">
 				    <span>
 							{{api.name}}
         		</span>

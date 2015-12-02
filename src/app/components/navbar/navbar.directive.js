@@ -28,11 +28,12 @@ class NavbarDirective {
 }
 
 class NavbarController {
-  constructor ($rootScope, $mdSidenav, $cookieStore, LoginService, $window) {
+  constructor ($rootScope, $mdSidenav, $cookieStore, $mdDialog, LoginService, $window) {
     'ngInject';
     this.$rootScope = $rootScope;
     this.$mdSidenav = $mdSidenav;
 		this.$cookieStore = $cookieStore;
+		this.$mdDialog = $mdDialog;
     this.LoginService = LoginService;
     this.$window = $window;
 		this.user = {};
@@ -42,18 +43,14 @@ class NavbarController {
     this.$mdSidenav(menuId).toggle();
   }
 
-  openMenu($mdOpenMenu, ev) {
-    $mdOpenMenu(ev);
-  }
-
-	login() {
-    var that = this;
-    this.LoginService.login(this.user).then(function(response) {
-			that.$cookieStore.put('GraviteeAuthentication', btoa(that.user.username + ":" + that.user.password));
-			that.user = {};
-			that.$cookieStore.put('authenticatedUser', response.data);
-      console.log('ok')
-      that.$window.location.reload();
+	showLoginModal(ev) {
+    var _that = this;
+    this.$mdDialog.show({
+      controller: 'DialogLoginController',
+      templateUrl: 'app/login/dialog/login.dialog.html',
+      parent: angular.element(document.body),
+			targetEvent: ev,
+      clickOutsideToClose: true
     });
   }
 }

@@ -58,7 +58,7 @@ import SideNavDirective from './components/sidenav/sidenav.directive';
 import PageController from './api/admin/documentation/page/apiPage.controller';
 import PolicyService from './policy/policy.service';
 import PageDirective from './components/documentation/page.directive';
-
+import DialogLoginController from './login/dialog/loginDialog.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
@@ -109,6 +109,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('DialogAddMemberController', DialogAddMemberController)
   .controller('PageController', PageController)
   .service('ApplicationService', ApplicationService)
+	.controller('DialogLoginController', DialogLoginController)
   .directive('graviteeNavbar', () => new NavbarDirective())
   .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective())

@@ -31,12 +31,6 @@ class ApplicationsController {
 			this.applications = response.data;
 		});
   }
-
-	getMembersLength(applicationId) {
-		this.ApplicationService.getMembers(applicationId).then(response => {
-			return response.data.length;
-		});
-	}
 	
 	showAddApplicationModal(ev) {
     var _that = this;
