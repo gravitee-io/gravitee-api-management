@@ -18,19 +18,21 @@
 <div layout="column" layout-align="end-start" layout-padding class="gravitee-api-header" flex>
 	<div class="gravitee-api-header-content inset">
 		<div ng-switch="apiCtrl.api.visibility" layout="row" layout-align="start center">
-			<span ng-switch-when="public"><ng-md-icon icon="public"></ng-md-icon></span>
-			<span ng-switch-when="private"><ng-md-icon icon="lock"></ng-md-icon></span>
-			<span ng-switch-when="restricted"><ng-md-icon icon="vpn_lock"></ng-md-icon></span>
-			<h3 style="padding-left: 10px;">{{apiCtrl.api.name}} - {{apiCtrl.api.version}}</h3>
+			<h3 style="padding-left: 10px;" flex="70">{{apiCtrl.api.name}}</h3>
+			<p flex="30" style="text-align: right">
+				<span>Version: {{apiCtrl.api.version}}</span>
+				<b>({{apiCtrl.api.state}})</b>
+				<span ng-switch-when="public" flex="10"><ng-md-icon icon="public"></ng-md-icon></span>
+				<span ng-switch-when="private" flex="10"><ng-md-icon icon="lock"></ng-md-icon></span>
+				<span ng-switch-when="restricted" flex="10"><ng-md-icon icon="vpn_lock"></ng-md-icon></span>
+				<span><ng-md-icon icon="person"></ng-md-icon></span>
+				<span>{{apiCtrl.api.owner.username}}</span>
+				<span><ng-md-icon icon="timer"></ng-md-icon></span>
+				<span>{{apiCtrl.api.created_at | date}}</span>
+			</p>
 		</div>
 	  <p>
 			<small><div read-more ng-model="apiCtrl.api.description" words="false" length="150"></div></small>
 		</p>
-		<p>
-			<span><ng-md-icon icon="person"></ng-md-icon></span>
-			<span>{{apiCtrl.api.owner.username}}</span>
-			<span><ng-md-icon icon="timer"></ng-md-icon></span>
-			<span>{{apiCtrl.api.created_at | date}}</span>
-    </p>
 	 </div>
 </div>
