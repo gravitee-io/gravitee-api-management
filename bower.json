@@ -23,7 +23,8 @@
     "dragular": "~3.2.0",
     "angular-dragula": "~1.1.6",
     "angular-breadcrumb": "~0.4.1",
-    "google-code-prettify": "~1.0.4"
+    "google-code-prettify": "~1.0.4",
+    "angular-schema-form": "~0.8.12"
   },
   "resolutions": {
     "angular": "1.4.8"
