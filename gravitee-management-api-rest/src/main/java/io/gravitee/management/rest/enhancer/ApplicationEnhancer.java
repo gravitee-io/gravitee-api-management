@@ -15,14 +15,21 @@
  */
 package io.gravitee.management.rest.enhancer;
 
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.MembershipType;
+import io.gravitee.management.model.PrimaryOwnerEntity;
+import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.UserService;
-import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Collection;
 import java.util.function.Function;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -32,6 +39,9 @@ public class ApplicationEnhancer {
 
     @Inject
     private ApplicationService applicationService;
+    
+    @Inject
+    private ApiService apiService;
 
     @Inject
     private UserService userService;
@@ -51,6 +61,9 @@ public class ApplicationEnhancer {
                 owner.setLastname(user.getLastname());
                 application.setPrimaryOwner(owner);
             }
+            
+            // Add Members size
+            application.setMembersSize(members.size());
 
             // Add permission for current user (if authenticated)
             if(currentUser != null) {
@@ -61,6 +74,9 @@ public class ApplicationEnhancer {
                     throw new IllegalStateException("You should never go there !");
                 }
             }
+            
+            // Add APIs size
+            application.setApisSize(apiService.findByApplication(application.getId()).size());
 
             return application;
         };

@@ -40,6 +40,12 @@ public class ApplicationEntity {
     private PrimaryOwnerEntity primaryOwner;
 
     private MembershipType permission;
+    
+    @JsonProperty("members_size")
+    private int membersSize;
+    
+    @JsonProperty("apis_size")
+    private int apisSize;
 
     public String getId() {
         return id;
@@ -105,7 +111,23 @@ public class ApplicationEntity {
         this.primaryOwner = primaryOwner;
     }
 
-    @Override
+    public int getMembersSize() {
+		return membersSize;
+	}
+
+	public void setMembersSize(int membersSize) {
+		this.membersSize = membersSize;
+	}
+
+	public int getApisSize() {
+		return apisSize;
+	}
+
+	public void setApisSize(int apisSize) {
+		this.apisSize = apisSize;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
