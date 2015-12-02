@@ -76,6 +76,7 @@ class PageController {
     editPage.published = this.page.published;
     var that = this;
     this.DocumentationService.editPage(this.$scope.$parent.apiCtrl.api.id, this.page.id, editPage).then(function () {
+      that.$scope.$parent.documentationCtrl.list();
       that.NotificationService.show('Page ' + editPage.name + ' has been ' + (editPage.published ? '':'un') + 'published with success');
     });
   }
