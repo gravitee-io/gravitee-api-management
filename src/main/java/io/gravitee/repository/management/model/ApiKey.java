@@ -29,11 +29,6 @@ public class ApiKey {
 	private String key;
 
 	/**
-	 * Is the key revoked ?
-	 */
-	private boolean revoked;
-
-	/**
 	 * Token expiration date
 	 */
 	private Date expiration;
@@ -44,9 +39,14 @@ public class ApiKey {
 	private Date createdAt;
 
 	/**
-	 * The API key update date
+	 * Is the key revoked ?
 	 */
-	private Date updatedAt;
+	private boolean revoked;
+
+	/**
+	 * If the key was revoked, the date of revocation.
+	 */
+	private Date revokeAt;
 
 	/**
 	 * The API for which the key is defined.
@@ -90,12 +90,12 @@ public class ApiKey {
 		this.createdAt = createdAt;
 	}
 
-	public Date getUpdatedAt() {
-		return updatedAt;
+	public Date getRevokeAt() {
+		return revokeAt;
 	}
 
-	public void setUpdatedAt(Date updatedAt) {
-		this.updatedAt = updatedAt;
+	public void setRevokeAt(Date revokeAt) {
+		this.revokeAt = revokeAt;
 	}
 
 	public String getApi() {
