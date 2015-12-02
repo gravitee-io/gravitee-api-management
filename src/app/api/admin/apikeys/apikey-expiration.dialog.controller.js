@@ -48,7 +48,7 @@ function DialogApiKeyExpirationController($scope, $mdDialog) {
     m.minutes($scope.expiration.time.minutes);
     m.seconds(0);
 
-    $mdDialog.hide(m.unix());
+    $mdDialog.hide(m.valueOf());
   };
 }
 
