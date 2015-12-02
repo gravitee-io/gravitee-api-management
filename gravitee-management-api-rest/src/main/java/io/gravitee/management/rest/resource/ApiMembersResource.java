@@ -16,6 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.rest.resource.param.MembershipTypeParam;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.UserService;
@@ -26,7 +27,12 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang.StringUtils;
+
 import java.net.URI;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -69,7 +75,13 @@ public class ApiMembersResource {
         try {
             userService.findByName(username);
         } catch (UserNotFoundException unfe) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
+        	// Create user with only user name data
+        	// The others information will be updated during its first connection
+        	NewUserEntity user = new NewUserEntity();
+        	user.setUsername(username);
+        	user.setPassword(StringUtils.EMPTY);
+        	user.setRoles(new HashSet<String>(Arrays.asList(new String[]{"ROLE_USER"})));
+        	userService.create(user);
         }
 
         apiService.addOrUpdateMember(api, username, membershipType.getValue());

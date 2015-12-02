@@ -21,16 +21,25 @@ import io.gravitee.management.rest.resource.param.MembershipTypeParam;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
-import org.apache.commons.lang.StringUtils;
+
+import java.net.URI;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.Set;
-import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -76,6 +85,7 @@ public class ApplicationMembersResource {
         	NewUserEntity user = new NewUserEntity();
         	user.setUsername(username);
         	user.setPassword(StringUtils.EMPTY);
+        	user.setRoles(new HashSet<String>(Arrays.asList(new String[]{"ROLE_USER"})));
         	userService.create(user);
         }
 
