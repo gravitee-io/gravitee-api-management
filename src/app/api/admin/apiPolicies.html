@@ -17,54 +17,57 @@
 -->
 <div layout="row">
 
-  <div flex="20">
+  <div flex="20" layout="column">
     <div class="inset">
       <h5>Policies ({{apiPoliciesCtrl.policiesToCopy.length}})</h5>
       <md-divider></md-divider>
     </div>
-    <md-list class="gravitee-policy-draggable">
-      <md-list-item ng-repeat="policy in apiPoliciesCtrl.policiesToCopy">
-        <div class="md-list-item-text" layout="row" layout-align="space-between center">
-          <md-tooltip md-direction="right">
-            version: {{apiPoliciesCtrl.policyMap.get(policy.policyId).version}}
-          </md-tooltip>
-          <div id="policy-name">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</div>
-          <div>
+    <div class="gravitee-policy-draggable">
+      <md-card ng-repeat="policy in apiPoliciesCtrl.policiesToCopy" class="gravitee-policy-card">
+        <md-tooltip md-direction="right">
+          version: {{apiPoliciesCtrl.policyMap.get(policy.policyId).version}}
+        </md-tooltip>
+        <md-card-content layout="row" layout-align="space-between">
+          <span class="md-subhead">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</span>
+          <!--md-card-actions layout="column">
             <ng-md-icon icon="arrow_back" size="1.2em" ng-if='"request" !== apiPoliciesCtrl.policyMap.get(policy.policyId).type'></ng-md-icon>
             <ng-md-icon icon="arrow_forward" size="1.2em" ng-if='"response" !== apiPoliciesCtrl.policyMap.get(policy.policyId).type'></ng-md-icon>
-          </div>
-        </div>
-      </md-list-item>
-    </md-list>
-  </div>
+          </md-card-actions-->
+        </md-card-content>
+      </md-card>
+    </div>
+    </div>
 
   <div flex="50">
     <div class="inset">
       <h3>/*</h3>
       <md-divider></md-divider>
     </div>
-    <div layout="row" layout-wrap>
-      <div class="gravitee-policy-filters">
-        <span flex class="badge gravitee-policy-method-badge"
-              ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.httpMethodsFilter)"
-              ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
-              ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.httpMethodsFilter)">
+    <div layout="row" layout-align="start center" class="gravitee-policy-filters">
+      <span flex class="badge gravitee-policy-method-badge-filter"
+            ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.httpMethodsFilter)"
+            ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
+            ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.httpMethodsFilter)">
         {{httpMethod | uppercase}}
-        </span>
-      </div>
+      </span>
     </div>
-    <md-list ng-class="apiPoliciesCtrl.getDropzoneClass()">
-      <md-list-item ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath.get('/*')" ng-click="apiPoliciesCtrl.editPolicy($index)" ng-hide="apiPoliciesCtrl.filterByMethod(policy)">
-        <div class="md-list-item-text">
-          <div id="apiPolicy-name">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</div>
-          <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-GET-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
-          <div ng-if="policy.methods.length != apiPoliciesCtrl.httpMethods.length">
-            <span class="badge gravitee-policy-method-badge gravitee-policy-method-badge-{{method}}-selected" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
+    <div ng-class="apiPoliciesCtrl.getDropzoneClass()">
+      <md-card ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath.get('/*')"
+               ng-click="apiPoliciesCtrl.editPolicy($index)"
+               ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
+               class="gravitee-policy-card">
+        <md-card-content layout="column" layout-align="space-around center">
+          <span class="md-subhead">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</span>
+          <div layout="row" layout-align="start center">
+            <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-GET-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
+            <div ng-if="policy.methods.length != apiPoliciesCtrl.httpMethods.length">
+              <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-{{method}}-selected" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
+            </div>
           </div>
-        </div>
-      </md-list-item>
+        </md-card-content>
+      </md-card>
       <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPoliciesByPath.get('/*').length < 2">Drag a policy here.</span>
-    </md-list>
+    </div>
   </div>
 
   <div flex="30">
@@ -75,7 +78,7 @@
       </div>
       <form name="projectForm" novalidate>
         <div layout="row" layout-wrap>
-          <span flex="20" class="badge gravitee-policy-method-badge"
+          <span flex="20" class="badge gravitee-policy-method-badge-info"
                 ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)"
                 ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
                 ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)">

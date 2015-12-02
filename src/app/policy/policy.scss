@@ -8,11 +8,11 @@
     font-size: 2.2em;
     font-weight: bold;
   }
-  md-list-item {
-    border: 0 solid #546E7A;
-    border-bottom-width: thin;
-    margin: -1px 0;
-    min-height: 33px;
+  md-card md-card-content {
+    padding: 8px;
+  }
+  .gravitee-policy-card:hover{
+    cursor: grab;
   }
 }
 
@@ -21,22 +21,17 @@
 }
 
 .gravitee-policy-draggable {
-  md-list-item {
-    border-left: medium dotted #546E7A;
-    margin: 15px 0;
-    min-height: 33px;
-    cursor: grab;
-  }
-  .md-list-item-text {
-    width: 95%;
-  }
-  #policy-name {
-    font-size: 1.4em;
+  md-card md-card-content {
+    padding: 8px;
   }
   #policy-version md-chips md-chip {
     font-size: 0.6em;
   }
+  .gravitee-policy-card:hover{
+    cursor: grab;
+  }
 }
+
 
 .gravitee-policy-draggable-selected {
   cursor: grab;
@@ -46,9 +41,14 @@
   }
 }
 
-.gravitee-policy-method-badge {
+.gravitee-policy-method-badge-filter {
   margin: 2px 5px;
   font-size: .8em;
+}
+
+.gravitee-policy-method-badge-info {
+  margin: 2px 5px;
+  font-size: .6em;
 }
 
 .gravitee-policy-method-badge-GET-selected {
@@ -89,6 +89,5 @@
 }
 
 .gravitee-policy-filters {
-  width: 100%;
-  padding: 10px 0;
+  margin-bottom: 10px;
 }
