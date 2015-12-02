@@ -23,7 +23,8 @@
       <md-divider></md-divider>
     </div>
     <div class="gravitee-policy-draggable">
-      <md-card ng-repeat="policy in apiPoliciesCtrl.policiesToCopy" class="gravitee-policy-card">
+      <md-card ng-repeat="policy in apiPoliciesCtrl.policiesToCopy"
+               class="gravitee-card gravitee-policy-card">
         <md-tooltip md-direction="right">
           version: {{apiPoliciesCtrl.policyMap.get(policy.policyId).version}}
         </md-tooltip>
@@ -55,7 +56,7 @@
       <md-card ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath.get('/*')"
                ng-click="apiPoliciesCtrl.editPolicy($index)"
                ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
-               class="gravitee-policy-card">
+               class="gravitee-card gravitee-policy-card">
         <md-card-content layout="column" layout-align="space-around center">
           <span class="md-subhead">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</span>
           <div layout="row" layout-align="start center">
