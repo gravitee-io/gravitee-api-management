@@ -23,7 +23,7 @@ import java.util.Objects;
  * 
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  */
-public class ApiKeyMongo extends Auditable {
+public class ApiKeyMongo {
   
 	/**
 	 * Api Key
@@ -39,7 +39,10 @@ public class ApiKeyMongo extends Auditable {
 	 * Token expiration date
 	 */
 	private Date expiration;
-	
+
+	private Date createdAt;
+
+	private Date revokeAt;
 	
 	public String getKey() {
 		return key;
@@ -63,6 +66,22 @@ public class ApiKeyMongo extends Auditable {
 
 	public void setRevoked(boolean revoked) {
 		this.revoked = revoked;
+	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Date getRevokeAt() {
+		return revokeAt;
+	}
+
+	public void setRevokeAt(Date revokeAt) {
+		this.revokeAt = revokeAt;
 	}
 
 	@Override

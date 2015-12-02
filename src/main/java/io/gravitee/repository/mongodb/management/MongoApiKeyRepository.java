@@ -96,7 +96,8 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 		associationMongo.getKey().setCreatedAt(key.getCreatedAt());
 		associationMongo.getKey().setExpiration(key.getExpiration());
 		associationMongo.getKey().setRevoked(key.isRevoked());
-		
+		associationMongo.getKey().setRevokeAt(key.getRevokeAt());
+
 		internalApiKeyRepo.save(associationMongo);
 		
 		return key;
