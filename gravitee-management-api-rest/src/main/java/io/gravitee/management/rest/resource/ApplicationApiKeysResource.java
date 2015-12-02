@@ -86,7 +86,7 @@ public class ApplicationApiKeysResource extends AbstractResource {
         apiService.findById(api);
 
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
-        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_API);
+        permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.VIEW_API);
 
         ApiKeyEntity apiKeyEntity = apiKeyService.generateOrRenew(application, api);
 
