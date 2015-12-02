@@ -25,9 +25,7 @@
               <img ng-if="'MARKDOWN' === page.type" src="app/images/logo_md.png" width="32px" />
               <img ng-if="'SWAGGER' === page.type" src="app/images/logo_swagger.png" width="32px" />
               <img ng-if="'RAML' === page.type" src="app/images/logo_raml.png" width="32px" />
-              {{page.name}}
-              <ng-md-icon ng-if="page.published" icon="radio_button_on"></ng-md-icon>
-              <ng-md-icon ng-if="!page.published" icon="radio_button_off"></ng-md-icon>
+              <span ng-style="page.published?'':{'font-style': 'italic'}">{{page.name}}</span>
             </div>
           </md-button>
         </md-item-content>
