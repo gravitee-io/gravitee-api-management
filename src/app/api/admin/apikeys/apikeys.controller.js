@@ -59,19 +59,19 @@ class ApiKeysController {
 
   showExpirationModal(apikey) {
     var _this = this;
+    this.currentApiKey = apikey;
+
     this.$mdDialog.show({
       controller: 'DialogApiKeyExpirationController',
       controllerAs: 'dialogApiKeyExpirationController',
       templateUrl: 'app/api/admin/apikeys/apikey-expiration.dialog.html',
       clickOutsideToClose: true
-    }).then(function (property) {
-      var key = Object.keys(property)[0];
+    }).then(function (expirationDate) {
+      _this.currentApiKey['expire_on'] = expirationDate;
 
-      if (_this.api.properties == undefined) {
-        _this.api.properties = {};
-      }
-
-      _this.api.properties[key] = property[key];
+      _this.ApiService.updateApiKey(_this.api.id, _this.currentApiKey).then(() => {
+        _this.NotificationService.show('An expiration date has been settled for API Key');
+      });
     });
   }
 }

@@ -111,6 +111,10 @@ class ApiService {
   revokeApiKey(api, apiKey) {
     return this.$http.delete(this.apisURL + api + '/keys/' + apiKey);
   }
+
+  updateApiKey(api, apiKey) {
+    return this.$http.put(this.apisURL + api + '/keys/' + apiKey.key, apiKey);
+  }
 }
 
 export default ApiService;

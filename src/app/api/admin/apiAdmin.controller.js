@@ -38,15 +38,15 @@ class ApiAdminController {
       } else if ($state.current.name.includes('documentation')) {
         $scope.selectedTab = 2;
       } else if ($state.current.name.endsWith('apikeys')) {
-        $scope.selectedTab = 4;
+        $scope.selectedTab = 3;
       } else if ($state.current.name.endsWith('members')) {
-        $scope.selectedTab = 5;
+        $scope.selectedTab = 4;
       } else if ($state.current.name.endsWith('properties')) {
-        $scope.selectedTab = 6;
+        $scope.selectedTab = 5;
       } else if ($state.current.name.includes('analytics')) {
-        $scope.selectedTab = 7;
+        $scope.selectedTab = 6;
       } else if ($state.current.name.endsWith('monitoring')) {
-        $scope.selectedTab = 8;
+        $scope.selectedTab = 7;
       }
     });
   }

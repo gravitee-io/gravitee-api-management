@@ -16,7 +16,7 @@
 
 -->
   <md-dialog aria-label="Set expiration date for API Key">
-    <form name="formApiProperty" ng-submit="dialogApiKeyExpirationController.save()" novalidate>
+    <form name="formExpireApiKeyProperty" ng-submit="dialogApiKeyExpirationController.save()" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
           <h2>Expire API Key</h2>
@@ -26,25 +26,41 @@
           </md-button>
         </div>
       </md-toolbar>
-      <md-dialog-content>
-				<md-content class="md-padding">
-		      <div layout="">
-		        <md-input-container>
-		          <label>Name *</label>
-		          <input ng-model="property.name" id="key" required>
-		        </md-input-container>
-		        <md-input-container>
-		          <label>Value *</label>
-		          <input ng-model="property.value" id="value" required>
-		        </md-input-container>
-		      </div>
-		      <md-subheader class="md-warn" ng-bind="error"></md-subheader>
-    		</md-content>
+
+      <md-dialog-content layout-padding>
+        <div layout="column" ng-cloak class="md-inline-form">
+          <div layout layout-sm="column">
+                <md-datepicker ng-model="expiration.date" md-placeholder="Expiration date"
+                               md-min-date="minDate" required></md-datepicker>
+          </div>
+
+          <div layout layout-sm="column">
+            <md-input-container>
+              <label>Hour *</label>
+              <md-select ng-model="expiration.time.hours" required>
+                <md-option ng-repeat="hour in hours" value="{{hour}}">
+                  {{hour}}
+                </md-option>
+              </md-select>
+            </md-input-container>
+
+            <md-input-container>
+              <label>Minute *</label>
+              <md-select ng-model="expiration.time.minutes" required>
+                <md-option ng-repeat="minute in minutes" value="{{minute}}">
+                  {{minute}}
+                </md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+
+          <md-subheader class="md-warn" ng-bind="error"></md-subheader>
+        </div>
       </md-dialog-content>
 
       <div class="md-actions" layout="row">
         <md-button type="button" ng-click="dialogApiKeyExpirationController.hide()" class="md-primary">Cancel</md-button>
-        <md-button type="submit" class="md-primary" ng-disabled="formApiProperty.$invalid">Expire</md-button>
+        <md-button type="submit" class="md-primary" ng-disabled="formExpireApiKeyProperty.$invalid">Expire</md-button>
       </div>
     </form>
   </md-dialog>
