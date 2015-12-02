@@ -34,7 +34,7 @@
         <tr style="background-color: #9fb9be">
           <td colspan="3" style="font-weight: bold">{{value.name}} ({{value.version}})</td>
           <td>
-            <md-button class="md-raised" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application, api)">Renew API Key</md-button>
+            <md-button class="md-raised" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application, api)">Renew</md-button>
           </td>
         </tr>
 				<tr ng-repeat="apikey in value.keys | filter: applicationCtrl.showRevokedKeys">
@@ -43,8 +43,8 @@
             <ng-md-icon ng-show="apikey.revoked" icon="clear" style="fill: #BE2628"></ng-md-icon>
             <code>{{apikey.key}}</code>
           </td>
-          <td>{{apikey.revoked_at | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
-          <td>{{apikey.expire_on | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+          <td>{{apikey.revoked_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+          <td>{{apikey.expire_on | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           <td></td>
 				</tr>
 			</tbody>
