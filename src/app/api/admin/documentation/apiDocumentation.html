@@ -26,8 +26,9 @@
           <md-button class="gravitee-api-page-menu-item" ng-click="documentationCtrl.selectPage(p)"
                      ng-class="{'selected' : page.id === documentationCtrl.$state.params.pageId }">
             <div class="inset">
-              <ng-md-icon icon="more_vert"></ng-md-icon>
-              <ng-md-icon icon="insert_drive_file"></ng-md-icon>
+              <img ng-if="'MARKDOWN' === page.type" src="app/images/logo_md.png" width="32px" />
+              <img ng-if="'SWAGGER' === page.type" src="app/images/logo_swagger.png" width="32px" />
+              <img ng-if="'RAML' === page.type" src="app/images/logo_raml.png" width="32px" />
               {{page.name}}
             </div>
           </md-button>

@@ -15,11 +15,11 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="Mango (Fruit)">
+<md-dialog style="min-width:60%;">
   <form name="formPage" ng-submit="dialogDocumentationCtrl.createPage()" novalidate>
   <md-toolbar>
     <div class="md-toolbar-tools">
-      <h2>Creation of documentation on API {{apiName}}</h2>
+      <h2>New page</h2>
       <span flex></span>
       <md-button type="button" class="md-icon-button" ng-click="dialogDocumentationCtrl.hide()">
         X
@@ -29,32 +29,26 @@
   <md-dialog-content style="max-width:800px;max-height:810px; ">
     <div layout="row">
       <div flex>
-        <md-button type="button" ng-click="dialogDocumentationCtrl.selectPageType(MARKDOWN_PAGE)"
+        <md-button style="width: 100%" type="button" ng-click="dialogDocumentationCtrl.selectPageType(MARKDOWN_PAGE)"
                    ng-class="{'selected' : MARKDOWN_PAGE === dialogDocumentationCtrl.selectedPageType}">
-            <md-icon class="avatar"></md-icon>
-            <h4>Markdown Page</h4>
-            Start with a blank Markdown page.
+            <img src="app/images/logo_md.png" />
         </md-button>
       </div>
       <div flex>
-        <md-button type="button" ng-click="dialogDocumentationCtrl.selectPageType(RAML_PAGE)"
+        <md-button style="width: 100%" type="button" ng-click="dialogDocumentationCtrl.selectPageType(RAML_PAGE)"
                    ng-class="{'selected' : RAML_PAGE === dialogDocumentationCtrl.selectedPageType}">
-            <md-icon class="avatar"></md-icon>
-            <h4>Raml Page</h4>
-            Start with a blank RAML page.
+          <img src="app/images/logo_raml.png" />
         </md-button>
       </div>
     </div>
     <div layout="row">
       <div flex>
-        <md-button type="button" ng-click="dialogDocumentationCtrl.selectPageType(SWAGGER_PAGE)"
+        <md-button style="width: 100%" type="button" ng-click="dialogDocumentationCtrl.selectPageType(SWAGGER_PAGE)"
                    ng-class="{'selected' : SWAGGER_PAGE === dialogDocumentationCtrl.selectedPageType}">
-          <md-icon class="avatar"></md-icon>
-          <h4>Swagger Page</h4>
-          Start with a blank Swagger page.
+          <img src="app/images/logo_swagger.png" />
         </md-button>
       </div>
-      <div flex>
+      <div flex layout="row" layout-align="center center">
         <md-button>
           Import APIs definition from file
           <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" />
