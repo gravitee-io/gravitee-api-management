@@ -16,13 +16,12 @@
 package io.gravitee.management.service.impl;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.Rule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -392,7 +391,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiDefinition.setName(newApiEntity.getName());
             apiDefinition.setVersion(newApiEntity.getVersion());
             apiDefinition.setProxy(newApiEntity.getProxy());
-            apiDefinition.setPaths(newApiEntity.getPaths());
+
+            // Initialize with a default /* path
+            Map<String, Path> paths = new HashMap<>();
+            Path rootPath = new Path();
+            Rule apiKeyRule = new Rule();
+            Policy apiKeyPolicy = new Policy();
+            apiKeyPolicy.setName("api-key");
+            apiKeyRule.setPolicy(apiKeyPolicy);
+            rootPath.getRules().add(apiKeyRule);
+            paths.put("/*", rootPath);
+
+            apiDefinition.setPaths(paths);
 
             String definition = objectMapper.writeValueAsString(apiDefinition);
             api.setDefinition(definition);

@@ -15,14 +15,10 @@
  */
 package io.gravitee.management.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Proxy;
 
 import javax.validation.constraints.NotNull;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Proxy;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -41,9 +37,6 @@ public class NewApiEntity {
     @NotNull
     @JsonProperty(value = "proxy", required = true)
     private Proxy proxy;
-
-    @JsonProperty(value = "paths", required = true)
-    private Map<String, Path> paths = new HashMap<>();
 
     public String getName() {
         return name;
@@ -75,14 +68,6 @@ public class NewApiEntity {
 
     public void setProxy(Proxy proxy) {
         this.proxy = proxy;
-    }
-
-    public Map<String, Path> getPaths() {
-        return paths;
-    }
-
-    public void setPaths(Map<String, Path> paths) {
-        this.paths = paths;
     }
 
     @Override
