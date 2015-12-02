@@ -28,6 +28,6 @@
                 disable-title disable-theme-switcher disable-raml-client-generator>
   </raml-console>
 
-  <div ng-if="pageCtrl.swaggerType()" swagger-ui url="pageCtrl.getContentUrl()" api-explorer="enableTryIt" validator-url="false">
+  <div ng-if="pageCtrl.swaggerType() && page.content" swagger-ui url="pageCtrl.getContentUrl()" api-explorer="enableTryIt" validator-url="false">
   </div>
 </div>

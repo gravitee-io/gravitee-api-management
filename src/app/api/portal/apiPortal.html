@@ -17,7 +17,7 @@
 -->
 <section>
   <div ng-include="'app/api/apiHeader.html'"></div>
-  <label ng-if="apiCtrl.pages.length === 0">There is no published documentation for this API</label>
+  <div class="gravitee-api-documentation-empty" ng-if="apiCtrl.pages.length === 0">There is no published documentation for this API</div>
   <md-tabs md-dynamic-height md-border-bottom ng-if="apiCtrl.pages.length > 0">
     <md-tab label="{{page.name}}" md-on-select="apiCtrl.fetchPage(page)" ng-repeat="page in apiCtrl.pages">
       <gravitee-page page="apiCtrl.page" enable-try-it="false" class="inset"></gravitee-page>

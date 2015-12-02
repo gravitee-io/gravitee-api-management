@@ -101,7 +101,7 @@ $flowRadius: 120px;
 }
 
 .gravitee-api-explanation {
-  color: rgba(0,0,0,0.26);
+  color: rgba(0, 0, 0, 0.26);
   text-align: center;
   position: relative;
   top: -20px;
@@ -124,16 +124,22 @@ $flowRadius: 120px;
 }
 
 .gravitee-api-header {
-	height: 220px;
-	background: url('../app/images/api-header-background.png') center center no-repeat;
-	background-size: cover;
+  height: 220px;
+  background: url('../app/images/api-header-background.png') center center no-repeat;
+  background-size: cover;
 }
 
 .gravitee-api-header-content {
-	color: white;
-	padding-left: 20px !important;
+  color: white;
+  padding-left: 20px !important;
 }
 
 .gravitee-api-header-content ng-md-icon {
-	fill: white;
+  fill: white;
+}
+
+.gravitee-api-documentation-empty {
+  font-size: 30px;
+  opacity: 0.5;
+  padding: 30px;
 }

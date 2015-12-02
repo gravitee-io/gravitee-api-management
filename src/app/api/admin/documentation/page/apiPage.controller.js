@@ -33,12 +33,8 @@ class PageController {
   }
 
   update() {
-    var editPage = {
-      name: this.page.name,
-      content: this.page.content
-    };
     var that = this;
-    this.DocumentationService.editPage(this.$scope.$parent.apiCtrl.api.id, this.page.id, editPage).then(function () {
+    this.DocumentationService.editPage(this.$scope.$parent.apiCtrl.api.id, this.page.id, this.page).then(function () {
       that.$state.go(that.$state.current, that.$state.params, {reload: true});
     });
   }

@@ -18,9 +18,13 @@
 <md-card style="box-shadow:none;">
   <div style="border: 1px solid #e7eaec; border-bottom: 0; padding: 0 20px 10px 20px;">
     <div layout="row">
-      <div layout="row" layout-align="start end" flex="60">
+      <div layout="row" layout-align="start center" flex="50">
         <h3 style="color: #676a6c; clear:both;">{{pageCtrl.page.name}}</h3>
         <md-button ng-show="pageCtrl.editMode" ng-click="pageCtrl.reset()" class="md-icon-button" style="border: 1px solid #E7EAEC;" aria-label="Reset"><ng-md-icon icon="undo" size="16"></ng-md-icon></md-button>
+      </div>
+      <div layout="row" layout-align="end center" flex="10">
+        <ng-md-icon icon="timer"></ng-md-icon>
+        <span style="top: 5px;position: relative;">{{pageCtrl.page.lastModificationDate | date}}</span>
       </div>
       <div class="documentation-tool-bar" layout="row" layout-align="end end" style="width: 100%;" flex="40">
         <md-switch ng-model="pageCtrl.page.published" ng-change="pageCtrl.changePublication()">Published</md-switch>

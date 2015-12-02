@@ -23,11 +23,6 @@ class ApisController {
     this.$state = $state;
 
     this.tableMode = this.$state.current.name.endsWith('table')? true : false;
-
-    var that = this;
-    $scope.$on('authenticationSuccess', function() {
-      that.list();
-    });
   }
 
   list() {
@@ -98,6 +93,10 @@ class ApisController {
       case 'private':
         return 'lock';
     }
+  }
+
+  isOwner(api) {
+    return api.permission && (api.permission === 'owner' || api.permission === 'primary_owner');
   }
 }
 

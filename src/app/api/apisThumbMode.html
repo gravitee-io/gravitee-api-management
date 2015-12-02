@@ -24,7 +24,8 @@
 						<h3>{{api.name}} <small>({{api.version}})</small></h3>
 						<h5 class="gravitee-api-description">{{api.description}}</h5>
 					</div>
-					<md-button class="md-icon-button md-icon-right" ng-click="$event.stopPropagation()" ui-sref="apis.admin.general({apiId: api.id})">
+					<md-button class="md-icon-button md-icon-right" ng-if="apisCtrl.isOwner(api)"
+										 ng-click="$event.stopPropagation()" ui-sref="apis.admin.general({apiId: api.id})">
 						<ng-md-icon icon="settings" aria-label="{{api.id}}"></ng-md-icon>
 					</md-button>
 				</div>

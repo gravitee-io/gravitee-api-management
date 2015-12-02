@@ -28,12 +28,13 @@ class NavbarDirective {
 }
 
 class NavbarController {
-  constructor ($rootScope, $mdSidenav, $cookieStore, LoginService) {
+  constructor ($rootScope, $mdSidenav, $cookieStore, LoginService, $window) {
     'ngInject';
     this.$rootScope = $rootScope;
     this.$mdSidenav = $mdSidenav;
 		this.$cookieStore = $cookieStore;
-		this.LoginService = LoginService;
+    this.LoginService = LoginService;
+    this.$window = $window;
 		this.user = {};
   }
 
@@ -51,7 +52,8 @@ class NavbarController {
 			that.$cookieStore.put('GraviteeAuthentication', btoa(that.user.username + ":" + that.user.password));
 			that.user = {};
 			that.$cookieStore.put('authenticatedUser', response.data);
-			that.$rootScope.$broadcast('authenticationSuccess');
+      console.log('ok')
+      that.$window.location.reload();
     });
   }
 }

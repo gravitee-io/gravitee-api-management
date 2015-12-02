@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /* global setInterval:false, clearInterval:false */
-function runBlock ($rootScope, $window, $http, $cookieStore, $state) {
+function runBlock ($rootScope, $window, $http, $cookieStore) {
   'ngInject';
   var graviteeAuthenticationKey = 'GraviteeAuthentication';
 
@@ -30,10 +30,6 @@ function runBlock ($rootScope, $window, $http, $cookieStore, $state) {
   }
 
   setAuthorization();
-	
-  $rootScope.$on('authenticationSuccess', function() {
-    setAuthorization();
-  });
 
   $rootScope.$on('graviteeLogout', function() {
     $cookieStore.remove(graviteeAuthenticationKey);
@@ -43,7 +39,7 @@ function runBlock ($rootScope, $window, $http, $cookieStore, $state) {
     $window.location.href = '/';
   });
 
-	$rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){
+	$rootScope.$on('$stateChangeStart', function(event, toState){
     $rootScope.contentIsActive = (toState.name.indexOf("application.") === 0
 																	|| toState.name.indexOf("apis.admin") === 0
 																	|| toState.name.indexOf("apis.portal") === 0);

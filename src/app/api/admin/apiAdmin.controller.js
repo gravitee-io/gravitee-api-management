@@ -20,7 +20,13 @@ class ApiAdminController {
     this.$state = $state;
     this.api = resolvedApi.data;
 
+    var that = this;
     $scope.$on('$stateChangeSuccess', function (ev, to, toParams, from) {
+      // check authorization
+      if (!$scope.$parent.apisCtrl.isOwner(that.api)) {
+        $state.go('home');
+      }
+
       if (from.name.startsWith('apis.list.')) {
         $scope.$parent.previousState = from.name;
       }
