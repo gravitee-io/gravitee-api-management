@@ -37,6 +37,7 @@ import ApiKeysController from './api/admin/apikeys/apikeys.controller';
 import DialogAddPropertyController from './api/admin/properties/add-property.dialog.controller';
 import DialogAddMemberApiController from './api/admin/members/addMemberDialog.controller';
 import DialogApiController from './api/dialog/apiDialog.controller';
+import DialogApiKeyExpirationController from './api/admin/apikeys/apikey-expiration.dialog.controller';
 import TeamService from './user/team.service';
 import UserService from './user/user.service';
 import UserController from './user/user.controller';
@@ -94,6 +95,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('DialogApiController', DialogApiController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
   .controller('DialogDocumentationController', DialogDocumentationController)
+  .controller('DialogApiKeyExpirationController', DialogApiKeyExpirationController)
   .service('TeamService', TeamService)
   .service('UserService', UserService)
   .controller('UserController', UserController)

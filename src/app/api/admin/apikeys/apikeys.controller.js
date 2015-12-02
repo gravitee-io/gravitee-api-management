@@ -56,6 +56,24 @@ class ApiKeysController {
       .catch(function () {
       });
   }
+
+  showExpirationModal(apikey) {
+    var _this = this;
+    this.$mdDialog.show({
+      controller: 'DialogApiKeyExpirationController',
+      controllerAs: 'dialogApiKeyExpirationController',
+      templateUrl: 'app/api/admin/apikeys/apikey-expiration.dialog.html',
+      clickOutsideToClose: true
+    }).then(function (property) {
+      var key = Object.keys(property)[0];
+
+      if (_this.api.properties == undefined) {
+        _this.api.properties = {};
+      }
+
+      _this.api.properties[key] = property[key];
+    });
+  }
 }
 
 export default ApiKeysController;

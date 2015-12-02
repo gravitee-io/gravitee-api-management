@@ -49,7 +49,7 @@
             </span>
             <span>
             <md-tooltip md-direction="right">Set expiration for this API Key</md-tooltip>
-            <ng-md-icon ng-show="!apikey.revoked" icon="schedule" ng-click="apiKeysCtrl.expire(apikey.key)"></ng-md-icon>
+            <ng-md-icon ng-show="!apikey.revoked" icon="schedule" ng-click="apiKeysCtrl.showExpirationModal(apikey.key)"></ng-md-icon>
             </span>
           </td>
 				</tr>
