@@ -22,6 +22,7 @@ import io.gravitee.management.service.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -96,7 +97,7 @@ public class ApiKeysResource extends AbstractResource {
     @Path("{key}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ApiKeyEntity update(@PathParam("key") String apiKey, @Valid ApiKeyEntity apiKeyEntity) {
+    public ApiKeyEntity update(@PathParam("key") String apiKey, @Valid @NotNull ApiKeyEntity apiKeyEntity) {
         apiService.findById(this.api);
 
         permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);

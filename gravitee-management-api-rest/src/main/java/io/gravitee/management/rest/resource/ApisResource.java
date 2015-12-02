@@ -23,6 +23,7 @@ import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -72,7 +73,7 @@ public class ApisResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(@Valid final NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
+    public Response create(@Valid @NotNull final NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
         ApiEntity newApi = apiService.create(newApiEntity, getAuthenticatedUsername());
         if (newApi != null) {
             return Response

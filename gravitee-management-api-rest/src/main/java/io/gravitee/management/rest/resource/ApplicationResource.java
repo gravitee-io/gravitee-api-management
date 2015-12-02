@@ -23,6 +23,8 @@ import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
 
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -68,7 +70,7 @@ public class ApplicationResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ApplicationEntity update(final UpdateApplicationEntity updatedApplication) {
+    public ApplicationEntity update(@Valid @NotNull final UpdateApplicationEntity updatedApplication) {
         applicationService.findById(this.application);
 
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);

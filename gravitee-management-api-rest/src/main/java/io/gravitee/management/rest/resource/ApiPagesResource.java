@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -106,7 +108,7 @@ public class ApiPagesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response create(NewPageEntity newPageEntity) {
+    public Response create(@Valid @NotNull NewPageEntity newPageEntity) {
         // Check that the API exists
         apiService.findById(api);
 
@@ -128,7 +130,7 @@ public class ApiPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{page}")
-    public PageEntity update(@PathParam("page") String page, UpdatePageEntity updatePageEntity) {
+    public PageEntity update(@PathParam("page") String page, @Valid @NotNull UpdatePageEntity updatePageEntity) {
         // Check that the API exists
         apiService.findById(api);
         pageService.findById(page);

@@ -21,6 +21,7 @@ import io.gravitee.management.service.ApplicationService;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -66,7 +67,7 @@ public class ApplicationsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(@Valid final NewApplicationEntity application) {
+    public Response create(@Valid @NotNull final NewApplicationEntity application) {
         ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUsername());
         if (newApplication != null) {
             newApplication = applicationEnhancer.enhance(getAuthenticatedUsername()).apply(newApplication);

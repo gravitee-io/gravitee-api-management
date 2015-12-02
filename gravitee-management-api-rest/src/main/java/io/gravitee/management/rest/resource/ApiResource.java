@@ -29,6 +29,7 @@ import io.gravitee.management.service.exceptions.ApiNotFoundException;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -101,7 +102,7 @@ public class ApiResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
-    public ApiEntity update(@Valid final UpdateApiEntity api) {
+    public ApiEntity update(@Valid @NotNull final UpdateApiEntity api) {
         permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
 
         return apiService.update(this.api, api);
