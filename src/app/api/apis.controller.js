@@ -107,6 +107,8 @@ class ApisController {
 	createInitAPI() {
 		if (!this.$rootScope.authenticated) {
 			this.$rootScope.$broadcast("authenticationRequired");
+		} else if (this.$state.includes("apis.list")) {
+			this.showApiModal();
 		} else {
 			this.$state.go('apis.list.thumb');
 		}
