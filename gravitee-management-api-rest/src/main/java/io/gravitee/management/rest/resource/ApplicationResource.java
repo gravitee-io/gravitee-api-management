@@ -92,7 +92,7 @@ public class ApplicationResource extends AbstractResource {
     }
 
     @Path("keys")
-    public ApiKeyResource getApiKeyResource() {
-        return resourceContext.getResource(ApiKeyResource.class);
+    public ApplicationApiKeysResource getApiKeyResource() {
+        return resourceContext.getResource(ApplicationApiKeysResource.class);
     }
 }

@@ -75,7 +75,7 @@ public class ApiKeyServiceTest {
         when(apiKey.isRevoked()).thenReturn(false);
         when(apiKey.getExpiration()).thenReturn(date);
 
-        final ApiKeyEntity apiKey = apiKeyService.generate(APPLICATION_NAME, API_NAME);
+        final ApiKeyEntity apiKey = apiKeyService.generateOrRenew(APPLICATION_NAME, API_NAME);
 
         verify(this.apiKey, never()).setExpiration(any());
         verify(apiKeyRepository, never()).update(any());
@@ -95,7 +95,7 @@ public class ApiKeyServiceTest {
         when(apiKey.getCreatedAt()).thenReturn(date);
         when(apiKey.isRevoked()).thenReturn(false);
 
-        final ApiKeyEntity apiKeyEntity = apiKeyService.generate(APPLICATION_NAME, API_NAME);
+        final ApiKeyEntity apiKeyEntity = apiKeyService.generateOrRenew(APPLICATION_NAME, API_NAME);
 
         verify(apiKey).setExpiration(any());
         verify(apiKeyRepository).update(apiKey);
@@ -111,7 +111,7 @@ public class ApiKeyServiceTest {
         when(apiKeyRepository.findByApplicationAndApi(APPLICATION_NAME, API_NAME))
             .thenThrow(TechnicalException.class);
 
-        apiKeyService.generate(APPLICATION_NAME, API_NAME);
+        apiKeyService.generateOrRenew(APPLICATION_NAME, API_NAME);
     }
 
     @Test

@@ -51,25 +51,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     private ApiKeyGenerator apiKeyGenerator;
 
     @Override
-    public ApiKeyEntity findByKey(String sApiKey) {
-//        try {
-            LOGGER.debug("Find API Key by key: {}", sApiKey);
-
-            Optional<ApiKey> key = Optional.empty(); //apiKeyRepository.findById(apiKey);
-
-            if (key.isPresent()) {
-                return convert(key.get());
-            }
-
-            throw new ApiKeyNotFoundException();
-//        } catch (TechnicalException ex) {
-//            LOGGER.error("An error occurs while trying to find an API Key by key: {}", sApiKey, ex);
-//            throw new TechnicalManagementException("An error occurs while trying to find an API Key by key: " + sApiKey, ex);
-//        }
-    }
-
-    @Override
-    public ApiKeyEntity generate(String applicationName, String apiName) {
+    public ApiKeyEntity generateOrRenew(String applicationName, String apiName) {
         try {
             LOGGER.debug("Generate a new key for {} - {}", applicationName, apiName);
             ApiKey apiKey = new ApiKey();
@@ -164,6 +146,34 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while getting all API keys for application {}", applicationId, ex);
             throw new TechnicalManagementException("An error occurs while getting all API keys for application " + applicationId, ex);
+        }
+    }
+
+    @Override
+    public Map<String, List<ApiKeyEntity>> findByApi(String apiId) {
+        try {
+            LOGGER.debug("Find all API keys for API {}", apiId);
+
+            Set<ApiKey> keys = apiKeyRepository.findByApi(apiId);
+
+            Map<String, Set<ApiKey>> keysByApplication = new HashMap<>();
+            keys.forEach(apiKey -> {
+                Set<ApiKey> values = keysByApplication.getOrDefault(apiKey.getApplication(), new HashSet<>());
+                values.add(apiKey);
+                keysByApplication.put(apiKey.getApplication(), values);
+            });
+
+            Map<String, List<ApiKeyEntity>> keysByApplicationResult = new HashMap<>(keysByApplication.size());
+
+            keysByApplication.forEach((api, apiKeys) -> keysByApplicationResult.put(api,
+                    apiKeys.stream().sorted(
+                            (key1, key2) -> key2.getCreatedAt().compareTo(
+                                    key1.getCreatedAt())).map(ApiKeyServiceImpl::convert).collect(Collectors.toList())));
+
+            return keysByApplicationResult;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while getting all API keys for API {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while getting all API keys for API " + apiId, ex);
         }
     }
 

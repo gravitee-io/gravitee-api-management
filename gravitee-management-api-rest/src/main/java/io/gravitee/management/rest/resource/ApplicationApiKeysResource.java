@@ -17,7 +17,6 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ApiKeyEntity;
-import io.gravitee.management.model.ApiListItem;
 import io.gravitee.management.model.KeysByApiEntity;
 import io.gravitee.management.service.*;
 
@@ -36,7 +35,7 @@ import java.util.Set;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiKeyResource extends AbstractResource {
+public class ApplicationApiKeysResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -80,37 +79,6 @@ public class ApiKeyResource extends AbstractResource {
         return keysByApi;
     }
 
-    /*
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public ApiKeyEntity getCurrentApiKeyEntity() {
-        applicationService.findById(this.application);
-        apiService.findById(this.api);
-
-        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
-
-        Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrent(application, api);
-
-        if (! apiKeyEntity.isPresent()) {
-            throw new NoValidApiKeyException();
-        }
-
-        return apiKeyEntity.get();
-    }
-    */
-
-    @GET
-    @Path("all")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApiKeyEntity> findAllApiKeys(@NotNull @QueryParam("api") String api) {
-        applicationService.findById(this.application);
-        apiService.findById(api);
-
-        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
-
-        return apiKeyService.findAll(application, api);
-    }
-
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response generateApiKey(@NotNull @QueryParam("api") String api) {
@@ -120,26 +88,11 @@ public class ApiKeyResource extends AbstractResource {
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
         permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_API);
 
-        ApiKeyEntity apiKeyEntity = apiKeyService.generate(application, api);
+        ApiKeyEntity apiKeyEntity = apiKeyService.generateOrRenew(application, api);
 
         return Response
                 .status(Response.Status.CREATED)
                 .entity(apiKeyEntity)
-                .build();
-    }
-
-    @DELETE
-    @Path("{key}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response revokeApiKey(@PathParam("key") String apiKey) {
-        applicationService.findById(this.application);
-
-        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
-
-        apiKeyService.revoke(apiKey);
-
-        return Response
-                .status(Response.Status.NO_CONTENT)
                 .build();
     }
 

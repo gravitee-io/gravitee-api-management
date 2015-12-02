@@ -103,9 +103,9 @@ public class ApiResource extends AbstractResource {
         return Response.noContent().build();
     }
 
-    @Path("applications")
-    public ApiApplicationsResource getApplicationsApiResource() {
-        return resourceContext.getResource(ApiApplicationsResource.class);
+    @Path("keys")
+    public ApiKeysResource getApiKeyResource() {
+        return resourceContext.getResource(ApiKeysResource.class);
     }
 
     @Path("members")

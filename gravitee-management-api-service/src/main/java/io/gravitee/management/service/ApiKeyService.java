@@ -27,9 +27,7 @@ import io.gravitee.management.model.ApiKeyEntity;
  */
 public interface ApiKeyService {
 
-    ApiKeyEntity findByKey(String apiKey);
-
-    ApiKeyEntity generate(String applicationId, String apiId);
+    ApiKeyEntity generateOrRenew(String applicationId, String apiId);
 
     void revoke(String apiKey);
 
@@ -38,4 +36,6 @@ public interface ApiKeyService {
     Set<ApiKeyEntity> findAll(String applicationId, String apiId);
 
     Map<String, List<ApiKeyEntity>> findByApplication(String applicationId);
+
+    Map<String, List<ApiKeyEntity>> findByApi(String apiId);
 }

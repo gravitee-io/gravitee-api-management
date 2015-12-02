@@ -21,11 +21,9 @@ import java.util.Objects;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class KeysByApiEntity {
+public class KeysByApplicationEntity {
 
     private String name;
-
-    private String version;
 
     private List<ApiKeyEntity> keys;
 
@@ -45,19 +43,11 @@ public class KeysByApiEntity {
         this.name = name;
     }
 
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        KeysByApiEntity that = (KeysByApiEntity) o;
+        KeysByApplicationEntity that = (KeysByApplicationEntity) o;
         return Objects.equals(name, that.name);
     }
 
