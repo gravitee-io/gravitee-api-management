@@ -39,7 +39,7 @@ function DialogApiKeyExpirationController($scope, $mdDialog) {
   };
 
   this.hide = function () {
-    $mdDialog.hide();
+    $mdDialog.cancel();
   };
 
   this.save = function () {

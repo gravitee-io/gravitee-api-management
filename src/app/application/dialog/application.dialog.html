@@ -15,19 +15,19 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="New application" style="width: 60%">
+<md-dialog aria-label="New application">
   <form name="formApplication" ng-submit="create(application)" novalidate>
     <md-toolbar>
       <div class="md-toolbar-tools">
         <h2>New application</h2>
         <span flex></span>
-        <md-button class="md-icon-button" ng-click="hide()">
+        <md-button type="button" class="md-icon-button" ng-click="hide()">
           X
         </md-button>
       </div>
     </md-toolbar>
-    <md-dialog-content>
-			<div class="layout-padding">
+    <md-dialog-content layout-padding>
+      <div layout="column" ng-cloak class="md-inline-form">
 	      <div layout="">
 	        <md-input-container>
 	          <label>Name *</label>
