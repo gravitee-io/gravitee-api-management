@@ -25,9 +25,12 @@ class ApplicationController {
 		this.applicationId = $stateParams.applicationId;
 		this.application = {};
 		this.applications = [];
-		this.apiKeys = [];
+		this.apiKeys = undefined;
 		this.members = [];
 		this.membershipTypes = [ 'owner', 'user' ];
+
+    this.showRevokedKeys = false;
+
 		if (this.applicationId) {
 				this.get(this.applicationId);
 				this.getAPIKeys(this.applicationId);
@@ -53,6 +56,10 @@ class ApplicationController {
 			this.apiKeys = response.data;
 		});
 	}
+
+  hasKeysDefined() {
+    return this.apiKeys != null && Object.keys(this.apiKeys).length > 0;
+  }
 
 	getMembers(applicationId) {
 		this.ApplicationService.getMembers(applicationId).then(response => {

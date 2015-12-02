@@ -112,4 +112,10 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
   .directive('graviteePage', () => new PageDirective())
-  .service('PolicyService', PolicyService);
+  .service('PolicyService', PolicyService)
+  .filter('apiKeyFilter', function () {
+    return function (keys, showAll) {
+      console.log(keys.length + ' - ' + showAll);
+      return keys;
+    }
+  });
