@@ -24,7 +24,7 @@ function runBlock ($rootScope, $window, $http, $cookieStore) {
       $http.defaults.headers.common.Authorization = 'Basic ' + graviteeAuthentication;
       $rootScope.authenticated = true;
     } else {
-      delete $http.defaults.headers.common.Authorization;
+      $http.defaults.headers.common.Authorization = '';
       $rootScope.authenticated = false;
     }
   }
