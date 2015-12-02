@@ -398,6 +398,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Rule apiKeyRule = new Rule();
             Policy apiKeyPolicy = new Policy();
             apiKeyPolicy.setName("api-key");
+            apiKeyPolicy.setConfiguration("");
             apiKeyRule.setPolicy(apiKeyPolicy);
             rootPath.getRules().add(apiKeyRule);
             paths.put("/*", rootPath);

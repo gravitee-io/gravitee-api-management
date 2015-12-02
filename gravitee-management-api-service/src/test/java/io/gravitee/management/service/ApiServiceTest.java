@@ -24,10 +24,12 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,8 +63,8 @@ public class ApiServiceTest {
     @Mock
     private ApiRepository apiRepository;
 
-    @Mock
-    private ObjectMapper objectMapper;
+    @Spy
+    private ObjectMapper objectMapper = new GraviteeMapper();
 
     @Mock
     private IdGenerator idGenerator;
@@ -271,5 +273,28 @@ public class ApiServiceTest {
         when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
 
         apiService.stop(API_ID);
+    }
+
+    @Test
+    public void shouldCreateWithDefaultPath() throws TechnicalException {
+        when(api.getId()).thenReturn(API_ID);
+        when(api.getName()).thenReturn(API_NAME);
+        when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        when(newApi.getName()).thenReturn(API_NAME);
+        when(newApi.getVersion()).thenReturn("v1");
+        when(newApi.getDescription()).thenReturn("Ma description");
+
+        when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
+
+        final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
+
+        assertNotNull(apiEntity);
+        assertEquals(API_NAME, apiEntity.getName());
+        assertNotNull(apiEntity.getPaths());
+        assertTrue("paths not empty", !apiEntity.getPaths().isEmpty());
+        assertEquals("paths.size == 1", apiEntity.getPaths().size(), 1);
+        assertEquals("path == /* ", apiEntity.getPaths().get(0).getPath(), "/*");
     }
 }
