@@ -62,7 +62,7 @@ public class SyncManager {
 
             // Determine APIs to undeploy
             Set<String> apiToRemove = apiManager.apis().stream()
-                    .filter(apiId -> !apisMap.containsKey(apiId))
+                    .filter(apiId -> !apisMap.containsKey(apiId.getId()))
                     .map(Api::getId)
                     .collect(Collectors.toSet());
 
