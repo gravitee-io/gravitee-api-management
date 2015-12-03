@@ -23,7 +23,7 @@ class ApiMonitoringController {
     this.$state = $state;
     this.api = resolvedApi.data;
 
-    this.timeUnits = [ 'seconds', 'minutes' ];
+    this.timeUnits = [ 'SECONDS', 'MINUTES' ];
     this.analytics = this.analytics();
 
     this.setTimeframe('1h');
@@ -35,12 +35,15 @@ class ApiMonitoringController {
   initState() {
     if (this.api.monitoring != undefined) {
       this.$scope.monitoringEnabled = this.api.monitoring.enabled;
-    } else if (this.api.monitoring.enabled == undefined) {
-      this.$scope.monitoringEnabled = true;
+    } else {
+      this.$scope.monitoringEnabled = false;
     }
   }
 
   switchEnabled() {
+    if (this.api.monitoring == undefined) {
+      this.api.monitoring = {}
+    }
     this.api.monitoring.enabled = this.$scope.monitoringEnabled;
     this.update();
   }
