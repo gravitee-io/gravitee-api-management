@@ -49,6 +49,8 @@ public class MonitoringDeserializer extends StdScalarDeserializer<Monitoring> {
         JsonNode monitoringEnabledNode = node.get("enabled");
         if (monitoringEnabledNode != null) {
             monitoring.setEnabled(monitoringEnabledNode.asBoolean(true));
+        } else {
+            monitoring.setEnabled(true);
         }
 
         final JsonNode interval = node.get("interval");
