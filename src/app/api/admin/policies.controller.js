@@ -33,12 +33,13 @@ class ApiPoliciesController {
     }
     this.completeApiPolicies(this.apiPoliciesByPath);
     this.policySchemaMap = new Map();
+    this.schemasMap = new Map();
     this.policyMap = new Map();
     this.policiesToCopy = [];
 
     this.selectedApiPolicy = {};
     this.listAllPoliciesWithSchema().then( () => {
-      this.initDragular()
+      this.initDragular();
     });
     this.httpMethods = ['GET','POST','PUT','DELETE','HEAD','PATCH','OPTIONS','TRACE','CONNECT'];
     this.httpMethodsFilter = _.clone(this.httpMethods);
@@ -102,7 +103,7 @@ class ApiPoliciesController {
         this.PolicyService.list().then(response => {
           for (var originalPolicy of response.data) {
             this.policyMap.set(originalPolicy.id, originalPolicy);
-            ((service, originalPolicy, policiesToCopy, httpMethods, policySchemaMap) => {
+            ((service, originalPolicy, policiesToCopy, httpMethods, policySchemaMap, schemasMap) => {
               service.getSchema(originalPolicy.id).then(response => {
                 var policy = {};
                 policy.policyId = originalPolicy.id;
@@ -113,9 +114,10 @@ class ApiPoliciesController {
                   policy[originalPolicy.id][property] = null;
                 }
                 policySchemaMap.set(originalPolicy.id, response.data.properties);
+                schemasMap.set(originalPolicy.id, response.data);
                 policiesToCopy.push(policy);
               });
-            })(this.PolicyService, originalPolicy, this.policiesToCopy, this.httpMethods, this.policySchemaMap);
+            })(this.PolicyService, originalPolicy, this.policiesToCopy, this.httpMethods, this.policySchemaMap, this.schemasMap);
           }
         }))
     });
@@ -132,6 +134,8 @@ class ApiPoliciesController {
     } else {
       this.selectedApiPolicy = this.apiPoliciesByPath.get("/*")[index];
     }
+    this.$scope.schema = this.schemasMap.get(this.apiPoliciesByPath.get("/*")[index].policyId);
+    this.$scope.form = ["*"];
   }
 
   getHttpMethodClass(method, methods) {

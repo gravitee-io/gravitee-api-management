@@ -57,8 +57,9 @@
       <md-card ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath.get('/*')"
                ng-click="apiPoliciesCtrl.editPolicy($index)"
                ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
-               class="gravitee-card gravitee-policy-card">
-        <md-card-content layout="column" layout-align="space-around center">
+               class="gravitee-card gravitee-policy-card"
+               layout="row" layout-align="space-between start">
+        <md-card-content layout="column" layout-align="start start">
           <span class="md-subhead">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</span>
           <div layout="row" layout-align="start center">
             <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-GET-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
@@ -67,6 +68,7 @@
             </div>
           </div>
         </md-card-content>
+        <ng-md-icon icon="close" ng-if='"api-key" !== policy.policyId' class="gravitee-card-close" ng-click="apiPoliciesCtrl.removePolicy()"></ng-md-icon>
       </md-card>
       <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPoliciesByPath.get('/*').length < 2">Drag a policy here.</span>
     </div>
@@ -78,35 +80,17 @@
         <h5>{{apiPoliciesCtrl.policyMap.get(apiPoliciesCtrl.selectedApiPolicy.policyId).name}}</h5>
         <md-divider></md-divider>
       </div>
-      <form name="projectForm" novalidate>
-        <div layout="row" layout-align="start center" layout-wrap>
-          <span flex="10" class="badge gravitee-policy-method-badge-info"
-                ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)"
-                ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
-                ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)">
-            {{httpMethod | uppercase}}
-          </span>
-        </div>
-        <md-input-container class="md-block" ng-repeat="(k,v) in apiPoliciesCtrl.policySchemaMap.get(apiPoliciesCtrl.selectedApiPolicy.policyId)">
-          <md-checkbox ng-if="'boolean' === v.type"
-                       ng-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId][k]"
-                       aria-label="{{k}}"> {{k}} </md-checkbox>
-          <span ng-if="'string'=== v.type || 'integer'=== v.type">
-            <label>{{k}}</label>
-            <input ng-if="'integer' === v.type"
-                   ng-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId][k]"
-                   type="number" >
-            <input ng-if="'string' === v.type && !v.enum"
-                   ng-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId][k]"
-                   type="text" >
-            <md-select ng-if="'string' === v.type && v.enum"
-                       ng-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId][k]">
-              <md-option ng-repeat="enum in v.enum" value="{{enum}}">{{enum}}</md-option>
-            </md-select>
-          </span>
-        </md-input-container>
-        <md-button class="md-warn pull-right" type="button" ng-click="apiPoliciesCtrl.removePolicy()">Remove</md-button>
-      </form>
+      <div layout="row" layout-align="start center" layout-wrap>
+        <span flex="10" class="badge gravitee-policy-method-badge-info"
+              ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)"
+              ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
+              ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)">
+          {{httpMethod | uppercase}}
+        </span>
+      </div>
+      <div>
+        <form sf-schema="schema" sf-form="form" sf-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId]"></form>
+      </div>
     </div>
   </div>
 </div>
@@ -119,3 +103,4 @@
     Reset
   </md-button-->
 </div>
+
