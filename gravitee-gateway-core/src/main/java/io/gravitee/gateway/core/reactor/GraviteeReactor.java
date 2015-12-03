@@ -184,7 +184,7 @@ public class GraviteeReactor extends AbstractService implements
                 logger.error("Unable to deploy handler", ex);
             }
         } else {
-            logger.warn("Api {} is settled has disable in reactor !", api.getId());
+            logger.warn("Api {} is disabled !", api.getId());
         }
     }
 
