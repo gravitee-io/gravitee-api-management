@@ -31,16 +31,16 @@
     <div layout="column" flex="20">
       <md-input-container class="flex" layout-align="center center">
         <md-radio-group ng-model="apiCtrl.api.visibility">
-          <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public" title="Public">
-            <md-tooltip md-direction="bottom">API is visible by all</md-tooltip>
+          <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public">
+            <md-tooltip md-direction="bottom">Public: API is visible by all</md-tooltip>
             <ng-md-icon icon="public"></ng-md-icon>
           </md-radio-button>
-          <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private" title="Private">
-            <md-tooltip md-direction="bottom">API is visible only by its members</md-tooltip>
+          <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private">
+            <md-tooltip md-direction="bottom">Private: API is visible only by its members</md-tooltip>
             <ng-md-icon icon="lock"></ng-md-icon>
           </md-radio-button>
-          <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted" title="Restricted">
-            <md-tooltip md-direction="bottom">API is visible by all but can be used only by its members</md-tooltip>
+          <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted">
+            <md-tooltip md-direction="bottom">Restricted: API is visible by all but can be used only by its members</md-tooltip>
             <ng-md-icon icon="vpn_lock"></ng-md-icon>
           </md-radio-button>
         </md-radio-group>
