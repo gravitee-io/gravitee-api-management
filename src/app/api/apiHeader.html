@@ -18,7 +18,7 @@
 <div layout="column" layout-align="end-start" layout-padding class="gravitee-api-header" flex>
 	<div class="gravitee-api-header-content inset">
 		<div ng-switch="apiCtrl.api.visibility" layout="row" layout-align="start center">
-			<h3 style="padding-left: 10px;" flex="70">{{apiCtrl.api.name}}</h3>
+			<h3 flex="70">{{apiCtrl.api.name}}</h3>
 			<p flex="30" style="text-align: right">
 				<span>Version: {{apiCtrl.api.version}}</span>
 				<b>({{apiCtrl.api.state}})</b>
@@ -31,8 +31,8 @@
 				<span>{{apiCtrl.api.created_at | date}}</span>
 			</p>
 		</div>
-	  <p>
-			<small><div read-more ng-model="apiCtrl.api.description" words="false" length="150"></div></small>
-		</p>
+	   <md-content flex class="gravitee-api-header-description">
+				<div class="gravitee-api-header-read-more" read-more ng-model="apiCtrl.api.description" words="false" length="150"></div>
+    </md-content>
 	 </div>
 </div>

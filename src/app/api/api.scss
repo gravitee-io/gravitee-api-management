@@ -139,6 +139,15 @@ $flowRadius: 120px;
   fill: white;
 }
 
+.gravitee-api-header-description {
+	background-color: transparent;
+}
+
+.gravitee-api-header-read-more {
+	height: 40px;  
+	color: white;
+}
+
 .gravitee-api-documentation-empty {
   font-size: 30px;
   opacity: 0.5;
