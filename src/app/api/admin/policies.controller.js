@@ -47,7 +47,7 @@ class ApiPoliciesController {
     for ( var pathPolicies of pathMap.values()) {
       for ( var apiPolicy of pathPolicies ) {
         for (var property of Object.keys(apiPolicy)) {
-          if (property != "methods") {
+          if (property !== "methods" && property !== "$$hashKey") {
             apiPolicy.policyId = property;
           }
         }
@@ -149,7 +149,6 @@ class ApiPoliciesController {
 
   filterByMethod(policy) {
     for ( var method of policy.methods ) {
-      console.log(method)
       if ( this.httpMethodsFilter.indexOf(method) > -1 ) {
         return false;
       }
