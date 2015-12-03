@@ -32,7 +32,7 @@
 			</thead>
 			<tbody ng-repeat="(api, value) in apiKeysCtrl.apiKeys">
         <tr style="background-color: #9fb9be;">
-          <td colspan="4" style="font-weight: bold">{{value.name}}</td>
+          <td colspan="4" style="font-weight: bold">{{value.name}} ({{value.keys.length}} keys)</td>
         </tr>
 				<tr ng-repeat="apikey in value.keys | filter: apiKeysCtrl.showRevokedKeys">
           <td>
