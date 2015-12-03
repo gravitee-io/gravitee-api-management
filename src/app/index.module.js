@@ -23,6 +23,7 @@ import delegatorConfig from './index.delegator';
 
 import runBlock from './index.run';
 import ChartDirective from './components/chart/chart.directive';
+import FormDirective from './components/form/form.directive';
 import ApiService from './api/api.service';
 import ApisController from './api/apis.controller';
 import ApiPortalController from './api/portal/apiPortal.controller';
@@ -119,6 +120,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
   .directive('graviteePage', () => new PageDirective())
+  .directive('noDirtyCheck', () => new FormDirective())
   .service('PolicyService', PolicyService)
   .filter('apiKeyFilter', function () {
     return function (keys, showAll) {

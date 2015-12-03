@@ -15,42 +15,20 @@
     limitations under the License.
 
 -->
-
 <div layout="" layout-sm="column">
-  <md-switch ng-model="apiEnabled" ng-change="generalCtrl.changeLifecycle(apiCtrl.api.id)" class="md-block">
-    Enabled
-  </md-switch>
 </div>
 <form name="formApi" ng-submit="generalCtrl.update(apiCtrl.api)" novalidate>
   <div layout="" layout-sm="column">
-    <md-input-container class="flex">
+    <md-input-container flex="30">
       <label>Name</label>
       <input ng-model="apiCtrl.api.name" type="text" ng-required="true">
     </md-input-container>
-
-    <md-input-container class="flex">
-      <label>Context path</label>
-      <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-required="true">
-    </md-input-container>
-  </div>
-  <div layout="" layout-sm="column">
-    <md-input-container class="flex">
-      <label>Description</label>
-      <textarea ng-model="apiCtrl.api.description" ng-required="true"></textarea>
-    </md-input-container>
-
-    <md-input-container class="flex">
-      <label>Endpoint</label>
-      <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
-    </md-input-container>
-  </div>
-  <div layout="" layout-sm="column">
-    <md-input-container class="flex">
+    <md-input-container flex="30">
       <label>Version</label>
       <input ng-model="apiCtrl.api.version" type="text" ng-required="true">
     </md-input-container>
 
-    <div layout="column">
+    <div layout="column" flex="20">
       <md-input-container class="flex" layout-align="center center">
         <md-radio-group ng-model="apiCtrl.api.visibility">
           <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public" title="Public">
@@ -71,6 +49,21 @@
         <label ng-switch-when="restricted">API is subject to access rules</label>
       </div>
     </div>
+    <md-switch layout-align="center center" ng-model="apiEnabled"
+               ng-change="generalCtrl.changeLifecycle(apiCtrl.api.id)" flex="20" no-dirty-check>
+      Started
+    </md-switch>
+  </div>
+  <div layout="" layout-sm="column">
+    <md-input-container flex="30">
+      <label>Context path</label>
+      <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-required="true">
+    </md-input-container>
+
+    <md-input-container flex="30">
+      <label>Endpoint</label>
+      <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
+    </md-input-container>
 
     <div class="flex" layout="column">
       <md-input-container layout-align="center center">
@@ -82,41 +75,20 @@
     </div>
   </div>
   <div layout="" layout-sm="column">
-    <md-switch class="md-primary md-block" md-no-ink aria-label="Switch No Ink" ng-model="apiCtrl.api.proxy.http_client.use_proxy">
-      HTTP PROXY
-    </md-switch>
-  </div>
-
-  <div layout="" layout-sm="column" ng-if="apiCtrl.api.proxy.http_client.use_proxy">
     <md-input-container class="flex">
-      <label>HOST</label>
-      <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.host" type="text">
-    </md-input-container>
-
-    <md-input-container class="flex">
-      <label>PORT</label>
-      <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.port" type="text">
-    </md-input-container>
-
-    <md-input-container class="flex">
-      <label>USERNAME</label>
-      <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.principal" type="text">
-    </md-input-container>
-
-    <md-input-container class="flex">
-      <label>PASSWORD</label>
-      <input ng-model="apiCtrl.api.proxy.http_client.http_proxy.password" type="password">
+      <label>Description</label>
+      <textarea ng-model="apiCtrl.api.description" ng-required="true"></textarea>
     </md-input-container>
   </div>
 
   <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button class="md-accent" type="submit" ng-disabled="formApi.$invalid || formApi.$pristine">
+    <md-button class="md-raised" type="submit" ng-disabled="formApi.$invalid || formApi.$pristine">
       Save
     </md-button>
-    <md-button class="md-warn" type="button" ng-click="generalCtrl.reset()" ng-disabled="formApi.$invalid || formApi.$pristine">
+    <md-button class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="formApi.$invalid || formApi.$pristine">
       Reset
     </md-button>
-    <md-button class="md-warn pull-right" type="button" ng-click="generalCtrl.delete(apiCtrl.api.id)">
+    <md-button class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(apiCtrl.api.id)">
       Delete
     </md-button>
   </div>

@@ -18,7 +18,7 @@
 <div layout="row" layout-wrap class="inset" ng-init="apisCtrl.list()">
 	<div class="apis-box" flex="33" ng-repeat="api in apisCtrl.apis">
 		<a ui-sref="apis.portal({apiId: api.id})">
-			<md-card class="api-box" style="position: relative;">
+			<md-card class="api-box gravitee-card" style="position: relative;">
 				<div class="api-box-header" ng-style="{'background-color': apisCtrl.bgColorByIndex($index)}" layout="row">
 					<div layout="column">
 						<h3>{{api.name}} <small>({{api.version}})</small></h3>
@@ -38,14 +38,14 @@
 						</div>
 						<div flex="34" class="border-right">
 							<div class="description-block">
-								<h5 class="description-header">0</h5>
-								<span class="description-text">APPLICATIONS</span>
+								<h5 class="description-header">{{api.applicationsSize}}</h5>
+								<span class="description-text">APPLICATION(S)</span>
 							</div>
 						</div>
 						<div flex="33">
 							<div class="description-block">
-								<ng-md-icon ng-if="api.state === 'started'" icon="blur_on" size="32" style="fill: green;" title="Started"></ng-md-icon>
-								<ng-md-icon ng-if="api.state !== 'started'" icon="blur_off" size="32" style="fill: red;" title="Stopped"></ng-md-icon>
+								<ng-md-icon ng-if="api.state === 'started'" icon="play_arrow" size="32" style="fill: green;" title="Started"></ng-md-icon>
+								<ng-md-icon ng-if="api.state !== 'started'" icon="stop" size="32" style="fill: red;" title="Stopped"></ng-md-icon>
 							</div>
 						</div>
 					</div>
@@ -55,7 +55,7 @@
 	</div>
 </div>
 
-<div ng-if="apisCtrl.apis.length == 0" style="text-align:center; color: #424E5A; fill: #424E5A; ">
+<div ng-if="!isLoading && apisCtrl.apis.length === 0" style="text-align:center; color: #424E5A; fill: #424E5A; ">
 	<h1><ng-md-icon size="48" icon="error"></ng-md-icon> Hmm, no API That's weird.</h1>
 	<div>
 		<p>
