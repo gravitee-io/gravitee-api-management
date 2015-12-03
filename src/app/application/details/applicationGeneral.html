@@ -16,7 +16,7 @@
 
 -->
 <div layout-padding>
-	<form ng-if="applicationCtrl.application.permission === 'primary_owner' || applicationCtrl.application.permission === 'owner'"
+	<form ng-if="applicationCtrl.isOwner()"
 				name="formApplication" ng-submit="applicationCtrl.update(applicationCtrl.application)" novalidate>
 		<md-input-container class="md-block">
 			<label>Name</label>

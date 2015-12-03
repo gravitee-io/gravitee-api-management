@@ -34,8 +34,8 @@
         <tr style="background-color: #9fb9be">
           <td colspan="3" style="font-weight: bold">{{value.name}} ({{value.version}})</td>
           <td>
-            <md-tooltip md-direction="left">Renew your API Key</md-tooltip>
-            <ng-md-icon icon="autorenew" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application, api)"></ng-md-icon>
+            <md-tooltip ng-if="applicationCtrl.isOwner()" md-direction="left">Renew your API Key</md-tooltip>
+            <ng-md-icon ng-if="applicationCtrl.isOwner()" icon="autorenew" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application, api)"></ng-md-icon>
           </td>
         </tr>
 				<tr ng-repeat="apikey in value.keys | filter: applicationCtrl.showRevokedKeys">
@@ -52,6 +52,6 @@
 		</table>
 	</md-data-table-container>
 </div>
-<md-button class="md-fab md-fab-bottom-right" aria-label="Add"  ng-click="applicationCtrl.showSubscribeApiModal($event)">
+<md-button ng-if="applicationCtrl.isOwner()" class="md-fab md-fab-bottom-right" aria-label="Add"  ng-click="applicationCtrl.showSubscribeApiModal($event)">
 	<ng-md-icon icon="add"></ng-md-icon>
 </md-button>

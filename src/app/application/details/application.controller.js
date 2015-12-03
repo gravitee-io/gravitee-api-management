@@ -133,6 +133,10 @@ class ApplicationController {
     this.$scope.formApplication.$setPristine();
   }
 
+	isOwner() {
+    return this.application.permission && (this.application.permission === 'owner' || this.application.permission === 'primary_owner');
+  }
+
 	showConfirm(ev) {
     var confirm = this.$mdDialog.confirm()
       .title('Would you like to delete your application?')
