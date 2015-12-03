@@ -26,6 +26,7 @@ import io.gravitee.management.service.UserService;
 
 import java.util.Collection;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -49,9 +50,10 @@ public class ApplicationEnhancer {
     public Function<ApplicationEntity, ApplicationEntity> enhance(String currentUser) {
         return application -> {
             // Add primary owner
-            Collection<MemberEntity> members = applicationService.getMembers(application.getId(), MembershipType.PRIMARY_OWNER);
-            if (! members.isEmpty()) {
-                MemberEntity primaryOwner = members.iterator().next();
+            Collection<MemberEntity> members = applicationService.getMembers(application.getId(), null);
+            Collection<MemberEntity> primaryOwnerMembers = members.stream().filter(m -> MembershipType.PRIMARY_OWNER.equals(m.getType())).collect(Collectors.toSet());
+            if (! primaryOwnerMembers.isEmpty()) {
+                MemberEntity primaryOwner = primaryOwnerMembers.iterator().next();
                 UserEntity user = userService.findByName(primaryOwner.getUser());
 
                 PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
