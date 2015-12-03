@@ -27,7 +27,7 @@
 					<md-button class="md-icon-button md-icon-right" ng-if="apisCtrl.isOwner(api)"
 										 ng-click="$event.stopPropagation()" ui-sref="apis.admin.general({apiId: api.id})">
             <md-tooltip md-direction="left">Manage this API</md-tooltip>
-						<ng-md-icon icon="settings" aria-label="{{api.id}}"></ng-md-icon>
+						<ng-md-icon icon="settings" aria-label="{{api.id}}" style="fill:white;"></ng-md-icon>
 					</md-button>
 				</div>
 				<md-card-content>
