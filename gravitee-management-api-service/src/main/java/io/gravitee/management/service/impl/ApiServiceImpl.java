@@ -180,7 +180,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
              LOGGER.debug("Find APIs by application {}", applicationId);
              Set<Api> applicationApis = apiRepository.findByApplication(applicationId);
              return applicationApis.stream()
-                     .map(this::convert).collect(Collectors.toSet());
+                     .filter(api -> api != null).map(this::convert).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
