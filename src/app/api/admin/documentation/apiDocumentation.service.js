@@ -50,7 +50,7 @@
         description: editPage.description,
         order: editPage.order,
         published: editPage.published,
-        content: editPage.content
+        content: editPage.content || ''
       }
     );
   }

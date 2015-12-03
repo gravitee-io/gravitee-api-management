@@ -23,6 +23,8 @@ class DocumentationController {
     this.$state = $state;
     this.$scope = $scope;
 
+    $scope.listPagesDisplayed = true;
+
     var that = this;
     $scope.$on('onGraviteePageDeleted', function () {
       that.$state.go('apis.admin.documentation');

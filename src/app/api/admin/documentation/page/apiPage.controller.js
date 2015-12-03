@@ -23,7 +23,7 @@ class PageController {
     this.$scope = $scope;
     this.$mdDialog = $mdDialog;
     this.NotificationService = NotificationService;
-    this.editMode = false;
+    this.preview();
 
     var that = this;
     DocumentationService.get($state.params.apiId, $state.params.pageId).then(function (response) {
@@ -40,7 +40,7 @@ class PageController {
   }
 
   reset() {
-    this.editMode = false;
+    this.preview();
     this.page = _.clone(this.initialPage);
   }
 
@@ -65,10 +65,12 @@ class PageController {
 
   edit() {
     this.editMode = true;
+    this.$scope.$parent.listPagesDisplayed = false;
   }
 
   preview() {
     this.editMode = false;
+    this.$scope.$parent.listPagesDisplayed = true;
   }
 
   changePublication() {
