@@ -208,13 +208,12 @@ public class GraviteeReactor extends AbstractService implements
     }
 
     public void removeHandler(Api api) {
-        logger.info("API {} has been disabled (or removed) from reactor", api.getId());
-
         ReactorHandler handler = handlers.remove(api.getProxy().getContextPath());
         if (handler != null) {
             try {
                 handler.stop();
                 handlers.remove(api.getProxy().getContextPath());
+                logger.info("API {} has been removed from reactor", api.getId());
             } catch (Exception e) {
                 logger.error("Unable to remove handler", e);
             }
