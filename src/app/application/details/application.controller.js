@@ -70,8 +70,9 @@ class ApplicationController {
 	}
 
 	updateMember(member) {
+    console.log(member);
 		this.ApplicationService.addOrUpdateMember(this.application.id, member).then(() => {
-			this.NotificationService.show('Member updated');
+			this.NotificationService.show('Member ' + member.user + " has been updated with role " + member.type);
 		});
 	}
 
@@ -79,20 +80,20 @@ class ApplicationController {
 		var index = this.members.indexOf(member);
 		this.ApplicationService.deleteMember(this.application.id, member.user).then(() => {
 			this.members.splice(index, 1);
-			this.NotificationService.show("Member " + member.user + " has been removed successfully");
+			this.NotificationService.show("Member " + member.user + " has been removed");
 		});
 	}
 
   update(application) {
 		this.ApplicationService.update(application).then(() => {
 			this.initialApplication = _.cloneDeep(application);
-			this.NotificationService.show('Application updated');
+			this.NotificationService.show('Application ' + application.name + ' has been updated');
 		});
   }
 
   delete(application) {
 		this.ApplicationService.delete(application).then(() => {
-			this.NotificationService.show('Application ' + application.name + ' deleted');
+			this.NotificationService.show('Application ' + application.name + ' has been deleted');
 			this.$state.go('applications.thumb');
 		});
   }

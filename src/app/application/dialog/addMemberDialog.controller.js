@@ -22,7 +22,7 @@ function DialogAddMemberController($scope, $mdDialog, application, applicationMe
 	$scope.usersFound = [];
 	$scope.usersSelected = [];
 	$scope.searchText = "";
-	
+
   $scope.hide = function () {
      $mdDialog.cancel();
   };
@@ -30,7 +30,7 @@ function DialogAddMemberController($scope, $mdDialog, application, applicationMe
 	$scope.searchUser = function (query) {
 		if (query) {
 			return UserService.search(query).then(function(response) {
-				var membersFound = response.data;				
+				var membersFound = response.data;
 				var filterMembers = [];
 				for(var i = 0; i < membersFound.length; i++) {
 					var found = false
@@ -42,7 +42,7 @@ function DialogAddMemberController($scope, $mdDialog, application, applicationMe
 					}
 					if (!found) {
 						filterMembers.push(membersFound[i]);
-					}				
+					}
 				}
 				return filterMembers;
 			});
@@ -87,7 +87,7 @@ function DialogAddMemberController($scope, $mdDialog, application, applicationMe
 				"type" : "USER"
 			};
 			ApplicationService.addOrUpdateMember($scope.application.id, member).then(function() {
-				NotificationService.show('Member ' + username + ' added');
+				NotificationService.show('Member ' + username + ' has been added to the application');
 			}).catch(function (error) {
 				NotificationService.show('Error while adding member ' + username);
 			  $scope.error = error;

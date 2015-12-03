@@ -31,7 +31,7 @@ class ApiMembersController {
 
   updateMember(member) {
     this.ApiService.addOrUpdateMember(this.api.id, member).then(() => {
-      this.NotificationService.show('Member updated');
+      this.NotificationService.show('Member ' + member.user + " has been updated with role " + member.type);
     });
   }
 
@@ -39,7 +39,7 @@ class ApiMembersController {
     var index = this.members.indexOf(member);
     this.ApiService.deleteMember(this.api.id, member.user).then(() => {
       this.members.splice(index, 1);
-      this.NotificationService.show("Member " + member.user + " has been removed successfully");
+      this.NotificationService.show("Member " + member.user + " has been removed");
     });
   }
 
