@@ -15,34 +15,38 @@
     limitations under the License.
 
 -->
-<md-data-table-container ng-init="apisCtrl.list()">
-	<table md-data-table>
-		<thead md-order="order">
-		<tr>
-			<th name="Visibility" order-by="visibility"></th>
-			<th name="Name" order-by="name"></th>
-			<th name="Version" order-by="version"></th>
-			<th name="Context path" order-by="proxy.context_path"></th>
-			<th name="State" order-by="state"></th>
-			<th></th>
-		</tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat="api in apisCtrl.apis | orderBy: order" title="{{api.description}}" ui-sref="apis.portal({apiId: api.id})">
-				<td>
-					<ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}"></ng-md-icon>
-				</td>
-				<td>{{api.name}}</td>
-				<td>{{api.version}}</td>
-				<td>{{api.proxy.context_path}}</td>
-				<td>
-					<ng-md-icon ng-if="api.state === 'started'" icon="blur_on" size="32" style="fill: green;" title="Started"></ng-md-icon>
-					<ng-md-icon ng-if="api.state !== 'started'" icon="blur_off" size="32" style="fill: red;" title="Stopped"></ng-md-icon>
-				</td>
-				<td ng-click="$event.stopPropagation()">
-					<ng-md-icon icon="settings" ui-sref="apis.admin.general({apiId: api.id})" aria-label="{{api.id}}"></ng-md-icon>
-				</td>
-			</tr>
-		</tbody>
-	</table>
-</md-data-table-container>
+<md-card>
+	<md-card-content>
+		<md-data-table-container ng-init="apisCtrl.list()">
+			<table md-data-table>
+				<thead md-order="order">
+				<tr>
+					<th name="Visibility" order-by="visibility"></th>
+					<th name="Name" order-by="name"></th>
+					<th name="Version" order-by="version"></th>
+					<th name="Context path" order-by="proxy.context_path"></th>
+					<th name="State" order-by="state"></th>
+					<th></th>
+				</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="api in apisCtrl.apis | orderBy: order" title="{{api.description}}" ui-sref="apis.portal({apiId: api.id})">
+						<td>
+							<ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}"></ng-md-icon>
+						</td>
+						<td>{{api.name}}</td>
+						<td>{{api.version}}</td>
+						<td>{{api.proxy.context_path}}</td>
+						<td>
+							<ng-md-icon ng-if="api.state === 'started'" icon="blur_on" size="32" style="fill: green;" title="Started"></ng-md-icon>
+							<ng-md-icon ng-if="api.state !== 'started'" icon="blur_off" size="32" style="fill: red;" title="Stopped"></ng-md-icon>
+						</td>
+						<td ng-click="$event.stopPropagation()">
+							<ng-md-icon icon="settings" ui-sref="apis.admin.general({apiId: api.id})" aria-label="{{api.id}}"></ng-md-icon>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</md-data-table-container>
+	</md-card-content>
+</md-card>
