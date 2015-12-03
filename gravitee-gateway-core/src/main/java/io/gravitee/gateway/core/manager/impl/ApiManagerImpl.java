@@ -58,7 +58,7 @@ public class ApiManagerImpl implements ApiManager {
                 logger.debug("{} is not enabled. Skip deployment.", api);
             }
         } catch (ValidationException ve) {
-            logger.error("API Definition can't be deployed because of validation errors", ve);
+            logger.error("API {} can't be deployed because of validation errors", api, ve);
         }
     }
 
@@ -72,7 +72,7 @@ public class ApiManagerImpl implements ApiManager {
             apis.put(api.getId(), api);
             eventManager.publishEvent(ApiEvent.UPDATE, api);
         } catch (ValidationException ve) {
-            logger.error("API Definition can't be updated because of validation errors", ve);
+            logger.error("API {} can't be updated because of validation errors", api, ve);
         }
     }
 
