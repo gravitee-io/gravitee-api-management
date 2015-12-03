@@ -109,7 +109,7 @@ class ApplicationController {
 	generateAPIKey(application, apiId) {
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
-      content: 'Are you sure you want to renew your API Key ? <br /> Your previous API Key will no longer be valid !',
+      content: 'Are you sure you want to renew your API Key ? <br /> Your previous API Key will be no longer valid in 1 hour !',
       ok: 'Renew',
       cancel: 'Cancel'
     });
