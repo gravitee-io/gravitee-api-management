@@ -38,13 +38,9 @@
     </div>
   </div>
 
-  <md-card-content style="background-color: #fff; border: 1px solid #e7eaec; padding-top: 0px">
-    <div ng-show="!pageCtrl.editMode">
-      <gravitee-page page="pageCtrl.page" enable-try-it="false"></gravitee-page>
-    </div>
-
-    <div ng-show="pageCtrl.editMode">
-      <textarea ng-model="pageCtrl.page.content" cols="170" rows="20"></textarea>
-    </div>
+  <md-card-content style="background-color: #fff; border: 1px solid #e7eaec; padding-top: 0px" layout="row">
+    <textarea ng-show="pageCtrl.editMode" ng-model="pageCtrl.page.content" cols="170" rows="20"></textarea>
+    <gravitee-page flex="{{!pageCtrl.editMode? '100':'50'}}"
+                   ng-show="!pageCtrl.editMode || pageCtrl.page.type === 'MARKDOWN'" page="pageCtrl.page" enable-try-it="false"></gravitee-page>
   </md-card-content>
 </md-card>

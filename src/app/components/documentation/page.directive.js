@@ -24,7 +24,6 @@ class PageDirective {
       },
       controller: PageController,
       controllerAs: 'pageCtrl'
-
     };
 
     return directive;
