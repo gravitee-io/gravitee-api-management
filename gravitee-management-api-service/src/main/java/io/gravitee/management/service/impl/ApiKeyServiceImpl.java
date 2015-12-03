@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -62,12 +64,14 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             apiKey.setKey(apiKeyGenerator.generate());
             apiKey.setRevoked(false);
 
+            Instant expirationInst = apiKey.getCreatedAt().toInstant().plus(Duration.ofHours(1));
+            Date expirationDate = Date.from(expirationInst);
+
             // Previously generated keys should be set as revoked
             Set<ApiKey> oldKeys = apiKeyRepository.findByApplicationAndApi(applicationName, apiName);
             for (ApiKey oldKey : oldKeys) {
                 if (!oldKey.isRevoked()) {
-                    oldKey.setRevoked(true);
-                    oldKey.setRevokeAt(new Date());
+                    oldKey.setExpiration(expirationDate);
                     apiKeyRepository.update(oldKey);
                 }
             }
