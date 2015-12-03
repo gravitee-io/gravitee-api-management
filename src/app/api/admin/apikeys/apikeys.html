@@ -44,12 +44,12 @@
           <td>{{apikey.expire_on | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           <td>
             <span>
-            <md-tooltip md-direction="left">Revoke this API Key</md-tooltip>
-            <ng-md-icon ng-show="!apikey.revoked" icon="not_interested" ng-click="apiKeysCtrl.revoke(apikey.key)"></ng-md-icon>
+              <md-tooltip md-direction="left">Revoke this API Key</md-tooltip>
+              <ng-md-icon ng-show="!apikey.revoked" icon="not_interested" ng-click="apiKeysCtrl.revoke(apikey.key)"></ng-md-icon>
             </span>
             <span>
-            <md-tooltip md-direction="right">Set expiration for this API Key</md-tooltip>
-            <ng-md-icon ng-show="!apikey.revoked" icon="schedule" ng-click="apiKeysCtrl.showExpirationModal(apikey)"></ng-md-icon>
+              <md-tooltip md-direction="right">Set expiration for this API Key</md-tooltip>
+              <ng-md-icon ng-show="!apikey.revoked" icon="schedule" ng-click="apiKeysCtrl.showExpirationModal(apikey)"></ng-md-icon>
             </span>
           </td>
 				</tr>

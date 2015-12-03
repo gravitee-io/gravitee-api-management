@@ -33,8 +33,8 @@ function DialogApiKeyExpirationController($scope, $mdDialog) {
   $scope.expiration = {
     date: $scope.now,
     time: {
-      hours: '00',
-      minutes: '00'
+      hours: moment($scope.now).hours(),
+      minutes: moment($scope.now).minutes()
     }
   };
 
