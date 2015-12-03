@@ -32,7 +32,7 @@
 			</thead>
 			<tbody ng-repeat="(api, value) in applicationCtrl.apiKeys">
         <tr style="background-color: #9fb9be">
-          <td colspan="3" style="font-weight: bold">{{value.name}} ({{value.version}})</td>
+          <td colspan="3" style="font-weight: bold">{{value.name}} - {{value.version}} ({{value.keys.length}} keys)</td>
           <td>
             <md-tooltip ng-if="applicationCtrl.isOwner()" md-direction="left">Renew your API Key</md-tooltip>
             <ng-md-icon ng-if="applicationCtrl.isOwner()" icon="autorenew" ng-click="applicationCtrl.generateAPIKey(applicationCtrl.application, api)"></ng-md-icon>
