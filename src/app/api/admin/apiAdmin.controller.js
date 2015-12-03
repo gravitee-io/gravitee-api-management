@@ -47,6 +47,8 @@ class ApiAdminController {
         $scope.selectedTab = 6;
       } else if ($state.current.name.endsWith('monitoring')) {
         $scope.selectedTab = 7;
+      } else if ($state.current.name.endsWith('descriptor')) {
+        $scope.selectedTab = 8;
       }
     });
   }

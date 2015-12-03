@@ -177,6 +177,15 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
         skip: true
       }
     })
+    .state('apis.admin.descriptor', {
+      url: '/descriptor',
+      templateUrl: 'app/api/admin/descriptor.html',
+      controller: 'ApiDescriptorController',
+      controllerAs: 'apiDescriptorCtrl',
+      ncyBreadcrumb: {
+        skip: true
+      }
+    })
     .state('documentation', {
       url: '/documentation',
       templateUrl: 'app/documentation/documentation.html',
