@@ -42,6 +42,7 @@
 							<ng-md-icon ng-if="api.state !== 'started'" icon="blur_off" size="32" style="fill: red;" title="Stopped"></ng-md-icon>
 						</td>
 						<td ng-click="$event.stopPropagation()">
+              <md-tooltip md-direction="left">Manage this API</md-tooltip>
 							<ng-md-icon icon="settings" ui-sref="apis.admin.general({apiId: api.id})" aria-label="{{api.id}}"></ng-md-icon>
 						</td>
 					</tr>
