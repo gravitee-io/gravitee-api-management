@@ -46,13 +46,13 @@ public class ApiManagerImpl implements ApiManager {
 
     @Override
     public void deploy(Api api) {
-        logger.debug("Trying to deploy API {}", api);
+        logger.info("Deploying {} [{}]", api.getName(), api.getId());
 
         try {
             validator.validate(api);
+            apis.put(api.getId(), api);
 
             if (api.isEnabled()) {
-                apis.put(api.getId(), api);
                 eventManager.publishEvent(ApiEvent.DEPLOY, api);
             } else {
                 logger.debug("{} is not enabled. Skip deployment.", api);
@@ -64,7 +64,7 @@ public class ApiManagerImpl implements ApiManager {
 
     @Override
     public void update(Api api) {
-        logger.debug("Trying to update API {}", api);
+        logger.info("Updating {} [{}]", api.getName(), api.getId());
 
         try {
             validator.validate(api);
@@ -80,8 +80,10 @@ public class ApiManagerImpl implements ApiManager {
     public void undeploy(String apiId) {
         Api currentApi = apis.remove(apiId);
         if (currentApi != null) {
+            logger.info("Undeploying {} [{}]", currentApi.getName(), currentApi.getId());
+
             eventManager.publishEvent(ApiEvent.UNDEPLOY, currentApi);
-            logger.debug("API {} has been undeployed", apiId);
+            logger.info("{} has been undeployed", apiId);
         }
     }
 
