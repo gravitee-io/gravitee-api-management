@@ -30,7 +30,6 @@ import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -93,6 +92,21 @@ public class ApplicationApiKeysResource extends AbstractResource {
         return Response
                 .status(Response.Status.CREATED)
                 .entity(apiKeyEntity)
+                .build();
+    }
+
+    @DELETE
+    @Path("{key}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response revoke(@PathParam("key") String apiKey) {
+        applicationService.findById(this.application);
+
+        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
+
+        apiKeyService.revoke(apiKey);
+
+        return Response
+                .status(Response.Status.NO_CONTENT)
                 .build();
     }
 
