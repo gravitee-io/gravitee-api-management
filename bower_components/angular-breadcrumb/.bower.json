@@ -37,8 +37,7 @@
     "tag": "v0.4.1",
     "commit": "b291e06f4010ebebbb41ea2c14e73e236aa70930"
   },
-  "_source": "https://github.com/ncuillery/angular-breadcrumb.git",
+  "_source": "git://github.com/ncuillery/angular-breadcrumb.git",
   "_target": "~0.4.1",
-  "_originalSource": "angular-breadcrumb",
-  "_direct": true
+  "_originalSource": "angular-breadcrumb"
 }

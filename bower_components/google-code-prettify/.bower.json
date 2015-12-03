@@ -22,6 +22,5 @@
   },
   "_source": "git://github.com/tcollard/google-code-prettify.git",
   "_target": "~1.0.4",
-  "_originalSource": "google-code-prettify",
-  "_direct": true
+  "_originalSource": "google-code-prettify"
 }

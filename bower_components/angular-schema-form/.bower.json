@@ -64,6 +64,5 @@
   },
   "_source": "git://github.com/Textalk/angular-schema-form.git",
   "_target": "~0.8.12",
-  "_originalSource": "angular-schema-form",
-  "_direct": true
+  "_originalSource": "angular-schema-form"
 }
