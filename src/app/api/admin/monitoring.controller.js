@@ -23,21 +23,25 @@ class ApiMonitoringController {
     this.$state = $state;
     this.api = resolvedApi.data;
 
-    if (this.api.monitoring != undefined) {
-      this.monitoringEnabled = this.api.monitoring.enabled;
-    } else {
-      this.monitoringEnabled = false;
-    }
     this.timeUnits = [ 'seconds', 'minutes' ];
     this.analytics = this.analytics();
 
-    this.setTimeframe('3d');
+    this.setTimeframe('1h');
+
+    this.initState();
     this.updateChart();
   }
 
+  initState() {
+    if (this.api.monitoring != undefined) {
+      this.$scope.monitoringEnabled = this.api.monitoring.enabled;
+    } else if (this.api.monitoring.enabled == undefined) {
+      this.$scope.monitoringEnabled = true;
+    }
+  }
+
   switchEnabled() {
-    this.api.monitoring.enabled = this.monitoringEnabled;
-    console.log(this.api.monitoring.enabled);
+    this.api.monitoring.enabled = this.$scope.monitoringEnabled;
     this.update();
   }
 
