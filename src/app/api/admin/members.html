@@ -15,12 +15,12 @@
     limitations under the License.
 
 -->
-<md-data-table-container>
+<md-data-table-container class="application-data-table" ng-show="apiCtrl.members.length > 1">
   <table md-data-table class="md-primary">
-    <thead>
+    <thead md-order="order">
       <tr>
-        <th>Member</th>
-				<th>Role</th>
+        <th name="Member" order-by="user"></th>
+				<th name="Role" order-by="type"></th>
 				<th></th>
       </tr>
     </thead>
