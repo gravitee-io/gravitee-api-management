@@ -32,22 +32,19 @@
       <md-input-container class="flex" layout-align="center center">
         <md-radio-group ng-model="apiCtrl.api.visibility">
           <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public" title="Public">
+            <md-tooltip md-direction="bottom">API is visible by all</md-tooltip>
             <ng-md-icon icon="public"></ng-md-icon>
           </md-radio-button>
           <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private" title="Private">
+            <md-tooltip md-direction="bottom">API is visible only by its members</md-tooltip>
             <ng-md-icon icon="lock"></ng-md-icon>
           </md-radio-button>
           <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted" title="Restricted">
+            <md-tooltip md-direction="bottom">API is visible by all but can be used only by its members</md-tooltip>
             <ng-md-icon icon="vpn_lock"></ng-md-icon>
           </md-radio-button>
         </md-radio-group>
       </md-input-container>
-
-      <div class="gravitee-api-explanation" ng-switch="apiCtrl.api.visibility">
-        <label ng-switch-when="public">API is visible by all</label>
-        <label ng-switch-when="private">API is visible only by its creator</label>
-        <label ng-switch-when="restricted">API is subject to access rules</label>
-      </div>
     </div>
     <md-switch layout-align="center center" ng-model="apiEnabled"
                ng-change="generalCtrl.changeLifecycle(apiCtrl.api.id)" flex="20" no-dirty-check>
