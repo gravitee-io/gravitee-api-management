@@ -123,11 +123,15 @@ class ApiPoliciesController {
 
   acceptDragDrop(el, target, source) {
     var draggable = document.querySelector('.gravitee-policy-draggable');
-    return (source === draggable || source === target);
+    return ( (source === draggable || source === target) && el.id !== "api-key");
   }
 
   editPolicy(index) {
-    this.selectedApiPolicy = this.apiPoliciesByPath.get("/*")[index];
+    if ( this.apiPoliciesByPath.get("/*")[index].policyId === 'api-key' ) {
+      this.selectedApiPolicy = {};
+    } else {
+      this.selectedApiPolicy = this.apiPoliciesByPath.get("/*")[index];
+    }
   }
 
   getHttpMethodClass(method, methods) {

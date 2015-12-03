@@ -24,7 +24,8 @@
     </div>
     <div class="gravitee-policy-draggable">
       <md-card ng-repeat="policy in apiPoliciesCtrl.policiesToCopy"
-               class="gravitee-card gravitee-policy-card">
+               class="gravitee-card gravitee-policy-card"
+               id="{{policy.policyId}}">
         <md-tooltip md-direction="right">
           version: {{apiPoliciesCtrl.policyMap.get(policy.policyId).version}}
         </md-tooltip>
