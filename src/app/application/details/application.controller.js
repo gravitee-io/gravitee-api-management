@@ -128,6 +128,31 @@ class ApplicationController {
       });
 	}
 
+  revoke(apiKey) {
+    var alert = this.$mdDialog.confirm({
+      title: 'Warning',
+      content: 'Are you sure you want to revoke API Key <code>' + apiKey + '</code> ?',
+      ok: 'Revoke',
+      cancel: 'Cancel'
+    });
+
+    var _this = this;
+
+    this.$mdDialog
+      .show(alert)
+      .then(function () {
+        _this.ApplicationService.revokeApiKey(_this.application.id, apiKey).then(() => {
+          _this.NotificationService.show('API Key ' + apiKey + ' has been revoked !');
+
+          _this.ApplicationService.getAPIKeys(_this.application.id).then(response => {
+            _this.apiKeys = response.data;
+          });
+        });
+      })
+      .catch(function () {
+      });
+  }
+
 	reset() {
 		this.application = _.cloneDeep(this.initialApplication);
     this.$scope.formApplication.$setPristine();

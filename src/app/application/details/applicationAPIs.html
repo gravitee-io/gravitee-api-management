@@ -46,7 +46,10 @@
           </td>
           <td>{{apikey.revoked_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           <td>{{apikey.expire_on | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-          <td></td>
+          <td>
+            <md-tooltip md-direction="left">Revoke this API Key</md-tooltip>
+            <ng-md-icon ng-show="!apikey.revoked" icon="not_interested" ng-click="applicationCtrl.revoke(apikey.key)"></ng-md-icon>
+          </td>
 				</tr>
 			</tbody>
 		</table>
