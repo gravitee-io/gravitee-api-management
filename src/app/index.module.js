@@ -77,8 +77,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
       .accentPalette('blue');
 
 		$mdThemingProvider.theme('sidenav')
-			.backgroundPalette('blue-grey', {
-         'default': '600'
+			.backgroundPalette('grey', {
+         'default': '50'
       });
   })
   .run(runBlock)

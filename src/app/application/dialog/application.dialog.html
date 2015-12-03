@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="New application">
+<md-dialog aria-label="New application" style="width: 60%;">
   <form name="formApplication" ng-submit="create(application)" novalidate>
     <md-toolbar>
       <div class="md-toolbar-tools">
@@ -26,28 +26,26 @@
         </md-button>
       </div>
     </md-toolbar>
-    <md-dialog-content layout-padding>
-      <div layout="column" ng-cloak class="md-inline-form">
-	      <div layout="">
-	        <md-input-container>
-	          <label>Name *</label>
-	          <input ng-model="application.name" required>
-	        </md-input-container>
-	      </div>
-	      <div layout="">
-	        <md-input-container>
-	          <label>Description *</label>
-	          <input ng-model="application.description" required>
-	        </md-input-container>
-	      </div>
-	      <div layout="">
-	        <md-input-container>
-	          <label>Type</label>
-	          <input ng-model="application.type">
-	        </md-input-container>
-	      </div>
-	      <md-subheader class="md-warn" ng-bind="error"></md-subheader>
-			</div>
+    <md-dialog-content>
+			<md-content class="md-padding">
+		    <div layout="">
+		      <md-input-container>
+		        <label>Name *</label>
+		        <input ng-model="application.name" required>
+		      </md-input-container>
+					<md-input-container>
+		        <label>Type</label>
+		        <input ng-model="application.type">
+		      </md-input-container>
+		    </div>
+		    <div>
+		      <md-input-container>
+		        <label>Description *</label>
+		        <input ng-model="application.description" required>
+		      </md-input-container>
+		    </div>
+		    <md-subheader class="md-warn" ng-bind="error"></md-subheader>
+			</md-content>
     </md-dialog-content>
 
     <div class="md-actions" layout="row">
