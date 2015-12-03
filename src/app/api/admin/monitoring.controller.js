@@ -22,8 +22,13 @@ class ApiMonitoringController {
     this.$scope = $scope;
     this.$state = $state;
     this.api = resolvedApi.data;
-    this.monitoringEnabled = this.api.monitoring.enabled;
-    this.timeUnits = [ 'milliseconds', 'seconds', 'minutes' ];
+
+    if (this.api.monitoring != undefined) {
+      this.monitoringEnabled = this.api.monitoring.enabled;
+    } else {
+      this.monitoringEnabled = false;
+    }
+    this.timeUnits = [ 'seconds', 'minutes' ];
     this.analytics = this.analytics();
 
     this.setTimeframe('3d');
