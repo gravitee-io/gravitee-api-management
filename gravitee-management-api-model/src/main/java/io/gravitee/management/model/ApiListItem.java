@@ -15,11 +15,11 @@
  */
 package io.gravitee.management.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.common.component.Lifecycle;
-
 import java.util.Date;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.common.component.Lifecycle;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -48,6 +48,8 @@ public class ApiListItem {
     private PrimaryOwnerEntity primaryOwner;
 
     private MembershipType permission;
+
+    private int applicationsSize;
 
     public String getId() {
         return id;
@@ -129,6 +131,14 @@ public class ApiListItem {
         this.permission = permission;
     }
 
+    public int getApplicationsSize() {
+        return applicationsSize;
+    }
+
+    public void setApplicationsSize(int applicationsSize) {
+        this.applicationsSize = applicationsSize;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -141,5 +151,21 @@ public class ApiListItem {
     @Override
     public int hashCode() {
         return Objects.hash(id, version);
+    }
+
+    public String toString() {
+        return "ApiListItem{" +
+            "id='" + id + '\'' +
+            ", name='" + name + '\'' +
+            ", version='" + version + '\'' +
+            ", description='" + description + '\'' +
+            ", createdAt=" + createdAt +
+            ", updatedAt=" + updatedAt +
+            ", visibility=" + visibility +
+            ", state=" + state +
+            ", primaryOwner=" + primaryOwner +
+            ", permission=" + permission +
+            ", applicationsSize=" + applicationsSize +
+            '}';
     }
 }

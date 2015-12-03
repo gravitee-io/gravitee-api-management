@@ -39,7 +39,9 @@ import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsExcepti
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
@@ -57,6 +59,9 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
     @Autowired
     private ApplicationRepository applicationRepository;
+
+    @Autowired
+    private ApiKeyRepository apiKeyRepository;
 
     @Autowired
     private IdGenerator idGenerator;
@@ -170,9 +175,17 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     }
 
     @Override
-    public Set<ApplicationEntity> findByApi(String apiName) {
-        // TODO Implements and test me
-        return null;
+    public Set<ApplicationEntity> findByApi(String apiId) {
+        try {
+            LOGGER.debug("Find applications for api {}", apiId);
+            final Set<ApiKey> applications = apiKeyRepository.findByApi(apiId);
+            return applications.stream()
+                .map(application -> findById(application.getApplication()))
+                .collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to get applications for api {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get applications for api " + apiId, ex);
+        }
     }
 
     @Override
