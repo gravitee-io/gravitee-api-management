@@ -1,0 +1,43 @@
+<!doctype html>
+<html class="no-js" ng-app="myApp">
+  <head>
+    <meta charset="utf-8">
+    <title>angular-swagger-ui sample</title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/swagger-ui.min.css">
+  </head>
+  <body>
+    <div ng-controller="MyCtrl" class="container" style="margin-bottom:100px">
+        <h1>angular-swagger-ui sample</h1>
+        <form name="urlForm" ng-submit="urlForm.$valid&&(swaggerUrl=url)" class="form-inline">
+            <input type="url" placeholder="swagger URL" class="form-control" id="url" name="url" ng-model="url" required style="width:400px">
+            <button type="submit" class="btn btn-primary" ng-disabled="isLoading">explore</button>
+        </form>
+        <h3 ng-show="isLoading">loading ...</h3>
+        <div swagger-ui url="swaggerUrl" loading="isLoading" parser="json" api-explorer="true" error-handler="myErrorHandler"></div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-sanitize.min.js"></script>
+    <script src="scripts/swagger-ui.min.js"></script>
+    <script src="scripts/modules/swagger-external-references.min.js"></script>
+    <script src="scripts/modules/swagger1-to-swagger2-converter.min.js"></script>
+    <script type="text/javascript">
+        angular
+            .module('myApp', ['ngSanitize', 'swaggerUi'])
+            .run(function(swaggerModules, swaggerUiExternalReferences, swagger1ToSwagger2Converter){
+                swaggerModules.add(swaggerModules.BEFORE_PARSE, swagger1ToSwagger2Converter);
+                swaggerModules.add(swaggerModules.BEFORE_PARSE, swaggerUiExternalReferences);
+            })
+            .controller('MyCtrl', function($scope){
+                // init form
+                $scope.isLoading = false;
+                $scope.url = $scope.swaggerUrl = 'http://petstore.swagger.io/v2/swagger.json';
+                // error management
+                $scope.myErrorHandler = function(data, status){
+                    alert('failed to load swagger: '+status+'   '+data);
+                };
+            });
+    </script>
+</body>
+</html>
