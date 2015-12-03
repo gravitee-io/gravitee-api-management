@@ -58,6 +58,7 @@ class PageController {
       .show(alert)
       .then(function () {
         that.DocumentationService.deletePage(that.$scope.$parent.apiCtrl.api.id, that.page.id).then(function () {
+          that.preview();
           that.$rootScope.$broadcast('onGraviteePageDeleted');
         });
       });
