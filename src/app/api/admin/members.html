@@ -30,16 +30,16 @@
 					<span ng-switch-when="primary_owner"><b>{{member.user}}</b></span>
 					<span ng-switch-default>{{member.user}}</span>
 				</td>
-        <td ng-show="member.type != 'primary_owner'">
+        <td ng-show="member.type != 'primary_owner' && apiCtrl.isOwner() && member.user != apiCtrl.authenticatedUser.principal.username">
 					<md-select ng-model="member.type" placeholder="Other" ng-change="apiCtrl.updateMember(member)">
 		        <md-option ng-value="type" ng-repeat="type in apiCtrl.membershipTypes">{{type}}</md-option>
 		      </md-select>
 				</td>
-				<td ng-hide="member.type != 'primary_owner'">
-					<span ng-hide="member.type != 'primary_owner'"><b>{{member.type}}</b></span>
+				<td ng-hide="member.type != 'primary_owner' && apiCtrl.isOwner() && member.user != apiCtrl.authenticatedUser.principal.username">
+					<span><b>{{member.type}}</b></span>
         </td>
         <td>
-					<div ng-if="member.type != 'primary_owner'">
+					<div ng-if="member.type != 'primary_owner' && apiCtrl.isOwner() && member.user != apiCtrl.authenticatedUser.principal.username">
 						<ng-md-icon ng-click="apiCtrl.showDeleteMemberConfirm($event, member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
 					</div>
 				</td>

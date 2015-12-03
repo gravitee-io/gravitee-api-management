@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 class ApiMembersController {
-  constructor (ApiService, resolvedApi, resolvedMembers, $state, $mdDialog, NotificationService, $scope) {
+  constructor (ApiService, resolvedApi, resolvedMembers, $state, $mdDialog, $cookieStore, NotificationService, $scope) {
     'ngInject';
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
@@ -27,6 +27,7 @@ class ApiMembersController {
     this.api = resolvedApi.data;
     this.members = resolvedMembers.data;
     this.membershipTypes = [ 'owner', 'user' ];
+		this.authenticatedUser = $cookieStore.get('authenticatedUser');
   }
 
   updateMember(member) {
@@ -41,6 +42,11 @@ class ApiMembersController {
       this.members.splice(index, 1);
       this.NotificationService.show("Member " + member.user + " has been removed");
     });
+  }
+
+	isOwner() {
+		console.log("isOwner " + this.api.permission);
+    return this.api.permission && (this.api.permission === 'owner' || this.api.permission === 'primary_owner');
   }
 
   showAddMemberModal(ev) {

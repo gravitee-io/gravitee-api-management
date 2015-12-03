@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApplicationController {
-  constructor($stateParams, $mdDialog, $q, $state, $scope, ApplicationService, NotificationService) {
+  constructor($stateParams, $mdDialog, $q, $state, $scope, $cookieStore, ApplicationService, NotificationService) {
 		'ngInject';
 		this.$stateParams = $stateParams;
 		this.$mdDialog = $mdDialog;
@@ -29,8 +29,8 @@ class ApplicationController {
 		this.apiKeys = undefined;
 		this.members = [];
 		this.membershipTypes = [ 'owner', 'user' ];
-
     this.showRevokedKeys = false;
+		this.authenticatedUser = $cookieStore.get('authenticatedUser');
 
 		if (this.applicationId) {
 				this.get(this.applicationId);
