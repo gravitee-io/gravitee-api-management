@@ -36,16 +36,18 @@ class ApiAdminController {
       ok: 'OK',
       cancel: 'Cancel'
     });
-
     var that = this;
-
     this.$mdDialog
       .show(alert)
       .then(function () {
         if (started) {
-          that.ApiService.stop(id);
+          that.ApiService.stop(id).then(function () {
+            that.$scope.$parent.apiCtrl.api.state = 'stopped';
+          });
         } else {
-          that.ApiService.start(id);
+          that.ApiService.start(id).then(function () {
+            that.$scope.$parent.apiCtrl.api.state = 'started';
+          });
         }
       })
       .catch(function () {
