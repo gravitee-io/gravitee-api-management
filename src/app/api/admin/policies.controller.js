@@ -184,6 +184,7 @@ class ApiPoliciesController {
             that.selectedApiPolicy = null;
           }
         }
+        that.savePaths();
       });
   }
 
@@ -192,7 +193,10 @@ class ApiPoliciesController {
     for ( var policy of this.$scope.$parent.apiCtrl.api.paths["/*"] ) {
       delete policy.policyId;
     }
-    this.ApiService.update(this.$scope.$parent.apiCtrl.api);
+    var that = this;
+    this.ApiService.update(this.$scope.$parent.apiCtrl.api).then( ( {data} ) => {
+      //that.$scope.$parent.apiCtrl.api = data
+    });
   }
 /*
   reset() {

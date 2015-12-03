@@ -77,7 +77,10 @@
   <div flex="30">
     <div ng-if="apiPoliciesCtrl.selectedApiPolicy.policyId">
       <div class="inset">
+        <div layout="row" layout-align="space-between center">
         <h5>{{apiPoliciesCtrl.policyMap.get(apiPoliciesCtrl.selectedApiPolicy.policyId).name}}</h5>
+         <md-button class="md-raised" ng-click="apiPoliciesCtrl.savePaths();">Save</md-button>
+      </div>
         <md-divider></md-divider>
       </div>
       <div layout="row" layout-align="start center" layout-wrap>
@@ -95,12 +98,4 @@
   </div>
 </div>
 
-<div class="md-actions gravitee-api-save-button" layout="row">
-  <md-button  class="md-raised" ng-click="apiPoliciesCtrl.savePaths();">
-    Save
-  </md-button>
-  <!--md-button class="md-warn" type="button" ng-click="apiPoliciesCtrl.reset()">
-    Reset
-  </md-button-->
-</div>
 
