@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor (ApiService, $scope, $mdDialog, resolvedApi) {
+  constructor (ApiService, NotificationService, $scope, $mdDialog, resolvedApi) {
     'ngInject';
     this.ApiService = ApiService;
+    this.NotificationService = NotificationService;
     this.$scope = $scope;
     this.$mdDialog = $mdDialog;
     this.initialApi = _.cloneDeep(resolvedApi.data);
@@ -32,7 +33,7 @@ class ApiAdminController {
     var started = this.$scope.$parent.apiCtrl.api.state === 'started';
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
-      content: 'Are you sure you want to ' + (started?'un':'') +'publish the api ' + id + '?',
+      content: 'Are you sure you want to ' + (started?'un':'') +'publish \'' + this.initialApi.name + '\' API ?',
       ok: 'OK',
       cancel: 'Cancel'
     });
@@ -63,7 +64,7 @@ class ApiAdminController {
   delete(id) {
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
-      content: 'Are you sure you want to delete the api ' + this.$scope.$parent.apiCtrl.api.id + '?',
+      content: 'Are you sure you want to delete \'' + this.$scope.$parent.apiCtrl.api.name + '\' API ?',
       ok: 'OK',
       cancel: 'Cancel'
     });
@@ -74,6 +75,7 @@ class ApiAdminController {
       .show(alert)
       .then(function () {
         that.ApiService.delete(id).then(() => {
+          that.NotificationService.show('API \'' + that.initialApi.name + '\' has been removed');
           that.$scope.$parent.apisCtrl.backToPreviousState();
         });
       });
