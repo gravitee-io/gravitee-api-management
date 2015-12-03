@@ -24,6 +24,7 @@ class ApiPoliciesController {
     this.$scope = $scope;
     this.$state = $state;
     this.$q = $q;
+    this.resolvedApi = resolvedApi;
     this.apiPoliciesByPath = new Map();
     if ( resolvedApi.data.paths["/*"] ) {
       this.apiPoliciesByPath.set("/*", _.cloneDeep(resolvedApi.data.paths["/*"]));
@@ -185,6 +186,15 @@ class ApiPoliciesController {
     }
     this.ApiService.update(this.$scope.$parent.apiCtrl.api);
   }
+/*
+  reset() {
+    this.apiPoliciesByPath = new Map();
+    this.apiPoliciesByPath.set("/*", _.cloneDeep(this.resolvedApi.data.paths["/*"]));
+    this.completeApiPolicies(this.apiPoliciesByPath);
+    this.initDragular();
+    this.selectedApiPolicy = {};
+  }
+  */
 }
 
 export default ApiPoliciesController;
