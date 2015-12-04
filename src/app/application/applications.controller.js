@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 class ApplicationsController {
-  constructor($window, $mdDialog, $state, ApplicationService, NotificationService) {
+  constructor($window, $mdDialog, $state, $rootScope, ApplicationService, NotificationService) {
 		'ngInject';
     this.$window = $window;
 		this.$mdDialog = $mdDialog;
 		this.$state = $state;
+		this.$rootScope = $rootScope;
 		this.ApplicationService = ApplicationService;
 		this.NotificationService = NotificationService;
 		this.applications = [];
@@ -31,6 +32,14 @@ class ApplicationsController {
 			this.applications = response.data;
 		});
   }
+
+	createInitApplication() {
+		if (!this.$rootScope.authenticated) {
+			this.$rootScope.$broadcast("authenticationRequired");
+		} else {
+			this.showAddApplicationModal();
+		}
+	}
 	
 	showAddApplicationModal(ev) {
     var _that = this;
