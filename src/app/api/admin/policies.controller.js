@@ -195,7 +195,7 @@ class ApiPoliciesController {
     }
     var that = this;
     this.ApiService.update(this.$scope.$parent.apiCtrl.api).then( ( {data} ) => {
-      //that.$scope.$parent.apiCtrl.api = data
+      that.$scope.$parent.apiCtrl.api = data;
       that.NotificationService.show('API \'' + that.$scope.$parent.apiCtrl.api.name + '\' saved');
     });
   }
