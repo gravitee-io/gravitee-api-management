@@ -92,9 +92,10 @@ class ApiPoliciesController {
       accepts: this.acceptDragDrop
     });
 
-    /*this.$scope.$on('dragulardrop', function(event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList) {
-      console.log(draggableObjList ,"\n", draggableIndex ,"\n", dropzoneObjList );
-    });*/
+    var that = this;
+    this.$scope.$on('dragulardrop', function(event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList) {
+      that.savePaths();
+    });
   }
 
   listAllPoliciesWithSchema() {
@@ -199,15 +200,6 @@ class ApiPoliciesController {
       that.NotificationService.show('API \'' + that.$scope.$parent.apiCtrl.api.name + '\' saved');
     });
   }
-/*
-  reset() {
-    this.apiPoliciesByPath = new Map();
-    this.apiPoliciesByPath.set("/*", _.cloneDeep(this.resolvedApi.data.paths["/*"]));
-    this.completeApiPolicies(this.apiPoliciesByPath);
-    this.initDragular();
-    this.selectedApiPolicy = {};
-  }
-  */
 }
 
 export default ApiPoliciesController;
