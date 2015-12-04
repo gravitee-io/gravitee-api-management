@@ -62,17 +62,7 @@ public class ApiResource extends AbstractResource {
 
         permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.VIEW_API);
 
-        if(isAuthenticated()) {
-            MemberEntity member = apiService.getMember(api.getId(), getAuthenticatedUsername());
-            if (member != null) {
-                api.setPermission(member.getType());
-            } else {
-                if (api.getVisibility() == Visibility.PUBLIC) {
-                    // If API is public, all users have the user permission
-                    api.setPermission(MembershipType.USER);
-                }
-            }
-        }
+        setPermission(api);
 
         return api;
     }
@@ -105,7 +95,24 @@ public class ApiResource extends AbstractResource {
     public ApiEntity update(@Valid @NotNull final UpdateApiEntity api) {
         permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
 
-        return apiService.update(this.api, api);
+        final ApiEntity updatedApi = apiService.update(this.api, api);
+        setPermission(updatedApi);
+
+        return updatedApi;
+    }
+
+    private void setPermission(ApiEntity api) {
+        if(isAuthenticated()) {
+            MemberEntity member = apiService.getMember(api.getId(), getAuthenticatedUsername());
+            if (member != null) {
+                api.setPermission(member.getType());
+            } else {
+                if (api.getVisibility() == Visibility.PUBLIC) {
+                    // If API is public, all users have the user permission
+                    api.setPermission(MembershipType.USER);
+                }
+            }
+        }
     }
 
     @DELETE
