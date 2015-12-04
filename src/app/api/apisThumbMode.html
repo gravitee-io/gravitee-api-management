@@ -63,7 +63,7 @@
 			Start using Gravitee.IO portal
 		</p>
 		<p>
-			<md-button class="md-raised" ng-click="apisCtrl.createInitAPI()">Create APIs</md-button>
+			<md-button ng-if="authenticated" class="md-raised" ng-click="apisCtrl.createInitAPI()">Create APIs</md-button>
 			<md-button ng-if="!authenticated" class="md-raised" ng-click="apisCtrl.login()">Login</md-button>
 		</p>
 	</div>
