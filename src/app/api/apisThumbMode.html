@@ -57,13 +57,11 @@
 </div>
 
 <div ng-if="!isLoading && apisCtrl.apis.length === 0" style="text-align:center; color: #424E5A; fill: #424E5A; ">
-	<h1><ng-md-icon size="48" icon="error"></ng-md-icon> Hmm, no API That's weird.</h1>
+	<h1><ng-md-icon size="48" icon="error"></ng-md-icon> Hmmm, it seems that there is no API here :(</h1>
 	<div>
-		<p>
-			Start using Gravitee.IO portal
-		</p>
-		<p>
-			<md-button ng-if="authenticated" class="md-raised" ng-click="apisCtrl.createInitAPI()">Create APIs</md-button>
+    <h4 style="margin-top: 30px;">Let's start using Gravitee.io portal</h4>
+		<p style="margin-top: 30px;">
+			<md-button ng-if="authenticated" class="md-raised" ng-click="apisCtrl.createInitAPI()">Create your first API</md-button>
 			<md-button ng-if="!authenticated" class="md-raised" ng-click="apisCtrl.login()">Login</md-button>
 		</p>
 	</div>
