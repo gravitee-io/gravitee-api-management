@@ -75,6 +75,7 @@ public class GraviteeReactor extends AbstractService implements
     private ReporterService reporterService;
 
     private final ConcurrentMap<String, ContextReactorHandler> handlers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Api, String> contextPaths = new ConcurrentHashMap<>();
 
     protected ReactorHandler bestHandler(Request request) {
         String path = request.path();
@@ -180,6 +181,7 @@ public class GraviteeReactor extends AbstractService implements
             try {
                 handler.start();
                 handlers.putIfAbsent(handler.getContextPath(), handler);
+                contextPaths.putIfAbsent(api, handler.getContextPath());
             } catch (Exception ex) {
                 logger.error("Unable to deploy handler", ex);
             }
@@ -189,18 +191,21 @@ public class GraviteeReactor extends AbstractService implements
     }
 
     public void updateHandler(Api api) {
-        ApiReactorHandler handler = (ApiReactorHandler) handlers.get(api);
-        if (handler != null) {
-            Api previousApi = handler.getApi();
+        String contextPath = contextPaths.get(api);
+        if (contextPath != null) {
+            ApiReactorHandler handler = (ApiReactorHandler) handlers.get(contextPath);
+            if (handler != null) {
+                Api previousApi = handler.getApi();
 
-            if (previousApi.isEnabled() != api.isEnabled() ||
-                    previousApi.getProxy().isStripContextPath() != api.getProxy().isStripContextPath() ||
-                    !previousApi.getProxy().getContextPath().equals(api.getProxy().getContextPath()) ||
-                    !previousApi.getProxy().getEndpoint().equals(api.getProxy().getEndpoint())) {
-                removeHandler(api);
-                createHandler(api);
-            } else {
-                logger.info("API {} doesn't need to be refreshed in the gateway. Skipping...", api.getId());
+                if (previousApi.isEnabled() != api.isEnabled() ||
+                        previousApi.getProxy().isStripContextPath() != api.getProxy().isStripContextPath() ||
+                        !previousApi.getProxy().getContextPath().equals(api.getProxy().getContextPath()) ||
+                        !previousApi.getProxy().getEndpoint().equals(api.getProxy().getEndpoint())) {
+                    removeHandler(api);
+                    createHandler(api);
+                } else {
+                    logger.info("API {} doesn't need to be refreshed in the gateway. Skipping...", api.getId());
+                }
             }
         } else {
             createHandler(api);
@@ -208,14 +213,18 @@ public class GraviteeReactor extends AbstractService implements
     }
 
     public void removeHandler(Api api) {
-        ReactorHandler handler = handlers.remove(api.getProxy().getContextPath());
-        if (handler != null) {
-            try {
-                handler.stop();
-                handlers.remove(api.getProxy().getContextPath());
-                logger.info("API {} has been removed from reactor", api.getId());
-            } catch (Exception e) {
-                logger.error("Unable to remove handler", e);
+        String contextPath = contextPaths.remove(api);
+        if (contextPath != null) {
+            ReactorHandler handler = handlers.remove(contextPath);
+
+            if (handler != null) {
+                try {
+                    handler.stop();
+                    handlers.remove(api.getProxy().getContextPath());
+                    logger.info("API {} has been removed from reactor", api.getId());
+                } catch (Exception e) {
+                    logger.error("Unable to remove handler", e);
+                }
             }
         }
     }
@@ -229,6 +238,7 @@ public class GraviteeReactor extends AbstractService implements
                 logger.error("Unable to remove reactor handler", e);
             }
         });
+        contextPaths.clear();
     }
 
     @Override
