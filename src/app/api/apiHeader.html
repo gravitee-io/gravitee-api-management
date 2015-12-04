@@ -18,21 +18,30 @@
 <div layout="column" layout-align="end-start" layout-padding class="gravitee-api-header" flex>
 	<div class="gravitee-api-header-content inset">
 		<div ng-switch="apiCtrl.api.visibility" layout="row" layout-align="start center">
-			<h3 flex="70">{{apiCtrl.api.name}}</h3>
-			<p flex="30" style="text-align: right">
-				<span>Version: {{apiCtrl.api.version}}</span>
-				<b>({{apiCtrl.api.state}})</b>
-				<span ng-switch-when="public" flex="10"><ng-md-icon icon="public"></ng-md-icon></span>
-				<span ng-switch-when="private" flex="10"><ng-md-icon icon="lock"></ng-md-icon></span>
-				<span ng-switch-when="restricted" flex="10"><ng-md-icon icon="vpn_lock"></ng-md-icon></span>
-				<span><ng-md-icon icon="person"></ng-md-icon></span>
-				<span>{{apiCtrl.api.owner.username}}</span>
-				<span><ng-md-icon icon="timer"></ng-md-icon></span>
-				<span>{{apiCtrl.api.created_at | date}}</span>
-			</p>
+			
+			<div flex="70">
+				<h3>{{apiCtrl.api.name}} 
+					<small style="color:white;">( {{apiCtrl.api.version}} ) 
+						<span ng-switch-when="public" flex="10"><ng-md-icon icon="public"></ng-md-icon></span>
+						<span ng-switch-when="private" flex="10"><ng-md-icon icon="lock"></ng-md-icon></span>
+						<span ng-switch-when="restricted" flex="10"><ng-md-icon icon="vpn_lock"></ng-md-icon></span>
+					</small>
+				</h3>
+				<md-content flex class="gravitee-api-header-description">
+					<div class="gravitee-api-header-read-more" read-more ng-model="apiCtrl.api.description" words="false" length="150"></div>
+		  	</md-content>
+			</div>
+			
+			<div flex="30" style="text-align: right">
+				<p style="padding: 0; margin: 0;">
+					<span>{{apiCtrl.api.owner.username}}</span>
+					<span><ng-md-icon icon="person"></ng-md-icon></span>
+				</p>
+				<p style="padding: 0; margin: 0;">
+					<span>{{apiCtrl.api.created_at | date}}</span>
+					<span><ng-md-icon icon="timer"></ng-md-icon></span>
+				</p>
+			</div>
 		</div>
-	   <md-content flex class="gravitee-api-header-description">
-				<div class="gravitee-api-header-read-more" read-more ng-model="apiCtrl.api.description" words="false" length="150"></div>
-    </md-content>
-	 </div>
+	</div>
 </div>
