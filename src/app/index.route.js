@@ -97,7 +97,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
     .state('apis.admin.policies', {
       url: '/policies',
-      templateUrl: 'app/api/admin/apiPolicies.html',
+      templateUrl: 'app/api/admin/policies/apiPolicies.html',
       controller: 'ApiPoliciesController',
       controllerAs: 'apiPoliciesCtrl',
 			ncyBreadcrumb: {

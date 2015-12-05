@@ -31,7 +31,7 @@ import ApiGeneralController from './api/admin/general/apiGeneral.controller';
 import ApiAdminController from './api/admin/apiAdmin.controller';
 import ApiAnalyticsController from './api/admin/analytics.controller';
 import ApiMembersController from './api/admin/members.controller';
-import ApiPoliciesController from './api/admin/policies.controller';
+import ApiPoliciesController from './api/admin/policies/policies.controller';
 import ApiMonitoringController from './api/admin/monitoring.controller';
 import ApiPropertiesController from './api/admin/properties/properties.controller';
 import ApiKeysController from './api/admin/apikeys/apikeys.controller';
