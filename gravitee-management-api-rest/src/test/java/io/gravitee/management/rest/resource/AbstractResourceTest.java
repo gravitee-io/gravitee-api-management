@@ -16,10 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.rest.JerseySpringTest;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.PermissionService;
-import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +39,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ApplicationService applicationService;
+
+    @Autowired
+    protected PolicyService policyService;
 
     @Autowired
     protected PermissionService permissionService;
@@ -70,6 +70,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public UserService userService() {
             return mock(UserService.class);
+        }
+
+        @Bean
+        public PolicyService policyService() {
+            return mock(PolicyService.class);
         }
     }
 }

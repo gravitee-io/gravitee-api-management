@@ -44,6 +44,8 @@ public class PolicyListItem {
 
     private PolicyType type;
 
+    private String schema;
+
     public String getDescription() {
         return description;
     }
@@ -82,6 +84,14 @@ public class PolicyListItem {
 
     public void setType(PolicyType type) {
         this.type = type;
+    }
+
+    public String getSchema() {
+        return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
     }
 
     @Override

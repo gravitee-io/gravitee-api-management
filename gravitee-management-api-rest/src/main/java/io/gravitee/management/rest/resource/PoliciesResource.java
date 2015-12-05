@@ -23,11 +23,14 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Defines the REST resources to manage Policy.
@@ -45,11 +48,26 @@ public class PoliciesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<PolicyListItem> list() {
-        return policyService.findAll().stream()
-                .map(this::convert)
-                .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
+    public Set<PolicyListItem> list(@QueryParam("expand")List<String> expand) {
+        Stream<PolicyListItem> stream = policyService.findAll().stream()
+                .map(this::convert);
+        if(expand!=null && !expand.isEmpty()) {
+            for (String s : expand) {
+                switch (s) {
+                    case "schema":
+                        stream = stream.map(policyListItem -> {
+                            policyListItem.setSchema(policyService.getSchema(policyListItem.getId()));
+                            return policyListItem;
+                        });
+                        break;
+                    default: break;
+                }
+            }
+        }
+
+        Set<PolicyListItem> collect = stream.sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
                 .collect(Collectors.toSet());
+        return collect;
     }
 
     @Path("{policy}")
