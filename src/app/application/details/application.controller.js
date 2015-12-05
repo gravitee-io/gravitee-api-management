@@ -60,7 +60,7 @@ class ApplicationController {
 	}
 
   hasKeysDefined() {
-    return this.apiKeys != null && Object.keys(this.apiKeys).length > 0;
+    return this.apiKeys !== null && Object.keys(this.apiKeys).length > 0;
   }
 
 	getMembers(applicationId) {
@@ -70,7 +70,6 @@ class ApplicationController {
 	}
 
 	updateMember(member) {
-    console.log(member);
 		this.ApplicationService.addOrUpdateMember(this.application.id, member).then(() => {
 			this.NotificationService.show('Member ' + member.user + " has been updated with role " + member.type);
 		});

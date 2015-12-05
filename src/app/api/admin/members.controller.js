@@ -45,7 +45,6 @@ class ApiMembersController {
   }
 
 	isOwner() {
-		console.log("isOwner " + this.api.permission);
     return this.api.permission && (this.api.permission === 'owner' || this.api.permission === 'primary_owner');
   }
 

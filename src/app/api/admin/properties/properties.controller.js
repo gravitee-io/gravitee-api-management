@@ -38,7 +38,7 @@ class ApiPropertiesController {
     }).then(function (property) {
       var key = Object.keys(property)[0];
 
-      if (_this.api.properties == undefined) {
+      if (_this.api.properties === undefined) {
         _this.api.properties = {};
       }
 

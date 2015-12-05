@@ -29,7 +29,7 @@ class ApiKeysController {
 	}
 
   hasKeysDefined() {
-    return this.apiKeys != null && Object.keys(this.apiKeys).length > 0;
+    return this.apiKeys !== null && Object.keys(this.apiKeys).length > 0;
   }
 
   revoke(apiKey) {
@@ -67,7 +67,7 @@ class ApiKeysController {
       templateUrl: 'app/api/admin/apikeys/apikey-expiration.dialog.html',
       clickOutsideToClose: true
     }).then(function (expirationDate) {
-      _this.currentApiKey['expire_on'] = expirationDate;
+      _this.currentApiKey.expire_on = expirationDate;
 
       _this.ApiService.updateApiKey(_this.api.id, _this.currentApiKey).then(() => {
         _this.NotificationService.show('An expiration date has been settled for API Key');

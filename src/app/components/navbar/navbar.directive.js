@@ -52,7 +52,6 @@ class NavbarController {
   }
 
 	showLoginModal(ev) {
-    var _that = this;
     this.$mdDialog.show({
       controller: 'DialogLoginController',
       templateUrl: 'app/login/dialog/login.dialog.html',

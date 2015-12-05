@@ -21,7 +21,6 @@ function DialogApplicationController($scope, $mdDialog, ApplicationService, Noti
   };
 
   $scope.create = function (application) {
-    console.log('plop');
     ApplicationService.create(application).then(function (result) {
 			NotificationService.show('Application created');
       $mdDialog.hide(result);

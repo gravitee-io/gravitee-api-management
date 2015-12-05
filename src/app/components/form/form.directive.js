@@ -23,7 +23,7 @@ class FormDirective {
         link: function(scope, elm, attrs, ctrl) {
         ctrl.$pristine = false;
       }
-    }
+    };
 
     return directive;
   }

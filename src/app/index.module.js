@@ -126,5 +126,5 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
     return function (keys, showAll) {
       console.log(keys.length + ' - ' + showAll);
       return keys;
-    }
+    };
   });

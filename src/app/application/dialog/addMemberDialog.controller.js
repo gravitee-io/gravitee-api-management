@@ -33,9 +33,9 @@ function DialogAddMemberController($scope, $mdDialog, application, applicationMe
 				var membersFound = response.data;
 				var filterMembers = [];
 				for(var i = 0; i < membersFound.length; i++) {
-					var found = false
+					var found = false;
 					for (var j = 0; j < $scope.applicationMembers.length; j++) {
-						if (membersFound[i].id == $scope.applicationMembers[j].user) {
+						if (membersFound[i].id === $scope.applicationMembers[j].user) {
 							found = true;
 							break;
 						}
@@ -71,13 +71,8 @@ function DialogAddMemberController($scope, $mdDialog, application, applicationMe
 
 	$scope.isUserSelected = function(user) {
 		var idx = $scope.usersSelected.indexOf(user.id);
-    if (idx > -1) {
-      return true;
-    }
-    else {
-      return false;
-    }
-	}
+    return idx > -1;
+	};
 
   $scope.addMembers = function () {
 		for (var i = 0; i < $scope.usersSelected.length; i++) {

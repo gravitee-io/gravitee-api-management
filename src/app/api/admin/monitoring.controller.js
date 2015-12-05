@@ -33,7 +33,7 @@ class ApiMonitoringController {
   }
 
   initState() {
-    if (this.api.monitoring != undefined) {
+    if (this.api.monitoring !== undefined) {
       this.$scope.monitoringEnabled = this.api.monitoring.enabled;
     } else {
       this.$scope.monitoringEnabled = false;
@@ -41,8 +41,8 @@ class ApiMonitoringController {
   }
 
   switchEnabled() {
-    if (this.api.monitoring == undefined) {
-      this.api.monitoring = {}
+    if (this.api.monitoring === undefined) {
+      this.api.monitoring = {};
     }
     this.api.monitoring.enabled = this.$scope.monitoringEnabled;
     this.update();
@@ -152,37 +152,37 @@ class ApiMonitoringController {
           id: '5m',
           title: 'Last 5 minutes',
           range: 1000 * 60 * 5,
-          interval: 10000,
+          interval: 10000
         }, {
           id: '1h',
           title: 'Last hour',
           range: 1000 * 60 * 60,
-          interval: 1000 * 60,
+          interval: 1000 * 60
         }, {
           id: '24h',
           title: 'Last 24 hours',
           range: 1000 * 60 * 60 * 24,
-          interval: 1000 * 60 * 60,
+          interval: 1000 * 60 * 60
         }, {
           id: '3d',
           title: 'Last 3 days',
           range: 1000 * 60 * 60 * 24 * 3,
-          interval: 1000 * 60 * 60 * 3,
+          interval: 1000 * 60 * 60 * 3
         }, {
           id: '14d',
           title: 'Last 14 days',
           range: 1000 * 60 * 60 * 24 * 14,
-          interval: 1000 * 60 * 60 * 5,
+          interval: 1000 * 60 * 60 * 5
         }, {
           id: '30d',
           title: 'Last 30 days',
           range: 1000 * 60 * 60 * 24 * 30,
-          interval: 10000000,
+          interval: 10000000
         }, {
           id: '90d',
           title: 'Last 90 days',
           range: 1000 * 60 * 60 * 24 * 90,
-          interval: 10000000,
+          interval: 10000000
         }
       ]
     };

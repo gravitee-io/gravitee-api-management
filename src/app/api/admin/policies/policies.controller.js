@@ -93,7 +93,7 @@ class ApiPoliciesController {
     });
 
     var that = this;
-    this.$scope.$on('dragulardrop', function(event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList) {
+    this.$scope.$on('dragulardrop', function(/*event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList*/) {
       that.savePaths();
     });
   }
@@ -120,7 +120,7 @@ class ApiPoliciesController {
               });
             })(this.PolicyService, originalPolicy, this.policiesToCopy, this.httpMethods, this.policySchemaMap, this.schemasMap);
           }
-        }))
+        }));
     });
   }
 

@@ -64,13 +64,8 @@ function DialogSubscribeApiController($scope, $mdDialog, application, apiKeys, A
 
 	$scope.isAPISelected = function(api) {
 		var idx = $scope.apisSelected.indexOf(api.id);
-    if (idx > -1) {
-      return true;
-    }
-    else {
-      return false;
-    }
-	}
+    return idx > -1;
+	};
 
 	$scope.subscribe = function(application) {
 		for (var i = 0; i < $scope.apisSelected.length; i++) {
