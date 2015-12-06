@@ -226,6 +226,11 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/application/details/application.html',
       controller: 'ApplicationController',
       controllerAs: 'applicationCtrl',
+      resolve: {
+        resolvedApplication:function ($stateParams, ApplicationService) {
+          return ApplicationService.get($stateParams.applicationId);
+        }
+      },
 			ncyBreadcrumb: {
 				label: '{{applicationCtrl.application.name}}',
 				parent: 'applications.thumb'
@@ -233,21 +238,37 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
     .state('application.general', {
       url: '/general',
-      templateUrl: 'app/application/details/applicationGeneral.html',
+      templateUrl: 'app/application/details/general/applicationGeneral.html',
+      controller: 'ApplicationGeneralController',
+      controllerAs: 'applicationGeneralCtrl',
 			ncyBreadcrumb: {
 				skip: true
 			}
     })
     .state('application.apikeys', {
       url: '/apikeys',
-      templateUrl: 'app/application/details/applicationAPIs.html',
+      templateUrl: 'app/application/details/apikeys/applicationAPIKeys.html',
+      controller: 'ApplicationAPIKeysController',
+      controllerAs: 'applicationAPIKeysCtrl',
+      resolve: {
+        resolvedAPIKeys:function ($stateParams, ApplicationService) {
+          return ApplicationService.getAPIKeys($stateParams.applicationId);
+        }
+      },
 			ncyBreadcrumb: {
 				skip: true
 			}
     })
     .state('application.members', {
       url: '/members',
-      templateUrl: 'app/application/details/applicationMembers.html',
+      templateUrl: 'app/application/details/members/applicationMembers.html',
+      controller: 'ApplicationMembersController',
+      controllerAs: 'applicationMembersCtrl',
+      resolve: {
+        resolvedMembers:function ($stateParams, ApplicationService) {
+          return ApplicationService.getMembers($stateParams.applicationId);
+        }
+      },
 			ncyBreadcrumb: {
 				skip: true
 			}

@@ -53,6 +53,9 @@ import DialogDocumentationController from './api/admin/documentation/dialog/apiD
 import ProfileController from './profile/profile.controller';
 import ApplicationsController from './application/applications.controller';
 import ApplicationController from './application/details/application.controller';
+import ApplicationGeneralController from './application/details/general/applicationGeneral.controller';
+import ApplicationMembersController from './application/details/members/applicationMembers.controller';
+import ApplicationAPIKeysController from './application/details/apikeys/applicationAPIKeys.controller';
 import DialogApplicationController from './application/dialog/applicationDialog.controller';
 import DialogSubscribeApiController from './application/dialog/subscribeApiDialog.controller';
 import DialogAddMemberController from './application/dialog/addMemberDialog.controller';
@@ -109,6 +112,9 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('ProfileController', ProfileController)
   .controller('ApplicationsController', ApplicationsController)
   .controller('ApplicationController', ApplicationController)
+  .controller('ApplicationGeneralController', ApplicationGeneralController)
+  .controller('ApplicationMembersController', ApplicationMembersController)
+  .controller('ApplicationAPIKeysController', ApplicationAPIKeysController)
   .controller('DialogApplicationController', DialogApplicationController)
   .controller('DialogSubscribeApiController', DialogSubscribeApiController)
   .controller('DialogAddMemberController', DialogAddMemberController)

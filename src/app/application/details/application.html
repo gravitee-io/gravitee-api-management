@@ -16,38 +16,13 @@
 
 -->
 <section>
-	<div layout="column" layout-align="end-start" layout-padding class="gravitee-application-header" flex>
-		<div class="gravitee-api-header-content inset">
-			<div layout="row" layout-align="start center">
-			
-				<div flex="70">
-					<h3>{{applicationCtrl.application.name}} 
-						<small style="color:white;">( {{applicationCtrl.application.type}} )</small>
-					</h3>
-					<md-content flex class="gravitee-api-header-description" style="color:white;">
-						{{applicationCtrl.application.description}}
-					</md-content>
-				</div>
-			
-				<div flex="30" style="text-align: right">
-					<p style="padding: 0; margin: 0;">
-						<span>{{applicationCtrl.application.owner.username}}</span>
-						<span><ng-md-icon icon="person"></ng-md-icon></span>
-					</p>
-					<p style="padding: 0; margin: 0;">
-						<span>{{applicationCtrl.application.created_at | date}}</span>
-						<span><ng-md-icon icon="timer"></ng-md-icon></span>
-					</p>
-				</div>
-			</div>
-		</div>
-	</div>
+  <div ng-include="'app/application/details/applicationHeader.html'"></div>
 
-	<md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
-		<md-tab label="general" ui-sref="application.general"></md-tab>
-		<md-tab label="api keys" ui-sref="application.apikeys"></md-tab>
-		<md-tab label="members" ui-sref="application.members"></md-tab>
-	</md-tabs>
+  <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
+    <md-tab label="general" ui-sref="application.general"></md-tab>
+	<md-tab label="api keys" ui-sref="application.apikeys"></md-tab>
+	<md-tab label="members" ui-sref="application.members"></md-tab>
+  </md-tabs>
 
-	<div ui-view></div>
+  <div ui-view></div>
 </section>
