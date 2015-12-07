@@ -77,8 +77,8 @@ public class ApiKeyServiceTest {
 
         final ApiKeyEntity apiKey = apiKeyService.generateOrRenew(APPLICATION_NAME, API_NAME);
 
-        verify(this.apiKey, never()).setExpiration(any());
-        verify(apiKeyRepository, never()).update(any());
+        verify(this.apiKey, times(1)).setExpiration(any());
+        verify(apiKeyRepository, times(1)).update(any());
 
         assertEquals(API_KEY, apiKey.getKey());
         assertEquals(date, apiKey.getCreatedAt());
