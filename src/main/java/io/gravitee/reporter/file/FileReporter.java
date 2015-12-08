@@ -100,7 +100,7 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(' ');
 
 		// Append Api name
-		String apiName = metrics.getApiName();
+		String apiName = metrics.getApi();
 		if (apiName == null) {
 			apiName = NO_STRING_DATA_VALUE;
 		}
