@@ -16,8 +16,9 @@
 package io.gravitee.reporter.file;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.api.metrics.Metrics;
-import io.gravitee.gateway.api.reporter.MetricsReporter;
+import io.gravitee.reporter.api.Reportable;
+import io.gravitee.reporter.api.Reporter;
+import io.gravitee.reporter.api.metrics.Metrics;
 import io.gravitee.reporter.file.config.Config;
 import org.eclipse.jetty.util.RolloverFileOutputStream;
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ import java.util.TimeZone;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @SuppressWarnings("rawtypes")
-public class FileReporter extends AbstractService implements MetricsReporter {
+public class FileReporter extends AbstractService implements Reporter {
 
 	@Autowired
 	private Config config;
@@ -199,11 +200,13 @@ public class FileReporter extends AbstractService implements MetricsReporter {
 	}
 
 	@Override
-	public void report(Metrics metrics) {
-		try {
-			write(format(metrics));
-		} catch (IOException ioe) {
-			LOGGER.error("", ioe);
+	public void report(Reportable reportable) {
+		if (reportable instanceof Metrics) {
+			try {
+				write(format((Metrics) reportable));
+			} catch (IOException ioe) {
+				LOGGER.error("", ioe);
+			}
 		}
 	}
 }
