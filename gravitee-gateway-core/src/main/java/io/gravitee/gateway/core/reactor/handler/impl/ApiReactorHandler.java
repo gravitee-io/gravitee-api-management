@@ -145,8 +145,11 @@ public class ApiReactorHandler extends ContextReactorHandler {
     }
 
     private void fillMetrics(Request serverRequest, Response serverResponse) {
-        serverResponse.metrics().setApiName(serverRequest.headers().getFirst(GraviteeHttpHeader.X_GRAVITEE_API_NAME));
+        serverResponse.metrics().setApi(api.getId());
+
+        // TODO: this is not correct since the apikey can be provided from query params
         serverResponse.metrics().setApiKey(serverRequest.headers().getFirst(GraviteeHttpHeader.X_GRAVITEE_API_KEY));
+
         serverResponse.metrics().setRequestId(serverRequest.id());
         serverResponse.metrics().setRequestTimestamp(serverRequest.timestamp());
         serverResponse.metrics().setRequestHttpMethod(serverRequest.method());
