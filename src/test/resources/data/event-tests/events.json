@@ -1,0 +1,9 @@
+[
+	{
+	   "_id":"event1",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.EventMongo",
+	   "type":"PUBLISH_API",
+	   "payload": "{}",
+	   "parentId": null
+	}
+]
