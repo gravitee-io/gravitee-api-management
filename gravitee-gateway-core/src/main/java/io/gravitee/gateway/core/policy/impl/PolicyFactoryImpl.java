@@ -16,10 +16,10 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import com.google.common.base.Predicate;
-import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.plugin.policy.PolicyDefinition;
+import io.gravitee.policy.api.PolicyConfiguration;
 import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

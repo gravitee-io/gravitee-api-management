@@ -17,9 +17,9 @@ package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.policy.PolicyChain;
-import io.gravitee.gateway.api.policy.annotations.OnRequest;
-import io.gravitee.gateway.api.policy.annotations.OnResponse;
+import io.gravitee.policy.api.PolicyChain;
+import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnResponse;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

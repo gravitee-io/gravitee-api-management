@@ -17,8 +17,8 @@ package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.policy.PolicyChain;
-import io.gravitee.gateway.api.policy.PolicyResult;
+import io.gravitee.policy.api.PolicyChain;
+import io.gravitee.policy.api.PolicyResult;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

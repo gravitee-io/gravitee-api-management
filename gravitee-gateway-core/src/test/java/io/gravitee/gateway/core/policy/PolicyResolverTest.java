@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.builder.ApiDefinitionBuilder;
 import io.gravitee.gateway.core.builder.ProxyDefinitionBuilder;
 import io.gravitee.gateway.core.definition.Api;
@@ -23,6 +22,7 @@ import io.gravitee.gateway.core.policy.impl.PolicyResolverImpl;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.policy.PolicyDefinition;
 import io.gravitee.plugin.policy.PolicyManager;
+import io.gravitee.policy.api.PolicyConfiguration;
 import org.junit.Before;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;

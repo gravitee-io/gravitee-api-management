@@ -17,8 +17,8 @@ package io.gravitee.gateway.services.monitoring;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.api.reporter.monitor.HealthStatus;
 import io.gravitee.gateway.core.reporter.ReporterService;
+import io.gravitee.reporter.api.monitor.HealthStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;

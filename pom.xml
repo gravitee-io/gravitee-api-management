@@ -34,7 +34,6 @@
     <name>Gravitee IO - Gateway</name>
 
     <modules>
-        <module>gravitee-gateway-api</module>
         <module>gravitee-gateway-core</module>
         <module>gravitee-gateway-http-client</module>
         <module>gravitee-gateway-standalone</module>
@@ -78,6 +77,18 @@
                 <groupId>io.gravitee.repository</groupId>
                 <artifactId>gravitee-repository-jdbc</artifactId>
                 <version>${gravitee-repository-jdbc.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.gateway</groupId>
+                <artifactId>gravitee-gateway-api</artifactId>
+                <version>${gravitee-gateway-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.policy</groupId>
+                <artifactId>gravitee-policy-api</artifactId>
+                <version>${gravitee-policy-api.version}</version>
             </dependency>
 
             <dependency>
@@ -133,6 +144,8 @@
         <gravitee-repository.version>0.4.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-plugin-core.version>0.4.0-SNAPSHOT</gravitee-plugin-core.version>
         <gravitee-plugin-policy.version>0.4.0-SNAPSHOT</gravitee-plugin-policy.version>
+        <gravitee-policy-api.version>0.4.0-SNAPSHOT</gravitee-policy-api.version>
+        <gravitee-gateway-api.version>0.4.0-SNAPSHOT</gravitee-gateway-api.version>
         <gravitee-repository-jdbc.version>0.3.0</gravitee-repository-jdbc.version>
         <gravitee-repository-mongodb.version>0.4.0-SNAPSHOT</gravitee-repository-mongodb.version>
 

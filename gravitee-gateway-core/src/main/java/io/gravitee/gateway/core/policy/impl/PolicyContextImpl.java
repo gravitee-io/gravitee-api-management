@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.gateway.api.policy.PolicyContext;
+import io.gravitee.policy.api.PolicyContext;
 import org.springframework.context.ApplicationContext;
 
 /**

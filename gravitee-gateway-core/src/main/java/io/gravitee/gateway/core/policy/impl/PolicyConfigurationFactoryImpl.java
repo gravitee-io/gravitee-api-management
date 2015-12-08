@@ -16,8 +16,8 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
+import io.gravitee.policy.api.PolicyConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -16,8 +16,8 @@
 package io.gravitee.gateway.core.reporter.impl;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.api.reporter.Reportable;
-import io.gravitee.gateway.api.reporter.Reporter;
+import io.gravitee.reporter.api.Reportable;
+import io.gravitee.reporter.api.Reporter;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

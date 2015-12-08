@@ -16,7 +16,7 @@
 package io.gravitee.gateway.core.reporter;
 
 import io.gravitee.common.service.Service;
-import io.gravitee.gateway.api.reporter.Reportable;
+import io.gravitee.reporter.api.Reportable;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

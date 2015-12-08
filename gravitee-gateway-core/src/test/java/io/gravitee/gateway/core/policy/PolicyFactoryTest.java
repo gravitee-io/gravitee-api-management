@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.policy.PolicyConfiguration;
 import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.policy.PolicyDefinition;
+import io.gravitee.policy.api.PolicyConfiguration;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

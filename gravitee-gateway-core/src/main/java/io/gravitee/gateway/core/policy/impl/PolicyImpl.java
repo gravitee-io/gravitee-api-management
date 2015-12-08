@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.gateway.api.policy.PolicyContext;
 import io.gravitee.gateway.core.policy.Policy;
+import io.gravitee.policy.api.PolicyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
