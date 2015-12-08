@@ -29,7 +29,7 @@
 
     <groupId>io.gravitee.gateway</groupId>
     <artifactId>gravitee-gateway</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.0</version>
     <packaging>pom</packaging>
     <name>Gravitee IO - Gateway</name>
 
@@ -139,15 +139,15 @@
     </dependencies>
 
     <properties>
-        <gravitee-definition.version>0.4.0-SNAPSHOT</gravitee-definition.version>
+        <gravitee-definition.version>0.4.0</gravitee-definition.version>
         <gravitee-common.version>0.2.0</gravitee-common.version>
-        <gravitee-repository.version>0.4.0-SNAPSHOT</gravitee-repository.version>
-        <gravitee-plugin-core.version>0.4.0-SNAPSHOT</gravitee-plugin-core.version>
-        <gravitee-plugin-policy.version>0.4.0-SNAPSHOT</gravitee-plugin-policy.version>
-        <gravitee-policy-api.version>0.4.0-SNAPSHOT</gravitee-policy-api.version>
-        <gravitee-gateway-api.version>0.4.0-SNAPSHOT</gravitee-gateway-api.version>
+        <gravitee-repository.version>0.4.0</gravitee-repository.version>
+        <gravitee-plugin-core.version>0.4.0</gravitee-plugin-core.version>
+        <gravitee-plugin-policy.version>0.4.0</gravitee-plugin-policy.version>
+        <gravitee-policy-api.version>0.4.0</gravitee-policy-api.version>
+        <gravitee-gateway-api.version>0.4.0</gravitee-gateway-api.version>
         <gravitee-repository-jdbc.version>0.3.0</gravitee-repository-jdbc.version>
-        <gravitee-repository-mongodb.version>0.4.0-SNAPSHOT</gravitee-repository-mongodb.version>
+        <gravitee-repository-mongodb.version>0.4.0</gravitee-repository-mongodb.version>
 
         <jackson.version>2.5.3</jackson.version>
         <vertx.version>3.1.0</vertx.version>
