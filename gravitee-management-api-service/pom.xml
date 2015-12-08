@@ -59,7 +59,6 @@
 		<dependency>
 			<groupId>io.gravitee.plugin</groupId>
 			<artifactId>gravitee-plugin-policy</artifactId>
-			<version>${gravitee-plugin-policy.version}</version>
 		</dependency>
 
 		<!-- Spring dependencies -->
