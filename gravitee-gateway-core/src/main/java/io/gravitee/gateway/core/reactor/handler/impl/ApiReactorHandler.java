@@ -58,6 +58,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
         long proxyInvocationStart = System.currentTimeMillis();
 
+        // Do we need API name or API id ? (this information is transferred to target API)
         serverRequest.headers().set(GraviteeHttpHeader.X_GRAVITEE_API_NAME, api.getId());
 
         // Calculate policies
@@ -146,9 +147,6 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
     private void fillMetrics(Request serverRequest, Response serverResponse) {
         serverResponse.metrics().setApi(api.getId());
-
-        // TODO: this is not correct since the apikey can be provided from query params
-        serverResponse.metrics().setApiKey(serverRequest.headers().getFirst(GraviteeHttpHeader.X_GRAVITEE_API_KEY));
 
         serverResponse.metrics().setRequestId(serverRequest.id());
         serverResponse.metrics().setRequestTimestamp(serverRequest.timestamp());
