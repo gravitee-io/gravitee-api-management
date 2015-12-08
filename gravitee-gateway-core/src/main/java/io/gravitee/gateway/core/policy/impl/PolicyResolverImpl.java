@@ -19,6 +19,7 @@ import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.definition.Api;
+import io.gravitee.gateway.core.policy.PathResolver;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.gateway.core.policy.PolicyResolver;
@@ -34,6 +35,8 @@ import org.springframework.context.ApplicationContextAware;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -51,31 +54,35 @@ public class PolicyResolverImpl implements PolicyResolver, ApplicationContextAwa
     @Autowired
     private PolicyFactory policyFactory;
 
+    @Autowired
+    private PathResolver pathResolver;
+
     private ApplicationContext applicationContext;
 
     @Override
     public List<Policy> resolve(Request request) {
         List<Policy> policies = new ArrayList<>();
-        Path path = getApi().getPaths().get("/*");
 
+        // Resolve the "configured" path according to the inbound request
+        Path path = pathResolver.resolve(request);
+
+        // Create a new policy
         PolicyContext policyContext = getPolicyContext();
 
-        for (Rule rule : path.getRules()) {
-            if (rule.getMethods().contains(request.method())) {
-                PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(rule.getPolicy().getName());
-                if (policyDefinition == null) {
-                    LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}",
-                            rule.getPolicy().getName(), request.id());
-                } else {
-                    Object policyInst = policyFactory.create(policyDefinition, rule.getPolicy().getConfiguration());
+        path.getRules().stream().filter(rule -> rule.getMethods().contains(request.method())).forEach(rule -> {
+            PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(rule.getPolicy().getName());
+            if (policyDefinition == null) {
+                LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}",
+                        rule.getPolicy().getName(), request.id());
+            } else {
+                Object policyInst = policyFactory.create(policyDefinition, rule.getPolicy().getConfiguration());
 
-                    if (policyInst != null) {
-                        LOGGER.debug("Policy {} has been added to the chain for request {}", policyDefinition.id(), request.id());
-                        policies.add(new PolicyImpl(policyInst, policyContext, policyDefinition.onRequestMethod(), policyDefinition.onResponseMethod()));
-                    }
+                if (policyInst != null) {
+                    LOGGER.debug("Policy {} has been added to the chain for request {}", policyDefinition.id(), request.id());
+                    policies.add(new PolicyImpl(policyInst, policyContext, policyDefinition.onRequestMethod(), policyDefinition.onResponseMethod()));
                 }
             }
-        }
+        });
 
         return policies;
     }
