@@ -55,12 +55,10 @@ public class VertxHttpClient extends AbstractHttpClient {
 
         HttpClientRequest clientRequest = httpClient.request(
                 convert(serverRequest.method()),
-                endpointUri.getPort(),
+                endpointUri.getPort() <= 0 ? 80 : endpointUri.getPort(),
                 endpointUri.getHost(),
                 url,
-                clientResponse -> {
-                    handleClientResponse(clientResponse, clientResponseHandler);
-                });
+                clientResponse -> handleClientResponse(clientResponse, clientResponseHandler));
 
         clientRequest.exceptionHandler(event -> {
             LOGGER.error(serverRequest.id() + " server proxying failed", event);
@@ -100,7 +98,7 @@ public class VertxHttpClient extends AbstractHttpClient {
     }
 
     private void handleClientResponse(HttpClientResponse clientResponse,
-                                      AsyncResponseHandler clientResponseHandler){
+                                      AsyncResponseHandler clientResponseHandler) {
         // Copy HTTP status
         clientResponseHandler.onStatusReceived(clientResponse.statusCode());
 
@@ -126,8 +124,9 @@ public class VertxHttpClient extends AbstractHttpClient {
             String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
 
             // Remove hop-by-hop headers.
-            if (HOP_HEADERS.contains(lowerHeaderName))
+            if (HOP_HEADERS.contains(lowerHeaderName)) {
                 continue;
+            }
 
             headerValues.getValue().forEach(headerValue -> httpClientRequest.putHeader(headerName, headerValue));
         }
