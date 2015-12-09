@@ -50,7 +50,6 @@
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
