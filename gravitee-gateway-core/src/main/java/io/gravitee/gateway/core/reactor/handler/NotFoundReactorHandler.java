@@ -30,7 +30,7 @@ public class NotFoundReactorHandler extends AbstractReactorHandler {
 
     @Override
     public void handle(Request request, Response response, io.gravitee.gateway.api.handler.Handler<Response> handler) {
-        LOGGER.warn("No Gravitee handler can be found for request {}, returns NOT_FOUND(404)", request.path());
+        LOGGER.debug("No Gravitee handler can be found for request {}, returns NOT_FOUND(404)", request.path());
 
         response.status(HttpStatusCode.NOT_FOUND_404);
         response.end();

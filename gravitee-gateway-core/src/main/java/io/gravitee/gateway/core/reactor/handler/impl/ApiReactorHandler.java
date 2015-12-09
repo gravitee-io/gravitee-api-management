@@ -56,10 +56,11 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
     @Override
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
-        long proxyInvocationStart = System.currentTimeMillis();
-
         // Do we need API name or API id ? (this information is transferred to target API)
         serverRequest.headers().set(GraviteeHttpHeader.X_GRAVITEE_API_NAME, api.getId());
+
+        // Set specific metrics for API handler
+        serverResponse.metrics().setApi(api.getId());
 
         // Calculate policies
         List<Policy> policies = getPolicyResolver().resolve(serverRequest);
@@ -72,13 +73,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
         AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(policies);
         requestPolicyChain.setResultHandler(requestPolicyResult -> {
             if (requestPolicyResult.isFailure()) {
-                long proxyResponseTimeInMs = System.currentTimeMillis() - proxyInvocationStart;
-                serverResponse.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
-
-                LOGGER.debug("Complete proxying took {} ms [request={}]", serverResponse.metrics().getProxyResponseTimeMs(), serverRequest.id());
-
                 writePolicyResult(requestPolicyResult, serverResponse);
-                fillMetrics(serverRequest, serverResponse);
 
                 handler.handle(serverResponse);
             } else {
@@ -114,12 +109,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
                         serverResponse.end();
 
                         serverResponse.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
-                        serverResponse.metrics().setProxyResponseTimeMs(System.currentTimeMillis() - proxyInvocationStart);
-
                         LOGGER.debug("Remote API invocation took {} ms [request={}]", serverResponse.metrics().getApiResponseTimeMs(), serverRequest.id());
-                        LOGGER.debug("Complete proxying took {} ms [request={}]", serverResponse.metrics().getProxyResponseTimeMs(), serverRequest.id());
-
-                        fillMetrics(serverRequest, serverResponse);
 
                         // Transfer proxy response to the initial consumer
                         handler.handle(serverResponse);
@@ -143,22 +133,6 @@ public class ApiReactorHandler extends ContextReactorHandler {
         }
 
         response.end();
-    }
-
-    private void fillMetrics(Request serverRequest, Response serverResponse) {
-        serverResponse.metrics().setApi(api.getId());
-
-        serverResponse.metrics().setRequestId(serverRequest.id());
-        serverResponse.metrics().setRequestTimestamp(serverRequest.timestamp());
-        serverResponse.metrics().setRequestHttpMethod(serverRequest.method());
-        serverResponse.metrics().setResponseHttpStatus(serverResponse.status());
-        serverResponse.metrics().setRequestLocalAddress(serverRequest.localAddress());
-        serverResponse.metrics().setRequestRemoteAddress(serverRequest.remoteAddress());
-        serverResponse.metrics().setRequestPath(serverRequest.path());
-        serverResponse.metrics().setRequestContentType(serverRequest.headers().contentType());
-        serverResponse.metrics().setRequestContentLength(serverRequest.headers().contentLength());
-        serverResponse.metrics().setResponseContentLength(serverResponse.headers().contentLength());
-        serverResponse.metrics().setResponseContentType(serverResponse.headers().contentType());
     }
 
     @Override

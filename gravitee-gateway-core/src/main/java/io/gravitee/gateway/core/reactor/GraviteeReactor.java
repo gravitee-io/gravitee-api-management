@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 public class GraviteeReactor extends AbstractService implements
         Reactor, EventListener<ApiEvent, Api>, ApplicationContextAware {
 
-    private final Logger logger = LoggerFactory.getLogger(GraviteeReactor.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(GraviteeReactor.class);
 
     @Autowired
     private EventManager eventManager;
@@ -83,12 +83,12 @@ public class GraviteeReactor extends AbstractService implements
         Set<ContextReactorHandler> mapHandlers = handlers.entrySet().stream().filter(
                 entry -> path.startsWith(entry.getKey())).map(Map.Entry::getValue).collect(Collectors.toSet());
 
-        logger.debug("Found {} handlers for path {}", mapHandlers.size(), path);
+        LOGGER.debug("Found {} handlers for path {}", mapHandlers.size(), path);
 
         if (! mapHandlers.isEmpty()) {
 
             ContextReactorHandler handler = mapHandlers.iterator().next();
-            logger.debug("Returning the first handler matching path {} : {}", path, handler);
+            LOGGER.debug("Returning the first handler matching path {} : {}", path, handler);
             return handler;
 
             /*
@@ -125,25 +125,55 @@ public class GraviteeReactor extends AbstractService implements
     }
 
     public void process(Request request, Response response, Handler<Response> handler) {
-        logger.debug("Receiving a request {} for path {}", request.id(), request.path());
+        LOGGER.debug("Receiving a request {} for path {}", request.id(), request.path());
 
         try {
+            response.metrics().setRequestId(request.id());
+            response.metrics().setRequestTimestamp(request.timestamp());
+            response.metrics().setRequestHttpMethod(request.method());
+            response.metrics().setRequestLocalAddress(request.localAddress());
+            response.metrics().setRequestRemoteAddress(request.remoteAddress());
+            response.metrics().setRequestPath(request.path());
+            response.metrics().setRequestContentType(request.headers().contentType());
+            response.metrics().setRequestContentLength(request.headers().contentLength());
+
             ReactorHandler reactorHandler = bestHandler(request);
 
-            if (!reactorHandler.equals(notFoundHandler)) {
-                // wrap the handler with the reporter handler
-                handler = new ReporterHandler(reporterService, handler);
-            }
+            // Wrap the handler with the reporter handler
+            handler = new ResponseTimeHandler(new ReporterHandler(reporterService, handler));
 
             reactorHandler.handle(request, response, handler);
         } catch (Exception ex) {
-            logger.error("An unexpected error occurs while processing request", ex);
+            LOGGER.error("An unexpected error occurs while processing request", ex);
 
             // Send an INTERNAL_SERVER_ERROR (500)
             response.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
             response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
             response.end();
             handler.handle(response);
+        }
+    }
+
+    private class ResponseTimeHandler implements Handler<Response> {
+
+        private final Handler<Response> wrappedHandler;
+        private final long proxyInvocationStart;
+
+        public ResponseTimeHandler(Handler<Response> wrappedHandler) {
+            this.wrappedHandler = wrappedHandler;
+            this.proxyInvocationStart = System.currentTimeMillis();
+        }
+
+        @Override
+        public void handle(Response response) {
+            long proxyResponseTimeInMs = System.currentTimeMillis() - proxyInvocationStart;
+            response.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
+
+            response.metrics().setResponseContentLength(response.headers().contentLength());
+            response.metrics().setResponseContentType(response.headers().contentType());
+            response.metrics().setResponseHttpStatus(response.status());
+
+            wrappedHandler.handle(response);
         }
     }
 
@@ -175,7 +205,7 @@ public class GraviteeReactor extends AbstractService implements
 
     public void createHandler(Api api) {
         if (api.isEnabled()) {
-            logger.info("API {} has been deployed in reactor", api.getId());
+            LOGGER.info("API {} has been deployed in reactor", api.getId());
 
             ContextReactorHandler handler = contextHandlerFactory.create(api);
             try {
@@ -183,10 +213,10 @@ public class GraviteeReactor extends AbstractService implements
                 handlers.putIfAbsent(handler.getContextPath(), handler);
                 contextPaths.putIfAbsent(api, handler.getContextPath());
             } catch (Exception ex) {
-                logger.error("Unable to deploy handler", ex);
+                LOGGER.error("Unable to deploy handler", ex);
             }
         } else {
-            logger.warn("Api {} is disabled !", api.getId());
+            LOGGER.warn("Api {} is disabled !", api.getId());
         }
     }
 
@@ -204,7 +234,7 @@ public class GraviteeReactor extends AbstractService implements
                     removeHandler(api);
                     createHandler(api);
                 } else {
-                    logger.info("API {} doesn't need to be refreshed in the gateway. Skipping...", api.getId());
+                    LOGGER.info("API {} doesn't need to be refreshed in the gateway. Skipping...", api.getId());
                 }
             }
         } else {
@@ -221,9 +251,9 @@ public class GraviteeReactor extends AbstractService implements
                 try {
                     handler.stop();
                     handlers.remove(api.getProxy().getContextPath());
-                    logger.info("API {} has been removed from reactor", api.getId());
+                    LOGGER.info("API {} has been removed from reactor", api.getId());
                 } catch (Exception e) {
-                    logger.error("Unable to remove handler", e);
+                    LOGGER.error("Unable to remove handler", e);
                 }
             }
         }
@@ -235,7 +265,7 @@ public class GraviteeReactor extends AbstractService implements
                 handler.stop();
                 handlers.remove(handler.getContextPath());
             } catch (Exception e) {
-                logger.error("Unable to remove reactor handler", e);
+                LOGGER.error("Unable to remove reactor handler", e);
             }
         });
         contextPaths.clear();
