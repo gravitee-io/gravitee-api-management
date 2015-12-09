@@ -139,7 +139,7 @@ public class GraviteeReactor extends AbstractService implements
 
             ReactorHandler reactorHandler = bestHandler(request);
 
-            // Wrap the handler with the reporter handler
+            // Prepare the handler chain
             handler = new ResponseTimeHandler(new ReporterHandler(reporterService, handler));
 
             reactorHandler.handle(request, response, handler);
@@ -166,14 +166,16 @@ public class GraviteeReactor extends AbstractService implements
 
         @Override
         public void handle(Response response) {
+            // Provide the response to the wrapped handler
+            wrappedHandler.handle(response);
+
+            // Compute response-time and add it to the metrics
             long proxyResponseTimeInMs = System.currentTimeMillis() - proxyInvocationStart;
             response.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
 
             response.metrics().setResponseContentLength(response.headers().contentLength());
             response.metrics().setResponseContentType(response.headers().contentType());
             response.metrics().setResponseHttpStatus(response.status());
-
-            wrappedHandler.handle(response);
         }
     }
 
