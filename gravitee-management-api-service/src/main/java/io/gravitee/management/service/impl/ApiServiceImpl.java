@@ -15,26 +15,13 @@
  */
 package io.gravitee.management.service.impl;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.Rule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.NewApiEntity;
-import io.gravitee.management.model.PrimaryOwnerEntity;
-import io.gravitee.management.model.UpdateApiEntity;
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
@@ -42,12 +29,17 @@ import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.MembershipType;
-import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.Visibility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -345,6 +337,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 apiEntity.setPaths(apiDefinition.getPaths());
                 apiEntity.setMonitoring(apiDefinition.getMonitoring());
                 apiEntity.setProperties(apiDefinition.getProperties());
+                apiEntity.setTags(apiDefinition.getTags());
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while generating API definition", ioe);
             }
@@ -435,6 +428,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiDefinition.setPaths(updateApiEntity.getPaths());
             apiDefinition.setMonitoring(updateApiEntity.getMonitoring());
             apiDefinition.setProperties(updateApiEntity.getProperties());
+            apiDefinition.setTags(updateApiEntity.getTags());
 
             String definition = objectMapper.writeValueAsString(apiDefinition);
             api.setDefinition(definition);

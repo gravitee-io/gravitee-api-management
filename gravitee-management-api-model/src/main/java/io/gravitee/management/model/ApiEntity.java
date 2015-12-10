@@ -15,18 +15,14 @@
  */
 package io.gravitee.management.model;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Monitoring;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
+
+import javax.validation.constraints.NotNull;
+import java.util.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -64,6 +60,8 @@ public class ApiEntity {
     private MembershipType permission;
 
     private Monitoring monitoring;
+
+    private List<String> tags;
 
     public String getId() {
         return id;
@@ -177,6 +175,14 @@ public class ApiEntity {
         this.properties = properties;
     }
 
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -206,6 +212,7 @@ public class ApiEntity {
             ", primaryOwner=" + primaryOwner +
             ", permission=" + permission +
             ", monitoring=" + monitoring +
+            ", tags=" + tags +
             '}';
     }
 }
