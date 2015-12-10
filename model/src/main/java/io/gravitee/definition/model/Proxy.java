@@ -15,6 +15,9 @@
  */
 package io.gravitee.definition.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author Gravitee.io Team
@@ -23,7 +26,7 @@ public class Proxy {
 
     private String contextPath;
 
-    private String endpoint;
+    private Set<String> endpoints = new HashSet<>();
 
     private boolean stripContextPath = false;
 
@@ -37,12 +40,12 @@ public class Proxy {
         this.contextPath = contextPath;
     }
 
-    public String getEndpoint() {
-        return endpoint;
+    public Set<String> getEndpoints() {
+        return endpoints;
     }
 
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
+    public void setEndpoints(Set<String> endpoints) {
+        this.endpoints = endpoints;
     }
 
     public boolean isStripContextPath() {

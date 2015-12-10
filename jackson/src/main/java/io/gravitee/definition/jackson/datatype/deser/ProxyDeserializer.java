@@ -46,8 +46,19 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         }
 
         final JsonNode endpoint = node.get("endpoint");
+        final JsonNode endpoints = node.get("endpoints");
+
         if (endpoint != null) {
-            proxy.setEndpoint(endpoint.asText());
+            if (endpoint.isArray()) {
+                proxy.getEndpoints().add(endpoint.elements().next().asText());
+            } else {
+                proxy.getEndpoints().add(endpoint.asText());
+            }
+        }
+
+        if (endpoints != null && endpoints.isArray()) {
+            endpoints.elements().forEachRemaining(
+                    endpointNode -> proxy.getEndpoints().add(endpointNode.asText()));
         }
 
         JsonNode stripContextNode = node.get("strip_context_path");

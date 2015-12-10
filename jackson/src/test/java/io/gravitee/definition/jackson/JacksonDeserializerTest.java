@@ -39,7 +39,7 @@ public class JacksonDeserializerTest {
     public void definition_defaultHttpConfig() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-defaulthttpconfig.json");
 
-        Assert.assertEquals("http://localhost:1234", api.getProxy().getEndpoint());
+        Assert.assertEquals("http://localhost:1234", api.getProxy().getEndpoints().iterator().next());
         Assert.assertNull(api.getProxy().getHttpClient());
     }
 
@@ -47,7 +47,7 @@ public class JacksonDeserializerTest {
     public void definition_overridedHttpConfig() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-overridedhttpconfig.json");
 
-        Assert.assertEquals("http://localhost:1234", api.getProxy().getEndpoint());
+        Assert.assertEquals("http://localhost:1234", api.getProxy().getEndpoints().iterator().next());
         Assert.assertTrue(api.getProxy().getHttpClient().isUseProxy());
 
         Assert.assertNotNull(api.getProxy().getHttpClient().getHttpProxy());
@@ -219,6 +219,31 @@ public class JacksonDeserializerTest {
         Assert.assertNotNull(api.getTags());
         Assert.assertEquals(2, api.getTags().size());
         Assert.assertEquals("tag1", api.getTags().iterator().next());
+    }
+
+    @Test
+    public void definition_singleEndpoint() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-singleendpoint.json");
+        Assert.assertEquals(1, api.getProxy().getEndpoints().size());
+    }
+
+    @Test
+    public void definition_singleEndpoint_inArray() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-singleendpoint-inarray.json");
+        Assert.assertEquals(1, api.getProxy().getEndpoints().size());
+    }
+
+    @Test
+    public void definition_multipleEndpoints() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-multipleendpoints.json");
+        Assert.assertEquals(2, api.getProxy().getEndpoints().size());
+    }
+
+    @Test
+    public void definition_multipleEndpoints_inSingleEndpoint() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-multipleendpoints-insingleendpoint.json");
+        Assert.assertEquals(1, api.getProxy().getEndpoints().size());
+        Assert.assertEquals("http://host1:8083/myapi", api.getProxy().getEndpoints().iterator().next());
     }
 
     private Api getDefinition(String resource) throws Exception {
