@@ -34,11 +34,15 @@
         <tr style="background-color: #9fb9be;">
           <td colspan="4" style="font-weight: bold">{{value.name}} ({{value.keys.length}} keys)</td>
         </tr>
-				<tr ng-repeat="apikey in value.keys | filter: apiKeysCtrl.showRevokedKeys">
+				<tr ng-repeat="apikey in value.keys | filter: apiKeysCtrl.showRevokedKeys" ng-mouseover="hovered = true"  ng-mouseout="hovered = false">
           <td>
             <ng-md-icon ng-show="!apikey.revoked" icon="done" style="fill: #107F20"></ng-md-icon>
             <ng-md-icon ng-show="apikey.revoked" icon="clear" style="fill: #BE2628"></ng-md-icon>
             <code>{{apikey.key}}</code>
+            <span>
+             	<md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
+              <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link" ngclipboard data-clipboard-text="{{apikey.key}}" role="button" ></ng-md-icon>
+             </span>
           </td>
           <td>{{apikey.revoked_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           <td>{{apikey.expire_on | date:'yyyy-MM-dd HH:mm:ss'}}</td>

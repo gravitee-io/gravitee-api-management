@@ -26,6 +26,7 @@ class ApiKeysController {
     this.apiKeys = resolvedApiKeys.data;
 
     this.showRevokedKeys = false;
+    this.msg ="copy to clipboard";
 	}
 
   hasKeysDefined() {
