@@ -68,7 +68,7 @@ import DialogLoginController from './login/dialog/loginDialog.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
-    angularDragula(angular), 'ncy-angular-breadcrumb', 'schemaForm'])
+    'ncy-angular-breadcrumb', 'schemaForm'])
   .constant('baseURL', '/management/')
   .config(config)
   .config(routerConfig)

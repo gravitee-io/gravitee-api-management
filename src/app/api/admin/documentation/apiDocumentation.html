@@ -15,9 +15,9 @@
     limitations under the License.
 
 -->
-<div layout="row" ng-init="documentationCtrl.list()">
-  <md-list ng-if="listPagesDisplayed" layout="column" class="inset" flex="20">
-    <md-item dragula="'pages-list'" dragula-scope="$parent" ng-repeat="page in documentationCtrl.pages">
+<div layout="row" ng-init="documentationCtrl.init()">
+  <md-list ng-if="listPagesDisplayed" layout="column" class="inset pages" flex="20">
+    <md-item ng-repeat="page in documentationCtrl.pages">
         <md-item-content layout="row" layout-align="start center" ui-sref="apis.admin.documentation.page({pageId: page.id})">
           <md-button class="gravitee-api-page-menu-item" ng-click="documentationCtrl.selectPage(p)"
                      ng-class="{'selected' : page.id === documentationCtrl.$state.params.pageId }">

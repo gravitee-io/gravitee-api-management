@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 class DocumentationController {
-  
-	constructor(DocumentationService, $mdDialog, $scope, $state) {
+
+	constructor(DocumentationService, $mdDialog, $scope, $state, dragularService) {
     'ngInject';
     this.DocumentationService = DocumentationService;
     this.$mdDialog = $mdDialog;
 		this.editMode = false;
+
     this.$state = $state;
     this.$scope = $scope;
+    this.DragularService = dragularService;
 
     $scope.listPagesDisplayed = true;
 
@@ -30,20 +32,37 @@ class DocumentationController {
       that.$state.go('apis.admin.documentation');
       that.list();
     });
+  }
 
-    $scope.$on('pages-list.drop', function(e, el, target, source) {
-      var sourcePage = source.scope().page, targetPage = target.scope().page;
-      sourcePage.order = targetPage.order;
-      DocumentationService.editPage(that.$scope.$parent.apiCtrl.api.id, sourcePage.id, sourcePage).then(function () {
-        // sync list from server because orders has been changed
-        that.list();
+  init() {
+    let that = this;
+    this.list().then( ({pages}) => {
+      let d = document.querySelector('.pages');
+      that.DragularService([d], {
+        scope: this.$scope,
+        containersModel: _.cloneDeep(this.pages),
+        nameSpace: 'documentation'
+      });
+      that.$scope.$on('dragulardrop', function(e, el, target, source, dragularList, index) {
+        let movedPage = that.pages[index];
+        for (let idx = 0; idx < dragularList.length; idx++) {
+          if (movedPage.id === dragularList[idx].id) {
+            movedPage.order = idx+1;
+            break;
+          }
+        }
+        that.pages = dragularList;
+        that.DocumentationService.editPage(that.$scope.$parent.apiCtrl.api.id, movedPage.id, movedPage).then(function () {
+          // sync list from server because orders has been changed
+          that.list();
+        });
       });
     });
   }
-
   list() {
-    this.DocumentationService.list(this.$scope.$parent.apiCtrl.api.id).then(response => {
+    return this.DocumentationService.list(this.$scope.$parent.apiCtrl.api.id).then(response => {
       this.pages = response.data;
+      return {pages: this.pages};
     });
   }
 
