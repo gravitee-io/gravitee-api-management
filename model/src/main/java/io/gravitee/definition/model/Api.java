@@ -15,10 +15,10 @@
  */
 package io.gravitee.definition.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -40,7 +40,7 @@ public class Api {
 
     private Map<String, Object> properties;
 
-    private List<String> tags = new ArrayList<>();
+    private Set<String> tags = new HashSet<>();
 
     public String getId() {
         return id;
@@ -98,11 +98,11 @@ public class Api {
         this.monitoring = monitoring;
     }
 
-    public List<String> getTags() {
+    public Set<String> getTags() {
         return tags;
     }
 
-    public void setTags(List<String> tags) {
+    public void setTags(Set<String> tags) {
         this.tags = tags;
     }
 
