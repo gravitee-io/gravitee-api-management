@@ -35,9 +35,8 @@ import java.util.stream.Collectors;
  */
 public class SyncManager {
 
-    /**
-     * Logger.
-     */
+    private static final String GRAVITEE_TAGS_PROP = "gravitee.tags";
+
     private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
 
     @Autowired
@@ -57,7 +56,25 @@ public class SyncManager {
 
             Map<String, Api> apisMap = apis.stream()
                     .map(this::convert)
-                    .filter(api -> api != null)
+                    .filter(api -> {
+                        if (api == null) {
+                            return false;
+                        }
+                        // check configured tags
+                        final String tags = System.getProperty(GRAVITEE_TAGS_PROP);
+                        if (tags != null) {
+                            if (api.getTags() != null) {
+                                final String[] tagList = tags.split(",");
+                                for (final String tag : tagList) {
+                                    if (api.getTags().contains(tag)) {
+                                        return true;
+                                    }
+                                }
+                            }
+                            return false;
+                        }
+                        return true;
+                    })
                     .collect(Collectors.toMap(Api::getId, api -> api));
 
             // Determine APIs to undeploy
@@ -70,7 +87,7 @@ public class SyncManager {
 
             // Determine APIs to update
             apisMap.keySet().stream()
-                    .filter(apiId ->  apiManager.get(apiId) != null)
+                    .filter(apiId -> apiManager.get(apiId) != null)
                     .forEach(apiId -> {
                         // Get local cached API
                         Api deployedApi = apiManager.get(apiId);
@@ -85,7 +102,7 @@ public class SyncManager {
 
             // Determine APIs to create
             apisMap.keySet().stream()
-                    .filter(apiId ->  apiManager.get(apiId) == null)
+                    .filter(apiId -> apiManager.get(apiId) == null)
                     .forEach(apiId -> {
                         Api newApi = apisMap.get(apiId);
                         apiManager.deploy(newApi);
