@@ -81,7 +81,7 @@ public class GraviteeReactorTest extends AbstractCoreTest {
                 });
 
         req.endHandler().handle(null);
-        Assert.assertEquals(true, lock.await(1000, TimeUnit.MILLISECONDS));
+        Assert.assertEquals(true, lock.await(10000, TimeUnit.MILLISECONDS));
     }
 
     @Test

@@ -32,8 +32,6 @@ public class HttpServerResponse implements Response {
 
     private final Metrics metrics = new Metrics();
 
-    private boolean chunked = false;
-
     public int status() {
         return status;
     }
@@ -54,19 +52,8 @@ public class HttpServerResponse implements Response {
     }
 
     @Override
-    public Response chunked(boolean chunked) {
-        this.chunked = chunked;
-        return this;
-    }
-
-    @Override
-    public boolean chunked() {
-        return this.chunked;
-    }
-
-    @Override
     public void end() {
-
+        // Do nothing
     }
 
     @Override

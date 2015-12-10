@@ -19,8 +19,11 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.gateway.api.ClientRequest;
+import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.http.client.AsyncResponseHandler;
+import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.BodyPart;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import org.slf4j.Logger;
@@ -38,9 +41,9 @@ import java.util.concurrent.TimeoutException;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class VertxHttpClient extends AbstractHttpClient {
+public class VertxHttpClientInvoker extends AbstractHttpClient {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(VertxHttpClient.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(VertxHttpClientInvoker.class);
 
     private HttpClient httpClient;
 
@@ -48,74 +51,79 @@ public class VertxHttpClient extends AbstractHttpClient {
     private Vertx vertx;
 
     @Override
-    public void invoke(Request serverRequest, URI endpointUri, AsyncResponseHandler clientResponseHandler) {
+    public ClientRequest invoke(Request serverRequest, URI endpointUri, Handler<ClientResponse> clientResponseHandler) {
         URI rewrittenURI = rewriteURI(serverRequest, endpointUri);
         String url = rewrittenURI.toString();
         LOGGER.debug("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), url);
 
         HttpClientRequest clientRequest = httpClient.request(
                 convert(serverRequest.method()),
-                endpointUri.getPort() <= 0 ? 80 : endpointUri.getPort(),
+                endpointUri.getPort() == -1 ? 80 : endpointUri.getPort(),
                 endpointUri.getHost(),
                 url,
                 clientResponse -> handleClientResponse(clientResponse, clientResponseHandler));
 
+        ClientRequest invokerRequest = new ClientRequest() {
+            @Override
+            public ClientRequest write(BodyPart bodyPart) {
+                ByteBuffer byteBuffer = bodyPart.getBodyPartAsByteBuffer();
+                LOGGER.debug("{} proxying content to upstream: {} bytes", serverRequest.id(), byteBuffer.remaining());
+                clientRequest.write(byteBuffer.toString());
+
+                return this;
+            }
+
+            @Override
+            public void end() {
+                LOGGER.debug("{} proxying complete", serverRequest.id());
+                clientRequest.end();
+            }
+        };
+
         clientRequest.exceptionHandler(event -> {
             LOGGER.error(serverRequest.id() + " server proxying failed", event);
 
-            if (event instanceof TimeoutException) {
-                clientResponseHandler.onStatusReceived(HttpStatusCode.GATEWAY_TIMEOUT_504);
-            } else {
-                clientResponseHandler.onStatusReceived(HttpStatusCode.BAD_GATEWAY_502);
-            }
+            VertxClientResponse clientResponse = new VertxClientResponse((event instanceof TimeoutException) ?
+                    HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
 
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+            clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
-            clientResponseHandler.onHeadersReceived(httpHeaders);
-            clientResponseHandler.onComplete();
+            clientResponseHandler.handle(clientResponse);
+
+            clientResponse.endHandler().handle(null);
         });
 
+        // Copy headers to final API
         copyRequestHeaders(serverRequest, clientRequest);
 
+        // Check chuncked flag on the request if there are some content to push and if transfer_encoding is set
+        // with chunked value
         if (hasContent(serverRequest)) {
             String transferEncoding = serverRequest.headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
             if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding)) {
                 clientRequest.setChunked(true);
             }
-
-            serverRequest.bodyHandler(bodyPart -> {
-                ByteBuffer byteBuffer = bodyPart.getBodyPartAsByteBuffer();
-                LOGGER.debug("{} proxying content to upstream: {} bytes", serverRequest.id(), byteBuffer.remaining());
-                clientRequest.write(byteBuffer.toString());
-            });
         }
 
-        serverRequest.endHandler(result -> {
-            LOGGER.debug("{} proxying complete", serverRequest.id());
-            clientRequest.end();
-        });
+        return invokerRequest;
     }
 
     private void handleClientResponse(HttpClientResponse clientResponse,
-                                      AsyncResponseHandler clientResponseHandler) {
-        // Copy HTTP status
-        clientResponseHandler.onStatusReceived(clientResponse.statusCode());
+                                      Handler<ClientResponse> clientResponseHandler) {
+        VertxClientResponse proxyClientResponse = new VertxClientResponse(
+                clientResponse.statusCode());
 
         // Copy HTTP headers
-        HttpHeaders httpHeaders = new HttpHeaders();
         clientResponse.headers().forEach(header ->
-                httpHeaders.add(header.getKey(), header.getValue()));
-
-        clientResponseHandler.onHeadersReceived(httpHeaders);
+                proxyClientResponse.headers().add(header.getKey(), header.getValue()));
 
         // Copy body content
-        clientResponse.handler(buffer -> {
-            clientResponseHandler.onBodyPartReceived(new VertxBufferBodyPart(buffer));
-        });
+        clientResponse.handler(event -> proxyClientResponse.bodyHandler().handle(new VertxBufferBodyPart(event)));
 
         // Signal end of the response
-        clientResponse.endHandler((v) -> clientResponseHandler.onComplete());
+        clientResponse.endHandler(v -> proxyClientResponse.endHandler().handle(null));
+
+        clientResponseHandler.handle(proxyClientResponse);
     }
 
     protected void copyRequestHeaders(Request clientRequest, HttpClientRequest httpClientRequest) {
