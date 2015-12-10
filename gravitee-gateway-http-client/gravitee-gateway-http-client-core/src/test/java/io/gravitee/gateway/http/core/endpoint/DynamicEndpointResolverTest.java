@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.endpoint;
+package io.gravitee.gateway.http.core.endpoint;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.core.definition.Api;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

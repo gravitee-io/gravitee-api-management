@@ -54,6 +54,12 @@
 
         <dependency>
             <groupId>io.gravitee.gateway.http</groupId>
+            <artifactId>gravitee-gateway-http-client-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway.http</groupId>
             <artifactId>gravitee-gateway-http-client-vertx</artifactId>
             <version>${project.version}</version>
         </dependency>

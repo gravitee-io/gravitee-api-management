@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.endpoint;
+package io.gravitee.gateway.http.core.endpoint;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.core.definition.Api;
+import io.gravitee.gateway.http.core.endpoint.parser.TemplateParserContext;
+import io.gravitee.gateway.http.core.endpoint.parser.WrappedRequestVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.expression.EvaluationContext;

@@ -31,6 +31,7 @@ import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.ResponseTimeHandler;
 import io.gravitee.gateway.core.reactor.handler.impl.ApiReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.reporter.ReporterHandler;
 import io.gravitee.gateway.core.reporter.ReporterService;
@@ -140,7 +141,8 @@ public class GraviteeReactor extends AbstractService implements
             ReactorHandler reactorHandler = bestHandler(request);
 
             // Prepare the handler chain
-            handler = new ResponseTimeHandler(new ReporterHandler(reporterService, handler));
+            handler = new ResponseTimeHandler(
+                    new ReporterHandler(reporterService, handler));
 
             reactorHandler.handle(request, response, handler);
         } catch (Exception ex) {
@@ -151,31 +153,6 @@ public class GraviteeReactor extends AbstractService implements
             response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
             response.end();
             handler.handle(response);
-        }
-    }
-
-    private class ResponseTimeHandler implements Handler<Response> {
-
-        private final Handler<Response> wrappedHandler;
-        private final long proxyInvocationStart;
-
-        public ResponseTimeHandler(Handler<Response> wrappedHandler) {
-            this.wrappedHandler = wrappedHandler;
-            this.proxyInvocationStart = System.currentTimeMillis();
-        }
-
-        @Override
-        public void handle(Response response) {
-            // Provide the response to the wrapped handler
-            wrappedHandler.handle(response);
-
-            // Compute response-time and add it to the metrics
-            long proxyResponseTimeInMs = System.currentTimeMillis() - proxyInvocationStart;
-            response.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
-
-            response.metrics().setResponseContentLength(response.headers().contentLength());
-            response.metrics().setResponseContentType(response.headers().contentType());
-            response.metrics().setResponseHttpStatus(response.status());
         }
     }
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.endpoint;
+package io.gravitee.gateway.http.core.endpoint.parser;
 
 import org.springframework.expression.ParserContext;
 
