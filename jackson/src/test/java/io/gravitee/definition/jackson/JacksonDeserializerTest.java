@@ -206,6 +206,21 @@ public class JacksonDeserializerTest {
         Assert.assertFalse(api.getMonitoring().isEnabled());
     }
 
+    @Test
+    public void definition_withoutTags() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withouttags.json");
+        Assert.assertNotNull(api.getTags());
+        Assert.assertEquals(0, api.getTags().size());
+    }
+
+    @Test
+    public void definition_withTags() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withtags.json");
+        Assert.assertNotNull(api.getTags());
+        Assert.assertEquals(2, api.getTags().size());
+        Assert.assertEquals("tag1", api.getTags().iterator().next());
+    }
+
     private Api getDefinition(String resource) throws Exception {
         URL jsonFile = JacksonDeserializerTest.class.getResource(resource);
         return objectMapper().readValue(jsonFile, Api.class);

@@ -40,7 +40,7 @@ public class Api {
 
     private Map<String, Object> properties;
 
-    private List<String> tags = new ArrayList<>();;
+    private List<String> tags = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -125,11 +125,6 @@ public class Api {
             "id='" + id + '\'' +
             ", name='" + name + '\'' +
             ", version='" + version + '\'' +
-            ", proxy=" + proxy +
-            ", monitoring=" + monitoring +
-            ", paths=" + paths +
-            ", properties=" + properties +
-            ", tags='" + tags + '\'' +
             '}';
     }
 }
