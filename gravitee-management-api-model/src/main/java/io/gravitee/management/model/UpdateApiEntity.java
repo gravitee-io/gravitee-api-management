@@ -15,15 +15,15 @@
  */
 package io.gravitee.management.model;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Monitoring;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
+
+import javax.validation.constraints.NotNull;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -54,6 +54,8 @@ public class UpdateApiEntity {
 
     @NotNull
     private Visibility visibility;
+
+    private List<String> tags;
 
     public Visibility getVisibility() {
         return visibility;
@@ -117,5 +119,13 @@ public class UpdateApiEntity {
 
     public void setProperties(Map<String, Object> properties) {
         this.properties = properties;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
     }
 }
