@@ -19,10 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Monitoring;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -118,6 +115,12 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
             });
 
             api.setProperties(properties);
+        }
+
+        JsonNode tagsNode = node.get("tags");
+
+        if (tagsNode != null && tagsNode.isArray()) {
+            tagsNode.elements().forEachRemaining(jsonNode -> api.getTags().add(jsonNode.asText()));
         }
 
         return api;
