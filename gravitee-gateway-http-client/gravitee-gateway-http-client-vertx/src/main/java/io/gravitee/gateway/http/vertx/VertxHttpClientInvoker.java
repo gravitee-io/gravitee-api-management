@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.BodyPart;
+import io.gravitee.gateway.http.core.endpoint.EndpointResolver;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import org.slf4j.Logger;
@@ -50,16 +51,27 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
     @Resource
     private Vertx vertx;
 
+    @Resource
+    private EndpointResolver endpointResolver;
+
     @Override
-    public ClientRequest invoke(Request serverRequest, URI endpointUri, Handler<ClientResponse> clientResponseHandler) {
-        URI rewrittenURI = rewriteURI(serverRequest, endpointUri);
+    public ClientRequest invoke(Request serverRequest, Handler<ClientResponse> clientResponseHandler) {
+        // Resolve target endpoint
+        URI endpoint = endpointResolver.resolve(serverRequest);
+
+        // TODO: how to pass this to the response metrics
+        // serverResponse.metrics().setEndpoint(endpoint.toString());
+
+
+        URI rewrittenURI = rewriteURI(serverRequest, endpoint);
         String url = rewrittenURI.toString();
         LOGGER.debug("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), url);
 
+
         HttpClientRequest clientRequest = httpClient.request(
                 convert(serverRequest.method()),
-                endpointUri.getPort() == -1 ? 80 : endpointUri.getPort(),
-                endpointUri.getHost(),
+                endpoint.getPort() == -1 ? 80 : endpoint.getPort(),
+                endpoint.getHost(),
                 url,
                 clientResponse -> handleClientResponse(clientResponse, clientResponseHandler));
 

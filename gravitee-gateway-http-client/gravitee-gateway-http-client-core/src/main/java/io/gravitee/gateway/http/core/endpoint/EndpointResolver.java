@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.endpoint;
+package io.gravitee.gateway.http.core.endpoint;
 
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.core.definition.Api;
 
 import java.net.URI;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class DefaultEndpointResolver extends AbstractEndpointResolver {
+public interface EndpointResolver {
 
-    protected DefaultEndpointResolver(Api api) {
-        super(api);
-    }
-
-    @Override
-    public URI resolve(Request request) {
-        return URI.create(getEndpoint());
-    }
+    URI resolve(Request request);
 }

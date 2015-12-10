@@ -27,21 +27,26 @@
         <version>0.5.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-gateway-http-client-vertx</artifactId>
-    <name>Gravitee IO - Gateway - HTTP Client - Vert.x</name>
+    <artifactId>gravitee-gateway-http-client-core</artifactId>
+    <name>Gravitee IO - Gateway - HTTP Client - Core</name>
 
     <dependencies>
-        <!-- Vertx.io HTTP client -->
+        <!-- Spring dependencies -->
         <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-core</artifactId>
-            <version>${vertx.version}</version>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>io.gravitee.gateway.http</groupId>
-            <artifactId>gravitee-gateway-http-client-core</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

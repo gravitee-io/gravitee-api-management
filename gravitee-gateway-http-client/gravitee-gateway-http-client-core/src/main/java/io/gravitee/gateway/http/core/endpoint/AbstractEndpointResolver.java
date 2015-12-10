@@ -13,37 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.endpoint;
+package io.gravitee.gateway.http.core.endpoint;
 
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.gateway.api.Request;
 
-import java.util.Map;
+import io.gravitee.definition.model.Api;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class WrappedRequestVariable {
+public abstract class AbstractEndpointResolver implements EndpointResolver {
 
-    private final Request request;
+    protected final Api api;
 
-    public WrappedRequestVariable(Request request) {
-        this.request = request;
+    protected AbstractEndpointResolver(Api api) {
+        this.api = api;
     }
 
-    public String getId() {
-        return request.id();
-    }
-
-    public HttpHeaders getHeaders() {
-        return request.headers();
-    }
-
-    public Map<String, String> getParams() {
-        return request.parameters();
-    }
-
-    public String[] getPaths() {
-        return request.path().split("/");
+    protected String getEndpoint() {
+        return api.getProxy().getEndpoint();
     }
 }

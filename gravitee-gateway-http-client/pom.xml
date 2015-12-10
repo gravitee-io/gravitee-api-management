@@ -33,6 +33,7 @@
     <name>Gravitee IO - Gateway - HTTP Client</name>
 
     <modules>
+        <module>gravitee-gateway-http-client-core</module>
         <module>gravitee-gateway-http-client-vertx</module>
     </modules>
 

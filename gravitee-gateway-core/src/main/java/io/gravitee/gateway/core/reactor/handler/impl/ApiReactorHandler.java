@@ -25,7 +25,6 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.endpoint.EndpointResolver;
 import io.gravitee.gateway.core.http.StringBodyPart;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
@@ -35,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.net.URI;
 import java.util.List;
 
 /**
@@ -51,9 +49,6 @@ public class ApiReactorHandler extends ContextReactorHandler {
     @Autowired
     private HttpClient httpClient;
 
-    @Autowired
-    private EndpointResolver endpointResolver;
-
     @Override
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
         // Do we need API name or API id ? (this information is transferred to target API)
@@ -64,10 +59,6 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
         // Calculate policies
         List<Policy> policies = getPolicyResolver().resolve(serverRequest);
-
-        // Resolve target endpoint
-        URI endpoint = endpointResolver.resolve(serverRequest);
-        serverResponse.metrics().setEndpoint(endpoint.toString());
 
         // Apply request policies
         AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(policies);
@@ -81,7 +72,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
                 Invoker invoker = httpClient;
 
                 long serviceInvocationStart = System.currentTimeMillis();
-                ClientRequest clientRequest = invoker.invoke(serverRequest, endpoint, responseStream -> {
+                ClientRequest clientRequest = invoker.invoke(serverRequest, responseStream -> {
 
                     // Set the status
                     serverResponse.status(responseStream.status());
