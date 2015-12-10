@@ -15,6 +15,8 @@
  */
 package io.gravitee.definition.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -37,6 +39,8 @@ public class Api {
     private Map<String, Path> paths;
 
     private Map<String, Object> properties;
+
+    private List<String> tags = new ArrayList<>();;
 
     public String getId() {
         return id;
@@ -94,6 +98,14 @@ public class Api {
         this.monitoring = monitoring;
     }
 
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -108,15 +120,16 @@ public class Api {
         return Objects.hash(id, version);
     }
 
-    @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Api{");
-        sb.append("id='").append(id).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", version='").append(version).append('\'');
-        sb.append(", context_path='").append(proxy.getContextPath()).append('\'');
-        sb.append(", endpoint='").append(proxy.getEndpoint()).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return "Api{" +
+            "id='" + id + '\'' +
+            ", name='" + name + '\'' +
+            ", version='" + version + '\'' +
+            ", proxy=" + proxy +
+            ", monitoring=" + monitoring +
+            ", paths=" + paths +
+            ", properties=" + properties +
+            ", tags='" + tags + '\'' +
+            '}';
     }
 }
