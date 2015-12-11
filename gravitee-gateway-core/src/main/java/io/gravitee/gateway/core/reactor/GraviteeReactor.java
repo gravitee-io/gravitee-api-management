@@ -209,7 +209,7 @@ public class GraviteeReactor extends AbstractService implements
                 if (previousApi.isEnabled() != api.isEnabled() ||
                         previousApi.getProxy().isStripContextPath() != api.getProxy().isStripContextPath() ||
                         !previousApi.getProxy().getContextPath().equals(api.getProxy().getContextPath()) ||
-                        !previousApi.getProxy().getEndpoint().equals(api.getProxy().getEndpoint())) {
+                        !previousApi.getProxy().getEndpoints().equals(api.getProxy().getEndpoints())) {
                     removeHandler(api);
                     createHandler(api);
                 } else {

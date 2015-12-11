@@ -33,10 +33,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -194,7 +191,6 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
 
     private void initialize(Proxy proxyDefinition) {
         Objects.requireNonNull(proxyDefinition, "Proxy must not be null");
-        Objects.requireNonNull(proxyDefinition.getEndpoint(), "Proxy target must not be null");
 
         LOGGER.info("Initializing Vert.x HTTP Client with {}", proxyDefinition.getHttpClient());
 

@@ -53,7 +53,7 @@ public class ProxyValidatorTest {
     public void validate_proxy_correctContextPathAndTarget() {
         Proxy proxyDefinition = new Proxy();
         proxyDefinition.setContextPath("/context-path");
-        proxyDefinition.setEndpoint("http://localhost");
+        proxyDefinition.getEndpoints().add("http://localhost");
 
         Api definition = new Api();
         definition.setProxy(proxyDefinition);

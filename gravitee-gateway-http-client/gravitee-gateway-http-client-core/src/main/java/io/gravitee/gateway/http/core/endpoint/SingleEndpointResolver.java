@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.http.core.endpoint;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.Request;
 
 import java.net.URI;
@@ -23,14 +22,16 @@ import java.net.URI;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class DefaultEndpointResolver extends AbstractEndpointResolver {
+public class SingleEndpointResolver implements EndpointResolver {
 
-    protected DefaultEndpointResolver(Api api) {
-        super(api);
+    private final String endpoint;
+
+    public SingleEndpointResolver(String endpoint) {
+        this.endpoint = endpoint;
     }
 
     @Override
     public URI resolve(Request request) {
-        return URI.create(getEndpoint());
+        return URI.create(endpoint);
     }
 }

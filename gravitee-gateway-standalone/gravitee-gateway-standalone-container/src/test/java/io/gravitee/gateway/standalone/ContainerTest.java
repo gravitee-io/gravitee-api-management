@@ -77,10 +77,11 @@ public class ContainerTest {
     private Api getApiDefinition() throws Exception {
         URL jsonFile = ContainerTest.class.getResource("/io/gravitee/gateway/standalone/api.json");
         Api api = new GraviteeMapper().readValue(jsonFile, Api.class);
-        String endpoint = api.getProxy().getEndpoint();
+        String endpoint = api.getProxy().getEndpoints().iterator().next();
         URI uri = URI.create(endpoint);
         URI newUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), SERVER_MOCK.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
-        api.getProxy().setEndpoint(newUri.toString());
+        api.getProxy().getEndpoints().clear();
+        api.getProxy().getEndpoints().add(newUri.toString());
         return api;
     }
 

@@ -26,7 +26,9 @@ import org.mockito.Mock;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -61,9 +63,11 @@ public class DynamicEndpointResolverTest {
 
         when(request.headers()).thenReturn(headers);
         when(request.path()).thenReturn("/stores/99/products/123456");
-
         when(api.getProxy()).thenReturn(proxy);
-        when(proxy.getEndpoint()).thenReturn("http://{#request.headers['X-Gravitee-Endpoint']}:9099/weather");
+
+        Set<String> endpoints = new HashSet<>();
+        endpoints.add("http://{#request.headers['X-Gravitee-Endpoint']}:9099/weather");
+        when(proxy.getEndpoints()).thenReturn(endpoints);
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
@@ -76,9 +80,11 @@ public class DynamicEndpointResolverTest {
         params.put("env", "prod");
 
         when(request.parameters()).thenReturn(params);
-
         when(api.getProxy()).thenReturn(proxy);
-        when(proxy.getEndpoint()).thenReturn("http://remote_api:9099/weather/{#request.params['env']}");
+
+        Set<String> endpoints = new HashSet<>();
+        endpoints.add("http://remote_api:9099/weather/{#request.params['env']}");
+        when(proxy.getEndpoints()).thenReturn(endpoints);
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
@@ -89,7 +95,10 @@ public class DynamicEndpointResolverTest {
     public void test_dynamicEndpoint_usingRequestPaths() {
         when(request.path()).thenReturn("/stores/99/products/123456");
         when(api.getProxy()).thenReturn(proxy);
-        when(proxy.getEndpoint()).thenReturn("http://store_{#request.paths[2]}_host:9099/weather");
+
+        Set<String> endpoints = new HashSet<>();
+        endpoints.add("http://store_{#request.paths[2]}_host:9099/weather");
+        when(proxy.getEndpoints()).thenReturn(endpoints);
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
@@ -100,7 +109,10 @@ public class DynamicEndpointResolverTest {
     public void test_dynamicEndpoint_usingRequestPaths_outOfBounds() {
         when(request.path()).thenReturn("/stores");
         when(api.getProxy()).thenReturn(proxy);
-        when(proxy.getEndpoint()).thenReturn("http://store_{#request.paths[2]}_host:9099/weather");
+
+        Set<String> endpoints = new HashSet<>();
+        endpoints.add("http://store_{#request.paths[2]}_host:9099/weather");
+        when(proxy.getEndpoints()).thenReturn(endpoints);
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
@@ -122,9 +134,11 @@ public class DynamicEndpointResolverTest {
         when(request.parameters()).thenReturn(params);
         when(request.headers()).thenReturn(headers);
         when(request.path()).thenReturn("/stores/99/products/123456");
-
         when(api.getProxy()).thenReturn(proxy);
-        when(proxy.getEndpoint()).thenReturn("http://{#request.headers[#request.params['header']]}:9099/weather");
+
+        Set<String> endpoints = new HashSet<>();
+        endpoints.add("http://{#request.headers[#request.params['header']]}:9099/weather");
+        when(proxy.getEndpoints()).thenReturn(endpoints);
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
@@ -138,7 +152,10 @@ public class DynamicEndpointResolverTest {
 
         when(api.getProxy()).thenReturn(proxy);
         when(api.getProperties()).thenReturn(properties);
-        when(proxy.getEndpoint()).thenReturn("http://my_api_host:9099/weather/{#properties['property_1']}");
+
+        Set<String> endpoints = new HashSet<>();
+        endpoints.add("http://my_api_host:9099/weather/{#properties['property_1']}");
+        when(proxy.getEndpoints()).thenReturn(endpoints);
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
@@ -148,7 +165,10 @@ public class DynamicEndpointResolverTest {
     @Test
     public void test_dynamicEndpoint_usingNullProperties() {
         when(api.getProxy()).thenReturn(proxy);
-        when(proxy.getEndpoint()).thenReturn("http://my_api_host:9099/weather/{#properties['property_1']}");
+
+        Set<String> endpoints = new HashSet<>();
+        endpoints.add("http://my_api_host:9099/weather/{#properties['property_1']}");
+        when(proxy.getEndpoints()).thenReturn(endpoints);
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
@@ -161,7 +181,10 @@ public class DynamicEndpointResolverTest {
 
         when(api.getProxy()).thenReturn(proxy);
         when(api.getProperties()).thenReturn(properties);
-        when(proxy.getEndpoint()).thenReturn("http://my_api_host:9099/weather/{#properties['property_1']}");
+
+        Set<String> endpoints = new HashSet<>();
+        endpoints.add("http://my_api_host:9099/weather/{#properties['property_1']}");
+        when(proxy.getEndpoints()).thenReturn(endpoints);
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);
         Assert.assertNotNull(endpointUri);
@@ -175,7 +198,10 @@ public class DynamicEndpointResolverTest {
 
         when(request.path()).thenReturn("/stores/99/products/123456");
         when(api.getProxy()).thenReturn(proxy);
-        when(proxy.getEndpoint()).thenReturn("http://{#properties['store_' + #request.paths[2]]}:9099/weather");
+
+        Set<String> endpoints = new HashSet<>();
+        endpoints.add("http://{#properties['store_' + #request.paths[2]]}:9099/weather");
+        when(proxy.getEndpoints()).thenReturn(endpoints);
         when(api.getProperties()).thenReturn(properties);
 
         URI endpointUri = new DynamicEndpointResolver(api).resolve(request);

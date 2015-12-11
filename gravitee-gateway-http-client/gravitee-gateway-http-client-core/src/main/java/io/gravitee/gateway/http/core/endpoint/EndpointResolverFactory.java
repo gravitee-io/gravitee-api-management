@@ -36,11 +36,13 @@ public class EndpointResolverFactory extends AbstractFactoryBean<EndpointResolve
     protected EndpointResolver createInstance() throws Exception {
         // Endpoint resolver can be of three different types :
         // 1_ A simple (and default) single endpoint without expression
-
         // 2_ An expressed endpoint (using SpEL)
-
         // 3_ A multiple endpoint definition to apply round-robin
 
-        return new DefaultEndpointResolver(api);
+        if (api.getProxy().getEndpoints().size() == 1) {
+            return new SingleEndpointResolver(api.getProxy().getEndpoints().iterator().next());
+        } else {
+            return new RoundRobinEndpointResolver(api.getProxy().getEndpoints());
+        }
     }
 }

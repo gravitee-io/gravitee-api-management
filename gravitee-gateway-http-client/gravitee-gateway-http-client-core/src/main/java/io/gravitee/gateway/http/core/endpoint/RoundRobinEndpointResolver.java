@@ -13,34 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.builder;
+package io.gravitee.gateway.http.core.endpoint;
 
-import io.gravitee.definition.model.Proxy;
+import io.gravitee.gateway.api.Request;
+
+import java.net.URI;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ProxyDefinitionBuilder {
+public class RoundRobinEndpointResolver implements EndpointResolver {
 
-    private final Proxy proxyDefinition = new Proxy();
+    private final Set<String> endpoints;
+    private Iterator<String> iterator;
 
-    public ProxyDefinitionBuilder contextPath(String contextPath) {
-        this.proxyDefinition.setContextPath(contextPath);
-        return this;
+    public RoundRobinEndpointResolver(Set<String> endpoints) {
+        this.endpoints = endpoints;
     }
 
-    public ProxyDefinitionBuilder target(String target) {
-        this.proxyDefinition.getEndpoints().add(target);
-        return this;
-    }
+    @Override
+    public URI resolve(Request request) {
+        // If we get to the end, start again
+        if (!iterator.hasNext()) {
+            iterator = endpoints.iterator();
+        }
 
-    public ProxyDefinitionBuilder stripContextPath(boolean stripContextPath) {
-        this.proxyDefinition.setStripContextPath(stripContextPath);
-        return this;
+        return URI.create(iterator.next());
     }
-
-    public Proxy build() {
-        return this.proxyDefinition;
-    }
-
 }

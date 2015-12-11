@@ -28,8 +28,4 @@ public abstract class AbstractEndpointResolver implements EndpointResolver {
     protected AbstractEndpointResolver(Api api) {
         this.api = api;
     }
-
-    protected String getEndpoint() {
-        return api.getProxy().getEndpoint();
-    }
 }
