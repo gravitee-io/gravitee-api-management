@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,7 +68,7 @@ import DialogLoginController from './login/dialog/loginDialog.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
-    'ncy-angular-breadcrumb', 'schemaForm'])
+    angularDragula(angular), 'ncy-angular-breadcrumb', 'schemaForm', 'ngclipboard'])
   .constant('baseURL', '/management/')
   .config(config)
   .config(routerConfig)
