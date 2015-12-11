@@ -18,10 +18,7 @@ package io.gravitee.gateway.core.policy.impl;
 import io.gravitee.definition.model.Path;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.policy.PathResolver;
-import io.gravitee.gateway.core.policy.Policy;
-import io.gravitee.gateway.core.policy.PolicyFactory;
-import io.gravitee.gateway.core.policy.PolicyResolver;
+import io.gravitee.gateway.core.policy.*;
 import io.gravitee.plugin.policy.PolicyDefinition;
 import io.gravitee.plugin.policy.PolicyManager;
 import org.slf4j.Logger;
@@ -51,7 +48,7 @@ public class PolicyResolverImpl implements PolicyResolver {
     private PathResolver pathResolver;
 
     @Override
-    public List<Policy> resolve(Request request) {
+    public List<Policy> resolve(Request request, StreamType streamType) {
         List<Policy> policies = new ArrayList<>();
 
         // Resolve the "configured" path according to the inbound request
@@ -62,7 +59,10 @@ public class PolicyResolverImpl implements PolicyResolver {
             if (policyDefinition == null) {
                 LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}",
                         rule.getPolicy().getName(), request.id());
-            } else {
+            } else if (
+                    (streamType == StreamType.REQUEST && policyDefinition.onRequestMethod() != null) ||
+                            (streamType == StreamType.RESPONSE && policyDefinition.onResponseMethod() != null)){
+
                 Object policyInst = policyFactory.create(policyDefinition, rule.getPolicy().getConfiguration());
 
                 if (policyInst != null) {

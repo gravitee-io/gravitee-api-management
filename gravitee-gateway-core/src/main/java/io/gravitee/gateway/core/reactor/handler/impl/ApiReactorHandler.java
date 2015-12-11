@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.http.StringBodyPart;
 import io.gravitee.gateway.core.policy.Policy;
+import io.gravitee.gateway.core.policy.StreamType;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
 import io.gravitee.gateway.core.policy.impl.ExecutionContextImpl;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
@@ -56,7 +57,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
         serverResponse.metrics().setApi(api.getId());
 
         // Calculate policies
-        List<Policy> policies = getPolicyResolver().resolve(serverRequest);
+        List<Policy> policies = getPolicyResolver().resolve(serverRequest, StreamType.REQUEST);
 
         // Prepare execution context
         ExecutionContext executionContext = createExecutionContext();
