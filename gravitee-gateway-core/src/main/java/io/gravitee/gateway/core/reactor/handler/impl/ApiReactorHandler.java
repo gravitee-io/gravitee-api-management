@@ -18,16 +18,14 @@ package io.gravitee.gateway.core.reactor.handler.impl;
 import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
-import io.gravitee.gateway.api.ClientRequest;
-import io.gravitee.gateway.api.Invoker;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.*;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.http.StringBodyPart;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
+import io.gravitee.gateway.core.policy.impl.ExecutionContextImpl;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
@@ -60,8 +58,11 @@ public class ApiReactorHandler extends ContextReactorHandler {
         // Calculate policies
         List<Policy> policies = getPolicyResolver().resolve(serverRequest);
 
+        // Prepare execution context
+        ExecutionContext executionContext = createExecutionContext();
+
         // Apply request policies
-        AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(policies);
+        AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(policies, executionContext);
         requestPolicyChain.setResultHandler(requestPolicyResult -> {
             if (requestPolicyResult.isFailure()) {
                 writePolicyResult(requestPolicyResult, serverResponse);
@@ -117,6 +118,10 @@ public class ApiReactorHandler extends ContextReactorHandler {
         }
 
         response.end();
+    }
+
+    private ExecutionContext createExecutionContext() {
+        return new ExecutionContextImpl(applicationContext);
     }
 
     @Override

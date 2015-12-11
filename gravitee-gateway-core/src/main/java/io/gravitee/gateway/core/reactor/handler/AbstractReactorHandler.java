@@ -26,7 +26,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  */
 public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<ReactorHandler> implements ReactorHandler, ApplicationContextAware {
 
-    private ApplicationContext applicationContext;
+    protected ApplicationContext applicationContext;
 
     @Override
     protected void doStart() throws Exception {

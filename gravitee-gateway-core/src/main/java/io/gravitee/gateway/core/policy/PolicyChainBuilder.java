@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.policy;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.policy.api.PolicyChain;
 
 import java.util.List;
@@ -31,5 +32,5 @@ public interface PolicyChainBuilder<T extends PolicyChain> {
      *
      * @return A Policy chain handler.
      */
-    T newPolicyChain(List<Policy> policies);
+    T newPolicyChain(List<Policy> policies, ExecutionContext executionContext);
 }

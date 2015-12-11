@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.policy.Policy;
@@ -33,11 +34,14 @@ public class RequestPolicyChain extends AbstractPolicyChain {
 
     private final ListIterator<Policy> iterator;
 
-    public RequestPolicyChain(final List<Policy> policies) {
+    private final ExecutionContext executionContext;
+
+    public RequestPolicyChain(final List<Policy> policies, final ExecutionContext executionContext) {
         if (policies == null) {
             throw new IllegalArgumentException("List of policies can't be null.");
         }
 
+        this.executionContext = executionContext;
         this.iterator = policies.listIterator();
     }
 
@@ -46,7 +50,7 @@ public class RequestPolicyChain extends AbstractPolicyChain {
         if (iterator().hasNext()) {
             Policy policy = iterator().next();
             try {
-                policy.onRequest(request, response, this);
+                policy.onRequest(request, response, this, executionContext);
             } catch (Exception ex) {
                 LOGGER.error("Unexpected error while running onRequest method for policy {}", policy, ex);
                 failWith(ex);

@@ -17,11 +17,13 @@ package io.gravitee.gateway.core.policy;
 
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -51,10 +53,10 @@ public class GlobalPolicyChainTest {
     public void doNext_multiplePolicyOrder() throws Exception {
         List<Policy> policies = policies2();
 
-        AbstractPolicyChain requestChain = new RequestPolicyChain(policies);
+        AbstractPolicyChain requestChain = new RequestPolicyChain(policies, mock(ExecutionContext.class));
         requestChain.setResultHandler(result -> {});
 
-        AbstractPolicyChain responseChain = new ResponsePolicyChain(policies);
+        AbstractPolicyChain responseChain = new ResponsePolicyChain(policies, mock(ExecutionContext.class));
         responseChain.setResultHandler(result -> {});
 
         InOrder requestOrder = inOrder(policy, policy2);

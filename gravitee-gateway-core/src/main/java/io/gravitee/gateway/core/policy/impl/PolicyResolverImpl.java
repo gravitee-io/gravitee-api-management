@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.policy.PathResolver;
@@ -25,23 +24,17 @@ import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.gateway.core.policy.PolicyResolver;
 import io.gravitee.plugin.policy.PolicyDefinition;
 import io.gravitee.plugin.policy.PolicyManager;
-import io.gravitee.policy.api.PolicyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PolicyResolverImpl implements PolicyResolver, ApplicationContextAware {
+public class PolicyResolverImpl implements PolicyResolver {
 
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyResolverImpl.class);
 
@@ -57,17 +50,12 @@ public class PolicyResolverImpl implements PolicyResolver, ApplicationContextAwa
     @Autowired
     private PathResolver pathResolver;
 
-    private ApplicationContext applicationContext;
-
     @Override
     public List<Policy> resolve(Request request) {
         List<Policy> policies = new ArrayList<>();
 
         // Resolve the "configured" path according to the inbound request
         Path path = pathResolver.resolve(request);
-
-        // Create a new policy
-        PolicyContext policyContext = getPolicyContext();
 
         path.getRules().stream().filter(rule -> rule.getMethods().contains(request.method())).forEach(rule -> {
             PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(rule.getPolicy().getName());
@@ -79,16 +67,12 @@ public class PolicyResolverImpl implements PolicyResolver, ApplicationContextAwa
 
                 if (policyInst != null) {
                     LOGGER.debug("Policy {} has been added to the chain for request {}", policyDefinition.id(), request.id());
-                    policies.add(new PolicyImpl(policyInst, policyContext, policyDefinition.onRequestMethod(), policyDefinition.onResponseMethod()));
+                    policies.add(new PolicyImpl(policyInst, policyDefinition.onRequestMethod(), policyDefinition.onResponseMethod()));
                 }
             }
         });
 
         return policies;
-    }
-
-    private PolicyContext getPolicyContext() {
-        return new PolicyContextImpl(applicationContext);
     }
 
     public Api getApi() {
@@ -99,8 +83,5 @@ public class PolicyResolverImpl implements PolicyResolver, ApplicationContextAwa
         this.api = api;
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
+
 }

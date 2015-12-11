@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.core.policy.Policy;
-import io.gravitee.policy.api.PolicyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,13 +28,11 @@ public class PolicyImpl implements Policy {
 
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyImpl.class);
 
-    private final PolicyContext policyContext;
     private final Object policyInst;
     private final Method onRequestMethod, onResponseMethod;
 
-    public PolicyImpl(Object policyInst, PolicyContext policyContext, Method onRequestMethod, Method onResponseMethod) {
+    public PolicyImpl(Object policyInst, Method onRequestMethod, Method onResponseMethod) {
         this.policyInst = policyInst;
-        this.policyContext = policyContext;
         this.onRequestMethod = onRequestMethod;
         this.onResponseMethod = onResponseMethod;
     }
@@ -75,10 +72,6 @@ public class PolicyImpl implements Policy {
             if (paramType.isAssignableFrom(arg.getClass())) {
                 return arg;
             }
-        }
-
-        if (paramType.isAssignableFrom(PolicyContext.class)) {
-            return policyContext;
         }
 
         return null;

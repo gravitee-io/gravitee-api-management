@@ -22,6 +22,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -51,7 +52,7 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_emptyPolicies() throws Exception {
-        AbstractPolicyChain chain = new ResponsePolicyChain(new ArrayList<>());
+        AbstractPolicyChain chain = new ResponsePolicyChain(new ArrayList<>(), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 
@@ -61,7 +62,7 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_singlePolicy() throws Exception {
-        AbstractPolicyChain chain = new ResponsePolicyChain(policies());
+        AbstractPolicyChain chain = new ResponsePolicyChain(policies(), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 
@@ -71,18 +72,19 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_multiplePolicy() throws Exception {
-        AbstractPolicyChain chain = new ResponsePolicyChain(policies2());
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        AbstractPolicyChain chain = new ResponsePolicyChain(policies2(), executionContext);
         chain.setResultHandler(result -> {});
 
         chain.doNext(null, null);
 
-        verify(policy, atLeastOnce()).onResponse(null, null, chain);
-        verify(policy2, atLeastOnce()).onResponse(null, null, chain);
+        verify(policy, atLeastOnce()).onResponse(null, null, chain, executionContext);
+        verify(policy2, atLeastOnce()).onResponse(null, null, chain, executionContext);
     }
 
     @Test
     public void doNext_multiplePolicyOrder() throws Exception {
-        AbstractPolicyChain chain = new ResponsePolicyChain(policies2());
+        AbstractPolicyChain chain = new ResponsePolicyChain(policies2(), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
 
         InOrder inOrder = inOrder(policy, policy2);
@@ -95,12 +97,13 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_multiplePolicy_throwError() throws Exception {
-        AbstractPolicyChain chain = new ResponsePolicyChain(policies3());
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        AbstractPolicyChain chain = new ResponsePolicyChain(policies3(), executionContext);
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 
-        verify(policy3, atLeastOnce()).onResponse(null, null, chain);
-        verify(policy2, never()).onResponse(null, null, chain);
+        verify(policy3, atLeastOnce()).onResponse(null, null, chain, executionContext);
+        verify(policy2, never()).onResponse(null, null, chain, executionContext);
     }
 
     private List<Policy> policies() {

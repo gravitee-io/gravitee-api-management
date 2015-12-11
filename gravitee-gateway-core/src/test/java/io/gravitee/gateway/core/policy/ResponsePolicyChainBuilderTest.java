@@ -15,12 +15,15 @@
  */
 package io.gravitee.gateway.core.policy;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.policy.impl.ResponsePolicyChainBuilder;
 import io.gravitee.policy.api.PolicyChain;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -30,13 +33,13 @@ public class ResponsePolicyChainBuilderTest {
     @Test(expected = IllegalArgumentException.class)
     public void buildPolicyChain_withNullPolicies() {
         PolicyChainBuilder builder = new ResponsePolicyChainBuilder();
-        builder.newPolicyChain(null);
+        builder.newPolicyChain(null, mock(ExecutionContext.class));
     }
 
     @Test
     public void buildPolicyChain_withEmptyPolicies() {
         PolicyChainBuilder builder = new ResponsePolicyChainBuilder();
-        PolicyChain chain = builder.newPolicyChain(new ArrayList<>());
+        PolicyChain chain = builder.newPolicyChain(new ArrayList<>(), mock(ExecutionContext.class));
 
         Assert.assertNotNull(chain);
     }

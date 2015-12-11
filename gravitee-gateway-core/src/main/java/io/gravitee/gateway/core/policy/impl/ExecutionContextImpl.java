@@ -15,17 +15,17 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.policy.api.PolicyContext;
+import io.gravitee.gateway.api.ExecutionContext;
 import org.springframework.context.ApplicationContext;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class PolicyContextImpl implements PolicyContext {
+public class ExecutionContextImpl implements ExecutionContext {
 
     private final ApplicationContext applicationContext;
 
-    public PolicyContextImpl(ApplicationContext applicationContext) {
+    public ExecutionContextImpl(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
