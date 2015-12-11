@@ -24,6 +24,7 @@ import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -55,7 +56,7 @@ public class UpdateApiEntity {
     @NotNull
     private Visibility visibility;
 
-    private List<String> tags;
+    private Set<String> tags;
 
     public Visibility getVisibility() {
         return visibility;
@@ -121,11 +122,11 @@ public class UpdateApiEntity {
         this.properties = properties;
     }
 
-    public List<String> getTags() {
+    public Set<String> getTags() {
         return tags;
     }
 
-    public void setTags(List<String> tags) {
+    public void setTags(Set<String> tags) {
         this.tags = tags;
     }
 }

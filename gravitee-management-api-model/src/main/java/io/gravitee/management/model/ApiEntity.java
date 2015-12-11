@@ -61,7 +61,7 @@ public class ApiEntity {
 
     private Monitoring monitoring;
 
-    private List<String> tags;
+    private Set<String> tags;
 
     public String getId() {
         return id;
@@ -175,11 +175,11 @@ public class ApiEntity {
         this.properties = properties;
     }
 
-    public List<String> getTags() {
+    public Set<String> getTags() {
         return tags;
     }
 
-    public void setTags(List<String> tags) {
+    public void setTags(Set<String> tags) {
         this.tags = tags;
     }
 
