@@ -21,8 +21,12 @@ class PolicyService {
     this.policiesURL = baseURL + 'policies/';
   }
 
-  list() {
-    return this.$http.get(this.policiesURL);
+  list({expandSchema}) {
+    let url = this.policiesURL;
+    if(expandSchema) {
+      url += "?expand=schema";
+    }
+    return this.$http.get(url);
   }
 
   getSchema(policyId) {

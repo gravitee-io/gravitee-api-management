@@ -27,14 +27,10 @@
                class="gravitee-card gravitee-policy-card"
                id="{{policy.policyId}}">
         <md-tooltip md-direction="right">
-          version: {{apiPoliciesCtrl.policyMap.get(policy.policyId).version}}
+          version: {{policy.version}}
         </md-tooltip>
         <md-card-content layout="row" layout-align="space-between">
-          <span class="md-subhead">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</span>
-          <!--md-card-actions layout="column">
-            <ng-md-icon icon="arrow_back" size="1.2em" ng-if='"request" !== apiPoliciesCtrl.policyMap.get(policy.policyId).type'></ng-md-icon>
-            <ng-md-icon icon="arrow_forward" size="1.2em" ng-if='"response" !== apiPoliciesCtrl.policyMap.get(policy.policyId).type'></ng-md-icon>
-          </md-card-actions-->
+          <span class="md-subhead">{{policy.name}}</span>
         </md-card-content>
       </md-card>
     </div>
@@ -54,13 +50,13 @@
       </span>
     </div>
     <div ng-class="apiPoliciesCtrl.getDropzoneClass()">
-      <md-card ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath.get('/*')"
+      <md-card ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath['/*']"
                ng-click="apiPoliciesCtrl.editPolicy($index)"
                ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
                class="gravitee-card gravitee-policy-card"
                layout="row" layout-align="space-between start">
         <md-card-content layout="column" layout-align="start start">
-          <span class="md-subhead">{{apiPoliciesCtrl.policyMap.get(policy.policyId).name}}</span>
+          <span class="md-subhead">{{policy.name}}</span>
           <div layout="row" layout-align="start center">
             <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-GET-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
             <div ng-if="policy.methods.length != apiPoliciesCtrl.httpMethods.length">
@@ -70,7 +66,7 @@
         </md-card-content>
         <ng-md-icon icon="close" ng-if='"api-key" !== policy.policyId' class="gravitee-card-close" ng-click="apiPoliciesCtrl.removePolicy()"></ng-md-icon>
       </md-card>
-      <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPoliciesByPath.get('/*').length < 2">Drag a policy here.</span>
+      <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPoliciesByPath['/*'].length < 2">Drag a policy here.</span>
     </div>
   </div>
 
@@ -78,7 +74,7 @@
     <div ng-if="apiPoliciesCtrl.selectedApiPolicy.policyId">
       <div class="inset">
         <div layout="row" layout-align="space-between center">
-        <h5>{{apiPoliciesCtrl.policyMap.get(apiPoliciesCtrl.selectedApiPolicy.policyId).name}}</h5>
+        <h5>{{policy.name}}</h5>
          <md-button class="md-raised" ng-click="apiPoliciesCtrl.savePaths();">Save</md-button>
       </div>
         <md-divider></md-divider>
@@ -92,7 +88,7 @@
         </span>
       </div>
       <div>
-        <form sf-schema="schema" sf-form="form" sf-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId]"></form>
+        <form sf-schema="policyJsonSchema" sf-form="policyJsonSchemaForm" sf-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId]"></form>
       </div>
     </div>
   </div>
