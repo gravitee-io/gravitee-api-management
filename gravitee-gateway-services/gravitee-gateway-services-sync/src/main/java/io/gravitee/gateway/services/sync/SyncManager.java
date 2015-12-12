@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  */
 public class SyncManager {
 
-    private static final String TAGS_PROP = "tags";
+    public static final String TAGS_PROP = "tags";
 
     private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
 
@@ -89,7 +89,7 @@ public class SyncManager {
                         }
                     });
 
-            // Determine APIs to create
+            // Determine APIs to deploy
             apisMap.keySet().stream()
                     .filter(api -> apiManager.get(api) == null)
                     .forEach(api -> {

@@ -27,13 +27,18 @@ public class RepositoryApiBuilder {
 
     private final Api api = new Api();
 
-    public RepositoryApiBuilder name(String name) {
-        this.api.setName(name);
+    public RepositoryApiBuilder id(String id) {
+        this.api.setId(id);
         return this;
     }
 
     public RepositoryApiBuilder updatedAt(Date updatedAt) {
         this.api.setUpdatedAt(updatedAt);
+        return this;
+    }
+
+    public RepositoryApiBuilder definition(String definition) {
+        this.api.setDefinition(definition);
         return this;
     }
 
