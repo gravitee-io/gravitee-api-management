@@ -26,7 +26,7 @@ class ApiPoliciesController {
     this.$q = $q;
     this.resolvedApi = resolvedApi;
     this.apiPoliciesByPath = {};
-    this.apiPoliciesByPath["/*"] = [];
+    this.apiPoliciesByPath["/"] = [];
     this.policiesToCopy = [];
     this.policiesMap = {};
     this.selectedApiPolicy = {};
@@ -38,9 +38,9 @@ class ApiPoliciesController {
         this.policiesToCopy.push(policy);
         this.policiesMap[policy.policyId] = policy;
       });
-     if ( resolvedApi.data.paths["/*"] ) {
-        this.apiPoliciesByPath["/*"] = _.cloneDeep(resolvedApi.data.paths["/*"]);
-      }
+      _.forEach(resolvedApi.data.paths, (policies, path) => {
+        this.apiPoliciesByPath[path] = _.cloneDeep(policies);
+      });
       this.completeApiPolicies(this.apiPoliciesByPath);
       this.initDragular();
     });
@@ -70,8 +70,7 @@ class ApiPoliciesController {
   }
 
   initDragular() {
-    const dragularSrcOptions= document.querySelector('.gravitee-policy-draggable'),
-      dragularApiOptions = document.querySelector('.gravitee-policy-dropzone');
+    const dragularSrcOptions= document.querySelector('.gravitee-policy-draggable');
 
     this.DragularService([dragularSrcOptions], {
       copy: true,
@@ -84,15 +83,18 @@ class ApiPoliciesController {
       accepts: this.acceptDragDrop
     });
 
-    this.DragularService([dragularApiOptions], {
-      copy: false,
-      scope: this.$scope,
-      containersModel: this.apiPoliciesByPath["/*"],
-      classes: {
-        unselectable: 'gravitee-policy-draggable-selected'
-      },
-      nameSpace: 'policies',
-      accepts: this.acceptDragDrop
+    _.forEach(this.apiPoliciesByPath, (policies, path) => {
+      const dragularApiOptions = document.querySelector('.dropzone-' + _.kebabCase(path));
+      this.DragularService([dragularApiOptions], {
+        copy: false,
+        scope: this.$scope,
+        containersModel: policies,
+        classes: {
+          unselectable: 'gravitee-policy-draggable-selected'
+        },
+        nameSpace: 'policies',
+        accepts: this.acceptDragDrop
+      });
     });
 
     const that = this;
@@ -150,11 +152,11 @@ class ApiPoliciesController {
     return ( (source === draggable || source === target) && el.id !== "api-key");
   }
 
-  editPolicy(index) {
-    if ( this.apiPoliciesByPath["/*"][index].policyId === 'api-key' ) {
+  editPolicy(index, path) {
+    if ( this.apiPoliciesByPath[path][index].policyId === 'api-key' ) {
       this.selectedApiPolicy = {};
     } else {
-      this.selectedApiPolicy = this.apiPoliciesByPath["/*"][index];
+      this.selectedApiPolicy = this.apiPoliciesByPath[path][index];
       this.$scope.policyJsonSchema = this.selectedApiPolicy.schema;
       this.$scope.policyJsonSchemaForm = ["*"];
     }
@@ -169,8 +171,8 @@ class ApiPoliciesController {
     return this.selectedApiPolicy && this.selectedApiPolicy.$$hashKey === policy.$$hashKey ? "gravitee-policy-card-selected" : "";
   }
 
-  getDropzoneClass() {
-    return "gravitee-policy-dropzone " +((this.apiPoliciesByPath['/*'].length < 2) ? '': 'gravitee-policy-dropzone-filled');
+  getDropzoneClass(path) {
+    return "gravitee-policy-dropzone " +((this.apiPoliciesByPath[path].length < 2) ? '': 'gravitee-policy-dropzone-filled');
   }
 
   toggleHttpMethod(method, methods) {
@@ -189,7 +191,7 @@ class ApiPoliciesController {
       }), (result, n) => { return result && n; });
   }
 
-  removePolicy() {
+  removePolicy(path) {
     let alert = this.$mdDialog.confirm({
       title: 'Warning',
       content: 'Are you sure you want to remove this policy ?',
@@ -202,9 +204,9 @@ class ApiPoliciesController {
     this.$mdDialog
       .show(alert)
       .then(function () {
-        _.forEach(that.apiPoliciesByPath["/*"], (policy, idx) => {
+        _.forEach(that.apiPoliciesByPath[path], (policy, idx) => {
           if ( policy.$$hashKey === that.selectedApiPolicy.$$hashKey ) {
-            that.apiPoliciesByPath["/*"].splice(idx, 1);
+            that.apiPoliciesByPath[path].splice(idx, 1);
             that.selectedApiPolicy = null;
             return false;
           }
@@ -214,14 +216,16 @@ class ApiPoliciesController {
   }
 
   savePaths() {
-    this.$scope.$parent.apiCtrl.api.paths["/*"] = _.cloneDeep(this.apiPoliciesByPath["/*"]);
-    _.forEach(this.$scope.$parent.apiCtrl.api.paths["/*"], (policy, idx) => {
-      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].policyId;
-      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].name;
-      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].type;
-      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].description;
-      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].version;
-      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].schema;
+    _.forEach(this.$scope.$parent.apiCtrl.api.paths, (policies, path) => {
+      this.$scope.$parent.apiCtrl.api.paths[path] = _.cloneDeep(this.apiPoliciesByPath[path]);
+      _.forEach(this.$scope.$parent.apiCtrl.api.paths[path], (policy, idx) => {
+        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].policyId;
+        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].name;
+        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].type;
+        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].description;
+        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].version;
+        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].schema;
+      });
     });
 
     const that = this;

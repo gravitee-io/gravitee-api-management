@@ -37,10 +37,6 @@
     </div>
 
   <div flex="50">
-    <div class="inset">
-      <h3>/*</h3>
-      <md-divider></md-divider>
-    </div>
     <div layout="row" layout-align="start center" class="gravitee-policy-filters">
       <span flex class="badge gravitee-policy-method-badge-filter"
             ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.httpMethodsFilter)"
@@ -49,25 +45,29 @@
         {{httpMethod | uppercase}}
       </span>
     </div>
-    <div ng-class="apiPoliciesCtrl.getDropzoneClass()">
-      <md-card ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath['/*']"
-               ng-click="apiPoliciesCtrl.editPolicy($index)"
-               ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
-               class="gravitee-card gravitee-policy-card"
-               ng-class="apiPoliciesCtrl.getApiPolicyClass(policy)"
-               layout="row" layout-align="space-between start">
-        <md-card-content layout="column" layout-align="start start">
-          <span class="md-subhead">{{policy.name}}</span>
-          <div layout="row" layout-align="start center">
-            <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-GET-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
-            <div ng-if="policy.methods.length != apiPoliciesCtrl.httpMethods.length">
-              <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-{{method}}-selected" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
+    <md-divider></md-divider>
+    <div class="inset" ng-repeat="(path, policies) in apiPoliciesCtrl.apiPoliciesByPath">
+      <h3>{{path}}</h3>
+      <div ng-class="apiPoliciesCtrl.getDropzoneClass(path)" class="dropzone-{{_.kebabCase(path)}}">
+        <md-card ng-repeat="policy in policies"
+                 ng-click="apiPoliciesCtrl.editPolicy($index, path)"
+                 ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
+                 class="gravitee-card gravitee-policy-card"
+                 ng-class="apiPoliciesCtrl.getApiPolicyClass(policy)"
+                 layout="row" layout-align="space-between start">
+          <md-card-content layout="column" layout-align="start start">
+            <span class="md-subhead">{{policy.name}}</span>
+            <div layout="row" layout-align="start center">
+              <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-GET-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
+              <div ng-if="policy.methods.length != apiPoliciesCtrl.httpMethods.length">
+                <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-{{method}}-selected" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
+              </div>
             </div>
-          </div>
-        </md-card-content>
-        <ng-md-icon icon="close" ng-if='"api-key" !== policy.policyId' class="gravitee-card-close" ng-click="apiPoliciesCtrl.removePolicy()"></ng-md-icon>
-      </md-card>
-      <span class="gravitee-policy-dropzone-msg" ng-if="apiPoliciesCtrl.apiPoliciesByPath['/*'].length < 2">Drag a policy here.</span>
+          </md-card-content>
+          <ng-md-icon icon="close" ng-if='"api-key" !== policy.policyId' class="gravitee-card-close" ng-click="apiPoliciesCtrl.removePolicy(path)"></ng-md-icon>
+        </md-card>
+        <span class="gravitee-policy-dropzone-msg" ng-if="policies.length < 2">Drag a policy here.</span>
+      </div>
     </div>
   </div>
 
