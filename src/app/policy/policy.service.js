@@ -23,9 +23,9 @@ class PolicyService {
 
   list({expandSchema}) {
     let url = this.policiesURL;
-    if(expandSchema) {
+/*    if(expandSchema) {
       url += "?expand=schema";
-    }
+    }*/
     return this.$http.get(url);
   }
 
