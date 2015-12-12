@@ -24,8 +24,12 @@ import io.gravitee.repository.management.model.LifecycleState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
+import java.text.Collator;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,7 +39,7 @@ import java.util.stream.Collectors;
  */
 public class SyncManager {
 
-    private static final String GRAVITEE_TAGS_PROP = "gravitee.tags";
+    private static final String TAGS_PROP = "tags";
 
     private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
 
@@ -48,6 +52,9 @@ public class SyncManager {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Value("${tags:}")
+    private String propertyTags;
+
     public void refresh() {
         logger.debug("Refreshing gateway state...");
 
@@ -56,30 +63,12 @@ public class SyncManager {
 
             Map<String, Api> apisMap = apis.stream()
                     .map(this::convert)
-                    .filter(api -> {
-                        if (api == null) {
-                            return false;
-                        }
-                        // check configured tags
-                        final String tags = System.getProperty(GRAVITEE_TAGS_PROP);
-                        if (tags != null) {
-                            if (api.getTags() != null) {
-                                final String[] tagList = tags.split(",");
-                                for (final String tag : tagList) {
-                                    if (api.getTags().contains(tag)) {
-                                        return true;
-                                    }
-                                }
-                            }
-                            return false;
-                        }
-                        return true;
-                    })
+                    .filter(api -> api != null && isConfiguredTags(api))
                     .collect(Collectors.toMap(Api::getId, api -> api));
 
             // Determine APIs to undeploy
             Set<String> apiToRemove = apiManager.apis().stream()
-                    .filter(apiId -> !apisMap.containsKey(apiId.getId()))
+                    .filter(api -> !apisMap.containsKey(api.getId()) || !isConfiguredTags(api))
                     .map(Api::getId)
                     .collect(Collectors.toSet());
 
@@ -102,15 +91,37 @@ public class SyncManager {
 
             // Determine APIs to create
             apisMap.keySet().stream()
-                    .filter(apiId -> apiManager.get(apiId) == null)
-                    .forEach(apiId -> {
-                        Api newApi = apisMap.get(apiId);
+                    .filter(api -> apiManager.get(api) == null)
+                    .forEach(api -> {
+                        Api newApi = apisMap.get(api);
                         apiManager.deploy(newApi);
                     });
 
         } catch (TechnicalException te) {
             logger.error("Unable to sync instance", te);
         }
+    }
+
+    private boolean isConfiguredTags(Api api) {
+        final String systemPropertyTags = System.getProperty(TAGS_PROP);
+        final String tags = systemPropertyTags == null ? propertyTags : systemPropertyTags;
+        if (tags != null && !tags.isEmpty()) {
+            if (api.getTags() != null) {
+                final List<String> tagList = Arrays.asList(tags.split(","));
+                return tagList.stream()
+                        .anyMatch(tag -> api.getTags().stream()
+                                .anyMatch(apiTag -> {
+                                    final Collator collator = Collator.getInstance();
+                                    collator.setStrength(Collator.NO_DECOMPOSITION);
+                                    return collator.compare(tag, apiTag) == 0;
+                                })
+                        );
+            }
+            // tags are configured on gateway instance but not found on api
+            return false;
+        }
+        // no tags configured on this gateway instance
+        return true;
     }
 
     private Api convert(io.gravitee.repository.management.model.Api remoteApi) {
