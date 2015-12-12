@@ -154,6 +154,10 @@ class ApiPoliciesController {
       (methods.indexOf(method) > -1 ? "-selected" : "-unselected");
   }
 
+  getApiPolicyClass(policy) {
+    return this.selectedApiPolicy && this.selectedApiPolicy.$$hashKey === policy.$$hashKey ? "gravitee-policy-card-selected" : "";
+  }
+
   getDropzoneClass() {
     return "gravitee-policy-dropzone " +((this.apiPoliciesByPath['/*'].length < 2) ? '': 'gravitee-policy-dropzone-filled');
   }
