@@ -25,49 +25,52 @@ class ApiPoliciesController {
     this.$state = $state;
     this.$q = $q;
     this.resolvedApi = resolvedApi;
-    this.apiPoliciesByPath = new Map();
-    if ( resolvedApi.data.paths["/*"] ) {
-      this.apiPoliciesByPath.set("/*", _.cloneDeep(resolvedApi.data.paths["/*"]));
-    } else {
-      this.apiPoliciesByPath.set("/*", []);
-    }
-    this.completeApiPolicies(this.apiPoliciesByPath);
-    this.policySchemaMap = new Map();
-    this.schemasMap = new Map();
-    this.policyMap = new Map();
+    this.apiPoliciesByPath = {};
+    this.apiPoliciesByPath["/*"] = [];
     this.policiesToCopy = [];
-
+    this.policiesMap = {};
     this.selectedApiPolicy = {};
-    this.listAllPoliciesWithSchema().then( () => {
-      this.initDragular();
-    });
     this.httpMethods = ['GET','POST','PUT','DELETE','HEAD','PATCH','OPTIONS','TRACE','CONNECT'];
     this.httpMethodsFilter = _.clone(this.httpMethods);
+
+    this.listAllPoliciesWithSchema().then( (policiesWithSchema) => {
+      _.forEach(policiesWithSchema, ({policy}) => {
+        this.policiesToCopy.push(policy);
+        this.policiesMap[policy.policyId] = policy;
+      });
+     if ( resolvedApi.data.paths["/*"] ) {
+        this.apiPoliciesByPath["/*"] = _.cloneDeep(resolvedApi.data.paths["/*"]);
+      }
+      this.completeApiPolicies(this.apiPoliciesByPath);
+      this.initDragular();
+    });
   }
 
   completeApiPolicies(pathMap) {
-    for ( var pathPolicies of pathMap.values()) {
-      for ( var apiPolicy of pathPolicies ) {
-        for (var property of Object.keys(apiPolicy)) {
+    _.forEach(pathMap, (policies) => {
+      _.forEach(policies, (policy) => {
+
+        _.forEach(policy, (value, property) => {
           if (property !== "methods" && property !== "$$hashKey") {
-            apiPolicy.policyId = property;
+            policy.policyId = property;
+            policy.name = this.policiesMap[policy.policyId].name;
+            policy.type = this.policiesMap[policy.policyId].type;
+            policy.version = this.policiesMap[policy.policyId].version;
+            policy.schema = this.policiesMap[policy.policyId].schema;
           }
+        });
+
+        if ( !policy.methods ) {
+          policy.methods = _.clone(this.httpMethods);
+        } else {
+          policy.methods = _.map(policy.methods, (method) => { return method.toUpperCase(); });
         }
-        if ( !apiPolicy.methods ) {
-          apiPolicy.methods = _.clone(this.httpMethods);
-        }
-        //TODO hack temporaire à supprimer lors de la mise a jour de demo
-        else {
-          for ( var idx = 0 ; idx < apiPolicy.methods.length; idx++ ) {
-            apiPolicy.methods[idx] = apiPolicy.methods[idx].toUpperCase();
-          }
-        }
-      }
-    }
+      });
+    });
   }
 
   initDragular() {
-    var dragularSrcOptions= document.querySelector('.gravitee-policy-draggable'),
+    const dragularSrcOptions= document.querySelector('.gravitee-policy-draggable'),
       dragularApiOptions = document.querySelector('.gravitee-policy-dropzone');
 
     this.DragularService([dragularSrcOptions], {
@@ -84,7 +87,7 @@ class ApiPoliciesController {
     this.DragularService([dragularApiOptions], {
       copy: false,
       scope: this.$scope,
-      containersModel: this.apiPoliciesByPath.get("/*"),
+      containersModel: this.apiPoliciesByPath["/*"],
       classes: {
         unselectable: 'gravitee-policy-draggable-selected'
       },
@@ -92,51 +95,58 @@ class ApiPoliciesController {
       accepts: this.acceptDragDrop
     });
 
-    var that = this;
+    const that = this;
     this.$scope.$on('dragulardrop', function(/*event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList*/) {
       that.savePaths();
     });
   }
 
   listAllPoliciesWithSchema() {
-    return this.$q( (resolve) => {
-      resolve(
-        this.PolicyService.list().then(response => {
-          for (var originalPolicy of response.data) {
-            this.policyMap.set(originalPolicy.id, originalPolicy);
-            ((service, originalPolicy, policiesToCopy, httpMethods, policySchemaMap, schemasMap) => {
-              service.getSchema(originalPolicy.id).then(response => {
-                var policy = {};
-                policy.policyId = originalPolicy.id;
-                policy.methods = httpMethods;
-                policy[originalPolicy.id] = {};
-                var properties = Object.keys(response.data.properties);
-                for (var property of properties) {
-                  policy[originalPolicy.id][property] = null;
-                }
-                policySchemaMap.set(originalPolicy.id, response.data.properties);
-                schemasMap.set(originalPolicy.id, response.data);
-                policiesToCopy.push(policy);
-              });
-            })(this.PolicyService, originalPolicy, this.policiesToCopy, this.httpMethods, this.policySchemaMap, this.schemasMap);
-          }
-        }));
+    return this.PolicyService.list({expandSchema: true}).then( (policyServiceListResponse) => {
+
+      const promises = _.map(policyServiceListResponse.data, (originalPolicy) => {
+        return this.PolicyService.getSchema(originalPolicy.id).then( ({data}) => {
+          return {
+            schema: data,
+            originalPolicy
+          };
+        });
+      });
+
+      return this.$q.all(promises).then( (policySchemaResponses) => {
+        return _.map(policySchemaResponses, ({schema, originalPolicy}) => {
+          const policy = {
+            policyId: originalPolicy.id,
+            methods: this.httpMethods,
+            version: originalPolicy.version,
+            name: originalPolicy.name,
+            type: originalPolicy.type,
+            description: originalPolicy.description,
+            schema
+          };
+          policy[originalPolicy.id] = {};
+          _.forEach(schema.properties, (value, property) => {
+            policy[originalPolicy.id][property] = null;
+          });
+          return {policy};
+        });
+      });
     });
   }
 
   acceptDragDrop(el, target, source) {
-    var draggable = document.querySelector('.gravitee-policy-draggable');
+    const draggable = document.querySelector('.gravitee-policy-draggable');
     return ( (source === draggable || source === target) && el.id !== "api-key");
   }
 
   editPolicy(index) {
-    if ( this.apiPoliciesByPath.get("/*")[index].policyId === 'api-key' ) {
+    if ( this.apiPoliciesByPath["/*"][index].policyId === 'api-key' ) {
       this.selectedApiPolicy = {};
     } else {
-      this.selectedApiPolicy = this.apiPoliciesByPath.get("/*")[index];
+      this.selectedApiPolicy = this.apiPoliciesByPath["/*"][index];
+      this.$scope.policyJsonSchema = this.selectedApiPolicy.schema;
+      this.$scope.policyJsonSchemaForm = ["*"];
     }
-    this.$scope.schema = this.schemasMap.get(this.apiPoliciesByPath.get("/*")[index].policyId);
-    this.$scope.form = ["*"];
   }
 
   getHttpMethodClass(method, methods) {
@@ -145,11 +155,11 @@ class ApiPoliciesController {
   }
 
   getDropzoneClass() {
-    return "gravitee-policy-dropzone " +((this.apiPoliciesByPath.get('/*').length < 2) ? '': 'gravitee-policy-dropzone-filled');
+    return "gravitee-policy-dropzone " +((this.apiPoliciesByPath['/*'].length < 2) ? '': 'gravitee-policy-dropzone-filled');
   }
 
   toggleHttpMethod(method, methods) {
-    var index = methods.indexOf(method);
+    const index = methods.indexOf(method);
     if ( index > -1 ) {
       methods.splice(index, 1);
     } else {
@@ -158,43 +168,48 @@ class ApiPoliciesController {
   }
 
   filterByMethod(policy) {
-    for ( var method of policy.methods ) {
-      if ( this.httpMethodsFilter.indexOf(method) > -1 ) {
-        return false;
-      }
-    }
-    return true;
+    return _.reduce(
+      _.map(policy.methods, (method) => {
+        return this.httpMethodsFilter.indexOf(method) < 0;
+      }), (result, n) => { return result && n; });
   }
 
   removePolicy() {
-    var alert = this.$mdDialog.confirm({
+    let alert = this.$mdDialog.confirm({
       title: 'Warning',
       content: 'Are you sure you want to remove this policy ?',
       ok: 'OK',
       cancel: 'Cancel'
     });
 
-    var that = this;
+    const that = this;
 
     this.$mdDialog
       .show(alert)
       .then(function () {
-        for ( var idx = 0; idx < that.apiPoliciesByPath.get("/*").length; idx++ ) {
-          if ( that.apiPoliciesByPath.get("/*")[idx].$$hashKey === that.selectedApiPolicy.$$hashKey ) {
-            that.apiPoliciesByPath.get("/*").splice(idx, 1);
+        _.forEach(that.apiPoliciesByPath["/*"], (policy, idx) => {
+          if ( policy.$$hashKey === that.selectedApiPolicy.$$hashKey ) {
+            that.apiPoliciesByPath["/*"].splice(idx, 1);
             that.selectedApiPolicy = null;
+            return false;
           }
-        }
+        });
         that.savePaths();
       });
   }
 
   savePaths() {
-    this.$scope.$parent.apiCtrl.api.paths["/*"] = _.cloneDeep(this.apiPoliciesByPath.get("/*"));
-    for ( var policy of this.$scope.$parent.apiCtrl.api.paths["/*"] ) {
-      delete policy.policyId;
-    }
-    var that = this;
+    this.$scope.$parent.apiCtrl.api.paths["/*"] = _.cloneDeep(this.apiPoliciesByPath["/*"]);
+    _.forEach(this.$scope.$parent.apiCtrl.api.paths["/*"], (policy, idx) => {
+      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].policyId;
+      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].name;
+      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].type;
+      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].description;
+      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].version;
+      delete this.$scope.$parent.apiCtrl.api.paths["/*"][idx].schema;
+    });
+
+    const that = this;
     this.ApiService.update(this.$scope.$parent.apiCtrl.api).then( ( {data} ) => {
       that.$scope.$parent.apiCtrl.api = data;
       that.NotificationService.show('API \'' + that.$scope.$parent.apiCtrl.api.name + '\' saved');
