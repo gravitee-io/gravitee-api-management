@@ -36,13 +36,17 @@
   }
 }
 
-
 .gravitee-policy-draggable-selected {
   cursor: grab;
   .gu-transit {
     background-color: #0000AA;
     color: #0000AA;
   }
+}
+
+.gravitee-policy-card-selected {
+  background-color: #EEE;
+  border: 1px solid #999;
 }
 
 .gravitee-policy-method-badge-filter {

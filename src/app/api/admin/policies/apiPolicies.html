@@ -54,6 +54,7 @@
                ng-click="apiPoliciesCtrl.editPolicy($index)"
                ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
                class="gravitee-card gravitee-policy-card"
+               ng-class="apiPoliciesCtrl.getApiPolicyClass(policy)"
                layout="row" layout-align="space-between start">
         <md-card-content layout="column" layout-align="start start">
           <span class="md-subhead">{{policy.name}}</span>
