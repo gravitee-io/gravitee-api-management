@@ -18,10 +18,17 @@ package io.gravitee.gateway.core.policy.impl;
 import io.gravitee.gateway.api.ExecutionContext;
 import org.springframework.context.ApplicationContext;
 
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class ExecutionContextImpl implements ExecutionContext {
+
+    private final Map<String, Object> attributes = new HashMap<>();
 
     private final ApplicationContext applicationContext;
 
@@ -32,5 +39,25 @@ public class ExecutionContextImpl implements ExecutionContext {
     @Override
     public <T> T getComponent(Class<T> componentClass) {
         return applicationContext.getBean(componentClass);
+    }
+
+    @Override
+    public void setAttribute(String name, Object value) {
+        attributes.put(name, value);
+    }
+
+    @Override
+    public void removeAttribute(String name) {
+        attributes.remove(name);
+    }
+
+    @Override
+    public Object getAttribute(String name) {
+        return attributes.get(name);
+    }
+
+    @Override
+    public Enumeration<String> getAttributeNames() {
+        return Collections.enumeration(attributes.keySet());
     }
 }
