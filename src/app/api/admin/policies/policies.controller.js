@@ -26,7 +26,6 @@ class ApiPoliciesController {
     this.$q = $q;
     this.resolvedApi = resolvedApi;
     this.apiPoliciesByPath = {};
-    this.apiPoliciesByPath["/"] = [];
     this.policiesToCopy = [];
     this.policiesMap = {};
     this.selectedApiPolicy = {};
@@ -43,6 +42,11 @@ class ApiPoliciesController {
       });
       this.completeApiPolicies(this.apiPoliciesByPath);
       this.initDragular();
+    });
+
+    const that = this;
+    this.$scope.$on('dragulardrop', function(/*event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList*/) {
+      that.savePaths();
     });
   }
 
@@ -70,7 +74,7 @@ class ApiPoliciesController {
   }
 
   initDragular() {
-    const dragularSrcOptions= document.querySelector('.gravitee-policy-draggable');
+    const dragularSrcOptions = document.querySelector('.gravitee-policy-draggable');
 
     this.DragularService([dragularSrcOptions], {
       copy: true,
@@ -82,25 +86,21 @@ class ApiPoliciesController {
       nameSpace: 'policies',
       accepts: this.acceptDragDrop
     });
+  }
 
-    _.forEach(this.apiPoliciesByPath, (policies, path) => {
-      const dragularApiOptions = document.querySelector('.dropzone-' + _.kebabCase(path));
-      this.DragularService([dragularApiOptions], {
-        copy: false,
-        scope: this.$scope,
-        containersModel: policies,
-        classes: {
-          unselectable: 'gravitee-policy-draggable-selected'
-        },
-        nameSpace: 'policies',
-        accepts: this.acceptDragDrop
-      });
+  initDragularDropZone(path) {
+    const dragularApiOptions = document.querySelector('.dropzone-' + _.kebabCase(path));
+    this.DragularService([dragularApiOptions], {
+      copy: false,
+      scope: this.$scope,
+      containersModel: this.apiPoliciesByPath[path],
+      classes: {
+        unselectable: 'gravitee-policy-draggable-selected'
+      },
+      nameSpace: 'policies',
+      accepts: this.acceptDragDrop
     });
-
-    const that = this;
-    this.$scope.$on('dragulardrop', function(/*event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList*/) {
-      that.savePaths();
-    });
+    return true;
   }
 
   listAllPoliciesWithSchema() {
@@ -172,7 +172,9 @@ class ApiPoliciesController {
   }
 
   getDropzoneClass(path) {
-    return "gravitee-policy-dropzone " +((this.apiPoliciesByPath[path].length < 2) ? '': 'gravitee-policy-dropzone-filled');
+    return "gravitee-policy-dropzone "
+      + ((this.apiPoliciesByPath[path].length < 2) ? '': 'gravitee-policy-dropzone-filled')
+      + " dropzone-" + _.kebabCase(path);
   }
 
   toggleHttpMethod(method, methods) {
@@ -216,8 +218,8 @@ class ApiPoliciesController {
   }
 
   savePaths() {
+    this.$scope.$parent.apiCtrl.api.paths = _.cloneDeep(this.apiPoliciesByPath);
     _.forEach(this.$scope.$parent.apiCtrl.api.paths, (policies, path) => {
-      this.$scope.$parent.apiCtrl.api.paths[path] = _.cloneDeep(this.apiPoliciesByPath[path]);
       _.forEach(this.$scope.$parent.apiCtrl.api.paths[path], (policy, idx) => {
         delete this.$scope.$parent.apiCtrl.api.paths[path][idx].policyId;
         delete this.$scope.$parent.apiCtrl.api.paths[path][idx].name;
@@ -229,9 +231,50 @@ class ApiPoliciesController {
     });
 
     const that = this;
-    this.ApiService.update(this.$scope.$parent.apiCtrl.api).then( ( {data} ) => {
+    return this.ApiService.update(this.$scope.$parent.apiCtrl.api).then( ( {data} ) => {
       that.$scope.$parent.apiCtrl.api = data;
       that.NotificationService.show('API \'' + that.$scope.$parent.apiCtrl.api.name + '\' saved');
+    });
+  }
+
+  showAddPathModal(event) {
+    this.$mdDialog.show({
+      controller: 'AddPoliciesPathController',
+      controllerAs: 'addPoliciesPathCtrl',
+      templateUrl: 'app/api/admin/policies/addPoliciesPath.html',
+      parent: angular.element(document.body),
+      targetEvent: event,
+      clickOutsideToClose: true,
+      paths: this.apiPoliciesByPath,
+      apiKeyPolicy: this.policiesMap['api-key']
+    }).then( (paths) => {
+      this.apiPoliciesByPath = paths;
+      this.savePaths();
+    });
+  }
+
+  removePath(path) {
+    let alert = this.$mdDialog.confirm({
+      title: 'Warning',
+      content: 'Are you sure you want to remove this path ?',
+      ok: 'OK',
+      cancel: 'Cancel'
+    });
+
+    const that = this;
+
+    this.$mdDialog
+      .show(alert)
+      .then(function () {
+        delete that.apiPoliciesByPath[path];
+        that.savePaths();
+      });
+  }
+
+  sortedPaths() {
+    let paths = _.keys(this.apiPoliciesByPath);
+    return _.sortBy(paths, (path) => {
+      return path;
     });
   }
 }

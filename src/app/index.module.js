@@ -32,6 +32,7 @@ import ApiAdminController from './api/admin/apiAdmin.controller';
 import ApiAnalyticsController from './api/admin/analytics.controller';
 import ApiMembersController from './api/admin/members.controller';
 import ApiPoliciesController from './api/admin/policies/policies.controller';
+import AddPoliciesPathController from './api/admin/policies/addPoliciesPath.controller';
 import ApiMonitoringController from './api/admin/monitoring.controller';
 import ApiPropertiesController from './api/admin/properties/properties.controller';
 import ApiKeysController from './api/admin/apikeys/apikeys.controller';
@@ -90,6 +91,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('ApiAdminController', ApiAdminController)
   .controller('ApiAnalyticsController', ApiAnalyticsController)
   .controller('ApiPoliciesController', ApiPoliciesController)
+  .controller('AddPoliciesPathController', AddPoliciesPathController)
   .controller('ApiMembersController', ApiMembersController)
   .controller('ApiPortalController', ApiPortalController)
   .controller('ApiGeneralController', ApiGeneralController)
