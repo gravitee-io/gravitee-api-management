@@ -110,7 +110,18 @@ class ApiPoliciesController {
             schema: data,
             originalPolicy
           };
-        });
+        }
+        , (response) => {
+            if ( response.status === 404) {
+              return {
+                schema: {},
+                originalPolicy
+              }
+            } else {
+              //todo manage errors
+              console.log(response)
+            }
+          });
       });
 
       return this.$q.all(promises).then( (policySchemaResponses) => {
