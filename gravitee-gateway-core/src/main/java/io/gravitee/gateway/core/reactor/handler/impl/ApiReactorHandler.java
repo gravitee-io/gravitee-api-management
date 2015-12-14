@@ -56,14 +56,14 @@ public class ApiReactorHandler extends ContextReactorHandler {
         // Set specific metrics for API handler
         serverResponse.metrics().setApi(api.getId());
 
-        // Calculate policies
-        List<Policy> policies = getPolicyResolver().resolve(serverRequest, StreamType.REQUEST);
+        // Calculate request policies
+        List<Policy> requestPolicies = getPolicyResolver().resolve(serverRequest, StreamType.REQUEST);
 
         // Prepare execution context
         ExecutionContext executionContext = createExecutionContext();
 
         // Apply request policies
-        AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(policies, executionContext);
+        AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(requestPolicies, executionContext);
         requestPolicyChain.setResultHandler(requestPolicyResult -> {
             if (requestPolicyResult.isFailure()) {
                 writePolicyResult(requestPolicyResult, serverResponse);
@@ -82,20 +82,34 @@ public class ApiReactorHandler extends ContextReactorHandler {
                     // Copy HTTP headers
                     responseStream.headers().forEach((headerName, headerValues) -> serverResponse.headers().put(headerName, headerValues));
 
-                    responseStream.bodyHandler(bodyPart -> {
-                        LOGGER.debug("{} proxying content to downstream: {} bytes", serverRequest.id(), bodyPart.length());
-                        serverResponse.write(bodyPart);
+                    // Calculate response policies
+                    List<Policy> responsePolicies = getPolicyResolver().resolve(serverRequest, StreamType.RESPONSE);
+                    AbstractPolicyChain responsePolicyChain = getResponsePolicyChainBuilder().newPolicyChain(responsePolicies, executionContext);
+
+                    responsePolicyChain.setResultHandler(responsePolicyResult -> {
+                        if (responsePolicyResult.isFailure()) {
+                            writePolicyResult(responsePolicyResult, serverResponse);
+
+                            handler.handle(serverResponse);
+                        } else {
+                            responseStream.bodyHandler(bodyPart -> {
+                                LOGGER.debug("{} proxying content to downstream: {} bytes", serverRequest.id(), bodyPart.length());
+                                serverResponse.write(bodyPart);
+                            });
+
+                            responseStream.endHandler(result -> {
+                                serverResponse.end();
+
+                                serverResponse.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
+                                LOGGER.debug("Remote API invocation took {} ms [request={}]", serverResponse.metrics().getApiResponseTimeMs(), serverRequest.id());
+
+                                // Transfer proxy response to the initial consumer
+                                handler.handle(serverResponse);
+                            });
+                        }
                     });
 
-                    responseStream.endHandler(result -> {
-                        serverResponse.end();
-
-                        serverResponse.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
-                        LOGGER.debug("Remote API invocation took {} ms [request={}]", serverResponse.metrics().getApiResponseTimeMs(), serverRequest.id());
-
-                        // Transfer proxy response to the initial consumer
-                        handler.handle(serverResponse);
-                    });
+                    responsePolicyChain.doNext(serverRequest, serverResponse);
                 });
 
                 serverRequest
