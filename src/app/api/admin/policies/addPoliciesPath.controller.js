@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 class AddPoliciesPathController {
-  constructor($mdDialog, $scope, paths, apiKeyPolicy) {
+  constructor($mdDialog, $scope, paths, apiKeyPolicy, rootCtrl) {
     'ngInject';
     this.paths = paths;
     this.scope = $scope;
     this.mdDialog = $mdDialog;
     this.apiKeyPolicy = apiKeyPolicy;
+    this.rootCtrl = rootCtrl;
     this.newPath = {
       path: "",
       copyFromRootPath: true
@@ -33,6 +34,9 @@ class AddPoliciesPathController {
   add() {
     if (this.newPath.copyFromRootPath) {
       this.paths[this.newPath.path] = _.cloneDeep(this.paths["/"]);
+      _.forEach(this.paths[this.newPath.path], (policy) => {
+        delete policy.$$hashKey;
+      });
     } else {
       this.paths[this.newPath.path] = [this.apiKeyPolicy];
     }

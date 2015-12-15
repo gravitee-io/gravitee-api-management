@@ -42,11 +42,18 @@ class ApiPoliciesController {
       });
       this.completeApiPolicies(this.apiPoliciesByPath);
       this.initDragular();
+      this.pathsToCompare = this.generatePathsToCompare();
     });
 
     const that = this;
     this.$scope.$on('dragulardrop', function(/*event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList*/) {
       that.savePaths();
+    });
+  }
+
+  generatePathsToCompare() {
+    return _.map(_.keys(this.apiPoliciesByPath), (p) => {
+      return this.clearPathParam(p);
     });
   }
 
@@ -112,16 +119,16 @@ class ApiPoliciesController {
             schema: data,
             originalPolicy
           };
-        }
-        , (response) => {
+        },
+          (response) => {
             if ( response.status === 404) {
               return {
                 schema: {},
                 originalPolicy
-              }
+              };
             } else {
               //todo manage errors
-              console.log(response)
+              console.log(response);
             }
           });
       });
@@ -172,9 +179,9 @@ class ApiPoliciesController {
   }
 
   getDropzoneClass(path) {
-    return "gravitee-policy-dropzone "
-      + ((this.apiPoliciesByPath[path].length < 2) ? '': 'gravitee-policy-dropzone-filled')
-      + " dropzone-" + _.kebabCase(path);
+    return "gravitee-policy-dropzone " +
+      'gravitee-policy-dropzone-filled' +
+      " dropzone-" + _.kebabCase(path);
   }
 
   toggleHttpMethod(method, methods) {
@@ -234,6 +241,7 @@ class ApiPoliciesController {
     return this.ApiService.update(this.$scope.$parent.apiCtrl.api).then( ( {data} ) => {
       that.$scope.$parent.apiCtrl.api = data;
       that.NotificationService.show('API \'' + that.$scope.$parent.apiCtrl.api.name + '\' saved');
+      this.pathsToCompare = this.generatePathsToCompare();
     });
   }
 
@@ -246,7 +254,8 @@ class ApiPoliciesController {
       targetEvent: event,
       clickOutsideToClose: true,
       paths: this.apiPoliciesByPath,
-      apiKeyPolicy: this.policiesMap['api-key']
+      apiKeyPolicy: this.policiesMap['api-key'],
+      rootCtrl: this
     }).then( (paths) => {
       this.apiPoliciesByPath = paths;
       this.savePaths();
@@ -271,11 +280,61 @@ class ApiPoliciesController {
       });
   }
 
+  pathNotExists(path, index) {
+    if (!path || path.trim() === "") {
+      return true;
+    }
+    if(index && this.clearPathParam(path) === this.clearPathParam(this.sortedPaths()[index])) {
+      return true;
+    }
+
+    return !_.includes(this.pathsToCompare, this.clearPathParam(path));
+  }
+
+  pathStartWithSlash(path) {
+    if (!path || path.trim() === "") {
+      return true;
+    }
+    return path[0] === "/";
+  }
+
+  clearPathParam(path) {
+    if ( path === "/" ) {
+      return "/";
+    } else {
+      return path.trim().replace(/(:.*?\/)|(:.*$)/g, ":x\/").replace(/\/+$/, "");
+    }
+  }
+
   sortedPaths() {
     let paths = _.keys(this.apiPoliciesByPath);
     return _.sortBy(paths, (path) => {
-      return path;
+      return this.clearPathParam(path);
     });
+  }
+
+  pathKeyPress(ev, el, newPath, index) {
+    switch (ev.keyCode) {
+      case 13: //enter
+        if (!el.$invalid) {
+          const oldPath = this.sortedPaths()[index];
+          this.apiPoliciesByPath[newPath] = this.apiPoliciesByPath[oldPath];
+          delete this.apiPoliciesByPath[oldPath];
+          this.savePaths();
+        }
+        break;
+      case 27: //escape
+        this.restoreOldPath(index, el);
+        break;
+      default:
+        break;
+    }
+  }
+
+  restoreOldPath(index, el) {
+    el.$setViewValue(this.sortedPaths()[index]);
+    el.$commitViewValue();
+    document.forms.editPathForm['path'+index].value = this.sortedPaths()[index];
   }
 }
 

@@ -25,7 +25,9 @@
     "google-code-prettify": "~1.0.4",
     "angular-schema-form": "~0.8.12",
     "ngclipboard": "~1.0.0",
-    "ngSticky": "~1.8.7"
+    "ngSticky": "~1.8.7",
+    "angular-ui-validate": "~1.2.2",
+    "angular-messages": "~1.4.8"
   },
   "resolutions": {
     "angular": "1.4.8"
