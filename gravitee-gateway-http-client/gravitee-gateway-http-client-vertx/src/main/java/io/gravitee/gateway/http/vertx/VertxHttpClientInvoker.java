@@ -103,7 +103,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         });
 
         // Copy headers to final API
-        copyRequestHeaders(serverRequest, clientRequest);
+        copyRequestHeaders(serverRequest, clientRequest, endpoint);
 
         // Check chuncked flag on the request if there are some content to push and if transfer_encoding is set
         // with chunked value
@@ -135,7 +135,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         clientResponseHandler.handle(proxyClientResponse);
     }
 
-    protected void copyRequestHeaders(Request clientRequest, HttpClientRequest httpClientRequest) {
+    protected void copyRequestHeaders(Request clientRequest, HttpClientRequest httpClientRequest, URI endpoint) {
         for (Map.Entry<String, List<String>> headerValues : clientRequest.headers().entrySet()) {
             String headerName = headerValues.getKey();
             String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
@@ -148,7 +148,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
             headerValues.getValue().forEach(headerValue -> httpClientRequest.putHeader(headerName, headerValue));
         }
 
-//        httpClientRequest.putHeader(HttpHeaders.HOST, api.getProxy().getTarget().getHost());
+        httpClientRequest.putHeader(HttpHeaders.HOST, endpoint.getHost());
     }
 
     @Override
