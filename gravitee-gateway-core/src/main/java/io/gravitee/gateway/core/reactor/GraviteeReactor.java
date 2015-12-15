@@ -135,6 +135,7 @@ public class GraviteeReactor extends AbstractService implements
             response.metrics().setRequestLocalAddress(request.localAddress());
             response.metrics().setRequestRemoteAddress(request.remoteAddress());
             response.metrics().setRequestPath(request.path());
+            response.metrics().setRequestUri(request.uri());
             response.metrics().setRequestContentType(request.headers().contentType());
             response.metrics().setRequestContentLength(request.headers().contentLength());
 
