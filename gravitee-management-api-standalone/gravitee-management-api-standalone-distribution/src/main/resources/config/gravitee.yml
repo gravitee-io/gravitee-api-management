@@ -46,3 +46,13 @@ security:
           roles: ADMIN
     - type: gravitee
       password-encoding: true
+
+email:
+  host: smtp.my.domain
+  # port: 465
+  from: noreply@my.domain
+  username: user@my.domain
+  password: password
+
+templates:
+  path: ${gravitee.home}/templates
