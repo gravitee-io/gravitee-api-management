@@ -75,6 +75,7 @@ public class JacksonDeserializerTest {
         Map<String, Path> paths = api.getPaths();
         Assert.assertEquals("/*", paths.keySet().iterator().next());
 
+        Assert.assertEquals("/*", paths.get("/*").getPath());
         List<Rule> rules = paths.get("/*").getRules();
         Assert.assertEquals(4, rules.size());
     }
