@@ -41,6 +41,11 @@ public class Event {
 	 * The event parent
 	 */
 	private String parentId;
+	
+	/**
+	 * The event origin
+	 */
+	private String origin;
 
 	/**
 	 * The event creation date
@@ -82,6 +87,14 @@ public class Event {
 
 	public void setParentId(String parentId) {
 		this.parentId = parentId;
+	}
+
+	public String getOrigin() {
+		return origin;
+	}
+
+	public void setOrigin(String origin) {
+		this.origin = origin;
 	}
 
 	public Date getCreatedAt() {
