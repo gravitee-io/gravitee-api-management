@@ -25,10 +25,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class EventMongo extends Auditable {
 
 	@Id
-    private String id;
+	private String id;
 	private String type;
 	private String payload;
 	private String parentId;
+	private String origin;
 
 	public String getId() {
 		return id;
@@ -60,5 +61,13 @@ public class EventMongo extends Auditable {
 
 	public void setParentId(String parentId) {
 		this.parentId = parentId;
+	}
+
+	public String getOrigin() {
+		return origin;
+	}
+
+	public void setOrigin(String origin) {
+		this.origin = origin;
 	}
 }
