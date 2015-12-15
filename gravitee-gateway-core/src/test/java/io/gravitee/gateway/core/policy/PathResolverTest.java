@@ -51,7 +51,7 @@ public class PathResolverTest {
     }
 
     @Test
-    public void resolve_useRoot() {
+    public void resolve_root() {
         final Map<String, Path> paths = new HashMap<>();
         paths.putAll(new HashMap<String, Path>() {
             {
@@ -81,7 +81,7 @@ public class PathResolverTest {
     }
 
     @Test
-    public void resolve_useExactPath() {
+    public void resolve_exactPath() {
         final Map<String, Path> paths = new HashMap<>();
         paths.putAll(new HashMap<String, Path>() {
             {
@@ -108,5 +108,94 @@ public class PathResolverTest {
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores", path.getPath());
+    }
+
+    @Test
+    public void resolve_pathParameterizedPath() {
+        final Map<String, Path> paths = new HashMap<>();
+        paths.putAll(new HashMap<String, Path>() {
+            {
+                Path p1 = new Path();
+                p1.setPath("/");
+
+                put(p1.getPath(), p1);
+
+                Path p2 = new Path();
+                p2.setPath("/toto/:storeId");
+                put(p2.getPath(), p2);
+
+                Path p3 = new Path();
+                p3.setPath("/stores/:storeId");
+                put(p3.getPath(), p3);
+            }
+        });
+
+        when(api.getPaths()).thenReturn(paths);
+        Request req = mock(Request.class);
+        when(req.path()).thenReturn("/stores/99");
+
+        Path path = pathResolver.resolve(req);
+        Assert.assertNotNull(path);
+
+        Assert.assertEquals("/stores/:storeId", path.getPath());
+    }
+
+    @Test
+    public void resolve_pathParameterizedPath_checkChildren() {
+        final Map<String, Path> paths = new HashMap<>();
+        paths.putAll(new HashMap<String, Path>() {
+            {
+                Path p1 = new Path();
+                p1.setPath("/");
+
+                put(p1.getPath(), p1);
+
+                Path p2 = new Path();
+                p2.setPath("/toto/:storeId");
+                put(p2.getPath(), p2);
+
+                Path p3 = new Path();
+                p3.setPath("/stores/:storeId");
+                put(p3.getPath(), p3);
+            }
+        });
+
+        when(api.getPaths()).thenReturn(paths);
+        Request req = mock(Request.class);
+        when(req.path()).thenReturn("/stores/99/data");
+
+        Path path = pathResolver.resolve(req);
+        Assert.assertNotNull(path);
+
+        Assert.assertEquals("/stores/:storeId", path.getPath());
+    }
+
+    public void resolve_pathParameterizedPath_mustReturnRoot() {
+        final Map<String, Path> paths = new HashMap<>();
+        paths.putAll(new HashMap<String, Path>() {
+            {
+                Path p1 = new Path();
+                p1.setPath("/");
+
+                put(p1.getPath(), p1);
+
+                Path p2 = new Path();
+                p2.setPath("/toto/:storeId");
+                put(p2.getPath(), p2);
+
+                Path p3 = new Path();
+                p3.setPath("/stores/:storeId");
+                put(p3.getPath(), p3);
+            }
+        });
+
+        when(api.getPaths()).thenReturn(paths);
+        Request req = mock(Request.class);
+        when(req.path()).thenReturn("/mypath");
+
+        Path path = pathResolver.resolve(req);
+        Assert.assertNotNull(path);
+
+        Assert.assertEquals("/", path.getPath());
     }
 }

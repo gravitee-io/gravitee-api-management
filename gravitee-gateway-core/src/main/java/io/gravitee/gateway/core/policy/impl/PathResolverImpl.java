@@ -21,8 +21,9 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.policy.PathResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * A simple path resolver based on context paths definition.
@@ -32,15 +33,47 @@ import java.util.Optional;
  */
 public class PathResolverImpl implements PathResolver {
 
+    private final static String URL_PATH_SEPARATOR = "/";
+    private final static String PATH_PARAM_PREFIX = ":";
+    private final static String PATH_PARAM_REGEX = "[A-Za-z0-9_]+";
+
     @Autowired
     private Api api;
 
+    private final Map<String, Pattern> regexPaths = new HashMap<>();
+
     @Override
     public Path resolve(Request request) {
-        Optional<Path> optPath = api.getPaths().entrySet().stream().filter(
-                entry -> request.path().startsWith(entry.getKey())).map(Map.Entry::getValue).findFirst();
+        for(Map.Entry<String, Path> entry : api.getPaths().entrySet()) {
+            Pattern regex = regexPaths.computeIfAbsent(entry.getKey(), this::toRegexPath);
 
-        return optPath.orElseGet(() -> api.getPaths().values().iterator().next());
+            if (regex.matcher(request.path()).lookingAt()) {
+                return entry.getValue();
+            }
+        }
+
+        // Returns the root path
+        // TODO: remove the getOrDefault as soon as all references to /* have been removed
+        return api.getPaths().getOrDefault(URL_PATH_SEPARATOR, api.getPaths().get("/*"));
+    }
+
+    private Pattern toRegexPath(String path) {
+        String [] branches = path.split(URL_PATH_SEPARATOR);
+        StringBuilder buffer = new StringBuilder(URL_PATH_SEPARATOR);
+
+        for(String branch : branches) {
+            if (! branch.isEmpty()) {
+                if (branch.startsWith(PATH_PARAM_PREFIX)) {
+                    buffer.append(PATH_PARAM_REGEX);
+                } else {
+                    buffer.append(branch);
+                }
+
+                buffer.append(URL_PATH_SEPARATOR);
+            }
+        }
+
+        return Pattern.compile(buffer.deleteCharAt(buffer.length() - 1).toString());
     }
 
     public void setApi(Api api) {
