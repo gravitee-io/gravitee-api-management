@@ -109,7 +109,8 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
 		if(apiAssociationMongo != null) {
 			ApiKey retKey = mapper.map(apiAssociationMongo.getKey(), ApiKey.class);
-			retKey.setApi(apiAssociationMongo.getApi().getName());
+			retKey.setApi(apiAssociationMongo.getApi().getId());
+			retKey.setApplication(apiAssociationMongo.getApplication().getId());
 			return Optional.of(retKey);
 		}
 		
