@@ -59,7 +59,6 @@ public class PathResolverImpl implements PathResolver {
     }
 
     private Pattern toRegexPath(String path) {
-        System.out.println("create regex");
         String [] branches = path.split(URL_PATH_SEPARATOR);
         StringBuilder buffer = new StringBuilder(URL_PATH_SEPARATOR);
 
