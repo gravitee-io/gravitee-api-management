@@ -15,6 +15,7 @@
  */
 class ApplicationAPIKeysController {
   constructor(resolvedApplication, resolvedAPIKeys, ApplicationService, NotificationService, $mdDialog) {
+    'ngInject';
     this.application = resolvedApplication.data;
     this.apiKeys = resolvedAPIKeys.data;
     this.showRevokedKeys = false;
@@ -22,17 +23,17 @@ class ApplicationAPIKeysController {
     this.NotificationService = NotificationService;
     this.$mdDialog = $mdDialog;
   }
-  
+
   getAPIKeys(applicationId) {
     this.ApplicationService.getAPIKeys(applicationId).then(response => {
       this.apiKeys = response.data;
     });
   }
-  
+
   hasKeysDefined() {
     return this.apiKeys !== null && Object.keys(this.apiKeys).length > 0;
   }
-  
+
   generateAPIKey(application, apiId) {
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
@@ -79,7 +80,7 @@ class ApplicationAPIKeysController {
       .catch(function () {
       });
   }
-  
+
   showSubscribeApiModal(ev) {
     var that = this;
     this.$mdDialog.show({

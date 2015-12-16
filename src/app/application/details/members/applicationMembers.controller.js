@@ -15,6 +15,7 @@
  */
 class ApplicationMembersController {
   constructor(resolvedApplication, resolvedMembers, ApplicationService, NotificationService, $mdDialog) {
+    'ngInject';
     this.application = resolvedApplication.data;
     this.members = resolvedMembers.data;
     this.membershipTypes = [ 'owner', 'user' ];
@@ -22,7 +23,7 @@ class ApplicationMembersController {
     this.NotificationService = NotificationService;
     this.$mdDialog = $mdDialog;
   }
-  
+
   getMembers(applicationId) {
     this.ApplicationService.getMembers(applicationId).then(response => {
       this.members = response.data;
@@ -42,7 +43,7 @@ class ApplicationMembersController {
       this.NotificationService.show("Member " + member.user + " has been removed");
     });
   }
-  
+
   showDeleteMemberConfirm(ev, member) {
     var confirm = this.$mdDialog.confirm()
       .title('Would you like to remove the member?')
@@ -57,7 +58,7 @@ class ApplicationMembersController {
       self.$mdDialog.cancel();
     });
   }
-  
+
   showAddMemberModal(ev) {
     var that = this;
     this.$mdDialog.show({
