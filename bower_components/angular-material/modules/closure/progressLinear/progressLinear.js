@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.11.3
+ * v1.0.0
  */
 goog.provide('ng.material.components.progressLinear');
 goog.require('ng.material.core');
@@ -125,7 +125,7 @@ function MdProgressLinearDirective($mdTheming, $mdUtil, $log) {
             container.addClass( lastMode = "md-mode-" + mode );
             break;
           default:
-            container.removeClass( lastMode );
+            if (lastMode) container.removeClass( lastMode );
             container.addClass('ng-hide');
             lastMode = undefined;
             break;

@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.11.3
+ * v1.0.0
  */
 /** Styles for mdCalendar. */
 md-calendar {
@@ -88,7 +88,14 @@ md-calendar {
 
 /** Styles for mdDatepicker. */
 md-datepicker {
-  white-space: nowrap; }
+  white-space: nowrap;
+  overflow: hidden;
+  padding-right: 18px;
+  margin-right: -18px;
+  vertical-align: middle; }
+
+.md-inline-form md-datepicker {
+  margin-top: 12px; }
 
 .md-datepicker-button {
   display: inline-block;
@@ -122,7 +129,7 @@ md-datepicker {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 99;
+  z-index: 100;
   border-width: 1px;
   border-style: solid;
   background: transparent;
@@ -184,15 +191,18 @@ md-datepicker {
 
 md-datepicker[disabled] .md-datepicker-input-container {
   border-bottom-color: transparent; }
+
 md-datepicker[disabled] .md-datepicker-triangle-button {
   display: none; }
 
 .md-datepicker-open .md-datepicker-input-container {
   margin-left: -12px;
   border: none; }
+
 .md-datepicker-open .md-datepicker-input {
   margin-left: 24px;
   height: 40px; }
+
 .md-datepicker-open .md-datepicker-triangle-button {
   display: none; }
 
@@ -205,6 +215,7 @@ md-datepicker[disabled] .md-datepicker-triangle-button {
   transition: -webkit-transform 0.65s cubic-bezier(0.25, 0.8, 0.25, 1);
   transition: transform 0.65s cubic-bezier(0.25, 0.8, 0.25, 1);
   transition-delay: 0.125s; }
+
 .md-datepicker-calendar-pane.md-pane-open .md-calendar {
   -webkit-transform: translateY(0);
           transform: translateY(0); }

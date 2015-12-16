@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.11.3
+ * v1.0.0
  */
 .md-contact-chips .md-chips .md-chip {
   padding: 0 25px 0 0; }
@@ -35,7 +35,7 @@
 
 .md-chips {
   display: block;
-  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
   font-size: 16px;
   padding: 0 0 8px 3px;
   vertical-align: middle; }
@@ -45,8 +45,10 @@
     clear: both; }
   .md-chips:not(.md-readonly) {
     cursor: text; }
-    .md-chips:not(.md-readonly) .md-chip {
+    .md-chips:not(.md-readonly) .md-chip:not(.md-readonly) {
       padding-right: 22px; }
+      .md-chips:not(.md-readonly) .md-chip:not(.md-readonly) .md-chip-content {
+        padding-right: 4px; }
   .md-chips .md-chip {
     cursor: default;
     border-radius: 16px;
@@ -61,7 +63,6 @@
     position: relative; }
     .md-chips .md-chip .md-chip-content {
       display: block;
-      padding-right: 4px;
       float: left;
       white-space: nowrap;
       max-width: 100%;
@@ -96,7 +97,7 @@
     display: block;
     line-height: 32px;
     margin: 8px 8px 0 0;
-    padding: 0 12px 0 12px;
+    padding: 0;
     float: left; }
     .md-chips .md-chip-input-container input:not([type]), .md-chips .md-chip-input-container input[type="email"], .md-chips .md-chip-input-container input[type="number"], .md-chips .md-chip-input-container input[type="tel"], .md-chips .md-chip-input-container input[type="url"], .md-chips .md-chip-input-container input[type="text"] {
       border: 0;
@@ -134,7 +135,8 @@
     display: none; }
 
 @media screen and (-ms-high-contrast: active) {
-  .md-chip-input-container, md-chip {
+  .md-chip-input-container,
+  md-chip {
     border: 1px solid #fff; }
   .md-chip-input-container md-autocomplete {
     border: none; } }

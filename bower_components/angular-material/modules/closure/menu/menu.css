@@ -2,19 +2,21 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.11.3
+ * v1.0.0
  */
 .md-open-menu-container {
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 99;
+  z-index: 100;
   opacity: 0;
   border-radius: 2px; }
   .md-open-menu-container md-menu-divider {
     margin-top: 4px;
     margin-bottom: 4px;
     height: 1px;
+    min-height: 1px;
+    max-height: 1px;
     width: 100%; }
   .md-open-menu-container md-menu-content > * {
     opacity: 0; }
@@ -80,6 +82,7 @@ md-menu-item {
     font-size: 15px;
     text-transform: none;
     font-weight: 400;
+    text-align: left;
     text-align: start;
     height: 100%;
     padding-left: 16px;
@@ -88,9 +91,9 @@ md-menu-item {
     -webkit-align-items: baseline;
         -ms-flex-align: baseline;
             align-items: baseline;
-    -webkit-align-content: left;
-        -ms-flex-line-pack: left;
-            align-content: left;
+    -webkit-align-content: flex-start;
+        -ms-flex-line-pack: start;
+            align-content: flex-start;
     width: 100%; }
     md-menu-item > .md-button md-icon {
       margin: auto 16px auto 0; }
@@ -108,9 +111,10 @@ md-menu-item {
 
 md-toolbar .md-menu {
   height: auto;
-  margin: auto; }
+  margin: auto;
+  padding: 0; }
 
-@media (max-width: 599px) {
+@media (max-width: 959px) {
   md-menu-content {
     min-width: 112px; }
   md-menu-content[width="3"] {
@@ -124,7 +128,7 @@ md-toolbar .md-menu {
   md-menu-content[width="7"] {
     min-width: 392px; } }
 
-@media (min-width: 600px) {
+@media (min-width: 960px) {
   md-menu-content {
     min-width: 96px; }
   md-menu-content[width="3"] {

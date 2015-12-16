@@ -2,23 +2,86 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.11.3
+ * v1.0.0
  */
+.md-inline-form md-switch {
+  margin-top: 18px;
+  margin-bottom: 19px; }
+
 md-switch {
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-align-items: center;
-      -ms-flex-align: center;
-          align-items: center;
-  margin: 15px;
+  margin: 16px 0;
   white-space: nowrap;
   cursor: pointer;
   outline: none;
   -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
-          user-select: none; }
+          user-select: none;
+  height: 30px;
+  line-height: 28px;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  margin-left: inherit;
+  margin-right: 16px; }
+  html[dir=rtl] md-switch {
+    margin-left: 16px;
+    unicode-bidi: embed; }
+  body[dir=rtl] md-switch {
+    margin-left: 16px;
+    unicode-bidi: embed; }
+  md-switch bdo[dir=rtl] {
+    direction: rtl;
+    unicode-bidi: bidi-override; }
+  md-switch bdo[dir=ltr] {
+    direction: ltr;
+    unicode-bidi: bidi-override; }
+  html[dir=rtl] md-switch {
+    margin-right: inherit;
+    unicode-bidi: embed; }
+  body[dir=rtl] md-switch {
+    margin-right: inherit;
+    unicode-bidi: embed; }
+  md-switch bdo[dir=rtl] {
+    direction: rtl;
+    unicode-bidi: bidi-override; }
+  md-switch bdo[dir=ltr] {
+    direction: ltr;
+    unicode-bidi: bidi-override; }
+  md-switch:last-of-type {
+    margin-left: inherit;
+    margin-right: 0; }
+    html[dir=rtl] md-switch:last-of-type {
+      margin-left: 0;
+      unicode-bidi: embed; }
+    body[dir=rtl] md-switch:last-of-type {
+      margin-left: 0;
+      unicode-bidi: embed; }
+    md-switch:last-of-type bdo[dir=rtl] {
+      direction: rtl;
+      unicode-bidi: bidi-override; }
+    md-switch:last-of-type bdo[dir=ltr] {
+      direction: ltr;
+      unicode-bidi: bidi-override; }
+    html[dir=rtl] md-switch:last-of-type {
+      margin-right: inherit;
+      unicode-bidi: embed; }
+    body[dir=rtl] md-switch:last-of-type {
+      margin-right: inherit;
+      unicode-bidi: embed; }
+    md-switch:last-of-type bdo[dir=rtl] {
+      direction: rtl;
+      unicode-bidi: bidi-override; }
+    md-switch:last-of-type bdo[dir=ltr] {
+      direction: ltr;
+      unicode-bidi: bidi-override; }
+  md-switch[disabled] {
+    cursor: default; }
+    md-switch[disabled] .md-container {
+      cursor: default; }
   md-switch .md-container {
     cursor: -webkit-grab;
     cursor: grab;
@@ -29,8 +92,10 @@ md-switch {
        -moz-user-select: none;
         -ms-user-select: none;
             user-select: none;
-    margin-right: 8px; }
-  md-switch:not([disabled]) .md-dragging, md-switch:not([disabled]).md-dragging .md-container {
+    margin-right: 8px;
+    float: left; }
+  md-switch:not([disabled]) .md-dragging,
+  md-switch:not([disabled]).md-dragging .md-container {
     cursor: -webkit-grabbing;
     cursor: grabbing; }
   md-switch.md-focused:not([disabled]) .md-thumb:before {
@@ -42,7 +107,8 @@ md-switch {
     background-color: rgba(0, 0, 0, 0.12); }
   md-switch .md-label {
     border-color: transparent;
-    border-width: 0; }
+    border-width: 0;
+    float: left; }
   md-switch .md-bar {
     left: 1px;
     width: 34px;
@@ -93,11 +159,14 @@ md-switch {
       top: -20px;
       right: -20px;
       bottom: -20px; }
-  md-switch:not(.md-dragging) .md-bar, md-switch:not(.md-dragging) .md-thumb-container, md-switch:not(.md-dragging) .md-thumb {
+  md-switch:not(.md-dragging) .md-bar,
+  md-switch:not(.md-dragging) .md-thumb-container,
+  md-switch:not(.md-dragging) .md-thumb {
     transition: all 0.08s linear;
     transition-property: -webkit-transform, background-color;
     transition-property: transform, background-color; }
-  md-switch:not(.md-dragging) .md-bar, md-switch:not(.md-dragging) .md-thumb {
+  md-switch:not(.md-dragging) .md-bar,
+  md-switch:not(.md-dragging) .md-thumb {
     transition-delay: 0.05s; }
 
 @media screen and (-ms-high-contrast: active) {

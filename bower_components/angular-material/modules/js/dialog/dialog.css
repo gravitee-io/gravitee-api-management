@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.11.3
+ * v1.0.0
  */
 .md-dialog-is-showing {
   max-height: 100%; }
@@ -83,7 +83,7 @@ md-dialog {
         padding-top: 0; }
     md-dialog md-dialog-content .md-dialog-content-body {
       width: 100%; }
-  md-dialog .md-actions {
+  md-dialog .md-actions, md-dialog md-dialog-actions {
     display: -webkit-flex;
     display: -ms-flexbox;
     display: flex;
@@ -102,15 +102,21 @@ md-dialog {
     padding-left: 16px;
     min-height: 52px;
     overflow: hidden; }
-    md-dialog .md-actions .md-button {
+    md-dialog .md-actions .md-button, md-dialog md-dialog-actions .md-button {
       margin-bottom: 8px;
       margin-left: 8px;
       margin-right: 0;
       margin-top: 8px; }
-  md-dialog.md-content-overflow .md-actions {
+  md-dialog.md-content-overflow .md-actions, md-dialog.md-content-overflow md-dialog-actions {
     border-top-width: 1px;
     border-top-style: solid; }
 
 @media screen and (-ms-high-contrast: active) {
   md-dialog {
     border: 1px solid #fff; } }
+
+@media (max-width: 959px) {
+  md-dialog.md-dialog-fullscreen {
+    min-height: 100%;
+    min-width: 100%;
+    border-radius: 0; } }

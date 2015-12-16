@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.11.3
+ * v1.0.0
  */
 md-toolbar {
   box-sizing: border-box;
@@ -21,7 +21,9 @@ md-toolbar {
     transition: box-shadow 0.5s linear; }
   md-toolbar md-toolbar-filler {
     width: 72px; }
-  md-toolbar *, md-toolbar *:before, md-toolbar *:after {
+  md-toolbar *,
+  md-toolbar *:before,
+  md-toolbar *:after {
     box-sizing: border-box; }
   md-toolbar.md-tall {
     height: 128px;
@@ -90,14 +92,14 @@ md-toolbar {
     .md-toolbar-tools {
       border-bottom: 1px solid #fff; } }
 
-@media only screen and (min-width: 0) and (max-width: 600px) and (orientation: portrait) {
+@media only screen and (min-width: 0) and (max-width: 959px) and (orientation: portrait) {
   md-toolbar {
     min-height: 56px; }
   .md-toolbar-tools {
     height: 56px;
     max-height: 56px; } }
 
-@media only screen and (min-width: 0) and (max-width: 600px) and (orientation: landscape) {
+@media only screen and (min-width: 0) and (max-width: 959px) and (orientation: landscape) {
   md-toolbar {
     min-height: 48px; }
   .md-toolbar-tools {

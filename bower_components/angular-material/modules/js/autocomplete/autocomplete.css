@@ -2,19 +2,17 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v0.11.3
+ * v1.0.0
  */
 @-webkit-keyframes md-autocomplete-list-out {
   0% {
     -webkit-animation-timing-function: linear;
             animation-timing-function: linear; }
-
   50% {
     opacity: 0;
     height: 40px;
     -webkit-animation-timing-function: ease-in;
             animation-timing-function: ease-in; }
-
   100% {
     height: 0;
     opacity: 0; } }
@@ -23,13 +21,11 @@
   0% {
     -webkit-animation-timing-function: linear;
             animation-timing-function: linear; }
-
   50% {
     opacity: 0;
     height: 40px;
     -webkit-animation-timing-function: ease-in;
             animation-timing-function: ease-in; }
-
   100% {
     height: 0;
     opacity: 0; } }
@@ -40,11 +36,9 @@
     height: 0;
     -webkit-animation-timing-function: ease-out;
             animation-timing-function: ease-out; }
-
   50% {
     opacity: 0;
     height: 40px; }
-
   100% {
     opacity: 1;
     height: 40px; } }
@@ -55,11 +49,9 @@
     height: 0;
     -webkit-animation-timing-function: ease-out;
             animation-timing-function: ease-out; }
-
   50% {
     opacity: 0;
     height: 40px; }
-
   100% {
     opacity: 1;
     height: 40px; } }
@@ -72,7 +64,7 @@ md-autocomplete {
   overflow: visible;
   min-width: 190px; }
   md-autocomplete[disabled] input {
-    cursor: not-allowed; }
+    cursor: default; }
   md-autocomplete[md-floating-label] {
     border-radius: 0;
     background: transparent;
@@ -101,6 +93,11 @@ md-autocomplete {
       position: absolute;
       bottom: -2px;
       left: 0; }
+      md-autocomplete md-autocomplete-wrap md-progress-linear.md-inline {
+        bottom: 40px;
+        right: 2px;
+        left: 2px;
+        width: auto; }
       md-autocomplete md-autocomplete-wrap md-progress-linear .md-mode-indeterminate {
         position: absolute;
         top: 0;
@@ -198,6 +195,9 @@ md-autocomplete {
   max-height: 225.5px;
   z-index: 100; }
 
+.md-virtual-repeat-container.md-not-found {
+  height: 48px; }
+
 .md-autocomplete-suggestions {
   margin: 0;
   list-style: none;
@@ -218,5 +218,6 @@ md-autocomplete {
       cursor: pointer; }
 
 @media screen and (-ms-high-contrast: active) {
-  md-autocomplete, .md-autocomplete-suggestions {
+  md-autocomplete,
+  .md-autocomplete-suggestions {
     border: 1px solid #fff; } }
