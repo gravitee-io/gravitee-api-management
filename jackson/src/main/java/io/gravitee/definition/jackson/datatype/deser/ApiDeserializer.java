@@ -22,8 +22,10 @@ import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.*;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -77,18 +79,18 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
 
         JsonNode pathsNode = node.get("paths");
         if (pathsNode != null) {
-            Map<String, Path> paths = new HashMap<>();
-                pathsNode.fields().forEachRemaining(jsonNode -> {
-                    try {
-                        Path path = jsonNode.getValue().traverse(jp.getCodec()).readValueAs(Path.class);
-                        path.setPath(jsonNode.getKey());
-                        paths.put(jsonNode.getKey(), path);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            final Map<String, Path> paths = new TreeMap<>((Comparator<String>) (path1, path2) -> path2.compareTo(path1));
+            pathsNode.fields().forEachRemaining(jsonNode -> {
+                try {
+                    Path path = jsonNode.getValue().traverse(jp.getCodec()).readValueAs(Path.class);
+                    path.setPath(jsonNode.getKey());
+                    paths.put(jsonNode.getKey(), path);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
 
-                api.setPaths(paths);
+            api.setPaths(paths);
         }
 
         JsonNode propertiesNode = node.get("properties");
