@@ -236,6 +236,11 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         options.setConnectTimeout(5000);
         options.setMaxPoolSize(100);
 
+        URI endpointURI = URI.create(proxyDefinition.getEndpoints().iterator().next());
+        if (endpointURI.getScheme().equals("https")) {
+            options.setSsl(true).setVerifyHost(false).setTrustAll(true);
+        }
+
         httpClient = vertx.createHttpClient(options);
         LOGGER.info("Vert.x HTTP Client created {}", httpClient);
     }
