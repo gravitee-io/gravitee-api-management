@@ -44,10 +44,11 @@ public class PathResolverImpl implements PathResolver {
 
     @Override
     public Path resolve(Request request) {
+        String path = request.path() + '/';
+
         for(Map.Entry<String, Path> entry : api.getPaths().entrySet()) {
             Pattern regex = regexPaths.computeIfAbsent(entry.getKey(), this::toRegexPath);
-
-            if (regex.matcher(request.path()).lookingAt()) {
+            if (regex.matcher(path).lookingAt()) {
                 return entry.getValue();
             }
         }
@@ -58,6 +59,7 @@ public class PathResolverImpl implements PathResolver {
     }
 
     private Pattern toRegexPath(String path) {
+        System.out.println("create regex");
         String [] branches = path.split(URL_PATH_SEPARATOR);
         StringBuilder buffer = new StringBuilder(URL_PATH_SEPARATOR);
 
@@ -73,7 +75,7 @@ public class PathResolverImpl implements PathResolver {
             }
         }
 
-        return Pattern.compile(buffer.deleteCharAt(buffer.length() - 1).toString());
+        return Pattern.compile(buffer.toString());
     }
 
     public void setApi(Api api) {
