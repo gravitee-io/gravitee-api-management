@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.core.reactor.handler.impl;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
@@ -47,6 +50,9 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
     @Autowired
     private HttpClient httpClient;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     @Override
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
@@ -127,12 +133,40 @@ public class ApiReactorHandler extends ContextReactorHandler {
         response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
         if (policyResult.message() != null) {
-            StringBodyPart responseBody = new StringBodyPart(policyResult.message());
-            response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(responseBody.length()));
-            response.write(responseBody);
+            try {
+                String contentAsJson = mapper.writeValueAsString(new PolicyResultAsJson(policyResult));
+                StringBodyPart responseBody = new StringBodyPart(contentAsJson);
+                response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(responseBody.length()));
+                response.headers().set(HttpHeaders.CONTENT_TYPE, "application/json");
+                response.write(responseBody);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
 
         response.end();
+    }
+
+    private class PolicyResultAsJson {
+
+        @JsonProperty
+        private final String message;
+
+        @JsonProperty("http_status_code")
+        private final int httpStatusCode;
+
+        private PolicyResultAsJson(PolicyResult policyResult) {
+            this.message = policyResult.message();
+            this.httpStatusCode = policyResult.httpStatusCode();
+        }
+
+        private String getMessage() {
+            return message;
+        }
+
+        private int httpStatusCode() {
+            return httpStatusCode;
+        }
     }
 
     private ExecutionContext createExecutionContext() {
