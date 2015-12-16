@@ -16,6 +16,7 @@
 package io.gravitee.gateway.standalone.vertx;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.net.JksOptions;
@@ -45,7 +46,11 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
 
         if (httpServerConfiguration.isSecured()) {
             options.setSsl(httpServerConfiguration.isSecured());
-            options.setClientAuthRequired(httpServerConfiguration.isClientAuth());
+
+            if (httpServerConfiguration.isClientAuth()) {
+                options.setClientAuth(ClientAuth.REQUIRED);
+            }
+
             options.setTrustStoreOptions(new JksOptions()
                     .setPath(httpServerConfiguration.getKeyStorePath())
                     .setPassword(httpServerConfiguration.getKeyStorePassword()));
