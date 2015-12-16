@@ -19,15 +19,15 @@
   <div ng-include="'app/api/apiHeader.html'"></div>
 
   <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
-    <md-tab label="general" ui-sref="apis.admin.general"></md-tab>
-		<md-tab label="policies" ui-sref="apis.admin.policies"></md-tab>
-    <md-tab label="documentation" ui-sref="apis.admin.documentation"></md-tab>
-    <md-tab label="api keys" ui-sref="apis.admin.apikeys"></md-tab>
-    <md-tab label="members" ui-sref="apis.admin.members"></md-tab>
-    <md-tab label="properties" ui-sref="apis.admin.properties"></md-tab>
-    <md-tab label="analytics" ui-sref="apis.admin.analytics"></md-tab>
-    <md-tab label="monitoring" ui-sref="apis.admin.monitoring"></md-tab>
-    <md-tab label="descriptor" ui-sref="apis.admin.descriptor"></md-tab>
+    <md-tab label="general" ui-sref="apis.admin.general" ui-sref-opts="{reload: true}"></md-tab>
+		<md-tab label="policies" ui-sref="apis.admin.policies" ui-sref-opts="{reload: true}"></md-tab>
+    <md-tab label="documentation" ui-sref="apis.admin.documentation" ui-sref-opts="{reload: true}"></md-tab>
+    <md-tab label="api keys" ui-sref="apis.admin.apikeys" ui-sref-opts="{reload: true}"></md-tab>
+    <md-tab label="members" ui-sref="apis.admin.members" ui-sref-opts="{reload: true}"></md-tab>
+    <md-tab label="properties" ui-sref="apis.admin.properties" ui-sref-opts="{reload: true}"></md-tab>
+    <md-tab label="analytics" ui-sref="apis.admin.analytics" ui-sref-opts="{reload: true}"></md-tab>
+    <md-tab label="monitoring" ui-sref="apis.admin.monitoring" ui-sref-opts="{reload: true}"></md-tab>
+    <md-tab label="descriptor" ui-sref="apis.admin.descriptor" ui-sref-opts="{reload: true}"></md-tab>
   </md-tabs>
 
   <div ui-view flex class="inset"></div>
