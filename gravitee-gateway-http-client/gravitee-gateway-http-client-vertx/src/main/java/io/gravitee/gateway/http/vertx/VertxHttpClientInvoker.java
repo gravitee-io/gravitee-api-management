@@ -101,15 +101,23 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
             VertxClientResponse clientResponse = new VertxClientResponse((event instanceof TimeoutException) ?
                     HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
 
-            // Create body content with error message
-            StringBodyPart responseBody = new StringBodyPart(event.getMessage());
-
             clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-            clientResponse.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(responseBody.length()));
+
+            StringBodyPart responseBody = null;
+
+            if (event.getMessage() != null) {
+                // Create body content with error message
+                responseBody = new StringBodyPart(event.getMessage());
+                clientResponse.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(responseBody.length()));
+
+            }
 
             clientResponseHandler.handle(clientResponse);
 
-            clientResponse.bodyHandler().handle(responseBody);
+            if (responseBody != null) {
+                clientResponse.bodyHandler().handle(responseBody);
+            }
+
             clientResponse.endHandler().handle(null);
         });
 
