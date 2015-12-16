@@ -33,7 +33,11 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -92,15 +96,20 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         };
 
         clientRequest.exceptionHandler(event -> {
-            LOGGER.error(serverRequest.id() + " server proxying failed", event);
+            LOGGER.error("{} server proxying failed: {}", serverRequest.id(), event.getMessage());
 
             VertxClientResponse clientResponse = new VertxClientResponse((event instanceof TimeoutException) ?
                     HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
 
+            // Create body content with error message
+            StringBodyPart responseBody = new StringBodyPart(event.getMessage());
+
             clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+            clientResponse.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(responseBody.length()));
 
             clientResponseHandler.handle(clientResponse);
 
+            clientResponse.bodyHandler().handle(responseBody);
             clientResponse.endHandler().handle(null);
         });
 
@@ -117,6 +126,30 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         }
 
         return invokerRequest;
+    }
+
+    private class StringBodyPart implements BodyPart {
+
+        private final byte[] bytes;
+
+        public StringBodyPart(String body) {
+            bytes = body.getBytes(Charset.forName("UTF-8"));
+        }
+
+        @Override
+        public int length() {
+            return bytes.length;
+        }
+
+        @Override
+        public byte[] getBodyPartAsBytes() {
+            return bytes;
+        }
+
+        @Override
+        public ByteBuffer getBodyPartAsByteBuffer() {
+            return ByteBuffer.wrap(bytes);
+        }
     }
 
     private void handleClientResponse(HttpClientResponse clientResponse,
