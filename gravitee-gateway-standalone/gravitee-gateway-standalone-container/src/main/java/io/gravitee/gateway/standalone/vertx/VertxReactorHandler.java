@@ -18,15 +18,11 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.gateway.core.Reactor;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class VertxReactorHandler implements Handler<HttpServerRequest> {
-
-    private final Logger logger = LoggerFactory.getLogger(VertxReactorHandler.class);
 
     private final Reactor reactor;
 
@@ -43,11 +39,6 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
         reactor.process(
                 new VertxHttpServerRequest(httpServerRequest),
                 new VertxHttpServerResponse(httpServerRequest.response()),
-                response -> {}/*handleResponse(httpServerRequest)*/);
-    }
-
-    private void handleResponse(HttpServerRequest httpServerRequest) {
-        logger.debug("Handle response from request {}", httpServerRequest);
-    //    httpServerRequest.response().end();
+                response -> {});
     }
 }
