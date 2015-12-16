@@ -124,16 +124,8 @@ public class EndpointMonitor implements Runnable {
                     .build();
 
             clientConnectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             e.printStackTrace();
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        } catch (KeyManagementException e) {
-            e.printStackTrace();
-        }
-
-        if (clientConnectionManager == null) {
-            clientConnectionManager = new PoolingHttpClientConnectionManager();
         }
 
         clientConnectionManager.setMaxTotal(5);
