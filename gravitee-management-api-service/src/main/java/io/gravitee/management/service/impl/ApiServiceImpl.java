@@ -198,7 +198,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
                 // Copy fields from existing values
                 api.setCreatedAt(apiToUpdate.getCreatedAt());
-                api.setLifecycleState(LifecycleState.STOPPED);
+                api.setLifecycleState(apiToUpdate.getLifecycleState());
 
                 Api updatedApi = apiRepository.update(api);
                 return convert(updatedApi);
