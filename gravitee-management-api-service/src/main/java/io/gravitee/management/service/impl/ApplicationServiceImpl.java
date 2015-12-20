@@ -15,26 +15,13 @@
  */
 package io.gravitee.management.service.impl;
 
-import static java.util.Collections.emptySet;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.NewApplicationEntity;
-import io.gravitee.management.model.UpdateApplicationEntity;
+import com.google.common.collect.ImmutableMap;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.EmailService;
 import io.gravitee.management.service.IdGenerator;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -45,6 +32,15 @@ import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptySet;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -52,9 +48,6 @@ import io.gravitee.repository.management.model.MembershipType;
 @Component
 public class ApplicationServiceImpl extends TransactionalService implements ApplicationService {
 
-    /**
-     * Logger.
-     */
     private final Logger LOGGER = LoggerFactory.getLogger(ApplicationServiceImpl.class);
 
     @Autowired
@@ -65,6 +58,12 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
     @Autowired
     private IdGenerator idGenerator;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public ApplicationEntity findById(String applicationId) {
@@ -234,8 +233,20 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Add a new member for applicationId {}", applicationId);
 
+            final UserEntity user = userService.findByName(username);
+
             applicationRepository.saveMember(applicationId, username,
                     MembershipType.valueOf(membershipType.toString()));
+
+            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+                emailService.sendEmailNotification(new EmailNotificationBuilder()
+                        .to(user.getEmail())
+                        .subject("Subscription to application " + applicationId)
+                        .content("applicationMember.html")
+                        .params(ImmutableMap.of("application", applicationId, "username", username))
+                        .build()
+                );
+            }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to add member for applicationId {}", applicationId, ex);
             throw new TechnicalManagementException("An error occurs while trying to add member for applicationId " + applicationId, ex);

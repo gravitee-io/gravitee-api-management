@@ -17,13 +17,17 @@ package io.gravitee.management.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.EmailService;
 import io.gravitee.management.service.IdGenerator;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -47,9 +51,6 @@ import java.util.stream.Collectors;
 @Component
 public class ApiServiceImpl extends TransactionalService implements ApiService {
 
-    /**
-     * Logger.
-     */
     private final Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
 
     @Autowired
@@ -60,6 +61,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private IdGenerator idGenerator;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
@@ -126,7 +133,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Set<Api> publicApis = apiRepository.findByMember(null, null, Visibility.PUBLIC);
 
             return publicApis.stream()
-                .map(this::convert).collect(Collectors.toSet());
+                    .map(this::convert).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -165,14 +172,14 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + username, ex);
         }
     }
-    
+
     @Override
     public Set<ApiEntity> findByApplication(String applicationId) {
-    	try {
-             LOGGER.debug("Find APIs by application {}", applicationId);
-             Set<Api> applicationApis = apiRepository.findByApplication(applicationId);
-             return applicationApis.stream()
-                     .filter(api -> api != null).map(this::convert).collect(Collectors.toSet());
+        try {
+            LOGGER.debug("Find APIs by application {}", applicationId);
+            Set<Api> applicationApis = apiRepository.findByApplication(applicationId);
+            return applicationApis.stream()
+                    .filter(api -> api != null).map(this::convert).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -185,7 +192,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             LOGGER.debug("Update API {}", apiId);
 
             Optional<Api> optApiToUpdate = apiRepository.findById(apiId);
-            if (! optApiToUpdate.isPresent()) {
+            if (!optApiToUpdate.isPresent()) {
                 throw new ApiNotFoundException(apiId);
             }
 
@@ -251,7 +258,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             LOGGER.debug("Get members for API {}", apiId);
 
             Collection<Membership> membersRepo = apiRepository.getMembers(apiId,
-                    (membershipType == null ) ? null : MembershipType.valueOf(membershipType.toString()));
+                    (membershipType == null) ? null : MembershipType.valueOf(membershipType.toString()));
 
             final Set<MemberEntity> members = new HashSet<>(membersRepo.size());
 
@@ -291,8 +298,20 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             LOGGER.debug("Add or update a new member for API {}", api);
 
+            final UserEntity user = userService.findByName(username);
+
             apiRepository.saveMember(api, username,
                     MembershipType.valueOf(membershipType.toString()));
+
+            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+                emailService.sendEmailNotification(new EmailNotificationBuilder()
+                        .to(user.getEmail())
+                        .subject("Subscription to API " + api)
+                        .content("apiMember.html")
+                        .params(ImmutableMap.of("api", api, "username", username))
+                        .build()
+                );
+            }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to add or update member for API {}", api, ex);
             throw new TechnicalManagementException("An error occurs while trying to add or update member for API " + api, ex);
@@ -355,7 +374,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         if (api.getMembers() != null) {
             final Optional<Membership> member = api.getMembers().stream().filter(
-                membership -> MembershipType.PRIMARY_OWNER.equals(membership.getMembershipType())
+                    membership -> MembershipType.PRIMARY_OWNER.equals(membership.getMembershipType())
             ).findFirst();
             if (member.isPresent()) {
                 final User user = member.get().getUser();

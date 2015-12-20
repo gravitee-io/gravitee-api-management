@@ -33,7 +33,10 @@ import org.springframework.core.env.Environment;
  */
 @Configuration
 @ComponentScan({"io.gravitee.management.rest.enhancer"})
-@Import({PropertiesConfiguration.class, RepositoryConfiguration.class, ServiceConfiguration.class, SecurityConfiguration.class})
+@Import({
+        PropertiesConfiguration.class, RepositoryConfiguration.class, ServiceConfiguration.class,
+        SecurityConfiguration.class, EmailConfiguration.class
+})
 public class RestConfiguration {
 
     @Bean
