@@ -49,4 +49,6 @@ public interface ApiService {
     void addOrUpdateMember(String apiId, String username, MembershipType membershipType);
 
     void deleteMember(String apiId, String username);
+    
+    boolean isAPISynchronized(ApiEntity api);
 }

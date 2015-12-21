@@ -18,13 +18,16 @@ package io.gravitee.management.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.EmailService;
+import io.gravitee.management.service.EventService;
 import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
@@ -36,6 +39,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.management.model.Visibility;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +48,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -61,6 +67,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private IdGenerator idGenerator;
+    
+    @Autowired
+    private EventService eventService;
 
     @Autowired
     private UserService userService;
@@ -328,6 +337,25 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             LOGGER.error("An error occurs while trying to delete member {} for API {}", username, api, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for API " + api, ex);
         }
+    }
+    
+    @Override
+    public boolean isAPISynchronized(ApiEntity api) {
+    	Set<EventEntity> events = eventService.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
+    	List<EventEntity> eventsSorted = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).collect(Collectors.toList());
+    	Collections.reverse(eventsSorted);
+    	try {
+    		for (EventEntity event : eventsSorted) {
+    			JsonNode node = objectMapper.readTree(event.getPayload());
+    			ApiEntity payloadEntity = objectMapper.convertValue(node, ApiEntity.class);
+    			if (api.getId().equals(payloadEntity.getId())) {
+    				return api.getUpdatedAt().compareTo(payloadEntity.getUpdatedAt()) <= 0;
+    			}
+    		}
+    	} catch (Exception e) {
+    		return false;
+    	}
+    	return false;
     }
 
     private void updateLifecycle(String apiName, LifecycleState lifecycleState) throws TechnicalException {
