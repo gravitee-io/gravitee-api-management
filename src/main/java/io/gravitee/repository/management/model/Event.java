@@ -46,6 +46,11 @@ public class Event {
 	 * The event origin
 	 */
 	private String origin;
+	
+	/**
+	 * The event publisher
+	 */
+	private String username;
 
 	/**
 	 * The event creation date
@@ -95,6 +100,14 @@ public class Event {
 
 	public void setOrigin(String origin) {
 		this.origin = origin;
+	}
+	
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public Date getCreatedAt() {

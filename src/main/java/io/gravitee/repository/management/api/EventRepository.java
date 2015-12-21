@@ -16,10 +16,16 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
+
+import java.util.List;
+import java.util.Set;
 
 /**
 * @author Titouan COMPIEGNE
 */
 public interface EventRepository extends CrudRepository<Event, String> {
+
+	Set<Event> findByType(List<EventType> eventTypes);
 
 }
