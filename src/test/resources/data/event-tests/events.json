@@ -4,6 +4,35 @@
 	   "_class":"io.gravitee.repository.mongodb.management.internal.model.EventMongo",
 	   "type":"PUBLISH_API",
 	   "payload": "{}",
-	   "parentId": null
+	   "parentId": null,
+	   "createdAt"  : { "$date" : 1356114198000 },
+       "updatedAt"  : { "$date" : 1356114198000 },
+	},
+	{
+	   "_id":"event2",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.EventMongo",
+	   "type":"UNPUBLISH_API",
+	   "payload": "{}",
+	   "parentId": null,
+	   "createdAt"  : { "$date" : 1387650198000 },
+       "updatedAt"  : { "$date" : 1387650198000 },
+	},
+	{
+	   "_id":"event3",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.EventMongo",
+	   "type":"PUBLISH_API",
+	   "payload": "{}",
+	   "parentId": null,
+	   "createdAt"  : { "$date" : 1482344598000 },
+       "updatedAt"  : { "$date" : 1482344598000 },
+	},
+	{
+	   "_id":"event4",
+	   "_class":"io.gravitee.repository.mongodb.management.internal.model.EventMongo",
+	   "type":"SYSTEM",
+	   "payload": "{}",
+	   "parentId": null,
+	   "createdAt"  : { "$date" : 1482344598000 },
+       "updatedAt"  : { "$date" : 1482344598000 },
 	}
 ]

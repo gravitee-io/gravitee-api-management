@@ -17,13 +17,12 @@ package io.gravitee.repository.mongodb.management.internal.event;
 
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import java.util.Collection;
 
 /**
  * @author Titouan COMPIEGNE
  */
-@Repository
-public interface EventMongoRepository extends MongoRepository<EventMongo, String>, EventMongoRepositoryCustom {
+public interface EventMongoRepositoryCustom {
 
+	Collection<EventMongo> findByType(Collection<String> types);
 }

@@ -22,7 +22,12 @@ import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.mongodb.management.internal.event.EventMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +104,20 @@ public class MongoEventRepository implements EventRepository {
 			throw new TechnicalException("An error occured when deleting event");
 		}
 	}
+	
+	@Override
+	public Set<Event> findByType(List<EventType> eventTypes) {
+		List<String> types = new ArrayList<String>();
+		for (EventType eventType : eventTypes) {
+			types.add(eventType.toString());
+		}
+		Collection<EventMongo> eventsMongo = internalEventRepo.findByType(types);
+		return mapEvents(eventsMongo);
+	}
+	
+	private Set<Event> mapEvents(Collection<EventMongo> events) {
+		return events.stream().map(this::mapEvent).collect(Collectors.toSet());
+	}
 
 	private EventMongo mapEvent(Event event) {
 		EventMongo eventMongo = new EventMongo();
@@ -107,6 +126,7 @@ public class MongoEventRepository implements EventRepository {
 		eventMongo.setPayload(event.getPayload());
 		eventMongo.setParentId(event.getParentId());
 		eventMongo.setOrigin(event.getOrigin());
+		eventMongo.setUsername(event.getUsername());
 		eventMongo.setCreatedAt(event.getCreatedAt());
 		eventMongo.setUpdatedAt(event.getUpdatedAt());
 
@@ -120,6 +140,7 @@ public class MongoEventRepository implements EventRepository {
 		event.setPayload(eventMongo.getPayload());
 		event.setParentId(eventMongo.getParentId());
 		event.setOrigin(eventMongo.getOrigin());
+		event.setUsername(eventMongo.getUsername());
 		event.setCreatedAt(eventMongo.getCreatedAt());
 		event.setUpdatedAt(eventMongo.getUpdatedAt());
 

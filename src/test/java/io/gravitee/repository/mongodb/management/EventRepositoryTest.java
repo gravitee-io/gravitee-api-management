@@ -19,7 +19,9 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,5 +69,14 @@ public class EventRepositoryTest extends AbstractMongoDBTest {
 			logger.error("Error while finding event event1",e);
 			Assert.fail("Error while finding event event1");
 		}
-	}	
+	}
+	
+	@Test
+	public void findByTypeInOrderByCreatedAt() {
+		Set<Event> events = eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
+		Assert.assertTrue(3 == events.size());
+		Optional<Event> event = events.stream().sorted((e1,e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt())).findFirst();
+		Assert.assertTrue(event.isPresent());
+		Assert.assertTrue("event3".equals(event.get().getId()));
+	}
 }

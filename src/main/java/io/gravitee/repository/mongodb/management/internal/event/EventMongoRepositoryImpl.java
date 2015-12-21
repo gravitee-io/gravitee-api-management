@@ -17,13 +17,29 @@ package io.gravitee.repository.mongodb.management.internal.event;
 
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 
 /**
  * @author Titouan COMPIEGNE
  */
-@Repository
-public interface EventMongoRepository extends MongoRepository<EventMongo, String>, EventMongoRepositoryCustom {
+public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
 
+	@Autowired
+	private MongoTemplate mongoTemplate;
+	
+	@Override
+	public Collection<EventMongo> findByType(Collection<String> types) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("type").in(types));
+
+		List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
+		
+		return events;
+	}
 }

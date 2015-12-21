@@ -30,6 +30,7 @@ public class EventMongo extends Auditable {
 	private String payload;
 	private String parentId;
 	private String origin;
+	private String username;
 
 	public String getId() {
 		return id;
@@ -69,5 +70,13 @@ public class EventMongo extends Auditable {
 
 	public void setOrigin(String origin) {
 		this.origin = origin;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 }
