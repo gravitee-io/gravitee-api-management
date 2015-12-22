@@ -40,6 +40,22 @@ import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.management.model.Visibility;
 
+<<<<<<< HEAD
+=======
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+>>>>>>> feat(event): fix event sort mechanism
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -341,7 +357,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     
     @Override
     public boolean isAPISynchronized(ApiEntity api) {
+<<<<<<< HEAD
     	Set<EventEntity> events = eventService.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
+=======
+    	Collection<EventEntity> events = eventService.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
+>>>>>>> feat(event): fix event sort mechanism
     	List<EventEntity> eventsSorted = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).collect(Collectors.toList());
     	Collections.reverse(eventsSorted);
     	try {
