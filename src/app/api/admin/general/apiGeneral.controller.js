@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor (ApiService, NotificationService, $scope, $mdDialog, resolvedApi) {
+  constructor (ApiService, NotificationService, $scope, $mdDialog, $rootScope, resolvedApi) {
     'ngInject';
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.$scope = $scope;
+    this.$rootScope = $rootScope;
     this.$mdDialog = $mdDialog;
     this.initialApi = _.cloneDeep(resolvedApi.data);
 
@@ -88,6 +89,7 @@ class ApiAdminController {
       this.$scope.$parent.apiCtrl.api = updatedApi.data;
       this.initState();
       this.$scope.formApi.$setPristine();
+      this.$rootScope.$broadcast("apiChangeSuccess");
       this.NotificationService.show('API ' + this.initialApi.name + ' has been updated !');
     });
   }

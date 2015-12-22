@@ -153,3 +153,29 @@ $flowRadius: 120px;
   opacity: 0.5;
   padding: 30px;
 }
+
+.gravitee-api-banner {
+  position: absolute;
+  top: 64px;
+  width: 100%;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.gravitee-api-banner-content {
+  background:#dfa941;
+  padding: .5rem;
+  text-align:center;
+  color:white;
+  line-height: 1.5rem;
+  text-shadow: 0 1px 1px rgba(0,0,0,.25);
+}
+
+.gravitee-api-banner-content:hover {
+  background:#e8ac3c;
+}
+
+.gravitee-api-banner-content a {
+  color: white;
+  text-decoration: underline;
+}
