@@ -367,7 +367,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     	try {
     		for (EventEntity event : eventsSorted) {
     			JsonNode node = objectMapper.readTree(event.getPayload());
-    			ApiEntity payloadEntity = objectMapper.convertValue(node, ApiEntity.class);
+    			Api payloadEntity = objectMapper.convertValue(node, Api.class);
     			if (api.getId().equals(payloadEntity.getId())) {
     				return api.getUpdatedAt().compareTo(payloadEntity.getUpdatedAt()) <= 0;
     			}
@@ -376,6 +376,25 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     		return false;
     	}
     	return false;
+    }
+    
+    @Override
+    public void deploy(String apiId, String username) {
+    	 try {
+             LOGGER.debug("Deploy API : {}", apiId);
+
+             Optional<Api> api = apiRepository.findById(apiId);
+
+             if (api.isPresent()) {
+            	 eventService.create(EventType.PUBLISH_API, objectMapper.writeValueAsString(api.get()), username);
+             } else {
+            	 throw new ApiNotFoundException(apiId);
+             }
+         } catch (TechnicalException | JsonProcessingException ex) {
+             LOGGER.error("An error occurs while trying to deploy API: {}", apiId, ex);
+             throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
+         } 
+    	
     }
 
     private void updateLifecycle(String apiName, LifecycleState lifecycleState) throws TechnicalException {

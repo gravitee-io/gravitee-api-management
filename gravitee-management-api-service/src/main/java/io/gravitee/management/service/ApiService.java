@@ -51,4 +51,6 @@ public interface ApiService {
     void deleteMember(String apiId, String username);
     
     boolean isAPISynchronized(ApiEntity api);
+    
+    void deploy(String apiId, String username);
 }

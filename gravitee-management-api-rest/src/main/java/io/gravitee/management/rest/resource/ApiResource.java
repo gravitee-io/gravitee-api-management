@@ -16,7 +16,6 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.MembershipType;
 import io.gravitee.management.model.UpdateApiEntity;
@@ -24,7 +23,6 @@ import io.gravitee.management.model.Visibility;
 import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.EventService;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -47,9 +45,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * Defines the REST resources to manage API.
  *
@@ -62,16 +57,10 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ApiService apiService;
-
+    
     @Inject
     private PermissionService permissionService;
     
-    @Inject
-    private EventService eventService;
-    
-    @Inject
-    private ObjectMapper objectMapper;
-
     @PathParam("api")
     private String api;
 
@@ -138,18 +127,10 @@ public class ApiResource extends AbstractResource {
     @DELETE
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     public Response delete() {
-        ApiEntity apiEntity = apiService.findById(api);
 
         permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);
 
         apiService.delete(api);
-        
-        // create UNPUBLISH_API event
-    	try {
-    		eventService.create(EventType.UNPUBLISH_API, objectMapper.writeValueAsString(apiEntity), getAuthenticatedUsername());
-		} catch (JsonProcessingException e) {
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
-		}
         
         return Response.noContent().build();
     }
@@ -161,11 +142,9 @@ public class ApiResource extends AbstractResource {
     public Response deployAPI() {
     	permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
     	
-    	ApiEntity apiEntity = apiService.findById(api);
-    	
     	try {
-    		eventService.create(EventType.PUBLISH_API, objectMapper.writeValueAsString(apiEntity), getAuthenticatedUsername());
-		} catch (JsonProcessingException e) {
+    		apiService.deploy(api, getAuthenticatedUsername());
+		} catch (Exception e) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
 		}
     	
