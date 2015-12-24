@@ -18,11 +18,13 @@
 <section>
   <div ng-include="'app/application/details/applicationHeader.html'"></div>
 
-  <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
-    <md-tab label="general" ui-sref="application.general"></md-tab>
-	<md-tab label="api keys" ui-sref="application.apikeys"></md-tab>
-	<md-tab label="members" ui-sref="application.members"></md-tab>
-  </md-tabs>
+  <div sticky offset="49" sticky-class="gravitee-sticky">
+    <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
+      <md-tab label="general" ui-sref="application.general"></md-tab>
+      <md-tab label="api keys" ui-sref="application.apikeys"></md-tab>
+      <md-tab label="members" ui-sref="application.members"></md-tab>
+    </md-tabs>
+  </div>
 
   <div ui-view></div>
 </section>

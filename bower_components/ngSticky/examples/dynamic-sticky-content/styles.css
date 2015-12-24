@@ -1,0 +1,214 @@
+
+BODY {
+    padding: 0;
+    margin: 0;
+    font-family: Helvetica, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+#mainContainer {
+    padding: 2rem;
+}
+
+/* ==== holds the scrollable and reference material === */
+.applicationContainer {
+    display: flex;
+    display: -ms-flex;
+    display: -moz-flex;
+    display: -webkit-flex;
+
+}
+
+/* toolbar links */
+.actionsToolbar {
+    background-color: rgba(0, 0, 0, .1);
+    border: 1px solid rgba(0, 0, 0, .2);
+    padding: 5px;
+
+}
+
+/* simulate A missing href */
+.actionsToolbar A {
+    border: 1px solid rgba(0, 0, 0, .2);
+    padding: 2px;
+    font-size: 18pt;
+    font-weight: bold;
+    color: rgb(88, 123, 180);
+    cursor: pointer;
+    background-color: rgba(0, 0, 150, .1);
+}
+
+
+.actionsToolbar A:hover {
+    color: rgb(00, 00, 25);
+    background-color: rgba(99, 99, 150, .6);
+    text-decoration: underline;
+}
+
+
+.scrolling-container {
+    display: block;
+    height: inherit;
+    overflow-y: scroll;
+}
+
+/* ------------------- */
+
+.container {
+    width: 300px;
+    height: 200px;
+    padding: 20px;
+    border-bottom: 0px solid #AEAEAE;
+    background-color: rgba(255, 255, 255, .5);
+    background-size: cover;
+}
+
+/* highlighted city name */
+.container .cityName {
+    display: block;
+    font-size: 18pt;
+    text-align: center;
+
+    background-color: rgba(255, 255, 255, .5);
+
+}
+
+.playground {
+    height: 200px;
+    background-color: rgba(0, 0, 0, .1);
+}
+
+.clearfix {
+    clear: both;
+}
+
+/* holds the sticky and lots of content about the city */
+.content-container {
+    xborder: 1px solid rgba(200, 0, 0, .3);
+    background-image: linear-gradient(to bottom, rgba(255, 255, 255, .5), rgba(20, 220, 225, .3) 80%);
+    width: 300px;
+    display: inline-block;
+}
+
+.sticky-box {
+    xwidth: auto;
+    border: 5px solid rgba(0, 0, 0, .3);
+}
+
+/*======== layout ---------- */
+.content-container .supplementary {
+    text-align: center;
+    background-color: rgba(1, 1, 1, .1);
+}
+
+.content-container .introduction {
+    background-color: rgba(255, 255, 255, .2);
+    text-align: center;
+}
+
+/* intro title */
+.content-container .introduction > .introductionLabel {
+    font-size: 18pt;
+}
+
+/* state modifiers */
+
+/* not pinned */
+.sticky-box.city-box,
+.sticky-box.sticky-box-unpinned {
+    background-color: rgb(88, 232, 144);
+    transition: 0.5s all;
+}
+
+/* pinned */
+.sticky-box.sticky-box-pinned {
+    background-color: rgb(231, 187, 99);
+    transition: 0.5s all;
+    box-shadow: 0 8px 8px rgba(0, 0, 0, .3);
+}
+
+/* =========== fields ========= */
+
+/* city labels */
+.sticky-box .cityName {
+    color: rgb(0, 0, 200);
+    text-align: center;
+
+    flex: 1;
+    -ms-flex: 1;
+    -moz-flex: 1;
+    -webkit-flex: 1;
+}
+
+.sticky-box .cityName A {
+    text-decoration: none;
+}
+
+.sticky-box .cityName A:hover {
+    text-decoration: underline;
+}
+
+.sticky-box:not(.sticky-box-pinned) .cityName {
+    font-size: 14pt;
+    transition: 0.5s all;
+}
+
+.sticky-box.sticky-box-pinned .cityName {
+    font-size: 28pt;
+    transition: 0.5s all;
+}
+
+/* local time */
+.sticky-box .localCityTime {
+    padding: 0.5rem;
+    color: rgba(0, 0, 0, .6);
+}
+
+/* visibility transition */
+.sticky-box:not(.sticky-box-pinned) .localCityTime {
+    transition: 0.5s all;
+}
+
+/* compact state of the sticky box: some content hidden */
+.sticky-box.sticky-box-pinned .localCityTime {
+    height: 0;
+    padding-top: 0;
+    opacity: 0;
+    transition: 0.5s all;
+}
+
+/* reveal weather on pinned */
+.sticky-box:not(.sticky-box-pinned) .cityNameContainer .weatherIcon {
+    display: none;
+}
+
+.sticky-box.sticky-box-pinned .cityNameContainer .weatherIcon {
+    display: block;
+}
+
+.sticky-box .cityNameContainer {
+    display: flex;
+    display: -ms-flex;
+    display: -moz-flex;
+    display: -webkit-flex;
+}
+
+.sticky-box .contentAfterChangeCity {
+    letter-spacing: 1px;
+    text-align:center;
+}
+
+.sticky-box:not(.sticky-box-pinned) .contentAfterChangeCity {
+    display:none;
+}
+
+
+.sticky-box.sticky-box-pinned .contentAfterChangeCity {
+    display:block;
+    font-size: larger;
+    color: rgba(0,0,0,.7);
+}
+

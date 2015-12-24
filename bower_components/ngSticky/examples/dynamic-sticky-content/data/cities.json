@@ -1,0 +1,72 @@
+{
+  "items": [
+    {
+      "name": "Las Vegas",
+      "woeid": 2436704,
+      "links" : {
+        "wikipedia":"https://en.wikipedia.org/wiki/Las_Vegas"
+      }
+
+    },
+    {
+      "name": "Seattle",
+      "woeid": 2490383,
+      "links" : {
+        "wikipedia":"https://en.wikipedia.org/wiki/Seattle"
+      }
+    },
+
+        {
+      "name": "London",
+      "woeid": 44418,
+      "links" : {
+        "wikipedia":"https://en.wikipedia.org/wiki/London"
+      }
+    },
+    {
+      "name": "Paris",
+      "woeid": 615702,
+      "links" : {
+        "wikipedia":"https://en.wikipedia.org/wiki/Paris"
+      }
+    },
+    {
+      "name": "Rome",
+      "woeid": 721943,
+      "links" : {
+        "wikipedia":"https://en.wikipedia.org/wiki/Rome"
+      }
+    },
+        {
+      "name": "Seoul",
+      "woeid": 1132599,
+      "links" : {
+        "wikipedia":"https://en.wikipedia.org/wiki/Seoul"
+      }
+    },
+
+       {
+      "name": "Singapore",
+      "woeid": 23424948,
+      "links" : {
+        "wikipedia":"https://en.wikipedia.org/wiki/Singapore"
+      }
+    },
+
+      {
+      "name": "Barcelona",
+      "woeid": 753692,
+      "links" : {
+        "wikipedia":"https://en.wikipedia.org/wiki/Barcelona"
+      }
+    },
+
+    {
+      "name": "Tokyo",
+      "woeid": 1118370,
+      "links" : {
+        "wikipedia":"https://en.wikipedia.org/wiki/Tokyo"
+      }
+    }
+  ]
+}

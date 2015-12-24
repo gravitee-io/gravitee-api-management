@@ -1,0 +1,93 @@
+<!-- user actions on this controller -->
+<div class="actionsToolbar">
+    <a ng-click="home.onChangeCity()">Change city</a>
+</div>
+
+
+<div class="applicationContainer">
+
+    <div class="container"
+
+         style=" background-image: linear-gradient(to bottom, rgba(255,255,255,1), rgba(200,200,255,.7) 80% ), url({{home.city.data.image.source}})"
+
+    >
+        <div class="cityName">{{home.city.name}}</div>
+
+
+    </div>
+
+
+    <div class="playground">
+
+        <sticky-scroll class="scrolling-container">
+
+            <div class="content-container">
+
+                <div>
+                    <div class="introduction">
+                        <div class="introductionLabel">
+                            City Information
+                        </div>
+
+                        <div>
+                            <img ng-src="{{home.getWeatherImageSrc()}}"/>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div sticky class="sticky-box city-box"
+                     sticky-class="sticky-box-pinned"
+                     unsticky-class="sticky-box-unpinned"
+                     xoffset="25"
+                     confine="false"
+                     xmedia-query="min-width: 768px"
+                >
+
+                    <div class="cityNameContainer">
+                        <div class="cityName">
+                            <a ng-href="{{home.city.links.wikipedia}}" target="blank">
+                                {{home.city.name}}
+                            </a>
+                        </div>
+                        <div><img class="weatherIcon" ng-src="{{home.getWeatherImageSrc()}}"/></div>
+                    </div>
+
+
+                    <!-- dynamically injected -->
+                    <div class="contentAfterChangeCity" ng-show="home.changeCityCount > 0">{{home.changeCityCount}}. {{home.contentAfterChangeCity}}</div>
+
+
+                    <div class="localCityTime">
+                        Time: {{home.city.data.weather.date}}
+                    </div>
+                </div>
+
+                <div class="supplementary">
+                    <h3>weather</h3>
+
+
+                    <div>
+                        Temperature: {{home.getWeatherTemperatureCelsius()}} &deg;C
+                    </div>
+
+
+                    <div>
+                        {{home.city.data.weather.text}}
+                    </div>
+
+                    <img ng-src="{{home.city.data.image.source}}"/>
+
+                    <br><i>more {{home.city.name}} content...</i>
+
+                </div>
+
+
+            </div>
+
+
+        </sticky-scroll>
+
+    </div>
+
+</div>

@@ -42,16 +42,16 @@
     <![endif]-->
 
     <div style="height:100%;">
-			<div>     	
+			<div>
 				<gravitee-sidenav />
-			</div>     
-      <md-content style="height:100%;" ng-class="{'active':contentIsActive}">
+			</div>
+      <div style="display: block; height:100%;" ng-class="{'active':contentIsActive}">
         <header>
           <gravitee-navbar />
         </header>
         <md-progress-linear ng-show="isLoading" md-mode="buffer" value="{{progressValue}}" md-buffer-value="{{progressValue}}"></md-progress-linear>
 			  <div ui-view></div>
-			</md-content>
+			</div>
     </div>
 
     <script src="bower_components/jquery/dist/jquery.min.js" type="text/javascript"></script>
