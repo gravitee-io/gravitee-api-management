@@ -75,8 +75,12 @@ html {
   margin: 0px 16px;
 }
 
-md-toolbar.md-tall {
-  min-height: 100px;
+md-toolbar{
+  font-size: 18px;
+  min-height: 49px;
+  .md-tall {
+    min-height: 100px;
+  }
 }
 
 tr[ui-sref] {
@@ -89,7 +93,7 @@ md-switch {
 
 md-progress-linear {
   position: fixed;
-  top: 64px;
+  top: 49px;
   z-index: 100;
 }
 
@@ -127,6 +131,10 @@ ng-md-icon {
 
 .gravitee-add-button {
   position: fixed !important;
+}
+
+header {
+  display: flex;
 }
 
 /**

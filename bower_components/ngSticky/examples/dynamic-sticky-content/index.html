@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Angular-Sticky Dynamic / Asynchronous Content</title>
+    <link href="styles.css" rel="stylesheet"/>
+</head>
+
+<body ng-app="app">
+
+<div id="mainContainer">
+
+    <h3>
+        Dynamic Sticky Container Content
+    </h3>
+
+    <hr>
+
+    <ng-view>Loading...</ng-view>
+
+    <p>
+        This demo showcases asynchronous content loading and ability to accommodate reflow and resizing of the sticky.
+        Scroll down and see the behavior of the sticky you change the city.
+    </p>
+
+</div>
+
+
+<!-- vendor code, widget directive and custom app controller -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.7/angular.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.7/angular-route.min.js"></script>
+<script src="../../lib/sticky.js"></script>
+
+<script src="services.js"></script>
+<script src="controllers.js"></script>
+
+
+</body>
+
+</html>

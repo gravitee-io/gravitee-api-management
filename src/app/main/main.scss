@@ -1,6 +1,6 @@
 .landing-header-image {
 	padding-top: 20px;
-  height: 280px;        
+  height: 280px;
 	background: #16222A; /* fallback for old browsers */
 	background: -webkit-linear-gradient(to left, #16222A , #3A6073); /* Chrome 10-25, Safari 5.1-6 */
 	background: linear-gradient(to left, #16222A , #3A6073); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
@@ -69,28 +69,28 @@
 .apis-box a, .apis-box a:link, .apis-box a:visited, .apis-box a:hover, .apis-box a:active {
 	text-decoration: none !important;
   color: black !important;
-} 
+}
 
 .api-box .border-right {
 	border-right: 1px solid #f4f4f4;
 }
 
-.api-box .api-box-header { 
-	padding: 20px; 
-	border-top-right-radius: 3px; 
+.api-box .api-box-header {
+	padding: 20px;
+	border-top-right-radius: 3px;
 	border-top-left-radius: 3px;
 }
 
 .api-box .api-box-header h3 {
-	color:white; 
-	margin-top: 20px; 
-	margin-bottom: 5px; 
-	font-weight: 300; 
+	color:white;
+	margin-top: 20px;
+	margin-bottom: 5px;
+	font-weight: 300;
 	text-shadow: 0 1px 1px rgba(0,0,0,0.2);
 }
 
 .api-box .api-box-header h5 {
-	color:white; 
+	color:white;
 }
 
 .description-block {
@@ -133,4 +133,8 @@ md-content {
 
 table[md-data-table]>thead:not([md-table-progress])>tr>th>div {
 	height: 30px;
+}
+
+.gravitee-sticky {
+  background-color: #fff;
 }
