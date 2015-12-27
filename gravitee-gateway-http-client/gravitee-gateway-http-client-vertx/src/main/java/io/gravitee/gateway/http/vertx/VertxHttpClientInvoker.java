@@ -67,6 +67,9 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         String url = rewrittenURI.toString();
         LOGGER.debug("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), url);
 
+        String uri = rewrittenURI.getPath();
+        if (rewrittenURI.getQuery() != null)
+            uri += '?' + rewrittenURI.getQuery();
 
         final int port = endpoint.getPort() != -1 ? endpoint.getPort() :
                 (endpoint.getScheme().equals("https") ? 443 : 80);
@@ -75,7 +78,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
                 convert(serverRequest.method()),
                 port,
                 endpoint.getHost(),
-                url,
+                uri,
                 clientResponse -> handleClientResponse(clientResponse, clientResponseHandler));
 
         ClientRequest invokerRequest = new ClientRequest() {
