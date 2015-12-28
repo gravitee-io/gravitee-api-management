@@ -15,24 +15,34 @@
  */
 package io.gravitee.gateway.services.sync;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.LifecycleState;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.text.Collator;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.io.IOException;
-import java.text.Collator;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -45,6 +55,9 @@ public class SyncManager {
 
     @Autowired
     private ApiRepository apiRepository;
+    
+    @Autowired
+    private EventRepository eventRepository;
 
     @Autowired
     private ApiManager apiManager;
@@ -60,9 +73,11 @@ public class SyncManager {
 
         try {
             Set<io.gravitee.repository.management.model.Api> apis = apiRepository.findAll();
+            
+            // Determine deployed APIs store into events payload
+            Set<Api> deployedApis = getDeployedApis(apis);
 
-            Map<String, Api> apisMap = apis.stream()
-                    .map(this::convert)
+            Map<String, Api> apisMap = deployedApis.stream()
                     .filter(api -> api != null && isConfiguredTags(api))
                     .collect(Collectors.toMap(Api::getId, api -> api));
 
@@ -123,6 +138,38 @@ public class SyncManager {
         // no tags configured on this gateway instance
         return true;
     }
+    
+    private Set<Api> getDeployedApis(Set<io.gravitee.repository.management.model.Api> apis) {
+    	Set<Api> deployedApis = new HashSet<Api>();
+    	
+    	Collection<Event> events = eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
+    	List<Event> eventsSorted = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).collect(Collectors.toList());
+    	Collections.reverse(eventsSorted);
+    	try {
+    		for (io.gravitee.repository.management.model.Api api : apis) {
+	    		for (Event _event : eventsSorted) {
+	    			JsonNode node = objectMapper.readTree(_event.getPayload());
+	    			io.gravitee.repository.management.model.Api payloadApi = objectMapper.convertValue(node, io.gravitee.repository.management.model.Api.class);
+	    			if (api.getId().equals(payloadApi.getId())) {
+	    				deployedApis.add(convert(payloadApi));
+	    				// create success publish API event
+	    				String hostAddress = InetAddress.getLocalHost().getHostAddress();
+	    				Event event = new Event();
+	    				event.setType(EventType.PUBLISH_API_RESULT);
+	    				event.setPayload("API : " + api.getId() + " deployed");
+	    				event.setParentId(event.getId());
+	    				event.setOrigin(hostAddress);
+	    				eventRepository.create(event);
+	    				break;
+	    			}
+	    		}
+    		}
+    	} catch (Exception e) {
+    		logger.error("Error while determining deployed APIs store into events payload", e);
+    	}
+    	
+    	return deployedApis;
+    }
 
     private Api convert(io.gravitee.repository.management.model.Api remoteApi) {
         try {
@@ -149,6 +196,10 @@ public class SyncManager {
         this.apiRepository = apiRepository;
     }
 
+    public void setEventRepository(EventRepository eventRepository) {
+    	this.eventRepository = eventRepository;
+    }
+    
     public void setApiManager(ApiManager apiManager) {
         this.apiManager = apiManager;
     }
