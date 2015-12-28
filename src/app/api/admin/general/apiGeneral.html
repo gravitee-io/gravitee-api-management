@@ -29,7 +29,7 @@
     </md-input-container>
 
     <div layout="column" flex="20">
-      <md-input-container class="flex" layout-align="center center">
+      <md-input-container>
         <md-radio-group ng-model="apiCtrl.api.visibility">
           <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public">
             <md-tooltip md-direction="bottom">Public: API is visible by all</md-tooltip>
@@ -62,8 +62,8 @@
       <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
     </md-input-container>
 
-    <div class="flex" layout="column">
-      <md-input-container layout-align="center center">
+    <div class="flex" layout="column" layout-align="center center">
+      <md-input-container>
         <md-checkbox ng-model="apiCtrl.api.proxy.strip_context_path" aria-label="Strip context path?">
           Strip context path
         </md-checkbox>
