@@ -24,7 +24,7 @@ import java.util.Objects;
 public class EmailNotification {
 
     private String from;
-    private String to;
+    private String[] to;
     private String subject;
     private String content;
     private Map params;
@@ -37,11 +37,11 @@ public class EmailNotification {
         this.from = from;
     }
 
-    public String getTo() {
+    public String[] getTo() {
         return to;
     }
 
-    public void setTo(String to) {
+    public void setTo(String... to) {
         this.to = to;
     }
 

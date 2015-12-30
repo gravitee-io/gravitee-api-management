@@ -15,9 +15,12 @@
  */
 package io.gravitee.management.service.impl;
 
+import com.google.common.collect.ImmutableMap;
 import io.gravitee.management.model.ApiKeyEntity;
-import io.gravitee.management.service.ApiKeyGenerator;
-import io.gravitee.management.service.ApiKeyService;
+import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.PrimaryOwnerEntity;
+import io.gravitee.management.service.*;
+import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -52,6 +55,12 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Autowired
     private ApiKeyGenerator apiKeyGenerator;
 
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private ApplicationService applicationService;
+
     @Override
     public ApiKeyEntity generateOrRenew(String applicationName, String apiName) {
         try {
@@ -70,10 +79,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             // Previously generated keys should be set as revoked
             Set<ApiKey> oldKeys = apiKeyRepository.findByApplicationAndApi(applicationName, apiName);
             for (ApiKey oldKey : oldKeys) {
-                if (!oldKey.isRevoked()) {
-                    oldKey.setExpiration(expirationDate);
-                    apiKeyRepository.update(oldKey);
-                }
+                setExpiration(expirationDate, oldKey);
             }
 
             apiKey = apiKeyRepository.create(applicationName, apiName, apiKey);
@@ -99,6 +105,19 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 key.setRevokeAt(new Date());
 
                 apiKeyRepository.update(key);
+
+                final ApplicationEntity applicationEntity = applicationService.findById(key.getApplication());
+                final PrimaryOwnerEntity owner = applicationEntity.getPrimaryOwner();
+
+                if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
+                    emailService.sendEmailNotification(new EmailNotificationBuilder()
+                            .to(owner.getEmail())
+                            .subject("An API key has been revoked on API " + key.getApi() + " for application " + key.getApplication())
+                            .content("apiKeyRevoked.html")
+                            .params(ImmutableMap.of( "owner", owner.getUsername(), "api", key.getApi(),
+                                    "application", key.getApplication(), "apiKey", key.getKey()))
+                            .build());
+                }
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to revoke a key {}", apiKey, ex);
@@ -192,16 +211,32 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             ApiKey key = optKey.get();
 
-            if (!key.isRevoked()) {
-                key.setExpiration(apiKeyEntity.getExpireOn());
-
-                apiKeyRepository.update(key);
-            }
+            setExpiration(apiKeyEntity.getExpireOn(), key);
 
             return convert(key);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update a key {}", apiKey, ex);
             throw new TechnicalManagementException("An error occurs while trying to update a key " + apiKey, ex);
+        }
+    }
+
+    private void setExpiration(Date expirationDate, ApiKey key) throws TechnicalException {
+        if (!key.isRevoked()) {
+            key.setExpiration(expirationDate);
+            apiKeyRepository.update(key);
+
+            final ApplicationEntity applicationEntity = applicationService.findById(key.getApplication());
+            final PrimaryOwnerEntity owner = applicationEntity.getPrimaryOwner();
+
+            if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
+                emailService.sendEmailNotification(new EmailNotificationBuilder()
+                        .to(owner.getEmail())
+                        .subject("An API key has been revoked on API " + key.getApi() + " for application " + key.getApplication())
+                        .content("apiKeyRevoked.html")
+                        .params(ImmutableMap.of( "owner", owner.getUsername(), "api", key.getApi(),
+                                "application", key.getApplication(), "apiKey", key.getKey()))
+                        .build());
+            }
         }
     }
 

@@ -17,6 +17,7 @@ package io.gravitee.management.service.impl;
 
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.management.model.*;
+import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.EmailService;
 import io.gravitee.management.service.IdGenerator;
@@ -28,10 +29,7 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.model.ApiKey;
-import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -275,6 +273,21 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
         applicationEntity.setCreatedAt(application.getCreatedAt());
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
+
+        if (application.getMembers() != null) {
+            final Optional<Membership> member = application.getMembers().stream().filter(
+                    membership -> MembershipType.PRIMARY_OWNER.equals(membership.getMembershipType())
+            ).findFirst();
+            if (member.isPresent()) {
+                final User user = member.get().getUser();
+                final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+                primaryOwnerEntity.setUsername(user.getUsername());
+                primaryOwnerEntity.setLastname(user.getLastname());
+                primaryOwnerEntity.setFirstname(user.getFirstname());
+                primaryOwnerEntity.setEmail(user.getEmail());
+                applicationEntity.setPrimaryOwner(primaryOwnerEntity);
+            }
+        }
 
         return applicationEntity;
     }
