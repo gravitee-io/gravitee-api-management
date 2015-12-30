@@ -25,6 +25,7 @@ class ApiDescriptorController {
     this.$state = $state;
     this.api = _.cloneDeep(resolvedApi.data);
 
+    delete this.api.description;
     delete this.api.created_at;
     delete this.api.updated_at;
     delete this.api.visibility;
