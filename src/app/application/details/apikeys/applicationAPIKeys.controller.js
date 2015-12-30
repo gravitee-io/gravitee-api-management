@@ -37,7 +37,7 @@ class ApplicationAPIKeysController {
   generateAPIKey(application, apiId) {
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
-      content: 'Are you sure you want to renew your API Key ? <br /> Your previous API Key will be no longer valid in 1 hour !',
+      content: 'Are you sure you want to renew your API Key ? Your previous API Key will be no longer valid in 1 hour !',
       ok: 'Renew',
       cancel: 'Cancel'
     });
@@ -59,7 +59,7 @@ class ApplicationAPIKeysController {
   revoke(apiKey) {
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
-      content: 'Are you sure you want to revoke API Key <code>' + apiKey + '</code> ?',
+      content: 'Are you sure you want to revoke API Key \'' + apiKey + '\'?',
       ok: 'Revoke',
       cancel: 'Cancel'
     });

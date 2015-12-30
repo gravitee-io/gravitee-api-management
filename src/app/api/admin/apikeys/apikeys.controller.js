@@ -35,7 +35,7 @@ class ApiKeysController {
   revoke(apiKey) {
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
-      content: 'Are you sure you want to revoke API Key <code>' + apiKey + '</code> ?',
+      content: 'Are you sure you want to revoke API Key \'' + apiKey + '\'?',
       ok: 'Revoke',
       cancel: 'Cancel'
     });
