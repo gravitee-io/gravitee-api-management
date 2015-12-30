@@ -55,6 +55,11 @@
                 <exclude>*</exclude>
             </excludes>
         </fileSet>
+
+        <fileSet>
+            <directory>src/main/resources/templates</directory>
+            <outputDirectory>/templates</outputDirectory>
+        </fileSet>
     </fileSets>
 
     <dependencySets>
