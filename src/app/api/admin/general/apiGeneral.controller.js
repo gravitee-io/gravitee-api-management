@@ -44,10 +44,12 @@ class ApiAdminController {
         if (started) {
           that.ApiService.stop(id).then(function () {
             that.$scope.$parent.apiCtrl.api.state = 'stopped';
+            that.NotificationService.show('API ' + that.initialApi.name + ' has been stopped !');
           });
         } else {
           that.ApiService.start(id).then(function () {
             that.$scope.$parent.apiCtrl.api.state = 'started';
+            that.NotificationService.show('API ' + that.initialApi.name + ' has been started !');
           });
         }
       })
@@ -86,6 +88,7 @@ class ApiAdminController {
       this.$scope.$parent.apiCtrl.api = updatedApi.data;
       this.initState();
       this.$scope.formApi.$setPristine();
+      this.NotificationService.show('API ' + this.initialApi.name + ' has been updated !');
     });
   }
 
