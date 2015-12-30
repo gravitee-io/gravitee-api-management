@@ -17,6 +17,8 @@ package io.gravitee.management.rest.spring;
 
 import freemarker.cache.FileTemplateLoader;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +28,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.mail.MessagingException;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -33,6 +36,8 @@ import java.io.File;
 @Configuration
 @EnableAsync
 public class EmailConfiguration {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(EmailConfiguration.class);
 
     @Value("${email.host}")
     private String host;
@@ -72,10 +77,14 @@ public class EmailConfiguration {
     }
 
     @Bean
-    public freemarker.template.Configuration getConfiguration() throws Exception {
+    public freemarker.template.Configuration getConfiguration() {
         final freemarker.template.Configuration configuration =
                 new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22);
-        configuration.setTemplateLoader(new FileTemplateLoader(new File(templatesPath)));
+        try {
+            configuration.setTemplateLoader(new FileTemplateLoader(new File(templatesPath)));
+        } catch (final IOException e) {
+            LOGGER.warn("Error occurred while trying to read email templates directory", e);
+        }
         return configuration;
     }
 
