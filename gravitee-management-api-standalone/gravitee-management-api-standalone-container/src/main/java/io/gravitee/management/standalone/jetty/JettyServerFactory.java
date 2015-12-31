@@ -16,10 +16,7 @@
 package io.gravitee.management.standalone.jetty;
 
 import org.eclipse.jetty.jmx.MBeanContainer;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.beans.factory.FactoryBean;
@@ -85,6 +82,17 @@ public class JettyServerFactory implements FactoryBean<Server> {
             StatisticsHandler stats = new StatisticsHandler();
             stats.setHandler(server.getHandler());
             server.setHandler(stats);
+        }
+
+        if (jettyConfiguration.isAccessLogEnabled()) {
+            AsyncNCSARequestLog requestLog = new AsyncNCSARequestLog(
+                    jettyConfiguration.getAccessLogPath());
+            requestLog.setRetainDays(90);
+            requestLog.setExtended(true);
+            requestLog.setLogLatency(true);
+            requestLog.setLogTimeZone("GMT");
+
+            server.setRequestLog(requestLog);
         }
 
         return server;

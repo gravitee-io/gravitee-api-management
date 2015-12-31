@@ -52,6 +52,12 @@ public class JettyConfiguration {
     @Value("${jetty.statistics:false}")
     private boolean statisticsEnabled;
 
+    @Value("${jetty.accesslog.enabled:true}")
+    private boolean accessLogEnabled;
+
+    @Value("${jetty.accesslog.path:${gravitee.home}/logs/gravitee_accesslog_yyyy_mm_dd.log}")
+    private String accessLogPath;
+
     public int getHttpPort() {
         return httpPort;
     }
@@ -130,5 +136,21 @@ public class JettyConfiguration {
 
     public void setPoolQueueSize(int poolQueueSize) {
         this.poolQueueSize = poolQueueSize;
+    }
+
+    public boolean isAccessLogEnabled() {
+        return accessLogEnabled;
+    }
+
+    public void setAccessLogEnabled(boolean accessLogEnabled) {
+        this.accessLogEnabled = accessLogEnabled;
+    }
+
+    public String getAccessLogPath() {
+        return accessLogPath;
+    }
+
+    public void setAccessLogPath(String accessLogPath) {
+        this.accessLogPath = accessLogPath;
     }
 }
