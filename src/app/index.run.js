@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /* global setInterval:false, clearInterval:false */
-function runBlock ($rootScope, $window, $http, $cookieStore) {
+function runBlock ($rootScope, $window, $http, $cookieStore, $mdSidenav) {
   'ngInject';
   var graviteeAuthenticationKey = 'GraviteeAuthentication';
 
@@ -36,7 +36,8 @@ function runBlock ($rootScope, $window, $http, $cookieStore) {
 		$cookieStore.remove('authenticatedUser');
 		$rootScope.authenticated = false;
     setAuthorization();
-    $window.location.href = '/';
+    $mdSidenav('left').close();
+    $window.location.href = '#/';
   });
 
 	$rootScope.$on('$stateChangeStart', function(event, toState){
