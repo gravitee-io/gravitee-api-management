@@ -15,16 +15,18 @@
  */
 package io.gravitee.management.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.management.model.PrimaryOwnerEntity;
+import io.gravitee.management.model.UpdateApiEntity;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.EmailService;
 import io.gravitee.management.service.EventService;
@@ -36,12 +38,13 @@ import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.Visibility;
 
-<<<<<<< HEAD
-=======
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,17 +58,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
->>>>>>> feat(event): fix event sort mechanism
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -357,11 +358,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     
     @Override
     public boolean isAPISynchronized(ApiEntity api) {
-<<<<<<< HEAD
     	Set<EventEntity> events = eventService.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
-=======
-    	Collection<EventEntity> events = eventService.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
->>>>>>> feat(event): fix event sort mechanism
     	List<EventEntity> eventsSorted = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).collect(Collectors.toList());
     	Collections.reverse(eventsSorted);
     	try {
