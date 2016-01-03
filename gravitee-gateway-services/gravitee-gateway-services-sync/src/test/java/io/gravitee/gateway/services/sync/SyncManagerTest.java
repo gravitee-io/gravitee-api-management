@@ -50,7 +50,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.type.SimpleType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -348,6 +347,51 @@ public class SyncManagerTest {
         verify(apiManager, never()).undeploy(any(String.class));
         System.clearProperty(SyncManager.TAGS_PROP);
     }
+    
+    @Test
+	public void test_not_deployApiWithoutEvent() throws Exception {
+		io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
+
+		final Api mockApi = mockApi(api);
+
+		when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API))).thenReturn(Collections.emptySet());
+		when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+
+		syncManager.refresh();
+
+		verify(apiManager, never()).deploy(mockApi);
+		verify(apiManager, never()).update(any(Api.class));
+		verify(apiManager, never()).undeploy(any(String.class));
+	}
+    
+	@Test
+	public void test_deployOnlyOneApiWithTwoApisAndOneEvent() throws Exception {
+		io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
+		io.gravitee.repository.management.model.Api api2 = new RepositoryApiBuilder().id("api-test-2").updatedAt(new Date()).definition("test2").build();
+
+		final Api mockApi = mockApi(api);
+
+		final Event mockEvent = mockEvent(api);
+
+		Set<io.gravitee.repository.management.model.Api> apis = new HashSet<>();
+		apis.add(api);
+		apis.add(api2);
+
+		when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API))).thenReturn(Collections.singleton(mockEvent));
+		when(apiRepository.findAll()).thenReturn(apis);
+
+		syncManager.refresh();
+
+		verify(apiManager).deploy(argThat(new ArgumentMatcher<Api>() {
+			@Override
+			public boolean matches(Object argument) {
+				final Api api = (Api) argument;
+				return api.getId().equals(mockApi.getId());
+			}
+		}));
+		verify(apiManager, never()).update(any(Api.class));
+		verify(apiManager, never()).undeploy(any(String.class));
+	}
 
     private Api mockApi(final io.gravitee.repository.management.model.Api api, final String[] tags) throws Exception {
         final Api mockApi = mockApi(api);
