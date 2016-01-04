@@ -26,6 +26,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.BodyPart;
 import io.gravitee.gateway.http.core.endpoint.EndpointResolver;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,9 +85,9 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         ClientRequest invokerRequest = new ClientRequest() {
             @Override
             public ClientRequest write(BodyPart bodyPart) {
-                ByteBuffer byteBuffer = bodyPart.getBodyPartAsByteBuffer();
-                LOGGER.debug("{} proxying content to upstream: {} bytes", serverRequest.id(), byteBuffer.remaining());
-                clientRequest.write(byteBuffer.toString());
+                byte [] data = bodyPart.getBodyPartAsBytes();
+                LOGGER.debug("{} proxying content to upstream: {} bytes", serverRequest.id(), data.length);
+                clientRequest.write(Buffer.buffer(data));
 
                 return this;
             }

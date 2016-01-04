@@ -135,7 +135,6 @@ public class ContainerTest {
     }
 
     @Test
-    @Ignore
     public void call_post_content() throws Exception {
         ApiManager apiManager = node.getApplicationContext().getBean(ApiManager.class);
         Api api = getApiDefinition();
