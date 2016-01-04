@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.standalone;
 
+import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.core.definition.Api;
@@ -225,7 +226,7 @@ public class ContainerTest {
 
             HttpResponse returnResponse = response.returnResponse();
             assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
-            assertEquals("chunked", returnResponse.getFirstHeader(HttpHeaders.TRANSFER_ENCODING).getValue());
+            assertEquals(HttpHeadersValues.TRANSFER_ENCODING_CHUNKED, returnResponse.getFirstHeader(HttpHeaders.TRANSFER_ENCODING).getValue());
 
             String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
             assertEquals(652051, responseContent.length());
