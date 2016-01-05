@@ -39,6 +39,5 @@
   },
   "_source": "git://github.com/d-oliveros/angular-sticky.git",
   "_target": "~1.8.7",
-  "_originalSource": "ngSticky",
-  "_direct": true
+  "_originalSource": "ngSticky"
 }

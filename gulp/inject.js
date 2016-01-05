@@ -24,7 +24,7 @@ var $ = require('gulp-load-plugins')();
 var wiredep = require('wiredep').stream;
 var _ = require('lodash');
 
-gulp.task('inject', ['scripts', 'styles'], function () {
+gulp.task('inject', ['scripts', 'bootstrap-fonts','styles'], function () {
   var injectStyles = gulp.src([
     path.join(conf.paths.tmp, '/serve/app/**/*.css'),
     path.join('!' + conf.paths.tmp, '/serve/app/vendor.css')
@@ -47,4 +47,12 @@ gulp.task('inject', ['scripts', 'styles'], function () {
     .pipe($.inject(injectScripts, injectOptions))
     .pipe(wiredep(_.extend({}, conf.wiredep)))
     .pipe(gulp.dest(path.join(conf.paths.tmp, '/serve')));
+});
+
+gulp.task('bootstrap-fonts', function() {
+  return gulp.src([
+    path.join('bower_components/bootstrap-sass/assets/fonts/**')
+  ])
+    .pipe(gulp.dest(path.join(conf.paths.tmp, '/serve/fonts')))
+    .pipe(gulp.dest(path.join(conf.paths.dist, '/fonts')));
 });

@@ -3,3 +3,5 @@ npm-debug.log
 .DS_Store
 Thumbs.db
 .publish
+.idea
+bower_components

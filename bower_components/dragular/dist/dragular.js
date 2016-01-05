@@ -45,7 +45,7 @@ dragularModule.directive('dragular', ['dragularService', function(dragularServic
 
 
 /**
- * Dragular 3.1.0 by Luckylooke https://github.com/luckylooke/dragular
+ * Dragular 3.3.1 by Luckylooke https://github.com/luckylooke/dragular
  * Angular version of dragula https://github.com/bevacqua/dragula
  */
 module.exports = angular.module('dragularModule', []);
@@ -112,8 +112,9 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
         initialContainers = document.querySelectorAll(initialContainers);
       }
 
-      var body = document.body,
-        documentElement = document.documentElement,
+      var doc = document,
+        body = doc.body,
+        docElm = doc.documentElement,
         defaultClasses = {
           mirror: 'gu-mirror',
           hide: 'gu-hide',
@@ -152,7 +153,7 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
       angular.extend(o, options);
 
       if (!o.mirrorContainer) {
-        o.mirrorContainer = document.body;
+        o.mirrorContainer = doc.body;
       }
 
       // get initial containers from options or parameter or fall back to empty array (containers can be also added later)
@@ -193,16 +194,19 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
       events();
 
       angular.forEach(o.dragOverEventNames, function prepareDragOverEvents(dragOverEvent) {
-        if (document.createEvent) {
-          shared.dragOverEvents[dragOverEvent] = document.createEvent('HTMLEvents');
+        if (doc.createEvent) {
+          shared.dragOverEvents[dragOverEvent] = doc.createEvent('HTMLEvents');
           shared.dragOverEvents[dragOverEvent].initEvent(dragOverEvent, true, true);
         } else {
-          shared.dragOverEvents[dragOverEvent] = document.createEventObject();
+          shared.dragOverEvents[dragOverEvent] = doc.createEventObject();
           shared.dragOverEvents[dragOverEvent].eventType = dragOverEvent;
         }
       });
 
       isContainer = function isContainer(el) {
+        if(!el){
+          return false;
+        }
         var i = o.nameSpace.length;
         while (i--) {
           if (shared.containers[o.nameSpace[i]].indexOf(el) !== -1) {
@@ -261,8 +265,8 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
 
       function events(remove) {
         var op = remove ? 'off' : 'on';
-        regEvent(documentElement, op, 'mouseup', release);
-        // regEvent(documentElement, op, 'mousemove', startBecauseMouseMoved);
+        regEvent(docElm, op, 'mouseup', release);
+        // regEvent(docElm, op, 'mousemove', startBecauseMouseMoved);
 
         initialContainers.forEach(function addMouseDown(container) {
           regEvent(container, 'on', 'mousedown', grab);
@@ -271,14 +275,14 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
 
       function eventualMovements(remove) {
         var op = remove ? 'off' : 'on';
-        regEvent(documentElement, op, 'mousemove', startBecauseMouseMoved);
+        regEvent(docElm, op, 'mousemove', startBecauseMouseMoved);
       }
 
       function movements(remove) {
         var op = remove ? 'off' : 'on';
-        regEvent(documentElement, op, 'selectstart', preventGrabbed); // IE8
-        regEvent(documentElement, op, 'click', preventGrabbed);
-        regEvent(documentElement, op, 'touchmove', preventGrabbed); // fixes touch devices scrolling while drag
+        regEvent(docElm, op, 'selectstart', preventGrabbed); // IE8
+        regEvent(docElm, op, 'click', preventGrabbed);
+        regEvent(docElm, op, 'touchmove', preventGrabbed); // fixes touch devices scrolling while drag
       }
 
       function destroy() {
@@ -327,13 +331,14 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
           release({});
           return; // when text is selected on an input and then dragged, mouseup doesn't fire. this is our only hope
         }
-        if (e.clientX === shared.moveX && e.clientY === shared.moveY) {
+        // truthy check fixes #239, equality fixes #207
+        if (e.clientX && e.clientX === shared.moveX && e.clientY && e.clientY === shared.moveY) {
           return;
         }
         if (o.ignoreInputTextSelection) {
           var clientX = getCoord('clientX', e),
             clientY = getCoord('clientY', e),
-            elementBehindCursor = document.elementFromPoint(clientX, clientY);
+            elementBehindCursor = doc.elementFromPoint(clientX, clientY);
           if (isInput(elementBehindCursor)) {
             return;
           }
@@ -346,8 +351,8 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
         start(grabbed);
 
         // automaticly detect direction of elements if not set in options
-        if (!o.direction) {
-          var parent = shared.sourceItem.parentElement,
+        if (!o.direction && getParent(shared.sourceItem)) {
+          var parent = shared.sourceItem.parentNode,
             parentHeight = parent.offsetHeight,
             parentWidth = parent.offsetWidth,
             childHeight = shared.sourceItem.clientHeight,
@@ -387,19 +392,18 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
 
         var handle = item;
 
-        while (item.parentElement &&
-          !isContainer(item.parentElement)) {
+        while (getParent(item) && !isContainer(getParent(item))) {
           // break loop if user tries to drag item which is considered invalid handle
           if (o.invalid(item, handle)) {
             return;
           }
-          item = item.parentElement; // drag target should be immediate child of container
+          item = getParent(item); // drag target should be immediate child of container
           if (!item) {
             return;
           }
         }
 
-        var source = item.parentElement;
+        var source = getParent(item);
         if (!source ||
           o.invalid(item, handle) ||
           !o.moves(item, source, handle, nextEl(item))) {
@@ -455,13 +459,13 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
         if (!drake.dragging || !shared.item) {
           return;
         }
-        drop(shared.item, shared.item.parentElement);
+        drop(shared.item, getParent(shared.item));
       }
 
       function ungrab() {
         shared.grabbed = false;
-        eventualMovements(true);
-        movements(true);
+        eventualMovements('remove');
+        movements('remove');
       }
 
       function release(e) {
@@ -499,23 +503,14 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
       }
 
       function drop(item, target) {
-        if (shared.copy && o.copySortSource && target === shared.source) {
-          item.parentElement.removeChild(shared.sourceItem);
+        if (shared.copy && o.copySortSource && target === shared.source && getParent(item)) {
+          item.parentNode.removeChild(shared.sourceItem);
         }
 
-        function emitDropEvent() {
-          if (o.scope) {
-            if (isInitialPlacement(target)) {
-              o.scope.$emit('dragularcancel', item, shared.source, shared.sourceModel, shared.initialIndex);
-            } else {
-              o.scope.$emit('dragulardrop', item, target, shared.source, shared.sourceModel, shared.initialIndex, shared.targetModel);
-            }
-          }
-        }
+        var dropIndex = domIndexOf(item, target);
 
         if (shared.sourceModel && !isInitialPlacement(target)) {
-          var dropElm = item,
-            dropIndex = domIndexOf(dropElm, target);
+          var dropElm = item;
           $rootScope.$applyAsync(function applyDrop() {
             if (target === shared.source) {
               shared.sourceModel.splice(dropIndex, 0, shared.sourceModel.splice(shared.initialIndex, 1)[0]);
@@ -536,8 +531,8 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
               shared.targetModel.splice(dropIndex, 0, shared.dropElmModel);
             }
 
-            if (item.parentElement) {
-              item.parentElement.removeChild(item);
+            if (getParent(item)) {
+              item.parentNode.removeChild(item);
             }
 
             emitDropEvent();
@@ -547,13 +542,23 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
           emitDropEvent();
           cleanup();
         }
+
+        function emitDropEvent() {
+          if (o.scope) {
+            if (isInitialPlacement(target)) {
+              o.scope.$emit('dragularcancel', item, shared.source, shared.sourceModel, shared.initialIndex);
+            } else {
+              o.scope.$emit('dragulardrop', item, target, shared.source, shared.sourceModel, shared.initialIndex, shared.targetModel, dropIndex);
+            }
+          }
+        }
       }
 
       function remove() {
         if (!drake.dragging) {
           return;
         }
-        var parent = shared.item.parentElement;
+        var parent = getParent(shared.item);
 
         if (parent) {
           parent.removeChild(shared.item);
@@ -579,7 +584,7 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
           return;
         }
         var reverts = arguments.length > 0 ? revert : o.revertOnSpill,
-          parent = shared.item.parentElement;
+          parent = getParent(shared.item);
 
         var initial = isInitialPlacement(parent);
         if (!initial && !shared.copy && reverts) {
@@ -635,7 +640,7 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
         var target = elementBehindCursor;
 
         while (target && !accepted()) {
-          target = target.parentElement;
+          target = getParent(target);
         }
         return target;
 
@@ -738,8 +743,8 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
 
         // do not copy in same container
         if (dropTarget === shared.source && shared.copy && !o.copySortSource) {
-          if (shared.item.parentElement) {
-            shared.item.parentElement.removeChild(shared.item);
+          if (getParent(shared.item)) {
+            shared.item.parentNode.removeChild(shared.item);
           }
           return;
         }
@@ -755,9 +760,9 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
           dropTarget = shared.source;
         } else {
           // the case that mirror is not over valid target and removing is on or copy is on
-          if (shared.copy && shared.item.parentElement !== null) {
+          if (shared.copy && getParent(shared.item)) {
             // remove item or copy of item
-            shared.item.parentElement.removeChild(shared.item);
+            shared.item.parentNode.removeChild(shared.item);
           }
           return;
         }
@@ -832,7 +837,7 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
         rmClass(shared.mirror, o.classes.transit);
         addClass(shared.mirror, o.classes.mirror);
         o.mirrorContainer.appendChild(shared.mirror);
-        regEvent(documentElement, 'on', 'mousemove', drag);
+        regEvent(docElm, 'on', 'mousemove', drag);
         addClass(body, o.classes.unselectable);
         regEvent(shared.mirror, 'on', 'wheel', scrollContainer);
         if (o.scope) {
@@ -843,19 +848,21 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
       function removeMirrorImage() {
         if (shared.mirror) {
           rmClass(body, o.classes.unselectable);
-          regEvent(documentElement, 'off', 'mousemove', drag);
+          regEvent(docElm, 'off', 'mousemove', drag);
           regEvent(shared.mirror, 'off', 'wheel', scrollContainer);
-          shared.mirror.parentElement.removeChild(shared.mirror);
+          if(getParent(shared.mirror)){
+            shared.mirror.parentNode.removeChild(shared.mirror);
+          }
           shared.mirror = null;
         }
       }
 
       function getImmediateChild(dropTarget, target) {
         var immediate = target;
-        while (immediate !== dropTarget && immediate.parentElement !== dropTarget) {
-          immediate = immediate.parentElement;
+        while (immediate !== dropTarget && getParent(immediate) !== dropTarget) {
+          immediate = getParent(immediate);
         }
-        if (immediate === documentElement) {
+        if (immediate === docElm) {
           return null;
         }
         return immediate;
@@ -903,8 +910,8 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
         if (typeof window[offsetProp] !== 'undefined') {
           return window[offsetProp];
         }
-        if (documentElement.clientHeight) {
-          return documentElement[scrollProp];
+        if (docElm.clientHeight) {
+          return docElm[scrollProp];
         }
         return body[scrollProp];
       }
@@ -926,11 +933,11 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
           state = p.className,
           el;
         p.className += ' ' + o.classes.hide;
-        el = document.elementFromPoint(x, y);
+        el = doc.elementFromPoint(x, y);
         p.className = state;
         return el;
       }
-    };
+    }; // end of serviceFn
 
   // clean common/shared objects
   serviceFn.cleanEnviroment = function cleanEnviroment() {
@@ -1051,7 +1058,7 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
     }
 
     // Adding support for touch events, as they are not functional in the original
-    if (host.type.indexOf('touch') < 0) {
+    if (!host.type || host.type.indexOf('touch') < 0) {
       return host[coord];
     } else {
       if (host.type.indexOf('end') > -1) {
@@ -1065,6 +1072,7 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
   }
 
   function whichMouseButton (e) {
+    if (e.touches !== void 0) { return e.touches.length; }
     if (e.buttons !== undefined) { return e.buttons; }
     if (e.which !== undefined) { return e.which; }
     var button = e.button;
@@ -1073,8 +1081,19 @@ dragularModule.factory('dragularService', ['$rootScope', function dragula($rootS
     }
   }
 
+  function getParent (el) {
+    return el.parentNode === document ? null : el.parentNode;
+  }
+
   function isInput (el) {
-    return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT';
+    return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || isEditable(el);
+  }
+
+  function isEditable (el) {
+    if (!el) { return false; } // no parents were editable
+    if (el.contentEditable === 'false') { return false; } // stop the lookup
+    if (el.contentEditable === 'true') { return true; } // found a contentEditable element in the chain
+    return isEditable(getParent(el)); // contentEditable is set to 'inherit'
   }
 
   function domIndexOf(child, parent) {

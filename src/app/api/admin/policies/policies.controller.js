@@ -46,7 +46,15 @@ class ApiPoliciesController {
     });
 
     const that = this;
-    this.$scope.$on('dragulardrop', function(/*event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList*/) {
+    this.$scope.$on('dragulardrop', function(/*event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex*/) {
+/*      console.log('event', event);
+      console.log('element',element);
+      console.log('dropzoneElt',dropzoneElt);
+      console.log('draggableElt',draggableElt);
+      console.log('draggableObjList',draggableObjList);
+      console.log('draggableIndex',draggableIndex);
+      console.log('dropzoneObjList',dropzoneObjList);
+      console.log('dropzoneIndex',dropzoneIndex);*/
       that.savePaths();
     });
   }
@@ -97,17 +105,20 @@ class ApiPoliciesController {
 
   initDragularDropZone(path) {
     const dragularApiOptions = document.querySelector('.dropzone-' + _.kebabCase(path));
-    this.DragularService([dragularApiOptions], {
-      copy: false,
-      scope: this.$scope,
-      containersModel: this.apiPoliciesByPath[path],
-      classes: {
-        unselectable: 'gravitee-policy-draggable-selected'
-      },
-      nameSpace: 'policies',
-      accepts: this.acceptDragDrop
-    });
-    return true;
+    if (dragularApiOptions) {
+      this.DragularService([dragularApiOptions], {
+        copy: false,
+        scope: this.$scope,
+        containersModel: this.apiPoliciesByPath[path],
+        classes: {
+          unselectable: 'gravitee-policy-draggable-selected'
+        },
+        nameSpace: 'policies',
+        accepts: this.acceptDragDrop
+      });
+      return true;
+    }
+    return false;
   }
 
   listAllPoliciesWithSchema() {
@@ -200,7 +211,10 @@ class ApiPoliciesController {
       }), (result, n) => { return result && n; });
   }
 
-  removePolicy(path) {
+  removePolicy(index, path, ev) {
+    ev.stopPropagation();
+    this.selectedApiPolicy = null;
+    const hashKey = this.apiPoliciesByPath[path][index].$$hashKey;
     let alert = this.$mdDialog.confirm({
       title: 'Warning',
       content: 'Are you sure you want to remove this policy ?',
@@ -214,9 +228,8 @@ class ApiPoliciesController {
       .show(alert)
       .then(function () {
         _.forEach(that.apiPoliciesByPath[path], (policy, idx) => {
-          if ( policy.$$hashKey === that.selectedApiPolicy.$$hashKey ) {
+          if ( policy.$$hashKey === hashKey ) {
             that.apiPoliciesByPath[path].splice(idx, 1);
-            that.selectedApiPolicy = null;
             return false;
           }
         });
@@ -263,6 +276,7 @@ class ApiPoliciesController {
   }
 
   removePath(path) {
+    this.selectedApiPolicy = {};
     let alert = this.$mdDialog.confirm({
       title: 'Warning',
       content: 'Are you sure you want to remove this path ?',
