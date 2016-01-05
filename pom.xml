@@ -140,7 +140,7 @@
         <gravitee-plugin-policy.version>0.5.0-SNAPSHOT</gravitee-plugin-policy.version>
         <gravitee-policy-api.version>0.5.0-SNAPSHOT</gravitee-policy-api.version>
         <gravitee-gateway-api.version>0.5.0-SNAPSHOT</gravitee-gateway-api.version>
-        <gravitee-repository-mongodb.version>0.4.0</gravitee-repository-mongodb.version>
+        <gravitee-repository-mongodb.version>0.5.0-SNAPSHOT</gravitee-repository-mongodb.version>
 
         <jackson.version>2.5.3</jackson.version>
         <vertx.version>3.2.0</vertx.version>
