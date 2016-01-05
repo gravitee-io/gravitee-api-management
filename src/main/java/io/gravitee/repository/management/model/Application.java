@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -53,6 +54,7 @@ public class Application {
      */
     private Date updatedAt;
 
+    private List<Membership> members;
 
     public Date getCreatedAt() {
         return createdAt;
@@ -102,6 +104,14 @@ public class Application {
         this.id = id;
     }
 
+    public List<Membership> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<Membership> members) {
+        this.members = members;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -117,11 +127,14 @@ public class Application {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Application{");
-        sb.append("id='").append(id).append('\'');
-        sb.append("name='").append(name).append('\'');
-        sb.append(", type='").append(type).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return "Application{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", type='" + type + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", members=" + members +
+                '}';
     }
 }
