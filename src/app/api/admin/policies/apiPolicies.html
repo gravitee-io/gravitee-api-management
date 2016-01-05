@@ -76,7 +76,6 @@
       <div class="inset">
         <div layout="row" layout-align="space-between center">
         <h5>{{policy.name}}</h5>
-         <md-button class="md-raised" ng-click="apiPoliciesCtrl.savePaths();">Save</md-button>
       </div>
         <md-divider></md-divider>
       </div>
@@ -89,7 +88,9 @@
         </span>
       </div>
       <div>
-        <form sf-schema="policyJsonSchema" sf-form="policyJsonSchemaForm" sf-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId]"></form>
+        <form name="policyConfigurationForm" sf-schema="policyJsonSchema" sf-form="policyJsonSchemaForm" sf-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId]" sf-options="{ validateOnRender: true }" novalidate></form>
+        <md-divider></md-divider>
+        <md-button class="md-raised" ng-disabled="policyConfigurationForm.$invalid || policyConfigurationForm.$pristine" ng-click="apiPoliciesCtrl.savePaths();">Save</md-button>
       </div>
     </div>
   </div>
