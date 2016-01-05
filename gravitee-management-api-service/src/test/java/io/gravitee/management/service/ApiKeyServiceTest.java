@@ -15,11 +15,20 @@
  */
 package io.gravitee.management.service;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import io.gravitee.management.model.ApiKeyEntity;
+import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.PrimaryOwnerEntity;
+import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.impl.ApiKeyServiceImpl;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.ApiKey;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -27,19 +36,11 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import io.gravitee.management.model.ApiKeyEntity;
-import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.impl.ApiKeyServiceImpl;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.model.ApiKey;
+import static java.util.Arrays.asList;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -58,8 +59,15 @@ public class ApiKeyServiceTest {
     private ApiKeyRepository apiKeyRepository;
 
     @Mock
+    private ApplicationService applicationService;
+
+    @Mock
     private ApiKeyGenerator apiKeyGenerator;
 
+    @Mock
+    private ApplicationEntity applicationEntity;
+    @Mock
+    private PrimaryOwnerEntity primaryOwner;
     @Mock
     private ApiKey apiKey;
     @Mock
@@ -74,6 +82,10 @@ public class ApiKeyServiceTest {
         when(apiKey.getCreatedAt()).thenReturn(date);
         when(apiKey.isRevoked()).thenReturn(false);
         when(apiKey.getExpiration()).thenReturn(date);
+
+        when(apiKey.getApplication()).thenReturn(APPLICATION_NAME);
+        when(applicationService.findById(APPLICATION_NAME)).thenReturn(applicationEntity);
+        when(applicationEntity.getPrimaryOwner()).thenReturn(primaryOwner);
 
         final ApiKeyEntity apiKey = apiKeyService.generateOrRenew(APPLICATION_NAME, API_NAME);
 
@@ -94,6 +106,10 @@ public class ApiKeyServiceTest {
         when(apiKey.getKey()).thenReturn(API_KEY);
         when(apiKey.getCreatedAt()).thenReturn(date);
         when(apiKey.isRevoked()).thenReturn(false);
+
+        when(apiKey.getApplication()).thenReturn(APPLICATION_NAME);
+        when(applicationService.findById(APPLICATION_NAME)).thenReturn(applicationEntity);
+        when(applicationEntity.getPrimaryOwner()).thenReturn(primaryOwner);
 
         final ApiKeyEntity apiKeyEntity = apiKeyService.generateOrRenew(APPLICATION_NAME, API_NAME);
 
@@ -118,6 +134,10 @@ public class ApiKeyServiceTest {
     public void shouldRevoke() throws TechnicalException {
         when(apiKeyRepository.retrieve(API_KEY)).thenReturn(Optional.of(apiKey));
         when(apiKey.isRevoked()).thenReturn(false);
+
+        when(apiKey.getApplication()).thenReturn(APPLICATION_NAME);
+        when(applicationService.findById(APPLICATION_NAME)).thenReturn(applicationEntity);
+        when(applicationEntity.getPrimaryOwner()).thenReturn(primaryOwner);
 
         apiKeyService.revoke(API_KEY);
 
