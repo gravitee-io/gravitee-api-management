@@ -16,6 +16,8 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.expression.TemplateEngine;
+import io.gravitee.gateway.core.expression.spel.SpelTemplateEngine;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Collections;
@@ -31,6 +33,8 @@ public class ExecutionContextImpl implements ExecutionContext {
     private final Map<String, Object> attributes = new HashMap<>();
 
     private final ApplicationContext applicationContext;
+
+    private final SpelTemplateEngine spelTemplateEngine = new SpelTemplateEngine();
 
     public ExecutionContextImpl(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
@@ -59,5 +63,10 @@ public class ExecutionContextImpl implements ExecutionContext {
     @Override
     public Enumeration<String> getAttributeNames() {
         return Collections.enumeration(attributes.keySet());
+    }
+
+    @Override
+    public TemplateEngine getTemplateEngine() {
+        return spelTemplateEngine;
     }
 }

@@ -25,6 +25,7 @@ import io.gravitee.gateway.api.*;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.core.definition.Api;
+import io.gravitee.gateway.core.expression.spel.WrappedRequestVariable;
 import io.gravitee.gateway.core.http.StringBodyPart;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.StreamType;
@@ -67,6 +68,8 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
         // Prepare execution context
         ExecutionContext executionContext = createExecutionContext();
+        executionContext.getTemplateEngine().getTemplateContext().setVariable("request", new WrappedRequestVariable(serverRequest));
+        executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.getProperties());
 
         // Apply request policies
         AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(requestPolicies, executionContext);
@@ -118,9 +121,15 @@ public class ApiReactorHandler extends ContextReactorHandler {
                     responsePolicyChain.doNext(serverRequest, serverResponse);
                 });
 
-                serverRequest
-                        .bodyHandler(clientRequest::write)
-                        .endHandler(result -> clientRequest.end());
+                if (executionContext.getAttribute(ExecutionContext.ATTR_BODY_CONTENT) == null) {
+                    serverRequest
+                            .bodyHandler(clientRequest::write)
+                            .endHandler(result -> clientRequest.end());
+                } else {
+                    String content = (String) executionContext.getAttribute(ExecutionContext.ATTR_BODY_CONTENT);
+                    clientRequest.write(new StringBodyPart(content));
+                    clientRequest.end();
+                }
             }
         });
 
