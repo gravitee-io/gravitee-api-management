@@ -31,7 +31,7 @@ public class EmailNotificationBuilder {
         return this;
     }
 
-    public EmailNotificationBuilder to(String to) {
+    public EmailNotificationBuilder to(String... to) {
         this.emailNotification.setTo(to);
         return this;
     }
