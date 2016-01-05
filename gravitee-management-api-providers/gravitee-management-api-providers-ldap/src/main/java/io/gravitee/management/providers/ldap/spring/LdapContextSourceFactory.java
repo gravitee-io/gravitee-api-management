@@ -47,6 +47,7 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
         ContextSourceBuilder contextSourceBuilder =
                 new ContextSourceBuilder();
 
+        // TODO: remove this default index and get it by searching in the providers list configuration
         int providerIdx = 0;
 
         contextSourceBuilder
@@ -58,8 +59,8 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
         } else {
             contextSourceBuilder
                     .managerDn(environment.getProperty("security.providers[" + providerIdx + "].context-source-username"))
-                    .managerPassword(environment.getProperty("security.providers[" + providerIdx + "].context-source-url"))
-                    .url(environment.getProperty("security.providers[" + providerIdx + "].url"));
+                    .managerPassword(environment.getProperty("security.providers[" + providerIdx + "].context-source-password"))
+                    .url(environment.getProperty("security.providers[" + providerIdx + "].context-source-url"));
         }
 
         ldapContextSource = contextSourceBuilder.build();
@@ -226,13 +227,18 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
         super.afterPropertiesSet();
 
         ldapContextSource.afterPropertiesSet();
-        apacheDsContainer.afterPropertiesSet();
+
+        if (apacheDsContainer != null) {
+            apacheDsContainer.afterPropertiesSet();
+        }
     }
 
     @Override
     public void destroy() throws Exception {
         super.destroy();
 
-        apacheDsContainer.destroy();
+        if (apacheDsContainer != null) {
+            apacheDsContainer.destroy();
+        }
     }
 }
