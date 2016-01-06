@@ -140,30 +140,40 @@ public class ApiResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("deploy")
     public Response deployAPI() {
-    	permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
-    	
-    	try {
-    		apiService.deploy(api, getAuthenticatedUsername());
-		} catch (Exception e) {
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
-		}
-    	
-    	return Response.noContent().build();
+        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
+
+        try {
+            apiService.deploy(api, getAuthenticatedUsername());
+        } catch (Exception e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
+        }
+
+        return Response.noContent().build();
     }
-    
+
     @GET
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("isSynchronized")
-    public String isAPISynchronized() {
-    	permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
-    	
-    	ApiEntity apiEntity = apiService.findById(api);
-		if (apiService.isAPISynchronized(apiEntity)) {
-			return "synchronized";
-		} else {
-			return "not_synchronized";
-		}
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("state")
+    public io.gravitee.management.rest.model.ApiEntity isAPISynchronized() {
+        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
+
+        io.gravitee.management.rest.model.ApiEntity apiEntity = new io.gravitee.management.rest.model.ApiEntity();
+        
+        apiEntity.setApiId(this.api);
+        setSynchronizationState(apiEntity);
+        
+        return apiEntity;
+    }
+    
+    private void setSynchronizationState(io.gravitee.management.rest.model.ApiEntity apiEntity) {
+        ApiEntity _apiEntity = apiService.findById(api);
+        if (apiService.isAPISynchronized(_apiEntity)) {
+            apiEntity.setIsSynchronized(true);
+        } else {
+            apiEntity.setIsSynchronized(false);
+        }
     }
     
     @Path("keys")
