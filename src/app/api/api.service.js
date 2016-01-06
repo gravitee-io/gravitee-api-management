@@ -61,7 +61,7 @@ class ApiService {
   }
   
   isAPISynchronized(apiId) {
-    return this.$http.get(this.apisURL + apiId + '/isSynchronized');
+    return this.$http.get(this.apisURL + apiId + '/state');
   }
   
   deploy(apiId) {

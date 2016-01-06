@@ -69,7 +69,7 @@ class ApiAdminController {
   
   checkAPISynchronization(api) {
     this.ApiService.isAPISynchronized(api.id).then(response => {
-      if (response.data === 'synchronized') {
+      if (response.data.is_synchronized) {
         this.apiIsSynchronized = true;
       } else {
         this.apiIsSynchronized = false;
