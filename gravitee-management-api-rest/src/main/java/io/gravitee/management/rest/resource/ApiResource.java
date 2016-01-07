@@ -153,7 +153,6 @@ public class ApiResource extends AbstractResource {
 
     @GET
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("state")
     public io.gravitee.management.rest.model.ApiEntity isAPISynchronized() {
