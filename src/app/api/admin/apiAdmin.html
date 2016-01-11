@@ -18,10 +18,10 @@
 <section>
   <div class="gravitee-api-banner">
     <div ng-show="!apiCtrl.apiIsSynchronized && !apiCtrl.apiJustDeployed" ng-click="apiCtrl.showDeployAPIConfirm($event, apiCtrl.api)" class="gravitee-api-banner-content" ng-cloak>
-      Your API is out of sync with Gravitee Gateway, <a>deploy your API</a>.
+      API out of sync, <a>deploy your API</a> in gateways.
     </div>
   </div>
-   
+
   <div ng-include="'app/api/apiHeader.html'"></div>
   <div sticky offset="49" sticky-class="gravitee-sticky">
     <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
