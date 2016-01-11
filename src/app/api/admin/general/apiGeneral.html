@@ -82,7 +82,7 @@
     <md-button class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="formApi.$invalid || formApi.$pristine">
       Reset
     </md-button>
-    <md-button class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(apiCtrl.api.id)">
+    <md-button class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(apiCtrl.api.id)" ng-disabled="apiCtrl.api.state === 'started'">
       Delete
     </md-button>
   </div>
