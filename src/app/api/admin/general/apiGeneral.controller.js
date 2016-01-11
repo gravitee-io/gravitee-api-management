@@ -90,7 +90,7 @@ class ApiAdminController {
       this.initState();
       this.$scope.formApi.$setPristine();
       this.$rootScope.$broadcast("apiChangeSuccess");
-      this.NotificationService.show('API ' + this.initialApi.name + ' has been updated !');
+      this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
     });
   }
 }

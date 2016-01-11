@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 class ApiPropertiesController {
-  constructor (ApiService, resolvedApi, $state, $mdDialog, NotificationService, $scope) {
+  constructor (ApiService, resolvedApi, $state, $mdDialog, NotificationService, $scope, $rootScope) {
     'ngInject';
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
     this.NotificationService = NotificationService;
     this.$scope = $scope;
     this.$state = $state;
+    this.$rootScope = $rootScope;
     this.api = resolvedApi.data;
   }
 
@@ -50,6 +51,8 @@ class ApiPropertiesController {
     var _this = this;
     this.ApiService.update(api).then((updatedApi) => {
       _this.api = updatedApi.data;
+      _this.$rootScope.$broadcast('apiChangeSuccess');
+      _this.NotificationService.show('API \'' + _this.$scope.$parent.apiCtrl.api.name + '\' saved');
     });
   }
 }
