@@ -10,7 +10,7 @@ Browser support includes every sane browser and **IE7+**. <sub>_(Granted you pol
 
 I am working on huge angular project and I am using several drag&drop libraries in it, one for UI, one for lists, etc.. I want to use one full-featured drag&drop library for whole project. As I could not find any suitable, I decided to create one. I have choosen great library [dragula](http://github.com/bevacqua/dragula) by [Nicolas Bevacqua](http://github.com/bevacqua) as my starting point, make it more angular and started to put features in it! If you wish light-weight angular version of dragula, there is [official angular version of dragula](http://github.com/bevacqua/angular-dragula).
 
-<b>Actual version 3.2.0 is based on dragula 3.5.2 and tested with angular 1.4.3.</b>
+<b>Actual version 3.3.1 is based on dragula 3.6.0 and tested with angular 1.4.3.</b>
 
 # Differences of dragular (against dragula)
 

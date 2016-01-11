@@ -51,12 +51,12 @@
 
 .gravitee-policy-method-badge-filter {
   margin: 2px 5px;
-  font-size: .8em;
+  font-size: .67em;
 }
 
 .gravitee-policy-method-badge-info {
   margin: 2px 5px;
-  font-size: .6em;
+  font-size: .7em;
 }
 
 .gravitee-policy-method-badge-GET-selected {
@@ -98,4 +98,22 @@
 
 .gravitee-policy-filters {
   margin-bottom: 10px;
+}
+
+.gravitee-policy-path {
+  font-size: 1.4em;
+}
+
+.gravitee-policy-panel {
+  overflow-y: auto;
+  padding: 0 10px;
+}
+.gravitee-policy-panel-left {
+  height: calc(100vh - 172px);
+}
+.gravitee-policy-panel-center {
+  height: calc(100vh - 148px);
+}
+.gravitee-policy-panel-right {
+  height: calc(100vh - 200px);
 }

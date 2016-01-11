@@ -36,7 +36,6 @@
   transition: opacity 0.4s ease-in-out;
   cursor: move;
   cursor: grab;
-  cursor: -moz-grab;
   cursor: -webkit-grab;
 }
 
@@ -75,13 +74,11 @@ label b{
   transition: opacity 0.4s ease-in-out;
   cursor: move;
   cursor: grab;
-  cursor: -moz-grab;
   cursor: -webkit-grab;
 }
 
 .gu-unselectable {
   cursor: grabbing;
-  cursor: -moz-grabbing;
   cursor: -webkit-grabbing;
 }
 
@@ -102,7 +99,6 @@ label b{
   padding: 10px;
   cursor: move;
   cursor: grab;
-  cursor: -moz-grab;
   cursor: -webkit-grab;
   opacity: 0.8;
   position: fixed !important;
@@ -158,7 +154,6 @@ div.limitBox {
   background-color: rgba(0, 0, 0, 0.2);
   cursor: move;
   cursor: grab;
-  cursor: -moz-grab;
   cursor: -webkit-grab;
 }
 

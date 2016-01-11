@@ -142,7 +142,7 @@
             // bigger then the viewport
             var closestLine = getClosest (scrollbarPosition, stickyLine, stickyBottomLine);
 
-console.log(closestLine)
+
 
             if (shouldStick && !shouldStickWithLimit ($attrs.stickLimit) && !isSticking) {
               stickElement (closestLine);
@@ -223,7 +223,6 @@ console.log(closestLine)
            * Unsticks the element
            */
           function unStickElement(fromDirection) {
-            console.log('unstick')
             $elem.attr('style', initialStyle);
             isSticking = false;
 
@@ -270,7 +269,6 @@ console.log(closestLine)
            * Sticks the element
            */
           function stickElement(closestLine) {
-            console.log('stick')
             // Set sticky state
             isSticking = true;
             $timeout( function() {
@@ -315,7 +313,6 @@ console.log(closestLine)
            * Updates on resize.
            */
           var onResize = function() {
-            console.log('resize')
             unStickElement (anchor);
             checkIfShouldStick ();
           };
