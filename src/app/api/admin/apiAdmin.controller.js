@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor (resolvedApi, $state, $scope) {
+  constructor (resolvedApi, $state, $scope, $mdDialog, $rootScope, ApiService, NotificationService) {
     'ngInject';
     this.$scope = $scope;
     this.$state = $state;
+    this.$mdDialog = $mdDialog;
+    this.$rootScope = $rootScope;
     this.api = resolvedApi.data;
+    this.ApiService = ApiService;
+    this.NotificationService = NotificationService;
+    this.apiJustDeployed = false;
+    this.init();
+    this.checkAPISynchronization(this.api);
 
     var that = this;
     $scope.$on('$stateChangeSuccess', function (ev, to, toParams, from) {
@@ -50,6 +57,45 @@ class ApiAdminController {
       } else if ($state.current.name.endsWith('descriptor')) {
         $scope.selectedTab = 8;
       }
+    });
+  }
+  
+  init() {
+    var self = this;
+    this.$rootScope.$on("apiChangeSuccess", function() {
+        self.checkAPISynchronization(self.api);
+    });
+  }
+  
+  checkAPISynchronization(api) {
+    this.ApiService.isAPISynchronized(api.id).then(response => {
+      if (response.data.is_synchronized) {
+        this.apiIsSynchronized = true;
+      } else {
+        this.apiIsSynchronized = false;
+      }
+    });
+  }
+  
+  showDeployAPIConfirm(ev, api) {
+    var confirm = this.$mdDialog.confirm()
+      .title('Would you like to deploy your API?')
+      .ariaLabel('deploy-api')
+      .ok('OK')
+      .cancel('Cancel')
+      .targetEvent(ev);
+    var self = this;
+    this.$mdDialog.show(confirm).then(function() {
+      self.deploy(api);
+    }, function() {
+      self.$mdDialog.cancel();
+    });
+  }
+  
+  deploy(api) {
+    this.ApiService.deploy(api.id).then(() => {
+      this.NotificationService.show("API deployed");
+      this.apiJustDeployed = true;
     });
   }
 }
