@@ -46,21 +46,36 @@ public class PathResolverImpl implements PathResolver {
     public Path resolve(Request request) {
         String path = request.path() + '/';
 
+        int pieces = -1;
+        Path bestPath = null;
+
         for(Map.Entry<String, Path> entry : api.getPaths().entrySet()) {
             Pattern regex = regexPaths.computeIfAbsent(entry.getKey(), this::toRegexPath);
             if (regex.matcher(path).lookingAt()) {
-                return entry.getValue();
+                int split = entry.getKey().split(URL_PATH_SEPARATOR).length;
+                if (split > pieces) {
+                    pieces = split;
+                    bestPath = entry.getValue();
+                }
             }
         }
 
-        // Returns the root path
-        // TODO: remove the getOrDefault as soon as all references to /* have been removed
-        return api.getPaths().getOrDefault(URL_PATH_SEPARATOR, api.getPaths().get("/*"));
+        if (bestPath != null) {
+            return bestPath;
+        } else {
+            // Returns the root path
+            // TODO: remove the getOrDefault as soon as all references to /* have been removed
+            return api.getPaths().getOrDefault(URL_PATH_SEPARATOR, api.getPaths().get("/*"));
+        }
     }
 
     private Pattern toRegexPath(String path) {
         String [] branches = path.split(URL_PATH_SEPARATOR);
-        StringBuilder buffer = new StringBuilder(URL_PATH_SEPARATOR);
+        StringBuilder buffer = new StringBuilder(api.getProxy().getContextPath());
+
+        if (! (buffer.charAt(buffer.length() - 1) == '/')) {
+            buffer.append(URL_PATH_SEPARATOR);
+        }
 
         for(String branch : branches) {
             if (! branch.isEmpty()) {

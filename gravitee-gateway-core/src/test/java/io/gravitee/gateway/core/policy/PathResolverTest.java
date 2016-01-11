@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.policy;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.policy.impl.PathResolverImpl;
 import org.junit.Assert;
@@ -55,7 +56,7 @@ public class PathResolverTest {
         MockitoAnnotations.initMocks(this);
         pathResolver.setApi(api);
 
-        final Map<String, Path> paths = new TreeMap<>((Comparator<String>) (path1, path2) -> path2.compareTo(path1));
+        final Map<String, Path> paths = new HashMap<>(); //TreeMap<>((Comparator<String>) (path1, path2) -> path2.compareTo(path1));
 
         paths.putAll(new HashMap<String, Path>() {
             {
@@ -77,6 +78,9 @@ public class PathResolverTest {
             }
         });
 
+        Proxy proxy = new Proxy();
+        proxy.setContextPath("/");
+        when(api.getProxy()).thenReturn(proxy);
         when(api.getPaths()).thenReturn(paths);
     }
 
