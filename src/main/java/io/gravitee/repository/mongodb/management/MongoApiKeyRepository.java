@@ -122,4 +122,10 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 		Collection<ApiAssociationMongo> apiAssociationsMongo = internalApiKeyRepo.findByApi(apiId);
 		return map(apiAssociationsMongo);
 	}
+
+	@Override
+	public void delete(String apiKey) throws TechnicalException {
+		ApiAssociationMongo vApiKey = internalApiKeyRepo.retrieve(apiKey);
+		internalApiKeyRepo.delete(vApiKey);
+	}
 }
