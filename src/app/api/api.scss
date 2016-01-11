@@ -144,7 +144,7 @@ $flowRadius: 120px;
 }
 
 .gravitee-api-header-read-more {
-	height: 40px;  
+	height: 40px;
 	color: white;
 }
 
@@ -178,4 +178,13 @@ $flowRadius: 120px;
 .gravitee-api-banner-content a {
   color: white;
   text-decoration: underline;
+}
+
+v-pane-header {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+
+  &:focus, &:hover {
+    color: inherit !important;
+  }
 }

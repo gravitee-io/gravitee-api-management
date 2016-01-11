@@ -49,54 +49,60 @@
       </div>
       <md-divider></md-divider>
       <div class="gravitee-policy-panel gravitee-policy-panel-center">
-        <div class="inset" ng-repeat="path in apiPoliciesCtrl.sortedPaths()" ng-cloak>
-          <h3 class="gravitee-policy-path" ng-if='path === "/"'>{{path}}</h3>
-          <div ng-if='path !== "/"' layout="row" layout-align="space-between center">
-            <div flex="80">
-              <md-input-container>
-                <input ng_model="path"
-                       name="path{{$index}}"
-                       class="gravitee-policy-path"
-                       required
-                       aria-label="path"
-                       ui-validate="{
-                        pathAlreadyExists : 'apiPoliciesCtrl.pathNotExists($value, $index)',
-                        mustStartWithSlash : 'apiPoliciesCtrl.pathStartWithSlash($value)'
-                     }"
-                       ng-keydown="apiPoliciesCtrl.pathKeyPress($event, editPathForm['path'+$index], path, $index)"
-                       ng-blur="apiPoliciesCtrl.restoreOldPath($index, editPathForm['path'+$index])">
-                <div ng-messages="editPathForm['path'+$index].$error"
-                     ng-show="editPathForm['path'+$index].$dirty">
-                  <div ng-message="required">This is required!</div>
-                  <div ng-message="pathAlreadyExists">This path is already configured.</div>
-                  <div ng-message="mustStartWithSlash">The path must start with /</div>
-                </div>
-              </md-input-container>
-            </div>
-            <div flex style="text-align: right;"><a href ng-click="apiPoliciesCtrl.removePath(path)">remove path</a></div>
-          </div>
-          <div ng-class="apiPoliciesCtrl.getDropzoneClass(path)">
-            <md-card ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath[path]"
-                     ng-click="apiPoliciesCtrl.editPolicy($index, path)"
-                     ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
-                     class="gravitee-card gravitee-policy-card"
-                     ng-class="apiPoliciesCtrl.getApiPolicyClass(policy)"
-                     layout="row" layout-align="space-between start">
-              <md-card-content layout="column" layout-align="start start">
-                <span class="md-subhead">{{policy.name}}</span>
-                <div layout="row" layout-align="start center">
-                  <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-GET-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
-                  <div ng-if="policy.methods.length != apiPoliciesCtrl.httpMethods.length">
-                    <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-{{method}}-selected" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
+          <v-accordion class="vAccordion--default">
+            <v-pane ng-repeat="path in apiPoliciesCtrl.sortedPaths()">
+              <v-pane-header>
+                <h3 class="gravitee-policy-path" ng-if='path === "/"'>{{path}}</h3>
+                <div ng-if='path !== "/"' layout="row" layout-align="space-between center">
+                  <div flex="80">
+                    <md-input-container>
+                      <input ng_model="path"
+                             name="path{{$index}}"
+                             class="gravitee-policy-path"
+                             required
+                             aria-label="path"
+                             ui-validate="{
+                            pathAlreadyExists : 'apiPoliciesCtrl.pathNotExists($value, $index)',
+                            mustStartWithSlash : 'apiPoliciesCtrl.pathStartWithSlash($value)'
+                         }"
+                             ng-keydown="apiPoliciesCtrl.pathKeyPress($event, editPathForm['path'+$index], path, $index)"
+                             ng-blur="apiPoliciesCtrl.restoreOldPath($index, editPathForm['path'+$index])">
+                      <div ng-messages="editPathForm['path'+$index].$error"
+                           ng-show="editPathForm['path'+$index].$dirty">
+                        <div ng-message="required">This is required!</div>
+                        <div ng-message="pathAlreadyExists">This path is already configured.</div>
+                        <div ng-message="mustStartWithSlash">The path must start with /</div>
+                      </div>
+                    </md-input-container>
                   </div>
+                  <div flex><a href ng-click="apiPoliciesCtrl.removePath(path);$event.stopPropagation();">remove path</a></div>
                 </div>
-              </md-card-content>
-              <ng-md-icon icon="delete" ng-if='"api-key" !== policy.policyId' class="gravitee-card-close" ng-click="apiPoliciesCtrl.removePolicy($index, path, $event)"></ng-md-icon>
-            </md-card>
-          </div>
-          <span ng-if="apiPoliciesCtrl.initDragularDropZone(path)"></span>
+              </v-pane-header>
+              <v-pane-content>
+                <div ng-class="apiPoliciesCtrl.getDropzoneClass(path)">
+                <md-card ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath[path]"
+                         ng-click="apiPoliciesCtrl.editPolicy($index, path)"
+                         ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
+                         class="gravitee-card gravitee-policy-card"
+                         ng-class="apiPoliciesCtrl.getApiPolicyClass(policy)"
+                         layout="row" layout-align="space-between start">
+                  <md-card-content layout="column" layout-align="start start">
+                    <span class="md-subhead">{{policy.name}}</span>
+                    <div layout="row" layout-align="start center">
+                      <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-GET-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
+                      <div ng-if="policy.methods.length != apiPoliciesCtrl.httpMethods.length">
+                        <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-{{method}}-selected" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
+                      </div>
+                    </div>
+                  </md-card-content>
+                  <ng-md-icon icon="delete" ng-if='"api-key" !== policy.policyId' class="gravitee-card-close" ng-click="apiPoliciesCtrl.removePolicy($index, path, $event)"></ng-md-icon>
+                </md-card>
+              </div>
+                <span ng-if="apiPoliciesCtrl.initDragularDropZone(path)"></span>
+              </v-pane-content>
+            </v-pane>
+          </v-accordion>
         </div>
-      </div>
     </form>
   </div>
 
