@@ -80,4 +80,12 @@ public interface ApiKeyRepository {
 	 * @throws TechnicalException
 	 */
 	Set<ApiKey> findByApi(String apiId) throws TechnicalException;
+
+	/**
+	 * Delete an API Key
+	 *
+	 * @param apiKey The API Key to delete
+	 * @throws TechnicalException
+     */
+	void delete(String apiKey) throws TechnicalException;
 }
