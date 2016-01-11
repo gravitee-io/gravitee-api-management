@@ -61,15 +61,6 @@
       <label>Endpoint</label>
       <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
     </md-input-container>
-
-    <div class="flex" layout="column" layout-align="center center">
-      <md-input-container>
-        <md-checkbox ng-model="apiCtrl.api.proxy.strip_context_path" aria-label="Strip context path?">
-          Strip context path
-        </md-checkbox>
-      </md-input-container>
-      <label class="gravitee-api-explanation" ng-bind="generalCtrl.getStripContextExample()"></label>
-    </div>
   </div>
   <div layout="" layout-sm="column">
     <md-input-container class="flex">

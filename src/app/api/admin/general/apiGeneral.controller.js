@@ -93,14 +93,6 @@ class ApiAdminController {
       this.NotificationService.show('API ' + this.initialApi.name + ' has been updated !');
     });
   }
-
-  getStripContextExample() {
-    var endpoint = this.$scope.$parent.apiCtrl.api.proxy.endpoint;
-    if (!this.$scope.$parent.apiCtrl.api.proxy.strip_context_path) {
-      endpoint += this.$scope.$parent.apiCtrl.api.proxy.context_path;
-    }
-    return endpoint + '/*';
-  }
 }
 
 export default ApiAdminController;
