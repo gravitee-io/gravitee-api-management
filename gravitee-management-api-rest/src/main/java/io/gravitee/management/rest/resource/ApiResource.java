@@ -30,11 +30,20 @@ import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Defines the REST resources to manage API.
@@ -48,10 +57,10 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ApiService apiService;
-
+    
     @Inject
     private PermissionService permissionService;
-
+    
     @PathParam("api")
     private String api;
 
@@ -118,14 +127,54 @@ public class ApiResource extends AbstractResource {
     @DELETE
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     public Response delete() {
-        apiService.findById(api);
 
         permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);
 
         apiService.delete(api);
+        
+        return Response.noContent().build();
+    }
+    
+    @POST
+    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("deploy")
+    public Response deployAPI() {
+        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
+
+        try {
+            apiService.deploy(api, getAuthenticatedUsername());
+        } catch (Exception e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
+        }
+
         return Response.noContent().build();
     }
 
+    @GET
+    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("state")
+    public io.gravitee.management.rest.model.ApiEntity isAPISynchronized() {
+        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
+
+        io.gravitee.management.rest.model.ApiEntity apiEntity = new io.gravitee.management.rest.model.ApiEntity();
+        
+        apiEntity.setApiId(this.api);
+        setSynchronizationState(apiEntity);
+        
+        return apiEntity;
+    }
+    
+    private void setSynchronizationState(io.gravitee.management.rest.model.ApiEntity apiEntity) {
+        ApiEntity _apiEntity = apiService.findById(api);
+        if (apiService.isAPISynchronized(_apiEntity)) {
+            apiEntity.setIsSynchronized(true);
+        } else {
+            apiEntity.setIsSynchronized(false);
+        }
+    }
+    
     @Path("keys")
     public ApiKeysResource getApiKeyResource() {
         return resourceContext.getResource(ApiKeysResource.class);
