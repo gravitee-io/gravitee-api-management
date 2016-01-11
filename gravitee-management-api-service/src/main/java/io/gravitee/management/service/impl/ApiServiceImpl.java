@@ -37,13 +37,9 @@ import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipType;
-import io.gravitee.repository.management.model.User;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -56,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -78,6 +75,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private ApiRepository apiRepository;
+
+    @Autowired
+    private ApiKeyRepository apiKeyRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -249,7 +249,16 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public void delete(String apiName) {
         try {
             LOGGER.debug("Delete API {}", apiName);
+            Set<ApiKey> keys = apiKeyRepository.findByApi(apiName);
+            keys.forEach(apiKey -> {
+                try {
+                    apiKeyRepository.delete(apiKey.getKey());
+                } catch (TechnicalException e) {
+                    LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), e);
+                }
+            });
             apiRepository.delete(apiName);
+
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete API {}", apiName, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete API " + apiName, ex);
@@ -477,7 +486,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiKeyPolicy.setConfiguration("{}");
             apiKeyRule.setPolicy(apiKeyPolicy);
             rootPath.getRules().add(apiKeyRule);
-            paths.put("/*", rootPath);
+            paths.put("/", rootPath);
 
             apiDefinition.setPaths(paths);
 
