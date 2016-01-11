@@ -411,6 +411,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             api.setLifecycleState(lifecycleState);
             apiRepository.update(api);
         }
+
+        //TODO: username must be changed
+        deploy(apiName, "admin");
     }
 
     private ApiEntity convert(Api api) {
