@@ -120,11 +120,11 @@
 	display: none !important;
 }
 
-md-content.active {
+md-content.active, .main-content.active {
 	background: #fff;
 }
 
-md-content {
+md-content, .main-content {
 	background: #fafafa;
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	color: #333;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApiPoliciesController {
-  constructor (ApiService, resolvedApi, PolicyService, $state, $mdDialog, NotificationService, $scope, dragularService, $q) {
+  constructor (ApiService, resolvedApi, PolicyService, $state, $mdDialog, NotificationService, $scope, dragularService, $q, $rootScope) {
     'ngInject';
     this.ApiService = ApiService;
     this.PolicyService = PolicyService;
@@ -24,6 +24,7 @@ class ApiPoliciesController {
     this.$scope = $scope;
     this.$state = $state;
     this.$q = $q;
+    this.$rootScope = $rootScope;
     this.resolvedApi = resolvedApi;
     this.apiPoliciesByPath = {};
     this.policiesToCopy = [];
@@ -253,6 +254,7 @@ class ApiPoliciesController {
     const that = this;
     return this.ApiService.update(this.$scope.$parent.apiCtrl.api).then( ( {data} ) => {
       that.$scope.$parent.apiCtrl.api = data;
+      that.$rootScope.$broadcast('apiChangeSuccess');
       that.NotificationService.show('API \'' + that.$scope.$parent.apiCtrl.api.name + '\' saved');
       this.pathsToCompare = this.generatePathsToCompare();
     });

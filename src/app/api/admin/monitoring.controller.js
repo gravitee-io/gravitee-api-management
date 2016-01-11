@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 class ApiMonitoringController {
-  constructor (ApiService, resolvedApi, $state, $mdDialog, NotificationService, $scope) {
+  constructor (ApiService, resolvedApi, $state, $mdDialog, NotificationService, $scope, $rootScope) {
     'ngInject';
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
     this.NotificationService = NotificationService;
     this.$scope = $scope;
     this.$state = $state;
+    this.$rootScope = $rootScope;
     this.api = resolvedApi.data;
 
     this.timeUnits = [ 'SECONDS', 'MINUTES' ];
@@ -80,6 +81,7 @@ class ApiMonitoringController {
     this.ApiService.update(this.api).then((updatedApi) => {
       _this.api = updatedApi.data;
       _this.$scope.formApiMonitoring.$setPristine();
+      _this.$rootScope.$broadcast('apiChangeSuccess');
     });
   }
 
