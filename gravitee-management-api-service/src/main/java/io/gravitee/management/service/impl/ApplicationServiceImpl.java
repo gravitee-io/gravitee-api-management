@@ -164,6 +164,15 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     public void delete(String applicationId) {
         try {
             LOGGER.debug("Delete application {}", applicationId);
+            Set<ApiKey> keys = apiKeyRepository.findByApplication(applicationId);
+            keys.forEach(apiKey -> {
+                try {
+                    apiKeyRepository.delete(apiKey.getKey());
+                } catch (TechnicalException e) {
+                    LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), e);
+                }
+            });
+
             applicationRepository.delete(applicationId);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete application {}", applicationId, ex);
