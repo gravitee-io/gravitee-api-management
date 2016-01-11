@@ -35,6 +35,7 @@ import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
+import io.gravitee.management.service.exceptions.ApiRunningStateException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -249,16 +250,21 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public void delete(String apiName) {
         try {
             LOGGER.debug("Delete API {}", apiName);
-            Set<ApiKey> keys = apiKeyRepository.findByApi(apiName);
-            keys.forEach(apiKey -> {
-                try {
-                    apiKeyRepository.delete(apiKey.getKey());
-                } catch (TechnicalException e) {
-                    LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), e);
-                }
-            });
-            apiRepository.delete(apiName);
 
+            Optional<Api> api = apiRepository.findById(apiName);
+            if (api.get().getLifecycleState() == LifecycleState.STARTED) {
+                throw new ApiRunningStateException(apiName);
+            } else {
+                Set<ApiKey> keys = apiKeyRepository.findByApi(apiName);
+                keys.forEach(apiKey -> {
+                    try {
+                        apiKeyRepository.delete(apiKey.getKey());
+                    } catch (TechnicalException e) {
+                        LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), e);
+                    }
+                });
+                apiRepository.delete(apiName);
+            }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete API {}", apiName, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete API " + apiName, ex);
