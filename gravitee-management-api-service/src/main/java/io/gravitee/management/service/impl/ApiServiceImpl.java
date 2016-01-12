@@ -248,11 +248,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Override
     public void delete(String apiName) {
+        ApiEntity api = findById(apiName);
         try {
             LOGGER.debug("Delete API {}", apiName);
 
-            Optional<Api> api = apiRepository.findById(apiName);
-            if (api.get().getLifecycleState() == LifecycleState.STARTED) {
+            if (api.getState() == Lifecycle.State.STARTED) {
                 throw new ApiRunningStateException(apiName);
             } else {
                 Set<ApiKey> keys = apiKeyRepository.findByApi(apiName);

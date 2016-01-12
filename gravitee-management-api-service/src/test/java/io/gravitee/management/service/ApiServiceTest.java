@@ -19,12 +19,10 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.repository.management.api.ApiKeyRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -63,6 +61,9 @@ public class ApiServiceTest {
     @Mock
     private ApiRepository apiRepository;
 
+    @Mock
+    private ApiKeyRepository apiKeyRepository;
+
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
 
@@ -80,6 +81,7 @@ public class ApiServiceTest {
         when(api.getId()).thenReturn(API_ID);
         when(api.getName()).thenReturn(API_NAME);
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
+        when(api.getLifecycleState()).thenReturn(LifecycleState.STARTED);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
         when(newApi.getName()).thenReturn(API_NAME);
@@ -209,6 +211,7 @@ public class ApiServiceTest {
 
     @Test
     public void shouldDelete() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         apiService.delete(API_ID);
 
         verify(apiRepository).delete(API_ID);
@@ -216,6 +219,8 @@ public class ApiServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotDeleteBecauseTechnicalException() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiKeyRepository.findByApi(API_ID)).thenReturn(Collections.emptySet());
         doThrow(TechnicalException.class).when(apiRepository).delete(API_ID);
 
         apiService.delete(API_ID);
@@ -232,7 +237,7 @@ public class ApiServiceTest {
         verify(apiRepository).update(api);
     }
 
-    @Test
+    @Test(expected = ApiNotFoundException.class)
     public void shouldNotStartBecauseNotFound() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
@@ -259,7 +264,7 @@ public class ApiServiceTest {
         verify(apiRepository).update(api);
     }
 
-    @Test
+    @Test(expected = ApiNotFoundException.class)
     public void shouldNotStopBecauseNotFound() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
