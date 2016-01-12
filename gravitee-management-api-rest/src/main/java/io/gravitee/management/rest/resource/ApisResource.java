@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -68,7 +69,7 @@ public class ApisResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApiListItem> list() {
+    public List<ApiListItem> list() {
         Set<ApiEntity> apis;
         if (isAuthenticated()) {
             apis = apiService.findByUser(getAuthenticatedUsername());
@@ -79,7 +80,7 @@ public class ApisResource extends AbstractResource {
         return apis.stream()
                 .map(this::convert)
                 .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     /**
