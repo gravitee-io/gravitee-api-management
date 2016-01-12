@@ -66,6 +66,7 @@ import PageController from './api/admin/documentation/page/apiPage.controller';
 import PolicyService from './policy/policy.service';
 import PageDirective from './components/documentation/page.directive';
 import DialogLoginController from './login/dialog/loginDialog.controller';
+import RoleDirective from './components/role/role.directive';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
@@ -129,6 +130,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .directive('graviteeSidenav', () => new SideNavDirective())
   .directive('graviteePage', () => new PageDirective())
   .directive('noDirtyCheck', () => new FormDirective())
+  .directive('graviteeRolesAllowed', () => new RoleDirective())
   .service('PolicyService', PolicyService)
   .filter('apiKeyFilter', function () {
     return function (keys, showAll) {
