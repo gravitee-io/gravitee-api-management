@@ -19,10 +19,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,7 +37,7 @@ public class JacksonDeserializerTest {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-defaulthttpconfig.json");
 
         Assert.assertEquals("http://localhost:1234", api.getProxy().getEndpoints().iterator().next());
-        Assert.assertNull(api.getProxy().getHttpClient());
+        Assert.assertNotNull(api.getProxy().getHttpClient());
     }
 
     @Test
@@ -245,6 +242,41 @@ public class JacksonDeserializerTest {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-multipleendpoints-insingleendpoint.json");
         Assert.assertEquals(1, api.getProxy().getEndpoints().size());
         Assert.assertEquals("http://host1:8083/myapi", api.getProxy().getEndpoints().iterator().next());
+    }
+
+    @Test
+    public void definition_withclientoptions() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withclientoptions.json");
+        Assert.assertNotNull(api.getProxy().getHttpClient());
+        Assert.assertNotNull(api.getProxy().getHttpClient().getOptions());
+        Assert.assertNotNull(api.getProxy().getHttpClient().getSsl());
+    }
+
+    @Test
+    public void definition_withclientoptions_nossl() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withclientoptions-nossl.json");
+        Assert.assertNotNull(api.getProxy().getHttpClient());
+        Assert.assertNotNull(api.getProxy().getHttpClient().getOptions());
+        Assert.assertNull(api.getProxy().getHttpClient().getSsl());
+    }
+
+    @Test
+    public void definition_withclientoptions_nooptions() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json");
+        Assert.assertNotNull(api.getProxy().getHttpClient());
+        Assert.assertNotNull(api.getProxy().getHttpClient().getOptions());
+        Assert.assertNull(api.getProxy().getHttpClient().getSsl());
+    }
+
+    @Test
+    public void definition_withclientoptions_nooptions_defaultconfiguration() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json");
+        Assert.assertNotNull(api.getProxy().getHttpClient());
+        HttpClientOptions options = api.getProxy().getHttpClient().getOptions();
+        Assert.assertNotNull(options);
+        Assert.assertEquals(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT, options.getConnectTimeout());
+        Assert.assertEquals(HttpClientOptions.DEFAULT_IDLE_TIMEOUT, options.getIdleTimeout());
+        Assert.assertEquals(HttpClientOptions.DEFAULT_KEEP_ALIVE, options.isKeepAlive());
     }
 
     private Api getDefinition(String resource) throws Exception {

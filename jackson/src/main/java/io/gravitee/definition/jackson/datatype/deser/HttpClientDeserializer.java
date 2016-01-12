@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.HttpClient;
+import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
 
 import java.io.IOException;
@@ -51,6 +53,18 @@ public class HttpClientDeserializer extends StdScalarDeserializer<HttpClient> {
         if (httpProxyNode != null) {
             HttpProxy httpProxy = httpProxyNode.traverse(jp.getCodec()).readValueAs(HttpProxy.class);
             httpClient.setHttpProxy(httpProxy);
+        }
+
+        JsonNode httpClientOptionsNode = node.get("configuration");
+        if (httpClientOptionsNode != null) {
+            HttpClientOptions httpClientOptions = httpClientOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientOptions.class);
+            httpClient.setOptions(httpClientOptions);
+        }
+
+        JsonNode httpClientSslOptionsNode = node.get("ssl");
+        if (httpClientSslOptionsNode != null) {
+            HttpClientSslOptions httpClientSslOptions = httpClientSslOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientSslOptions.class);
+            httpClient.setSsl(httpClientSslOptions);
         }
 
         return httpClient;

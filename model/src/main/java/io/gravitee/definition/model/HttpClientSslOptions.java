@@ -19,45 +19,45 @@ package io.gravitee.definition.model;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author Gravitee.io Team
  */
-public class HttpClient {
+public class HttpClientSslOptions {
 
-    private boolean useProxy = false;
+    private boolean enabled;
 
-    private HttpProxy httpProxy;
+    private boolean trustAll;
 
-    private HttpClientOptions options = new HttpClientOptions();
+    private boolean hostnameVerifier;
 
-    private HttpClientSslOptions ssl;
+    private String pem;
 
-    public boolean isUseProxy() {
-        return useProxy;
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    public void setUseProxy(boolean useProxy) {
-        this.useProxy = useProxy;
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
-    public HttpProxy getHttpProxy() {
-        return httpProxy;
+    public boolean isHostnameVerifier() {
+        return hostnameVerifier;
     }
 
-    public void setHttpProxy(HttpProxy httpProxy) {
-        this.httpProxy = httpProxy;
+    public void setHostnameVerifier(boolean hostnameVerifier) {
+        this.hostnameVerifier = hostnameVerifier;
     }
 
-    public HttpClientOptions getOptions() {
-        return options;
+    public String getPem() {
+        return pem;
     }
 
-    public void setOptions(HttpClientOptions options) {
-        this.options = options;
+    public void setPem(String pem) {
+        this.pem = pem;
     }
 
-    public HttpClientSslOptions getSsl() {
-        return ssl;
+    public boolean isTrustAll() {
+        return trustAll;
     }
 
-    public void setSsl(HttpClientSslOptions ssl) {
-        this.ssl = ssl;
+    public void setTrustAll(boolean trustAll) {
+        this.trustAll = trustAll;
     }
 }

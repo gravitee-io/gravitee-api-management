@@ -53,10 +53,10 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
             jgen.writeEndArray();
         }
         jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
-        jgen.writeEndObject();
 
         if (proxy.getHttpClient() != null) {
-            jgen.writeObjectField("http_client", proxy.getHttpClient());
+            jgen.writeObjectField("http", proxy.getHttpClient());
         }
+        jgen.writeEndObject();
     }
 }

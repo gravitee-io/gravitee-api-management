@@ -150,6 +150,31 @@ public class JacksonSerializerTest {
         Assert.assertNotNull(generatedJsonDefinition);
     }
 
+    @Test
+    public void definition_withclientoptions() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withclientoptions.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_withclientoptions_nossl() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withclientoptions-nossl.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_withclientoptions_nooptions() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+
     private Api getDefinition(String resource) throws Exception {
         URL jsonFile = JacksonDeserializerTest.class.getResource(resource);
         return objectMapper().readValue(jsonFile, Api.class);

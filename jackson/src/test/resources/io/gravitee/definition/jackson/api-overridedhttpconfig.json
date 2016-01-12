@@ -7,12 +7,7 @@
     "endpoint": "http://localhost:1234",
     "strip_context_path": false,
 
-    "http_client": {
-      "read_timeout": 60000,
-      "request_timeout": 60000,
-      "connect_timeout": 5000,
-      "max_connections": -1,
-      "max_connections_per_host": -1,
+    "http": {
       "use_proxy": true,
 
       "http_proxy": {

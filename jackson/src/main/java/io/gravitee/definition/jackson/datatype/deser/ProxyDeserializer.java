@@ -66,7 +66,7 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             proxy.setStripContextPath(stripContextNode.asBoolean(false));
         }
 
-        JsonNode httpClientNode = node.get("http_client");
+        JsonNode httpClientNode = node.get("http");
         if (httpClientNode != null) {
             HttpClient httpClient = httpClientNode.traverse(jp.getCodec()).readValueAs(HttpClient.class);
             proxy.setHttpClient(httpClient);

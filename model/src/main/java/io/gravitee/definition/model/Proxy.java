@@ -30,7 +30,7 @@ public class Proxy {
 
     private boolean stripContextPath = false;
 
-    private HttpClient httpClient;
+    private HttpClient httpClient = new HttpClient();
 
     public String getContextPath() {
         return contextPath;

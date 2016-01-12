@@ -18,7 +18,6 @@ package io.gravitee.definition.jackson.datatype.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.HttpClient;
 import io.gravitee.definition.model.HttpClientOptions;
 
 import java.io.IOException;
@@ -27,28 +26,18 @@ import java.io.IOException;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author Gravitee.io Team
  */
-public class HttpClientSerializer extends StdScalarSerializer<HttpClient> {
+public class HttpClientOptionsSerializer extends StdScalarSerializer<HttpClientOptions> {
 
-    public HttpClientSerializer(Class<HttpClient> t) {
+    public HttpClientOptionsSerializer(Class<HttpClientOptions> t) {
         super(t);
     }
 
     @Override
-    public void serialize(HttpClient httpClient, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(HttpClientOptions httpClientOptions, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
-
-        if (httpClient.isUseProxy() && httpClient.getHttpProxy() != null) {
-            jgen.writeBooleanField("use_proxy", httpClient.isUseProxy());
-            jgen.writeObjectField("http_proxy", httpClient.getHttpProxy());
-        }
-
-        HttpClientOptions options =
-                (httpClient.getOptions() != null) ? httpClient.getOptions() : new HttpClientOptions();
-        jgen.writeObjectField("configuration", options);
-
-        if (httpClient.getSsl() != null) {
-            jgen.writeObjectField("ssl", httpClient.getSsl());
-        }
+        jgen.writeNumberField("connectTimeout", httpClientOptions.getConnectTimeout());
+        jgen.writeNumberField("idleTimeout", httpClientOptions.getIdleTimeout());
+        jgen.writeBooleanField("keepAlive", httpClientOptions.isKeepAlive());
         jgen.writeEndObject();
     }
 }
