@@ -49,7 +49,7 @@
       </div>
       <md-divider></md-divider>
       <div class="gravitee-policy-panel gravitee-policy-panel-center">
-          <v-accordion class="vAccordion--default">
+        <v-accordion class="vAccordion--default" multiple>
             <v-pane ng-repeat="path in apiPoliciesCtrl.sortedPaths()">
               <v-pane-header>
                 <h3 class="gravitee-policy-path" ng-if='path === "/"'>{{path}}</h3>
