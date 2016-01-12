@@ -15,65 +15,123 @@
     limitations under the License.
 
 -->
-<div layout="" layout-sm="column">
-</div>
 <form name="formApi" ng-submit="generalCtrl.update(apiCtrl.api)" novalidate>
-  <div layout="" layout-sm="column">
-    <md-input-container flex="30">
-      <label>Name</label>
-      <input ng-model="apiCtrl.api.name" type="text" ng-required="true">
-    </md-input-container>
-    <md-input-container flex="30">
-      <label>Version</label>
-      <input ng-model="apiCtrl.api.version" type="text" ng-required="true">
-    </md-input-container>
 
-    <div layout="column" flex="20">
-      <md-input-container>
-        <md-radio-group ng-model="apiCtrl.api.visibility">
-          <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public">
-            <md-tooltip md-direction="bottom">Public: API is visible by all</md-tooltip>
-            <ng-md-icon icon="public"></ng-md-icon>
-          </md-radio-button>
-          <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private">
-            <md-tooltip md-direction="bottom">Private: API is visible only by its members</md-tooltip>
-            <ng-md-icon icon="lock"></ng-md-icon>
-          </md-radio-button>
-          <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted">
-            <md-tooltip md-direction="bottom">Restricted: API is visible by all but can be used only by its members</md-tooltip>
-            <ng-md-icon icon="vpn_lock"></ng-md-icon>
-          </md-radio-button>
-        </md-radio-group>
-      </md-input-container>
-    </div>
-    <md-switch layout-align="center center" ng-model="apiEnabled"
-               ng-change="generalCtrl.changeLifecycle(apiCtrl.api.id)" flex="20" no-dirty-check>
-      Started
-    </md-switch>
-  </div>
-  <div layout="" layout-sm="column">
-    <md-input-container flex="30">
-      <label>Context path</label>
-      <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-required="true">
-    </md-input-container>
+  <v-accordion id="general-accordion" class="vAccordion--default" multiple>
+    <v-pane expanded>
+      <v-pane-header>
+        <legend><ng-md-icon icon="info_outline"></ng-md-icon> General</legend>
+      </v-pane-header>
+      <v-pane-content>
+        <div layout="column" layout-wrap layout-gt-sm="row">
+          <md-input-container flex="30">
+            <label>Name</label>
+            <input ng-model="apiCtrl.api.name" type="text" ng-required="true">
+          </md-input-container>
+          <md-input-container flex="30">
+            <label>Version</label>
+            <input ng-model="apiCtrl.api.version" type="text" ng-required="true">
+          </md-input-container>
 
-    <md-input-container flex="30">
-      <label>Endpoint</label>
-      <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
-    </md-input-container>
-  </div>
-  <div layout="" layout-sm="column">
-    <md-input-container class="flex">
-      <label>Description</label>
-      <textarea ng-model="apiCtrl.api.description" ng-required="true"></textarea>
-    </md-input-container>
-  </div>
-  <div layout="" layout-sm="column">
-    <md-input-container class="flex">
-      <label>Tags</label>
-      <md-chips ng-model="apiCtrl.api.tags" placeholder="Enter a tag" secondary-placeholder="+Tag" ng-click="formApi.$setDirty()"></md-chips>
-    </md-input-container>
-  </div>
+          <div layout="column" flex="20">
+            <md-input-container>
+              <md-radio-group ng-model="apiCtrl.api.visibility">
+                <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public">
+                  <md-tooltip md-direction="bottom">Public: API is visible by all</md-tooltip>
+                  <ng-md-icon icon="public"></ng-md-icon>
+                </md-radio-button>
+                <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private">
+                  <md-tooltip md-direction="bottom">Private: API is visible only by its members</md-tooltip>
+                  <ng-md-icon icon="lock"></ng-md-icon>
+                </md-radio-button>
+                <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted">
+                  <md-tooltip md-direction="bottom">Restricted: API is visible by all but can be used only by its members</md-tooltip>
+                  <ng-md-icon icon="vpn_lock"></ng-md-icon>
+                </md-radio-button>
+              </md-radio-group>
+            </md-input-container>
+          </div>
+          <md-switch ng-model="apiEnabled"
+                     ng-change="generalCtrl.changeLifecycle(apiCtrl.api.id)" flex="20" no-dirty-check>
+            Started
+          </md-switch>
+        </div>
+
+        <div layout="" layout-sm="column">
+          <md-input-container class="flex">
+            <label>Description</label>
+            <textarea ng-model="apiCtrl.api.description" ng-required="true"></textarea>
+          </md-input-container>
+        </div>
+
+        <div layout="" layout-sm="column">
+          <md-input-container class="flex">
+            <label>Deployment tags</label>
+            <md-chips ng-model="apiCtrl.api.tags" placeholder="Enter a tag" secondary-placeholder="+Tag" ng-click="formApi.$setDirty()"></md-chips>
+          </md-input-container>
+        </div>
+      </v-pane-content>
+    </v-pane>
+
+    <v-pane>
+      <v-pane-header>
+        <legend><ng-md-icon icon="share"></ng-md-icon> Proxy</legend>
+      </v-pane-header>
+      <v-pane-content>
+        <div layout="column" layout-wrap layout-gt-sm="row">
+          <md-input-container flex-xs flex="30">
+            <label>Context path</label>
+            <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-required="true">
+          </md-input-container>
+
+          <md-input-container flex-xs flex="30">
+            <label>Endpoint</label>
+            <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
+          </md-input-container>
+        </div>
+      </v-pane-content>
+    </v-pane>
+
+    <v-pane>
+      <v-pane-header>
+        <legend><ng-md-icon icon="security"></ng-md-icon> Security</legend>
+      </v-pane-header>
+      <v-pane-content>
+        <div layout="column" layout-wrap layout-gt-sm="row">
+          <div flex-xs flex="50">
+            <md-checkbox
+              ng-model="apiCtrl.api.proxy.http.ssl.enabled"
+              aria-label="Enable SSL">
+              Enable client SSL<br/>
+                <span class="ipsum">
+                  Use a client certificate if server requires it.
+                </span>
+            </md-checkbox>
+          </div>
+          <div flex-xs flex="50">
+            <div layout-xs="column" flex-xs="100">
+              <md-checkbox
+                ng-model="apiCtrl.api.proxy.http.ssl.trustAll"
+                aria-label="Enable trust all"
+                class="md-warn md-align-top-left" flex>
+                Enable trust all<br/>
+                <span class="ipsum">
+                  Use this with caution (if over Internet). The gateway will trust all server certificates. The connection will still be
+                  encrypted but this mode is vulnerable to 'man in the middle' attacks.
+                </span>
+              </md-checkbox>
+            </div>
+          </div>
+          <div flex-xs flex="50">
+            <md-input-container flex="50">
+              <label>PEM certificate</label>
+              <textarea ng-model="apiCtrl.api.proxy.http.ssl.certificate"></textarea>
+            </md-input-container>
+          </div>
+        </div>
+      </v-pane-content>
+    </v-pane>
+  </v-accordion>
 
   <div class="md-actions gravitee-api-save-button" layout="row">
     <md-button class="md-raised" type="submit" ng-disabled="formApi.$invalid || formApi.$pristine">
