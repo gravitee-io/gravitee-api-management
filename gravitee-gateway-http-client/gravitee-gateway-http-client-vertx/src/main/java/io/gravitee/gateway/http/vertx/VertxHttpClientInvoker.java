@@ -242,15 +242,20 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         LOGGER.info("Initializing Vert.x HTTP Client with {}", proxyDefinition.getHttpClient());
 
         HttpClientOptions options = new HttpClientOptions();
-        options.setKeepAlive(true);
+
+        options.setKeepAlive(proxyDefinition.getHttpClient().getOptions().isKeepAlive());
+        options.setIdleTimeout((int) (proxyDefinition.getHttpClient().getOptions().getIdleTimeout() / 1000));
+        options.setConnectTimeout((int) proxyDefinition.getHttpClient().getOptions().getConnectTimeout());
         options.setUsePooledBuffers(true);
-        options.setIdleTimeout(10);
-        options.setConnectTimeout(5000);
         options.setMaxPoolSize(100);
 
         URI endpointURI = URI.create(proxyDefinition.getEndpoints().iterator().next());
-        if (endpointURI.getScheme().equals("https")) {
-            options.setSsl(true).setVerifyHost(false).setTrustAll(true);
+        if (endpointURI.getScheme().equals("https") && proxyDefinition.getHttpClient().getSsl() != null
+                && proxyDefinition.getHttpClient().getSsl().isEnabled()) {
+            options
+                    .setSsl(proxyDefinition.getHttpClient().getSsl().isEnabled())
+                    .setVerifyHost(proxyDefinition.getHttpClient().getSsl().isHostnameVerifier())
+                    .setTrustAll(proxyDefinition.getHttpClient().getSsl().isTrustAll());
         }
 
         httpClient = vertx.createHttpClient(options);
