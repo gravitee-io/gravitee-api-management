@@ -59,6 +59,9 @@
         <fileSet>
             <directory>src/main/resources/templates</directory>
             <outputDirectory>/templates</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
         </fileSet>
     </fileSets>
 

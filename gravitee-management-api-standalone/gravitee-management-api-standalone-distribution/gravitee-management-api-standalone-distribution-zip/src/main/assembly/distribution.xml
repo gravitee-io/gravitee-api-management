@@ -29,8 +29,6 @@
 	<includeBaseDirectory>true</includeBaseDirectory>
 
 	<fileSets>
-
-
 		<!-- Copy startup scripts and config files -->
 		<fileSet>
 			<directory>../target/distribution/config</directory>
@@ -57,10 +55,18 @@
 			<fileMode>644</fileMode>
 		</fileSet>
 
-
 		<fileSet>
 			<directory>../target/distribution/bin</directory>
 			<outputDirectory>/bin</outputDirectory>
+			<includes>
+				<include>**/*</include>
+			</includes>
+			<fileMode>755</fileMode>
+		</fileSet>
+
+		<fileSet>
+			<directory>../target/distribution/templates</directory>
+			<outputDirectory>/templates</outputDirectory>
 			<includes>
 				<include>**/*</include>
 			</includes>
