@@ -72,15 +72,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptor>assembly.xml</descriptor>
-                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
+                      <configuration>
+                        <appendAssemblyId>false</appendAssemblyId>
+                        <descriptors>
+                          <descriptor>assembly.xml</descriptor>
+                        </descriptors>
+                      </configuration>
                     </execution>
                 </executions>
             </plugin>
