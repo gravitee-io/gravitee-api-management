@@ -23,6 +23,7 @@ import java.util.*;
 
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -31,9 +32,11 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.model.UpdateApiEntity;
+import io.gravitee.management.model.mixin.ApiMixin;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -75,6 +78,8 @@ public class ApiServiceTest {
     private UpdateApiEntity existingApi;
     @Mock
     private Api api;
+    @Mock
+    private EventService eventService;
 
     @Test
     public void shouldCreateForUser() throws TechnicalException {
@@ -228,6 +233,7 @@ public class ApiServiceTest {
 
     @Test
     public void shouldStart() throws TechnicalException {
+        objectMapper.addMixIn(Api.class, ApiMixin.class);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
         apiService.start(API_ID);
@@ -255,6 +261,7 @@ public class ApiServiceTest {
 
     @Test
     public void shouldStop() throws TechnicalException {
+        objectMapper.addMixIn(Api.class, ApiMixin.class);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
         apiService.stop(API_ID);

@@ -39,6 +39,7 @@ import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
 
@@ -57,6 +58,9 @@ public class ApplicationServiceTest {
 
     @Mock
     private ApplicationRepository applicationRepository;
+    
+    @Mock
+    private ApiKeyRepository apiKeyRepository;
 
     @Mock
     private IdGenerator idGenerator;
