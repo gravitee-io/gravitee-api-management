@@ -45,7 +45,6 @@
 	</properties>
 
 	<modules>
-        <module>rpm</module>
 		<module>zip</module>
 	</modules>
 	
