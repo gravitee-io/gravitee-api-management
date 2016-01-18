@@ -20,17 +20,17 @@
   <v-accordion id="general-accordion" class="vAccordion--default" multiple>
     <v-pane expanded>
       <v-pane-header>
-        <legend><ng-md-icon icon="label_outline"></ng-md-icon> General</legend>
+        <legend><ng-md-icon icon="blur_on"></ng-md-icon> General</legend>
       </v-pane-header>
       <v-pane-content>
         <div layout="column" layout-wrap layout-gt-sm="row">
           <md-input-container flex="30">
-            <label>Name</label>
-            <input ng-model="apiCtrl.api.name" type="text" ng-required="true">
+            <label>Name *</label>
+            <input ng-model="apiCtrl.api.name" type="text" required>
           </md-input-container>
           <md-input-container flex="30">
-            <label>Version</label>
-            <input ng-model="apiCtrl.api.version" type="text" ng-required="true">
+            <label>Version *</label>
+            <input ng-model="apiCtrl.api.version" type="text" required>
           </md-input-container>
 
           <div layout="column" flex="20">
@@ -59,8 +59,8 @@
 
         <div layout="" layout-sm="column">
           <md-input-container class="flex">
-            <label>Description</label>
-            <textarea ng-model="apiCtrl.api.description" ng-required="true"></textarea>
+            <label>Description *</label>
+            <textarea ng-model="apiCtrl.api.description" required></textarea>
           </md-input-container>
         </div>
 
@@ -80,90 +80,96 @@
       <v-pane-content>
         <div layout-gt-sm="row">
             <md-input-container class="md-block" flex-gt-sm>
-              <label>Context path (Gateway level)</label>
-              <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-required="true">
+              <label>Gateway context path *</label>
+              <input ng-model="apiCtrl.api.proxy.context_path" type="text" required>
             </md-input-container>
 
             <md-input-container class="md-block" flex-gt-sm>
-              <label>Endpoint (to consume API)</label>
-              <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
+              <label>API endpoints *</label>
+              <input ng-model="apiCtrl.api.proxy.endpoint" type="url" required>
             </md-input-container>
         </div>
-      </v-pane-content>
-    </v-pane>
 
-    <v-pane>
-      <v-pane-header>
-        <legend><ng-md-icon icon="security"></ng-md-icon> Security</legend>
-      </v-pane-header>
-      <v-pane-content>
-        <div layout="column" layout-wrap layout-gt-sm="row">
-          <div flex-xs flex="50">
-            <md-checkbox
-              ng-model="apiCtrl.api.proxy.http.ssl.enabled"
-              aria-label="Enable SSL">
-              Enable client SSL<br/>
+        <v-accordion id="gateway-accordion" class="vAccordion--default" multiple>
+          <v-pane>
+            <v-pane-header>
+              <legend><ng-md-icon icon="settings"></ng-md-icon> HTTP Configuration</legend>
+            </v-pane-header>
+            <v-pane-content>
+              <div layout="column" layout-wrap layout-gt-sm="row">
+                <div flex-xs flex="50">
+                  <md-input-container flex-xs flex="50">
+                    <label>Connect timeout (ms)*</label>
+                    <input ng-model="apiCtrl.api.proxy.http.configuration.connectTimeout" type="number" required min="0">
+                  </md-input-container>
+                </div>
+                <div flex-xs flex="50">
+                  <md-input-container flex-xs flex="50">
+                    <label>Idle timeout (ms)*</label>
+                    <input ng-model="apiCtrl.api.proxy.http.configuration.idleTimeout" type="number" required min="0">
+                  </md-input-container>
+                </div>
+                <div flex-xs flex="50">
+                  <div layout-xs="column" flex-xs="100">
+                    <md-checkbox
+                      ng-model="apiCtrl.api.proxy.http.configuration.keepAlive"
+                      aria-label="Enable keep-alive"
+                      class="md-align-top-left" flex>
+                      Enable keep-alive<br/>
                 <span class="ipsum">
-                  Use a client certificate if server requires it.
+                  Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
                 </span>
-            </md-checkbox>
-          </div>
-          <div flex-xs flex="50">
-            <div layout-xs="column" flex-xs="100">
-              <md-checkbox
-                ng-model="apiCtrl.api.proxy.http.ssl.trustAll"
-                aria-label="Enable trust all"
-                class="md-warn md-align-top-left" flex>
-                Enable trust all<br/>
+                    </md-checkbox>
+                  </div>
+                </div>
+              </div>
+            </v-pane-content>
+          </v-pane>
+          
+          <v-pane>
+            <v-pane-header>
+              <legend><ng-md-icon icon="security"></ng-md-icon> SSL Configuration</legend>
+            </v-pane-header>
+            <v-pane-content>
+              <div layout="column" layout-wrap layout-gt-sm="row">
+                <div flex-xs flex="50">
+                  <div layout-xs="column" flex-xs="100">
+                    <md-checkbox
+                      ng-model="apiCtrl.api.proxy.http.ssl.enabled"
+                      aria-label="Enable SSL"
+                      class="md-align-top-left" flex>
+                      Enable client SSL<br/>
+                  <span class="ipsum">
+                    Use a client certificate if server requires it.
+                  </span>
+                    </md-checkbox>
+                  </div>
+                </div>
+                <div flex-xs flex="50">
+                  <div layout-xs="column" flex-xs="100">
+                    <md-checkbox
+                      ng-model="apiCtrl.api.proxy.http.ssl.trustAll"
+                      aria-label="Enable trust all"
+                      class="md-warn md-align-top-left" flex>
+                      Enable trust all<br/>
                 <span class="ipsum">
                   Use this with caution (if over Internet). The gateway will trust all server certificates. The connection will still be
                   encrypted but this mode is vulnerable to 'man in the middle' attacks.
                 </span>
-              </md-checkbox>
-            </div>
-          </div>
-          <div flex-xs flex="50">
-            <md-input-container flex="50">
-              <label>PEM certificate</label>
-              <textarea ng-model="apiCtrl.api.proxy.http.ssl.certificate"></textarea>
-            </md-input-container>
-          </div>
-        </div>
-      </v-pane-content>
-    </v-pane>
+                    </md-checkbox>
+                  </div>
+                </div>
+                <div flex-xs flex="50">
+                  <md-input-container flex="50">
+                    <label>PEM certificate</label>
+                    <textarea ng-model="apiCtrl.api.proxy.http.ssl.certificate"></textarea>
+                  </md-input-container>
+                </div>
+              </div>
+            </v-pane-content>
+          </v-pane>
+        </v-accordion>
 
-    <v-pane>
-      <v-pane-header>
-        <legend><ng-md-icon icon="settings"></ng-md-icon> HTTP configuration</legend>
-      </v-pane-header>
-      <v-pane-content>
-        <div layout="column" layout-wrap layout-gt-sm="row">
-          <div flex-xs flex="50">
-            <md-input-container flex-xs flex="50">
-              <label>Connect timeout (ms)</label>
-              <input ng-model="apiCtrl.api.proxy.http.configuration.connectTimeout" type="number" ng-required="true" min="0">
-            </md-input-container>
-          </div>
-          <div flex-xs flex="50">
-            <md-input-container flex-xs flex="50">
-              <label>Idle timeout (ms)</label>
-              <input ng-model="apiCtrl.api.proxy.http.configuration.idleTimeout" type="number" ng-required="true" min="0">
-            </md-input-container>
-          </div>
-          <div flex-xs flex="50">
-            <div layout-xs="column" flex-xs="100">
-              <md-checkbox
-                ng-model="apiCtrl.api.proxy.http.configuration.keepAlive"
-                aria-label="Enable keep-alive"
-                class="md-align-top-left" flex>
-                Enable keep-alive<br/>
-                <span class="ipsum">
-                  Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
-                </span>
-              </md-checkbox>
-            </div>
-          </div>
-        </div>
       </v-pane-content>
     </v-pane>
   </v-accordion>

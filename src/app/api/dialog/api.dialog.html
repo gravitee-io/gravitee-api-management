@@ -28,34 +28,51 @@
       </md-toolbar>
       <md-dialog-content>
 				<md-content class="md-padding">
-		      <div layout="">
-		        <md-input-container>
-		          <label>Name *</label>
-		          <input ng-model="api.name" required>
-		        </md-input-container>
-		        <md-input-container>
-		          <label>Version *</label>
-		          <input ng-model="api.version" required>
-		        </md-input-container>
-		      </div>
-		      <div>
-		        <md-input-container>
-		          <label>Description *</label>
-		          <input ng-model="api.description" required>
-		        </md-input-container>
-		      </div>
-		      <div>
-		        <md-input-container>
-		          <label>Context path *</label>
-		          <input ng-model="api.proxy.context_path" required>
-		        </md-input-container>
-		      </div>
-		      <div>
-		        <md-input-container>
-		          <label>Endpoint *</label>
-		          <input ng-model="api.proxy.endpoint" required>
-		        </md-input-container>
-		      </div>
+          <v-accordion id="create-api-accordion" class="vAccordion--default" multiple>
+            <v-pane expanded>
+              <v-pane-header>
+                <legend><ng-md-icon icon="label_outline"></ng-md-icon> General</legend>
+              </v-pane-header>
+              <v-pane-content>
+                <div layout="column" layout-wrap layout-gt-sm="row">
+                  <md-input-container flex-xs flex="50">
+                    <label>Name *</label>
+                    <input ng-model="api.name" type="text" required>
+                  </md-input-container>
+                  <md-input-container flex-xs flex="50">
+                    <label>Version *</label>
+                    <input ng-model="api.version" type="text" required>
+                  </md-input-container>
+                </div>
+
+                <div layout="column" layout-wrap layout-gt-sm="row">
+                  <md-input-container>
+                    <label>Description *</label>
+                    <input ng-model="api.description" required>
+                  </md-input-container>
+                </div>
+              </v-pane-content>
+            </v-pane>
+
+            <v-pane>
+              <v-pane-header>
+                <legend><ng-md-icon icon="share"></ng-md-icon> Gateway</legend>
+              </v-pane-header>
+              <v-pane-content>
+                <div layout-gt-sm="row">
+                  <md-input-container class="md-block" flex-gt-sm>
+                    <label>Context path *</label>
+                    <input ng-model="api.proxy.context_path" type="text" ng-pattern="/^(\/\w+)+\.\w+(\?(\w+=[\w\d]+(&\w+=[\w\d]+)+)+)*$/" required>
+                  </md-input-container>
+
+                  <md-input-container class="md-block" flex-gt-sm>
+                    <label>Endpoint *</label>
+                    <input ng-model="api.proxy.endpoint" type="url" required>
+                  </md-input-container>
+                </div>
+              </v-pane-content>
+            </v-pane>
+          </v-accordion>
     		</md-content>
       </md-dialog-content>
 
