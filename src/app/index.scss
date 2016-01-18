@@ -5,6 +5,8 @@
 // bower:scss
 // endbower
 
+@import "constants";
+
 html {
   font-family: 'Roboto Slab', serif;
 }
@@ -94,7 +96,7 @@ md-switch {
 md-progress-linear {
   position: fixed;
   top: 49px;
-  z-index: 100;
+  z-index: 50;
 }
 
 .color3 {
