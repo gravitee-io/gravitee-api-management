@@ -39,7 +39,7 @@
 }
 
 .gravitee-application-header {
-	height: 220px;
+	height: $graviteeHeader;
 	background: url('../app/images/application-header-background.png') center center no-repeat;
 	background-size: cover;
 }

@@ -16,14 +16,15 @@
 
 -->
 <section>
-  <div class="gravitee-api-banner">
-    <div ng-show="!apiCtrl.apiIsSynchronized && !apiCtrl.apiJustDeployed" ng-click="apiCtrl.showDeployAPIConfirm($event, apiCtrl.api)" class="gravitee-api-banner-content" ng-cloak>
+  <div ng-if="!apiCtrl.apiIsSynchronized && !apiCtrl.apiJustDeployed" class="gravitee-api-banner">
+    <div ng-click="apiCtrl.showDeployAPIConfirm($event, apiCtrl.api)" class="gravitee-api-banner-content" ng-cloak>
       API out of sync, <a>deploy your API</a>
     </div>
   </div>
 
   <div ng-include="'app/api/apiHeader.html'"></div>
-  <div sticky offset="49" sticky-class="gravitee-sticky">
+  <div sticky offset="49" sticky-class="gravitee-sticky"
+       ng-class="{'gravitee-sticky-deployed': !apiCtrl.apiIsSynchronized && !apiCtrl.apiJustDeployed}">
     <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
       <md-tab label="general" ui-sref="apis.admin.general" ui-sref-opts="{reload: true}"></md-tab>
       <md-tab label="policies" ui-sref="apis.admin.policies" ui-sref-opts="{reload: true}"></md-tab>

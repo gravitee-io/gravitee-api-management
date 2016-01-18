@@ -1,55 +1,9 @@
-$flowHeight: 200px;
-$flowRadius: 120px;
-
 .gravitee-api-container {
   border: 1px solid;
   border-radius: 10px;
   padding: 20px;
   margin: 0 auto;
   width: 80%;
-}
-
-.gravitee-flow-container {
-  display: inline;
-
-  .gravitee-flow-logo-container {
-    width: 20%;
-  }
-
-  .gravitee-flow-logo {
-    max-height: 150px;
-  }
-
-  .gravitee-flow-inbound, .gravitee-flow-outbound {
-    border-top: 1px solid;
-    border-right: 0;
-    border-bottom: 1px solid;
-    border-left: 0;
-    width: 20%;
-    vertical-align: top;
-  }
-
-  .gravitee-flow-inbound {
-    border-radius: $flowRadius 0 0 $flowRadius;
-  }
-
-  .gravitee-flow-outbound {
-    border-radius: 0 $flowRadius $flowRadius 0;
-  }
-
-  .gravitee-flow-request-title {
-    color: #333;
-  }
-
-  .gravitee-flow-link-container {
-    width: 20%;
-  }
-
-  .gravitee-flow-link {
-    font-size: 15px;
-    max-width: 300px;
-    word-wrap: break-word;
-  }
 }
 
 .gravitee-api-save-button {
@@ -124,7 +78,7 @@ $flowRadius: 120px;
 }
 
 .gravitee-api-header {
-  height: 220px;
+  height: $graviteeHeader;
   background: url('../app/images/api-header-background.png') center center no-repeat;
   background-size: cover;
 }
@@ -160,6 +114,7 @@ $flowRadius: 120px;
   width: 100%;
   cursor: pointer;
   font-weight: 900;
+  z-index: 10;
 }
 
 .gravitee-api-banner-content {
@@ -180,11 +135,6 @@ $flowRadius: 120px;
   text-decoration: underline;
 }
 
-v-pane-header {
-  border-bottom: none !important;
-  margin-bottom: 0 !important;
-
-  &:focus, &:hover {
-    color: inherit !important;
-  }
+.gravitee-sticky-deployed {
+  top: 75px !important;
 }
