@@ -16,113 +16,141 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author Titouan COMPIEGNE
  */
 public class Event {
 
-	/**
-	 * The event ID
-	 */
-	private String id;
+    /**
+     * The event ID
+     */
+    private String id;
 
-	/**
-	 * The event Type
-	 */
-	private EventType type;
+    /**
+     * The event Type
+     */
+    private EventType type;
 
-	/**
-	 * The event payload
-	 */
-	private String payload;
+    /**
+     * The event payload
+     */
+    private String payload;
 
-	/**
-	 * The event parent
-	 */
-	private String parentId;
-	
-	/**
-	 * The event origin
-	 */
-	private String origin;
-	
-	/**
-	 * The event publisher
-	 */
-	private String username;
+    /**
+     * The event parent
+     */
+    private String parentId;
 
-	/**
-	 * The event creation date
-	 */
-	private Date createdAt;
+    /**
+     * The event origin
+     */
+    private String origin;
 
-	/**
-	 * The event last updated date
-	 */
-	private Date updatedAt;
+    /**
+     * The event publisher
+     */
+    private String username;
 
-	public String getId() {
-		return id;
-	}
+    /**
+     * The event properties
+     */
+    private Map<String, String> properties;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    /**
+     * The event creation date
+     */
+    private Date createdAt;
 
-	public EventType getType() {
-		return type;
-	}
+    /**
+     * The event last updated date
+     */
+    private Date updatedAt;
 
-	public void setType(EventType type) {
-		this.type = type;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getPayload() {
-		return payload;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setPayload(String payload) {
-		this.payload = payload;
-	}
+    public EventType getType() {
+        return type;
+    }
 
-	public String getParentId() {
-		return parentId;
-	}
+    public void setType(EventType type) {
+        this.type = type;
+    }
 
-	public void setParentId(String parentId) {
-		this.parentId = parentId;
-	}
+    public String getPayload() {
+        return payload;
+    }
 
-	public String getOrigin() {
-		return origin;
-	}
+    public void setPayload(String payload) {
+        this.payload = payload;
+    }
 
-	public void setOrigin(String origin) {
-		this.origin = origin;
-	}
-	
-	public String getUsername() {
-		return username;
-	}
+    public String getParentId() {
+        return parentId;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    public String getOrigin() {
+        return origin;
+    }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
 
-	public Date getUpdatedAt() {
-		return updatedAt;
-	}
+    public String getUsername() {
+        return username;
+    }
 
-	public void setUpdatedAt(Date updatedAt) {
-		this.updatedAt = updatedAt;
-	}
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public enum EventProperties {
+        API_ID("api_id");
+
+        private String value;
+
+        EventProperties(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return this.value;
+        }
+    }
 }

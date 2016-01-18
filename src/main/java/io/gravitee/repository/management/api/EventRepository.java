@@ -28,4 +28,6 @@ public interface EventRepository extends CrudRepository<Event, String> {
 
 	Set<Event> findByType(List<EventType> eventTypes);
 
+    Set<Event> findByProperty(String key, String value);
+
 }
