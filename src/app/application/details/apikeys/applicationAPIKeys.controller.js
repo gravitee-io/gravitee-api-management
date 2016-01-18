@@ -81,6 +81,11 @@ class ApplicationAPIKeysController {
       });
   }
 
+  onClipboardSuccess(e) {
+    this.NotificationService.show('API Key has been copied to clipboard');
+    e.clearSelection();
+  }
+
   showSubscribeApiModal(ev) {
     var that = this;
     this.$mdDialog.show({

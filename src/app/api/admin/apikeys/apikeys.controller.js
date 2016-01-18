@@ -57,6 +57,11 @@ class ApiKeysController {
       });
   }
 
+  onClipboardSuccess(e) {
+    this.NotificationService.show('API Key has been copied to clipboard');
+    e.clearSelection();
+  };
+
   showExpirationModal(apikey) {
     var _this = this;
     this.currentApiKey = apikey;

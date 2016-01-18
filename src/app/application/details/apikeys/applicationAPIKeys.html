@@ -45,7 +45,7 @@
             <code>{{apikey.key}}</code>
              <span style="position: absolute">
              	<md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
-              <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"  ngclipboard data-clipboard-text="{{apikey.key}}" role="button" ></ng-md-icon>
+              <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"  ngclipboard data-clipboard-text="{{apikey.key}}" ngclipboard-success="applicationAPIKeysCtrl.onClipboardSuccess(e);" role="button" ></ng-md-icon>
              </span>
           </td>
           <td>{{apikey.revoked_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
