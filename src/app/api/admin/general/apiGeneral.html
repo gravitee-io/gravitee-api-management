@@ -20,7 +20,7 @@
   <v-accordion id="general-accordion" class="vAccordion--default" multiple>
     <v-pane expanded>
       <v-pane-header>
-        <legend><ng-md-icon icon="info_outline"></ng-md-icon> General</legend>
+        <legend><ng-md-icon icon="label_outline"></ng-md-icon> General</legend>
       </v-pane-header>
       <v-pane-content>
         <div layout="column" layout-wrap layout-gt-sm="row">
@@ -80,12 +80,12 @@
       <v-pane-content>
         <div layout="column" layout-wrap layout-gt-sm="row">
           <md-input-container flex-xs flex="30">
-            <label>Context path</label>
+            <label>Context path (Gateway level)</label>
             <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-required="true">
           </md-input-container>
 
           <md-input-container flex-xs flex="30">
-            <label>Endpoint</label>
+            <label>Endpoint (to consume API)</label>
             <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
           </md-input-container>
         </div>
@@ -127,6 +127,41 @@
               <label>PEM certificate</label>
               <textarea ng-model="apiCtrl.api.proxy.http.ssl.certificate"></textarea>
             </md-input-container>
+          </div>
+        </div>
+      </v-pane-content>
+    </v-pane>
+
+    <v-pane>
+      <v-pane-header>
+        <legend><ng-md-icon icon="settings"></ng-md-icon> HTTP configuration</legend>
+      </v-pane-header>
+      <v-pane-content>
+        <div layout="column" layout-wrap layout-gt-sm="row">
+          <div flex-xs flex="50">
+            <md-input-container flex-xs flex="50">
+              <label>Connect timeout (ms)</label>
+              <input ng-model="apiCtrl.api.proxy.http.configuration.connectTimeout" type="number" ng-required="true" min="0">
+            </md-input-container>
+          </div>
+          <div flex-xs flex="50">
+            <md-input-container flex-xs flex="50">
+              <label>Idle timeout (ms)</label>
+              <input ng-model="apiCtrl.api.proxy.http.configuration.idleTimeout" type="number" ng-required="true" min="0">
+            </md-input-container>
+          </div>
+          <div flex-xs flex="50">
+            <div layout-xs="column" flex-xs="100">
+              <md-checkbox
+                ng-model="apiCtrl.api.proxy.http.configuration.keepAlive"
+                aria-label="Enable keep-alive"
+                class="md-align-top-left" flex>
+                Enable keep-alive<br/>
+                <span class="ipsum">
+                  Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
+                </span>
+              </md-checkbox>
+            </div>
           </div>
         </div>
       </v-pane-content>
