@@ -40,110 +40,120 @@ import org.springframework.stereotype.Component;
 @Component
 public class MongoEventRepository implements EventRepository {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
-	@Autowired
-	private EventMongoRepository internalEventRepo;
+    @Autowired
+    private EventMongoRepository internalEventRepo;
 
-	@Override
-	public Optional<Event> findById(String id) throws TechnicalException {
-		logger.debug("Find event by ID [{}]", id);
+    @Override
+    public Optional<Event> findById(String id) throws TechnicalException {
+        logger.debug("Find event by ID [{}]", id);
 
-		EventMongo event = internalEventRepo.findOne(id);
-		Event res = mapEvent(event);
+        EventMongo event = internalEventRepo.findOne(id);
+        Event res = mapEvent(event);
 
-		logger.debug("Find event by ID [{}] - Done", id);
-		return Optional.ofNullable(res);
-	}
+        logger.debug("Find event by ID [{}] - Done", id);
+        return Optional.ofNullable(res);
+    }
 
-	@Override
-	public Event create(Event event) throws TechnicalException {
-		logger.debug("Create event [{}]", event.getId());
+    @Override
+    public Event create(Event event) throws TechnicalException {
+        logger.debug("Create event [{}]", event.getId());
 
-		EventMongo eventMongo = mapEvent(event);
-		EventMongo createdEventMongo = internalEventRepo.insert(eventMongo);
+        EventMongo eventMongo = mapEvent(event);
+        EventMongo createdEventMongo = internalEventRepo.insert(eventMongo);
 
-		Event res = mapEvent(createdEventMongo);
+        Event res = mapEvent(createdEventMongo);
 
-		logger.debug("Create event [{}] - Done", event.getId());
+        logger.debug("Create event [{}] - Done", event.getId());
 
-		return res;
-	}
+        return res;
+    }
 
-	@Override
-	public Event update(Event event) throws TechnicalException {
-		if (event == null || event.getId() == null) {
-			throw new IllegalStateException("Event to update must have an id");
-		}
+    @Override
+    public Event update(Event event) throws TechnicalException {
+        if (event == null || event.getId() == null) {
+            throw new IllegalStateException("Event to update must have an id");
+        }
 
-		EventMongo eventMongo = internalEventRepo.findOne(event.getId());
-		if (eventMongo == null) {
-			throw new IllegalStateException(String.format("No event found with id [%s]", event.getId()));
-		}
+        EventMongo eventMongo = internalEventRepo.findOne(event.getId());
+        if (eventMongo == null) {
+            throw new IllegalStateException(String.format("No event found with id [%s]", event.getId()));
+        }
 
-		try {
-			eventMongo.setType(event.getType().toString());
-			eventMongo.setPayload(event.getPayload());
-			eventMongo.setParentId(event.getParentId());
-			eventMongo.setOrigin(event.getOrigin());
+        try {
+            eventMongo.setType(event.getType().toString());
+            eventMongo.setPayload(event.getPayload());
+            eventMongo.setParentId(event.getParentId());
+            eventMongo.setOrigin(event.getOrigin());
 
-			EventMongo eventMongoUpdated = internalEventRepo.save(eventMongo);
-			return mapEvent(eventMongoUpdated);
-		} catch (Exception e) {
-			logger.error("An error occured when updating event", e);
-			throw new TechnicalException("An error occured when updating event");
-		}
-	}
+            EventMongo eventMongoUpdated = internalEventRepo.save(eventMongo);
+            return mapEvent(eventMongoUpdated);
+        } catch (Exception e) {
+            logger.error("An error occured when updating event", e);
+            throw new TechnicalException("An error occured when updating event");
+        }
+    }
 
-	@Override
-	public void delete(String id) throws TechnicalException {
-		try {
-			internalEventRepo.delete(id);
-		} catch (Exception e) {
-			logger.error("An error occured when deleting event [{}]", id, e);
-			throw new TechnicalException("An error occured when deleting event");
-		}
-	}
-	
-	@Override
-	public Set<Event> findByType(List<EventType> eventTypes) {
-		List<String> types = new ArrayList<String>();
-		for (EventType eventType : eventTypes) {
-			types.add(eventType.toString());
-		}
-		Collection<EventMongo> eventsMongo = internalEventRepo.findByType(types);
-		return mapEvents(eventsMongo);
-	}
-	
-	private Set<Event> mapEvents(Collection<EventMongo> events) {
-		return events.stream().map(this::mapEvent).collect(Collectors.toSet());
-	}
+    @Override
+    public void delete(String id) throws TechnicalException {
+        try {
+            internalEventRepo.delete(id);
+        } catch (Exception e) {
+            logger.error("An error occured when deleting event [{}]", id, e);
+            throw new TechnicalException("An error occured when deleting event");
+        }
+    }
 
-	private EventMongo mapEvent(Event event) {
-		EventMongo eventMongo = new EventMongo();
-		eventMongo.setId(event.getId());
-		eventMongo.setType(event.getType().toString());
-		eventMongo.setPayload(event.getPayload());
-		eventMongo.setParentId(event.getParentId());
-		eventMongo.setOrigin(event.getOrigin());
-		eventMongo.setUsername(event.getUsername());
-		eventMongo.setCreatedAt(event.getCreatedAt());
-		eventMongo.setUpdatedAt(event.getUpdatedAt());
+    @Override
+    public Set<Event> findByType(List<EventType> eventTypes) {
+        List<String> types = new ArrayList<String>();
+        for (EventType eventType : eventTypes) {
+            types.add(eventType.toString());
+        }
+        Collection<EventMongo> eventsMongo = internalEventRepo.findByType(types);
+        return mapEvents(eventsMongo);
+    }
 
-		return eventMongo;
-	}
+    @Override
+    public Set<Event> findByProperty(String key, String value) {
+        Collection<EventMongo> eventsMongo = internalEventRepo.findByProperty(key, value);
 
-	private Event mapEvent(EventMongo eventMongo) {
-		Event event = new Event();
-		event.setId(eventMongo.getId());
-		event.setType(EventType.valueOf(eventMongo.getType()));
-		event.setPayload(eventMongo.getPayload());
-		event.setParentId(eventMongo.getParentId());
-		event.setOrigin(eventMongo.getOrigin());
-		event.setUsername(eventMongo.getUsername());
-		event.setCreatedAt(eventMongo.getCreatedAt());
-		event.setUpdatedAt(eventMongo.getUpdatedAt());
+        return mapEvents(eventsMongo);
+    }
 
-		return event;
-	}
+    private Set<Event> mapEvents(Collection<EventMongo> events) {
+        return events.stream().map(this::mapEvent).collect(Collectors.toSet());
+    }
+
+    private EventMongo mapEvent(Event event) {
+        EventMongo eventMongo = new EventMongo();
+        eventMongo.setId(event.getId());
+        eventMongo.setType(event.getType().toString());
+        eventMongo.setPayload(event.getPayload());
+        eventMongo.setParentId(event.getParentId());
+        eventMongo.setOrigin(event.getOrigin());
+        eventMongo.setUsername(event.getUsername());
+        eventMongo.setProperties(event.getProperties());
+        eventMongo.setCreatedAt(event.getCreatedAt());
+        eventMongo.setUpdatedAt(event.getUpdatedAt());
+
+        return eventMongo;
+    }
+
+    private Event mapEvent(EventMongo eventMongo) {
+        Event event = new Event();
+        event.setId(eventMongo.getId());
+        event.setType(EventType.valueOf(eventMongo.getType()));
+        event.setPayload(eventMongo.getPayload());
+        event.setParentId(eventMongo.getParentId());
+        event.setOrigin(eventMongo.getOrigin());
+        event.setUsername(eventMongo.getUsername());
+        event.setProperties(eventMongo.getProperties());
+        event.setCreatedAt(eventMongo.getCreatedAt());
+        event.setUpdatedAt(eventMongo.getUpdatedAt());
+
+        return event;
+    }
+
 }

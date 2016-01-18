@@ -24,5 +24,7 @@ import java.util.Collection;
  */
 public interface EventMongoRepositoryCustom {
 
-	Collection<EventMongo> findByType(Collection<String> types);
+    Collection<EventMongo> findByType(Collection<String> types);
+
+    Collection<EventMongo> findByProperty(String key, String value);
 }
