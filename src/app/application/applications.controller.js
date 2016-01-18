@@ -40,15 +40,14 @@ class ApplicationsController {
 			this.showAddApplicationModal();
 		}
 	}
-	
+
 	showAddApplicationModal(ev) {
     var _that = this;
     this.$mdDialog.show({
       controller: 'DialogApplicationController',
       templateUrl: 'app/application/dialog/application.dialog.html',
       parent: angular.element(document.body),
-			targetEvent: ev,
-      clickOutsideToClose: true
+			targetEvent: ev
     }).then(function (application) {
       if (application) {
         _that.$window.location.href = '#/applications/' + application.data.id + '/general';

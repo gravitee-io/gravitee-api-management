@@ -38,8 +38,7 @@ class ApisController {
     this.$mdDialog.show({
       controller: 'DialogApiController',
       controllerAs: 'dialogApiCtrl',
-      templateUrl: 'app/api/dialog/api.dialog.html',
-      clickOutsideToClose: true
+      templateUrl: 'app/api/dialog/api.dialog.html'
     }).then(function (api) {
       if (api) {
         _that.$window.location.href = '#/apis/' + api.data.id + '/settings/general';
