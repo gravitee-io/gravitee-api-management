@@ -20,6 +20,7 @@ import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.NewEventEntity;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -27,11 +28,13 @@ import java.util.Set;
  */
 public interface EventService {
 
-	EventEntity findById(String id);
+    EventEntity findById(String id);
 
-	EventEntity create(NewEventEntity event);
-	
-	EventEntity create(EventType type, String payload, String username);
+    EventEntity create(NewEventEntity event);
 
-	Set<EventEntity> findByType(List<EventType> eventTypes);
+    EventEntity create(EventType type, String payload, String username, Map<String, String> properties);
+
+    Set<EventEntity> findByType(List<EventType> eventTypes);
+    
+    Set<EventEntity> findByApi(String apiId);
 }

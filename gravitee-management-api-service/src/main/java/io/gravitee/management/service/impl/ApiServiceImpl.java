@@ -40,7 +40,14 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.Visibility;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -53,7 +60,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -398,7 +404,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
              Optional<Api> api = apiRepository.findById(apiId);
 
              if (api.isPresent()) {
-            	 eventService.create(EventType.PUBLISH_API, objectMapper.writeValueAsString(api.get()), username);
+                 Map<String, String> properties = new HashMap<String, String>();
+                 properties.put(Event.EventProperties.API_ID.getValue(), api.get().getId());
+            	 eventService.create(EventType.PUBLISH_API, objectMapper.writeValueAsString(api.get()), username, properties);
              } else {
             	 throw new ApiNotFoundException(apiId);
              }

@@ -30,6 +30,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,108 +46,118 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventServiceImpl extends TransactionalService implements EventService {
 
-	private final Logger LOGGER = LoggerFactory.getLogger(EventServiceImpl.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(EventServiceImpl.class);
 
-	@Autowired
-	private EventRepository eventRepository;
+    @Autowired
+    private EventRepository eventRepository;
 
-	@Override
-	public EventEntity findById(String id) {
-		try {
-			LOGGER.debug("Find event by ID: {}", id);
+    @Override
+    public EventEntity findById(String id) {
+        try {
+            LOGGER.debug("Find event by ID: {}", id);
 
-			Optional<Event> event = eventRepository.findById(id);
+            Optional<Event> event = eventRepository.findById(id);
 
-			if (event.isPresent()) {
-				return convert(event.get());
-			}
+            if (event.isPresent()) {
+                return convert(event.get());
+            }
 
-			throw new EventNotFoundException(id);
-		} catch (TechnicalException ex) {
-			LOGGER.error("An error occurs while trying to find an event using its ID {}", id, ex);
-			throw new TechnicalManagementException("An error occurs while trying to find an event using its ID " + id, ex);
-		}
-	}
+            throw new EventNotFoundException(id);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find an event using its ID {}", id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find an event using its ID " + id, ex);
+        }
+    }
 
-	@Override
-	public EventEntity create(NewEventEntity newEventEntity) {
-		String hostAddress = "";
-		try {
-			hostAddress = InetAddress.getLocalHost().getHostAddress();
-			LOGGER.debug("Create {} for server {}", newEventEntity, hostAddress);
+    @Override
+    public EventEntity create(NewEventEntity newEventEntity) {
+        String hostAddress = "";
+        try {
+            hostAddress = InetAddress.getLocalHost().getHostAddress();
+            LOGGER.debug("Create {} for server {}", newEventEntity, hostAddress);
 
-			Event event = convert(newEventEntity);
-			// Set origin
-			event.setOrigin(hostAddress);
-			// Set date fields
-			event.setCreatedAt(new Date());
-			event.setUpdatedAt(event.getCreatedAt());
+            Event event = convert(newEventEntity);
+            // Set origin
+            event.setOrigin(hostAddress);
+            // Set date fields
+            event.setCreatedAt(new Date());
+            event.setUpdatedAt(event.getCreatedAt());
 
-			Event createdEvent = eventRepository.create(event);
+            Event createdEvent = eventRepository.create(event);
 
-			return convert(createdEvent);
-		} catch (UnknownHostException e) {
-			LOGGER.error("An error occurs while getting the server IP address", e);
-			throw new TechnicalManagementException("An error occurs while getting the server IP address", e);
-		} catch (TechnicalException ex) {
-			LOGGER.error("An error occurs while trying to create {} for server {}", newEventEntity, hostAddress, ex);
-			throw new TechnicalManagementException("An error occurs while trying create " + newEventEntity + " for server " + hostAddress, ex);
-		}
-	}
+            return convert(createdEvent);
+        } catch (UnknownHostException e) {
+            LOGGER.error("An error occurs while getting the server IP address", e);
+            throw new TechnicalManagementException("An error occurs while getting the server IP address", e);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to create {} for server {}", newEventEntity, hostAddress, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + newEventEntity + " for server " + hostAddress, ex);
+        }
+    }
 
-	@Override
-	public EventEntity create(EventType type, String payload, String username) {
-		NewEventEntity event = new NewEventEntity();
-		event.setType(type);
-		event.setPayload(payload);
-		event.setUsername(username);
-		return create(event);
-	}
+    @Override
+    public EventEntity create(EventType type, String payload, String username, Map<String, String> properties) {
+        NewEventEntity event = new NewEventEntity();
+        event.setType(type);
+        event.setPayload(payload);
+        event.setUsername(username);
+        event.setProperties(properties);
+        return create(event);
+    }
 
-	@Override
-	public Set<EventEntity> findByType(List<EventType> eventTypes) {
-		Set<Event> events = eventRepository.findByType(convert(eventTypes));
+    @Override
+    public Set<EventEntity> findByType(List<EventType> eventTypes) {
+        Set<Event> events = eventRepository.findByType(convert(eventTypes));
 
-		return convert(events);
-	}
-	
-	private List<io.gravitee.repository.management.model.EventType> convert(List<EventType> eventTypes) {
-		List<io.gravitee.repository.management.model.EventType> convertedEvents = new ArrayList<io.gravitee.repository.management.model.EventType>();
-		for (EventType eventType : eventTypes) {
-			convertedEvents.add(convert(eventType));
-		}
-		return convertedEvents;
-	}
+        return convert(events);
+    }
+    
+    @Override
+    public Set<EventEntity> findByApi(String apiId) {
+        Set<Event> events = eventRepository.findByProperty(Event.EventProperties.API_ID.getValue(), apiId);
 
-	private io.gravitee.repository.management.model.EventType convert(EventType eventType) {
-		return io.gravitee.repository.management.model.EventType.valueOf(eventType.toString());
-	}
-	
-	private Set<EventEntity> convert(Set<Event> events) {
-		return events.stream().map(this::convert).collect(Collectors.toSet());
-	}
-	
-	private EventEntity convert(Event event) {
-		EventEntity eventEntity = new EventEntity();
-		eventEntity.setId(event.getId());
-		eventEntity.setType(io.gravitee.management.model.EventType.valueOf(event.getType().toString()));
-		eventEntity.setPayload(event.getPayload());
-		eventEntity.setParentId(event.getParentId());
-		eventEntity.setOrigin(event.getOrigin());
-		eventEntity.setUsername(event.getUsername());
-		eventEntity.setCreatedAt(event.getCreatedAt());
-		eventEntity.setUpdatedAt(event.getUpdatedAt());
+        return convert(events);
+    }
 
-		return eventEntity;
-	}
+    private List<io.gravitee.repository.management.model.EventType> convert(List<EventType> eventTypes) {
+        List<io.gravitee.repository.management.model.EventType> convertedEvents = new ArrayList<io.gravitee.repository.management.model.EventType>();
+        for (EventType eventType : eventTypes) {
+            convertedEvents.add(convert(eventType));
+        }
+        return convertedEvents;
+    }
 
-	private Event convert(NewEventEntity newEventEntity) {
-		Event event = new Event();
-		event.setType(io.gravitee.repository.management.model.EventType.valueOf(newEventEntity.getType().toString()));
-		event.setPayload(newEventEntity.getPayload());
-		event.setParentId(newEventEntity.getParentId());
-		event.setUsername(newEventEntity.getUsername());
+    private io.gravitee.repository.management.model.EventType convert(EventType eventType) {
+        return io.gravitee.repository.management.model.EventType.valueOf(eventType.toString());
+    }
 
-		return event;
-	}
+    private Set<EventEntity> convert(Set<Event> events) {
+        return events.stream().map(this::convert).collect(Collectors.toSet());
+    }
+
+    private EventEntity convert(Event event) {
+        EventEntity eventEntity = new EventEntity();
+        eventEntity.setId(event.getId());
+        eventEntity.setType(io.gravitee.management.model.EventType.valueOf(event.getType().toString()));
+        eventEntity.setPayload(event.getPayload());
+        eventEntity.setParentId(event.getParentId());
+        eventEntity.setOrigin(event.getOrigin());
+        eventEntity.setUsername(event.getUsername());
+        eventEntity.setProperties(event.getProperties());
+        eventEntity.setCreatedAt(event.getCreatedAt());
+        eventEntity.setUpdatedAt(event.getUpdatedAt());
+
+        return eventEntity;
+    }
+
+    private Event convert(NewEventEntity newEventEntity) {
+        Event event = new Event();
+        event.setType(io.gravitee.repository.management.model.EventType.valueOf(newEventEntity.getType().toString()));
+        event.setPayload(newEventEntity.getPayload());
+        event.setParentId(newEventEntity.getParentId());
+        event.setUsername(newEventEntity.getUsername());
+        event.setProperties(newEventEntity.getProperties());
+
+        return event;
+    }
 }
