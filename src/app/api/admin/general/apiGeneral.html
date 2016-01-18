@@ -75,19 +75,19 @@
 
     <v-pane>
       <v-pane-header>
-        <legend><ng-md-icon icon="share"></ng-md-icon> Proxy</legend>
+        <legend><ng-md-icon icon="share"></ng-md-icon> Gateway</legend>
       </v-pane-header>
       <v-pane-content>
-        <div layout="column" layout-wrap layout-gt-sm="row">
-          <md-input-container flex-xs flex="30">
-            <label>Context path (Gateway level)</label>
-            <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-required="true">
-          </md-input-container>
+        <div layout-gt-sm="row">
+            <md-input-container class="md-block" flex-gt-sm>
+              <label>Context path (Gateway level)</label>
+              <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-required="true">
+            </md-input-container>
 
-          <md-input-container flex-xs flex="30">
-            <label>Endpoint (to consume API)</label>
-            <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
-          </md-input-container>
+            <md-input-container class="md-block" flex-gt-sm>
+              <label>Endpoint (to consume API)</label>
+              <input ng-model="apiCtrl.api.proxy.endpoint" type="text" ng-required="true">
+            </md-input-container>
         </div>
       </v-pane-content>
     </v-pane>
