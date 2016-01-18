@@ -21,7 +21,8 @@ function DialogApiController($scope, $mdDialog, ApiService, NotificationService)
   };
 
   this.save = function () {
-    ApiService.create($scope.api).then(function (result) {
+    console.log($scope.dialogApiCtrl.api);
+    ApiService.create($scope.dialogApiCtrl.api).then(function (result) {
       NotificationService.show('API created');
       $mdDialog.hide(result);
     }).catch(function (error) {

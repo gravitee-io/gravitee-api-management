@@ -37,18 +37,18 @@
                 <div layout="column" layout-wrap layout-gt-sm="row">
                   <md-input-container flex-xs flex="50">
                     <label>Name *</label>
-                    <input ng-model="api.name" type="text" required>
+                    <input ng-model="dialogApiCtrl.api.name" type="text" required>
                   </md-input-container>
                   <md-input-container flex-xs flex="50">
                     <label>Version *</label>
-                    <input ng-model="api.version" type="text" required>
+                    <input ng-model="dialogApiCtrl.api.version" type="text" required>
                   </md-input-container>
                 </div>
 
                 <div layout="column" layout-wrap layout-gt-sm="row">
                   <md-input-container>
                     <label>Description *</label>
-                    <input ng-model="api.description" required>
+                    <input ng-model="dialogApiCtrl.api.description" required>
                   </md-input-container>
                 </div>
               </v-pane-content>
@@ -62,12 +62,12 @@
                 <div layout-gt-sm="row">
                   <md-input-container class="md-block" flex-gt-sm>
                     <label>Context path *</label>
-                    <input ng-model="api.proxy.context_path" type="text" ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" required>
+                    <input ng-model="dialogApiCtrl.api.proxy.context_path" type="text" ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" required>
                   </md-input-container>
 
                   <md-input-container class="md-block" flex-gt-sm>
                     <label>Endpoint *</label>
-                    <input ng-model="api.proxy.endpoint" type="url" required>
+                    <input ng-model="dialogApiCtrl.api.proxy.endpoint" type="url" required>
                   </md-input-container>
                 </div>
               </v-pane-content>
