@@ -83,7 +83,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
                 Invoker invoker = httpClient;
 
                 long serviceInvocationStart = System.currentTimeMillis();
-                ClientRequest clientRequest = invoker.invoke(serverRequest, responseStream -> {
+                ClientRequest clientRequest = invoker.invoke(executionContext, serverRequest, responseStream -> {
 
                     // Set the status
                     serverResponse.status(responseStream.status());
@@ -121,12 +121,12 @@ public class ApiReactorHandler extends ContextReactorHandler {
                     responsePolicyChain.doNext(serverRequest, serverResponse);
                 });
 
-                if (executionContext.getAttribute(ExecutionContext.ATTR_BODY_CONTENT) == null) {
+                if (executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_BODY_CONTENT) == null) {
                     serverRequest
                             .bodyHandler(clientRequest::write)
                             .endHandler(result -> clientRequest.end());
                 } else {
-                    String content = (String) executionContext.getAttribute(ExecutionContext.ATTR_BODY_CONTENT);
+                    String content = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_BODY_CONTENT);
                     clientRequest.write(new StringBodyPart(content));
                     clientRequest.end();
                 }

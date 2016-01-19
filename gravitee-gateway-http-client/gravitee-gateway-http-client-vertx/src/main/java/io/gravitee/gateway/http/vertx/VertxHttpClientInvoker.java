@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.http.vertx;
 
+import io.gravitee.common.http.*;
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpHeadersValues;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.ClientResponse;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.BodyPart;
@@ -28,6 +28,7 @@ import io.gravitee.gateway.http.core.endpoint.EndpointResolver;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +58,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
     private EndpointResolver endpointResolver;
 
     @Override
-    public ClientRequest invoke(Request serverRequest, Handler<ClientResponse> clientResponseHandler) {
+    public ClientRequest invoke(ExecutionContext executionContext, Request serverRequest, Handler<ClientResponse> clientResponseHandler) {
         // Resolve target endpoint
         URI endpoint = endpointResolver.resolve(serverRequest);
 
@@ -76,7 +77,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
                 (endpoint.getScheme().equals("https") ? 443 : 80);
 
         HttpClientRequest clientRequest = httpClient.request(
-                convert(serverRequest.method()),
+                extractHttpMethod(executionContext, serverRequest),
                 port,
                 endpoint.getHost(),
                 uri,
@@ -138,6 +139,12 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         }
 
         return invokerRequest;
+    }
+
+    private HttpMethod extractHttpMethod(ExecutionContext executionContext, Request request) {
+        io.gravitee.common.http.HttpMethod method = (io.gravitee.common.http.HttpMethod)
+                executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_METHOD);
+        return convert((method == null) ? request.method() : method);
     }
 
     private class StringBodyPart implements BodyPart {
