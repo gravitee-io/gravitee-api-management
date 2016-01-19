@@ -85,7 +85,6 @@ public class MongoEventRepository implements EventRepository {
             eventMongo.setType(event.getType().toString());
             eventMongo.setPayload(event.getPayload());
             eventMongo.setParentId(event.getParentId());
-            eventMongo.setOrigin(event.getOrigin());
 
             EventMongo eventMongoUpdated = internalEventRepo.save(eventMongo);
             return mapEvent(eventMongoUpdated);
@@ -132,8 +131,6 @@ public class MongoEventRepository implements EventRepository {
         eventMongo.setType(event.getType().toString());
         eventMongo.setPayload(event.getPayload());
         eventMongo.setParentId(event.getParentId());
-        eventMongo.setOrigin(event.getOrigin());
-        eventMongo.setUsername(event.getUsername());
         eventMongo.setProperties(event.getProperties());
         eventMongo.setCreatedAt(event.getCreatedAt());
         eventMongo.setUpdatedAt(event.getUpdatedAt());
@@ -147,8 +144,6 @@ public class MongoEventRepository implements EventRepository {
         event.setType(EventType.valueOf(eventMongo.getType()));
         event.setPayload(eventMongo.getPayload());
         event.setParentId(eventMongo.getParentId());
-        event.setOrigin(eventMongo.getOrigin());
-        event.setUsername(eventMongo.getUsername());
         event.setProperties(eventMongo.getProperties());
         event.setCreatedAt(eventMongo.getCreatedAt());
         event.setUpdatedAt(eventMongo.getUpdatedAt());

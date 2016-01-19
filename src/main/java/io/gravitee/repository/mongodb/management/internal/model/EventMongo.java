@@ -23,10 +23,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 /**
  * @author Titouan COMPIEGNE
  */
-/**
- * @author tcompiegne
- *
- */
 @Document(collection = "events")
 public class EventMongo extends Auditable {
 
