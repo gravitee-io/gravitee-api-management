@@ -44,16 +44,6 @@ public class Event {
     private String parentId;
 
     /**
-     * The event origin
-     */
-    private String origin;
-
-    /**
-     * The event publisher
-     */
-    private String username;
-
-    /**
      * The event properties
      */
     private Map<String, String> properties;
@@ -100,22 +90,6 @@ public class Event {
         this.parentId = parentId;
     }
 
-    public String getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public Map<String, String> getProperties() {
         return properties;
     }
@@ -141,7 +115,9 @@ public class Event {
     }
 
     public enum EventProperties {
-        API_ID("api_id");
+        API_ID("api_id"),
+        ORIGIN("origin"),
+        USERNAME("username");
 
         private String value;
 

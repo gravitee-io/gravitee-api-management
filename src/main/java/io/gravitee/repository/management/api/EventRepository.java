@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.Set;
 
 /**
-* @author Titouan COMPIEGNE
-*/
+ * @author Titouan COMPIEGNE
+ */
 public interface EventRepository extends CrudRepository<Event, String> {
 
-	Set<Event> findByType(List<EventType> eventTypes);
+    Set<Event> findByType(List<EventType> eventTypes);
 
     Set<Event> findByProperty(String key, String value);
 
