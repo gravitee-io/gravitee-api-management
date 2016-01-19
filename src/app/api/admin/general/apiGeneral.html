@@ -110,15 +110,26 @@
                   </md-input-container>
                 </div>
                 <div flex-xs flex="50">
-                  <div layout-xs="column" flex-xs="100">
+                  <div layout-xs="column" flex-xs="50">
                     <md-checkbox
                       ng-model="apiCtrl.api.proxy.http.configuration.keepAlive"
                       aria-label="Enable keep-alive"
                       class="md-align-top-left" flex>
                       Enable keep-alive<br/>
-                <span class="ipsum">
-                  Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
-                </span>
+                        <span class="ipsum">
+                          Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
+                        </span>
+                    </md-checkbox>
+                  </div>
+                  <div layout-xs="column" flex-xs="50">
+                    <md-checkbox
+                      ng-model="apiCtrl.api.proxy.http.configuration.dumpRequest"
+                      aria-label="Dump HTTP Client request"
+                      class="md-warn md-align-top-left" flex>
+                      Dump HTTP request<br/>
+                        <span class="ipsum">
+                          Use this with caution for development purpose. Print HTTP client request content in gateway logs.
+                        </span>
                     </md-checkbox>
                   </div>
                 </div>
@@ -126,7 +137,7 @@
             </v-pane-content>
           </v-pane>
 
-          <v-pane expanded>
+          <v-pane>
             <v-pane-header>
               <legend><ng-md-icon icon="security"></ng-md-icon> SSL Configuration</legend>
             </v-pane-header>
