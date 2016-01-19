@@ -18,7 +18,6 @@ package io.gravitee.gateway.http.vertx;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.client.HttpClient;
 
@@ -82,5 +81,9 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
     protected URI rewriteURI(Request request, URI endpointUri) {
         String newTarget = rewriteTarget(request, endpointUri);
         return newTarget == null ? null : URI.create(newTarget);
+    }
+
+    protected boolean isDumpRequestEnabled() {
+        return api.getProxy().getHttpClient().getOptions().isDumpRequest();
     }
 }

@@ -67,7 +67,10 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
 
         URI rewrittenURI = rewriteURI(serverRequest, endpoint);
         String url = rewrittenURI.toString();
-        LOGGER.debug("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), url);
+
+        if (isDumpRequestEnabled()) {
+            LOGGER.info("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), url);
+        }
 
         String uri = rewrittenURI.getPath();
         if (rewrittenURI.getQuery() != null)
@@ -87,7 +90,10 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
             @Override
             public ClientRequest write(BodyPart bodyPart) {
                 byte [] data = bodyPart.getBodyPartAsBytes();
-                LOGGER.debug("{} proxying content to upstream: {} bytes", serverRequest.id(), data.length);
+                if (isDumpRequestEnabled()) {
+                    LOGGER.info("{} proxying content to upstream: {} bytes", serverRequest.id(), data.length);
+                    LOGGER.info("{}", new String(data));
+                }
                 clientRequest.write(Buffer.buffer(data));
 
                 return this;
@@ -95,7 +101,9 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
 
             @Override
             public void end() {
-                LOGGER.debug("{} proxying complete", serverRequest.id());
+                if (isDumpRequestEnabled()) {
+                    LOGGER.info("{} proxying complete", serverRequest.id());
+                }
                 clientRequest.end();
             }
         };
@@ -128,6 +136,11 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
 
         // Copy headers to final API
         copyRequestHeaders(serverRequest, clientRequest, endpoint);
+
+        if(isDumpRequestEnabled()) {
+            LOGGER.info("{} {}", clientRequest.method(), uri);
+            clientRequest.headers().forEach(headers -> LOGGER.info("{}: {}", headers.getKey(), headers.getValue()));
+        }
 
         // Check chuncked flag on the request if there are some content to push and if transfer_encoding is set
         // with chunked value
