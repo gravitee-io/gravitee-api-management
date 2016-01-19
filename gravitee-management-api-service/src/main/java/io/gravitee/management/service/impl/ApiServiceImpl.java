@@ -407,7 +407,13 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                  Map<String, String> properties = new HashMap<String, String>();
                  properties.put(Event.EventProperties.API_ID.getValue(), api.get().getId());
                  properties.put(Event.EventProperties.USERNAME.getValue(), username);
-            	 eventService.create(EventType.PUBLISH_API, objectMapper.writeValueAsString(api.get()), properties);
+            	 EventEntity event = eventService.create(EventType.PUBLISH_API, objectMapper.writeValueAsString(api.get()), properties);
+            	 // add deployment date
+            	 if (event != null) {
+            	     Api apiValue = api.get();
+            	     apiValue.setDeployedAt(event.getCreatedAt());
+            	     apiRepository.update(apiValue);
+            	 }
              } else {
             	 throw new ApiNotFoundException(apiId);
              }
@@ -436,6 +442,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         apiEntity.setId(api.getId());
         apiEntity.setName(api.getName());
+        apiEntity.setDeployedAt(api.getDeployedAt());
         apiEntity.setCreatedAt(api.getCreatedAt());
 
         if (api.getDefinition() != null) {
