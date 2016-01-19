@@ -54,10 +54,13 @@ public class EventServiceTest {
     private static final String EVENT_ID = "id-event";
     private static final String EVENT_PAYLOAD = "{}";
     private static final String EVENT_USERNAME = "admin";
+    private static final String EVENT_ORIGIN = "localhost";
     private static final String API_ID = "id-api";
     private static final Map<String, String> EVENT_PROPERTIES = new HashMap<String, String>() {
         {
-            put(Event.EventProperties.API_ID.toString(), API_ID);
+            put(Event.EventProperties.API_ID.getValue(), API_ID);
+            put(Event.EventProperties.USERNAME.getValue(), EVENT_USERNAME);
+            put(Event.EventProperties.ORIGIN.getValue(), EVENT_ORIGIN);
         }
     };
 
@@ -77,27 +80,27 @@ public class EventServiceTest {
     public void shouldCreateEventWithPublishApiEventType() throws TechnicalException {
         when(event.getType()).thenReturn(EventType.valueOf(EVENT_PUBLISH_API_TYPE));
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
-        when(event.getUsername()).thenReturn(EVENT_USERNAME);
+        when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
         when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.empty());
         when(eventRepository.create(any())).thenReturn(event);
 
         when(newEvent.getType()).thenReturn(io.gravitee.management.model.EventType.valueOf(EVENT_PUBLISH_API_TYPE));
         when(newEvent.getPayload()).thenReturn(EVENT_PAYLOAD);
-        when(newEvent.getUsername()).thenReturn(EVENT_USERNAME);
+        when(newEvent.getProperties()).thenReturn(EVENT_PROPERTIES);
 
         final EventEntity eventEntity = eventService.create(newEvent);
 
         assertNotNull(eventEntity);
         assertEquals(EVENT_PUBLISH_API_TYPE, eventEntity.getType().toString());
         assertEquals(EVENT_PAYLOAD, eventEntity.getPayload());
-        assertEquals(EVENT_USERNAME, eventEntity.getUsername());
+        assertEquals(EVENT_USERNAME, eventEntity.getProperties().get(Event.EventProperties.USERNAME.getValue()));
     }
 
     @Test
     public void shouldFindById() throws TechnicalException {
         when(event.getType()).thenReturn(EventType.valueOf(EVENT_PUBLISH_API_TYPE));
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
-        when(event.getUsername()).thenReturn(EVENT_USERNAME);
+        when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
 
         when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
 
@@ -110,7 +113,7 @@ public class EventServiceTest {
     public void shouldFindByType() throws TechnicalException {
         when(event.getType()).thenReturn(EventType.valueOf(EVENT_PUBLISH_API_TYPE));
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
-        when(event.getUsername()).thenReturn(EVENT_USERNAME);
+        when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
 
         List<EventType> eventTypes = new ArrayList<EventType>();
         eventTypes.add(EventType.valueOf(EVENT_PUBLISH_API_TYPE));
@@ -128,7 +131,6 @@ public class EventServiceTest {
     public void shouldFindByApi() throws TechnicalException {
         when(event.getType()).thenReturn(EventType.valueOf(EVENT_PUBLISH_API_TYPE));
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
-        when(event.getUsername()).thenReturn(EVENT_USERNAME);
         when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
 
         when(eventRepository.findByProperty(Event.EventProperties.API_ID.getValue(), API_ID)).thenReturn(new HashSet<>(Arrays.asList(event)));
@@ -138,7 +140,39 @@ public class EventServiceTest {
         assertNotNull(eventEntities);
         assertEquals(1, eventEntities.size());
         EventEntity eventEntity = eventEntities.stream().findFirst().get();
-        assertEquals(API_ID, eventEntity.getProperties().get(Event.EventProperties.API_ID.toString()));
+        assertEquals(API_ID, eventEntity.getProperties().get(Event.EventProperties.API_ID.getValue()));
+    }
+
+    @Test
+    public void shouldFindByUsername() throws TechnicalException {
+        when(event.getType()).thenReturn(EventType.valueOf(EVENT_PUBLISH_API_TYPE));
+        when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
+        when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
+
+        when(eventRepository.findByProperty(Event.EventProperties.USERNAME.getValue(), EVENT_USERNAME)).thenReturn(new HashSet<>(Arrays.asList(event)));
+
+        Set<EventEntity> eventEntities = eventService.findByUser(EVENT_USERNAME);
+
+        assertNotNull(eventEntities);
+        assertEquals(1, eventEntities.size());
+        EventEntity eventEntity = eventEntities.stream().findFirst().get();
+        assertEquals(EVENT_USERNAME, eventEntity.getProperties().get(Event.EventProperties.USERNAME.getValue()));
+    }
+
+    @Test
+    public void shouldFindByOrigin() throws TechnicalException {
+        when(event.getType()).thenReturn(EventType.valueOf(EVENT_PUBLISH_API_TYPE));
+        when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
+        when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
+
+        when(eventRepository.findByProperty(Event.EventProperties.ORIGIN.getValue(), EVENT_ORIGIN)).thenReturn(new HashSet<>(Arrays.asList(event)));
+
+        Set<EventEntity> eventEntities = eventService.findByOrigin(EVENT_ORIGIN);
+
+        assertNotNull(eventEntities);
+        assertEquals(1, eventEntities.size());
+        EventEntity eventEntity = eventEntities.stream().findFirst().get();
+        assertEquals(EVENT_ORIGIN, eventEntity.getProperties().get(Event.EventProperties.ORIGIN.getValue()));
     }
 
     @Test(expected = TechnicalManagementException.class)

@@ -25,8 +25,6 @@ public class NewEventEntity {
     private EventType type;
     private String payload;
     private String parentId;
-    private String origin;
-    private String username;
     private Map<String, String> properties;
 
     public EventType getType() {
@@ -53,22 +51,6 @@ public class NewEventEntity {
         this.parentId = parentId;
     }
 
-    public String getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public Map<String, String> getProperties() {
         return properties;
     }
@@ -83,8 +65,6 @@ public class NewEventEntity {
         sb.append(", type='").append(type.toString()).append('\'');
         sb.append(", payload='").append(payload).append('\'');
         sb.append(", parentId='").append(parentId).append('\'');
-        sb.append(", origin='").append(origin).append('\'');
-        sb.append(", username='").append(username).append('\'');
         sb.append('}');
         return sb.toString();
     }

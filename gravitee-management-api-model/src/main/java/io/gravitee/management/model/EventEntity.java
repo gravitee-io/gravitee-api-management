@@ -29,8 +29,6 @@ public class EventEntity {
     private EventType type;
     private String payload;
     private String parentId;
-    private String origin;
-    private String username;
     private Map<String, String> properties;
 
     @JsonProperty("created_at")
@@ -70,22 +68,6 @@ public class EventEntity {
         this.parentId = parentId;
     }
 
-    public String getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public Map<String, String> getProperties() {
         return properties;
     }
@@ -117,8 +99,6 @@ public class EventEntity {
         sb.append(", type='").append(type.toString()).append('\'');
         sb.append(", payload='").append(payload).append('\'');
         sb.append(", parentId='").append(parentId).append('\'');
-        sb.append(", origin='").append(origin).append('\'');
-        sb.append(", username='").append(username).append('\'');
         sb.append(", createdAt='").append(createdAt).append('\'');
         sb.append(", updatedAt='").append(updatedAt).append('\'');
         sb.append('}');

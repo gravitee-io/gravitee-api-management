@@ -78,7 +78,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
             Event event = convert(newEventEntity);
             // Set origin
-            event.setOrigin(hostAddress);
+            event.getProperties().put(Event.EventProperties.ORIGIN.getValue(), hostAddress);
             // Set date fields
             event.setCreatedAt(new Date());
             event.setUpdatedAt(event.getCreatedAt());
@@ -96,11 +96,10 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public EventEntity create(EventType type, String payload, String username, Map<String, String> properties) {
+    public EventEntity create(EventType type, String payload, Map<String, String> properties) {
         NewEventEntity event = new NewEventEntity();
         event.setType(type);
         event.setPayload(payload);
-        event.setUsername(username);
         event.setProperties(properties);
         return create(event);
     }
@@ -111,10 +110,24 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
         return convert(events);
     }
-    
+
     @Override
     public Set<EventEntity> findByApi(String apiId) {
         Set<Event> events = eventRepository.findByProperty(Event.EventProperties.API_ID.getValue(), apiId);
+
+        return convert(events);
+    }
+
+    @Override
+    public Set<EventEntity> findByUser(String username) {
+        Set<Event> events = eventRepository.findByProperty(Event.EventProperties.USERNAME.getValue(), username);
+
+        return convert(events);
+    }
+
+    @Override
+    public Set<EventEntity> findByOrigin(String origin) {
+        Set<Event> events = eventRepository.findByProperty(Event.EventProperties.ORIGIN.getValue(), origin);
 
         return convert(events);
     }
@@ -141,8 +154,6 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         eventEntity.setType(io.gravitee.management.model.EventType.valueOf(event.getType().toString()));
         eventEntity.setPayload(event.getPayload());
         eventEntity.setParentId(event.getParentId());
-        eventEntity.setOrigin(event.getOrigin());
-        eventEntity.setUsername(event.getUsername());
         eventEntity.setProperties(event.getProperties());
         eventEntity.setCreatedAt(event.getCreatedAt());
         eventEntity.setUpdatedAt(event.getUpdatedAt());
@@ -155,7 +166,6 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         event.setType(io.gravitee.repository.management.model.EventType.valueOf(newEventEntity.getType().toString()));
         event.setPayload(newEventEntity.getPayload());
         event.setParentId(newEventEntity.getParentId());
-        event.setUsername(newEventEntity.getUsername());
         event.setProperties(newEventEntity.getProperties());
 
         return event;

@@ -406,7 +406,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
              if (api.isPresent()) {
                  Map<String, String> properties = new HashMap<String, String>();
                  properties.put(Event.EventProperties.API_ID.getValue(), api.get().getId());
-            	 eventService.create(EventType.PUBLISH_API, objectMapper.writeValueAsString(api.get()), username, properties);
+                 properties.put(Event.EventProperties.USERNAME.getValue(), username);
+            	 eventService.create(EventType.PUBLISH_API, objectMapper.writeValueAsString(api.get()), properties);
              } else {
             	 throw new ApiNotFoundException(apiId);
              }

@@ -32,9 +32,13 @@ public interface EventService {
 
     EventEntity create(NewEventEntity event);
 
-    EventEntity create(EventType type, String payload, String username, Map<String, String> properties);
+    EventEntity create(EventType type, String payload, Map<String, String> properties);
 
     Set<EventEntity> findByType(List<EventType> eventTypes);
     
     Set<EventEntity> findByApi(String apiId);
+
+    Set<EventEntity> findByUser(String username);
+
+    Set<EventEntity> findByOrigin(String origin);
 }
