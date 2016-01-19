@@ -85,7 +85,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private ApiKeyRepository apiKeyRepository;
-
+    
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -269,6 +269,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                         LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), e);
                     }
                 });
+                
+                Set<EventEntity> events = eventService.findByApi(apiName);
+                events.forEach(event -> {
+                    eventService.delete(event.getId());
+                });
+                
                 apiRepository.delete(apiName);
             }
         } catch (TechnicalException ex) {

@@ -18,6 +18,7 @@ package io.gravitee.management.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.model.NewEventEntity;
@@ -187,6 +188,14 @@ public class EventServiceTest {
         when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.empty());
 
         eventService.findById(EVENT_ID);
+    }
+    
+    @Test
+    public void shouldDelete() throws TechnicalException {
+        when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
+        eventService.delete(EVENT_ID);
+
+        verify(eventRepository).delete(EVENT_ID);
     }
 
 }

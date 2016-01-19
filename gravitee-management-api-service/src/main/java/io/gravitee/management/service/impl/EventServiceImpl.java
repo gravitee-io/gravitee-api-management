@@ -103,6 +103,17 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         event.setProperties(properties);
         return create(event);
     }
+    
+    @Override
+    public void delete(String eventId) {
+        try {
+            LOGGER.debug("Delete Event {}", eventId);
+            eventRepository.delete(eventId);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete Event {}", eventId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete Event " + eventId, ex);
+        }
+    }
 
     @Override
     public Set<EventEntity> findByType(List<EventType> eventTypes) {

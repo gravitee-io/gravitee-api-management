@@ -33,6 +33,8 @@ public interface EventService {
     EventEntity create(NewEventEntity event);
 
     EventEntity create(EventType type, String payload, Map<String, String> properties);
+    
+    void delete(String eventId);
 
     Set<EventEntity> findByType(List<EventType> eventTypes);
     
