@@ -15,13 +15,14 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Mongo model for Api
@@ -48,6 +49,8 @@ public class ApiMongo extends Auditable {
 	private String visibility;
 
     private List<MemberMongo> members = new ArrayList<>();
+    
+    private Date deployedAt;
 
     public String getId() {
         return id;
@@ -111,6 +114,14 @@ public class ApiMongo extends Auditable {
 
     public void setMembers(List<MemberMongo> members) {
         this.members = members;
+    }
+    
+    public Date getDeployedAt() {
+        return deployedAt;
+    }
+
+    public void setDeployedAt(Date deployedAt) {
+        this.deployedAt = deployedAt;
     }
 
     @Override
