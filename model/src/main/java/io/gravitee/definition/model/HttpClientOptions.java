@@ -24,12 +24,15 @@ public class HttpClientOptions {
     public static long DEFAULT_IDLE_TIMEOUT = 60000;
     public static long DEFAULT_CONNECT_TIMEOUT = 5000;
     public static boolean DEFAULT_KEEP_ALIVE = true;
+    public static boolean DEFAULT_DUMP_REQUEST = false;
 
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
     private boolean keepAlive = DEFAULT_KEEP_ALIVE;
+
+    private boolean dumpRequest = DEFAULT_DUMP_REQUEST;
 
     public long getConnectTimeout() {
         return connectTimeout;
@@ -53,5 +56,13 @@ public class HttpClientOptions {
 
     public void setKeepAlive(boolean keepAlive) {
         this.keepAlive = keepAlive;
+    }
+
+    public boolean isDumpRequest() {
+        return dumpRequest;
+    }
+
+    public void setDumpRequest(boolean dumpRequest) {
+        this.dumpRequest = dumpRequest;
     }
 }
