@@ -48,6 +48,11 @@ public class Api {
      * The api JSON definition
      */
     private String definition;
+    
+    /**
+     * The api deployment date
+     */
+    private Date deployedAt;
 
     /**
      * The Api creation date
@@ -93,6 +98,14 @@ public class Api {
 
     public void setName(String name) {
         this.name = name;
+    }
+    
+    public Date getDeployedAt() {
+        return deployedAt;
+    }
+
+    public void setDeployedAt(Date deployedAt) {
+        this.deployedAt = deployedAt;
     }
 
     public Date getUpdatedAt() {
