@@ -41,6 +41,10 @@
 					<span>{{apiCtrl.api.created_at | date}}</span>
 					<span><ng-md-icon icon="timer"></ng-md-icon></span>
 				</p>
+                <p ng-if="apiCtrl.api.deployed_at" style="padding: 0; margin: 0;">
+                  <span>{{apiCtrl.api.deployed_at | date}}<md-tooltip md-direction="left">Last deployment date</md-tooltip></span>
+                  <span><ng-md-icon icon="send"></ng-md-icon></span>
+                </p>
 			</div>
 		</div>
 	</div>

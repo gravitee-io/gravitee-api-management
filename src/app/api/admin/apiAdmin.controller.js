@@ -94,8 +94,9 @@ class ApiAdminController {
   }
   
   deploy(api) {
-    this.ApiService.deploy(api.id).then(() => {
+    this.ApiService.deploy(api.id).then((deployedApi) => {
       this.NotificationService.show("API deployed");
+      this.api = deployedApi.data;
       this.apiJustDeployed = true;
     });
   }
