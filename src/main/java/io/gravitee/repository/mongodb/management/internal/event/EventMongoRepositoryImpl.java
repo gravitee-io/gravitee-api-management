@@ -30,16 +30,26 @@ import org.springframework.data.mongodb.core.query.Query;
  */
 public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
 
-	@Autowired
-	private MongoTemplate mongoTemplate;
-	
-	@Override
-	public Collection<EventMongo> findByType(Collection<String> types) {
-		Query query = new Query();
-		query.addCriteria(Criteria.where("type").in(types));
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
-		List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
-		
-		return events;
-	}
+    @Override
+    public Collection<EventMongo> findByType(Collection<String> types) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("type").in(types));
+
+        List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
+
+        return events;
+    }
+
+    @Override
+    public Collection<EventMongo> findByProperty(String key, String value) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("properties." + key).is(value));
+
+        List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
+
+        return events;
+    }
 }

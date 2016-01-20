@@ -31,52 +31,72 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class EventRepositoryTest extends AbstractMongoDBTest {
 
-	private final static Logger logger = LoggerFactory.getLogger(EventRepositoryTest.class);
-	
-	@Autowired
-	private EventRepository eventRepository;
+    private final static Logger logger = LoggerFactory.getLogger(EventRepositoryTest.class);
 
-	@Override
-	protected String getTestCasesPath() {
-		return "/data/event-tests/";
-	}
+    @Autowired
+    private EventRepository eventRepository;
 
-	@Test
-	public void createEventTest() {
-		try {
-			Event event = new Event();
-			event.setType(EventType.PUBLISH_API);
-			event.setPayload("{}");
-			event.setParentId(null);
-			
-			Event eventCreated =  eventRepository.create(event);
-			
-			Assert.assertEquals("Invalid saved event type.", EventType.PUBLISH_API, eventCreated.getType());
-			Assert.assertEquals("Invalid saved event paylod.", "{}", eventCreated.getPayload());
-		} catch (Exception e) {
-			logger.error("Error while calling createEvent", e);
-			Assert.fail("Error while calling createEvent");	
-		}
-	}
+    @Override
+    protected String getTestCasesPath() {
+        return "/data/event-tests/";
+    }
 
-	@Test
-	public void findByIdTest() {
-		try {
-			Optional<Event> event= eventRepository.findById("event1");
-			Assert.assertTrue(event.isPresent());
-			Assert.assertTrue(EventType.PUBLISH_API.equals(event.get().getType()));
-		} catch (Exception e) {
-			logger.error("Error while finding event event1",e);
-			Assert.fail("Error while finding event event1");
-		}
-	}
-	
-	@Test
-	public void findByTypeInOrderByCreatedAt() {
-		Set<Event> events = eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
-		Assert.assertTrue(3 == events.size());
-		Optional<Event> event = events.stream().sorted((e1,e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt())).findFirst();
-		Assert.assertTrue(event.isPresent());
-		Assert.assertTrue("event3".equals(event.get().getId()));
-	}
+    @Test
+    public void createEventTest() {
+        try {
+            Event event = new Event();
+            event.setType(EventType.PUBLISH_API);
+            event.setPayload("{}");
+            event.setParentId(null);
+
+            Event eventCreated = eventRepository.create(event);
+
+            Assert.assertEquals("Invalid saved event type.", EventType.PUBLISH_API, eventCreated.getType());
+            Assert.assertEquals("Invalid saved event paylod.", "{}", eventCreated.getPayload());
+        } catch (Exception e) {
+            logger.error("Error while calling createEvent", e);
+            Assert.fail("Error while calling createEvent");
+        }
+    }
+
+    @Test
+    public void findByIdTest() {
+        try {
+            Optional<Event> event = eventRepository.findById("event1");
+            Assert.assertTrue(event.isPresent());
+            Assert.assertTrue(EventType.PUBLISH_API.equals(event.get().getType()));
+        } catch (Exception e) {
+            logger.error("Error while finding event event1", e);
+            Assert.fail("Error while finding event event1");
+        }
+    }
+
+    @Test
+    public void findByType() {
+        try {
+            Set<Event> events = eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
+            Assert.assertTrue(3 == events.size());
+            Optional<Event> event = events.stream().sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt())).findFirst();
+            Assert.assertTrue(event.isPresent());
+            Assert.assertTrue("event3".equals(event.get().getId()));
+        } catch (Exception e) {
+            logger.error("Error while finding event by type", e);
+            Assert.fail("Error while finding event by type");
+        }
+    }
+
+    @Test
+    public void findByApi() {
+        try {
+            String apiId = "api-1";
+            Set<Event> events = eventRepository.findByProperty(Event.EventProperties.API_ID.getValue(), apiId);
+            Assert.assertTrue(2 == events.size());
+            Optional<Event> event = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).findFirst();
+            Assert.assertTrue(event.isPresent());
+            Assert.assertTrue("event1".equals(event.get().getId()));
+        } catch (Exception e) {
+            logger.error("Error while finding event by api", e);
+            Assert.fail("Error while finding event by api");
+        }
+    }
 }
