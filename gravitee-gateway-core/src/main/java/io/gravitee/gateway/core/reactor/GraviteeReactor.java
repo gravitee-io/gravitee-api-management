@@ -79,10 +79,14 @@ public class GraviteeReactor extends AbstractService implements
     private final ConcurrentMap<Api, String> contextPaths = new ConcurrentHashMap<>();
 
     protected ReactorHandler bestHandler(Request request) {
-        String path = request.path();
+        StringBuilder path = new StringBuilder(request.path());
+
+        if (path.lastIndexOf("/") < path.length() - 1) {
+            path.append('/');
+        }
 
         Set<ContextReactorHandler> mapHandlers = handlers.entrySet().stream().filter(
-                entry -> path.startsWith(entry.getKey())).map(Map.Entry::getValue).collect(Collectors.toSet());
+                entry -> path.toString().startsWith(entry.getKey())).map(Map.Entry::getValue).collect(Collectors.toSet());
 
         LOGGER.debug("Found {} handlers for path {}", mapHandlers.size(), path);
 
@@ -190,7 +194,7 @@ public class GraviteeReactor extends AbstractService implements
             ContextReactorHandler handler = contextHandlerFactory.create(api);
             try {
                 handler.start();
-                handlers.putIfAbsent(handler.getContextPath(), handler);
+                handlers.putIfAbsent(handler.getContextPath() + '/', handler);
                 contextPaths.putIfAbsent(api, handler.getContextPath());
             } catch (Exception ex) {
                 LOGGER.error("Unable to deploy handler", ex);
@@ -221,7 +225,7 @@ public class GraviteeReactor extends AbstractService implements
             if (handler != null) {
                 try {
                     handler.stop();
-                    handlers.remove(api.getProxy().getContextPath());
+                    handlers.remove(api.getProxy().getContextPath() + '/');
                     LOGGER.info("API {} has been removed from reactor", api.getId());
                 } catch (Exception e) {
                     LOGGER.error("Unable to remove handler", e);
@@ -234,7 +238,7 @@ public class GraviteeReactor extends AbstractService implements
         handlers.forEach((s, handler) -> {
             try {
                 handler.stop();
-                handlers.remove(handler.getContextPath());
+                handlers.remove(handler.getContextPath() + '/');
             } catch (Exception e) {
                 LOGGER.error("Unable to remove reactor handler", e);
             }

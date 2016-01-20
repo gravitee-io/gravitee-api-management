@@ -85,6 +85,29 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     }
 
     @Test
+    public void processRequest_startedApi_unknownPath() throws Exception {
+        // Register API endpoint
+        Api api = getApiDefinition();
+
+        eventManager.publishEvent(ApiEvent.DEPLOY, api);
+
+        HttpServerRequest req = new HttpServerRequest();
+        req.setMethod(HttpMethod.GET);
+        req.setRequestURI(URI.create("http://localhost/teams"));
+
+        Response response = new HttpServerResponse();
+
+        final CountDownLatch lock = new CountDownLatch(1);
+        reactor.process(req, response,
+                resp -> {
+                    Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
+                    lock.countDown();
+                });
+
+        Assert.assertEquals(true, lock.await(10000, TimeUnit.MILLISECONDS));
+    }
+
+    @Test
     public void processRequest_startedApi_gatewayError() throws Exception {
         // Register API endpoint
         Api api = getUnreachableApiDefinition();
