@@ -15,67 +15,57 @@
  */
 package io.gravitee.management.model;
 
+import java.util.Map;
+
 /**
  * @author Titouan COMPIEGNE
  */
 public class NewEventEntity {
 
-	private EventType type;
-	private String payload;
-	private String parentId;
-	private String origin;
-	private String username;
+    private EventType type;
+    private String payload;
+    private String parentId;
+    private Map<String, String> properties;
 
-	public EventType getType() {
-		return type;
-	}
+    public EventType getType() {
+        return type;
+    }
 
-	public void setType(EventType type) {
-		this.type = type;
-	}
+    public void setType(EventType type) {
+        this.type = type;
+    }
 
-	public String getPayload() {
-		return payload;
-	}
+    public String getPayload() {
+        return payload;
+    }
 
-	public void setPayload(String payload) {
-		this.payload = payload;
-	}
+    public void setPayload(String payload) {
+        this.payload = payload;
+    }
 
-	public String getParentId() {
-		return parentId;
-	}
+    public String getParentId() {
+        return parentId;
+    }
 
-	public void setParentId(String parentId) {
-		this.parentId = parentId;
-	}
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
 
-	public String getOrigin() {
-		return origin;
-	}
+    public Map<String, String> getProperties() {
+        return properties;
+    }
 
-	public void setOrigin(String origin) {
-		this.origin = origin;
-	}
-	
-	public String getUsername() {
-		return username;
-	}
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("Event{");
-		sb.append(", type='").append(type.toString()).append('\'');
-		sb.append(", payload='").append(payload).append('\'');
-		sb.append(", parentId='").append(parentId).append('\'');
-		sb.append(", origin='").append(origin).append('\'');
-		sb.append(", username='").append(username).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
-
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Event{");
+        sb.append(", type='").append(type.toString()).append('\'');
+        sb.append(", payload='").append(payload).append('\'');
+        sb.append(", parentId='").append(parentId).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

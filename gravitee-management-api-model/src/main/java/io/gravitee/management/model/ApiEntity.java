@@ -40,6 +40,9 @@ public class ApiEntity {
 
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
+    
+    @JsonProperty("deployed_at")
+    private Date deployedAt;
 
     @JsonProperty("created_at")
     private Date createdAt;
@@ -181,6 +184,14 @@ public class ApiEntity {
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
+    }
+    
+    public Date getDeployedAt() {
+        return deployedAt;
+    }
+
+    public void setDeployedAt(Date deployedAt) {
+        this.deployedAt = deployedAt;
     }
 
     @Override
