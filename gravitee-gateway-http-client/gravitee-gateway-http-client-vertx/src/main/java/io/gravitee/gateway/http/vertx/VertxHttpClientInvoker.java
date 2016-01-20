@@ -29,6 +29,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.PemTrustOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -276,6 +278,12 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
                     .setSsl(proxyDefinition.getHttpClient().getSsl().isEnabled())
                     .setVerifyHost(proxyDefinition.getHttpClient().getSsl().isHostnameVerifier())
                     .setTrustAll(proxyDefinition.getHttpClient().getSsl().isTrustAll());
+
+            if (proxyDefinition.getHttpClient().getSsl().getPem() != null &&
+                    ! proxyDefinition.getHttpClient().getSsl().getPem().isEmpty()) {
+                options.setPemTrustOptions(
+                        new PemTrustOptions().addCertValue(Buffer.buffer(proxyDefinition.getHttpClient().getSsl().getPem())));
+            }
         }
 
         httpClient = vertx.createHttpClient(options);
