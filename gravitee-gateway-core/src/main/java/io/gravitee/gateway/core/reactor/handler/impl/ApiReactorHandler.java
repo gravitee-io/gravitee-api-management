@@ -184,7 +184,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
     @Override
     public String getContextPath() {
-        return api.getProxy().getContextPath();
+        return api.getProxy().getContextPath() + '/';
     }
 
     /*

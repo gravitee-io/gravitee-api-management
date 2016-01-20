@@ -61,7 +61,7 @@ public class GraviteeReactorMockedTest {
         Mockito.when(request.path()).thenReturn("/teams");
 
         ContextReactorHandler handler = (ContextReactorHandler) reactor.bestHandler(request);
-        Assert.assertEquals("/teams", handler.getContextPath());
+        Assert.assertEquals("/teams/", handler.getContextPath());
     }
 
     @Test
@@ -85,7 +85,7 @@ public class GraviteeReactorMockedTest {
         Mockito.when(request.path()).thenReturn("/teams");
 
         ContextReactorHandler handler = (ContextReactorHandler) reactor.bestHandler(request);
-        Assert.assertEquals("/teams", handler.getContextPath());
+        Assert.assertEquals("/teams/", handler.getContextPath());
     }
 
     @Test
@@ -123,7 +123,7 @@ public class GraviteeReactorMockedTest {
         Mockito.when(request.path()).thenReturn("/teams/");
 
         ContextReactorHandler handler = (ContextReactorHandler) reactor.bestHandler(request);
-        Assert.assertEquals("/teams", handler.getContextPath());
+        Assert.assertEquals("/teams/", handler.getContextPath());
     }
 
     @Test
@@ -153,7 +153,7 @@ public class GraviteeReactorMockedTest {
 
             Mockito.when(apiReactorHandler.start()).thenReturn(apiReactorHandler);
             Mockito.when(contextHandlerFactory.create(Mockito.any(Api.class))).thenReturn(apiReactorHandler);
-            Mockito.when(apiReactorHandler.getContextPath()).thenReturn(contextPath);
+            Mockito.when(apiReactorHandler.getContextPath()).thenReturn(contextPath + '/');
             reactor.createHandler(api);
         } catch (Exception e) {
             // Do nothing

@@ -194,7 +194,7 @@ public class GraviteeReactor extends AbstractService implements
             ContextReactorHandler handler = contextHandlerFactory.create(api);
             try {
                 handler.start();
-                handlers.putIfAbsent(handler.getContextPath() + '/', handler);
+                handlers.putIfAbsent(handler.getContextPath(), handler);
                 contextPaths.putIfAbsent(api, handler.getContextPath());
             } catch (Exception ex) {
                 LOGGER.error("Unable to deploy handler", ex);
@@ -220,12 +220,12 @@ public class GraviteeReactor extends AbstractService implements
     public void removeHandler(Api api) {
         String contextPath = contextPaths.remove(api);
         if (contextPath != null) {
-            ReactorHandler handler = handlers.remove(contextPath);
+            ContextReactorHandler handler = handlers.remove(contextPath);
 
             if (handler != null) {
                 try {
                     handler.stop();
-                    handlers.remove(api.getProxy().getContextPath() + '/');
+                    handlers.remove(handler.getContextPath());
                     LOGGER.info("API {} has been removed from reactor", api.getId());
                 } catch (Exception e) {
                     LOGGER.error("Unable to remove handler", e);
@@ -238,7 +238,7 @@ public class GraviteeReactor extends AbstractService implements
         handlers.forEach((s, handler) -> {
             try {
                 handler.stop();
-                handlers.remove(handler.getContextPath() + '/');
+                handlers.remove(handler.getContextPath());
             } catch (Exception e) {
                 LOGGER.error("Unable to remove reactor handler", e);
             }
