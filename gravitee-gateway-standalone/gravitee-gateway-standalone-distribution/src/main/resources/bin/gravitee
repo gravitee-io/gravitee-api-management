@@ -86,6 +86,8 @@ echo ""
 "$JAVA" $JAVA_OPTS \
         -Dvertx.disableFileCaching=true \
         -Dvertx.disableFileCPResolving=true \
+        -Dvertx.disableContextTiming=true \
+        -Dvertx.disableWebsockets=true \
         -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
         -cp "$GRAVITEE_BOOT_CLASSPATH" \
         $GRAVITEE_OPTS \
