@@ -237,6 +237,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 api.setUpdatedAt(new Date());
 
                 // Copy fields from existing values
+                api.setDeployedAt(apiToUpdate.getDeployedAt());
                 api.setCreatedAt(apiToUpdate.getCreatedAt());
                 api.setLifecycleState(apiToUpdate.getLifecycleState());
 
@@ -403,7 +404,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
     
     @Override
-    public void deploy(String apiId, String username) {
+    public ApiEntity deploy(String apiId, String username) {
     	 try {
              LOGGER.debug("Deploy API : {}", apiId);
 
@@ -420,6 +421,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             	     apiValue.setDeployedAt(event.getCreatedAt());
             	     apiRepository.update(apiValue);
             	 }
+            	 return convert(api.get());
              } else {
             	 throw new ApiNotFoundException(apiId);
              }

@@ -52,5 +52,5 @@ public interface ApiService {
     
     boolean isAPISynchronized(ApiEntity api);
     
-    void deploy(String apiId, String username);
+    ApiEntity deploy(String apiId, String username);
 }
