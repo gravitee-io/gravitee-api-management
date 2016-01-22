@@ -45,7 +45,6 @@ import TeamService from './user/team.service';
 import UserService from './user/user.service';
 import UserController from './user/user.controller';
 import LoginService from './login/login.service';
-import NavbarDirective from './components/navbar/navbar.directive';
 import NotificationService from './components/notification/notification.service';
 import DocumentationDirective from './api/admin/documentation/apiDocumentation.directive';
 import DocumentationController from './api/admin/documentation/apiDocumentation.controller';
@@ -53,14 +52,14 @@ import DocumentationService from './api/admin/documentation/apiDocumentation.ser
 import DialogDocumentationController from './api/admin/documentation/dialog/apiDocumentationDialog.controller';
 import ProfileController from './profile/profile.controller';
 import ApplicationsController from './application/applications.controller';
-import ApplicationController from './application/details/application.controller';
+import ApplicationController from './application/details/applications.controller';
 import ApplicationGeneralController from './application/details/general/applicationGeneral.controller';
 import ApplicationMembersController from './application/details/members/applicationMembers.controller';
 import ApplicationAPIKeysController from './application/details/apikeys/applicationAPIKeys.controller';
 import DialogApplicationController from './application/dialog/applicationDialog.controller';
 import DialogSubscribeApiController from './application/dialog/subscribeApiDialog.controller';
 import DialogAddMemberController from './application/dialog/addMemberDialog.controller';
-import ApplicationService from './application/details/application.service';
+import ApplicationService from './application/details/applications.service';
 import SideNavDirective from './components/sidenav/sidenav.directive';
 import PageController from './api/admin/documentation/page/apiPage.controller';
 import PolicyService from './policy/policy.service';
@@ -70,7 +69,7 @@ import RoleDirective from './components/role/role.directive';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
-    'ncy-angular-breadcrumb', 'schemaForm', 'ngclipboard', 'sticky', 'ui.validate', 'ngMessages', 'vAccordion'])
+    'schemaForm', 'ngclipboard', 'ui.validate', 'ngMessages', 'vAccordion'])
   .constant('baseURL', '/management/')
   .config(config)
   .config(routerConfig)

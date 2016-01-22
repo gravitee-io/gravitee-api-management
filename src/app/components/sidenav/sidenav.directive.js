@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class SideNavDirective {
-  constructor () {
+  constructor() {
     let directive = {
       restrict: 'E',
       templateUrl: 'app/components/sidenav/sidenav.html',
@@ -28,28 +28,62 @@ class SideNavDirective {
 }
 
 class SideNavController {
-  constructor ($rootScope, $cookieStore, $mdSidenav) {
+  constructor($rootScope, $cookieStore, $mdSidenav, $mdDialog, $scope, $state) {
     'ngInject';
-		this.$rootScope = $rootScope;
-		this.$cookieStore = $cookieStore;
-		this.$mdSidenav = $mdSidenav;
-		this.getUser();
-		var self = this;
-		this.$rootScope.$watch('authenticated', function() {
-			self.getUser();
-		});
+    this.$rootScope = $rootScope;
+    this.$cookieStore = $cookieStore;
+    this.$mdSidenav = $mdSidenav;
+    this.$mdDialog = $mdDialog;
+    this.getUser();
+    var self = this;
+    this.$rootScope.$watch('authenticated', function () {
+      self.getUser();
+    });
+
+    var routeMenuItems = _.filter($state.get(), function (state) {
+      return !state.abstract && state.menu;
+    });
+
+    $scope.menuItems = _.filter(routeMenuItems, function (routeMenuItem) {
+      return routeMenuItem.menu.firstLevel;
+    });
+
+    $scope.$on('$stateChangeSuccess', function (event, toState, toParams) {
+      $scope.subMenuItems = _.filter(routeMenuItems, function (routeMenuItem) {
+        $scope.currentResource = _.values(toParams)[0];
+        var routeMenuItemSplitted = routeMenuItem.name.split('.'), toStateSplitted = toState.name.split('.');
+        return $scope.currentResource && !routeMenuItem.menu.firstLevel &&
+          routeMenuItemSplitted[0] === toStateSplitted[0] && routeMenuItemSplitted[1] === toStateSplitted[1];
+      });
+    });
+
+    $scope.$on('authenticationRequired', function () {
+      self.showLoginModal();
+    });
+
+    this.reducedMode = $rootScope.pourcentWidth > 33 || !$rootScope.authenticated;
   }
 
-	getUser() {
-		this.user = this.$cookieStore.get('authenticatedUser');
-	}
-
-	close() {
- 		this.$mdSidenav('left').close();
+  getUser() {
+    this.user = this.$cookieStore.get('authenticatedUser');
   }
 
-	logout() {
+  close() {
+    this.$mdSidenav('left').close();
+  }
+
+  logout() {
     this.$rootScope.$broadcast('graviteeLogout');
+  }
+
+  showLoginModal(ev) {
+    this.$mdDialog.show({
+      controller: 'DialogLoginController',
+      templateUrl: 'app/login/dialog/login.dialog.html',
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      clickOutsideToClose: true
+    });
   }
 }
 

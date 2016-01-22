@@ -110,10 +110,10 @@
 
 .gravitee-api-banner {
   position: fixed;
-  top: 49px;
-  width: 100%;
   cursor: pointer;
-  font-weight: 900;
+  font-weight: bold;
+  left: 0;
+  width: 100%;
   z-index: 10;
 }
 
@@ -135,6 +135,10 @@
   text-decoration: underline;
 }
 
-.gravitee-sticky-deployed {
-  top: 74px !important;
+.gravitee-api-general-tabs md-tabs-content-wrapper {
+  padding: 10px;
+}
+
+.inset .gravitee-api-general-tabs {
+  margin: -10px;
 }

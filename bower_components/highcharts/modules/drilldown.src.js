@@ -1,16 +1,20 @@
 /**
- * Highcharts Drilldown plugin
+ * Highcharts Drilldown module
  * 
  * Author: Torstein Honsi
- * License: MIT License
+ * License: www.highcharts.com/license
  *
- * Demo: http://jsfiddle.net/highcharts/Vf3yT/
  */
 
-/*global Highcharts,HighchartsAdapter*/
-(function (H) {
+(function (factory) {
+	if (typeof module === 'object' && module.exports) {
+		module.exports = factory;
+	} else {
+		factory(Highcharts);
+	}
+}(function (H) {
 
-	"use strict";
+	'use strict';
 
 	var noop = function () {},
 		defaultOptions = H.getOptions(),
@@ -24,8 +28,8 @@
 		PieSeries = seriesTypes.pie,
 		ColumnSeries = seriesTypes.column,
 		Tick = H.Tick,
-		fireEvent = HighchartsAdapter.fireEvent,
-		inArray = HighchartsAdapter.inArray,
+		fireEvent = H.fireEvent,
+		inArray = H.inArray,
 		ddSeriesId = 1;
 
 	// Utilities
@@ -42,7 +46,7 @@
 
 		// Unsupported color, return to-color (#3920)
 		if (!to.rgba.length || !from.rgba.length) {
-			ret = to.raw || 'none';
+			ret = to.input || 'none';
 
 		// Interpolate
 		} else {
@@ -61,7 +65,7 @@
 	 * Handle animation of the color attributes directly
 	 */
 	each(['fill', 'stroke'], function (prop) {
-		HighchartsAdapter.addAnimSetter(prop, function (fx) {
+		H.addAnimSetter(prop, function (fx) {
 			fx.elem.attr(prop, tweenColors(H.Color(fx.start), H.Color(fx.end), fx.pos));
 		});
 	});
@@ -710,4 +714,4 @@
 		}
 	}
 		
-}(Highcharts));
+}));

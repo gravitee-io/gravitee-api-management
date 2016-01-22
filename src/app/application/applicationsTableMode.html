@@ -27,7 +27,7 @@
 				</thead>
 				<tbody>
 				<tr md-auto-select ng-repeat="application in applicationsCtrl.applications | orderBy: order"
-						title="{{application.description}}" ui-sref="application.general({applicationId: application.id})">
+						title="{{application.description}}" ui-sref="applications.portal.general({applicationId: application.id})">
 					<td>{{application.name}}</td>
 					<td>{{application.type}}</td>
 				</tr>

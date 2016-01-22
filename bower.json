@@ -21,17 +21,15 @@
     "Read-More-Directive": "git@github.com:andoulla/Read-More-Directive.git",
     "moment": "momentjs#~2.10.6",
     "dragular": "~3.3.1",
-    "angular-breadcrumb": "~0.4.1",
     "google-code-prettify": "~1.0.4",
     "angular-schema-form": "~0.8.12",
     "ngclipboard": "~1.0.0",
-    "ngSticky": "~1.8.7",
     "angular-ui-validate": "~1.2.2",
     "angular-messages": "~1.4.8",
     "v-accordion": "~1.4.1"
   },
   "resolutions": {
-    "angular": "1.4.8",
+    "angular": "^1.4.0",
     "angular-material": "1.0.1"
   },
   "overrides": {

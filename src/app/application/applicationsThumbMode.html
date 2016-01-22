@@ -16,8 +16,8 @@
 
 -->
 <div layout="row" layout-wrap class="inset">
-	<div class="apis-box" flex="33" ng-repeat="application in applicationsCtrl.applications">
-		<a ui-sref="application.general({applicationId: application.id})">
+	<div class="apis-box" flex="{{pourcentWidth}}" ng-repeat="application in applicationsCtrl.applications">
+		<a ui-sref="applications.portal.general({applicationId: application.id})">
 			<md-card class="api-box gravitee-card">
 				<div class="api-box-header" ng-style="{'background-color': applicationsCtrl.bgColorByIndex($index)}">
 					<h3>{{application.name}}</h3>
@@ -45,7 +45,7 @@
 </div>
 
 <div ng-if="!isLoading && applicationsCtrl.applications.length === 0" style="text-align:center; color: #424E5A; fill: #424E5A; ">
-	<h1><ng-md-icon size="48" icon="error"></ng-md-icon> You have no application (yet).</h1>
+	<h1><ng-md-icon size="48" icon="error"></ng-md-icon> There is no application (yet).</h1>
 	<div>
 		<p gravitee-roles-allowed="ADMIN, API_CONSUMER">
 			Create your applications to interact with Gravitee.IO portal

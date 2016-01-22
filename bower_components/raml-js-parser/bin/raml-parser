@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var resolve = require('path').resolve;
+var raml = require('../');
+
+var filename = process.argv[2];
+
+if (!filename) {
+  console.error('No filename specified');
+  console.error('Usage: `raml-parser api.raml`');
+
+  process.exit(1);
+}
+
+raml.loadFile(resolve(process.cwd(), filename))
+  .then(function (raml) {
+    console.log(JSON.stringify(raml));
+  })
+  .catch(function (err) {
+    console.error(err.toString());
+
+    process.exit(1);
+  });

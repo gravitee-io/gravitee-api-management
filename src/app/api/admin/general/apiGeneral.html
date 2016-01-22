@@ -16,13 +16,8 @@
 
 -->
 <form name="formApi" ng-submit="generalCtrl.update(apiCtrl.api)" novalidate>
-
-  <v-accordion id="general-accordion" class="vAccordion--default" multiple>
-    <v-pane expanded>
-      <v-pane-header>
-        <legend><ng-md-icon icon="blur_on"></ng-md-icon> General</legend>
-      </v-pane-header>
-      <v-pane-content>
+  <md-tabs class="gravitee-api-general-tabs" md-dynamic-height md-border-bottom>
+    <md-tab label="General">
         <div layout="column" layout-wrap layout-gt-sm="row">
           <md-input-container flex="30">
             <label>Name *</label>
@@ -70,24 +65,19 @@
             <md-chips ng-model="apiCtrl.api.tags" placeholder="Enter a tag" secondary-placeholder="+Tag" ng-click="formApi.$setDirty()"></md-chips>
           </md-input-container>
         </div>
-      </v-pane-content>
-    </v-pane>
+    </md-tab>
 
-    <v-pane>
-      <v-pane-header>
-        <legend><ng-md-icon icon="share"></ng-md-icon> Gateway</legend>
-      </v-pane-header>
-      <v-pane-content>
+    <md-tab label="Gateway">
         <div layout-gt-sm="row">
-            <md-input-container class="md-block" flex-gt-sm>
-              <label>Gateway context path *</label>
-              <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" required>
-            </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Gateway context path *</label>
+            <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" required>
+          </md-input-container>
 
-            <md-input-container class="md-block" flex-gt-sm>
-              <label>API endpoints *</label>
-              <input ng-model="apiCtrl.api.proxy.endpoint" type="url" required>
-            </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>API endpoints *</label>
+            <input ng-model="apiCtrl.api.proxy.endpoint" type="url" required>
+          </md-input-container>
         </div>
 
         <v-accordion id="gateway-accordion" class="vAccordion--default" multiple>
@@ -180,10 +170,8 @@
             </v-pane-content>
           </v-pane>
         </v-accordion>
-
-      </v-pane-content>
-    </v-pane>
-  </v-accordion>
+    </md-tab>
+  </md-tabs>
 
   <div class="md-actions gravitee-api-save-button" layout="row">
     <md-button class="md-raised" type="submit" ng-disabled="formApi.$invalid || formApi.$pristine">

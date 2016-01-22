@@ -16,7 +16,7 @@
 
 -->
 <div layout="row" layout-wrap class="inset" ng-init="apisCtrl.list()">
-	<div class="apis-box" flex="33" ng-repeat="api in apisCtrl.apis">
+	<div class="apis-box" flex="{{pourcentWidth}}" ng-repeat="api in apisCtrl.apis">
 		<a ui-sref="apis.portal({apiId: api.id})">
 			<md-card class="api-box gravitee-card" style="position: relative;">
 				<div class="api-box-header" ng-style="{'background-color': apisCtrl.bgColorByIndex($index)}" layout="row">

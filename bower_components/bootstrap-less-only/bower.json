@@ -1,6 +1,6 @@
 {
 	  "name": "bootstrap-less-only",
-	  "version": "3.3.4",
+	  "version": "3.3.6",
 	  "main": "less/bootstrap.less",
 	  "ignore": [
 		".jshintrc",
