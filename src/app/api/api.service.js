@@ -59,11 +59,11 @@ class ApiService {
   listPolicies(apiName) {
     return this.$http.get(this.apisURL + apiName + '/policies');
   }
-  
+
   isAPISynchronized(apiId) {
     return this.$http.get(this.apisURL + apiId + '/state');
   }
-  
+
   deploy(apiId) {
     return this.$http.post(this.apisURL + apiId + '/deploy');
   }

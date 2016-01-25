@@ -10,9 +10,9 @@
     "angular-markdown-directive": "~0.3.1",
     "angular-swagger-ui": "~0.2.7",
     "angular-cookies": "~1.4.9",
-    "jquery": "~2.1.4",
+    "jquery": "~2.2.0",
     "bootstrap-sass": "3.3.6",
-    "angular-material-data-table": "~0.8.7",
+    "angular-material-data-table": "~0.8.4",
     "highcharts": "~4.2.1",
     "highcharts-ng": "~0.0.11",
     "lodash": "~4.0.1",
@@ -29,7 +29,8 @@
   },
   "resolutions": {
     "angular": "~1.4.9",
-    "angular-material": "^1.0.0"
+    "angular-material": "^1.0.0",
+    "jquery": "~2.2.0"
   },
   "overrides": {
     "api-console": {
