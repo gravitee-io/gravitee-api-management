@@ -39,7 +39,7 @@
     </div>
   </div>
 
-  <md-card-content style="background-color: #fff; border: 1px solid #e7eaec; padding-top: 0px" layout="row">
+  <md-card-content style="border: 1px solid #e7eaec; padding-top: 0px" layout="row">
     <textarea ng-show="pageCtrl.editMode" ng-model="pageCtrl.page.content" cols="170" rows="20"></textarea>
     <gravitee-page flex="{{!pageCtrl.editMode? '100':'50'}}" ng-show="!pageCtrl.editMode || pageCtrl.page.type === 'MARKDOWN'"
                    page="pageCtrl.page" enable-try-it="false"></gravitee-page>

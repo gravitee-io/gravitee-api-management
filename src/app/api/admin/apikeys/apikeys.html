@@ -39,10 +39,10 @@
             <ng-md-icon ng-show="!apikey.revoked" icon="done" style="fill: #107F20"></ng-md-icon>
             <ng-md-icon ng-show="apikey.revoked" icon="clear" style="fill: #BE2628"></ng-md-icon>
             <code>{{apikey.key}}</code>
-			<span style="position: absolute">
-			  <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
+            <span class="gravitee-clipboard">
+              <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
               <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link" ngclipboard data-clipboard-text="{{apikey.key}}" ngclipboard-success="apiKeysCtrl.onClipboardSuccess(e);" role="button" ></ng-md-icon>
-             </span>
+            </span>
           </td>
           <td>{{apikey.revoked_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           <td>{{apikey.expire_on | date:'yyyy-MM-dd HH:mm:ss'}}</td>

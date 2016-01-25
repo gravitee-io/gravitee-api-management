@@ -7,6 +7,8 @@
 
 @import "constants";
 
+$backgroundColor: #fafafa;
+
 html {
   font-family: 'Roboto Slab', serif;
 }
@@ -137,6 +139,19 @@ ng-md-icon {
 
 header {
   display: flex;
+}
+
+.gravitee-clipboard .ng-hide:not(.ng-hide-animate) {
+  visibility: collapse;
+  display: inherit !important;
+}
+
+body {
+  background-color: $backgroundColor;
+}
+
+table[md-data-table] {
+  background-color: $backgroundColor;
 }
 
 /**

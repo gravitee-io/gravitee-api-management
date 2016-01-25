@@ -17,7 +17,7 @@
 -->
 
 <div layout="row">
-  <md-content flex="30" style="background-color: white;">
+  <md-content flex="30">
     <div layout="column" layout-sm="column">
       <md-switch ng-model="monitoringEnabled" ng-disabled="formApiMonitoring.$invalid"
                  ng-change="monitoringCtrl.switchEnabled()" class="md-block">
@@ -59,7 +59,7 @@
     </form>
   </md-content>
 
-  <md-content flex="70" style="background-color: white;">
+  <md-content flex="70">
     <md-content style="background: none">
       <label style="color: #b1bdc5;">Timeframe:</label>
       <md-menu>
@@ -76,7 +76,7 @@
       </md-menu>
     </md-content>
 
-    <md-card-content style="background-color: #fff">
+    <md-card-content>
       <chart config="chartConfig"></chart>
     </md-card-content>
   </md-content>
