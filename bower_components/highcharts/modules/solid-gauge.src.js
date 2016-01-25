@@ -1,5 +1,5 @@
 /**
- * @license  Highcharts JS v4.1.9 (2015-10-07)
+ * @license  Highcharts JS v4.1.10 (2015-12-07)
  * Solid angular gauge module
  *
  * (c) 2010-2014 Torstein Honsi
@@ -7,9 +7,14 @@
  * License: www.highcharts.com/license
  */
 
-/*global Highcharts, HighchartsAdapter*/
-(function (H) {
-	"use strict";
+(function (factory) {
+	if (typeof module === 'object' && module.exports) {
+		module.exports = factory;
+	} else {
+		factory(Highcharts);
+	}
+}(function (H) {
+	'use strict';
 
 	var defaultPlotOptions = H.getOptions().plotOptions,
 		pInt = H.pInt,
@@ -132,7 +137,7 @@
 
 			// Unsupported color, return to-color (#3920)
 			if (!to.rgba.length || !from.rgba.length) {
-				ret = to.raw || 'none';
+				ret = to.input || 'none';
 
 			// Interpolate
 			} else {
@@ -153,7 +158,7 @@
 	 * Handle animation of the color attributes directly
 	 */
 	each(['fill', 'stroke'], function (prop) {
-		HighchartsAdapter.addAnimSetter(prop, function (fx) {
+		H.addAnimSetter(prop, function (fx) {
 			fx.elem.attr(prop, colorAxisMethods.tweenColors(H.Color(fx.start), H.Color(fx.end), fx.pos));
 		});
 	});
@@ -196,7 +201,6 @@
 					shapeArgs,
 					d,
 					toColor = yAxis.toColor(point.y, point),
-					fromColor,
 					axisMinAngle = Math.min(yAxis.startAngleRad, yAxis.endAngleRad),
 					axisMaxAngle = Math.max(yAxis.startAngleRad, yAxis.endAngleRad),
 					minAngle,
@@ -206,7 +210,6 @@
 					toColor = point.color || series.color || 'none';
 				}
 				if (toColor !== 'none') {
-					fromColor = point.color;
 					point.color = toColor;
 				}
 
@@ -267,4 +270,4 @@
 		}
 	});
 
-}(Highcharts));
+}));

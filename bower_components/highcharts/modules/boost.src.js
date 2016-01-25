@@ -42,35 +42,42 @@
  *   number of points drawn gets higher, and you may want to set the threshold lower in order to 
  *   use optimizations.
  */
-/*global document, Highcharts, HighchartsAdapter, setTimeout */
-(function (H, HA) {
+
+/* eslint indent: [2, 4] */
+(function (factory) {
+    if (typeof module === 'object' && module.exports) {
+        module.exports = factory;
+    } else {
+        factory(Highcharts);
+    }
+}(function (H) {
 
     'use strict';
 
-    var noop = function () { return undefined; },
+    var noop = function () {},
         Color = H.Color,
         Series = H.Series,
         seriesTypes = H.seriesTypes,
         each = H.each,
         extend = H.extend,
-        addEvent = HA.addEvent,
-        fireEvent = HA.fireEvent,
+        addEvent = H.addEvent,
+        fireEvent = H.fireEvent,
         merge = H.merge,
         pick = H.pick,
         wrap = H.wrap,
         plotOptions = H.getOptions().plotOptions,
         CHUNK_SIZE = 50000;
 
-    function eachAsync(arr, fn, callback, chunkSize, i) {
+    function eachAsync(arr, fn, finalFunc, chunkSize, i) {
         i = i || 0;
         chunkSize = chunkSize || CHUNK_SIZE;
         each(arr.slice(i, i + chunkSize), fn);
         if (i + chunkSize < arr.length) {
             setTimeout(function () {
-                eachAsync(arr, fn, callback, chunkSize, i + chunkSize);
+                eachAsync(arr, fn, finalFunc, chunkSize, i + chunkSize);
             });
-        } else if (callback) {
-            callback();
+        } else if (finalFunc) {
+            finalFunc();
         }
     }
 
@@ -161,14 +168,16 @@
                 point,
                 i;
 
-            for (i = 0; i < points.length; i = i + 1) {
-                point = points[i];
-                if (point && point.graphic) {
-                    point.graphic = point.graphic.destroy();
+            if (points) {
+                for (i = 0; i < points.length; i = i + 1) {
+                    point = points[i];
+                    if (point && point.graphic) {
+                        point.graphic = point.graphic.destroy();
+                    }
                 }
             }
 
-            each(['graph', 'area'], function (prop) {
+            each(['graph', 'area', 'tracker'], function (prop) {
                 if (series[prop]) {
                     series[prop] = series[prop].destroy();
                 }
@@ -180,15 +189,25 @@
          * to an SVG image element.
          */
         getContext: function () {
-            var width = this.chart.plotWidth,
-                height = this.chart.plotHeight;
+            var chart = this.chart,
+                width = chart.plotWidth,
+                height = chart.plotHeight,
+                ctx = this.ctx,
+                swapXY = function (proceed, x, y, a, b, c, d) {
+                    proceed.call(this, y, x, a, b, c, d);
+                };
 
             if (!this.canvas) {
                 this.canvas = document.createElement('canvas');
-                this.image = this.chart.renderer.image('', 0, 0, width, height).add(this.group);
-                this.ctx = this.canvas.getContext('2d');
+                this.image = chart.renderer.image('', 0, 0, width, height).add(this.group);
+                this.ctx = ctx = this.canvas.getContext('2d');
+                if (chart.inverted) {
+                    each(['moveTo', 'lineTo', 'rect', 'arc'], function (fn) {
+                        wrap(ctx, fn, swapXY);
+                    });
+                }
             } else {
-                this.ctx.clearRect(0, 0, width, height);
+                ctx.clearRect(0, 0, width, height);
             }
 
             this.canvas.setAttribute('width', width);
@@ -198,7 +217,7 @@
                 height: height
             });
 
-            return this.ctx;
+            return ctx;
         },
 
         /** 
@@ -308,18 +327,24 @@
                     // The k-d tree requires series points. Reduce the amount of points, since the time to build the 
                     // tree increases exponentially.
                     if (enableMouseTracking && !pointTaken[clientX + ',' + plotY]) {
+                        pointTaken[clientX + ',' + plotY] = true;
+
+                        if (chart.inverted) {
+                            clientX = xAxis.len - clientX;
+                            plotY = yAxis.len - plotY;
+                        }
+
                         points.push({
                             clientX: clientX,
                             plotX: clientX,
                             plotY: plotY,
                             i: cropStart + i
                         });
-                        pointTaken[clientX + ',' + plotY] = true;
                     }
                 };
 
             // If we are zooming out from SVG mode, destroy the graphics
-            if (this.points) {
+            if (this.points || this.graph) {
                 this.destroyGraphics();
             }
 
@@ -488,7 +513,7 @@
                 }
 
                 // Pass tests in Pointer. 
-                // TODO: Replace this with a single property, and replace when zooming in
+                // Replace this with a single property, and replace when zooming in
                 // below boostThreshold.
                 series.directTouch = false;
                 series.options.stickyTracking = true;
@@ -536,19 +561,31 @@
     });
 
     /**
+     * Return a full Point object based on the index. The boost module uses stripped point objects
+     * for performance reasons.
+     * @param   {Number} boostPoint A stripped-down point object
+     * @returns {Object}   A Point object as per http://api.highcharts.com/highcharts#Point
+     */
+    Series.prototype.getPoint = function (boostPoint) {
+        var point = boostPoint;
+
+        if (boostPoint && !(boostPoint instanceof this.pointClass)) {
+            point = (new this.pointClass()).init(this, this.options.data[boostPoint.i]);
+            point.dist = boostPoint.dist;
+            point.category = point.x;
+            point.plotX = boostPoint.plotX;
+            point.plotY = boostPoint.plotY;
+        }
+
+        return point;
+    };
+
+    /**
      * Return a point instance from the k-d-tree
      */
     wrap(Series.prototype, 'searchPoint', function (proceed) {
-        var point = proceed.apply(this, [].slice.call(arguments, 1)),
-            ret = point;
-
-        if (point && !(point instanceof this.pointClass)) {
-            ret = (new this.pointClass()).init(this, this.options.data[point.i]);
-            ret.dist = point.dist;
-            ret.category = ret.x;
-            ret.plotX = point.plotX;
-            ret.plotY = point.plotY;
-        }
-        return ret;
+        return this.getPoint(
+            proceed.apply(this, [].slice.call(arguments, 1))
+        );
     });
-}(Highcharts, HighchartsAdapter));
+}));

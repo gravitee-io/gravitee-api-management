@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /* global setInterval:false, clearInterval:false */
-function runBlock ($rootScope, $window, $http, $cookieStore, $mdSidenav) {
+function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav) {
   'ngInject';
   var graviteeAuthenticationKey = 'GraviteeAuthentication';
 
@@ -31,20 +31,20 @@ function runBlock ($rootScope, $window, $http, $cookieStore, $mdSidenav) {
 
   setAuthorization();
 
-  $rootScope.$on('graviteeLogout', function() {
+  $rootScope.$on('graviteeLogout', function () {
     $cookieStore.remove(graviteeAuthenticationKey);
-		$cookieStore.remove('authenticatedUser');
-		$rootScope.authenticated = false;
+    $cookieStore.remove('authenticatedUser');
+    $rootScope.authenticated = false;
     setAuthorization();
     $mdSidenav('left').close();
-    $window.location.href = '#/';
+    $window.location.reload();
   });
 
-	$rootScope.$on('$stateChangeStart', function(event, toState){
+  $rootScope.$on('$stateChangeStart', function (event, toState) {
     $rootScope.contentIsActive = (toState.name.indexOf("application.") === 0 ||
-																	toState.name.indexOf("apis.admin") === 0 ||
-																	toState.name.indexOf("apis.portal") === 0);
-	});
+    toState.name.indexOf("apis.admin") === 0 ||
+    toState.name.indexOf("apis.portal") === 0);
+  });
 
   // Progress Bar
   var interval, intervalTimeInMs = 500;
@@ -52,7 +52,7 @@ function runBlock ($rootScope, $window, $http, $cookieStore, $mdSidenav) {
     return $http.pendingRequests.length > 0;
   }, function (hasPendingRequests) {
     if (hasPendingRequests) {
-			$rootScope.isLoading = true;
+      $rootScope.isLoading = true;
       $rootScope.progressValue = 0;
       interval = setInterval(function () {
         $rootScope.$apply(function () {
@@ -66,9 +66,19 @@ function runBlock ($rootScope, $window, $http, $cookieStore, $mdSidenav) {
     } else {
       clearInterval(interval);
       $rootScope.progressValue = 100;
-			$rootScope.isLoading = false;
+      $rootScope.isLoading = false;
     }
   });
+
+  $rootScope.pourcentWidth;
+
+  if (innerWidth < 500) {
+    $rootScope.pourcentWidth = 100;
+  } else if (innerWidth < 700) {
+    $rootScope.pourcentWidth = 50;
+  } else {
+    $rootScope.pourcentWidth = 33;
+  }
 }
 
 export default runBlock;

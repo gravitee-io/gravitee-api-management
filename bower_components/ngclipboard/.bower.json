@@ -28,7 +28,7 @@
     "tag": "1.0.0",
     "commit": "71b2dffc75dca4471b958c2ba19a93d59bea7124"
   },
-  "_source": "https://github.com/sachinchoolur/ngclipboard.git",
+  "_source": "git://github.com/sachinchoolur/ngclipboard.git",
   "_target": "~1.0.0",
   "_originalSource": "ngclipboard"
 }

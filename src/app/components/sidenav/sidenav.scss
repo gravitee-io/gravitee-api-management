@@ -1,37 +1,121 @@
+$bgColor: #333;
+$fontColor: #fafafa;
+$sidenavWidth: 200px;
+$sidenavMinWidth: 60px;
+$sidenavItemLeftWidth: 15px;
+$sidenavItemBorderSize: 4px;
+$sidenavFooterHeight: 150px;
+$sidenavHeaderHeight: 60px;
+
+@mixin min-max-width($width) {
+  width: $width;
+  min-width: $width;
+  max-width: $width;
+}
+
 md-sidenav {
-	width: 256px;
-	min-width: 256px;
-	max-width: 256px;
+  @include min-max-width($sidenavWidth);
+
+  background-color: $bgColor;
+  height: 100%;
+}
+
+.md-sidenav-min {
+  @include min-max-width($sidenavMinWidth);
+}
+
+md-sidenav.md-sidenav-theme {
+  background-color: $bgColor;
 }
 
 .sidenav-list {
- 	padding: .5rem 1.5rem 1rem;
-	color: #fff;
-}
+  padding: .5rem 0 1rem 0;
 
-.sidenav-list a {
-	color: #222;
-}
-
-.sidenav-list ng-md-icon {
-	fill: #222;
+  & md-list-item {
+    min-height: 40px;
+    padding: 0;
+  }
 }
 
 .sidenav-list-button {
-	width:100%; 
-	text-align:left; 
-	margin: 0px;
-	text-transform: none;
+  width: 100%;
+  text-align: left;
+  margin: 0px;
+  text-transform: none;
 }
 
-#sidenav-user-name {	
-  color: #767676;
+.sidenav-user-contents {
+  height: $sidenavHeaderHeight;
+
+  img {
+    vertical-align: middle;
+    height: $sidenavHeaderHeight;
+    margin-left: -5px;
+  }
 }
 
-#sidenav-footer a {
-  color: #B1B7BD;
+#sidenav-user-name {
+  color: $fontColor;
+
+  & ng-md-icon {
+    fill: $fontColor;
+  }
 }
 
-#sidenav-footer ng-md-icon {
-	fill: #B1B7BD;
+.sidenav-list {
+  overflow-y: auto;
+  height: calc(100vh - #{$sidenavFooterHeight} - #{$sidenavHeaderHeight});
+
+  ng-md-icon {
+    fill: $fontColor;
+  }
+
+  a {
+    color: $fontColor;
+    position: absolute;
+    text-decoration: none;
+    width: 100%;
+    padding: 0 0 8px $sidenavItemLeftWidth;
+
+    &:hover, &.sidenav-active {
+      font-weight: bold;
+      background-color: #1C1C25;
+    }
+
+    &.sidenav-active {
+      border-left: $sidenavItemBorderSize solid $fontColor;
+      padding-left: calc(#{$sidenavItemLeftWidth} - #{$sidenavItemBorderSize}) !important;
+    }
+  }
+
+  h4 {
+    text-transform: uppercase;
+    color: #6B7682;
+    font-weight: 400;
+    letter-spacing: .5px;
+    padding: 15px 0 8px $sidenavItemLeftWidth;
+  }
+
+  hr {
+    width: 90%;
+  }
+}
+
+.sidenav-footer {
+  bottom: 0;
+  height: $sidenavFooterHeight;
+  width: 100%;
+
+  ng-md-icon {
+    fill: $fontColor;
+  }
+
+  a {
+    color: $fontColor;
+    text-decoration: none;
+  }
+
+  hr {
+    width: 90%;
+  }
 }

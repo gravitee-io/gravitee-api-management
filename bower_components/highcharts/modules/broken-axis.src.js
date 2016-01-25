@@ -1,20 +1,25 @@
 /**
- * Highcharts JS v4.1.9 (2015-10-07)
+ * Highcharts JS v4.1.10 (2015-12-07)
  * Highcharts Broken Axis module
  * 
- * Author: Stephane Vanraes, Torstein Honsi
  * License: www.highcharts.com/license
  */
 
-/*global HighchartsAdapter*/
-(function (H) {	
+(function (factory) {
+	if (typeof module === 'object' && module.exports) {
+		module.exports = factory;
+	} else {
+		factory(Highcharts);
+	}
+}(function (H) {
 
-	"use strict";
+	'use strict';
 
 	var pick = H.pick,
 		wrap = H.wrap,
+		each = H.each,
 		extend = H.extend,
-		fireEvent = HighchartsAdapter.fireEvent,
+		fireEvent = H.fireEvent,
 		Axis = H.Axis,
 		Series = H.Series;
 
@@ -207,11 +212,13 @@
 				}
 
 				breakArrayT.sort(function (a, b) {
+					var ret;
 					if (a.value === b.value) {
-						return (a.move === 'in' ? 0 : 1) - (b.move === 'in' ? 0 : 1);
+						ret = (a.move === 'in' ? 0 : 1) - (b.move === 'in' ? 0 : 1);
 					} else {
-						return a.value - b.value;
+						ret = a.value - b.value;
 					}
+					return ret;
 				});
 				
 				// Simplify the breaks
@@ -277,38 +284,44 @@
 
 	});
 
-	wrap(H.seriesTypes.column.prototype, 'drawPoints', function (proceed) {
+	function drawPointsWrapped(proceed) {
 		proceed.apply(this);
+		this.drawBreaks();
+	}
 
+	H.Series.prototype.drawBreaks = function () {
 		var series = this,
 			points = series.points,
-			yAxis = series.yAxis,
-			breaks = yAxis.breakArray || [],
-			threshold = pick(this.options.threshold, yAxis.min),
+			axis,
+			breaks,
+			threshold,
+			axisName = 'Axis',
 			eventName,
-			point,
-			brk,
-			i,
-			j,
 			y;
 
-		for (i = 0; i < points.length; i++) {
-			point = points[i];
-			y = point.stackY || point.y;
-			for (j = 0; j < breaks.length; j++) {
-				brk = breaks[j];
-				eventName = false;
+		each(['y', 'x'], function (key) {
+			axis = series[key + axisName];
+			breaks = axis.breakArray || [];
+			threshold = axis.isXAxis ? axis.min : pick(series.options.threshold, axis.min);
+			each(points, function (point) {
+				y = pick(point['stack' + key.toUpperCase()], point[key]);
+				each(breaks, function (brk) {
+					eventName = false;
 
-				if ((threshold < brk.from && y > brk.to) || (threshold > brk.from && y < brk.from)) { 
+					if ((threshold < brk.from && y > brk.to) || (threshold > brk.from && y < brk.from)) { 
 						eventName = 'pointBreak';
-				} else if ((threshold < brk.from && y > brk.from && y < brk.to) || (threshold > brk.from && y > brk.to && y < brk.from)) { // point falls inside the break
+					} else if ((threshold < brk.from && y > brk.from && y < brk.to) || (threshold > brk.from && y > brk.to && y < brk.from)) { // point falls inside the break
 						eventName = 'pointInBreak'; // docs
-				} 
-				if (eventName) {
-					fireEvent(yAxis, eventName, {point: point, brk: brk});
-				}
-			}
-		}
+					} 
+					if (eventName) {
+						fireEvent(axis, eventName, { point: point, brk: brk });
+					}
+				});
+			});
+		});
+	};
 
-	});
-}(Highcharts));
+	wrap(H.seriesTypes.column.prototype, 'drawPoints', drawPointsWrapped);
+	wrap(H.Series.prototype, 'drawPoints', drawPointsWrapped);
+
+}));
