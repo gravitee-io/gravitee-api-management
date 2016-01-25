@@ -191,7 +191,8 @@ gulp.task('lint:docs', function() {
 gulp.task('serve', function () {
 
   browserSync({
-    port: config.browserSync.port,
+    
+    port: process.env.PORT || config.browserSync.port, // cloud9 improvement
     server: {
       baseDir: config.browserSync.server,
     },

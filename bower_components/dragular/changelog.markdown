@@ -1,3 +1,9 @@
+# 3.4.0 StarWars
+- support filtered ng-repeats
+- the 'shared' object is truly shared between service instances as it was originally intended
+- many code refactors for better readability (to be continued..)
+- event names can be now customized for each drake
+
 # 3.3.1 Dwarf
 - fix touches
 

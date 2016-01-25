@@ -1,0 +1,136 @@
+<div class='parent'>
+  <h2>Filtered ngRepeat - with model</h2>
+  <label for='hy'>Move stuff between these two filtered containers. You can play with filter inputs to see that everything goes right.
+    <br/>
+    <b>Please notify the getFilteredModel function, it is necessery for not replacing the initial array object with new filtered one!</b></label>
+  <div class='wrapper' ng-controller="NgRepeatFilteredWithModel">
+    <div class="tableRow">
+      <div class='containerVertical'>
+        <input ng-model="filter1query" style="margin:10px 10px">
+      </div>
+      <div class='containerVertical'>
+        <input ng-model="filter2query" style="margin:10px 10px">
+      </div>
+    </div>
+    <div class='tableRow'>
+      <div class='containerVertical'>
+        <div ng-repeat="item in getFilteredModel(filteredModel1, items1, filter1query)">{{item.content}}</div>
+      </div>
+      <div class='containerVertical'>
+        <div ng-repeat="item in getFilteredModel(filteredModel2, items2, filter2query)">{{item.content}}</div>
+      </div>
+    </div>
+    <div class="tableRow">
+      <div class='containerVertical'>
+        <pre>Items1:
+          <br/>{{items1 | json}}</pre>
+      </div>
+      <div class='containerVertical'>
+        <pre>Items2:
+          <br/>{{items2 | json}}</pre>
+      </div>
+    </div>
+  </div>
+  <pre>
+        <code>
+// JS
+  .controller('NgRepeatFilteredWithModel', ['$scope', '$element', 'dragularService', '$filter', function TodoCtrl($scope, $element, dragularService, $filter) {
+    $scope.items1 = [{
+      content: 'Move me, but you can only drop me in one of these containers.'
+    }, {
+      content: 'If you try to drop me somewhere other than these containers, I\'ll just come back.'
+    }, {
+      content: 'Apple 3'
+    }, {
+      content: 'Orange 4'
+    }, {
+      content: 'Orange 5'
+    }, {
+      content: 'Apple 6'
+    }, {
+      content: 'Apple 7'
+    }, {
+      content: 'Apple 8'
+    }];
+    $scope.items2 = [{
+      content: 'Apple 9'
+    }, {
+      content: 'Orange 10'
+    }, {
+      content: 'Orange 11'
+    }, {
+      content: 'Apple 12'
+    }, {
+      content: 'Orange 13'
+    }, {
+      content: 'Apple 14'
+    }];
+    $scope.filter1query = 'Orange';
+    $scope.filter2query = 'Orange';
+    $scope.filteredModel1 = [];
+    $scope.filteredModel2 = [];
+    $scope.getFilteredModel = function (filteredModel, items, filterQuery) {
+      filteredModel.length = 0;
+      /*
+      * Following one-liner is same like:
+      *   var filteredModelTemp = $filter('filter')(items, filterQuery);
+      *   angular.forEach(filteredModelTemp, function(item){
+      *     filteredModel.push(item);
+      *   });
+      * Or like:
+      *   var filteredModelTemp = $filter('filter')(items, filterQuery);
+      *   for(var i; i < filteredModelTemp.length; i++){
+      *     filteredModel.push(filteredModelTemp[i]);
+      *   }
+      *
+      * You cannot just assign filtered array to filteredModel like this:
+      *   filteredModel = $filter('filter')(items, filterQuery);
+      * Because you would replace the array object you provide to dragular with new one.
+      * So dragular will continue to use the one it was provided on init.
+      * Hopefully I make it clear. :)
+       */
+      [].push.apply(filteredModel, $filter('filter')(items, filterQuery));
+      return filteredModel;
+    };
+    var containers = $element.children().eq(1).children();
+    dragularService.cleanEnviroment();
+    dragularService([containers[0],containers[1]],{
+      containersModel: [$scope.items1, $scope.items2],
+      containersFilteredModel: [$scope.filteredModel1, $scope.filteredModel2]
+    });
+  }]);
+
+        </code>
+        <code>
+&lt;!-- HTML --&gt;
+  &lt;div class='wrapper' ng-controller=&quot;NgRepeatFilteredWithModel&quot;&gt;
+    &lt;div class=&quot;tableRow&quot;&gt;
+      &lt;div class='containerVertical'&gt;
+        &lt;input ng-model=&quot;filter1query&quot; style=&quot;margin:10px 10px&quot;&gt;
+      &lt;/div&gt;
+      &lt;div class='containerVertical'&gt;
+        &lt;input ng-model=&quot;filter2query&quot; style=&quot;margin:10px 10px&quot;&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class='tableRow'&gt;
+      &lt;div class='containerVertical'&gt;
+        &lt;div ng-repeat=&quot;item in getFilteredModel(filteredModel1, items1, filter1query)&quot;&gt;{{item.content}}&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class='containerVertical'&gt;
+        &lt;div ng-repeat=&quot;item in getFilteredModel(filteredModel2, items2, filter2query)&quot;&gt;{{item.content}}&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;tableRow&quot;&gt;
+      &lt;div class='containerVertical'&gt;
+        &lt;pre&gt;Items1:
+          &lt;br/&gt;{{items1 | json}}&lt;/pre&gt;
+      &lt;/div&gt;
+      &lt;div class='containerVertical'&gt;
+        &lt;pre&gt;Items2:
+          &lt;br/&gt;{{items2 | json}}&lt;/pre&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+        </code>
+      </pre>
+</div>

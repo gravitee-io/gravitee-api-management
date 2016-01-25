@@ -69,7 +69,7 @@ import RoleDirective from './components/role/role.directive';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
-    'schemaForm', 'ngclipboard', 'ui.validate', 'ngMessages', 'vAccordion'])
+    'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate'])
   .constant('baseURL', '/management/')
   .config(config)
   .config(routerConfig)
@@ -80,9 +80,9 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
       .primaryPalette('blue-grey')
       .accentPalette('blue');
 
-		$mdThemingProvider.theme('sidenav')
-			.backgroundPalette('grey', {
-         'default': '50'
+    $mdThemingProvider.theme('sidenav')
+      .backgroundPalette('grey', {
+        'default': '50'
       });
   })
   .run(runBlock)
@@ -122,8 +122,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('DialogAddMemberController', DialogAddMemberController)
   .controller('PageController', PageController)
   .service('ApplicationService', ApplicationService)
-	.controller('DialogLoginController', DialogLoginController)
-  .directive('graviteeNavbar', () => new NavbarDirective())
+  .controller('DialogLoginController', DialogLoginController)
   .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
@@ -132,8 +131,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .directive('graviteeRolesAllowed', () => new RoleDirective())
   .service('PolicyService', PolicyService)
   .filter('apiKeyFilter', function () {
-    return function (keys, showAll) {
-      console.log(keys.length + ' - ' + showAll);
+    return function (keys) {
       return keys;
     };
   });

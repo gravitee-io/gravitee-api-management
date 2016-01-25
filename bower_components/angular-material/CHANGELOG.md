@@ -1,3 +1,38 @@
+<a name"1.0.3"></a>
+### 1.0.3 (2016-01-21)
+
+
+#### Features
+
+* **$mdThemeProvider:** allow the user to define a nonce attribute for generated theme style tags ([3f1208b4](https://github.com/angular/material/commit/3f1208b4), closes [#6691](https://github.com/angular/material/issues/6691))
+
+
+#### Bug Fixes
+
+* **button:**
+  * fix aria-label async injection and tests ([57163406](https://github.com/angular/material/commit/57163406))
+  * aria-label injection ([61136481](https://github.com/angular/material/commit/61136481))
+* **card:** fix card demo for webkit engine ([8871eb3d](https://github.com/angular/material/commit/8871eb3d), closes [#6573](https://github.com/angular/material/issues/6573), [#6678](https://github.com/angular/material/issues/6678), [#6765](https://github.com/angular/material/issues/6765))
+* **datepicker:** use time-insensitive comparison for min/max. ([0e334cd3](https://github.com/angular/material/commit/0e334cd3))
+* **demos:** codepen demos load svg assets ([d8602747](https://github.com/angular/material/commit/d8602747), closes [#6695](https://github.com/angular/material/issues/6695), [#6727](https://github.com/angular/material/issues/6727))
+* **dialog:** changed translate3d to translate ([689a34da](https://github.com/angular/material/commit/689a34da), closes [#4544](https://github.com/angular/material/issues/4544), [#6729](https://github.com/angular/material/issues/6729))
+* **input:** show messages with nested forms ([74fe691c](https://github.com/angular/material/commit/74fe691c), closes [#6276](https://github.com/angular/material/issues/6276), [#6699](https://github.com/angular/material/issues/6699))
+* **speedDial:** Ensure scale animation actions are invisible when closed. ([7e7ac8f5](https://github.com/angular/material/commit/7e7ac8f5), closes [#6344](https://github.com/angular/material/issues/6344), [#6670](https://github.com/angular/material/issues/6670), [#6786](https://github.com/angular/material/issues/6786))
+
+
+<a name"1.0.2"></a>
+### 1.0.2 (2016-01-14)
+
+
+#### Bug Fixes
+
+* **datepicker:** temporarily disable test that only passes on FF. ([656694f4](https://github.com/angular/material/commit/656694f4))
+* **dialog:** fix focus trap sometimes not working. ([0a7ded9e](https://github.com/angular/material/commit/0a7ded9e), closes [#6590](https://github.com/angular/material/issues/6590))
+* **doc:** update CodePen community url ([985ec605](https://github.com/angular/material/commit/985ec605), closes [#6652](https://github.com/angular/material/issues/6652))
+* **layout:** use flex-start instead of start ([c0f5aea7](https://github.com/angular/material/commit/c0f5aea7), closes [#6402](https://github.com/angular/material/issues/6402), [#6403](https://github.com/angular/material/issues/6403))
+* **virtualRepeat:** Recover from scroll events that occur when hidden. ([bbca34f4](https://github.com/angular/material/commit/bbca34f4), closes [#5448](https://github.com/angular/material/issues/5448), [#5448](https://github.com/angular/material/issues/5448), [#6389](https://github.com/angular/material/issues/6389))
+
+
 <a name"1.0.1"></a>
 ### 1.0.1 (2015-12-17)
 

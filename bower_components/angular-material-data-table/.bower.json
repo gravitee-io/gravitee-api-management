@@ -38,6 +38,6 @@
     "commit": "ff39f82c3f3ddfc37daee7af499a017f65b0c02c"
   },
   "_source": "git://github.com/daniel-nagy/md-data-table.git",
-  "_target": "~0.8.14",
+  "_target": "~0.8.7",
   "_originalSource": "angular-material-data-table"
 }

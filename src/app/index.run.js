@@ -70,14 +70,12 @@ function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav) {
     }
   });
 
-  $rootScope.pourcentWidth;
-
-  if (innerWidth < 500) {
-    $rootScope.pourcentWidth = 100;
-  } else if (innerWidth < 700) {
-    $rootScope.pourcentWidth = 50;
+  if ($window.innerWidth < 500) {
+    $rootScope.percentWidth = 100;
+  } else if ($window.innerWidth < 700) {
+    $rootScope.percentWidth = 50;
   } else {
-    $rootScope.pourcentWidth = 33;
+    $rootScope.percentWidth = 33;
   }
 }
 

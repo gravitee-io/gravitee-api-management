@@ -61,7 +61,7 @@ class SideNavController {
       self.showLoginModal();
     });
 
-    this.reducedMode = $rootScope.pourcentWidth > 33 || !$rootScope.authenticated;
+    this.reducedMode = $rootScope.percentWidth > 33 || !$rootScope.authenticated;
   }
 
   getUser() {

@@ -103,6 +103,10 @@ module.exports = angular.module('examplesApp', ['dragularModule', 'templates', '
         link: 'exampleNgRepeatWithModel',
         title: 'ngRepeat - with model'
     }, {
+        template: 'exampleNgRepeatFilteredWithModel/exampleNgRepeatFilteredWithModel.html',
+        link: 'exampleNgRepeatFilteredWithModel',
+        title: 'Filtered ngRepeat - with model'
+    }, {
         template: 'exampleNestedNgRepeat/exampleNestedNgRepeat.html',
         link: 'exampleNestedNgRepeat',
         title: 'Nested ngRepead'

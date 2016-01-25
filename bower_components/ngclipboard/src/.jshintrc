@@ -13,6 +13,8 @@
     "browser": true,
     "predef": [
         "angular",
-        "Clipboard"
+        "Clipboard",
+        "require",
+        "module"
     ]
 }

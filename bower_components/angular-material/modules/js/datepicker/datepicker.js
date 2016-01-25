@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.0.1
+ * v1.0.3
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -1478,18 +1478,21 @@
    * @param {Date=} opt_date Date to check. If not given, defaults to the datepicker's model value.
    */
   DatePickerCtrl.prototype.updateErrorState = function(opt_date) {
-    var date = opt_date || this.date;
+    // Force all dates to midnight in order to ignore the time portion.
+    var date = this.dateUtil.createDateAtMidnight(opt_date || this.date);
 
     // Clear any existing errors to get rid of anything that's no longer relevant.
     this.clearErrorState();
 
     if (this.dateUtil.isValidDate(date)) {
       if (this.dateUtil.isValidDate(this.minDate)) {
-        this.ngModelCtrl.$setValidity('mindate', date >= this.minDate);
+        var minDate = this.dateUtil.createDateAtMidnight(this.minDate);
+        this.ngModelCtrl.$setValidity('mindate', date >= minDate);
       }
 
       if (this.dateUtil.isValidDate(this.maxDate)) {
-        this.ngModelCtrl.$setValidity('maxdate', date <= this.maxDate);
+        var maxDate = this.dateUtil.createDateAtMidnight(this.maxDate);
+        this.ngModelCtrl.$setValidity('maxdate', date <= maxDate);
       }
       
       if (angular.isFunction(this.dateFilter)) {
