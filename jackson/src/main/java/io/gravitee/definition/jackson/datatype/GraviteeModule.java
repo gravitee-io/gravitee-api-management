@@ -38,6 +38,7 @@ public class GraviteeModule extends SimpleModule {
         addDeserializer(Rule.class, new RuleDeserializer(Rule.class));
         addDeserializer(Policy.class, new PolicyDeserializer(Policy.class));
         addDeserializer(Proxy.class, new ProxyDeserializer(Proxy.class));
+        addDeserializer(LoadBalancer.class, new LoadBalancerDeserializer(LoadBalancer.class));
         addDeserializer(HttpClient.class, new HttpClientDeserializer(HttpClient.class));
         addDeserializer(HttpProxy.class, new HttpProxyDeserializer(HttpProxy.class));
         addDeserializer(HttpClientOptions.class, new HttpClientOptionsDeserializer(HttpClientOptions.class));
@@ -50,6 +51,7 @@ public class GraviteeModule extends SimpleModule {
         addSerializer(Rule.class, new RuleSerializer(Rule.class));
         addSerializer(Policy.class, new PolicySerializer(Policy.class));
         addSerializer(Proxy.class, new ProxySerializer(Proxy.class));
+        addSerializer(LoadBalancer.class, new LoadBalancerSerializer(LoadBalancer.class));
         addSerializer(HttpClient.class, new HttpClientSerializer(HttpClient.class));
         addSerializer(HttpProxy.class, new HttpProxySerializer(HttpProxy.class));
         addSerializer(HttpClientOptions.class, new HttpClientOptionsSerializer(HttpClientOptions.class));
@@ -59,7 +61,7 @@ public class GraviteeModule extends SimpleModule {
 
     @Override
     public String getModuleName() {
-        // yes, will try to avoid duplicate registations (if MapperFeature enabled)
+        // yes, will try to avoid duplicate registrations (if MapperFeature enabled)
         return getClass().getSimpleName();
     }
 

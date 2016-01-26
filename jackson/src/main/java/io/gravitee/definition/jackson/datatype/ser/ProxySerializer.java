@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Proxy;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -38,7 +38,7 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
         jgen.writeStartObject();
         jgen.writeStringField("context_path", proxy.getContextPath());
 
-        final Set<String> endpoints = proxy.getEndpoints();
+        final List<String> endpoints = proxy.getEndpoints();
         if (endpoints.size() == 1) {
             jgen.writeStringField("endpoint", endpoints.iterator().next());
         } else {
@@ -51,6 +51,11 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
                 }
             });
             jgen.writeEndArray();
+
+            if (proxy.getLoadBalancer() != null) {
+                jgen.writeObjectField("load_balancing", proxy.getLoadBalancer());
+            }
+
         }
         jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
 
