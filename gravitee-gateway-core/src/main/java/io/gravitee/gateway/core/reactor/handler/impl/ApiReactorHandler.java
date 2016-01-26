@@ -26,7 +26,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.expression.spel.WrappedRequestVariable;
-import io.gravitee.gateway.core.http.StringBodyPart;
+import io.gravitee.gateway.core.http.stream.StringBodyPart;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.StreamType;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;

@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.spring;
+package io.gravitee.gateway.core.http.loadbalancer;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Configuration
-public class HttpClientConfiguration {
+public abstract class LoadBalancerSupport implements LoadBalancer {
 
-    @Bean
-    public static HttpClientBeanFactoryPostProcessor httpClientBeanFactoryPostProcessor() {
-        return new HttpClientBeanFactoryPostProcessor();
+    protected final Api api;
+
+    protected LoadBalancerSupport(final Api api) {
+        this.api = api;
+    }
+
+    protected List<String> endpoints() {
+        return api.getProxy().getEndpoints();
     }
 }

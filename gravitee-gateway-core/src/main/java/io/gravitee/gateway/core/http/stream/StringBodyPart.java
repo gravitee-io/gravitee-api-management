@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.vertx;
+package io.gravitee.gateway.core.http.stream;
 
 import io.gravitee.gateway.api.http.BodyPart;
-import io.vertx.core.buffer.Buffer;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class VertxBufferBodyPart implements BodyPart<ByteBuffer> {
+public class StringBodyPart implements BodyPart<ByteBuffer> {
 
     private final byte[] bytes;
 
-    public VertxBufferBodyPart(Buffer buffer) {
-        bytes = buffer.getBytes();
+    public StringBodyPart(String body) {
+        bytes = body.getBytes(Charset.forName("UTF-8"));
     }
 
     @Override
