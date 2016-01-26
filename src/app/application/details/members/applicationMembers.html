@@ -16,38 +16,38 @@
 
 -->
 <div layout-padding>
-  <md-data-table-container class="application-data-table" ng-show="applicationMembersCtrl.members.length > 1">
-    <table md-data-table class="md-primary">
-      <thead md-order="order">
-        <tr>
-          <th name="Member" order-by="user"></th>
-          <th name="Role" order-by="type"></th>
-          <th></th>
-        </tr>
+  <md-table-container ng-show="applicationMembersCtrl.members.length > 1">
+    <table md-table>
+      <thead md-head md-order="order">
+      <tr md-row>
+        <th md-column order-by="user">Member</th>
+        <th md-column order-by="type">Role</th>
+        <th md-column></th>
+      </tr>
       </thead>
-      <tbody>
-        <tr ng-repeat="member in applicationMembersCtrl.members | filter: { type: '!primary_owner' } | orderBy: order">
-          <td ng-switch="member.type">
+      <tbody md-body>
+        <tr md-row ng-repeat="member in applicationMembersCtrl.members | filter: { type: '!primary_owner' } | orderBy: order">
+          <td md-cell ng-switch="member.type">
             <span ng-switch-when="primary_owner"><b>{{member.user}}</b></span>
-			<span ng-switch-default>{{member.user}}</span>
+			      <span ng-switch-default>{{member.user}}</span>
           </td>
-          <td ng-show="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != applicationCtrl.authenticatedUser.principal.username">
-			<md-select ng-model="member.type" placeholder="Other" ng-change="applicationMembersCtrl.updateMember(member)">
+          <td md-cell ng-show="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != applicationCtrl.authenticatedUser.principal.username">
+            <md-select ng-model="member.type" placeholder="Other" ng-change="applicationMembersCtrl.updateMember(member)">
               <md-option ng-value="type" ng-repeat="type in applicationMembersCtrl.membershipTypes">{{type}}</md-option>
-		    </md-select>
-		  </td>
-          <td ng-hide="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != applicationCtrl.authenticatedUser.principal.username">
+            </md-select>
+		      </td>
+          <td md-cell ng-hide="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != applicationCtrl.authenticatedUser.principal.username">
             <span>{{member.type}}</span>
-	      </td>
-	      <td>
-		    <div ng-if="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != applicationCtrl.authenticatedUser.principal.username">
+	        </td>
+	        <td md-cell>
+		        <div ng-if="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != applicationCtrl.authenticatedUser.principal.username">
               <ng-md-icon ng-click="applicationMembersCtrl.showDeleteMemberConfirm($event, member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
-			</div>
+			      </div>
           </td>
         </tr>
-	  </tbody>
-	</table>
-  </md-data-table-container>
+	    </tbody>
+	  </table>
+  </md-table-container>
 </div>
 
 <md-button ng-if="applicationCtrl.isOwner()" class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="applicationMembersCtrl.showAddMemberModal($event)">
