@@ -172,13 +172,9 @@ class ApiPoliciesController {
   }
 
   editPolicy(index, path) {
-    if ( this.apiPoliciesByPath[path][index].policyId === 'api-key' ) {
-      this.selectedApiPolicy = {};
-    } else {
-      this.selectedApiPolicy = this.apiPoliciesByPath[path][index];
-      this.$scope.policyJsonSchema = this.selectedApiPolicy.schema;
-      this.$scope.policyJsonSchemaForm = ["*"];
-    }
+    this.selectedApiPolicy = this.apiPoliciesByPath[path][index];
+    this.$scope.policyJsonSchema = this.selectedApiPolicy.schema;
+    this.$scope.policyJsonSchemaForm = ["*"];
   }
 
   getHttpMethodClass(method, methods) {
