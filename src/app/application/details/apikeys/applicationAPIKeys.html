@@ -16,48 +16,49 @@
 
 -->
 <div layout-padding>
-  <md-data-table-container class="application-data-table" ng-show="applicationAPIKeysCtrl.hasKeysDefined()">
-    <table md-data-table class="md-primary">
-      <thead>
-        <tr>
-          <th>API</th>
-          <th>Revocation Date</th>
-          <th>Expiration Date</th>
-          <th>
+  <md-table-container ng-show="applicationAPIKeysCtrl.hasKeysDefined()">
+    <table md-table>
+      <thead md-head>
+        <tr md-row>
+          <th md-column>API</th>
+          <th md-column>Revocation Date</th>
+          <th md-column>Expiration Date</th>
+          <th md-column>
             <md-checkbox md-no-ink aria-label="Show all API keys" ng-model="applicationAPIKeysCtrl.showRevokedKeys" class="md-primary">
-              Show revoked API Keys
+              Show revoked
             </md-checkbox>
           </th>
         </tr>
       </thead>
-      <tbody ng-repeat="(api, value) in applicationAPIKeysCtrl.apiKeys">
-        <tr style="background-color: #9fb9be">
-          <td colspan="3" style="font-weight: bold">{{value.name}} - {{value.version}} ({{value.keys.length}} keys)</td>
-          <td>
+      <tbody md-body ng-repeat="(api, value) in applicationAPIKeysCtrl.apiKeys">
+        <tr md-row>
+          <td md-cell colspan="3" style="font-weight: bold">{{value.name}} - {{value.version}} ({{value.keys.length}} keys)</td>
+          <td md-cell>
             <md-tooltip ng-if="applicationCtrl.isOwner()" md-direction="left">Renew your API Key</md-tooltip>
             <ng-md-icon ng-if="applicationCtrl.isOwner()" icon="autorenew" ng-click="applicationAPIKeysCtrl.generateAPIKey(applicationCtrl.application, api)"></ng-md-icon>
           </td>
         </tr>
-		<tr ng-repeat="apikey in value.keys | filter: applicationAPIKeysCtrl.showRevokedKeys"  ng-mouseover="hovered = true"  ng-mouseout="hovered = false">
-          <td>
+        <tr md-row ng-repeat="apikey in value.keys | filter: applicationAPIKeysCtrl.showRevokedKeys"  ng-mouseover="hovered = true"  ng-mouseout="hovered = false">
+          <td md-cell>
             <ng-md-icon ng-show="!apikey.revoked" icon="done" style="fill: #107F20"></ng-md-icon>
             <ng-md-icon ng-show="apikey.revoked" icon="clear" style="fill: #BE2628"></ng-md-icon>
             <code>{{apikey.key}}</code>
-             <span style="position: absolute">
+            <span style="position: absolute">
              	<md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
               <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"  ngclipboard data-clipboard-text="{{apikey.key}}" ngclipboard-success="applicationAPIKeysCtrl.onClipboardSuccess(e);" role="button" ></ng-md-icon>
-             </span>
+            </span>
           </td>
-          <td>{{apikey.revoked_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-          <td>{{apikey.expire_on | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-          <td>
+          <td md-cell>{{apikey.revoked_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+          <td md-cell>{{apikey.expire_on | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+          <td md-cell>
             <md-tooltip md-direction="left">Revoke this API Key</md-tooltip>
             <ng-md-icon ng-show="!apikey.revoked" icon="not_interested" ng-click="applicationAPIKeysCtrl.revoke(apikey.key)"></ng-md-icon>
           </td>
         </tr>
+        <tr md-row></tr>
       </tbody>
     </table>
-  </md-data-table-container>
+  </md-table-container>
 </div>
 <md-button ng-if="applicationCtrl.isOwner()" class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add"  ng-click="applicationAPIKeysCtrl.showSubscribeApiModal($event)">
   <ng-md-icon icon="add"></ng-md-icon>

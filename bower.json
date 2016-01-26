@@ -12,7 +12,7 @@
     "angular-cookies": "~1.4.9",
     "jquery": "~2.2.0",
     "bootstrap-sass": "3.3.6",
-    "angular-material-data-table": "~0.8.4",
+    "angular-material-data-table": "~0.9.9",
     "highcharts": "~4.2.1",
     "highcharts-ng": "~0.0.11",
     "lodash": "~4.0.1",
