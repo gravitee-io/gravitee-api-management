@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor (ApiService, NotificationService, $scope, $mdDialog, $rootScope, resolvedApi) {
+  constructor (ApiService, NotificationService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi) {
     'ngInject';
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.$scope = $scope;
     this.$rootScope = $rootScope;
+    this.$mdEditDialog = $mdEditDialog;
     this.$mdDialog = $mdDialog;
     this.initialApi = _.cloneDeep(resolvedApi.data);
+    this.$scope.selected = [];
 
     this.initState();
   }
@@ -57,6 +59,34 @@ class ApiAdminController {
       .catch(function () {
         that.initState();
       });
+  }
+
+  editEndpoint(event, endpoint) {
+    event.stopPropagation(); // in case autoselect is enabled
+
+    var editDialog = {
+      modelValue: endpoint.target,
+      placeholder: 'Target URL',
+      save: function (input) {
+        endpoint.target = input.$modelValue;
+      },
+      targetEvent: event,
+      title: 'Set endpoint target URL',
+      type: 'url',
+      validators: {
+        'ng-required': 'true'
+      }
+    };
+
+    var promise = this.$mdEditDialog.large(editDialog);
+
+    promise.then(function (ctrl) {
+      var input = ctrl.getInput();
+
+      input.$viewChangeListeners.push(function () {
+        input.$setValidity('test', input.$modelValue !== 'test');
+      });
+    });
   }
 
   reset() {

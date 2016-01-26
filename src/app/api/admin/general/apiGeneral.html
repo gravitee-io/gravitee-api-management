@@ -83,7 +83,41 @@
         <v-accordion id="gateway-accordion" class="vAccordion--default" multiple>
           <v-pane expanded>
             <v-pane-header>
-              <legend><ng-md-icon icon="settings"></ng-md-icon> HTTP Configuration</legend>
+              <legend><ng-md-icon icon="filter_tilt_shift"></ng-md-icon> Endpoints</legend>
+            </v-pane-header>
+            <v-pane-content>
+
+              <md-table-container>
+                <table md-table  md-row-select="true" ng-model="selected">
+                  <thead md-head md-order="order">
+                    <tr md-row>
+                      <th md-column md-order-by="target"><span>Target</span></th>
+                      <th md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
+                      <th md-column>
+                        <md-button class="md-icon-button" ng-click="generalCtrl.addEndpoint($event)">
+                          <ng-md-icon icon="add"></ng-md-icon>
+                        </md-button>
+                        <md-button class="md-icon-button" ng-click="generalCtrl.delete($event)" ng-show="selected.length">
+                          <ng-md-icon icon="delete"></ng-md-icon>
+                        </md-button>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody md-body>
+                    <tr md-row md-select="endpoint" md-select-id="{{endpoint.target}}" md-auto-select ng-repeat="endpoint in apiCtrl.api.proxy.endpoints | orderBy: order">
+                      <td md-cell ng-click="generalCtrl.editEndpoint($event, endpoint)" ng-class="{'md-placeholder': !endpoint.target}">{{endpoint.target}}</td>
+                      <td md-cell hide-gt-xs show-gt-sm>{{endpoint.weight}}</td>
+                      <td md-cell></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </md-table-container>
+            </v-pane-content>
+          </v-pane>
+
+          <v-pane>
+            <v-pane-header>
+              <legend><ng-md-icon icon="leak_add"></ng-md-icon> HTTP Configuration</legend>
             </v-pane-header>
             <v-pane-content>
               <div layout="column" layout-wrap layout-gt-sm="row">
