@@ -110,39 +110,52 @@ public class MongoFactory implements FactoryBean<Mongo> {
 
     @Override
     public Mongo getObject() throws Exception {
-        String databaseName = readPropertyValue(propertyPrefix + "dbname", String.class, "gravitee");
+        MongoClientOptions.Builder builder = builder();
 
-        String username = readPropertyValue(propertyPrefix + "username");
-        String password = readPropertyValue(propertyPrefix + "password");
+        // Trying to get the MongoClientURI if uri property is defined
+        String uri = readPropertyValue(propertyPrefix + "uri");
 
-        List<MongoCredential> credentials = null;
-        if (username != null || password != null) {
-            credentials = Collections.singletonList(MongoCredential.createMongoCRCredential(
-                    username, databaseName, password.toCharArray()));
-        }
-
-        MongoClientOptions options = builder().build();
-
-        List<ServerAddress> seeds;
-        int serversCount = getServersCount();
-
-        if (serversCount == 0) {
-            String host = readPropertyValue(propertyPrefix + "host", String.class, "localhost");
-            int port = readPropertyValue(propertyPrefix + "port", int.class, 27017);
-            seeds = Collections.singletonList(new ServerAddress(host, port));
+        if (uri != null && ! uri.isEmpty()) {
+            // The builder can be configured with default options, which may be overridden by options specified in
+            // the URI string.
+            return new MongoClient(
+                    new MongoClientURI(uri, builder));
         } else {
-            seeds = new ArrayList<>(serversCount);
-            for (int i = 0 ; i < serversCount ; i++) {
-                seeds.add(buildServerAddress(i));
+
+            String databaseName = readPropertyValue(propertyPrefix + "dbname", String.class, "gravitee");
+
+            String username = readPropertyValue(propertyPrefix + "username");
+            String password = readPropertyValue(propertyPrefix + "password");
+
+            List<MongoCredential> credentials = null;
+            if (username != null || password != null) {
+                credentials = Collections.singletonList(MongoCredential.createMongoCRCredential(
+                        username, databaseName, password.toCharArray()));
             }
-        }
 
-        if (credentials == null) {
-            return new MongoClient(seeds, options);
-        }
 
-        return new MongoClient(seeds,
-                credentials, options);
+            List<ServerAddress> seeds;
+            int serversCount = getServersCount();
+
+            if (serversCount == 0) {
+                String host = readPropertyValue(propertyPrefix + "host", String.class, "localhost");
+                int port = readPropertyValue(propertyPrefix + "port", int.class, 27017);
+                seeds = Collections.singletonList(new ServerAddress(host, port));
+            } else {
+                seeds = new ArrayList<>(serversCount);
+                for (int i = 0; i < serversCount; i++) {
+                    seeds.add(buildServerAddress(i));
+                }
+            }
+
+            MongoClientOptions options = builder.build();
+            if (credentials == null) {
+                return new MongoClient(seeds, options);
+            }
+
+            return new MongoClient(seeds,
+                    credentials, options);
+        }
     }
 
     private int getServersCount() {
