@@ -22,6 +22,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,16 +47,19 @@ public class MongoFactory implements FactoryBean<Mongo> {
 
         builder.writeConcern(WriteConcern.SAFE);
 
-        Integer connectionPerHost = readPropertyValue(propertyPrefix + "connectionPerHost", Integer.class);
-        Integer connectTimeout = readPropertyValue(propertyPrefix + "connectTimeout", Integer.class);
+        Integer connectionsPerHost = readPropertyValue(propertyPrefix + "connectionsPerHost", Integer.class);
+        Integer connectTimeout = readPropertyValue(propertyPrefix + "connectTimeout", Integer.class, 500);
         Integer maxWaitTime = readPropertyValue(propertyPrefix + "maxWaitTime", Integer.class);
-        Integer socketTimeout = readPropertyValue(propertyPrefix + "socketTimeout", Integer.class);
+        Integer socketTimeout = readPropertyValue(propertyPrefix + "socketTimeout", Integer.class, 500);
         Boolean socketKeepAlive = readPropertyValue(propertyPrefix + "socketKeepAlive", Boolean.class);
         Integer maxConnectionLifeTime = readPropertyValue(propertyPrefix + "maxConnectionLifeTime", Integer.class);
         Integer maxConnectionIdleTime = readPropertyValue(propertyPrefix + "maxConnectionIdleTime", Integer.class);
+
+        // We do not want to wait for a server
+        Integer serverSelectionTimeout = readPropertyValue(propertyPrefix + "serverSelectionTimeout", Integer.class, 0);
         Integer minHeartbeatFrequency = readPropertyValue(propertyPrefix + "minHeartbeatFrequency", Integer.class);
-        String description = readPropertyValue(propertyPrefix + "description");
-        Integer heartbeatConnectTimeout = readPropertyValue(propertyPrefix + "heartbeatConnectTimeout", Integer.class);
+        String description = readPropertyValue(propertyPrefix + "description", String.class, "gravitee.io");
+        Integer heartbeatConnectTimeout = readPropertyValue(propertyPrefix + "heartbeatConnectTimeout", Integer.class, 1000);
         Integer heartbeatFrequency = readPropertyValue(propertyPrefix + "heartbeatFrequency", Integer.class);
         Integer heartbeatSocketTimeout = readPropertyValue(propertyPrefix + "heartbeatSocketTimeout", Integer.class);
         Integer localThreshold = readPropertyValue(propertyPrefix + "localThreshold", Integer.class);
@@ -64,40 +68,42 @@ public class MongoFactory implements FactoryBean<Mongo> {
         Integer threadsAllowedToBlockForConnectionMultiplier = readPropertyValue(propertyPrefix + "threadsAllowedToBlockForConnectionMultiplier", Integer.class);
         Boolean cursorFinalizerEnabled = readPropertyValue(propertyPrefix + "cursorFinalizerEnabled", Boolean.class);
 
-        if(connectionPerHost != null)
-            builder.connectionsPerHost(connectionPerHost);
-        if(maxWaitTime != null)
+        if (connectionsPerHost != null)
+            builder.connectionsPerHost(connectionsPerHost);
+        if (maxWaitTime != null)
             builder.maxWaitTime(maxWaitTime);
-        if(connectTimeout != null)
+        if (connectTimeout != null)
             builder.connectTimeout(connectTimeout);
-        if(socketTimeout != null)
+        if (socketTimeout != null)
             builder.socketTimeout(socketTimeout);
-        if(socketKeepAlive != null)
+        if (socketKeepAlive != null)
             builder.socketKeepAlive(socketKeepAlive);
-        if(maxConnectionLifeTime != null)
+        if (maxConnectionLifeTime != null)
             builder.maxConnectionLifeTime(maxConnectionLifeTime);
-        if(maxConnectionIdleTime != null)
+        if (maxConnectionIdleTime != null)
             builder.maxConnectionIdleTime(maxConnectionIdleTime);
-        if(minHeartbeatFrequency != null)
+        if (minHeartbeatFrequency != null)
             builder.minHeartbeatFrequency(minHeartbeatFrequency);
-        if(description != null)
+        if (description != null)
             builder.description(description);
-        if(heartbeatConnectTimeout != null)
+        if (heartbeatConnectTimeout != null)
             builder.heartbeatConnectTimeout(heartbeatConnectTimeout);
-        if(heartbeatFrequency != null)
+        if (heartbeatFrequency != null)
             builder.heartbeatFrequency(heartbeatFrequency);
-        if(heartbeatSocketTimeout != null)
+        if (heartbeatSocketTimeout != null)
             builder.heartbeatSocketTimeout(heartbeatSocketTimeout);
-        if(localThreshold != null)
+        if (localThreshold != null)
             builder.localThreshold(localThreshold);
-        if(minConnectionsPerHost != null)
+        if (minConnectionsPerHost != null)
             builder.minConnectionsPerHost(minConnectionsPerHost);
-        if(sslEnabled != null)
+        if (sslEnabled != null)
             builder.sslEnabled(sslEnabled);
-        if(threadsAllowedToBlockForConnectionMultiplier != null)
+        if (threadsAllowedToBlockForConnectionMultiplier != null)
             builder.threadsAllowedToBlockForConnectionMultiplier(threadsAllowedToBlockForConnectionMultiplier);
-        if(cursorFinalizerEnabled != null)
+        if (cursorFinalizerEnabled != null)
             builder.cursorFinalizerEnabled(cursorFinalizerEnabled);
+        if (serverSelectionTimeout != null)
+            builder.serverSelectionTimeout(serverSelectionTimeout);
 
         return builder;
     }
@@ -105,8 +111,7 @@ public class MongoFactory implements FactoryBean<Mongo> {
     @Override
     public Mongo getObject() throws Exception {
         String databaseName = readPropertyValue(propertyPrefix + "dbname", String.class, "gravitee");
-        String host = readPropertyValue(propertyPrefix + "host", String.class, "localhost");
-        int port = readPropertyValue(propertyPrefix + "port", int.class, 27017);
+
         String username = readPropertyValue(propertyPrefix + "username");
         String password = readPropertyValue(propertyPrefix + "password");
 
@@ -118,12 +123,47 @@ public class MongoFactory implements FactoryBean<Mongo> {
 
         MongoClientOptions options = builder().build();
 
-        if (credentials == null) {
-            return new MongoClient(Collections.singletonList(new ServerAddress(host, port)), options);
+        List<ServerAddress> seeds;
+        int serversCount = getServersCount();
+
+        if (serversCount == 0) {
+            String host = readPropertyValue(propertyPrefix + "host", String.class, "localhost");
+            int port = readPropertyValue(propertyPrefix + "port", int.class, 27017);
+            seeds = Collections.singletonList(new ServerAddress(host, port));
+        } else {
+            seeds = new ArrayList<>(serversCount);
+            for (int i = 0 ; i < serversCount ; i++) {
+                seeds.add(buildServerAddress(i));
+            }
         }
 
-        return new MongoClient(Collections.singletonList(new ServerAddress(host, port)),
+        if (credentials == null) {
+            return new MongoClient(seeds, options);
+        }
+
+        return new MongoClient(seeds,
                 credentials, options);
+    }
+
+    private int getServersCount() {
+        logger.debug("Looking for MongoDB server configuration...");
+
+        boolean found = true;
+        int idx = 0;
+
+        while (found) {
+            String serverHost = environment.getProperty(propertyPrefix + "servers[" + (idx++) + "].host");
+            found = (serverHost != null);
+        }
+
+        return --idx;
+    }
+
+    private ServerAddress buildServerAddress(int idx) {
+        String host = environment.getProperty(propertyPrefix + "servers[" + idx + "].host");
+        int port = readPropertyValue(propertyPrefix + "servers[" + idx + "].port", int.class, 27017);
+
+        return new ServerAddress(host, port);
     }
 
     private String readPropertyValue(String propertyName) {
