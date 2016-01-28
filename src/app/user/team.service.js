@@ -15,11 +15,11 @@
  */
 class TeamService {
 
-  constructor($http, baseURL) {
+  constructor($http, Constants) {
     'ngInject';
     this.$http = $http;
-    this.teamsURL = baseURL + 'teams/';
-    this.userURL = baseURL + 'user/';
+    this.teamsURL = Constants.baseURL + 'teams/';
+    this.userURL = Constants.baseURL + 'user/';
   }
 
   list() {

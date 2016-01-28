@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 class ApplicationService {
-  constructor($http, baseURL) {
+  constructor($http, Constants) {
 		'ngInject';
     this.$http = $http;
-		this.baseURL = baseURL;
-    this.applicationsURL = baseURL + 'applications/';
+		this.baseURL = Constants.baseURL;
+    this.applicationsURL = this.baseURL + 'applications/';
   }
 
 	get(applicationId) {

@@ -78,7 +78,7 @@ class ApplicationsController {
 
 	changeMode(tableMode) {
     this.tableMode = tableMode;
-    this.$state.go(this.tableMode ? 'applications.table' : 'applications.thumb');
+    this.$state.go(this.tableMode ? 'applications.list.table' : 'applications.list.thumb');
   }
 }
 

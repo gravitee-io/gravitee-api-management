@@ -13,25 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class PolicyService {
-
-  constructor($http, Constants) {
-    'ngInject';
-    this.$http = $http;
-    this.policiesURL = Constants.baseURL + 'policies/';
-  }
-
-  list({expandSchema}) {
-    let url = this.policiesURL;
-/*    if(expandSchema) {
-      url += "?expand=schema";
-    }*/
-    return this.$http.get(url);
-  }
-
-  getSchema(policyId) {
-    return this.$http.get(this.policiesURL + policyId + '/schema');
-  }
-}
-
-export default PolicyService;
+'use strict';
+angular.module('gvConstants', []).constant('Constants', {
+  // if the management REST API is on a different domain, put something like: http://demo.gravitee.io/management/
+  baseURL: '/management/'
+});

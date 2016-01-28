@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 import config from './index.config';
-
 import routerConfig from './index.route';
-
 import interceptorConfig from './index.interceptor';
-
 import delegatorConfig from './index.delegator';
-
 import runBlock from './index.run';
+
 import ChartDirective from './components/chart/chart.directive';
 import FormDirective from './components/form/form.directive';
 import ApiService from './api/api.service';
@@ -69,8 +66,7 @@ import RoleDirective from './components/role/role.directive';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
-    'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate'])
-  .constant('baseURL', '/management/')
+    'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)

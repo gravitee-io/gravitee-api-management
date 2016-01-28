@@ -116,10 +116,21 @@ gulp.task('jquery', function () {
     return file.stat.isFile();
   });
   return gulp.src([
-    path.join('bower_components/jquery/dist/jquery.min.js')
-  ])
+      path.join('bower_components/jquery/dist/jquery.min.js')
+    ])
     .pipe(fileFilter)
     .pipe(gulp.dest(path.join(conf.paths.dist, 'bower_components/jquery/dist')));
+});
+
+gulp.task('constants', function () {
+  var fileFilter = $.filter(function (file) {
+    return file.stat.isFile();
+  });
+  return gulp.src([
+      path.join(conf.paths.src, '/constants.js')
+    ])
+    .pipe(fileFilter)
+    .pipe(gulp.dest(conf.paths.dist));
 });
 
 gulp.task('clean', function (done) {
@@ -127,6 +138,6 @@ gulp.task('clean', function (done) {
 });
 
 gulp.task('build', ['clean'],  function (cb) {
-  gulp.start(['html', 'fonts', 'other', 'ramldep', 'jquery'], cb)
+  gulp.start(['html', 'fonts', 'other', 'ramldep', 'jquery', 'constants'], cb)
 });
 
