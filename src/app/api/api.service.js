@@ -15,10 +15,10 @@
  */
 class ApiService {
 
-  constructor($http, baseURL) {
+  constructor($http, Constants) {
     'ngInject';
     this.$http = $http;
-    this.apisURL = baseURL + 'apis/';
+    this.apisURL = Constants.baseURL + 'apis/';
   }
 
   get(name) {

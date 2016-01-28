@@ -15,10 +15,10 @@
  */
 class LoginService {
 
-  constructor($http, baseURL) {
+  constructor($http, Constants) {
     'ngInject';
     this.$http = $http;
-    this.loginURL = baseURL + 'login/';
+    this.loginURL = Constants.baseURL + 'login/';
   }
 
   login(user) {

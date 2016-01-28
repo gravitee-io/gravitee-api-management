@@ -15,11 +15,11 @@
  */
  class DocumentationService {
 
-  constructor($http, baseURL) {
+  constructor($http, Constants) {
     'ngInject';
     this.$http = $http;
     this.documentationURL = function (apiId) {
-      return baseURL + 'apis/' + apiId + '/pages/';
+      return Constants.baseURL + 'apis/' + apiId + '/pages/';
     };
   }
 

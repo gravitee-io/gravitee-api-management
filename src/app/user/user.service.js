@@ -15,11 +15,11 @@
  */
 class UserService {
 
-  constructor($http, $cookieStore, baseURL) {
+  constructor($http, $cookieStore, Constants) {
     'ngInject';
     this.$http = $http;
     this.$cookieStore = $cookieStore;
-    this.usersURL = baseURL + 'users/';
+    this.usersURL = Constants.baseURL + 'users/';
   }
 
   list() {
@@ -39,21 +39,21 @@ class UserService {
   }
 
 	search(query) {
-		return this.$http.get(this.usersURL + "?query=" + query);   
+		return this.$http.get(this.usersURL + "?query=" + query);
 	}
-	
+
 	isUserInRoles(roles) {
 	  let rolePrefix = "ROLE_";
 	  let authenticatedUser = this.$cookieStore.get('authenticatedUser');
-	  
+
 	  if (!authenticatedUser) {
 	    return false;
 	  }
-	  
+
 	  if (authenticatedUser && (!roles || roles.length == 0)) {
 	    return false;
 	  }
-	  
+
 	  var rolesAllowed = false;
 	  _.forEach(roles, function(role) {
 	    _.forEach(authenticatedUser.principal.authorities, function(authority) {
@@ -63,7 +63,7 @@ class UserService {
 	      }
 	    });
 	  });
-	  
+
 	  return rolesAllowed;
 	}
 }
