@@ -1,0 +1,31 @@
+<md-dialog aria-label="Add Endpoint" style="width: 60%">
+  <md-toolbar>
+    <div class="md-toolbar-tools">
+      <h2>Add Endpoint</h2>
+      <span flex></span>
+      <md-button type="button" class="md-icon-button" ng-click="ctrl.cancel()">X</md-button>
+    </div>
+  </md-toolbar>
+
+  <md-dialog-content class="md-dialog-content">
+    <form name="item.form" ng-submit="ctrl.addItem()">
+      <div layout="row" class="input-row">
+        <md-input-container flex>
+          <label>Target</label>
+          <input name="target" ng-model="endpoint.target" type="url" required>
+        </md-input-container>
+        <md-input-container flex>
+          <label>Weight</label>
+          <input name="weight" type="number" min="1" max="99" ng-model="endpoint.weight" required>
+        </md-input-container>
+      </div>
+    </form>
+
+  </md-dialog-content>
+
+  <div class="md-actions">
+    <md-button class="md-primary" ng-click="ctrl.addEndpoint()" ng-disabled="item.form.$invalid">Add Endpoint</md-button>
+    <md-button class="md-primary" ng-click="ctrl.cancel()">Cancel</md-button>
+  </div>
+
+</md-dialog>

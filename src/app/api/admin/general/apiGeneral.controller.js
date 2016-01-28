@@ -89,6 +89,22 @@ class ApiAdminController {
     });
   }
 
+  addEndpoint(event) {
+    var _that = this;
+      this.$mdDialog.show({
+        clickOutsideToClose: true,
+        controller: 'DialogEndpointController',
+        controllerAs: 'ctrl',
+        focusOnOpen: false,
+        targetEvent: event,
+        templateUrl: 'app/api/admin/general/add-endpoint-dialog.html',
+      }).then(function (endpoint) {
+        if (endpoint) {
+          console.log(endpoint);
+        }
+      });
+  }
+
   reset() {
     this.$scope.$parent.apiCtrl.api = _.cloneDeep(this.initialApi);
     this.$scope.formApi.$setPristine();
