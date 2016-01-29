@@ -18,6 +18,7 @@ package io.gravitee.definition.jackson.datatype.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.Proxy;
 
 import java.io.IOException;
@@ -38,25 +39,28 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
         jgen.writeStartObject();
         jgen.writeStringField("context_path", proxy.getContextPath());
 
-        final List<String> endpoints = proxy.getEndpoints();
+        final List<Endpoint> endpoints = proxy.getEndpoints();
+
+        // This is just for backward compatibility with version < 0.6
+        // Must be deleted for major release
         if (endpoints.size() == 1) {
-            jgen.writeStringField("endpoint", endpoints.iterator().next());
-        } else {
-            jgen.writeArrayFieldStart("endpoints");
-            endpoints.forEach(endpoint -> {
-                try {
-                    jgen.writeObject(endpoint);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            jgen.writeEndArray();
-
-            if (proxy.getLoadBalancer() != null) {
-                jgen.writeObjectField("load_balancing", proxy.getLoadBalancer());
-            }
-
+            jgen.writeStringField("endpoint", endpoints.iterator().next().getTarget());
         }
+
+        jgen.writeArrayFieldStart("endpoints");
+        endpoints.forEach(endpoint -> {
+            try {
+                jgen.writeObject(endpoint);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        jgen.writeEndArray();
+
+        if (proxy.getLoadBalancer() != null) {
+            jgen.writeObjectField("load_balancing", proxy.getLoadBalancer());
+        }
+
         jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
 
         if (proxy.getHttpClient() != null) {

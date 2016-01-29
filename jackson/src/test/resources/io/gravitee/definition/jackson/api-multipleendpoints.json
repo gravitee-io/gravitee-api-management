@@ -4,7 +4,13 @@
 
   "proxy": {
     "context_path": "/team",
-    "endpoints": ["http://host1:8083/myapi", "http://host2:8083/myapi"],
+    "endpoints": [
+      {
+        "target": "http://host1:8083/myapi"
+      }, {
+        "target": "http://host2:8083/myapi"
+      }
+    ],
     "strip_context_path": false
   },
 

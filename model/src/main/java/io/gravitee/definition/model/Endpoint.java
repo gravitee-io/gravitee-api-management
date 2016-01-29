@@ -17,12 +17,38 @@ package io.gravitee.definition.model;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
- * @author GraviteeSource Team
+ * @author Gravitee.io Team
  */
-public enum LoadBalancerType {
+public class Endpoint {
 
-    ROUND_ROBIN,
-    RANDOM,
-    WEIGHTED_ROUND_ROBIN,
-    WEIGHTED_RANDOM
+    public static int DEFAULT_WEIGHT = 1;
+
+    private String target;
+
+    private int weight = DEFAULT_WEIGHT;
+
+    public Endpoint(String target) {
+        this();
+        this.target = target;
+    }
+
+    public Endpoint() {
+        this.weight = DEFAULT_WEIGHT;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
 }

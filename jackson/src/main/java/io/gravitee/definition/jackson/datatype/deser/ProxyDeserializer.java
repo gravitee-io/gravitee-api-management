@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClient;
 import io.gravitee.definition.model.Proxy;
 
@@ -45,20 +46,27 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             proxy.setContextPath(contextPath.asText());
         }
 
-        final JsonNode endpoint = node.get("endpoint");
-        final JsonNode endpoints = node.get("endpoints");
+        final JsonNode nodeEndpoint = node.get("endpoint");
+        final JsonNode nodeEndpoints = node.get("endpoints");
 
-        if (endpoint != null) {
-            if (endpoint.isArray()) {
-                proxy.getEndpoints().add(endpoint.elements().next().asText());
+        JsonNode nodeEndpointsSrc = (nodeEndpoint != null) ? nodeEndpoint : nodeEndpoints;
+
+        if (nodeEndpointsSrc != null) {
+            if (nodeEndpointsSrc.isArray()) {
+                nodeEndpointsSrc.elements().forEachRemaining(jsonNode -> {
+                    try {
+                        Endpoint endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(Endpoint.class);
+                        proxy.getEndpoints().add(endpoint);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
             } else {
-                proxy.getEndpoints().add(endpoint.asText());
+                Endpoint singleEndpoint = new Endpoint();
+                singleEndpoint.setTarget(nodeEndpointsSrc.asText());
+                singleEndpoint.setWeight(Endpoint.DEFAULT_WEIGHT);
+                proxy.getEndpoints().add(singleEndpoint);
             }
-        }
-
-        if (endpoints != null && endpoints.isArray()) {
-            endpoints.elements().forEachRemaining(
-                    endpointNode -> proxy.getEndpoints().add(endpointNode.asText()));
         }
 
         JsonNode stripContextNode = node.get("strip_context_path");

@@ -26,7 +26,7 @@ public class Proxy {
 
     private String contextPath;
 
-    private List<String> endpoints = new ArrayList<>();
+    private List<Endpoint> endpoints = new ArrayList<>();
 
     private LoadBalancer loadBalancer;
 
@@ -42,11 +42,11 @@ public class Proxy {
         this.contextPath = contextPath;
     }
 
-    public List<String> getEndpoints() {
+    public List<Endpoint> getEndpoints() {
         return endpoints;
     }
 
-    public void setEndpoints(List<String> endpoints) {
+    public void setEndpoints(List<Endpoint> endpoints) {
         this.endpoints = endpoints;
     }
 
