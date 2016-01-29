@@ -15,8 +15,9 @@
  */
 package io.gravitee.gateway.http.vertx;
 
-import io.gravitee.common.http.*;
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.ClientResponse;
@@ -24,12 +25,10 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.BodyPart;
-import io.gravitee.gateway.http.core.endpoint.EndpointResolver;
+import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.core.net.PemTrustOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,13 +55,24 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
     @Resource
     private Vertx vertx;
 
+    /*
     @Resource
     private EndpointResolver endpointResolver;
+    */
+
+    @Resource
+    private LoadBalancer loadBalancer;
 
     @Override
     public ClientRequest invoke(ExecutionContext executionContext, Request serverRequest, Handler<ClientResponse> clientResponseHandler) {
+        // Get endpoint
+        String sEndpoint = loadBalancer.chooseEndpoint(serverRequest);
+
+        // Endpoint URI
+        URI endpoint = URI.create(sEndpoint);
+
         // Resolve target endpoint
-        URI endpoint = endpointResolver.resolve(serverRequest);
+//        URI endpoint = endpointResolver.resolve(serverRequest);
 
         // TODO: how to pass this to the response metrics
         // serverResponse.metrics().setEndpoint(endpoint.toString());
@@ -162,7 +172,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         return convert((method == null) ? request.method() : method);
     }
 
-    private class StringBodyPart implements BodyPart {
+    private class StringBodyPart implements BodyPart<ByteBuffer> {
 
         private final byte[] bytes;
 
@@ -181,7 +191,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         }
 
         @Override
-        public ByteBuffer getBodyPartAsByteBuffer() {
+        public ByteBuffer getBodyPart() {
             return ByteBuffer.wrap(bytes);
         }
     }
@@ -271,8 +281,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         options.setUsePooledBuffers(true);
         options.setMaxPoolSize(100);
 
-        URI endpointURI = URI.create(proxyDefinition.getEndpoints().iterator().next());
-        if (endpointURI.getScheme().equals("https") && proxyDefinition.getHttpClient().getSsl() != null
+        if (proxyDefinition.getHttpClient().getSsl() != null
                 && proxyDefinition.getHttpClient().getSsl().isEnabled()) {
             options
                     .setSsl(proxyDefinition.getHttpClient().getSsl().isEnabled())

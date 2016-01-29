@@ -13,19 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.spring;
+package io.gravitee.gateway.core.http.loadbalancer;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.api.Request;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
-@Configuration
-public class HttpClientConfiguration {
+public class RoundRobinLoadBalancer extends LoadBalancerSupport {
 
-    @Bean
-    public static HttpClientBeanFactoryPostProcessor httpClientBeanFactoryPostProcessor() {
-        return new HttpClientBeanFactoryPostProcessor();
+    private int counter = -1;
+
+    public RoundRobinLoadBalancer(final Api api) {
+        super(api);
+    }
+
+    @Override
+    public synchronized String chooseEndpoint(Request request) {
+        int size = endpoints().size();
+        if (++counter >= size) {
+            counter = 0;
+        }
+        return endpoints().get(counter).getTarget();
+    }
+
+    @Override
+    public String toString() {
+        return "RoundRobinLoadBalancer";
     }
 }

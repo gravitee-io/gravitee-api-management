@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.builder;
 
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.Proxy;
 
 /**
@@ -30,7 +31,7 @@ public class ProxyDefinitionBuilder {
     }
 
     public ProxyDefinitionBuilder target(String target) {
-        this.proxyDefinition.getEndpoints().add(target);
+        this.proxyDefinition.getEndpoints().add(new Endpoint(target));
         return this;
     }
 

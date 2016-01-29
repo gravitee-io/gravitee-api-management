@@ -15,14 +15,14 @@
  */
 package io.gravitee.gateway.core.reactor.handler.impl;
 
-import io.gravitee.gateway.core.http.spring.HttpClientConfiguration;
+import io.gravitee.gateway.core.http.client.spring.HttpClientConfiguration;
+import io.gravitee.gateway.core.http.loadbalancer.spring.LoadBalancerFactory;
 import io.gravitee.gateway.core.policy.PathResolver;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.gateway.core.policy.PolicyResolver;
 import io.gravitee.gateway.core.policy.impl.*;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
-import io.gravitee.gateway.http.core.endpoint.EndpointResolverFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -70,7 +70,7 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public EndpointResolverFactory endpointResolverFactory() {
-        return new EndpointResolverFactory();
+    public LoadBalancerFactory loadBalancerFactory() {
+        return new LoadBalancerFactory();
     }
 }
