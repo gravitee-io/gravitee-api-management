@@ -40,7 +40,7 @@ public class EndpointResolverFactory extends AbstractFactoryBean<EndpointResolve
         // 3_ A multiple endpoint definition to apply round-robin
 
         if (api.getProxy().getEndpoints().size() == 1) {
-            return new SingleEndpointResolver(api.getProxy().getEndpoints().iterator().next());
+            return new SingleEndpointResolver(api.getProxy().getEndpoints().iterator().next().getTarget());
         } else {
             return new RoundRobinEndpointResolver(api.getProxy().getEndpoints());
         }
