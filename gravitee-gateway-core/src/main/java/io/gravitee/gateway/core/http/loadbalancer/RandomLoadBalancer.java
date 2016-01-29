@@ -22,6 +22,7 @@ import java.util.Random;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
 public class RandomLoadBalancer extends LoadBalancerSupport {
 
@@ -33,17 +34,17 @@ public class RandomLoadBalancer extends LoadBalancerSupport {
     }
 
     @Override
-    public String chooseEndpoint(Request request) {
+    public synchronized String chooseEndpoint(Request request) {
         int size = endpoints().size();
         if (size == 0) {
             return null;
         } else if (size == 1) {
-            // there is only 1
-            return endpoints().get(0);
+            // There is only 1
+            return endpoints().get(0).getTarget();
         }
 
         index = RANDOM.nextInt(size);
-        return endpoints().get(index);
+        return endpoints().get(index).getTarget();
     }
 
     @Override

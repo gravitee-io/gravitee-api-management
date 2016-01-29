@@ -30,7 +30,7 @@ public class VertxFactory implements FactoryBean<Vertx> {
 
     @Override
     public Vertx getObject() throws Exception {
-        VertxOptions options = new VertxOptions();
+        VertxOptions options = new VertxOptions().setWorkerPoolSize(100);
         Vertx instance = Vertx.vertx(options);
         instance.registerVerticleFactory(graviteeVerticleFactory);
         return instance;

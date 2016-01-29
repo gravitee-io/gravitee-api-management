@@ -46,7 +46,7 @@ public class DynamicEndpointResolver extends AbstractEndpointResolver {
     }
 
     private void initialize() {
-        String endpoint = api.getProxy().getEndpoints().iterator().next();
+        String endpoint = api.getProxy().getEndpoints().iterator().next().getTarget();
         logger.info("Initializing parser for dynamic endpoint: {}", endpoint);
 
         try {

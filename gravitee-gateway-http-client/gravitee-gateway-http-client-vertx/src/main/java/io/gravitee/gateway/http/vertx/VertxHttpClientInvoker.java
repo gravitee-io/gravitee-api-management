@@ -281,8 +281,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         options.setUsePooledBuffers(true);
         options.setMaxPoolSize(100);
 
-        URI endpointURI = URI.create(proxyDefinition.getEndpoints().iterator().next());
-        if (endpointURI.getScheme().equals("https") && proxyDefinition.getHttpClient().getSsl() != null
+        if (proxyDefinition.getHttpClient().getSsl() != null
                 && proxyDefinition.getHttpClient().getSsl().isEnabled()) {
             options
                     .setSsl(proxyDefinition.getHttpClient().getSsl().isEnabled())

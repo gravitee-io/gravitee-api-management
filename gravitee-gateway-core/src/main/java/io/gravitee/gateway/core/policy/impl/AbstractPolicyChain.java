@@ -20,6 +20,9 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -48,12 +51,19 @@ public abstract class AbstractPolicyChain implements PolicyChain {
 
             @Override
             public String message() {
-                return throwable.getMessage();
+                return convertStackTrace(throwable);
             }
         });
     }
 
     public void setResultHandler(Handler<PolicyResult> resultHandler) {
         this.resultHandler = resultHandler;
+    }
+
+    private String convertStackTrace(Throwable throwable) {
+        final StringWriter sw = new StringWriter();
+        final PrintWriter pw = new PrintWriter(sw, true);
+        throwable.printStackTrace(pw);
+        return sw.getBuffer().toString();
     }
 }

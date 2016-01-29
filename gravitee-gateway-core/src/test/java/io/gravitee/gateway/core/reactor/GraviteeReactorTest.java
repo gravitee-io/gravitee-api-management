@@ -19,6 +19,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.AbstractCoreTest;
 import io.gravitee.gateway.core.definition.Api;
@@ -181,11 +182,11 @@ public class GraviteeReactorTest extends AbstractCoreTest {
     private Api getApiDefinition() throws Exception {
         URL jsonFile = GraviteeReactorTest.class.getResource("/io/gravitee/gateway/core/reactor/api.json");
         Api api = new GraviteeMapper().readValue(jsonFile, Api.class);
-        String endpoint = api.getProxy().getEndpoints().iterator().next();
+        String endpoint = api.getProxy().getEndpoints().iterator().next().getTarget();
         URI uri = URI.create(endpoint);
         URI newUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), SERVER_MOCK.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
         api.getProxy().getEndpoints().clear();
-        api.getProxy().getEndpoints().add(newUri.toString());
+        api.getProxy().getEndpoints().add(new Endpoint(newUri.toString()));
         return api;
     }
 

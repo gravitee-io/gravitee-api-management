@@ -16,12 +16,14 @@
 package io.gravitee.gateway.core.http.loadbalancer;
 
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
 
 import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
 public abstract class LoadBalancerSupport implements LoadBalancer {
 
@@ -31,7 +33,7 @@ public abstract class LoadBalancerSupport implements LoadBalancer {
         this.api = api;
     }
 
-    protected List<String> endpoints() {
+    protected List<Endpoint> endpoints() {
         return api.getProxy().getEndpoints();
     }
 }

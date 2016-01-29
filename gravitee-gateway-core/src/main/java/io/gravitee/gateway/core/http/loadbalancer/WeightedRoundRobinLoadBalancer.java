@@ -22,25 +22,42 @@ import io.gravitee.gateway.api.Request;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public class RoundRobinLoadBalancer extends LoadBalancerSupport {
+public class WeightedRoundRobinLoadBalancer extends WeightedLoadBalancer {
 
-    private int counter = -1;
+    private int counter;
 
-    public RoundRobinLoadBalancer(final Api api) {
+    public WeightedRoundRobinLoadBalancer(Api api) {
         super(api);
     }
 
     @Override
     public synchronized String chooseEndpoint(Request request) {
-        int size = endpoints().size();
-        if (++counter >= size) {
+        if (isRuntimeRatiosZeroed())  {
+            resetRuntimeRatios();
             counter = 0;
         }
-        return endpoints().get(counter).getTarget();
+
+        boolean found = false;
+        while (!found) {
+            if (counter >= getRuntimeRatios().size()) {
+                counter = 0;
+            }
+
+            if (getRuntimeRatios().get(counter).getRuntime() > 0) {
+                getRuntimeRatios().get(counter).setRuntime((getRuntimeRatios().get(counter).getRuntime()) - 1);
+                found = true;
+            } else {
+                counter++;
+            }
+        }
+
+        lastIndex = counter;
+
+        return endpoints().get(counter++).getTarget();
     }
 
     @Override
     public String toString() {
-        return "RoundRobinLoadBalancer";
+        return "WeightedRoundRobinLoadBalancer";
     }
 }

@@ -19,6 +19,8 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
 import io.gravitee.gateway.core.http.loadbalancer.RandomLoadBalancer;
 import io.gravitee.gateway.core.http.loadbalancer.RoundRobinLoadBalancer;
+import io.gravitee.gateway.core.http.loadbalancer.WeightedRandomLoadBalancer;
+import io.gravitee.gateway.core.http.loadbalancer.WeightedRoundRobinLoadBalancer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
 public class LoadBalancerFactory extends AbstractFactoryBean<LoadBalancer> {
 
@@ -51,6 +54,12 @@ public class LoadBalancerFactory extends AbstractFactoryBean<LoadBalancer> {
                     break;
                 case RANDOM:
                     loadBalancer = new RandomLoadBalancer(api);
+                    break;
+                case WEIGHTED_RANDOM:
+                    loadBalancer = new WeightedRandomLoadBalancer(api);
+                    break;
+                case WEIGHTED_ROUND_ROBIN:
+                    loadBalancer = new WeightedRoundRobinLoadBalancer(api);
                     break;
             }
         }

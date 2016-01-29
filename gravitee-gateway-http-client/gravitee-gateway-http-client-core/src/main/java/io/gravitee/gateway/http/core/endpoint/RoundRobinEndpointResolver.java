@@ -15,22 +15,22 @@
  */
 package io.gravitee.gateway.http.core.endpoint;
 
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.Request;
 
 import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class RoundRobinEndpointResolver implements EndpointResolver {
 
-    private final List<String> endpoints;
-    private Iterator<String> iterator;
+    private final List<Endpoint> endpoints;
+    private Iterator<Endpoint> iterator;
 
-    public RoundRobinEndpointResolver(List<String> endpoints) {
+    public RoundRobinEndpointResolver(List<Endpoint> endpoints) {
         this.endpoints = endpoints;
     }
 
@@ -41,6 +41,6 @@ public class RoundRobinEndpointResolver implements EndpointResolver {
             iterator = endpoints.iterator();
         }
 
-        return URI.create(iterator.next());
+        return URI.create(iterator.next().getTarget());
     }
 }
