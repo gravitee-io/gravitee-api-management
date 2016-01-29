@@ -109,8 +109,6 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
             // Management is required so we are throwing an exception while registering bean definitions
             if (repositoryScope == Scope.MANAGEMENT) {
                 throw new IllegalStateException("No repository type defined in configuration for " + repositoryScope.getName());
-            } else {
-                return;
             }
         }
     }
