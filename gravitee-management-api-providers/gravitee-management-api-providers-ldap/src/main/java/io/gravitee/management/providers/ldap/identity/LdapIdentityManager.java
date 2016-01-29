@@ -34,7 +34,6 @@ import java.util.Collection;
 /**
  * @author Titouan COMPIEGNE
  */
-@Component
 public class LdapIdentityManager implements IdentityManager {
 
 	@Autowired

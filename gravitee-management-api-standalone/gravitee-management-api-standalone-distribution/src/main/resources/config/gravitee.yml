@@ -1,7 +1,4 @@
 
-plugins:
-  path: ${gravitee.home}/plugins
-
 management:
   type: mongodb
   mongodb:
@@ -9,31 +6,9 @@ management:
     host: localhost
     port: 27017
 
-analytics:
-  type: elasticsearch
-  elasticsearch:
-    host: localhost
-    port: 9300
-
 security:
   type: basic
   providers:
-    - type: ldap
-      embedded: true
-      role-mapping: true
-      # if role-mapping is true set the following role mapper LDAP values
-      role-mapper: {
-        ROLE_DEVELOPERS: ROLE_USER,
-        ROLE_MEMBERS: ROLE_USER,
-        ROLE_OWNERS: ROLE_ADMIN
-      }
-      user-dn-patterns: uid={0},ou=people
-      group-search-base: ou=groups
-      context-source-base: dc=gravitee,dc=io
-      # if embedded is false set the following values
-      # context-source-username: test
-      # context-source-password: test
-      # context-source-url: ldap://localhost:389/dc=gravitee,dc=io
     - type: memory
       users:
         - user:

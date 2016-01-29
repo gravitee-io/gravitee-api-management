@@ -24,11 +24,14 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -39,6 +42,8 @@ public class ProviderBeanFactoryPostProcessor implements BeanFactoryPostProcesso
     private final static Logger LOGGER = LoggerFactory.getLogger(ProviderBeanFactoryPostProcessor.class);
 
     private ConfigurationClassPostProcessor configurationClassPostProcessor;
+
+    private Environment environment;
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -51,6 +56,9 @@ public class ProviderBeanFactoryPostProcessor implements BeanFactoryPostProcesso
                     providers.size(), Provider.class.getSimpleName());
 
             DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
+            environment = beanFactory.getBean(Environment.class);
+
+            List<String> getSecurityProviders = getSecurityProviders();
 
             for (String provider : providers) {
                 try {
@@ -60,35 +68,56 @@ public class ProviderBeanFactoryPostProcessor implements BeanFactoryPostProcesso
                     Provider providerInstance =
                             createInstance((Class<Provider>) instanceClass);
 
-                    LOGGER.info("Registering a provider {} [{}]", instanceClass.getSimpleName(),
+                    if (getSecurityProviders.contains(providerInstance.type())) {
+                        LOGGER.info("Registering a provider {} [{}]", instanceClass.getSimpleName(),
                             providerInstance.type());
 
-                    if (providerInstance.authenticationManager() != null) {
-                        defaultListableBeanFactory.registerBeanDefinition(
-                                providerInstance.authenticationManager().getName(),
-                                new RootBeanDefinition(providerInstance.authenticationManager().getName()));
-                    }
+                        if (providerInstance.authenticationManager() != null) {
+                            defaultListableBeanFactory.registerBeanDefinition(
+                                    providerInstance.authenticationManager().getName(),
+                                    new RootBeanDefinition(providerInstance.authenticationManager().getName()));
+                        }
 
-                    if (providerInstance.identityManager() != null) {
-                        defaultListableBeanFactory.registerBeanDefinition(
-                                providerInstance.identityManager().getName(),
-                                new RootBeanDefinition(providerInstance.identityManager().getName()));
-                    }
+                        if (providerInstance.identityManager() != null) {
+                            defaultListableBeanFactory.registerBeanDefinition(
+                                    providerInstance.identityManager().getName(),
+                                    new RootBeanDefinition(providerInstance.identityManager().getName()));
+                        }
 
-                    Class<?> extension = providerInstance.configuration();
-                    if (extension != null) {
-                        LOGGER.info("\tRegistering provider extension: {}", extension.getName());
-                        defaultListableBeanFactory.registerBeanDefinition(extension.getName(),
-                                new RootBeanDefinition(extension.getName()));
+                        Class<?> extension = providerInstance.configuration();
+                        if (extension != null) {
+                            LOGGER.info("\tRegistering provider extension: {}", extension.getName());
+                            defaultListableBeanFactory.registerBeanDefinition(extension.getName(),
+                                    new RootBeanDefinition(extension.getName()));
 
-                        LOGGER.info("\tLoading @Configuration from previous extension {}", extension.getName());
-                        configurationClassPostProcessor.processConfigBeanDefinitions(defaultListableBeanFactory);
+                            LOGGER.info("\tLoading @Configuration from previous extension {}", extension.getName());
+                            configurationClassPostProcessor.processConfigBeanDefinitions(defaultListableBeanFactory);
+                        }
                     }
                 } catch (Exception ex) {
                     LOGGER.error("Unable to instantiate provider: {}", ex);
                     throw new IllegalStateException("Unable to instantiate provider: " + provider, ex);
                 }
             }
+    }
+
+    private List<String> getSecurityProviders() {
+        LOGGER.debug("Looking for security provider...");
+        List<String> providers = new ArrayList<>();
+
+        boolean found = true;
+        int idx = 0;
+
+        while (found) {
+            String type = environment.getProperty("security.providers[" + (idx++) + "].type");
+            found = (type != null);
+            if (found) {
+                LOGGER.debug("\tSecurity type {} has been defined", type);
+                providers.add(type);
+            }
+        }
+
+        return providers;
     }
 
     private <T> T createInstance(Class<T> clazz) throws Exception {
