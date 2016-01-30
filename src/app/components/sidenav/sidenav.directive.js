@@ -60,8 +60,6 @@ class SideNavController {
     $scope.$on('authenticationRequired', function () {
       self.showLoginModal();
     });
-
-    this.reducedMode = $rootScope.percentWidth > 33 || !$rootScope.authenticated;
   }
 
   getUser() {

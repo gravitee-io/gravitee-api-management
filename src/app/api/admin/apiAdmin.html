@@ -16,7 +16,8 @@
 
 -->
 <section>
-  <div ng-hide="apiCtrl.apiIsSynchronized || apiCtrl.apiJustDeployed" class="gravitee-api-banner" ng-cloak="">
+  <div class="gravitee-api-banner" ng-class="{'gravitee-api-banner-min': reducedMode}"
+    ng-hide="apiCtrl.apiIsSynchronized || apiCtrl.apiJustDeployed" ng-cloak="">
     <div ng-click="apiCtrl.showDeployAPIConfirm($event, apiCtrl.api)" class="gravitee-api-banner-content">
       API out of sync, <a>deploy your API</a>
     </div>
