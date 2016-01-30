@@ -85,7 +85,7 @@
 
 .gravitee-api-header-content {
   color: white;
-  padding-left: 20px !important;
+  padding-left: 20px;
   width: 100%;
 }
 
@@ -112,9 +112,14 @@
   position: fixed;
   cursor: pointer;
   font-weight: bold;
-  left: 0;
-  width: 100%;
+  left: $sidenavWidth;
+  width: calc(100% - #{$sidenavWidth});
   z-index: 10;
+}
+
+.gravitee-api-banner-min {
+  left: $sidenavMinWidth;
+  width: calc(100% - #{$sidenavMinWidth});
 }
 
 .gravitee-api-banner-content {

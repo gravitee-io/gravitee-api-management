@@ -1,12 +1,3 @@
-$bgColor: #333;
-$fontColor: #fafafa;
-$sidenavWidth: 200px;
-$sidenavMinWidth: 60px;
-$sidenavItemLeftWidth: 15px;
-$sidenavItemBorderSize: 4px;
-$sidenavFooterHeight: 150px;
-$sidenavHeaderHeight: 60px;
-
 @mixin min-max-width($width) {
   width: $width;
   min-width: $width;
@@ -84,7 +75,7 @@ md-sidenav.md-sidenav-theme {
 
     &.sidenav-active {
       border-left: $sidenavItemBorderSize solid $fontColor;
-      padding-left: calc(#{$sidenavItemLeftWidth} - #{$sidenavItemBorderSize}) !important;
+      padding-left: calc(#{$sidenavItemLeftWidth} - #{$sidenavItemBorderSize});
     }
   }
 

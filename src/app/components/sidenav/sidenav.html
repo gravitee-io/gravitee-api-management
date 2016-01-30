@@ -16,13 +16,13 @@
 
 -->
 <md-sidenav class="md-sidenav-left md-whiteframe-z2 md-sidenav-theme" md-component-id="left" md-is-locked-open="true"
-  ng-class="{'md-sidenav-min': sidenavCtrl.reducedMode}">
+  ng-class="{'md-sidenav-min': reducedMode}">
 	<div>
 		<div class="sidenav-user-contents">
 			<div>
 				<img src="app/images/GRAVITEE_LOGO1-01.png" />
 				<span id="sidenav-user-name">
-          <strong ng-if="!sidenavCtrl.reducedMode">{{sidenavCtrl.user.principal.username}}</strong>
+          <strong ng-if="!reducedMode">{{sidenavCtrl.user.principal.username}}</strong>
         </span>
 			</div>
 			<md-divider></md-divider>
@@ -31,17 +31,17 @@
       <md-list-item ng-repeat="menuItem in menuItems" ng-if="authenticated || menuItem.url === '/'">
         <a ui-sref="{{menuItem.name}}" ui-sref-active="sidenav-active" title="{{menuItem.menu.label}}">
           <ng-md-icon icon="{{menuItem.menu.icon}}"></ng-md-icon>
-          <span ng-if="!sidenavCtrl.reducedMode">{{menuItem.menu.label}}</span>
+          <span ng-if="!reducedMode">{{menuItem.menu.label}}</span>
         </a>
       </md-list-item>
-      <hr ng-if="sidenavCtrl.reducedMode && subMenuItems.length > 0">
-      <md-list-item ng-if="!sidenavCtrl.reducedMode">
+      <hr ng-if="reducedMode && subMenuItems.length > 0">
+      <md-list-item ng-if="!reducedMode">
         <h4>{{currentResource}}</h4>
       </md-list-item>
       <md-list-item ng-repeat="menuItem in subMenuItems">
         <a ui-sref="{{menuItem.name}}" ui-sref-active="sidenav-active" title="{{menuItem.menu.label}}">
           <ng-md-icon icon="{{menuItem.menu.icon}}"></ng-md-icon>
-          <span ng-if="!sidenavCtrl.reducedMode">{{menuItem.menu.label}}</span>
+          <span ng-if="!reducedMode">{{menuItem.menu.label}}</span>
         </a>
       </md-list-item>
     </md-list>
@@ -49,15 +49,15 @@
       <hr>
       <md-list-item>
         <a href="#" ng-click="sidenavCtrl.showLoginModal($event)" ng-if="!authenticated">
-          <ng-md-icon icon="logout"></ng-md-icon> <span ng-if="!sidenavCtrl.reducedMode">Login</span>
+          <ng-md-icon icon="logout"></ng-md-icon> <span ng-if="!reducedMode">Login</span>
         </a>
         <a href="#" ng-click="sidenavCtrl.logout()" ng-if="authenticated">
-          <ng-md-icon icon="login"></ng-md-icon> <span ng-if="!sidenavCtrl.reducedMode">Sign out</span>
+          <ng-md-icon icon="login"></ng-md-icon> <span ng-if="!reducedMode">Sign out</span>
         </a>
       </md-list-item>
       <md-list-item>
-        <a href="" ng-click="sidenavCtrl.reducedMode = !sidenavCtrl.reducedMode">
-          <ng-md-icon icon="{{sidenavCtrl.reducedMode?'chevron_right':'chevron_left'}}"></ng-md-icon> <span ng-if="!sidenavCtrl.reducedMode">Reduce the menu</span>
+        <a href="" ng-click="reducedMode = !reducedMode">
+          <ng-md-icon icon="{{reducedMode?'chevron_right':'chevron_left'}}"></ng-md-icon> <span ng-if="!reducedMode">Reduce the menu</span>
         </a>
       </md-list-item>
 		</md-list>

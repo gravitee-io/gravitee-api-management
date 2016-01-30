@@ -77,6 +77,8 @@ function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav) {
   } else {
     $rootScope.percentWidth = 33;
   }
+
+  $rootScope.reducedMode = $rootScope.percentWidth > 33 || !$rootScope.authenticated;
 }
 
 export default runBlock;
