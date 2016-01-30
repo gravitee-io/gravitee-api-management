@@ -24,6 +24,7 @@ class ApiAdminController {
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.apiJustDeployed = false;
+    this.apiIsSynchronized = true;
     this.init();
     this.checkAPISynchronization(this.api);
 
@@ -56,6 +57,8 @@ class ApiAdminController {
         $scope.selectedTab = 7;
       } else if ($state.current.name.endsWith('descriptor')) {
         $scope.selectedTab = 8;
+      } else if ($state.current.name.endsWith('events')) {
+        $scope.selectedTab = 9;
       }
     });
   }

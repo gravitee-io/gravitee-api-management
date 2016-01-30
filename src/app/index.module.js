@@ -34,6 +34,7 @@ import ApiMonitoringController from './api/admin/monitoring.controller';
 import ApiPropertiesController from './api/admin/properties/properties.controller';
 import ApiKeysController from './api/admin/apikeys/apikeys.controller';
 import ApiDescriptorController from './api/admin/descriptor.controller';
+import ApiEventsController from './api/admin/events/apiEvents.controller';
 import DialogAddPropertyController from './api/admin/properties/add-property.dialog.controller';
 import DialogAddMemberApiController from './api/admin/members/addMemberDialog.controller';
 import DialogApiController from './api/dialog/apiDialog.controller';
@@ -63,10 +64,11 @@ import PolicyService from './policy/policy.service';
 import PageDirective from './components/documentation/page.directive';
 import DialogLoginController from './login/dialog/loginDialog.controller';
 import RoleDirective from './components/role/role.directive';
+import DiffDirective from './components/diff/diff.directive';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
-    'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants'])
+    'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -95,6 +97,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('ApiPropertiesController', ApiPropertiesController)
   .controller('ApiKeysController', ApiKeysController)
   .controller('ApiDescriptorController', ApiDescriptorController)
+  .controller('ApiEventsController', ApiEventsController)
   .controller('DialogAddPropertyController', DialogAddPropertyController)
   .controller('DialogApiController', DialogApiController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
@@ -125,6 +128,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .directive('graviteePage', () => new PageDirective())
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('graviteeRolesAllowed', () => new RoleDirective())
+  .directive('graviteeDiff', () => new DiffDirective())
   .service('PolicyService', PolicyService)
   .filter('apiKeyFilter', function () {
     return function (keys) {

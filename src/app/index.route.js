@@ -188,6 +188,21 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
         icon: 'book'
       }
     })
+    .state('apis.admin.events', {
+      url: '/events',
+      templateUrl: 'app/api/admin/events/apiEvents.html',
+      controller: 'ApiEventsController',
+      controllerAs: 'apiEventsCtrl',
+      resolve: {
+        resolvedEvents:function ($stateParams, ApiService) {
+          return ApiService.getApiEvents($stateParams.apiId);
+        }
+      },
+      menu: {
+        label: 'Events',
+        icon: 'book'
+      }
+    })
     .state('profile', {
       url: '/profile',
       templateUrl: 'app/profile/profile_stub.html',
