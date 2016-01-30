@@ -53,4 +53,6 @@ public interface ApiService {
     boolean isAPISynchronized(ApiEntity api);
     
     ApiEntity deploy(String apiId, String username);
+    
+    ApiEntity rollback(String apiId, UpdateApiEntity api);
 }

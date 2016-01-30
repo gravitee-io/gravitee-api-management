@@ -150,6 +150,22 @@ public class ApiResource extends AbstractResource {
         
         return apiEntity;
     }
+    
+    @POST
+    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
+    @Consumes
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("rollback")
+    public Response rollback(@Valid @NotNull final UpdateApiEntity api) {
+        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
+
+        try {
+            ApiEntity apiEntity = apiService.rollback(this.api, api);
+            return Response.status(Status.OK).entity(apiEntity).build();
+        } catch (Exception e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+        }
+    }
        
     @Path("keys")
     public ApiKeysResource getApiKeyResource() {
@@ -174,6 +190,11 @@ public class ApiResource extends AbstractResource {
     @Path("pages")
     public ApiPagesResource getApiPagesResource() {
         return resourceContext.getResource(ApiPagesResource.class);
+    }
+    
+    @Path("events")
+    public ApiEventsResource getApiEventsResource() {
+        return resourceContext.getResource(ApiEventsResource.class);
     }
     
     private void setPermission(ApiEntity api) {

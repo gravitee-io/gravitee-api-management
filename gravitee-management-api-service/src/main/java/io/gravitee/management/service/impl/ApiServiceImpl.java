@@ -429,7 +429,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
              LOGGER.error("An error occurs while trying to deploy API: {}", apiId, ex);
              throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
          } 
-    	
+    }
+    
+    @Override
+    public ApiEntity rollback(String apiId, UpdateApiEntity api) {
+        LOGGER.debug("Rollback API : {}", apiId);
+        try {
+            update(apiId, api);
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while trying to rollback API: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to rollback API: " + apiId, ex);
+        }
+        return null;
     }
 
     private void updateLifecycle(String apiName, LifecycleState lifecycleState) throws TechnicalException {
