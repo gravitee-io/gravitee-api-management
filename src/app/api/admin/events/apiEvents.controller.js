@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 class ApiEventsController {
-  constructor ($mdDialog, $scope, ApiService, NotificationService, resolvedApi, resolvedEvents) {
+  constructor ($mdDialog, $scope, $window, ApiService, NotificationService, resolvedApi, resolvedEvents) {
     'ngInject';
     this.$mdDialog = $mdDialog;
     this.$scope = $scope;
+    this.$window = $window;
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.api = _.cloneDeep(resolvedApi.data);
     this.events = resolvedEvents.data;
     this.eventsSelected = [];
     this.eventsTimeline = [];
+    this.eventsToCompare = [];
     this.eventSelected = {};
     this.apisSelected = [];
+    this.apisToCompare = [];
     this.diffMode = false;
     this.eventToCompareRequired = false;
     
@@ -56,30 +59,38 @@ class ApiEventsController {
   }
   
   selectApi(_api) {
-    this.diffMode = false;
-    this.apisSelected = [];
-    this.eventsSelected = [];
-    
-    var idx = this.apisSelected.indexOf(_api);
-    if (idx > -1) {
-      this.apisSelected.splice(idx, 1);
-    }
-    else {
-      this.apisSelected.push(_api);
-    }
-    
-    if (this.apisSelected.length > 0) {
-      this.eventSelectedPayloadDefinition = _api;
+    if (this.eventToCompareRequired) {
+      this.diffWithApi(_api);
+      this.selectApiToCompare(_api);
+    } else {
+      this.diffMode = false;
+      this.apisSelected = [];
+      this.eventsSelected = [];
+      this.clearDataToCompare();
+      
+      var idx = this.apisSelected.indexOf(_api);
+      if (idx > -1) {
+        this.apisSelected.splice(idx, 1);
+      }
+      else {
+        this.apisSelected.push(_api);
+      }
+      
+      if (this.apisSelected.length > 0) {
+        this.eventSelectedPayloadDefinition = _api;
+      }
     }
   }
   
   selectEvent( _event) {
     if (this.eventToCompareRequired) {
       this.diff(_event);
+      this.selectEventToCompare(_event);
     } else {
       this.diffMode = false;
       this.apisSelected = [];
       this.eventsSelected = [];
+      this.clearDataToCompare();
       
       var idx = this.eventsSelected.indexOf(_event);
       if (idx > -1) {
@@ -97,8 +108,30 @@ class ApiEventsController {
     }
   }
   
+  selectApiToCompare(_api) {
+    this.apisToCompare.push(_api);
+  }
+  
+  selectEventToCompare(_event) {
+    this.eventsToCompare.push(_event);
+  }
+  
+  clearDataToCompare() {
+    this.apisToCompare = [];
+    this.eventsToCompare = [];
+  }
+  
+  isEventSelectedForComparaison(_event) {
+    return this.eventsToCompare.indexOf(_event) > -1;
+  }
+  
+  isApiSelectedForComparaison(_api) {
+    return this.apisToCompare.indexOf(_api) > -1;
+  }
+  
   diffWithMaster() {
     // get published api
+    this.clearDataToCompare();
     this.diffMode = true;
     var latestEvent = this.events[0];
     if (this.eventsSelected.length > 0) {
@@ -111,11 +144,19 @@ class ApiEventsController {
   }
   
   enableDiff() {
+    this.clearDataToCompare();
     this.eventToCompareRequired = true;
   }
 
   disableDiff() {
     this.eventToCompareRequired = false;
+  }
+  
+  diffWithApi(api) {
+    this.diffMode = true;
+    this.left = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].payload));
+    this.right = api;
+    this.disableDiff();
   }
   
   diff(event) {
@@ -144,10 +185,6 @@ class ApiEventsController {
   
   isApiSelected(_api) {
     return this.apisSelected.indexOf(_api) > -1;
-  }
-  
-  enableDiffMode() {
-    this.diffMode = true;
   }
   
   rollback(_apiPayload) {
@@ -190,7 +227,6 @@ class ApiEventsController {
       "deployed_at": _event.deployedAt,
       "properties": eventPayloadDefinition.properties
     };
-    
     return reorganizedEvent;
   }
   

@@ -178,16 +178,6 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
         icon: 'computer'
       }
     })
-    .state('apis.admin.descriptor', {
-      url: '/descriptor',
-      templateUrl: 'app/api/admin/descriptor.html',
-      controller: 'ApiDescriptorController',
-      controllerAs: 'apiDescriptorCtrl',
-      menu: {
-        label: 'Descriptor',
-        icon: 'book'
-      }
-    })
     .state('apis.admin.events', {
       url: '/events',
       templateUrl: 'app/api/admin/events/apiEvents.html',
@@ -200,7 +190,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       },
       menu: {
         label: 'Events',
-        icon: 'book'
+        icon: 'event_note'
       }
     })
     .state('profile', {

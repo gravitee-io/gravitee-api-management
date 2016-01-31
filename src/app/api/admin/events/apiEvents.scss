@@ -22,10 +22,6 @@
   border-right: none;
 }
 
-.timeline timeline-panel.choice {
-  box-shadow: 0 1px 50px rgba(0, 0, 0, 0.175) !important;
-}
-
 .timeline .timeline-link {
   color: #333;
 }
@@ -33,7 +29,7 @@
 .timeline:before {
   position: absolute;
   width: 1px;
-  left: 5%;
+  left: 6%;
 }
 
 .timeline li timeline-badge {
@@ -42,13 +38,13 @@
   height: 20px;
   line-height: 20px;
   font-size: 1em;
-  left: 11%;
+  left: 13%;
   top: 29px;
 }
 
 .timeline li.timeline-inverted timeline-panel {
   float:left;
-  left: 16%;
+  left: 18%;
 }
 
 ul.timeline li timeline-panel {
@@ -58,4 +54,18 @@ ul.timeline li timeline-panel {
 pre.api-events-definition {
   background-color: transparent !important;
   border: none !important;
+}
+
+.api-events-checkbox {
+  position: absolute;
+  margin-bottom: 0px;
+  top: -2px;
+  margin-top: 15px;
+  right: 0px;
+}
+
+.api-events-icon {
+  position: absolute;
+  margin-top: 5px;
+  right: 9px;
 }

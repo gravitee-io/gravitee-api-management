@@ -33,7 +33,6 @@ import AddPoliciesPathController from './api/admin/policies/addPoliciesPath.cont
 import ApiMonitoringController from './api/admin/monitoring.controller';
 import ApiPropertiesController from './api/admin/properties/properties.controller';
 import ApiKeysController from './api/admin/apikeys/apikeys.controller';
-import ApiDescriptorController from './api/admin/descriptor.controller';
 import ApiEventsController from './api/admin/events/apiEvents.controller';
 import DialogAddPropertyController from './api/admin/properties/add-property.dialog.controller';
 import DialogAddMemberApiController from './api/admin/members/addMemberDialog.controller';
@@ -96,7 +95,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('ApiMonitoringController', ApiMonitoringController)
   .controller('ApiPropertiesController', ApiPropertiesController)
   .controller('ApiKeysController', ApiKeysController)
-  .controller('ApiDescriptorController', ApiDescriptorController)
   .controller('ApiEventsController', ApiEventsController)
   .controller('DialogAddPropertyController', DialogAddPropertyController)
   .controller('DialogApiController', DialogApiController)

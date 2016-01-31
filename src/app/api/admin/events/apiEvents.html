@@ -25,9 +25,12 @@
             <i class="glyphicon glyphicon-refresh"></i>
           </timeline-badge>
           <a class="timeline-link" href="javascript:void(0);" ng-click="apiEventsCtrl.selectApi(apiEventsCtrl.api)">
-            <timeline-panel ng-class="{active : apiEventsCtrl.isApiSelected(apiEventsCtrl.api), choice: apiEventsCtrl.eventToCompareRequired}" class="warning">
+            <timeline-panel ng-class="{active : apiEventsCtrl.isApiSelected(apiEventsCtrl.api)}" class="warning">
               <timeline-heading>
-                <h5>TO_DEPLOY</h5>
+                <h5>TO_DEPLOY
+                  <ng-md-icon class="api-events-icon" ng-show="apiEventsCtrl.eventToCompareRequired && !apiEventsCtrl.isApiSelected(apiEventsCtrl.api)" icon="crop_din" style="fill: rgba(0,0,0,0.54);"></ng-md-icon>
+                  <ng-md-icon class="api-events-icon" ng-show="apiEventsCtrl.isApiSelectedForComparaison(apiEventsCtrl.api)" icon="compare" style="fill: green;"></ng-md-icon>
+                </h5>
                 <p>
                   <small class="text-muted ng-binding"><i class="glyphicon glyphicon-info-sign"></i>The current undeployed API</small>
                 </p>
@@ -41,9 +44,12 @@
             <i class="glyphicon {{eventTimeline.badgeIconClass}}"></i>
           </timeline-badge>
           <a class="timeline-link" href="javascript:void(0);" ng-click="apiEventsCtrl.selectEvent(eventTimeline.event)">
-            <timeline-panel ng-class="{active : apiEventsCtrl.isEventSelected(eventTimeline.event), choice: apiEventsCtrl.eventToCompareRequired}" class="{{eventTimeline.badgeClass}}">
+            <timeline-panel ng-class="{active : apiEventsCtrl.isEventSelected(eventTimeline.event)}" class="{{eventTimeline.badgeClass}}">
               <timeline-heading>
-                <h5>{{eventTimeline.title | uppercase}}</h5>
+                <h5>{{eventTimeline.title | uppercase}}
+                  <ng-md-icon class="api-events-icon" ng-show="apiEventsCtrl.eventToCompareRequired && !apiEventsCtrl.isEventSelected(eventTimeline.event)" icon="crop_din" style="fill: rgba(0,0,0,0.54);"></ng-md-icon>
+                  <ng-md-icon class="api-events-icon" ng-show="apiEventsCtrl.isEventSelectedForComparaison(eventTimeline.event)" icon="compare" style="fill: green;"></ng-md-icon>
+                </h5>
                 <p ng-if="eventTimeline.when">
                   <small class="text-muted ng-binding"><i class="glyphicon glyphicon-time"></i>{{eventTimeline.when | date : 'medium'}} by {{eventTimeline.username}}</small>
                 </p>
