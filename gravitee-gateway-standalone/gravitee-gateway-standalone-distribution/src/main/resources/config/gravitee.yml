@@ -1,13 +1,134 @@
+############################################################################################################
+#################################### Gravitee.IO Gateway - Configuration ###################################
+############################################################################################################
 
+############################################################################################################
+# This file is the general configuration of Gravitee.IO Gateway:
+# - Properties (and respective default values) in comment are provided for information.
+# - You can reference other property by using ${property.name} syntax
+# - gravitee.home property is automatically set-up by launcher and refers to the installation path. Do not override it !
+#
+# Please have a look to http://docs.gravitee.io/ for more options and fine-grained granularity
+############################################################################################################
+
+# Gateway HTTP server
+#http:
+#  port: 8082
+#  idleTimeout: 0
+#  tcpKeepAlive: true
+#  compressionSupported: false
+#  pool:
+#    workers: 100
+#  secured: false
+#  ssl:
+#    clientAuth: false
+#    keystore:
+#      path:
+#      password:
+#    truststore:
+#      path:
+#      password:
+
+# Plugins repository
+#plugins:
+#  path: ${gravitee.home}/plugins
+
+# Management repository is used to store global configuration such as APIs, applications, apikeys, ...
+# This is the default configuration using MongoDB (single server)
+# For more information about MongoDB configuration, please have a look to:
+# - http://api.mongodb.org/java/current/com/mongodb/MongoClientOptions.html
 management:
   type: mongodb
+  mongodb:
+    dbname: ${ds.mongodb.dbname}
+    host: ${ds.mongodb.host}
+    port: ${ds.mongodb.port}
+#    username:
+#    password:
+#    connectionsPerHost: 0
+#    connectTimeout: 500
+#    maxWaitTime: 120000
+#    socketTimeout: 500
+#    socketKeepAlive: false
+#    maxConnectionLifeTime: 0
+#    maxConnectionIdleTime: 0
+#    serverSelectionTimeout: 0
+#    description: gravitee.io
+#    heartbeatFrequency: 10000
+#    minHeartbeatFrequency: 500
+#    heartbeatConnectTimeout: 1000
+#    heartbeatSocketTimeout: 20000
+#    localThreshold: 15
+#    minConnectionsPerHost: 0
+#    sslEnabled: false
+#    threadsAllowedToBlockForConnectionMultiplier: 5
+#    cursorFinalizerEnabled: true
+
+# Management repository: single MongoDB using URI
+# For more information about MongoDB configuration using URI, please have a look to:
+# - http://api.mongodb.org/java/current/com/mongodb/MongoClientURI.html
+#management:
+#  type: mongodb
+#  mongodb:
+#    uri: mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
+
+# Management repository: clustered MongoDB
+#management:
+#  type: mongodb
+#  mongodb:
+#    servers:
+#      - host: mongo1
+#        port: 27017
+#      - host: mongo2
+#        port: 27017
+#    dbname: ${ds.mongodb.dbname}
+#    connectTimeout: 500
+#    socketTimeout: 250
+
+# When defining rate-limiting policy, the gateway has to store data to share with other gateway instances.
+# In this example, we are using MongoDB to store counters.
+ratelimit:
+  type: mongodb
+  mongodb:
+    uri: mongodb://${ds.mongodb.host}/${ds.mongodb.dbname}
+
+# Reporters configuration (used to store reporting data, metrics, healthchecks and so on...
+reporter:
+  # Elasticsearch reporter
+  elastic:
+    enabled: true
+    host: ${ds.elastic.host}
+    port: ${ds.elastic.port}
+    # Reporters are async by nature so the gateway is keeping an internal in-memory structure to stack data before
+    # pushing them into a final storage (Elasticsearch in this example)
+    queue:
+      # Number of elements to store in the queue (extra-elements will be loosed)
+      size: 10240
+      # Reporter thread is looking for data every x milliseconds (each second in this example)
+      pollingTimeout: 1000
+
+# Services configuration
+services:
+  # Synchronization daemon used to keep the gateway state in sync with the configuration from the management repository
+  sync:
+#    enabled: true
+    # By default, the sync is run each 5 seconds
+#    cron: '*/5 * * * * *'
+
+  # Local registry service.
+  # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
+  # to configure your API using the web console or the rest API (but you need to know and understand the json descriptor
+  # format to make it work....)
+#  local:
+#    enabled: false
+#    path: ${gravitee.home}/apis # The path to API descriptors
+
+# Referenced properties
+ds:
   mongodb:
     dbname: gravitee
     host: localhost
     port: 27017
-repositories:
-
-services:
-  sync:
-    enabled: true
-    cron: '*/5 * * * * *'
+  elastic:
+    host: localhost
+    port: 9300

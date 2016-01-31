@@ -29,7 +29,7 @@ public class VertxHttpServerConfiguration {
     @Value("${http.secured:false}")
     private boolean secured;
 
-    @Value("${http.ssl.client_auth:false}")
+    @Value("${http.ssl.clientAuth:false}")
     private boolean clientAuth;
 
     @Value("${http.ssl.keystore.path:#{null}}")
@@ -44,13 +44,13 @@ public class VertxHttpServerConfiguration {
     @Value("${http.ssl.truststore.password:#{null}}")
     private String trustStorePassword;
 
-    @Value("${http.compression_supported:" + HttpServerOptions.DEFAULT_COMPRESSION_SUPPORTED + "}")
+    @Value("${http.compressionSupported:" + HttpServerOptions.DEFAULT_COMPRESSION_SUPPORTED + "}")
     private boolean compressionSupported;
 
-    @Value("${http.idle_timeout:" + HttpServerOptions.DEFAULT_IDLE_TIMEOUT + "}")
+    @Value("${http.idleTimeout:" + HttpServerOptions.DEFAULT_IDLE_TIMEOUT + "}")
     private int idleTimeout;
 
-    @Value("${http.tcp_keep_alive:true}")
+    @Value("${http.tcpKeepAlive:true}")
     private boolean tcpKeepAlive;
 
     public int getPort() {
