@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global setInterval:false, clearInterval:false */
+/* global setInterval:false, clearInterval:false, screen:false */
 function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav) {
   'ngInject';
   var graviteeAuthenticationKey = 'GraviteeAuthentication';
@@ -70,9 +70,9 @@ function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav) {
     }
   });
 
-  if ($window.innerWidth < 500) {
+  if (screen.width < 500) {
     $rootScope.percentWidth = 100;
-  } else if ($window.innerWidth < 700) {
+  } else if (screen.width < 770) {
     $rootScope.percentWidth = 50;
   } else {
     $rootScope.percentWidth = 33;
