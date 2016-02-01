@@ -30,7 +30,7 @@ public class Page {
 
 	private String name;
 
-	private String type;
+	private PageType type;
 
 	private String content;
 
@@ -57,7 +57,7 @@ public class Page {
 		this.id = id;
 	}
 
-	public String getType() {
+	public PageType getType() {
 		return type;
 	}
 	
@@ -69,7 +69,7 @@ public class Page {
 		this.name = name;
 	}
 	
-	public void setType(String type) {
+	public void setType(PageType type) {
 		this.type = type;
 	}
 
