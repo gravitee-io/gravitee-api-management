@@ -15,12 +15,14 @@
  */
 package io.gravitee.definition.jackson.datatype.ser;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Rule;
 
 import java.io.IOException;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -37,7 +39,12 @@ public class RuleSerializer extends StdScalarSerializer<Rule> {
         jgen.writeStartObject();
 
         jgen.writeFieldName("methods");
-        jgen.writeObject(rule.getMethods());
+        
+        jgen.writeStartArray();
+        for (HttpMethod method : rule.getMethods()) {
+            jgen.writeString(method.toString().toUpperCase());
+        }
+        jgen.writeEndArray();
 
         jgen.writeObject(rule.getPolicy());
 
