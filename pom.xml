@@ -99,6 +99,7 @@
 				<artifactId>gravitee-repository-mongodb</artifactId>
 				<version>${gravitee-repository-mongodb.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>io.gravitee.repository</groupId>
 				<artifactId>gravitee-repository-couchbase</artifactId>

@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -87,7 +88,9 @@ public class PageServiceTest {
         when(page1.getId()).thenReturn("Page 1");
         when(page2.getId()).thenReturn("Page 2");
         when(page1.getOrder()).thenReturn(1);
+        when(page1.getType()).thenReturn(PageType.MARKDOWN);
         when(page2.getOrder()).thenReturn(2);
+        when(page2.getType()).thenReturn(PageType.RAML);
         when(pageRepository.findByApi(API_ID)).thenReturn(pages);
 
         final List<PageListItem> pageEntities = pageService.findByApi(API_ID);
@@ -176,7 +179,7 @@ public class PageServiceTest {
                     name.equals(pageToCreate.getName()) &&
                     contrib.equals(pageToCreate.getLastContributor()) &&
                     content.equals(pageToCreate.getContent()) &&
-                    type.equals(pageToCreate.getType()) &&
+                    type.equals(pageToCreate.getType().name()) &&
                     pageToCreate.getCreatedAt() != null &&
                     pageToCreate.getUpdatedAt() != null &&
                     pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt());
