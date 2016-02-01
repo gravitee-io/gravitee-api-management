@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageListItem;
+import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.UpdatePageEntity;
 import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.PageService;
@@ -220,7 +221,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 		pageItem.setId(page.getId());
 		pageItem.setName(page.getName());
-		pageItem.setType(page.getType());
+		pageItem.setType(PageType.valueOf(page.getType().toString()));
 		pageItem.setOrder(page.getOrder());
 		pageItem.setLastContributor(page.getLastContributor());
 		pageItem.setPublished(page.isPublished());
@@ -234,7 +235,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setName(newPageEntity.getName());
 		final String type = newPageEntity.getType();
 		if (type != null) {
-			page.setType(type);
+			page.setType(io.gravitee.repository.management.model.PageType.valueOf(type.toString()));
 		}
 		page.setContent(newPageEntity.getContent());
 		page.setLastContributor(newPageEntity.getLastContributor());
