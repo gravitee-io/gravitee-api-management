@@ -40,12 +40,6 @@ function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav) {
     $window.location.reload();
   });
 
-  $rootScope.$on('$stateChangeStart', function (event, toState) {
-    $rootScope.contentIsActive = (toState.name.indexOf("application.") === 0 ||
-    toState.name.indexOf("apis.admin") === 0 ||
-    toState.name.indexOf("apis.portal") === 0);
-  });
-
   // Progress Bar
   var interval, intervalTimeInMs = 500;
   $rootScope.$watch(function () {

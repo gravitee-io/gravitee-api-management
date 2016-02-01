@@ -17,7 +17,7 @@
 -->
 <div layout="row" flex class="api-events" style="margin-top: 20px;">
 
-  <div class="api-events-timeline" flex="20" style="overflow-y : scroll; max-height: 540px;">
+  <div class="api-events-timeline" flex="20">
     <timeline>
       <div ng-repeat="eventTimeline in apiEventsCtrl.eventsTimeline">
         <timeline-event ng-if="!apiCtrl.apiIsSynchronized && !apiCtrl.apiJustDeployed && $index == 0" side="right">

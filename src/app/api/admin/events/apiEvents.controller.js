@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 class ApiEventsController {
-  constructor ($mdDialog, $scope, $window, ApiService, NotificationService, resolvedApi, resolvedEvents) {
+  constructor ($mdDialog, $scope, $window, $rootScope, $state, ApiService, NotificationService, resolvedApi, resolvedEvents) {
     'ngInject';
     this.$mdDialog = $mdDialog;
     this.$scope = $scope;
     this.$window = $window;
+    this.$rootScope = $rootScope;
+    this.$state = $state;
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.api = _.cloneDeep(resolvedApi.data);
@@ -32,15 +34,26 @@ class ApiEventsController {
     this.diffMode = false;
     this.eventToCompareRequired = false;
     
-    delete this.api.deployed_at;
-    delete this.api.created_at;
-    delete this.api.updated_at;
-    delete this.api.visibility;
-    delete this.api.state;
-    delete this.api.permission;
-    delete this.api.owner;
-    
+    this.cleanAPI();
+    this.init();
     this.initTimeline(this.events);
+  }
+  
+  init() {
+    var self = this;
+    this.$scope.$on("apiChangeSucceed", function() {
+      if (self.$state.current.name.endsWith('events')) {
+        // reload API
+        self.api = _.cloneDeep(self.$scope.$parent.apiCtrl.api);
+        self.cleanAPI();
+        // reload API events
+        self.ApiService.getApiEvents(self.api.id).then(response => {
+          self.events = response.data;
+          self.eventsTimeline = [];
+          self.initTimeline(self.events);
+        });
+      }
+    });
   }
   
   initTimeline(events) {
@@ -196,6 +209,7 @@ class ApiEventsController {
 
     this.ApiService.rollback(this.api.id, _apiDefinition).then(() => {
       this.NotificationService.show('Api rollback !');
+      this.$rootScope.$broadcast("apiChangeSuccess");
     });
   }
   
@@ -230,6 +244,15 @@ class ApiEventsController {
     return reorganizedEvent;
   }
   
+  cleanAPI() {
+    delete this.api.deployed_at;
+    delete this.api.created_at;
+    delete this.api.updated_at;
+    delete this.api.visibility;
+    delete this.api.state;
+    delete this.api.permission;
+    delete this.api.owner;
+  }
 }
 
 export default ApiEventsController;
