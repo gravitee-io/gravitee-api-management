@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor (resolvedApi, $state, $scope, $mdDialog, $rootScope, ApiService, NotificationService) {
+  constructor (resolvedApi, $state, $scope, $rootScope, $mdDialog, ApiService, NotificationService) {
     'ngInject';
     this.$scope = $scope;
     this.$state = $state;
@@ -24,6 +24,7 @@ class ApiAdminController {
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.apiJustDeployed = false;
+    this.apiIsSynchronized = true;
     this.init();
     this.checkAPISynchronization(this.api);
 
@@ -56,14 +57,20 @@ class ApiAdminController {
         $scope.selectedTab = 7;
       } else if ($state.current.name.endsWith('descriptor')) {
         $scope.selectedTab = 8;
+      } else if ($state.current.name.endsWith('events')) {
+        $scope.selectedTab = 9;
       }
     });
   }
   
   init() {
     var self = this;
-    this.$rootScope.$on("apiChangeSuccess", function() {
-        self.checkAPISynchronization(self.api);
+    this.$scope.$on("apiChangeSuccess", function() {
+      self.checkAPISynchronization(self.api);
+      self.ApiService.get(self.api.id).then(response => {
+        self.api = response.data;
+        self.$rootScope.$broadcast("apiChangeSucceed");
+      });
     });
   }
   
@@ -94,9 +101,11 @@ class ApiAdminController {
   }
   
   deploy(api) {
-    this.ApiService.deploy(api.id).then(() => {
+    this.ApiService.deploy(api.id).then((deployedApi) => {
       this.NotificationService.show("API deployed");
+      this.api = deployedApi.data;
       this.apiJustDeployed = true;
+      this.$rootScope.$broadcast("apiChangeSuccess");
     });
   }
 }
