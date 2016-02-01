@@ -110,20 +110,6 @@ public class ApiResource extends AbstractResource {
         return updatedApi;
     }
 
-    private void setPermission(ApiEntity api) {
-        if(isAuthenticated()) {
-            MemberEntity member = apiService.getMember(api.getId(), getAuthenticatedUsername());
-            if (member != null) {
-                api.setPermission(member.getType());
-            } else {
-                if (api.getVisibility() == Visibility.PUBLIC) {
-                    // If API is public, all users have the user permission
-                    api.setPermission(MembershipType.USER);
-                }
-            }
-        }
-    }
-
     @DELETE
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     public Response delete() {
@@ -137,18 +123,17 @@ public class ApiResource extends AbstractResource {
     
     @POST
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("deploy")
     public Response deployAPI() {
         permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
 
         try {
-            apiService.deploy(api, getAuthenticatedUsername());
+            ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUsername());
+            return Response.status(Status.OK).entity(apiEntity).build();
         } catch (Exception e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
         }
-
-        return Response.noContent().build();
     }
 
     @GET
@@ -166,15 +151,22 @@ public class ApiResource extends AbstractResource {
         return apiEntity;
     }
     
-    private void setSynchronizationState(io.gravitee.management.rest.model.ApiEntity apiEntity) {
-        ApiEntity _apiEntity = apiService.findById(api);
-        if (apiService.isAPISynchronized(_apiEntity)) {
-            apiEntity.setIsSynchronized(true);
-        } else {
-            apiEntity.setIsSynchronized(false);
+    @POST
+    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
+    @Consumes
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("rollback")
+    public Response rollback(@Valid @NotNull final UpdateApiEntity api) {
+        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
+
+        try {
+            ApiEntity apiEntity = apiService.rollback(this.api, api);
+            return Response.status(Status.OK).entity(apiEntity).build();
+        } catch (Exception e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
     }
-    
+       
     @Path("keys")
     public ApiKeysResource getApiKeyResource() {
         return resourceContext.getResource(ApiKeysResource.class);
@@ -198,5 +190,33 @@ public class ApiResource extends AbstractResource {
     @Path("pages")
     public ApiPagesResource getApiPagesResource() {
         return resourceContext.getResource(ApiPagesResource.class);
+    }
+    
+    @Path("events")
+    public ApiEventsResource getApiEventsResource() {
+        return resourceContext.getResource(ApiEventsResource.class);
+    }
+    
+    private void setPermission(ApiEntity api) {
+        if(isAuthenticated()) {
+            MemberEntity member = apiService.getMember(api.getId(), getAuthenticatedUsername());
+            if (member != null) {
+                api.setPermission(member.getType());
+            } else {
+                if (api.getVisibility() == Visibility.PUBLIC) {
+                    // If API is public, all users have the user permission
+                    api.setPermission(MembershipType.USER);
+                }
+            }
+        }
+    }
+    
+    private void setSynchronizationState(io.gravitee.management.rest.model.ApiEntity apiEntity) {
+        ApiEntity _apiEntity = apiService.findById(api);
+        if (apiService.isAPISynchronized(_apiEntity)) {
+            apiEntity.setIsSynchronized(true);
+        } else {
+            apiEntity.setIsSynchronized(false);
+        }
     }
 }

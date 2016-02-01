@@ -237,6 +237,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 api.setUpdatedAt(new Date());
 
                 // Copy fields from existing values
+                api.setDeployedAt(apiToUpdate.getDeployedAt());
                 api.setCreatedAt(apiToUpdate.getCreatedAt());
                 api.setLifecycleState(apiToUpdate.getLifecycleState());
 
@@ -403,7 +404,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
     
     @Override
-    public void deploy(String apiId, String username) {
+    public ApiEntity deploy(String apiId, String username) {
     	 try {
              LOGGER.debug("Deploy API : {}", apiId);
 
@@ -420,6 +421,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             	     apiValue.setDeployedAt(event.getCreatedAt());
             	     apiRepository.update(apiValue);
             	 }
+            	 return convert(api.get());
              } else {
             	 throw new ApiNotFoundException(apiId);
              }
@@ -427,7 +429,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
              LOGGER.error("An error occurs while trying to deploy API: {}", apiId, ex);
              throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
          } 
-    	
+    }
+    
+    @Override
+    public ApiEntity rollback(String apiId, UpdateApiEntity api) {
+        LOGGER.debug("Rollback API : {}", apiId);
+        try {
+            update(apiId, api);
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while trying to rollback API: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to rollback API: " + apiId, ex);
+        }
+        return null;
     }
 
     private void updateLifecycle(String apiName, LifecycleState lifecycleState) throws TechnicalException {
