@@ -26,7 +26,7 @@ public class PageListItem {
 
     private String name;
 
-    private String type;
+    private PageType type;
 
     private int order;
 
@@ -66,11 +66,11 @@ public class PageListItem {
         this.order = order;
     }
 
-    public String getType() {
+    public PageType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(PageType type) {
         this.type = type;
     }
 

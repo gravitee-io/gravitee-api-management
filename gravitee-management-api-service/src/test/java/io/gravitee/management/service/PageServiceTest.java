@@ -16,10 +16,16 @@
 package io.gravitee.management.service;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.List;
@@ -145,7 +151,7 @@ public class PageServiceTest {
         when(page1.getId()).thenReturn(PAGE_ID);
         when(page1.getName()).thenReturn(name);
         when(page1.getApi()).thenReturn(API_ID);
-        when(page1.getType()).thenReturn(type);
+        when(page1.getType()).thenReturn(io.gravitee.repository.management.model.PageType.valueOf(type));
         when(page1.getLastContributor()).thenReturn(contrib);
         when(page1.getOrder()).thenReturn(1);
         when(page1.getContent()).thenReturn(content);
