@@ -19,14 +19,12 @@ import io.gravitee.gateway.services.sync.SyncManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@EnableScheduling
 public class SyncConfiguration {
 
     @Bean
@@ -38,7 +36,6 @@ public class SyncConfiguration {
     public TaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadNamePrefix("sync-");
-        scheduler.setPoolSize(2);
         return scheduler;
     }
 }
