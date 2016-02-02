@@ -29,8 +29,6 @@ class ApiEventsController {
     this.eventsTimeline = [];
     this.eventsToCompare = [];
     this.eventSelected = {};
-    this.apisSelected = [];
-    this.apisToCompare = [];
     this.diffMode = false;
     this.eventToCompareRequired = false;
     
@@ -41,6 +39,11 @@ class ApiEventsController {
   
   init() {
     var self = this;
+    this.$scope.$on('$stateChangeSuccess', function (ev, to, toParams, from) {
+      if (from.name.startsWith('apis.admin') && self.$state.current.name.endsWith('events')) {
+        self.$scope.$parent.apiCtrl.checkAPISynchronization(self.api);
+      }
+    });
     this.$scope.$on("apiChangeSucceed", function() {
       if (self.$state.current.name.endsWith('events')) {
         // reload API
@@ -49,10 +52,12 @@ class ApiEventsController {
         // reload API events
         self.ApiService.getApiEvents(self.api.id).then(response => {
           self.events = response.data;
-          self.eventsTimeline = [];
-          self.initTimeline(self.events);
+          self.reloadEventsTimeline(self.events);
         });
       }
+    });
+    this.$scope.$on("checkAPISynchronizationSucceed", function() { 
+      self.reloadEventsTimeline(self.events);
     });
   }
   
@@ -70,89 +75,64 @@ class ApiEventsController {
       self.eventsTimeline.push(eventTimeline);
     });
   }
-  
-  selectApi(_api) {
+
+  selectEvent(_eventTimeline) {
     if (this.eventToCompareRequired) {
-      this.diffWithApi(_api);
-      this.selectApiToCompare(_api);
+      this.diff(_eventTimeline);
+      this.selectEventToCompare(_eventTimeline);
     } else {
       this.diffMode = false;
       this.apisSelected = [];
       this.eventsSelected = [];
       this.clearDataToCompare();
       
-      var idx = this.apisSelected.indexOf(_api);
-      if (idx > -1) {
-        this.apisSelected.splice(idx, 1);
-      }
-      else {
-        this.apisSelected.push(_api);
-      }
-      
-      if (this.apisSelected.length > 0) {
-        this.eventSelectedPayloadDefinition = _api;
-      }
-    }
-  }
-  
-  selectEvent( _event) {
-    if (this.eventToCompareRequired) {
-      this.diff(_event);
-      this.selectEventToCompare(_event);
-    } else {
-      this.diffMode = false;
-      this.apisSelected = [];
-      this.eventsSelected = [];
-      this.clearDataToCompare();
-      
-      var idx = this.eventsSelected.indexOf(_event);
+      var idx = this.eventsSelected.indexOf(_eventTimeline);
       if (idx > -1) {
         this.eventsSelected.splice(idx, 1);
       }
       else {
-        this.eventsSelected.push(_event);
+        this.eventsSelected.push(_eventTimeline);
       }
       
       if (this.eventsSelected.length > 0) {
-        this.eventSelected = this.eventsSelected[0];
-        this.eventSelectedPayload = JSON.parse(this.eventSelected.payload);
-        this.eventSelectedPayloadDefinition = this.reorganizeEvent(this.eventSelectedPayload);
+        var eventSelected = this.eventsSelected[0];
+        if (eventSelected.isCurrentAPI) {
+          this.eventSelectedPayloadDefinition = eventSelected.event;
+        } else {
+          this.eventSelectedPayload = JSON.parse(eventSelected.event.payload);
+          this.eventSelectedPayloadDefinition = this.reorganizeEvent(this.eventSelectedPayload);
+        }
       }
     }
   }
   
-  selectApiToCompare(_api) {
-    this.apisToCompare.push(_api);
-  }
-  
-  selectEventToCompare(_event) {
-    this.eventsToCompare.push(_event);
+  selectEventToCompare(_eventTimeline) {
+    this.eventsToCompare.push(_eventTimeline);
   }
   
   clearDataToCompare() {
-    this.apisToCompare = [];
     this.eventsToCompare = [];
+  }
+  
+  clearDataSelected() {
+    this.eventsSelected = [];
   }
   
   isEventSelectedForComparaison(_event) {
     return this.eventsToCompare.indexOf(_event) > -1;
   }
   
-  isApiSelectedForComparaison(_api) {
-    return this.apisToCompare.indexOf(_api) > -1;
-  }
-  
   diffWithMaster() {
-    // get published api
     this.clearDataToCompare();
     this.diffMode = true;
     var latestEvent = this.events[0];
     if (this.eventsSelected.length > 0) {
-      this.left = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].payload));
+      if (this.eventsSelected[0].isCurrentAPI) {
+        this.left = this.eventsSelected[0].event;
+      } else {
+        this.left = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
+      }
       this.right = this.reorganizeEvent(JSON.parse(latestEvent.payload));
-    } else if (this.apisSelected.length > 0) {
-      this.left = this.reorganizeEvent(JSON.parse(latestEvent.payload));
-      this.right = this.apisSelected[0];
     }
   }
   
@@ -165,39 +145,37 @@ class ApiEventsController {
     this.eventToCompareRequired = false;
   }
   
-  diffWithApi(api) {
+  diff(eventTimeline) {
     this.diffMode = true;
-    this.left = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].payload));
-    this.right = api;
-    this.disableDiff();
-  }
-  
-  diff(event) {
-    this.diffMode = true;
-    var latestEvent = this.events[0];
     if (this.eventsSelected.length > 0) {
-      var event1UpdatedAt = event.updated_at;
-      var event2UpdatedAt = this.eventsSelected[0].updated_at;
-      if (event1UpdatedAt > event2UpdatedAt) {
-        this.left = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].payload));
-        this.right = this.reorganizeEvent(JSON.parse(event.payload));
+      if (eventTimeline.isCurrentAPI) {
+        this.left = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
+        this.right = eventTimeline.event;
       } else {
-        this.left = this.reorganizeEvent(JSON.parse(event.payload));
-        this.right = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].payload));
+        var eventSelected = {};
+        var event1UpdatedAt = eventTimeline.event.updated_at;
+        var event2UpdatedAt = this.eventsSelected[0].event.updated_at;
+        
+        if (this.eventsSelected[0].isCurrentAPI) {
+          eventSelected = this.eventsSelected[0].event
+        } else {
+          eventSelected = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
+        }
+        
+        if (event1UpdatedAt > event2UpdatedAt) {
+          this.left = eventSelected;
+          this.right = this.reorganizeEvent(JSON.parse(eventTimeline.event.payload));
+        } else {
+          this.left = this.reorganizeEvent(JSON.parse(eventTimeline.event.payload));
+          this.right = eventSelected;
+        }
       }
-    } else if (this.apisSelected.length > 0) {
-      this.left = this.reorganizeEvent(JSON.parse(event.payload));
-      this.right = this.apisSelected[0];
     }
     this.disableDiff();
   }
   
-  isEventSelected(_event) {
-    return this.eventsSelected.indexOf(_event) > -1;
-  }
-  
-  isApiSelected(_api) {
-    return this.apisSelected.indexOf(_api) > -1;
+  isEventSelected(_eventTimeline) {
+    return this.eventsSelected.indexOf(_eventTimeline) > -1;
   }
   
   rollback(_apiPayload) {
@@ -226,6 +204,22 @@ class ApiEventsController {
     }, function() {
       self.$mdDialog.cancel();
     });
+  }
+  
+  reloadEventsTimeline(events) {
+    this.clearDataSelected();
+    this.eventsTimeline = [];
+    this.initTimeline(events);
+    if (!this.$scope.$parent.apiCtrl.apiIsSynchronized && !this.$scope.$parent.apiCtrl.apiJustDeployed) {
+      var eventTimeline = {
+          event: this.api,
+          badgeClass: 'warning',
+          badgeIconClass: 'glyphicon-refresh',
+          title: 'TO_DEPLOY',
+          isCurrentAPI: true
+        };
+      this.eventsTimeline.unshift(eventTimeline);
+    }
   }
   
   reorganizeEvent(_event) {

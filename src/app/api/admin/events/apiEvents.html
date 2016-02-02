@@ -20,38 +20,22 @@
   <div class="api-events-timeline" flex="20">
     <timeline>
       <div ng-repeat="eventTimeline in apiEventsCtrl.eventsTimeline">
-        <timeline-event ng-if="!apiCtrl.apiIsSynchronized && !apiCtrl.apiJustDeployed && $index == 0" side="right">
-          <timeline-badge class="warning">
-            <i class="glyphicon glyphicon-refresh"></i>
-          </timeline-badge>
-          <a class="timeline-link" href="javascript:void(0);" ng-click="apiEventsCtrl.selectApi(apiEventsCtrl.api)">
-            <timeline-panel ng-class="{active : apiEventsCtrl.isApiSelected(apiEventsCtrl.api)}" class="warning">
-              <timeline-heading>
-                <h5>TO_DEPLOY
-                  <ng-md-icon class="api-events-icon" ng-show="apiEventsCtrl.eventToCompareRequired && !apiEventsCtrl.isApiSelected(apiEventsCtrl.api)" icon="crop_din" style="fill: rgba(0,0,0,0.54);"></ng-md-icon>
-                  <ng-md-icon class="api-events-icon" ng-show="apiEventsCtrl.isApiSelectedForComparaison(apiEventsCtrl.api)" icon="compare" style="fill: green;"></ng-md-icon>
-                </h5>
-                <p>
-                  <small class="text-muted ng-binding"><i class="glyphicon glyphicon-info-sign"></i>The current undeployed API</small>
-                </p>
-              </timeline-heading>
-            </timeline-panel>
-          </a>
-        </timeline-event>
-      
         <timeline-event side="right">
           <timeline-badge class="{{eventTimeline.badgeClass}}">
             <i class="glyphicon {{eventTimeline.badgeIconClass}}"></i>
           </timeline-badge>
-          <a class="timeline-link" href="javascript:void(0);" ng-click="apiEventsCtrl.selectEvent(eventTimeline.event)">
-            <timeline-panel ng-class="{active : apiEventsCtrl.isEventSelected(eventTimeline.event)}" class="{{eventTimeline.badgeClass}}">
+          <a class="timeline-link" href="javascript:void(0);" ng-click="apiEventsCtrl.selectEvent(eventTimeline)">
+            <timeline-panel ng-class="{active : apiEventsCtrl.isEventSelected(eventTimeline)}" class="{{eventTimeline.badgeClass}}">
               <timeline-heading>
                 <h5>{{eventTimeline.title | uppercase}}
-                  <ng-md-icon class="api-events-icon" ng-show="apiEventsCtrl.eventToCompareRequired && !apiEventsCtrl.isEventSelected(eventTimeline.event)" icon="crop_din" style="fill: rgba(0,0,0,0.54);"></ng-md-icon>
-                  <ng-md-icon class="api-events-icon" ng-show="apiEventsCtrl.isEventSelectedForComparaison(eventTimeline.event)" icon="compare" style="fill: green;"></ng-md-icon>
+                  <ng-md-icon class="api-events-icon" ng-show="apiEventsCtrl.eventToCompareRequired && !apiEventsCtrl.isEventSelected(eventTimeline)" icon="crop_din" style="fill: rgba(0,0,0,0.54);"></ng-md-icon>
+                  <ng-md-icon class="api-events-icon" ng-show="apiEventsCtrl.isEventSelectedForComparaison(eventTimeline)" icon="compare" style="fill: green;"></ng-md-icon>
                 </h5>
                 <p ng-if="eventTimeline.when">
                   <small class="text-muted ng-binding"><i class="glyphicon glyphicon-time"></i>{{eventTimeline.when | date : 'medium'}} by {{eventTimeline.username}}</small>
+                </p>
+                <p ng-if="eventTimeline.isCurrentAPI">
+                  <small class="text-muted ng-binding"><i class="glyphicon glyphicon-info-sign"></i>The current undeployed API</small>
                 </p>
               </timeline-heading>
             </timeline-panel>
@@ -62,17 +46,18 @@
   </div>
   
   <div class="api-events-content" flex="80">
-    <div ng-show="apiEventsCtrl.eventsSelected.length == 1 || apiEventsCtrl.apisSelected.length == 1" class="api-events-content-descriptor">
+    <div ng-show="apiEventsCtrl.eventsSelected.length == 1" class="api-events-content-descriptor">
       <md-card style="box-shadow:none;">
         <div style="border: 1px solid #e7eaec; border-bottom: 0;" layout-padding>
-          <md-button ng-show="apiEventsCtrl.eventsSelected.length == 1 && apiEventsCtrl.apisSelected.length == 0" class="md-raised" ng-click="apiEventsCtrl.showRollbackAPIConfirm($event, apiEventsCtrl.eventSelectedPayload)">Rollback</md-button>
-          <md-button class="md-raised" ng-click="apiEventsCtrl.diffWithMaster()">Diff with published API</md-button>
-          <md-button class="md-raised" ng-click="apiEventsCtrl.enableDiff()">Diff</md-button>
+          <md-button ng-show="apiEventsCtrl.eventsSelected[0].isCurrentAPI" class="md-raised" ng-click="apiEventsCtrl.$scope.$parent.apiCtrl.showDeployAPIConfirm($event, apiEventsCtrl.api)">Deploy</md-button>
+          <md-button ng-show="!apiEventsCtrl.eventsSelected[0].isCurrentAPI" class="md-raised" ng-click="apiEventsCtrl.showRollbackAPIConfirm($event, apiEventsCtrl.eventSelectedPayload)">Rollback</md-button>
+          <md-button ng-show="apiEventsCtrl.events.length > 0" class="md-raised" ng-click="apiEventsCtrl.diffWithMaster()">Diff with published API</md-button>
+          <md-button ng-show="apiEventsCtrl.events.length > 1" class="md-raised" ng-click="apiEventsCtrl.enableDiff()">Diff</md-button>
         </div>
         <md-card-content style="background-color: #fff; border: 1px solid #e7eaec; padding-top: 0px">
           <pre ng-show="!apiEventsCtrl.diffMode" class="api-events-definition">{{apiEventsCtrl.eventSelectedPayloadDefinition | json }}</pre>
           <pre ng-show="apiEventsCtrl.diffMode" class="api-events-definition" gravitee-diff old-value="apiEventsCtrl.left" new-value="apiEventsCtrl.right"></pre>
-        </md-card-content>  
+        </md-card-content>
       </md-card>    
     </div>
   </div>
