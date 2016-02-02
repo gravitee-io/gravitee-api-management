@@ -58,7 +58,7 @@ If you wanna launch e2e tests with Protractor on the dist files :
 gulp protractor:dist
 ```
 
-Tested and approuved with the marvelous [BrowserStack platform](https://www.browserstack.com)
+Tested and approved with the marvelous [BrowserStack platform](https://www.browserstack.com)
 
 [1]: http://nodejs.org
 [2]: http://npmjs.org
