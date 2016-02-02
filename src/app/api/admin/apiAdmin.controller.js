@@ -82,6 +82,7 @@ class ApiAdminController {
       } else {
         this.apiIsSynchronized = false;
       }
+      this.$rootScope.$broadcast("checkAPISynchronizationSucceed");
     });
   }
   
