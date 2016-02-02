@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import net.sf.ehcache.Cache;
+import net.sf.ehcache.Element;
 
 import java.util.Optional;
 import java.util.Set;
@@ -61,7 +62,12 @@ public class CachedApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public Optional<ApiKey> retrieve(String apiKey) throws TechnicalException {
-        return Optional.ofNullable((ApiKey) cache.get(apiKey).getObjectValue());
+        Element elt = cache.get(apiKey);
+        if (elt != null) {
+            return Optional.of((ApiKey) elt.getObjectValue());
+        }
+
+        return Optional.empty();
     }
 
     @Override
