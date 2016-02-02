@@ -279,6 +279,14 @@ public class JacksonDeserializerTest {
         Assert.assertEquals(HttpClientOptions.DEFAULT_KEEP_ALIVE, options.isKeepAlive());
     }
 
+    @Test
+    public void definition_defaultLoadBalancer_roundRobin() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-defaulthttpconfig.json");
+
+        Assert.assertNotNull(api.getProxy().getLoadBalancer());
+        Assert.assertEquals(LoadBalancerType.ROUND_ROBIN, api.getProxy().getLoadBalancer().getType());
+    }
+
     private Api getDefinition(String resource) throws Exception {
         URL jsonFile = JacksonDeserializerTest.class.getResource(resource);
         return objectMapper().readValue(jsonFile, Api.class);

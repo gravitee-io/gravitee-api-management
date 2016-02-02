@@ -28,7 +28,7 @@ public class Proxy {
 
     private List<Endpoint> endpoints = new ArrayList<>();
 
-    private LoadBalancer loadBalancer;
+    private LoadBalancer loadBalancer = new LoadBalancer();
 
     private boolean stripContextPath = false;
 

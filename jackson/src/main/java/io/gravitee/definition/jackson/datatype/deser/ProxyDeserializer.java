@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClient;
+import io.gravitee.definition.model.LoadBalancer;
 import io.gravitee.definition.model.Proxy;
 
 import java.io.IOException;
@@ -49,11 +50,8 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         final JsonNode nodeEndpoint = node.get("endpoint");
         final JsonNode nodeEndpoints = node.get("endpoints");
 
-        JsonNode nodeEndpointsSrc = (nodeEndpoint != null) ? nodeEndpoint : nodeEndpoints;
-
-        if (nodeEndpointsSrc != null) {
-            if (nodeEndpointsSrc.isArray()) {
-                nodeEndpointsSrc.elements().forEachRemaining(jsonNode -> {
+        if (nodeEndpoints != null && nodeEndpoints.isArray()) {
+            nodeEndpoints.elements().forEachRemaining(jsonNode -> {
                     try {
                         Endpoint endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(Endpoint.class);
                         proxy.getEndpoints().add(endpoint);
@@ -61,12 +59,13 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
                         e.printStackTrace();
                     }
                 });
-            } else {
-                Endpoint singleEndpoint = new Endpoint();
-                singleEndpoint.setTarget(nodeEndpointsSrc.asText());
-                singleEndpoint.setWeight(Endpoint.DEFAULT_WEIGHT);
-                proxy.getEndpoints().add(singleEndpoint);
-            }
+        }
+
+        if (nodeEndpoint != null) {
+            Endpoint singleEndpoint = new Endpoint();
+            singleEndpoint.setTarget(nodeEndpoint.asText());
+            singleEndpoint.setWeight(Endpoint.DEFAULT_WEIGHT);
+            proxy.getEndpoints().add(singleEndpoint);
         }
 
         JsonNode stripContextNode = node.get("strip_context_path");
@@ -78,6 +77,12 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         if (httpClientNode != null) {
             HttpClient httpClient = httpClientNode.traverse(jp.getCodec()).readValueAs(HttpClient.class);
             proxy.setHttpClient(httpClient);
+        }
+
+        JsonNode loadBalancingNode = node.get("load_balancing");
+        if (loadBalancingNode != null) {
+            LoadBalancer loadBalancer = loadBalancingNode.traverse(jp.getCodec()).readValueAs(LoadBalancer.class);
+            proxy.setLoadBalancer(loadBalancer);
         }
 
         return proxy;

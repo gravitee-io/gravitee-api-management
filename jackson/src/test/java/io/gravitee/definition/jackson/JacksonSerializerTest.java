@@ -15,7 +15,6 @@
  */
 package io.gravitee.definition.jackson;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
@@ -23,7 +22,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.net.URL;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

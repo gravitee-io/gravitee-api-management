@@ -21,7 +21,7 @@ package io.gravitee.definition.model;
  */
 public class LoadBalancer {
 
-    private LoadBalancerType type;
+    private LoadBalancerType type = LoadBalancerType.ROUND_ROBIN;
 
     public LoadBalancerType getType() {
         return type;
