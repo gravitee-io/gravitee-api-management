@@ -25,9 +25,14 @@ import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.LifecycleState;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.text.Collator;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -146,17 +151,6 @@ public class SyncManager {
 	    			io.gravitee.repository.management.model.Api payloadApi = objectMapper.convertValue(node, io.gravitee.repository.management.model.Api.class);
 	    			if (api.getId().equals(payloadApi.getId())) {
 	    				deployedApis.add(convert(payloadApi));
-	    				// create success publish API event
-	    				String hostAddress = InetAddress.getLocalHost().getHostAddress();
-	    				Event event = new Event();
-	    				event.setType(EventType.PUBLISH_API_RESULT);
-	    				event.setPayload("API : " + api.getId() + " deployed");
-	    				event.setParentId(event.getId());
-
-                        Map<String, String> eventProps = new HashMap<>();
-                        eventProps.put(Event.EventProperties.ORIGIN.getValue(), hostAddress);
-
-	    				eventRepository.create(event);
 	    				break;
 	    			}
 	    		}
