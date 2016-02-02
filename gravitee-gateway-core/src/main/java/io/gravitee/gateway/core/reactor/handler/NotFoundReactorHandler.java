@@ -15,11 +15,14 @@
  */
 package io.gravitee.gateway.core.reactor.handler;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.core.http.stream.StringBodyPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -28,11 +31,24 @@ public class NotFoundReactorHandler extends AbstractReactorHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotFoundReactorHandler.class);
 
+    private final String message;
+
+    public NotFoundReactorHandler(Environment environment) {
+        this.message =
+                environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
+    }
+
     @Override
     public void handle(Request request, Response response, io.gravitee.gateway.api.handler.Handler<Response> handler) {
         LOGGER.debug("No Gravitee handler can be found for request {}, returns NOT_FOUND(404)", request.path());
 
         response.status(HttpStatusCode.NOT_FOUND_404);
+
+        StringBodyPart responseBody = new StringBodyPart(message);
+        response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(responseBody.length()));
+        response.headers().set(HttpHeaders.CONTENT_TYPE, "text/plain");
+        response.write(responseBody);
+
         response.end();
         handler.handle(response);
     }

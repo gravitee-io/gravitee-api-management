@@ -86,8 +86,8 @@ public class CoreConfiguration {
     }
 
     @Bean(name = "notFoundHandler")
-    public ReactorHandler errorHandler() {
-        return new NotFoundReactorHandler();
+    public ReactorHandler errorHandler(Environment environment) {
+        return new NotFoundReactorHandler(environment);
     }
 
     @Bean
