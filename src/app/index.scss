@@ -146,6 +146,21 @@ table[md-data-table] {
   background-color: $backgroundColor;
 }
 
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #747576;
+  border-radius: 10px;
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+}
+
 /**
  *  Do not remove this comments bellow. It's the markers used by gulp-inject to inject
  *  all your sass files automatically
