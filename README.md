@@ -1,4 +1,4 @@
-[![Build Status](https://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-management-webui)](https://build.gravitee.io/jenkins/view/Tous/job/gravitee-management-webui/)
+[![Build Status](http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-management-webui)](http://build.gravitee.io/jenkins/view/Tous/job/gravitee-management-webui/)
 # Gravitee Management Webui
 
 # Install
@@ -57,6 +57,8 @@ If you wanna launch e2e tests with Protractor on the dist files :
 ```
 gulp protractor:dist
 ```
+
+Tested and approuved with the marvelous [BrowserStack platform](https://www.browserstack.com)
 
 [1]: http://nodejs.org
 [2]: http://npmjs.org
