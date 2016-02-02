@@ -73,11 +73,6 @@
             <label>Gateway context path *</label>
             <input ng-model="apiCtrl.api.proxy.context_path" type="text" ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" required>
           </md-input-container>
-
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>API endpoints *</label>
-            <input ng-model="apiCtrl.api.proxy.endpoint" type="url" required>
-          </md-input-container>
         </div>
 
         <v-accordion id="gateway-accordion" class="vAccordion--default" multiple>
@@ -94,24 +89,37 @@
                       <th md-column md-order-by="target"><span>Target</span></th>
                       <th md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
                       <th md-column>
-                        <md-button class="md-icon-button" ng-click="generalCtrl.addEndpoint($event)">
+                        <md-button class="md-icon-button" aria-label="Add endpoint" ng-click="generalCtrl.addEndpoint($event)">
                           <ng-md-icon icon="add"></ng-md-icon>
                         </md-button>
-                        <md-button class="md-icon-button" ng-click="generalCtrl.delete($event)" ng-show="selected.length">
+                        <md-button class="md-icon-button" aria-label="Remove endpoint" ng-click="generalCtrl.removeEndpoints($event)" ng-show="selected.length">
                           <ng-md-icon icon="delete"></ng-md-icon>
                         </md-button>
                       </th>
                     </tr>
                   </thead>
                   <tbody md-body>
-                    <tr md-row md-select="endpoint" md-select-id="{{endpoint.target}}" md-auto-select ng-repeat="endpoint in apiCtrl.api.proxy.endpoints | orderBy: order">
+                    <tr md-row md-select="endpoint" md-select-id="{{endpoint.target}}" md-auto-select ng-repeat="endpoint in apiCtrl.api.proxy.endpoints | orderBy: weight">
                       <td md-cell ng-click="generalCtrl.editEndpoint($event, endpoint)" ng-class="{'md-placeholder': !endpoint.target}">{{endpoint.target}}</td>
-                      <td md-cell hide-gt-xs show-gt-sm>{{endpoint.weight}}</td>
+                      <td md-cell hide-gt-xs show-gt-sm ng-click="generalCtrl.editWeight($event, endpoint)" ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
                       <td md-cell></td>
                     </tr>
                   </tbody>
                 </table>
               </md-table-container>
+
+              <br />
+
+              <div layout-gt-sm="row">
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Load-Balancing Algorithm</label>
+                  <md-select ng-model="apiCtrl.api.proxy.load_balancing.type">
+                    <md-option ng-repeat="lb in lbs" value="{{lb.value}}">
+                      {{lb.name}}
+                    </md-option>
+                  </md-select>
+                </md-input-container>
+              </div>
             </v-pane-content>
           </v-pane>
 

@@ -25,6 +25,21 @@ class ApiAdminController {
     this.initialApi = _.cloneDeep(resolvedApi.data);
     this.$scope.selected = [];
 
+    this.$scope.lbs = [
+      {
+        name: 'Round-Robin',
+        value: 'ROUND_ROBIN'
+      }, {
+        name: 'Random',
+        value: 'RANDOM'
+      }, {
+        name: 'Weighted Round-Robin',
+        value: 'WEIGHTED_ROUND_ROBIN'
+      }, {
+        name: 'Weighted Random',
+        value: 'WEIGHTED_RANDOM'
+      }];
+
     this.initState();
   }
 
@@ -63,15 +78,17 @@ class ApiAdminController {
 
   editEndpoint(event, endpoint) {
     event.stopPropagation(); // in case autoselect is enabled
+    var _that = this;
 
     var editDialog = {
       modelValue: endpoint.target,
       placeholder: 'Target URL',
       save: function (input) {
         endpoint.target = input.$modelValue;
+        _that.update(_that.$scope.$parent.apiCtrl.api);
       },
       targetEvent: event,
-      title: 'Set endpoint target URL',
+      title: 'Endpoint target URL',
       type: 'url',
       validators: {
         'ng-required': 'true'
@@ -79,7 +96,6 @@ class ApiAdminController {
     };
 
     var promise = this.$mdEditDialog.large(editDialog);
-
     promise.then(function (ctrl) {
       var input = ctrl.getInput();
 
@@ -87,6 +103,68 @@ class ApiAdminController {
         input.$setValidity('test', input.$modelValue !== 'test');
       });
     });
+  }
+
+  editWeight(event, endpoint) {
+    event.stopPropagation(); // in case autoselect is enabled
+    var _that = this;
+
+    var editDialog = {
+      modelValue: endpoint.weight,
+      placeholder: 'Weight',
+      save: function (input) {
+        endpoint.weight = input.$modelValue;
+        console.log(_that.$scope.$parent.apiCtrl.api.proxy.endpoints);
+        _that.update(_that.$scope.$parent.apiCtrl.api);
+      },
+      targetEvent: event,
+      title: 'Endpoint weight',
+      type: 'number',
+      validators: {
+        'ng-required': 'true',
+        'min': 1,
+        'max': 99
+      }
+    };
+
+    var promise = this.$mdEditDialog.large(editDialog);
+    promise.then(function (ctrl) {
+      var input = ctrl.getInput();
+
+      input.$viewChangeListeners.push(function () {
+        input.$setValidity('test', input.$modelValue !== 'test');
+      });
+    });
+  }
+
+  addEndpoint(event) {
+    var _that = this;
+      this.$mdDialog.show({
+        clickOutsideToClose: true,
+        controller: 'DialogEndpointController',
+        controllerAs: 'ctrl',
+        focusOnOpen: false,
+        targetEvent: event,
+        templateUrl: 'app/api/admin/general/add-endpoint-dialog.html',
+      }).then(function (endpoint) {
+        if (endpoint) {
+          _that.$scope.$parent.apiCtrl.api.proxy.endpoints.push(endpoint);
+          _that.update(_that.$scope.$parent.apiCtrl.api);
+        }
+      });
+  }
+
+  removeEndpoints(event) {
+    var _that = this;
+    _(this.$scope.selected).forEach(function(endpoint) {
+      _(_that.$scope.$parent.apiCtrl.api.proxy.endpoints).forEach(function(endpoint2, index, object) {
+        if (endpoint2.target === endpoint.target) {
+          object.splice(index, 1);
+        }
+      });
+    });
+
+    this.update(this.$scope.$parent.apiCtrl.api);
   }
 
   reset() {
