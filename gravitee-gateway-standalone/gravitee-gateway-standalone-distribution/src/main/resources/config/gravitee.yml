@@ -110,10 +110,17 @@ reporter:
 # Services configuration
 services:
   # Synchronization daemon used to keep the gateway state in sync with the configuration from the management repository
-  sync:
+#  sync:
 #    enabled: true
     # By default, the sync is run each 5 seconds
 #    cron: '*/5 * * * * *'
+
+  # Service used to store and cache api-keys from the management repository to avoid direct communication
+  # while serving requests.
+#  apikeyscache:
+#    enabled: true
+#    delay: 10
+#    unit: SECONDS
 
   # Local registry service.
   # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
