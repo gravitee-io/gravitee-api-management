@@ -224,7 +224,9 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
                 continue;
             }
 
-            headerValues.getValue().forEach(headerValue -> httpClientRequest.putHeader(headerName, headerValue));
+            for (String headerValue : headerValues.getValue()) {
+                httpClientRequest.putHeader(headerName, headerValue);
+            }
         }
 
         httpClientRequest.putHeader(HttpHeaders.HOST, endpoint.getHost());

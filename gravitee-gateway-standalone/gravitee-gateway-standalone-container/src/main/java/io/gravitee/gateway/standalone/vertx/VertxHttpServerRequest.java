@@ -68,8 +68,9 @@ public class VertxHttpServerRequest implements Request {
         if (queryParameters == null) {
             queryParameters = new HashMap<>(httpServerRequest.params().size());
 
-            httpServerRequest.params().forEach(param ->
-                    queryParameters.put(param.getKey(), param.getValue()));
+            for(Map.Entry<String, String> param : httpServerRequest.params()) {
+                queryParameters.put(param.getKey(), param.getValue());
+            }
         }
 
         return queryParameters;
@@ -78,9 +79,10 @@ public class VertxHttpServerRequest implements Request {
     @Override
     public HttpHeaders headers() {
         if (headers == null) {
-            headers = new HttpHeaders();
-            httpServerRequest.headers().forEach(header ->
-                    headers.add(header.getKey(), header.getValue()));
+            headers = new HttpHeaders(httpServerRequest.headers().size());
+            for(Map.Entry<String, String> header : httpServerRequest.headers()) {
+                headers.add(header.getKey(), header.getValue());
+            }
         }
 
         return headers;
