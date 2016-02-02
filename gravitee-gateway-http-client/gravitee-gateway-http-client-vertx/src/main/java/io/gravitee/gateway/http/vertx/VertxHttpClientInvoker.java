@@ -50,6 +50,8 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
 
     private final Logger LOGGER = LoggerFactory.getLogger(VertxHttpClientInvoker.class);
 
+    private final Logger loggerDumpHttpClient = LoggerFactory.getLogger("io.gravitee.gateway.http.client");
+
     private HttpClient httpClient;
 
     @Resource
@@ -81,7 +83,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         String url = rewrittenURI.toString();
 
         if (isDumpRequestEnabled()) {
-            LOGGER.info("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), url);
+            loggerDumpHttpClient.info("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), url);
         }
 
         String uri = rewrittenURI.getPath();
@@ -103,8 +105,8 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
             public ClientRequest write(BodyPart bodyPart) {
                 byte [] data = bodyPart.getBodyPartAsBytes();
                 if (isDumpRequestEnabled()) {
-                    LOGGER.info("{} proxying content to upstream: {} bytes", serverRequest.id(), data.length);
-                    LOGGER.info("{}", new String(data));
+                    loggerDumpHttpClient.info("{} proxying content to upstream: {} bytes", serverRequest.id(), data.length);
+                    loggerDumpHttpClient.info("{}", new String(data));
                 }
                 clientRequest.write(Buffer.buffer(data));
 
@@ -114,7 +116,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
             @Override
             public void end() {
                 if (isDumpRequestEnabled()) {
-                    LOGGER.info("{} proxying complete", serverRequest.id());
+                    loggerDumpHttpClient.info("{} proxying complete", serverRequest.id());
                 }
                 clientRequest.end();
             }
@@ -122,6 +124,10 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
 
         clientRequest.exceptionHandler(event -> {
             LOGGER.error("{} server proxying failed: {}", serverRequest.id(), event.getMessage());
+
+            if(isDumpRequestEnabled()) {
+                loggerDumpHttpClient.info("{} server proxying failed: {}", serverRequest.id(), event.getMessage());
+            }
 
             VertxClientResponse clientResponse = new VertxClientResponse((event instanceof TimeoutException) ?
                     HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
@@ -150,8 +156,8 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         copyRequestHeaders(serverRequest, clientRequest, endpoint);
 
         if(isDumpRequestEnabled()) {
-            LOGGER.info("{} {}", clientRequest.method(), uri);
-            clientRequest.headers().forEach(headers -> LOGGER.info("{}: {}", headers.getKey(), headers.getValue()));
+            loggerDumpHttpClient.info("{} {}", clientRequest.method(), uri);
+            clientRequest.headers().forEach(headers -> loggerDumpHttpClient.info("{}: {}", headers.getKey(), headers.getValue()));
         }
 
         // Check chuncked flag on the request if there are some content to push and if transfer_encoding is set

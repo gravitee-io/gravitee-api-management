@@ -41,6 +41,25 @@
         </encoder>
     </appender>
 
+    <appender name="FILE_DUMP" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${gravitee.gateway.log.dir}/gravitee-httpdump.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>${gravitee.gateway.log.dir}/gravitee-httpdump_%d{yyyy-MM-dd}.log</fileNamePattern>
+
+            <!-- keep 30 days' worth of history -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} >> %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="io.gravitee.gateway.http.client" level="INFO" additivity="false">
+        <appender-ref ref="FILE_DUMP" />
+    </logger>
+
     <logger name="io.gravitee" level="INFO" />
     <logger name="org.springframework" level="INFO" />
     <logger name="org.eclipse.jetty" level="INFO" />
