@@ -106,6 +106,7 @@ public class RepositoryBeanFactoryPostProcessor implements BeanFactoryPostProces
                     LOGGER.info("\tRegistering repository extension: {}", extension.getName());
                 }
 
+                configurationClassPostProcessor.enhanceConfigurationClasses(defaultListableBeanFactory);
                 configurationClassPostProcessor.processConfigBeanDefinitions(defaultListableBeanFactory);
             } else {
                 LOGGER.error("Repository implementation for {} can not be found. Please add correct module in classpath", repositoryType);
