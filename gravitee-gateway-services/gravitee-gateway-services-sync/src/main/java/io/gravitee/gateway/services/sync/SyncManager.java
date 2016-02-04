@@ -27,8 +27,6 @@ import io.gravitee.repository.management.model.LifecycleState;
 import java.io.IOException;
 import java.text.Collator;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -141,16 +139,18 @@ public class SyncManager {
     private Set<Api> getDeployedApis(Set<io.gravitee.repository.management.model.Api> apis) {
     	Set<Api> deployedApis = new HashSet<Api>();
     	
-    	Collection<Event> events = eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
-    	List<Event> eventsSorted = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).collect(Collectors.toList());
-    	Collections.reverse(eventsSorted);
+    	List<Event> events = eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API))
+    	                        .stream().sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt())).collect(Collectors.toList());;
     	try {
     		for (io.gravitee.repository.management.model.Api api : apis) {
-	    		for (Event _event : eventsSorted) {
-	    			JsonNode node = objectMapper.readTree(_event.getPayload());
-	    			io.gravitee.repository.management.model.Api payloadApi = objectMapper.convertValue(node, io.gravitee.repository.management.model.Api.class);
-	    			if (api.getId().equals(payloadApi.getId())) {
-	    				deployedApis.add(convert(payloadApi));
+	    		for (Event _event : events) {
+	    			if (api.getId().equals(_event.getProperties().get(Event.EventProperties.API_ID.getValue()))) {
+	    				// only deploy STARTED API
+	    			    if (EventType.PUBLISH_API.equals(_event.getType())) {
+	    			        JsonNode node = objectMapper.readTree(_event.getPayload());
+	    			        io.gravitee.repository.management.model.Api payloadApi = objectMapper.convertValue(node, io.gravitee.repository.management.model.Api.class);
+	    			        deployedApis.add(convert(payloadApi));
+	    			    }
 	    				break;
 	    			}
 	    		}

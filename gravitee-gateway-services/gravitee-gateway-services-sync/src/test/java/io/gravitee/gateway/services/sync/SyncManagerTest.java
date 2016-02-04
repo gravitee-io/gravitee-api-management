@@ -35,7 +35,9 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -90,7 +92,7 @@ public class SyncManagerTest {
 
         final Api mockApi = mockApi(api);
         
-        final Event mockEvent = mockEvent(api);
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
             
         when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API))).thenReturn(Collections.singleton(mockEvent));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
@@ -108,7 +110,7 @@ public class SyncManagerTest {
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
         final Api mockApi = mockApi(api);
-        final Event mockEvent = mockEvent(api);
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         
         when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API))).thenReturn(Collections.singleton(mockEvent));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
@@ -136,9 +138,9 @@ public class SyncManagerTest {
 
         final Api mockApi2 = mockApi(api2);
         
-        final Event mockEvent = mockEvent(api);
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         
-        final Event mockEvent2 = mockEvent(api2);
+        final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
         
         when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API))).thenReturn(Collections.singleton(mockEvent));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
@@ -180,9 +182,9 @@ public class SyncManagerTest {
 
         final Api mockApi2 = mockApi(api2);
         
-        final Event mockEvent = mockEvent(api);
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         
-        final Event mockEvent2 = mockEvent(api2);
+        final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
         Set<Event> events = new HashSet<Event>();
         events.add(mockEvent);
@@ -222,9 +224,9 @@ public class SyncManagerTest {
         final Api mockApi = mockApi(api);
         mockApi(api2);
         
-        final Event mockEvent = mockEvent(api);
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         
-        final Event mockEvent2 = mockEvent(api2);
+        final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
         Set<Event> events = new HashSet<Event>();
         events.add(mockEvent);
@@ -254,9 +256,9 @@ public class SyncManagerTest {
 
         final Api mockApi = mockApi(api);
         
-        final Event mockEvent = mockEvent(api);
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         
-        final Event mockEvent2 = mockEvent(api2);
+        final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
         Set<Event> events = new HashSet<Event>();
         events.add(mockEvent);
@@ -316,7 +318,7 @@ public class SyncManagerTest {
 
         final Api mockApi = mockApi(api, apiTags);
         
-        final Event mockEvent = mockEvent(api);
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         
         when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API))).thenReturn(Collections.singleton(mockEvent));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
@@ -371,7 +373,7 @@ public class SyncManagerTest {
 
 		final Api mockApi = mockApi(api);
 
-		final Event mockEvent = mockEvent(api);
+		final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
 
 		Set<io.gravitee.repository.management.model.Api> apis = new HashSet<>();
 		apis.add(api);
@@ -392,6 +394,38 @@ public class SyncManagerTest {
 		verify(apiManager, never()).update(any(Api.class));
 		verify(apiManager, never()).undeploy(any(String.class));
 	}
+	
+	@Test
+	public void test_shouldUndeployIfLastEventIsUnpublishAPI() throws Exception {
+	    io.gravitee.repository.management.model.Api api =
+                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
+
+        final Api mockApi = mockApi(api);
+        
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        
+        final Event mockEvent2 = mockEvent(api, EventType.UNPUBLISH_API);
+
+        Set<Event> events = new HashSet<Event>();
+        events.add(mockEvent);
+        events.add(mockEvent2);
+
+        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API))).thenReturn(Collections.singleton(mockEvent));
+        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+
+        syncManager.refresh();
+
+        when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
+        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API))).thenReturn(Collections.singleton(mockEvent2));
+        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+
+        syncManager.refresh();
+
+        verify(apiManager).deploy(mockApi);
+        verify(apiManager, never()).update(any(Api.class));
+        verify(apiManager).undeploy(mockApi.getId());
+	    
+	}
 
     private Api mockApi(final io.gravitee.repository.management.model.Api api, final String[] tags) throws Exception {
         final Api mockApi = mockApi(api);
@@ -407,17 +441,21 @@ public class SyncManagerTest {
         return mockApi;
     }
     
-    private Event mockEvent(final io.gravitee.repository.management.model.Api api) throws Exception {
+    private Event mockEvent(final io.gravitee.repository.management.model.Api api, EventType eventType) throws Exception {
 		final JsonNodeFactory factory = JsonNodeFactory.instance;
 		ObjectNode node = factory.objectNode();
 		node.set("id", factory.textNode(api.getId()));
+		
+		Map<String, String> properties = new HashMap<String, String>();
+		properties.put(Event.EventProperties.API_ID.getValue(), api.getId());
 
 		Event event = new Event();
-		event.setType(EventType.PUBLISH_API);
+		event.setType(eventType);
 		event.setId(UUID.randomUUID().toString());
 		event.setPayload(node.toString());
 		event.setCreatedAt(new Date());
 		event.setUpdatedAt(event.getCreatedAt());
+		event.setProperties(properties);
 
 		when(objectMapper.readTree(event.getPayload())).thenReturn((JsonNode) node);
 		when(objectMapper.convertValue((JsonNode) node, io.gravitee.repository.management.model.Api.class)).thenReturn(api);
