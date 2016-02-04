@@ -404,7 +404,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
     
     @Override
-    public ApiEntity deploy(String apiId, String username) {
+    public ApiEntity deploy(String apiId, String username, EventType eventType) {
     	 try {
              LOGGER.debug("Deploy API : {}", apiId);
 
@@ -414,7 +414,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                  Map<String, String> properties = new HashMap<String, String>();
                  properties.put(Event.EventProperties.API_ID.getValue(), api.get().getId());
                  properties.put(Event.EventProperties.USERNAME.getValue(), username);
-            	 EventEntity event = eventService.create(EventType.PUBLISH_API, objectMapper.writeValueAsString(api.get()), properties);
+            	 EventEntity event = eventService.create(eventType, objectMapper.writeValueAsString(api.get()), properties);
             	 // add deployment date
             	 if (event != null) {
             	     Api apiValue = api.get();
@@ -453,7 +453,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         //TODO: username must be changed
-        deploy(apiName, "admin");
+        if (LifecycleState.STARTED.equals(lifecycleState)) {
+            deploy(apiName, "admin", EventType.PUBLISH_API);
+        } else {
+            deploy(apiName, "admin", EventType.UNPUBLISH_API);
+        }
     }
 
     private ApiEntity convert(Api api) {

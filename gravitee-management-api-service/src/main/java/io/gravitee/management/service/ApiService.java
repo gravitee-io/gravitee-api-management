@@ -52,7 +52,7 @@ public interface ApiService {
     
     boolean isAPISynchronized(ApiEntity api);
     
-    ApiEntity deploy(String apiId, String username);
+    ApiEntity deploy(String apiId, String username, EventType eventType);
     
     ApiEntity rollback(String apiId, UpdateApiEntity api);
 }

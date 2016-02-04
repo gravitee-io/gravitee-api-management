@@ -16,6 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.MembershipType;
 import io.gravitee.management.model.UpdateApiEntity;
@@ -129,7 +130,7 @@ public class ApiResource extends AbstractResource {
         permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
 
         try {
-            ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUsername());
+            ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUsername(), EventType.PUBLISH_API);
             return Response.status(Status.OK).entity(apiEntity).build();
         } catch (Exception e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
