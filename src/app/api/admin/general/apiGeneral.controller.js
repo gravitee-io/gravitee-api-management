@@ -114,7 +114,6 @@ class ApiAdminController {
       placeholder: 'Weight',
       save: function (input) {
         endpoint.weight = input.$modelValue;
-        console.log(_that.$scope.$parent.apiCtrl.api.proxy.endpoints);
         _that.update(_that.$scope.$parent.apiCtrl.api);
       },
       targetEvent: event,
@@ -158,7 +157,7 @@ class ApiAdminController {
     var _that = this;
     _(this.$scope.selected).forEach(function(endpoint) {
       _(_that.$scope.$parent.apiCtrl.api.proxy.endpoints).forEach(function(endpoint2, index, object) {
-        if (endpoint2.target === endpoint.target) {
+        if (endpoint2 !== undefined && endpoint2.target === endpoint.target) {
           object.splice(index, 1);
         }
       });
