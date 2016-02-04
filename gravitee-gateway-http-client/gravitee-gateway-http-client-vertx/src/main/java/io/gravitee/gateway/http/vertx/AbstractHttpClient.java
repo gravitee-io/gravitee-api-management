@@ -62,7 +62,12 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
             requestURI.append('?');
 
             for(Map.Entry<String, String> queryParam : request.parameters().entrySet()) {
-                requestURI.append(queryParam.getKey()).append('=').append(queryParam.getValue()).append('&');
+                requestURI.append(queryParam.getKey());
+                if (queryParam.getValue() != null && !queryParam.getValue().isEmpty()) {
+                    requestURI.append('=').append(queryParam.getValue());
+                }
+
+                requestURI.append('&');
             }
 
             // Removing latest & separator
