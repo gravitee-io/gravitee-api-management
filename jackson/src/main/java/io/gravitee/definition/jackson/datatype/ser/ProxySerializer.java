@@ -41,12 +41,6 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
 
         final List<Endpoint> endpoints = proxy.getEndpoints();
 
-        // This is just for backward compatibility with version < 0.6
-        // Must be deleted for major release
-        if (endpoints.size() == 1) {
-            jgen.writeStringField("endpoint", endpoints.iterator().next().getTarget());
-        }
-
         jgen.writeArrayFieldStart("endpoints");
         endpoints.forEach(endpoint -> {
             try {

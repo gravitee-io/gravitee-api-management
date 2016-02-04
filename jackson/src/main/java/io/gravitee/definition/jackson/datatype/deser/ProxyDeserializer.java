@@ -50,8 +50,16 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         final JsonNode nodeEndpoint = node.get("endpoint");
         final JsonNode nodeEndpoints = node.get("endpoints");
 
-        if (nodeEndpoints != null && nodeEndpoints.isArray()) {
-            nodeEndpoints.elements().forEachRemaining(jsonNode -> {
+        if (nodeEndpoint != null) {
+            // This is just for backward compatibility with version < 0.6
+            // Must be deleted for major release
+            Endpoint singleEndpoint = new Endpoint();
+            singleEndpoint.setTarget(nodeEndpoint.asText());
+            singleEndpoint.setWeight(Endpoint.DEFAULT_WEIGHT);
+            proxy.getEndpoints().add(singleEndpoint);
+        } else {
+            if (nodeEndpoints != null && nodeEndpoints.isArray()) {
+                nodeEndpoints.elements().forEachRemaining(jsonNode -> {
                     try {
                         Endpoint endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(Endpoint.class);
                         proxy.getEndpoints().add(endpoint);
@@ -59,13 +67,7 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
                         e.printStackTrace();
                     }
                 });
-        }
-
-        if (nodeEndpoint != null) {
-            Endpoint singleEndpoint = new Endpoint();
-            singleEndpoint.setTarget(nodeEndpoint.asText());
-            singleEndpoint.setWeight(Endpoint.DEFAULT_WEIGHT);
-            proxy.getEndpoints().add(singleEndpoint);
+            }
         }
 
         JsonNode stripContextNode = node.get("strip_context_path");
