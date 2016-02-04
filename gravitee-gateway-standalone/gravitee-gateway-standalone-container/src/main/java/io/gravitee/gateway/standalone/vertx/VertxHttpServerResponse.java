@@ -62,9 +62,16 @@ public class VertxHttpServerResponse implements Response {
             writeHeaders();
 
             // Vertx requires to set the chunked flag if transfer_encoding header as the "chunked" value
-            String transferEncoding = headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
-            if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding)) {
+            String transferEncodingHeader = headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
+            if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncodingHeader)) {
                 httpServerResponse.setChunked(true);
+            } else if (transferEncodingHeader == null) {
+                String connectionHeader = headers().getFirst(HttpHeaders.CONNECTION);
+                String contentLengthHeader = headers().getFirst(HttpHeaders.CONTENT_LENGTH);
+                if (HttpHeadersValues.CONNECTION_CLOSE.equalsIgnoreCase(connectionHeader)
+                        && contentLengthHeader == null) {
+                    httpServerResponse.setChunked(true);
+                }
             }
         }
 
