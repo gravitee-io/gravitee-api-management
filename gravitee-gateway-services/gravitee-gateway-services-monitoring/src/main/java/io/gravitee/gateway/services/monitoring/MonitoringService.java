@@ -19,8 +19,8 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Monitoring;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import org.slf4j.Logger;
@@ -93,23 +93,25 @@ public class MonitoringService extends AbstractService implements EventListener<
     }
 
     private void startMonitor(Api api) {
-        Monitoring monitoring = api.getMonitoring();
-        if (monitoring != null && monitoring.isEnabled()) {
-            LOGGER.info("Create an executor to monitor {}", api);
+        if (api.isEnabled()) {
+            Monitoring monitoring = api.getMonitoring();
+            if (monitoring != null && monitoring.isEnabled()) {
+                LOGGER.info("Create an executor to monitor {}", api);
 
-            EndpointMonitor monitor = new EndpointMonitor(api);
-            monitor.setReporterService(reporterService);
+                EndpointMonitor monitor = new EndpointMonitor(api);
+                monitor.setReporterService(reporterService);
 
-            ExecutorService executor = Executors.newSingleThreadScheduledExecutor(
-                    r -> new Thread(r, "monitor-" + api.getName()));
+                ExecutorService executor = Executors.newSingleThreadScheduledExecutor(
+                        r -> new Thread(r, "monitor-" + api.getName()));
 
-            monitors.put(api, executor);
+                monitors.put(api, executor);
 
-            LOGGER.info("Start monitor for {}", api);
-            ((ScheduledExecutorService) executor).scheduleWithFixedDelay(
-                    monitor, 0, monitoring.getInterval(), monitoring.getUnit());
-        } else {
-            LOGGER.info("Monitoring is disabled for {}", api);
+                LOGGER.info("Start monitor for {}", api);
+                ((ScheduledExecutorService) executor).scheduleWithFixedDelay(
+                        monitor, 0, monitoring.getInterval(), monitoring.getUnit());
+            } else {
+                LOGGER.info("Monitoring is disabled for {}", api);
+            }
         }
     }
 

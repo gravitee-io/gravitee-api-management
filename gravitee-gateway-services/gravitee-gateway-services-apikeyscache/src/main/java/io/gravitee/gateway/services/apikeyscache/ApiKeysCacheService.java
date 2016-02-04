@@ -19,7 +19,7 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import net.sf.ehcache.Cache;
@@ -125,10 +125,14 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             case UNDEPLOY:
                 stopRefresher(api);
                 break;
+            case UPDATE:
+                stopRefresher(api);
+                startRefresher(api);
         }
     }
 
     private void startRefresher(Api api) {
+        if (api.isEnabled()) {
             ApiKeyRefresher refresher = new ApiKeyRefresher(api);
             refresher.setCache(cache);
             refresher.setApiKeyRepository(apiKeyRepository);
@@ -141,6 +145,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             LOGGER.info("Start api-keys refresher for {} each {} {} ", api, delay, unit.name());
             ((ScheduledExecutorService) executor).scheduleWithFixedDelay(
                     refresher, 0, delay, unit);
+        }
     }
 
     private void stopRefresher(Api api, ExecutorService executor) {
