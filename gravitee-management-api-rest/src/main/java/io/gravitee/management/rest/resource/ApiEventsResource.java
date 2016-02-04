@@ -16,7 +16,6 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.EventEntity;
-import io.gravitee.management.model.EventType;
 import io.gravitee.management.service.EventService;
 
 import java.util.List;
@@ -43,7 +42,7 @@ public class ApiEventsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<EventEntity> events() {
 
-        List<EventEntity> events = eventService.findByApi(api).stream().filter(e -> e.getType().equals(EventType.PUBLISH_API))
+        List<EventEntity> events = eventService.findByApi(api).stream()
                 .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
                 .collect(Collectors.toList());
 
