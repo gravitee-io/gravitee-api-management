@@ -13,42 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.loadbalancer;
+package io.gravitee.gateway.http.core.loadbalancer;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.Request;
-
-import java.util.Random;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public class RandomLoadBalancer extends LoadBalancerSupport {
+public class RoundRobinLoadBalancer extends LoadBalancerSupport {
 
-    private transient int index;
-    private static final Random RANDOM = new Random();
+    private int counter = -1;
 
-    public RandomLoadBalancer(final Api api) {
+    public RoundRobinLoadBalancer(final Api api) {
         super(api);
     }
 
     @Override
     public synchronized String chooseEndpoint(Request request) {
         int size = endpoints().size();
-        if (size == 0) {
-            return null;
-        } else if (size == 1) {
-            // There is only 1
-            return endpoints().get(0).getTarget();
+        if (++counter >= size) {
+            counter = 0;
         }
-
-        index = RANDOM.nextInt(size);
-        return endpoints().get(index).getTarget();
+        return endpoints().get(counter).getTarget();
     }
 
     @Override
     public String toString() {
-        return "RandomLoadBalancer";
+        return "RoundRobinLoadBalancer";
     }
 }

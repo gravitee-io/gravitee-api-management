@@ -4,7 +4,11 @@
 
   "proxy": {
     "context_path": "/test",
-    "endpoint": "http://localhost:8083/team",
+    "endpoints": [
+      {
+        "target": "http://localhost:8080/team"
+      }
+    ],
     "strip_context_path": false
   },
 

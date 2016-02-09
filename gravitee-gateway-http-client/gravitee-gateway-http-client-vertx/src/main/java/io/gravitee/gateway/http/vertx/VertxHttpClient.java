@@ -21,11 +21,11 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.ClientResponse;
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.BodyPart;
-import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
+import io.gravitee.gateway.api.http.StringBodyPart;
+import io.gravitee.gateway.http.core.client.AbstractHttpClient;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
@@ -34,9 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -46,9 +43,9 @@ import java.util.concurrent.TimeoutException;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class VertxHttpClientInvoker extends AbstractHttpClient {
+public class VertxHttpClient extends AbstractHttpClient {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(VertxHttpClientInvoker.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(VertxHttpClient.class);
 
     private final Logger loggerDumpHttpClient = LoggerFactory.getLogger("io.gravitee.gateway.http.client");
 
@@ -57,48 +54,14 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
     @Resource
     private Vertx vertx;
 
-    /*
-    @Resource
-    private EndpointResolver endpointResolver;
-    */
-
-    @Resource
-    private LoadBalancer loadBalancer;
-
     @Override
-    public ClientRequest invoke(ExecutionContext executionContext, Request serverRequest, Handler<ClientResponse> clientResponseHandler) {
-        // Get endpoint
-        String sEndpoint = loadBalancer.chooseEndpoint(serverRequest);
-
-        // Endpoint URI
-        URI endpoint = URI.create(sEndpoint);
-
-        // Resolve target endpoint
-//        URI endpoint = endpointResolver.resolve(serverRequest);
-
-        // TODO: how to pass this to the response metrics
-        // serverResponse.metrics().setEndpoint(endpoint.toString());
-
-        URI rewrittenURI = rewriteURI(serverRequest, endpoint);
-        String url = rewrittenURI.toString();
-
-        if (isDumpRequestEnabled()) {
-            loggerDumpHttpClient.info("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), url);
-        }
-
-        String uri = rewrittenURI.getPath();
-        if (rewrittenURI.getQuery() != null)
-            uri += '?' + rewrittenURI.getQuery();
-
-        final int port = endpoint.getPort() != -1 ? endpoint.getPort() :
-                (endpoint.getScheme().equals("https") ? 443 : 80);
-
+    public ClientRequest request0(String host, int port, io.gravitee.common.http.HttpMethod method, String requestURI, Request serverRequest, Handler<ClientResponse> responseHandler) {
         HttpClientRequest clientRequest = httpClient.request(
-                extractHttpMethod(executionContext, serverRequest),
+                convert(method),
                 port,
-                endpoint.getHost(),
-                uri,
-                clientResponse -> handleClientResponse(clientResponse, clientResponseHandler));
+                host,
+                requestURI,
+                clientResponse -> handleClientResponse(clientResponse, responseHandler));
 
         clientRequest.setTimeout(api.getProxy().getHttpClient().getOptions().getReadTimeout());
 
@@ -145,7 +108,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
 
             }
 
-            clientResponseHandler.handle(clientResponse);
+            responseHandler.handle(clientResponse);
 
             if (responseBody != null) {
                 clientResponse.bodyHandler().handle(responseBody);
@@ -155,10 +118,10 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         });
 
         // Copy headers to final API
-        copyRequestHeaders(serverRequest, clientRequest, endpoint);
+        copyRequestHeaders(serverRequest, clientRequest, host);
 
         if(isDumpRequestEnabled()) {
-            loggerDumpHttpClient.info("{} {}", clientRequest.method(), uri);
+            loggerDumpHttpClient.info("{} {}", clientRequest.method(), requestURI);
             clientRequest.headers().forEach(headers -> loggerDumpHttpClient.info("{}: {}", headers.getKey(), headers.getValue()));
         }
 
@@ -171,37 +134,10 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
             }
         }
 
+        // Send HTTP head as soon as possible
+        clientRequest.sendHead();
+
         return invokerRequest;
-    }
-
-    private HttpMethod extractHttpMethod(ExecutionContext executionContext, Request request) {
-        io.gravitee.common.http.HttpMethod method = (io.gravitee.common.http.HttpMethod)
-                executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_METHOD);
-        return convert((method == null) ? request.method() : method);
-    }
-
-    private class StringBodyPart implements BodyPart<ByteBuffer> {
-
-        private final byte[] bytes;
-
-        public StringBodyPart(String body) {
-            bytes = body.getBytes(Charset.forName("UTF-8"));
-        }
-
-        @Override
-        public int length() {
-            return bytes.length;
-        }
-
-        @Override
-        public byte[] getBodyPartAsBytes() {
-            return bytes;
-        }
-
-        @Override
-        public ByteBuffer getBodyPart() {
-            return ByteBuffer.wrap(bytes);
-        }
     }
 
     private void handleClientResponse(HttpClientResponse clientResponse,
@@ -222,7 +158,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         clientResponseHandler.handle(proxyClientResponse);
     }
 
-    protected void copyRequestHeaders(Request clientRequest, HttpClientRequest httpClientRequest, URI endpoint) {
+    protected void copyRequestHeaders(Request clientRequest, HttpClientRequest httpClientRequest, String host) {
         for (Map.Entry<String, List<String>> headerValues : clientRequest.headers().entrySet()) {
             String headerName = headerValues.getKey();
             String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
@@ -237,7 +173,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
             }
         }
 
-        httpClientRequest.putHeader(HttpHeaders.HOST, endpoint.getHost());
+        httpClientRequest.putHeader(HttpHeaders.HOST, host);
     }
 
     @Override
@@ -306,6 +242,7 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
         }
 
         httpClient = vertx.createHttpClient(options);
+
         LOGGER.info("Vert.x HTTP Client created {}", httpClient);
     }
 }

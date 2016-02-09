@@ -13,34 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.loadbalancer;
+package io.gravitee.gateway.http.core.invoker.spring;
 
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Invoker;
+import io.gravitee.gateway.http.core.common.spring.AbstractAutowiringFactoryBean;
+import io.gravitee.gateway.http.core.invoker.DefaultHttpInvoker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public class RoundRobinLoadBalancer extends LoadBalancerSupport {
+public class HttpInvokerFactory extends AbstractAutowiringFactoryBean<Invoker> {
 
-    private int counter = -1;
+    private final Logger LOGGER = LoggerFactory.getLogger(HttpInvokerFactory.class);
 
-    public RoundRobinLoadBalancer(final Api api) {
-        super(api);
+    @Autowired
+    private Api api;
+
+    @Override
+    public Class<?> getObjectType() {
+        return Invoker.class;
     }
 
     @Override
-    public synchronized String chooseEndpoint(Request request) {
-        int size = endpoints().size();
-        if (++counter >= size) {
-            counter = 0;
-        }
-        return endpoints().get(counter).getTarget();
-    }
-
-    @Override
-    public String toString() {
-        return "RoundRobinLoadBalancer";
+    protected Invoker doCreateInstance() throws Exception {
+        return new DefaultHttpInvoker();
     }
 }

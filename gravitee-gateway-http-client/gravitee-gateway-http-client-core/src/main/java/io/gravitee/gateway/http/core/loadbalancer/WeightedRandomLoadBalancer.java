@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.loadbalancer;
+package io.gravitee.gateway.http.core.loadbalancer;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;

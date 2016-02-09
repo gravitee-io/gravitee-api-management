@@ -49,9 +49,7 @@ import java.util.Properties;
 @Configuration
 @Import({
         PropertiesConfiguration.class,
-
         RepositoryConfiguration.class,
-
         PluginConfiguration.class,
         PolicyPluginConfiguration.class,
         ReporterConfiguration.class,

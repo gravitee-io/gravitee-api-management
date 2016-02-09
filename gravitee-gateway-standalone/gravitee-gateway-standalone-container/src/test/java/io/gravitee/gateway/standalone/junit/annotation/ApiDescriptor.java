@@ -13,36 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.stream;
+package io.gravitee.gateway.standalone.junit.annotation;
 
-import io.gravitee.gateway.api.http.BodyPart;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
-public class StringBodyPart implements BodyPart<ByteBuffer> {
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD, ElementType.TYPE})
+public @interface ApiDescriptor {
 
-    private final byte[] bytes;
-
-    public StringBodyPart(String body) {
-        bytes = body.getBytes(Charset.forName("UTF-8"));
-    }
-
-    @Override
-    public int length() {
-        return bytes.length;
-    }
-
-    @Override
-    public byte[] getBodyPartAsBytes() {
-        return bytes;
-    }
-
-    @Override
-    public ByteBuffer getBodyPart() {
-        return ByteBuffer.wrap(bytes);
-    }
+    String value();
 }

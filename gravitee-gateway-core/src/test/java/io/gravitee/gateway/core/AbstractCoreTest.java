@@ -17,6 +17,7 @@ package io.gravitee.gateway.core;
 
 import io.gravitee.gateway.core.spring.CoreConfiguration;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import org.junit.runner.RunWith;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -59,7 +60,7 @@ public abstract class AbstractCoreTest implements ApplicationContextAware {
         // This bean is needed by HTTP client
         @Bean
         public Vertx vertx() {
-            return Vertx.vertx();
+            return Vertx.vertx(new VertxOptions().setWorkerPoolSize(10));
         }
     }
 

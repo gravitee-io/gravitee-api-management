@@ -13,44 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.vertx;
+package io.gravitee.gateway.http.core.invoker;
 
-import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.client.HttpClient;
+import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Resource;
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
-public abstract class AbstractHttpClient extends AbstractLifecycleComponent<HttpClient> implements HttpClient {
+public abstract class AbstractHttpInvoker implements Invoker {
 
-    protected static final Set<String> HOP_HEADERS;
-
-    static {
-        Set<String> hopHeaders = new HashSet<String>();
-        hopHeaders.add("connection");
-        hopHeaders.add("keep-alive");
-        hopHeaders.add("proxy-authorization");
-        hopHeaders.add("proxy-authenticate");
-        hopHeaders.add("proxy-connection");
-        hopHeaders.add("transfer-encoding");
-        hopHeaders.add("te");
-        hopHeaders.add("trailer");
-        hopHeaders.add("upgrade");
-        HOP_HEADERS = Collections.unmodifiableSet(hopHeaders);
-    }
-
-    @Resource
+    @Autowired
     protected Api api;
+
+    @Autowired
+    protected HttpClient httpClient;
+
+    @Autowired
+    protected LoadBalancer loadBalancer;
 
     protected URI rewriteURI(Request request, URI endpointUri) {
         final StringBuilder requestURI =
@@ -77,13 +67,9 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
         return URI.create(requestURI.toString());
     }
 
-    protected boolean hasContent(Request request) {
-        return request.headers().contentLength() > 0 ||
-                request.headers().contentType() != null ||
-                request.headers().getFirst(HttpHeaders.TRANSFER_ENCODING) != null;
-    }
-
-    protected boolean isDumpRequestEnabled() {
-        return api.getProxy().getHttpClient().getOptions().isDumpRequest();
+    protected HttpMethod extractHttpMethod(ExecutionContext executionContext, Request request) {
+        io.gravitee.common.http.HttpMethod overrideMethod = (io.gravitee.common.http.HttpMethod)
+                executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_METHOD);
+        return (overrideMethod == null) ? request.method() : overrideMethod;
     }
 }

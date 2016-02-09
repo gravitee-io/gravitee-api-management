@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.loadbalancer.spring;
+package io.gravitee.gateway.http.core.loadbalancer.spring;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
-import io.gravitee.gateway.core.http.loadbalancer.RandomLoadBalancer;
-import io.gravitee.gateway.core.http.loadbalancer.RoundRobinLoadBalancer;
-import io.gravitee.gateway.core.http.loadbalancer.WeightedRandomLoadBalancer;
-import io.gravitee.gateway.core.http.loadbalancer.WeightedRoundRobinLoadBalancer;
+import io.gravitee.gateway.http.core.loadbalancer.RandomLoadBalancer;
+import io.gravitee.gateway.http.core.loadbalancer.RoundRobinLoadBalancer;
+import io.gravitee.gateway.http.core.loadbalancer.WeightedRandomLoadBalancer;
+import io.gravitee.gateway.http.core.loadbalancer.WeightedRoundRobinLoadBalancer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
