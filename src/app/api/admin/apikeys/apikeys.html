@@ -39,7 +39,7 @@
             <ng-md-icon ng-show="!apikey.revoked" icon="done" style="fill: #107F20"></ng-md-icon>
             <ng-md-icon ng-show="apikey.revoked" icon="clear" style="fill: #BE2628"></ng-md-icon>
             <code>{{apikey.key}}</code>
-            <span class="gravitee-clipboard">
+            <span class="gravitee-clipboard"  style="position: absolute">
               <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
               <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link" ngclipboard data-clipboard-text="{{apikey.key}}" ngclipboard-success="apiKeysCtrl.onClipboardSuccess(e);" role="button" ></ng-md-icon>
             </span>
