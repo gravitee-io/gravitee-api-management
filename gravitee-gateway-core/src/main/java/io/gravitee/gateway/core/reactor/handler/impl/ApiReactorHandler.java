@@ -21,12 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.definition.model.Path;
 import io.gravitee.gateway.api.*;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.expression.spel.WrappedRequestVariable;
 import io.gravitee.gateway.core.http.stream.StringBodyPart;
+import io.gravitee.gateway.core.policy.PathResolver;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.StreamType;
 import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
@@ -55,6 +57,9 @@ public class ApiReactorHandler extends ContextReactorHandler {
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    private PathResolver pathResolver;
+
     @Override
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
         // Do we need API name or API id ? (this information is transferred to target API)
@@ -63,13 +68,17 @@ public class ApiReactorHandler extends ContextReactorHandler {
         // Set specific metrics for API handler
         serverResponse.metrics().setApi(api.getId());
 
+        // Resolve the "configured" path according to the inbound request
+        Path path = pathResolver.resolve(serverRequest);
+
         // Calculate request policies
-        List<Policy> requestPolicies = getPolicyResolver().resolve(serverRequest, StreamType.REQUEST);
+        List<Policy> requestPolicies = getPolicyResolver().resolve(StreamType.REQUEST, serverRequest, path.getRules());
 
         // Prepare execution context
         ExecutionContext executionContext = createExecutionContext();
         executionContext.getTemplateEngine().getTemplateContext().setVariable("request", new WrappedRequestVariable(serverRequest));
         executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.getProperties());
+        executionContext.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, path.getPath());
 
         // Apply request policies
         AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(requestPolicies, executionContext);
@@ -92,7 +101,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
                     responseStream.headers().forEach((headerName, headerValues) -> serverResponse.headers().put(headerName, headerValues));
 
                     // Calculate response policies
-                    List<Policy> responsePolicies = getPolicyResolver().resolve(serverRequest, StreamType.RESPONSE);
+                    List<Policy> responsePolicies = getPolicyResolver().resolve(StreamType.RESPONSE, serverRequest, path.getRules());
                     AbstractPolicyChain responsePolicyChain = getResponsePolicyChainBuilder().newPolicyChain(responsePolicies, executionContext);
 
                     responsePolicyChain.setResultHandler(responsePolicyResult -> {

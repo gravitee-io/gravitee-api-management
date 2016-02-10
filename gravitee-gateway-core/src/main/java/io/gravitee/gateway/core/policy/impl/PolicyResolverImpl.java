@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.policy.*;
@@ -44,17 +45,11 @@ public class PolicyResolverImpl implements PolicyResolver {
     @Autowired
     private PolicyFactory policyFactory;
 
-    @Autowired
-    private PathResolver pathResolver;
-
     @Override
-    public List<Policy> resolve(Request request, StreamType streamType) {
+    public List<Policy> resolve(StreamType streamType, Request request, List<Rule> rules) {
         List<Policy> policies = new ArrayList<>();
 
-        // Resolve the "configured" path according to the inbound request
-        Path path = pathResolver.resolve(request);
-
-        path.getRules().stream().filter(rule -> rule.getMethods().contains(request.method())).forEach(rule -> {
+        rules.stream().filter(rule -> rule.getMethods().contains(request.method())).forEach(rule -> {
             PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(rule.getPolicy().getName());
             if (policyDefinition == null) {
                 LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}",

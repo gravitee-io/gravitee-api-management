@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.policy;
 
+import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
 
 import java.util.List;
@@ -24,5 +25,5 @@ import java.util.List;
  */
 public interface PolicyResolver {
 
-    List<Policy> resolve(Request request, StreamType streamType);
+    List<Policy> resolve(StreamType streamType, Request request, List<Rule> rules);
 }
