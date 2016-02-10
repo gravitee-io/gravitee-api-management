@@ -62,9 +62,6 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
     @Override
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
-        // Do we need API name or API id ? (this information is transferred to target API)
-        serverRequest.headers().set(GraviteeHttpHeader.X_GRAVITEE_API_NAME, api.getId());
-
         // Set specific metrics for API handler
         serverResponse.metrics().setApi(api.getId());
 
@@ -79,6 +76,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
         executionContext.getTemplateEngine().getTemplateContext().setVariable("request", new WrappedRequestVariable(serverRequest));
         executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.getProperties());
         executionContext.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, path.getPath());
+        executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
 
         // Apply request policies
         AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(requestPolicies, executionContext);
