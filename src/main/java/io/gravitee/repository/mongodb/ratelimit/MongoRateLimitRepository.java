@@ -16,9 +16,10 @@
 package io.gravitee.repository.mongodb.ratelimit;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
-import io.gravitee.repository.ratelimit.model.RateLimitResult;
+import io.gravitee.repository.ratelimit.model.RateLimit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -27,10 +28,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.data.mongodb.core.query.Query.query;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -42,12 +39,14 @@ public class MongoRateLimitRepository implements RateLimitRepository<String> {
     @Qualifier("rateLimitMongoTemplate")
     private MongoOperations mongoOperations;
 
+    private final static String RATE_LIMIT_COLLECTION = "ratelimit";
+
     @PostConstruct
     public void ensureTTLIndex() {
-        mongoOperations.indexOps(RateLimit.class).ensureIndex(new IndexDefinition() {
+        mongoOperations.indexOps(RATE_LIMIT_COLLECTION).ensureIndex(new IndexDefinition() {
             @Override
             public DBObject getIndexKeys() {
-                return new BasicDBObject("resetTime", 1);
+                return new BasicDBObject("reset_time", 1);
             }
 
             @Override
@@ -59,43 +58,31 @@ public class MongoRateLimitRepository implements RateLimitRepository<String> {
     }
 
     @Override
-    public RateLimitResult acquire(String key, int pound, long limit, long periodTime, TimeUnit periodTimeUnit) {
+    public RateLimit get(RateLimit rateLimit) {
+        DBObject result = mongoOperations
+                .getCollection(RATE_LIMIT_COLLECTION)
+                .findOne(rateLimit.getKey());
 
-        RateLimit rateLimit = mongoOperations.findOne(query(where("key").is(key)), RateLimit.class);
-        if (rateLimit == null) {
-            rateLimit = new RateLimit();
-            rateLimit.setKey(key);
+        if (result != null) {
+            rateLimit.setCounter((long) result.get("counter"));
+            rateLimit.setLastRequest((long) result.get("last_request"));
+            rateLimit.setResetTime(((Date) result.get("reset_time")).getTime());
         }
 
-        RateLimitResult rateLimitResult = new RateLimitResult();
+        return rateLimit;
+    }
 
-        // We prefer currentTimeMillis in place of nanoTime() because nanoTime is relatively
-        // expensive call and depends on the underlying architecture.
+    @Override
+    public void save(RateLimit rateLimit) {
+        final DBObject doc = BasicDBObjectBuilder.start()
+                .add("_id", rateLimit.getKey())
+                .add("counter", rateLimit.getCounter())
+                .add("last_request", rateLimit.getLastRequest())
+                .add("reset_time", new Date(rateLimit.getResetTime()))
+                .get();
 
-        long now = System.currentTimeMillis();
-        long endOfWindow = rateLimit.getEndOfWindow(periodTime, periodTimeUnit);
-
-        if (now >= endOfWindow) {
-            rateLimit.setCounter(0);
-        }
-
-        if (rateLimit.getCounter() >= limit) {
-            rateLimitResult.setExceeded(true);
-        } else {
-            // Update rate limiter
-            rateLimitResult.setExceeded(false);
-            rateLimit.setCounter(rateLimit.getCounter() + pound);
-            rateLimit.setLastRequest(now);
-        }
-
-        // Set the time at which the current rate limit window resets in UTC epoch seconds.
-        long resetTimeMillis = rateLimit.getEndOfPeriod(now, periodTime, periodTimeUnit);
-        rateLimitResult.setResetTime(resetTimeMillis / 1000L);
-        rateLimit.setResetTime(new Date(resetTimeMillis));
-        rateLimitResult.setRemains(limit - rateLimit.getCounter());
-
-        mongoOperations.save(rateLimit);
-
-        return rateLimitResult;
+        mongoOperations
+                .getCollection(RATE_LIMIT_COLLECTION)
+                .save(doc);
     }
 }
