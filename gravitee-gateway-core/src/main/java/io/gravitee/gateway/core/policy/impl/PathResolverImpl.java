@@ -56,6 +56,7 @@ public class PathResolverImpl implements PathResolver {
                 if (split > pieces) {
                     pieces = split;
                     bestPath = entry.getValue();
+                    bestPath.setPath(entry.getKey());
                 }
             }
         }
