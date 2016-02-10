@@ -15,15 +15,16 @@
  */
 package io.gravitee.repository.ratelimit.api;
 
-import io.gravitee.repository.ratelimit.model.RateLimitResult;
+import io.gravitee.repository.ratelimit.model.RateLimit;
 
 import java.io.Serializable;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface RateLimitRepository<T extends Serializable> {
+    
+    RateLimit get(RateLimit rateLimit);
 
-    RateLimitResult acquire(T key, int weigth, long limit, long periodTime, TimeUnit periodTimeUnit);
+    void save(RateLimit rateLimit);
 }
