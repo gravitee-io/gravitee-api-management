@@ -22,9 +22,13 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -35,7 +39,7 @@ public class ApiPublisherStatement extends Statement {
     private final Statement base;
     private final Description description;
 
-    private Server server;
+    private List<Server> servers;
 
     public ApiPublisherStatement(Statement base, Description description) {
         this.base = base;
@@ -57,37 +61,46 @@ public class ApiPublisherStatement extends Statement {
         // Creation of the Jetty server
         // === jetty.xml ===
         // Setup Threadpool
-        QueuedThreadPool threadPool = new QueuedThreadPool();
-        threadPool.setMaxThreads(500);
+        QueuedThreadPool threadPool = new QueuedThreadPool(10);
 
-        // Server
-        this.server = new Server(threadPool);
+        servers = new ArrayList<>(apiConfiguration.workers());
+        for(int i = 0 ; i < apiConfiguration.workers() ; i++) {
+            // Server
+            Server server = new Server(threadPool);
 
-        // HTTP Configuration
-        HttpConfiguration http_config = new HttpConfiguration();
-        http_config.setOutputBufferSize(32768);
-        http_config.setRequestHeaderSize(8192);
-        http_config.setResponseHeaderSize(8192);
-        http_config.setSendServerVersion(true);
-        http_config.setSendDateHeader(false);
+            // HTTP Configuration
+            HttpConfiguration http_config = new HttpConfiguration();
+            http_config.setOutputBufferSize(32768);
+            http_config.setRequestHeaderSize(8192);
+            http_config.setResponseHeaderSize(8192);
+            http_config.setSendServerVersion(true);
+            http_config.setSendDateHeader(false);
 
-        // === jetty-http.xml ===
-        ServerConnector http = new ServerConnector(server,
-                new HttpConnectionFactory(http_config));
-        http.setPort(SocketUtils.generateFreePort());
-        http.setIdleTimeout(30000);
-        server.addConnector(http);
+            // === jetty-http.xml ===
+            ServerConnector http = new ServerConnector(server,
+                    new HttpConnectionFactory(http_config));
+            http.setPort(SocketUtils.generateFreePort());
+            http.setIdleTimeout(30000);
+            server.addConnector(http);
 
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        context.setContextPath(apiConfiguration.contextPath());
-        context.addServlet(apiConfiguration.servlet(), "/*");
+            ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+            context.setContextPath(apiConfiguration.contextPath());
+            ServletHolder servletHolder = new ServletHolder(apiConfiguration.servlet());
+            servletHolder.setInitParameter("worker", "worker#" + i);
 
-        server.setHandler(context);
-        server.start();
+            context.addServlet(servletHolder, "/*");
+
+            server.setHandler(context);
+            server.start();
+        }
     }
 
     private void stopServer() throws Exception {
         SocketUtils.clearUsedPorts();
-        this.server.stop();
+        if (servers != null) {
+            for(Server server : servers) {
+                server.stop();
+            }
+        }
     }
 }

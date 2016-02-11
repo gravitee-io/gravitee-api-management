@@ -28,15 +28,15 @@ import java.io.IOException;
  */
 public class EchoServlet extends HttpServlet {
 
-    private String serverName;
+    private String worker_id;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
-        serverName = config.getInitParameter("name");
+        worker_id = config.getInitParameter("worker");
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.getOutputStream().print(serverName);
+        resp.addHeader("worker", worker_id);
     }
 }

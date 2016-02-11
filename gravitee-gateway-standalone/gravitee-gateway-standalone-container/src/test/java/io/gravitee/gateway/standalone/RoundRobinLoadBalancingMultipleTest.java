@@ -17,7 +17,7 @@ package io.gravitee.gateway.standalone;
 
 import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.servlet.TeamServlet;
+import io.gravitee.gateway.standalone.servlet.EchoServlet;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
@@ -30,19 +30,29 @@ import static org.junit.Assert.assertEquals;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor("/io/gravitee/gateway/standalone/unreachable-api.json")
+@ApiDescriptor("/io/gravitee/gateway/standalone/echo.json")
 @ApiConfiguration(
-        servlet = TeamServlet.class,
-        contextPath = "/team"
+        servlet = EchoServlet.class,
+        contextPath = "/echo",
+        workers = 2
 )
-public class TimeoutGatewayTest extends AbstractGatewayTest {
+public class RoundRobinLoadBalancingMultipleTest extends AbstractGatewayTest {
 
     @Test
-    public void call_unreachable_api() throws Exception {
-        Request request = Request.Post("http://localhost:8082/unreachable");
-        Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+    public void call_round_robin_lb_multiple_endpoints() throws Exception {
+        Request request = Request.Get("http://localhost:8082/echo/helloworld");
 
-        assertEquals(HttpStatus.SC_BAD_GATEWAY, returnResponse.getStatusLine().getStatusCode());
+        int calls = 20;
+
+        for(int i = 0 ; i < calls ; i++) {
+            Response response = request.execute();
+            HttpResponse returnResponse = response.returnResponse();
+
+            assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+            String workerHeader = returnResponse.getFirstHeader("worker").getValue();
+            assertEquals("worker#" + (i%2) , workerHeader);
+        }
+
     }
 }
