@@ -18,6 +18,7 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
+import io.gravitee.common.utils.UUIDGenerator;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.BodyPart;
@@ -26,7 +27,6 @@ import io.vertx.core.http.HttpServerRequest;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -45,7 +45,7 @@ public class VertxHttpServerRequest implements Request {
     VertxHttpServerRequest(HttpServerRequest httpServerRequest) {
         this.httpServerRequest = httpServerRequest;
         this.instant = Instant.now();
-        this.id = UUID.randomUUID().toString();
+        this.id = UUIDGenerator.generate().toString();
     }
 
     @Override
