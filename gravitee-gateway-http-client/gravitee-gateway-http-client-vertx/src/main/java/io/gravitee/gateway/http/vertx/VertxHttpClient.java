@@ -23,9 +23,9 @@ import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.BodyPart;
 import io.gravitee.gateway.api.http.StringBodyPart;
 import io.gravitee.gateway.http.core.client.AbstractHttpClient;
+import io.netty.channel.ConnectTimeoutException;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -65,27 +64,7 @@ public class VertxHttpClient extends AbstractHttpClient {
 
         clientRequest.setTimeout(api.getProxy().getHttpClient().getOptions().getReadTimeout());
 
-        ClientRequest invokerRequest = new ClientRequest() {
-            @Override
-            public ClientRequest write(BodyPart bodyPart) {
-                byte [] data = bodyPart.getBodyPartAsBytes();
-                if (isDumpRequestEnabled()) {
-                    loggerDumpHttpClient.info("{} proxying content to upstream: {} bytes", serverRequest.id(), data.length);
-                    loggerDumpHttpClient.info("{}", new String(data));
-                }
-                clientRequest.write(Buffer.buffer(data));
-
-                return this;
-            }
-
-            @Override
-            public void end() {
-                if (isDumpRequestEnabled()) {
-                    loggerDumpHttpClient.info("{} proxying complete", serverRequest.id());
-                }
-                clientRequest.end();
-            }
-        };
+        VertxClientRequest invokerRequest = new VertxClientRequest(clientRequest);
 
         clientRequest.exceptionHandler(event -> {
             LOGGER.error("{} server proxying failed: {}", serverRequest.id(), event.getMessage());
@@ -94,27 +73,30 @@ public class VertxHttpClient extends AbstractHttpClient {
                 loggerDumpHttpClient.info("{} server proxying failed: {}", serverRequest.id(), event.getMessage());
             }
 
-            VertxClientResponse clientResponse = new VertxClientResponse((event instanceof TimeoutException) ?
-                    HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
+            if (invokerRequest.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
+                invokerRequest.connectTimeoutHandler().handle(event);
+            } else {
+                VertxClientResponse clientResponse = new VertxClientResponse((event instanceof ConnectTimeoutException) ?
+                        HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
 
-            clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+                clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
-            StringBodyPart responseBody = null;
+                StringBodyPart responseBody = null;
 
-            if (event.getMessage() != null) {
-                // Create body content with error message
-                responseBody = new StringBodyPart(event.getMessage());
-                clientResponse.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(responseBody.length()));
+                if (event.getMessage() != null) {
+                    // Create body content with error message
+                    responseBody = new StringBodyPart(event.getMessage());
+                    clientResponse.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(responseBody.length()));
+                }
 
+                responseHandler.handle(clientResponse);
+
+                if (responseBody != null) {
+                    clientResponse.bodyHandler().handle(responseBody);
+                }
+
+                clientResponse.endHandler().handle(null);
             }
-
-            responseHandler.handle(clientResponse);
-
-            if (responseBody != null) {
-                clientResponse.bodyHandler().handle(responseBody);
-            }
-
-            clientResponse.endHandler().handle(null);
         });
 
         // Copy headers to final API
@@ -125,8 +107,8 @@ public class VertxHttpClient extends AbstractHttpClient {
             clientRequest.headers().forEach(headers -> loggerDumpHttpClient.info("{}: {}", headers.getKey(), headers.getValue()));
         }
 
-        // Check chuncked flag on the request if there are some content to push and if transfer_encoding is set
-        // with chunked value
+        // Check chunk flag on the request if there are some content to push and if transfer_encoding is set
+        // with chunk value
         if (hasContent(serverRequest)) {
             String transferEncoding = serverRequest.headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
             if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding)) {

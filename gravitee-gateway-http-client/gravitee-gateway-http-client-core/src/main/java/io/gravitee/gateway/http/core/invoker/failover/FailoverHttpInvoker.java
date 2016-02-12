@@ -15,14 +15,18 @@
  */
 package io.gravitee.gateway.http.core.invoker.failover;
 
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.BodyPart;
 import io.gravitee.gateway.http.core.invoker.AbstractHttpInvoker;
-
-import java.net.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -30,35 +34,78 @@ import java.net.URI;
  */
 public class FailoverHttpInvoker extends AbstractHttpInvoker {
 
+    private final Logger LOGGER = LoggerFactory.getLogger(FailoverHttpInvoker.class);
+
+    private final static String ATTEMPTS_COUNTER_ATTRIBUTE = "gravitee.attribute.failover.attempts";
+
     @Override
-    public ClientRequest invoke(ExecutionContext executionContext, Request serverRequest, Handler<ClientResponse> result) {
-        // Get endpoint
-        String sEndpoint = loadBalancer.chooseEndpoint(serverRequest);
+    protected ClientRequest invoke0(String host, int port, HttpMethod method, String requestUri, Request serverRequest,
+                                    ExecutionContext executionContext, Handler<ClientResponse> response) {
+        return httpClient.request(host, port, method, requestUri, serverRequest,
+                response::handle).connectTimeoutHandler(result -> {
+            LOGGER.warn("Connection timeout from {}:{}", host, port);
+            int attempts = getAttempts(executionContext);
+            int maxAttempts = 3;
 
-        // Endpoint URI
-        URI endpoint = URI.create(sEndpoint);
+            LOGGER.info("Current attempts is {} (max={})", attempts, maxAttempts);
 
-        // TODO: how to pass this to the response metrics
-        // serverResponse.metrics().setEndpoint(endpoint.toString());
+            if (attempts < maxAttempts) {
+                invoke(executionContext, serverRequest, response);
+            } else {
+                LOGGER.warn("Failover reach max attempts limit ({})", maxAttempts);
+                FailoverClientResponse clientResponse = new FailoverClientResponse();
+                response.handle(clientResponse);
+                clientResponse.endHandler().handle(null);
+            }
+        });
+    }
 
-        URI rewrittenURI = rewriteURI(serverRequest, endpoint);
+    private int getAttempts(ExecutionContext executionContext) {
+        Object attrAttempts = executionContext.getAttribute(ATTEMPTS_COUNTER_ATTRIBUTE);
+        int attempts = 1;
+        if (attrAttempts != null) {
+            attempts = ((int) attrAttempts) + 1;
+        }
 
-        String uri = rewrittenURI.getPath();
-        if (rewrittenURI.getQuery() != null)
-            uri += '?' + rewrittenURI.getQuery();
+        executionContext.setAttribute(ATTEMPTS_COUNTER_ATTRIBUTE, attempts);
+        return attempts;
+    }
 
-        final int port = endpoint.getPort() != -1 ? endpoint.getPort() :
-                (endpoint.getScheme().equals("https") ? 443 : 80);
+    @Override
+    protected String nextEndpoint(ExecutionContext executionContext, Request serverRequest) {
+        // Use this is to iterate over each defined endpoint
+        // How to maintain a list of already attempted endpoints
+        return super.nextEndpoint(executionContext, serverRequest);
+    }
 
+    private class FailoverClientResponse implements ClientResponse {
 
-        ClientRequest clientRequest = httpClient.request(
-                endpoint.getHost(),
-                port,
-                extractHttpMethod(executionContext, serverRequest),
-                uri,
-                serverRequest,
-                result);
+        private Handler<Void> endHandler;
 
-        return clientRequest;
+        @Override
+        public int status() {
+            return HttpStatusCode.BAD_GATEWAY_502;
+        }
+
+        @Override
+        public HttpHeaders headers() {
+            return new HttpHeaders();
+        }
+
+        @Override
+        public ClientResponse bodyHandler(Handler<BodyPart> bodyPartHandler) {
+            // No need to record this handler because no data will be handle
+            return this;
+        }
+
+        @Override
+        public ClientResponse endHandler(Handler<Void> endHandler) {
+            this.endHandler = endHandler;
+            return this;
+        }
+
+        Handler<Void> endHandler() {
+            return this.endHandler;
+        }
     }
 }

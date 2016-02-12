@@ -30,12 +30,13 @@ import static org.junit.Assert.assertEquals;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor("/io/gravitee/gateway/standalone/unreachable-api.json")
+@ApiDescriptor(
+        value = "/io/gravitee/gateway/standalone/unreachable-api.json",
+        enhanceHttpPort = false)
 @ApiConfiguration(
         servlet = TeamServlet.class,
-        contextPath = "/team"
-)
-public class TimeoutGatewayTest extends AbstractGatewayTest {
+        contextPath = "/team")
+public class UnreachableTest extends AbstractGatewayTest {
 
     @Test
     public void call_unreachable_api() throws Exception {

@@ -6,7 +6,7 @@
     "context_path": "/unreachable",
     "endpoints": [
       {
-        "target": "http://localhost:3456/team"
+        "target": "http://192.168.0.0:8080/team"
       }
     ],
     "strip_context_path": false,

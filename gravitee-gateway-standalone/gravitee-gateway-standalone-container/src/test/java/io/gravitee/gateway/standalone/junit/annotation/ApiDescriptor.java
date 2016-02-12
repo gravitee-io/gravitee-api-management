@@ -29,4 +29,6 @@ import java.lang.annotation.Target;
 public @interface ApiDescriptor {
 
     String value();
+
+    boolean enhanceHttpPort() default true;
 }

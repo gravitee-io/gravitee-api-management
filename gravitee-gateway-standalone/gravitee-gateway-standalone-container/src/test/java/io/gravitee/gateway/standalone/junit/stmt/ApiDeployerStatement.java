@@ -15,12 +15,10 @@
  */
 package io.gravitee.gateway.standalone.junit.stmt;
 
-import io.gravitee.common.node.Node;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.gateway.standalone.Container;
-import io.gravitee.gateway.standalone.spring.SpringContextHolder;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.utils.SocketUtils;
 import org.junit.runner.Description;
@@ -72,16 +70,20 @@ public class ApiDeployerStatement extends Statement {
         URL jsonFile = ApiDeployerStatement.class.getResource(apiDescriptorPath);
         io.gravitee.gateway.core.definition.Api api = new GraviteeMapper().readValue(jsonFile, io.gravitee.gateway.core.definition.Api.class);
 
-        Endpoint refEndpoint = api.getProxy().getEndpoints().iterator().next();
-        api.getProxy().getEndpoints().clear();
+        boolean enhanceHttpPort = description.getAnnotation(ApiDescriptor.class).enhanceHttpPort();
 
-        // Add endpoint per upstream instance
-        for(int i = 0; i < SocketUtils.getBindPorts().size() ; i++) {
-            int port = SocketUtils.getBindPorts().get(i);
-            URI target = URI.create(refEndpoint.getTarget());
-            URI newTarget = new URI(target.getScheme(), target.getUserInfo(), target.getHost(), port, target.getPath(), target.getQuery(), target.getFragment());
+        if (enhanceHttpPort) {
+            Endpoint refEndpoint = api.getProxy().getEndpoints().iterator().next();
+            api.getProxy().getEndpoints().clear();
 
-            api.getProxy().getEndpoints().add(new Endpoint(newTarget.toString()));
+            // Add endpoint per upstream instance
+            for (int i = 0; i < SocketUtils.getBindPorts().size(); i++) {
+                int port = SocketUtils.getBindPorts().get(i);
+                URI target = URI.create(refEndpoint.getTarget());
+                URI newTarget = new URI(target.getScheme(), target.getUserInfo(), target.getHost(), port, target.getPath(), target.getQuery(), target.getFragment());
+
+                api.getProxy().getEndpoints().add(new Endpoint(newTarget.toString()));
+            }
         }
 
         return api;

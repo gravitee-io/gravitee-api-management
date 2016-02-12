@@ -15,13 +15,12 @@
  */
 package io.gravitee.gateway.http.core.invoker;
 
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
-
-import java.net.URI;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -30,31 +29,9 @@ import java.net.URI;
 public class DefaultHttpInvoker extends AbstractHttpInvoker {
 
     @Override
-    public ClientRequest invoke(ExecutionContext executionContext, Request serverRequest, Handler<ClientResponse> result) {
-        // Get endpoint
-        String sEndpoint = loadBalancer.chooseEndpoint(serverRequest);
-
-        // Endpoint URI
-        URI endpoint = URI.create(sEndpoint);
-
-        // TODO: how to pass this to the response metrics
-        // serverResponse.metrics().setEndpoint(endpoint.toString());
-
-        URI rewrittenURI = rewriteURI(serverRequest, endpoint);
-
-        String uri = rewrittenURI.getPath();
-        if (rewrittenURI.getQuery() != null)
-            uri += '?' + rewrittenURI.getQuery();
-
-        final int port = endpoint.getPort() != -1 ? endpoint.getPort() :
-                (endpoint.getScheme().equals("https") ? 443 : 80);
-
+    protected ClientRequest invoke0(String host, int port, HttpMethod method, String requestUri, Request serverRequest,
+                                    ExecutionContext executionContext, Handler<ClientResponse> response) {
         return httpClient.request(
-                endpoint.getHost(),
-                port,
-                extractHttpMethod(executionContext, serverRequest),
-                uri,
-                serverRequest,
-                result);
+                host, port, method, requestUri, serverRequest, response);
     }
 }

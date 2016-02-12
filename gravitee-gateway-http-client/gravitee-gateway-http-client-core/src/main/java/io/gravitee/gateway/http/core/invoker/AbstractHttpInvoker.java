@@ -17,9 +17,8 @@ package io.gravitee.gateway.http.core.invoker;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Invoker;
-import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.*;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,37 @@ public abstract class AbstractHttpInvoker implements Invoker {
     @Autowired
     protected LoadBalancer loadBalancer;
 
-    protected URI rewriteURI(Request request, URI endpointUri) {
+    @Override
+    public ClientRequest invoke(ExecutionContext executionContext, Request serverRequest, Handler<ClientResponse> result) {
+        // Get endpoint
+        String sEndpoint = nextEndpoint(executionContext, serverRequest);
+
+        // Endpoint URI
+        URI endpoint = URI.create(sEndpoint);
+
+        // TODO: how to pass this to the response metrics
+        // serverResponse.metrics().setEndpoint(endpoint.toString());
+
+        URI rewrittenURI = rewriteURI(serverRequest, endpoint);
+
+        String uri = rewrittenURI.getPath();
+        if (rewrittenURI.getQuery() != null)
+            uri += '?' + rewrittenURI.getQuery();
+
+        final int port = endpoint.getPort() != -1 ? endpoint.getPort() :
+                (endpoint.getScheme().equals("https") ? 443 : 80);
+
+        return invoke0(endpoint.getHost(), port, extractHttpMethod(executionContext, serverRequest),
+                uri, serverRequest, executionContext, result);
+    }
+
+    protected String nextEndpoint(ExecutionContext executionContext, Request serverRequest) {
+        return loadBalancer.chooseEndpoint(serverRequest);
+    }
+
+    protected abstract ClientRequest invoke0(String host, int port, HttpMethod method, String requestUri, Request serverRequest, ExecutionContext executionContext, Handler<ClientResponse> response);
+
+    private URI rewriteURI(Request request, URI endpointUri) {
         final StringBuilder requestURI =
                 new StringBuilder(request.path())
                         .delete(0, api.getProxy().getContextPath().length())
@@ -67,7 +96,7 @@ public abstract class AbstractHttpInvoker implements Invoker {
         return URI.create(requestURI.toString());
     }
 
-    protected HttpMethod extractHttpMethod(ExecutionContext executionContext, Request request) {
+    private HttpMethod extractHttpMethod(ExecutionContext executionContext, Request request) {
         io.gravitee.common.http.HttpMethod overrideMethod = (io.gravitee.common.http.HttpMethod)
                 executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_METHOD);
         return (overrideMethod == null) ? request.method() : overrideMethod;
