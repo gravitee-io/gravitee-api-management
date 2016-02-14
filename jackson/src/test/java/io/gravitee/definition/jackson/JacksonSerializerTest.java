@@ -172,6 +172,54 @@ public class JacksonSerializerTest {
         Assert.assertNotNull(generatedJsonDefinition);
     }
 
+    @Test
+    public void definition_withclientoptions_nooptions_defaultconfiguration() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_defaultLoadBalancer_roundRobin() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-defaulthttpconfig.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_no_failover() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-defaulthttpconfig.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_default_failover() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-default-failover.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_override_failover() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-override-failover.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_failover_singlecase() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-failover-singlecase.json");
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
 
     private Api getDefinition(String resource) throws Exception {
         URL jsonFile = JacksonDeserializerTest.class.getResource(resource);

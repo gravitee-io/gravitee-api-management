@@ -287,6 +287,47 @@ public class JacksonDeserializerTest {
         Assert.assertEquals(LoadBalancerType.ROUND_ROBIN, api.getProxy().getLoadBalancer().getType());
     }
 
+    @Test
+    public void definition_no_failover() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-defaulthttpconfig.json");
+
+        Assert.assertNull(api.getProxy().getFailover());
+        Assert.assertFalse(api.getProxy().failoverEnabled());
+    }
+
+    @Test
+    public void definition_default_failover() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-default-failover.json");
+
+        Assert.assertNotNull(api.getProxy().getFailover());
+        Assert.assertTrue(api.getProxy().failoverEnabled());
+
+        Assert.assertEquals(Failover.DEFAULT_MAX_ATTEMPTS, api.getProxy().getFailover().getMaxAttempts());
+        Assert.assertEquals(Failover.DEFAULT_FAILOVER_CASES, api.getProxy().getFailover().getCases());
+    }
+
+    @Test
+    public void definition_override_failover() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-override-failover.json");
+
+        Assert.assertNotNull(api.getProxy().getFailover());
+        Assert.assertTrue(api.getProxy().failoverEnabled());
+
+        Assert.assertEquals(3, api.getProxy().getFailover().getMaxAttempts());
+        Assert.assertEquals(Failover.DEFAULT_FAILOVER_CASES, api.getProxy().getFailover().getCases());
+    }
+
+    @Test
+    public void definition_failover_singlecase() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-failover-singlecase.json");
+
+        Assert.assertNotNull(api.getProxy().getFailover());
+        Assert.assertTrue(api.getProxy().failoverEnabled());
+
+        Assert.assertEquals(3, api.getProxy().getFailover().getMaxAttempts());
+        Assert.assertEquals(Failover.DEFAULT_FAILOVER_CASES, api.getProxy().getFailover().getCases());
+    }
+
     private Api getDefinition(String resource) throws Exception {
         URL jsonFile = JacksonDeserializerTest.class.getResource(resource);
         return objectMapper().readValue(jsonFile, Api.class);
