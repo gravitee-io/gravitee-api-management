@@ -50,8 +50,8 @@
       <md-card style="box-shadow:none;">
         <div style="border: 1px solid #e7eaec; border-bottom: 0;" layout-padding>
           <md-button ng-show="apiEventsCtrl.eventsSelected[0].isCurrentAPI" class="md-raised" ng-click="apiEventsCtrl.$scope.$parent.apiCtrl.showDeployAPIConfirm($event, apiEventsCtrl.api)">Deploy</md-button>
-          <md-button ng-show="!apiEventsCtrl.eventsSelected[0].isCurrentAPI" class="md-raised" ng-click="apiEventsCtrl.showRollbackAPIConfirm($event, apiEventsCtrl.eventSelectedPayload)">Rollback</md-button>
-          <md-button ng-show="apiEventsCtrl.events.length > 0" class="md-raised" ng-click="apiEventsCtrl.diffWithMaster()">Diff with published API</md-button>
+          <md-button ng-show="!apiEventsCtrl.eventsSelected[0].isCurrentAPI && apiEventsCtrl.eventsSelected[0].event.id != apiEventsCtrl.events[0].id" class="md-raised" ng-click="apiEventsCtrl.showRollbackAPIConfirm($event, apiEventsCtrl.eventSelectedPayload)">Rollback</md-button>
+          <md-button ng-show="apiEventsCtrl.events.length > 0 && apiEventsCtrl.eventsSelected[0].event.id != apiEventsCtrl.events[0].id" class="md-raised" ng-click="apiEventsCtrl.diffWithMaster()">Diff with published API</md-button>
           <md-button ng-show="apiEventsCtrl.events.length > 1" class="md-raised" ng-click="apiEventsCtrl.enableDiff()">Diff</md-button>
         </div>
         <md-card-content style="background-color: #fff; border: 1px solid #e7eaec; padding-top: 0px">
