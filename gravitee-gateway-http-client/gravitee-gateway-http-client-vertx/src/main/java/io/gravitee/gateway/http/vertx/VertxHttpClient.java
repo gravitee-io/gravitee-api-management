@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -70,7 +71,8 @@ public class VertxHttpClient extends AbstractHttpClient {
             if (invokerRequest.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
                 invokerRequest.connectTimeoutHandler().handle(event);
             } else {
-                VertxClientResponse clientResponse = new VertxClientResponse((event instanceof ConnectTimeoutException) ?
+                VertxClientResponse clientResponse = new VertxClientResponse(
+                        ((event instanceof ConnectTimeoutException) || (event instanceof TimeoutException)) ?
                         HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
 
                 clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
