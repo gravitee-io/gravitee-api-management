@@ -1,0 +1,25 @@
+{
+  "id": "unreachable-api",
+  "name": "My unreachable API",
+
+  "proxy": {
+    "context_path": "/unreachable",
+    "endpoints": [
+      {
+        "target": "http://localhost:3456/team"
+      }
+    ],
+    "strip_context_path": false,
+    "http": {
+      "configuration": {
+        "dumpRequest": true,
+        "connectTimeout": 3000
+      }
+    }
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}

@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.http.client.spring;
 
+import io.gravitee.gateway.http.core.invoker.spring.HttpInvokerFactory;
+import io.gravitee.gateway.http.core.loadbalancer.spring.LoadBalancerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,4 +30,15 @@ public class HttpClientConfiguration {
     public static HttpClientBeanFactoryPostProcessor httpClientBeanFactoryPostProcessor() {
         return new HttpClientBeanFactoryPostProcessor();
     }
+
+    @Bean
+    public LoadBalancerFactory loadBalancerFactory() {
+        return new LoadBalancerFactory();
+    }
+
+    @Bean
+    public HttpInvokerFactory httpInvokerFactory() {
+        return new HttpInvokerFactory();
+    }
+
 }

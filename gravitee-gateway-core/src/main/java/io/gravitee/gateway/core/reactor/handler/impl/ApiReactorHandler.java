@@ -18,16 +18,15 @@ package io.gravitee.gateway.core.reactor.handler.impl;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.definition.model.Path;
 import io.gravitee.gateway.api.*;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.StringBodyPart;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.expression.spel.WrappedRequestVariable;
-import io.gravitee.gateway.core.http.stream.StringBodyPart;
 import io.gravitee.gateway.core.policy.PathResolver;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.StreamType;
@@ -50,6 +49,9 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
     @Autowired
     private Api api;
+
+    @Autowired
+    private Invoker remoteInvoker;
 
     @Autowired
     private HttpClient httpClient;
@@ -86,11 +88,11 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
                 handler.handle(serverResponse);
             } else {
-                // Use the default invoker (call the remote API using HTTP client)
-                Invoker invoker = httpClient;
+                // Use the upstream invoker (call the remote API using HTTP client)
+                Invoker invoker = remoteInvoker;
 
                 long serviceInvocationStart = System.currentTimeMillis();
-                ClientRequest clientRequest = invoker.invoke(executionContext, serverRequest, responseStream -> {
+                invoker.invoke(executionContext, serverRequest, responseStream -> {
 
                     // Set the status
                     serverResponse.status(responseStream.status());
@@ -108,10 +110,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
                             handler.handle(serverResponse);
                         } else {
-                            responseStream.bodyHandler(bodyPart -> {
-                                LOGGER.debug("{} proxying content to downstream: {} bytes", serverRequest.id(), bodyPart.length());
-                                serverResponse.write(bodyPart);
-                            });
+                            responseStream.bodyHandler(serverResponse::write);
 
                             responseStream.endHandler(result -> {
                                 serverResponse.end();
@@ -127,16 +126,6 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
                     responsePolicyChain.doNext(serverRequest, serverResponse);
                 });
-
-                if (executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_BODY_CONTENT) == null) {
-                    serverRequest
-                            .bodyHandler(clientRequest::write)
-                            .endHandler(result -> clientRequest.end());
-                } else {
-                    String content = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_BODY_CONTENT);
-                    clientRequest.write(new StringBodyPart(content));
-                    clientRequest.end();
-                }
             }
         });
 

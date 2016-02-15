@@ -13,36 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.vertx;
+package io.gravitee.gateway.http.core.loadbalancer;
 
-import io.gravitee.gateway.api.http.BodyPart;
-import io.vertx.core.buffer.Buffer;
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
 
-import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
-class VertxBufferBodyPart implements BodyPart<ByteBuffer> {
+public abstract class LoadBalancerSupport implements LoadBalancer {
 
-    private final byte[] bytes;
+    protected final Api api;
 
-    public VertxBufferBodyPart(Buffer buffer) {
-        bytes = buffer.getBytes();
+    protected LoadBalancerSupport(final Api api) {
+        this.api = api;
     }
 
-    @Override
-    public int length() {
-        return bytes.length;
-    }
-
-    @Override
-    public byte[] getBodyPartAsBytes() {
-        return bytes;
-    }
-
-    @Override
-    public ByteBuffer getBodyPart() {
-        return ByteBuffer.wrap(bytes);
+    protected List<Endpoint> endpoints() {
+        return api.getProxy().getEndpoints();
     }
 }

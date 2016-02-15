@@ -13,36 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.vertx;
+package io.gravitee.gateway.standalone.servlet;
 
-import io.gravitee.gateway.api.http.BodyPart;
-import io.vertx.core.buffer.Buffer;
-
-import java.nio.ByteBuffer;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
-class VertxBufferBodyPart implements BodyPart<ByteBuffer> {
+public class EchoServlet extends HttpServlet {
 
-    private final byte[] bytes;
+    private String worker_id;
 
-    public VertxBufferBodyPart(Buffer buffer) {
-        bytes = buffer.getBytes();
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        worker_id = config.getInitParameter("worker");
     }
 
     @Override
-    public int length() {
-        return bytes.length;
-    }
-
-    @Override
-    public byte[] getBodyPartAsBytes() {
-        return bytes;
-    }
-
-    @Override
-    public ByteBuffer getBodyPart() {
-        return ByteBuffer.wrap(bytes);
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.addHeader("worker", worker_id);
     }
 }

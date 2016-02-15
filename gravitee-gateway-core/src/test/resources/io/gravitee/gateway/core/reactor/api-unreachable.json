@@ -5,7 +5,12 @@
   "proxy": {
     "context_path": "/team",
     "endpoint": "http://localhost:19876/api",
-    "strip_context_path": false
+    "strip_context_path": false,
+    "http": {
+      "configuration": {
+        "dumpRequest": true
+      }
+    }
   },
 
   "paths": {

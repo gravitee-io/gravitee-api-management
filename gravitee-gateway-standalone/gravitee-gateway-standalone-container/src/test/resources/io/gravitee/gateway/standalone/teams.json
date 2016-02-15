@@ -1,10 +1,14 @@
 {
-  "id": "my-team-api",
-  "name": "my-team-api",
+  "id": "api-test",
+  "name": "api-test",
 
   "proxy": {
-    "context_path": "/team",
-    "endpoint": "http://localhost:8083/myapi",
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "target": "http://localhost:8080/team"
+      }
+    ],
     "strip_context_path": false,
     "http": {
       "configuration": {

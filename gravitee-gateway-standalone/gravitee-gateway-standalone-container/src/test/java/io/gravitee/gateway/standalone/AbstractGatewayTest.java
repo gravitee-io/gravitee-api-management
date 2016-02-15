@@ -13,36 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.vertx;
+package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.api.http.BodyPart;
-import io.vertx.core.buffer.Buffer;
-
-import java.nio.ByteBuffer;
+import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
+import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
+import org.junit.ClassRule;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
-class VertxBufferBodyPart implements BodyPart<ByteBuffer> {
+public abstract class AbstractGatewayTest {
 
-    private final byte[] bytes;
+    @ClassRule
+    public static final TestRule chain = RuleChain
+            .outerRule(new ApiPublisher())
+            .around(new ApiDeployer());
 
-    public VertxBufferBodyPart(Buffer buffer) {
-        bytes = buffer.getBytes();
-    }
-
-    @Override
-    public int length() {
-        return bytes.length;
-    }
-
-    @Override
-    public byte[] getBodyPartAsBytes() {
-        return bytes;
-    }
-
-    @Override
-    public ByteBuffer getBodyPart() {
-        return ByteBuffer.wrap(bytes);
-    }
+    /*
+    @ClassRule
+    public final TestRule apiChain = RuleChain
+            .outerRule(new ApiPublisher())
+            .around(new ApiDeployer());
+            */
 }

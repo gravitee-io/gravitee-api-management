@@ -13,36 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.vertx;
+package io.gravitee.gateway.standalone.servlet;
 
-import io.gravitee.gateway.api.http.BodyPart;
-import io.vertx.core.buffer.Buffer;
+import io.gravitee.common.http.HttpStatusCode;
 
-import java.nio.ByteBuffer;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
-class VertxBufferBodyPart implements BodyPart<ByteBuffer> {
-
-    private final byte[] bytes;
-
-    public VertxBufferBodyPart(Buffer buffer) {
-        bytes = buffer.getBytes();
-    }
+public class TimeoutServlet extends HttpServlet {
 
     @Override
-    public int length() {
-        return bytes.length;
-    }
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-    @Override
-    public byte[] getBodyPartAsBytes() {
-        return bytes;
-    }
-
-    @Override
-    public ByteBuffer getBodyPart() {
-        return ByteBuffer.wrap(bytes);
+        resp.sendError(HttpStatusCode.SERVICE_UNAVAILABLE_503);
     }
 }

@@ -23,7 +23,7 @@ import io.gravitee.gateway.api.http.BodyPart;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class VertxClientResponse implements ClientResponse {
+class VertxClientResponse implements ClientResponse {
 
     private Handler<BodyPart> bodyHandler;
     private Handler<Void> endHandler;
@@ -46,12 +46,12 @@ public class VertxClientResponse implements ClientResponse {
     }
 
     @Override
-    public ClientResponse bodyHandler(Handler<BodyPart> bodyPartHandler) {
-        this.bodyHandler = bodyPartHandler;
+    public ClientResponse bodyHandler(Handler<BodyPart> bodyHandler) {
+        this.bodyHandler = bodyHandler;
         return this;
     }
 
-    public Handler<BodyPart> bodyHandler() {
+    Handler<BodyPart> bodyHandler() {
         return this.bodyHandler;
     }
 
@@ -61,7 +61,7 @@ public class VertxClientResponse implements ClientResponse {
         return this;
     }
 
-    public Handler<Void> endHandler() {
+    Handler<Void> endHandler() {
         return this.endHandler;
     }
 }

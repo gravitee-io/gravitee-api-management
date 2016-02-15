@@ -13,36 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.vertx;
+package io.gravitee.gateway.standalone.spring;
 
-import io.gravitee.gateway.api.http.BodyPart;
-import io.vertx.core.buffer.Buffer;
-
-import java.nio.ByteBuffer;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
-class VertxBufferBodyPart implements BodyPart<ByteBuffer> {
+public class SpringContextHolder {
 
-    private final byte[] bytes;
+    /**
+     * Application context
+     */
+    private static ApplicationContext applicationContext = null;
 
-    public VertxBufferBodyPart(Buffer buffer) {
-        bytes = buffer.getBytes();
+    /**
+     * Get application context
+     *
+     * @return Application context
+     */
+    public static ApplicationContext getApplicationContext() {
+        return applicationContext;
     }
-
-    @Override
-    public int length() {
-        return bytes.length;
-    }
-
-    @Override
-    public byte[] getBodyPartAsBytes() {
-        return bytes;
-    }
-
-    @Override
-    public ByteBuffer getBodyPart() {
-        return ByteBuffer.wrap(bytes);
+    public static void setApplicationContext(final ApplicationContext pContext) throws BeansException {
+        applicationContext = pContext;
     }
 }
