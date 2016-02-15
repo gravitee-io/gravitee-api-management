@@ -46,15 +46,13 @@ public class VertxHttpClient extends AbstractHttpClient {
 
     private final Logger LOGGER = LoggerFactory.getLogger(VertxHttpClient.class);
 
-    private final Logger loggerDumpHttpClient = LoggerFactory.getLogger("io.gravitee.gateway.http.client");
-
     private HttpClient httpClient;
 
     @Resource
     private Vertx vertx;
 
     @Override
-    public ClientRequest request0(String host, int port, io.gravitee.common.http.HttpMethod method, String requestURI, Request serverRequest, Handler<ClientResponse> responseHandler) {
+    public ClientRequest request(String host, int port, io.gravitee.common.http.HttpMethod method, String requestURI, Request serverRequest, Handler<ClientResponse> responseHandler) {
         HttpClientRequest clientRequest = httpClient.request(
                 convert(method),
                 port,
@@ -68,10 +66,6 @@ public class VertxHttpClient extends AbstractHttpClient {
 
         clientRequest.exceptionHandler(event -> {
             LOGGER.error("{} server proxying failed: {}", serverRequest.id(), event.getMessage());
-
-            if(isDumpRequestEnabled()) {
-                loggerDumpHttpClient.info("{} server proxying failed: {}", serverRequest.id(), event.getMessage());
-            }
 
             if (invokerRequest.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
                 invokerRequest.connectTimeoutHandler().handle(event);
@@ -101,11 +95,6 @@ public class VertxHttpClient extends AbstractHttpClient {
 
         // Copy headers to final API
         copyRequestHeaders(serverRequest, clientRequest, host);
-
-        if(isDumpRequestEnabled()) {
-            loggerDumpHttpClient.info("{} {}", clientRequest.method(), requestURI);
-            clientRequest.headers().forEach(headers -> loggerDumpHttpClient.info("{}: {}", headers.getKey(), headers.getValue()));
-        }
 
         // Check chunk flag on the request if there are some content to push and if transfer_encoding is set
         // with chunk value

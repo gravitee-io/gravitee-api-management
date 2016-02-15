@@ -16,6 +16,11 @@
     ],
     "load_balancing": {
       "type": "weighted_round_robin"
+    },
+    "http": {
+      "configuration": {
+        "dumpRequest": true
+      }
     }
   },
 

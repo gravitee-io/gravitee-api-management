@@ -19,12 +19,17 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.*;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.StringBodyPart;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
+import io.gravitee.gateway.http.core.logger.HttpDump;
+import io.gravitee.gateway.http.core.logger.LoggableClientRequest;
+import io.gravitee.gateway.http.core.logger.LoggableClientResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -61,8 +66,39 @@ public abstract class AbstractHttpInvoker implements Invoker {
         final int port = endpoint.getPort() != -1 ? endpoint.getPort() :
                 (endpoint.getScheme().equals("https") ? 443 : 80);
 
-        return invoke0(endpoint.getHost(), port, extractHttpMethod(executionContext, serverRequest),
-                uri, serverRequest, executionContext, result);
+        final boolean enableHttpDump = api.getProxy().getHttpClient().getOptions().isDumpRequest();
+        final HttpMethod httpMethod = extractHttpMethod(executionContext, serverRequest);
+
+        ClientRequest clientRequest = invoke0(endpoint.getHost(), port, httpMethod,
+                uri, serverRequest, executionContext,
+                (enableHttpDump) ? loggableClientResponse(result, serverRequest) : result);
+
+        if (enableHttpDump) {
+            HttpDump.logger.info("{} >> Rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), uri);
+            HttpDump.logger.info("{} >> {} {}", serverRequest.id(), httpMethod, uri);
+
+            serverRequest.headers().forEach((headerName, headerValues) -> HttpDump.logger.info("{} >> {}: {}",
+                    serverRequest.id(), headerName, headerValues.stream().collect(Collectors.joining(","))));
+
+            clientRequest = new LoggableClientRequest(clientRequest, serverRequest);
+        }
+
+        if (executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_BODY_CONTENT) == null) {
+            final ClientRequest finalClientRequest = clientRequest;
+            serverRequest
+                    .bodyHandler(clientRequest::write)
+                    .endHandler(endResult -> finalClientRequest.end());
+        } else {
+            String content = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_BODY_CONTENT);
+            clientRequest.write(new StringBodyPart(content));
+            clientRequest.end();
+        }
+
+        return clientRequest;
+    }
+
+    private Handler<ClientResponse> loggableClientResponse(Handler<ClientResponse> clientResponseHandler, Request request) {
+        return result -> clientResponseHandler.handle(new LoggableClientResponse(result, request));
     }
 
     protected String nextEndpoint(ExecutionContext executionContext, Request serverRequest) {

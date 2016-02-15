@@ -92,7 +92,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
                 Invoker invoker = remoteInvoker;
 
                 long serviceInvocationStart = System.currentTimeMillis();
-                ClientRequest clientRequest = invoker.invoke(executionContext, serverRequest, responseStream -> {
+                invoker.invoke(executionContext, serverRequest, responseStream -> {
 
                     // Set the status
                     serverResponse.status(responseStream.status());
@@ -110,10 +110,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
                             handler.handle(serverResponse);
                         } else {
-                            responseStream.bodyHandler(bodyPart -> {
-                                LOGGER.debug("{} proxying content to downstream: {} bytes", serverRequest.id(), bodyPart.length());
-                                serverResponse.write(bodyPart);
-                            });
+                            responseStream.bodyHandler(serverResponse::write);
 
                             responseStream.endHandler(result -> {
                                 serverResponse.end();
@@ -129,16 +126,6 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
                     responsePolicyChain.doNext(serverRequest, serverResponse);
                 });
-
-                if (executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_BODY_CONTENT) == null) {
-                    serverRequest
-                            .bodyHandler(clientRequest::write)
-                            .endHandler(result -> clientRequest.end());
-                } else {
-                    String content = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_BODY_CONTENT);
-                    clientRequest.write(new StringBodyPart(content));
-                    clientRequest.end();
-                }
             }
         });
 

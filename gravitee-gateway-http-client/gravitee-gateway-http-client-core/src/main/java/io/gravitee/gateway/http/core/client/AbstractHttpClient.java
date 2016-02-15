@@ -18,12 +18,8 @@ package io.gravitee.gateway.http.core.client;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.api.ClientRequest;
-import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,19 +66,4 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
                 request.headers().contentType() != null ||
                 request.headers().getFirst(HttpHeaders.TRANSFER_ENCODING) != null;
     }
-
-    protected boolean isDumpRequestEnabled() {
-        return api.getProxy().getHttpClient().getOptions().isDumpRequest();
-    }
-
-    @Override
-    public ClientRequest request(String host, int port, HttpMethod method, String requestURI, Request serverRequest, Handler<ClientResponse> responseHandler) {
-        if (isDumpRequestEnabled()) {
-            loggerDumpHttpClient.info("{} rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), requestURI);
-        }
-
-        return request0(host, port, method, requestURI, serverRequest, responseHandler);
-    }
-
-    protected abstract ClientRequest request0(String host, int port, HttpMethod method, String requestURI, Request serverRequest, Handler<ClientResponse> responseHandler);
 }

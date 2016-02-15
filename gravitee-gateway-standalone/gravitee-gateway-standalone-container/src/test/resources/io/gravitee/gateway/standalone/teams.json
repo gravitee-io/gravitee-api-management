@@ -9,7 +9,12 @@
         "target": "http://localhost:8080/team"
       }
     ],
-    "strip_context_path": false
+    "strip_context_path": false,
+    "http": {
+      "configuration": {
+        "dumpRequest": true
+      }
+    }
   },
 
   "paths": {

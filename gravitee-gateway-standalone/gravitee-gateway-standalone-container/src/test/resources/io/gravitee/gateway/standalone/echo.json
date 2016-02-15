@@ -8,7 +8,12 @@
       {
         "target": "http://localhost:8080/echo"
       }
-    ]
+    ],
+    "http": {
+      "configuration": {
+        "dumpRequest": true
+      }
+    }
   },
 
   "paths": {
