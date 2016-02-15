@@ -27,6 +27,7 @@ import org.junit.runners.model.Statement;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -73,16 +74,22 @@ public class ApiDeployerStatement extends Statement {
         boolean enhanceHttpPort = description.getAnnotation(ApiDescriptor.class).enhanceHttpPort();
 
         if (enhanceHttpPort) {
-            Endpoint refEndpoint = api.getProxy().getEndpoints().iterator().next();
-            api.getProxy().getEndpoints().clear();
+            List<Endpoint> endpoints = api.getProxy().getEndpoints();
+            List<Integer> bindPorts = SocketUtils.getBindPorts();
 
-            // Add endpoint per upstream instance
-            for (int i = 0; i < SocketUtils.getBindPorts().size(); i++) {
+            for(int i = 0 ; i < bindPorts.size() ; i++) {
                 int port = SocketUtils.getBindPorts().get(i);
-                URI target = URI.create(refEndpoint.getTarget());
-                URI newTarget = new URI(target.getScheme(), target.getUserInfo(), target.getHost(), port, target.getPath(), target.getQuery(), target.getFragment());
-
-                api.getProxy().getEndpoints().add(new Endpoint(newTarget.toString()));
+                if (i < endpoints.size()) {
+                    Endpoint edpt = endpoints.get(i);
+                    URI target = URI.create(edpt.getTarget());
+                    URI newTarget = new URI(target.getScheme(), target.getUserInfo(), target.getHost(), port, target.getPath(), target.getQuery(), target.getFragment());
+                    edpt.setTarget(newTarget.toString());
+                } else {
+                    // Use the first defined endpoint as reference
+                    URI target = URI.create(endpoints.get(0).getTarget());
+                    URI newTarget = new URI(target.getScheme(), target.getUserInfo(), target.getHost(), port, target.getPath(), target.getQuery(), target.getFragment());
+                    api.getProxy().getEndpoints().add(new Endpoint(newTarget.toString()));
+                }
             }
         }
 
