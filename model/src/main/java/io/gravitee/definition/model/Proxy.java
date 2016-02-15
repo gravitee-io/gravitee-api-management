@@ -30,6 +30,8 @@ public class Proxy {
 
     private LoadBalancer loadBalancer = new LoadBalancer();
 
+    private Failover failover;
+
     private boolean stripContextPath = false;
 
     private HttpClient httpClient = new HttpClient();
@@ -72,5 +74,17 @@ public class Proxy {
 
     public void setLoadBalancer(LoadBalancer loadBalancer) {
         this.loadBalancer = loadBalancer;
+    }
+
+    public boolean failoverEnabled() {
+        return failover != null;
+    }
+
+    public Failover getFailover() {
+        return failover;
+    }
+
+    public void setFailover(Failover failover) {
+        this.failover = failover;
     }
 }
