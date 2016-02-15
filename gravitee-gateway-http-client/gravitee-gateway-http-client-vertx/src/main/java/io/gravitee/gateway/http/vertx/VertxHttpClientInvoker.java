@@ -100,6 +100,8 @@ public class VertxHttpClientInvoker extends AbstractHttpClient {
                 uri,
                 clientResponse -> handleClientResponse(clientResponse, clientResponseHandler));
 
+        clientRequest.setTimeout(api.getProxy().getHttpClient().getOptions().getReadTimeout());
+
         ClientRequest invokerRequest = new ClientRequest() {
             @Override
             public ClientRequest write(BodyPart bodyPart) {
