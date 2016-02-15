@@ -75,7 +75,7 @@ public abstract class AbstractHttpInvoker implements Invoker {
 
         if (enableHttpDump) {
             HttpDump.logger.info("{} >> Rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), uri);
-            HttpDump.logger.info("{} >> {} {}", serverRequest.id(), httpMethod, uri);
+            HttpDump.logger.info("{} >> {} {}", serverRequest.id(), httpMethod, rewrittenURI.toString());
 
             serverRequest.headers().forEach((headerName, headerValues) -> HttpDump.logger.info("{} >> {}: {}",
                     serverRequest.id(), headerName, headerValues.stream().collect(Collectors.joining(","))));
