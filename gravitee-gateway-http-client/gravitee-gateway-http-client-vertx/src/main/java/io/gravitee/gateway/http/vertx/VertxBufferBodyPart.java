@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class VertxBufferBodyPart implements BodyPart<ByteBuffer> {
+class VertxBufferBodyPart implements BodyPart<ByteBuffer> {
 
     private final byte[] bytes;
 

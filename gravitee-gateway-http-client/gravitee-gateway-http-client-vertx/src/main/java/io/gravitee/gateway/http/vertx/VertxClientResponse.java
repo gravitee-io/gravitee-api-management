@@ -23,7 +23,7 @@ import io.gravitee.gateway.api.http.BodyPart;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class VertxClientResponse implements ClientResponse {
+class VertxClientResponse implements ClientResponse {
 
     private Handler<BodyPart> bodyHandler;
     private Handler<Void> endHandler;
