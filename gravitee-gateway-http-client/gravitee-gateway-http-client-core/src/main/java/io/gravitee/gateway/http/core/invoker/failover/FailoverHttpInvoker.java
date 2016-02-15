@@ -18,6 +18,7 @@ package io.gravitee.gateway.http.core.invoker.failover;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.Failover;
 import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -45,15 +46,17 @@ public class FailoverHttpInvoker extends AbstractHttpInvoker {
                 response::handle).connectTimeoutHandler(result -> {
             LOGGER.warn("Connection timeout from {}:{}", host, port);
             int attempts = getAttempts(executionContext);
-            int maxAttempts = 3;
+            int maxAttempts = getFailover().getMaxAttempts();
 
-            LOGGER.info("Current attempts is {} (max={})", attempts, maxAttempts);
+            LOGGER.debug("Current attempts is {} (max={})", attempts, maxAttempts);
 
             if (attempts < maxAttempts) {
                 invoke(executionContext, serverRequest, response);
             } else {
                 LOGGER.warn("Failover reach max attempts limit ({})", maxAttempts);
                 FailoverClientResponse clientResponse = new FailoverClientResponse();
+
+                // Returning the last response from upstream
                 response.handle(clientResponse);
                 clientResponse.endHandler().handle(null);
             }
@@ -74,8 +77,12 @@ public class FailoverHttpInvoker extends AbstractHttpInvoker {
     @Override
     protected String nextEndpoint(ExecutionContext executionContext, Request serverRequest) {
         // Use this is to iterate over each defined endpoint
-        // How to maintain a list of already attempted endpoints
+        // How to maintain a list of already attempted endpoints ?
         return super.nextEndpoint(executionContext, serverRequest);
+    }
+
+    private Failover getFailover() {
+        return api.getProxy().getFailover();
     }
 
     private class FailoverClientResponse implements ClientResponse {
