@@ -23,6 +23,7 @@ public class HttpClientOptions {
 
     public static long DEFAULT_IDLE_TIMEOUT = 60000;
     public static long DEFAULT_CONNECT_TIMEOUT = 5000;
+    public static long DEFAULT_READ_TIMEOUT = 10000;
     public static boolean DEFAULT_KEEP_ALIVE = true;
     public static boolean DEFAULT_DUMP_REQUEST = false;
 
@@ -33,6 +34,8 @@ public class HttpClientOptions {
     private boolean keepAlive = DEFAULT_KEEP_ALIVE;
 
     private boolean dumpRequest = DEFAULT_DUMP_REQUEST;
+
+    private long readTimeout = DEFAULT_READ_TIMEOUT;
 
     public long getConnectTimeout() {
         return connectTimeout;
@@ -64,5 +67,13 @@ public class HttpClientOptions {
 
     public void setDumpRequest(boolean dumpRequest) {
         this.dumpRequest = dumpRequest;
+    }
+
+    public long getReadTimeout() {
+        return readTimeout;
+    }
+
+    public void setReadTimeout(long readTimeout) {
+        this.readTimeout = readTimeout;
     }
 }

@@ -47,6 +47,14 @@ public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer
             httpClientOptions.setConnectTimeout(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT);
         }
 
+        JsonNode readTimeoutNode = node.get("readTimeout");
+        if (readTimeoutNode != null) {
+            long readTimeout = readTimeoutNode.asLong(HttpClientOptions.DEFAULT_READ_TIMEOUT);
+            httpClientOptions.setReadTimeout(readTimeout);
+        } else {
+            httpClientOptions.setReadTimeout(HttpClientOptions.DEFAULT_READ_TIMEOUT);
+        }
+
         JsonNode idleTimeoutNode = node.get("idleTimeout");
         if (idleTimeoutNode != null) {
             long idleTimeout = idleTimeoutNode.asLong(HttpClientOptions.DEFAULT_IDLE_TIMEOUT);
