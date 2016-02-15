@@ -137,6 +137,12 @@
                 </div>
                 <div flex-xs flex="50">
                   <md-input-container flex-xs flex="50">
+                    <label>Read timeout (ms)*</label>
+                    <input ng-model="apiCtrl.api.proxy.http.configuration.readTimeout" type="number" required min="0">
+                  </md-input-container>
+                </div>
+                <div flex-xs flex="50">
+                  <md-input-container flex-xs flex="50">
                     <label>Idle timeout (ms)*</label>
                     <input ng-model="apiCtrl.api.proxy.http.configuration.idleTimeout" type="number" required min="0">
                   </md-input-container>
