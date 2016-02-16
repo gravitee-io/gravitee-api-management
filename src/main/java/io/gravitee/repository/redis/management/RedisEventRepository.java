@@ -54,8 +54,10 @@ public class RedisEventRepository implements EventRepository {
 
     @Override
     public Set<Event> findByProperty(String key, String value) {
-        //TODO: how to implement this ?
-        return null;
+        return eventRedisRepository.findByProperty(key, value)
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
     }
 
     @Override

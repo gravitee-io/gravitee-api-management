@@ -29,6 +29,8 @@ public interface EventRedisRepository {
 
     Set<RedisEvent> findByType(String eventType);
 
+    Set<RedisEvent> findByProperty(String propertyKey, String propertyValue);
+
     RedisEvent saveOrUpdate(RedisEvent event);
 
     void delete(String event);

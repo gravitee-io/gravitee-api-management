@@ -39,6 +39,15 @@ public class RedisApiKeyRepositoryTest extends AbstractRedisTest {
         apiKeyRepository.create(null, null, apiKey);
     }
 
+    @Test
+    public void shouldDeleteApiKey() throws Exception {
+        ApiKey apiKey = apiKey();
+
+        apiKeyRepository.create(null, null, apiKey);
+
+        apiKeyRepository.delete(apiKey.getKey());
+    }
+
     private ApiKey apiKey() {
         ApiKey apiKey = new ApiKey();
         apiKey.setKey(UUID.randomUUID().toString());

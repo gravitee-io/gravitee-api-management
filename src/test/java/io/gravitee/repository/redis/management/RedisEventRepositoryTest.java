@@ -18,7 +18,7 @@ package io.gravitee.repository.redis.management;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,6 +66,24 @@ public class RedisEventRepositoryTest extends AbstractRedisTest {
 
         Set<Event> events = eventRepository.findByType(types);
         Assert.assertEquals(3, events.size());
+    }
+
+    @Test
+    public void shouldDeleteEvent() throws Exception {
+        Event event = event();
+        Event createdEvent = eventRepository.create(event);
+
+        eventRepository.delete(event.getId());
+    }
+
+    @Test
+    public void shouldFindEventsByProperty() throws Exception {
+        eventRepository.create(event());
+        eventRepository.create(event2());
+        eventRepository.create(event3());
+
+        Set<Event> events = eventRepository.findByProperty(Event.EventProperties.API_ID.name(), "my-api");
+        Assert.assertEquals(1, events.size());
     }
 
     private Event event() {

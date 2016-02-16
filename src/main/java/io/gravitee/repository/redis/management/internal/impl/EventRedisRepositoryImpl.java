@@ -53,14 +53,30 @@ public class EventRedisRepositoryImpl extends AbstractRedisRepository implements
     }
 
     @Override
+    public Set<RedisEvent> findByProperty(String propertyKey, String propertyValue) {
+        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":" + propertyKey + ":" + propertyValue);
+        List<Object> eventObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
+
+        return eventObjects.stream()
+                .map(event -> convert(event, RedisEvent.class))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public RedisEvent saveOrUpdate(RedisEvent event) {
         redisTemplate.opsForHash().put(REDIS_KEY, event.getId(), event);
-        redisTemplate.opsForSet().add(REDIS_KEY + ":type:"+event.getType(), event.getId());
+        redisTemplate.opsForSet().add(REDIS_KEY + ":type:" + event.getType(), event.getId());
+        if (event.getProperties() != null) {
+            event.getProperties().forEach((key, value) ->
+                    redisTemplate.opsForSet().add(REDIS_KEY + ":" + key + ":" + value, event.getId()));
+        }
         return event;
     }
 
     @Override
     public void delete(String event) {
+        RedisEvent redisEvent = find(event);
         this.redisTemplate.opsForHash().delete(REDIS_KEY, event);
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":type:" + redisEvent.getType(), redisEvent.getId());
     }
 }

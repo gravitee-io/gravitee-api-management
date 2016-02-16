@@ -52,7 +52,10 @@ public class ApiKeyRedisRepositoryImpl extends AbstractRedisRepository implement
 
     @Override
     public void delete(String apiKey) {
+        RedisApiKey redisApiKey = find(apiKey);
         redisTemplate.opsForHash().delete(REDIS_KEY, apiKey);
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":api:" + redisApiKey.getApi(), apiKey);
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":application:" + redisApiKey.getApplication(), apiKey);
     }
 
     @Override
