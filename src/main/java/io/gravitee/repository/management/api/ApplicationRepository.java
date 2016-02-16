@@ -41,14 +41,6 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      */
     Set<Application> findByUser(String username, MembershipType membershipType) throws TechnicalException;
 
-    /**
-     * Count {@link Application} owner by a given {@link User}
-     *
-     * @param username Application user owner name
-     * @return Counted application
-     */
-    int countByUser(String username, MembershipType membershipType) throws TechnicalException;
-
     void saveMember(String applicationId, String username, MembershipType membershipType) throws TechnicalException;
 
     void deleteMember(String applicationId, String username) throws TechnicalException;
