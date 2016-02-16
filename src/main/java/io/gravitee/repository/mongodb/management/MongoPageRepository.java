@@ -15,22 +15,21 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE
@@ -45,18 +44,6 @@ public class MongoPageRepository implements PageRepository {
 
 	@Autowired
 	private GraviteeMapper mapper;
-
-
-	@Override
-	public Collection<Page> findPublishedByApi(String apiId) throws TechnicalException {
-		logger.debug("Find published pages by api {}", apiId);
-
-		List<PageMongo> pages = internalPageRepo.findByApi(apiId);
-		Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
-
-		logger.debug("Find published pages by api {} - Done", apiId);
-		return res;
-	}
 
 	@Override
 	public Collection<Page> findByApi(String apiId) throws TechnicalException {
