@@ -54,14 +54,6 @@ public interface ApiRepository extends CrudRepository<Api, String>{
      */
     int countByUser(String username, MembershipType membershipType) throws TechnicalException;
 
-    /**
-     * Find APIs associated with an application
-     *
-     * @param applicationId Application ID
-     * @return Apis associated
-     */
-    Set<Api> findByApplication(String applicationId) throws TechnicalException;
-
     void saveMember(String apiId, String username, MembershipType membershipType) throws TechnicalException;
 
     void deleteMember(String apiId, String username) throws TechnicalException;
