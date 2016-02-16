@@ -79,6 +79,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
         executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.getProperties());
         executionContext.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, path.getPath());
         executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
+        executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, remoteInvoker);
 
         // Apply request policies
         AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(requestPolicies, executionContext);
@@ -89,7 +90,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
                 handler.handle(serverResponse);
             } else {
                 // Use the upstream invoker (call the remote API using HTTP client)
-                Invoker invoker = remoteInvoker;
+                Invoker invoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
 
                 long serviceInvocationStart = System.currentTimeMillis();
                 invoker.invoke(executionContext, serverRequest, responseStream -> {
