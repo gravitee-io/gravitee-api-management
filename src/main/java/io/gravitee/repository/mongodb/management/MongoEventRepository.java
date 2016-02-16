@@ -21,14 +21,13 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.mongodb.management.internal.event.EventMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE
@@ -123,6 +122,10 @@ public class MongoEventRepository implements EventRepository {
     }
 
     private EventMongo mapEvent(Event event) {
+        if (event == null) {
+            return null;
+        }
+
         EventMongo eventMongo = new EventMongo();
         eventMongo.setId(event.getId());
         eventMongo.setType(event.getType().toString());
@@ -136,6 +139,10 @@ public class MongoEventRepository implements EventRepository {
     }
 
     private Event mapEvent(EventMongo eventMongo) {
+        if (eventMongo == null) {
+            return null;
+        }
+
         Event event = new Event();
         event.setId(eventMongo.getId());
         event.setType(EventType.valueOf(eventMongo.getType()));

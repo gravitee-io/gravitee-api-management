@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management;
+package io.gravitee.repository.mongodb;
 
 import com.mongodb.Mongo;
 import de.flapdoodle.embed.mongo.distribution.Version;
@@ -21,22 +21,25 @@ import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
-@Configuration
-@ComponentScan
+@ComponentScan("io.gravitee.repository.mongodb.management")
 @EnableMongoRepositories
-public class TestRepositoryConfiguration extends AbstractRepositoryConfiguration {
+public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
-	@Bean
-	public MongodForTestsFactory factory() throws Exception {
-       return MongodForTestsFactory.with(Version.Main.DEVELOPMENT);
-	}
+    @Bean
+    public MongodForTestsFactory factory() throws Exception {
+            return MongodForTestsFactory.with(Version.Main.DEVELOPMENT);
+    }
 
-	@Bean
-	@Override
-	public Mongo mongo() throws Exception {
-		return factory().newMongo();
-	}
+    @Bean
+    public Mongo mongo() throws Exception {
+        return factory().newMongo();
+    }
+
+    @Bean
+    public MongoTemplate mongoTemplate(Mongo mongo) {
+        return new MongoTemplate(mongo, "gravitee");
+    }
 }

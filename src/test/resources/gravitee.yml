@@ -1,7 +1,0 @@
-
-repository:
-  type: mongodb
-  dbname: gravitee
-  host: localhost
-  port: 27017
-
