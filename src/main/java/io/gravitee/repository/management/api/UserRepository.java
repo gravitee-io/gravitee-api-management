@@ -43,14 +43,6 @@ public interface UserRepository {
 	Optional<User> findByUsername(String username) throws TechnicalException;
 
 	/**
-	 * Find a {@link User} by email
-	 *
-	 * @param email Mail of the searched user
-	 * @return Option user found
-	 */
-	Optional<User> findByEmail(String email) throws TechnicalException;
-
-	/**
 	 * Find all {@link User}s
 	 *
 	 * @return Users found
