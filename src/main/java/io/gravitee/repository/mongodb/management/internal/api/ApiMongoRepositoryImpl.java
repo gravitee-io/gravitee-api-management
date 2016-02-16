@@ -50,20 +50,4 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
 		return mongoTemplate.find(query, ApiMongo.class);
 	}
-
-	@Override
-	public int countByUser(String username, String membershipType) {
-		Criteria criteriaMember;
-
-		if (membershipType == null) {
-			criteriaMember = Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username));
-		} else {
-			criteriaMember = Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username).and("type").is(membershipType));
-		}
-
-		Query query = new Query();
-		query.addCriteria(criteriaMember);
-
-		return (int) mongoTemplate.count(query, ApiMongo.class);
-	}
 }

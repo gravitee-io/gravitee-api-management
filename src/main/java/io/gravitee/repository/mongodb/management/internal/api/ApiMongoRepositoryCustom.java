@@ -15,12 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 
 import java.util.Collection;
-import java.util.List;
 
 public interface ApiMongoRepositoryCustom {
     
@@ -30,11 +29,4 @@ public interface ApiMongoRepositoryCustom {
 	 * @return
 	 */
     Collection<ApiMongo> findByMember(String username, MembershipType membershipType, Visibility visibility);
-    
-    /**
-     * Count api by user
-     * @param username
-     * @return
-     */
-	int countByUser(String username, String membershipType);
 }

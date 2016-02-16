@@ -98,13 +98,6 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
-	public int countByUser(String username, MembershipType membershipType) throws TechnicalException {
-		return (membershipType == null) ?
-			internalApiRepo.countByUser(username, null) :
-				internalApiRepo.countByUser(username, membershipType.toString());
-	}
-
-	@Override
 	public void saveMember(String apiId, String username, MembershipType membershipType) throws TechnicalException {
 		ApiMongo apiMongo = internalApiRepo.findOne(apiId);
 		UserMongo userMongo = internalUserRepo.findOne(username);
