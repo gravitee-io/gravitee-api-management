@@ -45,15 +45,6 @@ public interface ApiRepository extends CrudRepository<Api, String>{
      */
     Set<Api> findByMember(String username, MembershipType membershipType, Visibility visibility) throws TechnicalException;
 
-    /**
-     * Count all APIs for a given user and a given membership type.
-     *
-     * @param username owner user name
-     * @param membershipType API membership type filter.
-     * @return counted APIs
-     */
-    int countByUser(String username, MembershipType membershipType) throws TechnicalException;
-
     void saveMember(String apiId, String username, MembershipType membershipType) throws TechnicalException;
 
     void deleteMember(String apiId, String username) throws TechnicalException;
