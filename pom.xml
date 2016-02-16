@@ -32,9 +32,9 @@
 	<name>Gravitee IO - Repository - Redis</name>
 
 	<properties>
-		<jedis.version>2.7.3</jedis.version>
-		<gravitee-repository.version>0.3.0</gravitee-repository.version>
-		<spring-data-redis.version>1.6.0.RELEASE</spring-data-redis.version>
+		<jedis.version>2.8.0</jedis.version>
+		<gravitee-repository.version>0.7.0-SNAPSHOT</gravitee-repository.version>
+		<spring-data-redis.version>1.6.2.RELEASE</spring-data-redis.version>
 	</properties>
 
 	<dependencies>

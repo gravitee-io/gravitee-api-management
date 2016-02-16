@@ -16,6 +16,7 @@
 package io.gravitee.repository.redis;
 
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
+import io.gravitee.repository.ratelimit.model.RateLimit;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +30,10 @@ public class RedisRateLimitRepositoryTest extends AbstractRedisTest {
 
     @Autowired
     private RateLimitRepository rateLimitRepository;
-
-    @Ignore
+    
     @Test
     public void test() {
-        System.out.println(rateLimitRepository.acquire("test", 1, 10, 2, TimeUnit.SECONDS));
-        System.out.println(rateLimitRepository.acquire("test", 1, 10, 2, TimeUnit.SECONDS));
+        System.out.println(rateLimitRepository.get(new RateLimit("mykey")));
+        System.out.println(rateLimitRepository.get(new RateLimit("otherkey")));
     }
 }
