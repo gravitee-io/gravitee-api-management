@@ -91,39 +91,9 @@ public class GraviteeReactor extends AbstractService implements
         LOGGER.debug("Found {} handlers for path {}", mapHandlers.size(), path);
 
         if (! mapHandlers.isEmpty()) {
-
             ContextReactorHandler handler = mapHandlers.iterator().next();
             LOGGER.debug("Returning the first handler matching path {} : {}", path, handler);
             return handler;
-
-            /*
-            // Sort valid handlers and push handler with VirtualHost first
-            ContextReactorHandler[] sorted = new ContextReactorHandler[mapHandlers.size()];
-            int idx = 0;
-            for (ContextReactorHandler handler : mapHandlers) {
-                if (handler.hasVirtualHost()) {
-                    sorted[idx++] = handler;
-                }
-            }
-            for (ContextReactorHandler handler : mapHandlers) {
-                if (!handler.hasVirtualHost()) {
-                    sorted[idx++] = handler;
-                }
-            }
-
-            String host = getHost(request);
-
-            // Always pick-up the first which is corresponding
-            for (ContextReactorHandler handler : sorted) {
-                if (host.equals(handler.getVirtualHost())) {
-                    return handler;
-                }
-            }
-
-            ContextReactorHandler handler = mapHandlers.iterator().next();
-            logger.debug("Returning the first handler matching path {} : {}", path, handler);
-            return handler;
-            */
         }
 
         return notFoundHandler;
@@ -160,17 +130,6 @@ public class GraviteeReactor extends AbstractService implements
             handler.handle(response);
         }
     }
-
-    /*
-    private String getHost(Request request) {
-        String host = request.headers().getFirst(HttpHeaders.HOST);
-        if (host == null || host.isEmpty()) {
-            return URI.create(request.uri()).getHost();
-        } else {
-            return host;
-        }
-    }
-    */
 
     @Override
     public void onEvent(Event<ApiEvent, Api> event) {

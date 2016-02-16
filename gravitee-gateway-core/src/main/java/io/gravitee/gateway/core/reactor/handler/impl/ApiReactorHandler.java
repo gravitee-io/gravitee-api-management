@@ -183,13 +183,6 @@ public class ApiReactorHandler extends ContextReactorHandler {
         return api.getProxy().getContextPath() + '/';
     }
 
-    /*
-    @Override
-    public String getVirtualHost() {
-        return api.getProxy().getTarget().getAuthority();
-    }
-    */
-
     @Override
     protected void doStart() throws Exception {
         super.doStart();

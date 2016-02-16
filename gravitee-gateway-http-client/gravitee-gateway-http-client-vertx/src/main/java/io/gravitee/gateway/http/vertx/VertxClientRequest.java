@@ -46,26 +46,13 @@ class VertxClientRequest implements ClientRequest {
 
     @Override
     public ClientRequest write(BodyPart bodyPart) {
-        byte [] data = bodyPart.getBodyPartAsBytes();
-        /*
-        if (isDumpRequestEnabled()) {
-            HTTP_DUMP_LOGGER.info("{} proxying content to upstream: {} bytes", serverRequest.id(), data.length);
-            HTTP_DUMP_LOGGER.info("{}", new String(data));
-        }
-        */
-
-        httpClientRequest.write(Buffer.buffer(data));
+        httpClientRequest.write(Buffer.buffer(bodyPart.getBodyPartAsBytes()));
 
         return this;
     }
 
     @Override
     public void end() {
-        /*
-        if (isDumpRequestEnabled()) {
-            loggerDumpHttpClient.info("{} proxying complete", serverRequest.id());
-        }
-        */
         httpClientRequest.end();
     }
 }
