@@ -15,32 +15,21 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipType;
-import io.gravitee.repository.management.model.User;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.ApiAssociationMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.internal.model.MemberMongo;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -113,12 +102,6 @@ public class MongoApiRepository implements ApiRepository {
 		return (membershipType == null) ?
 			internalApiRepo.countByUser(username, null) :
 				internalApiRepo.countByUser(username, membershipType.toString());
-	}
-
-	@Override
-	public Set<Api> findByApplication(String applicationId) throws TechnicalException {
-		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplication(applicationId);
-		return apiAssociationMongos.stream().map(t -> mapper.map(t.getApi(), Api.class)).collect(Collectors.toSet());
 	}
 
 	@Override

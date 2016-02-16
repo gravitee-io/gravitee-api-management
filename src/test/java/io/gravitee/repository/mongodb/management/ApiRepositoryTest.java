@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 public class ApiRepositoryTest extends AbstractMongoDBTest {
 
@@ -166,18 +165,6 @@ public class ApiRepositoryTest extends AbstractMongoDBTest {
 		} catch (Exception e) {
 			logger.error("Error while deleting api", e);
 			Assert.fail("Error while deleting api");
-		}
-	}
-	
-	@Test
-	public void findByApplicationTest() {
-		try {
-			Set<Api> apis = apiRepository.findByApplication("application-sample");
-			Assert.assertNotNull(apis);
-			Assert.assertEquals(2, apis.size());
-		} catch (Exception e) {
-			logger.error("Error while finding api by application", e);
-			Assert.fail("Error while finding api by application");
 		}
 	}
 }
