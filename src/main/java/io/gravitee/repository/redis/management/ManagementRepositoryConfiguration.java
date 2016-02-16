@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.redis.ratelimit;
+package io.gravitee.repository.redis.management;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.Scope;
 import io.gravitee.repository.redis.common.AbstractRepositoryConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -29,17 +30,24 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  */
 @Configuration
 @ComponentScan
-public class RateLimitRepositoryConfiguration extends AbstractRepositoryConfiguration {
+public class ManagementRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
     @Bean
     public RedisTemplate redisTemplate(org.springframework.data.redis.connection.RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate redisTemplate = new StringRedisTemplate();
+        RedisTemplate redisTemplate = new RedisTemplate();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Object.class));
+        redisTemplate.setDefaultSerializer(new Jackson2JsonRedisSerializer<>(Object.class));
         return redisTemplate;
     }
 
     @Override
     protected Scope getScope() {
         return Scope.MANAGEMENT;
+    }
+
+    @Bean
+    public ObjectMapper mapper() {
+        return new ObjectMapper();
     }
 }

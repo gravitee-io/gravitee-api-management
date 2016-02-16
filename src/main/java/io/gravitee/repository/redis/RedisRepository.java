@@ -17,10 +17,12 @@ package io.gravitee.repository.redis;
 
 import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
+import io.gravitee.repository.redis.management.ManagementRepositoryConfiguration;
 import io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
 public class RedisRepository implements Repository {
 
@@ -32,7 +34,8 @@ public class RedisRepository implements Repository {
     @Override
     public Scope[] scopes() {
         return new Scope [] {
-                Scope.RATE_LIMIT
+                Scope.RATE_LIMIT,
+                Scope.MANAGEMENT
         };
     }
 
@@ -41,7 +44,8 @@ public class RedisRepository implements Repository {
         switch (scope) {
             case RATE_LIMIT:
                 return RateLimitRepositoryConfiguration.class;
-
+            case MANAGEMENT:
+                return ManagementRepositoryConfiguration.class;
         }
 
         return null;

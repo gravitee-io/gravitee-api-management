@@ -13,27 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.redis;
+package io.gravitee.repository.redis.common;
 
-import io.gravitee.repository.ratelimit.api.RateLimitRepository;
-import io.gravitee.repository.ratelimit.model.RateLimit;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.concurrent.TimeUnit;
+import io.gravitee.repository.Scope;
+import org.springframework.context.annotation.Bean;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
-public class RedisRateLimitRepositoryTest extends AbstractRedisTest {
+public abstract class AbstractRepositoryConfiguration {
 
-    @Autowired
-    private RateLimitRepository rateLimitRepository;
-    
-    @Test
-    public void test() {
-        System.out.println(rateLimitRepository.get(new RateLimit("mykey")));
-        System.out.println(rateLimitRepository.get(new RateLimit("otherkey")));
+    @Bean
+    public RedisConnectionFactory redisConnectionFactory() {
+        return new RedisConnectionFactory(getScope().getName());
     }
+
+    protected abstract Scope getScope();
 }

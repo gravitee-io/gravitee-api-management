@@ -33,6 +33,7 @@
 
 	<properties>
 		<jedis.version>2.8.0</jedis.version>
+		<jackson.version>2.5.3</jackson.version>
 		<gravitee-repository.version>0.7.0-SNAPSHOT</gravitee-repository.version>
 		<spring-data-redis.version>1.6.2.RELEASE</spring-data-redis.version>
 	</properties>
@@ -76,6 +77,14 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 			<version>${spring.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Jackson dependencies -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
 			<scope>provided</scope>
 		</dependency>
 

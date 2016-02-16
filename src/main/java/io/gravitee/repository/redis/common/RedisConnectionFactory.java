@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.redis.ratelimit;
+package io.gravitee.repository.redis.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +24,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
 public class RedisConnectionFactory implements FactoryBean<org.springframework.data.redis.connection.RedisConnectionFactory> {
 

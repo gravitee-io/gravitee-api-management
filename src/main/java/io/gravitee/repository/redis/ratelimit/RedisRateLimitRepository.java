@@ -29,6 +29,7 @@ import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
 public class RedisRateLimitRepository implements RateLimitRepository<String> {
 
