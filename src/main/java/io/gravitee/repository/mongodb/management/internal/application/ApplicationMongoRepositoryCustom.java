@@ -28,11 +28,4 @@ public interface ApplicationMongoRepositoryCustom {
 	 * @return
 	 */
 	Collection<ApplicationMongo> findByUser(String username, MembershipType membershipType);
-    
-    /**
-     * Count api by username (owner)
-     * @param username
-     * @return
-     */
-	int countByUser(String username, MembershipType membershipType);
 }

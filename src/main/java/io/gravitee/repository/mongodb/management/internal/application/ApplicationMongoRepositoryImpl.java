@@ -44,19 +44,4 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
 		return mongoTemplate.find(query, ApplicationMongo.class);
 	}
-
-	@Override
-	public int countByUser(String username, MembershipType membershipType) {
-		Query query = new Query();
-
-		if (membershipType == null) {
-			query.addCriteria(Criteria.where("members").elemMatch(Criteria.where("user.$id").is(username)));
-		} else {
-			query.addCriteria(Criteria.where("members").elemMatch(
-					Criteria.where("user.$id").is(username)
-							.and("type").is(membershipType)));
-		}
-
-		return (int) mongoTemplate.count(query, ApplicationMongo.class);
-	}
 }

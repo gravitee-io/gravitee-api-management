@@ -97,15 +97,6 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	public Set<Application> findByUser(String username, MembershipType membershipType) throws TechnicalException {
 		return mapApplications(internalApplicationRepo.findByUser(username, membershipType));
 	}
-	
-	@Override
-	public int countByUser(String username, MembershipType membershipType) throws TechnicalException {
-		try{
-			return internalApplicationRepo.countByUser(username, membershipType);
-		}catch(Exception e){
-			throw new TechnicalException("Count by user failed", e);
-		}
-	}
 
 	@Override
 	public void saveMember(String applicationId, String username, MembershipType membershipType) throws TechnicalException {

@@ -186,16 +186,4 @@ public class ApplicationRepositoryTest extends AbstractMongoDBTest {
 			Assert.fail("Error while finding application by user");
 		}
 	}
-	
-	@Test
-	public void countByUserTest(){
-		try {
-			int nbApplications = applicationRepository.countByUser("findByUserTest", null);
-			Assert.assertEquals("Invalid application result in countByUser", 1, nbApplications);
-		} catch (Exception e) {
-			logger.error("Error while counting application by user", e);
-			Assert.fail("Error while counting application by user");
-		}
-	}
-
 }
