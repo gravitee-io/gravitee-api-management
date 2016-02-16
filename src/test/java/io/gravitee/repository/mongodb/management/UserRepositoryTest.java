@@ -74,19 +74,5 @@ public class UserRepositoryTest extends AbstractMongoDBTest {
 			logger.error("Error while finding all users",e);
 			Assert.fail("Error while finding all users");
 		}
-	}	
-	
-	@Test
-	public void findByEmailTest() {
-		try{
-			Optional<User> user= userRepository.findByEmail("user2@gravitee.io");
-				
-			Assert.assertNotNull("Optional is null", user);
-			Assert.assertTrue("Impossible to find user by email", user.isPresent());
-			
-		}catch(Exception e){
-			logger.error("Error while finding user by email",e);
-			Assert.fail("Error while finding user by email");
-		}
 	}
 }

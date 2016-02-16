@@ -15,20 +15,16 @@
  */
 package io.gravitee.repository.mongodb.management.internal.user;
 
+import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 
 @Repository
 public interface UserMongoRepository extends MongoRepository<UserMongo, String> {
 
 	@Query("{ 'username' : ?0}")
 	UserMongo findByUsername(String username);
-	
-	@Query("{ 'email' : ?0}")
-	UserMongo findByEmail(String email);
 
 }
 
