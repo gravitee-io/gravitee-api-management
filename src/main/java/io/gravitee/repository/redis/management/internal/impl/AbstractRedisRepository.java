@@ -18,6 +18,7 @@ package io.gravitee.repository.redis.management.internal.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
@@ -27,6 +28,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 public abstract class AbstractRedisRepository {
 
     @Autowired
+    @Qualifier("managementRedisTemplate")
     protected RedisTemplate<String, Object> redisTemplate;
 
     @Autowired

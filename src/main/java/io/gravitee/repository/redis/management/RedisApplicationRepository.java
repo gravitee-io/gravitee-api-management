@@ -17,9 +17,11 @@ package io.gravitee.repository.redis.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.redis.management.internal.ApplicationRedisRepository;
 import io.gravitee.repository.redis.management.internal.MembershipRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApplication;
@@ -42,6 +44,9 @@ public class RedisApplicationRepository implements ApplicationRepository {
 
     @Autowired
     private MembershipRedisRepository membershipRedisRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public Set<Application> findAll() throws TechnicalException {
@@ -150,8 +155,15 @@ public class RedisApplicationRepository implements ApplicationRepository {
                     .filter(redisMembership ->
                             (redisMembership.getMembershipFor() == RedisMembership.MembershipFor.APPLICATION) &&
                             redisMembership.getOwner().equals(applicationId))
-                    .filter(membership -> membershipType.name().equalsIgnoreCase(membership.getMembershipType()))
-                    .forEach(redisMembership -> memberships.add(convert(redisMembership)));
+                    .filter(membership -> membershipType == null || membershipType.name().equalsIgnoreCase(membership.getMembershipType()))
+                    .forEach(redisMembership -> {
+                        try {
+                            User user = userRepository.findByUsername(member).get();
+                            Membership membership = convert(redisMembership);
+                            membership.setUser(user);
+                            memberships.add(membership);
+                        } catch (TechnicalException te) {}
+                    });
         }
 
         return memberships;
@@ -164,7 +176,12 @@ public class RedisApplicationRepository implements ApplicationRepository {
         for(RedisMembership redisMembership : memberships) {
             if (redisMembership.getMembershipFor() == RedisMembership.MembershipFor.APPLICATION &&
                     redisMembership.getOwner().equals(applicationId)) {
-                return convert(redisMembership);
+                try {
+                    User user = userRepository.findByUsername(username).get();
+                    Membership membership = convert(redisMembership);
+                    membership.setUser(user);
+                    return membership;
+                } catch (TechnicalException te) {}
             }
         }
 

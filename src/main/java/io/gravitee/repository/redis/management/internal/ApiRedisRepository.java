@@ -29,6 +29,8 @@ public interface ApiRedisRepository {
 
     Set<RedisApi> findAll();
 
+    Set<RedisApi> findByVisibility(String visibility);
+
     RedisApi saveOrUpdate(RedisApi api);
 
     void delete(String api);

@@ -18,11 +18,13 @@ package io.gravitee.repository.redis.management;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.Scope;
 import io.gravitee.repository.redis.common.AbstractRepositoryConfiguration;
+import io.gravitee.repository.redis.management.transaction.NoTransactionManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -32,7 +34,7 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 @ComponentScan
 public class ManagementRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
-    @Bean
+    @Bean(name = "managementRedisTemplate")
     public RedisTemplate redisTemplate(org.springframework.data.redis.connection.RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate redisTemplate = new RedisTemplate();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
@@ -49,5 +51,10 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     @Bean
     public ObjectMapper mapper() {
         return new ObjectMapper();
+    }
+
+    @Bean
+    public AbstractPlatformTransactionManager graviteeTransactionManager() {
+        return new NoTransactionManager();
     }
 }

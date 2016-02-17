@@ -17,9 +17,11 @@ package io.gravitee.repository.redis.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.redis.management.internal.ApiRedisRepository;
 import io.gravitee.repository.redis.management.internal.MembershipRedisRepository;
+import io.gravitee.repository.redis.management.internal.UserRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApi;
 import io.gravitee.repository.redis.management.model.RedisMembership;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,9 @@ public class RedisApiRepository implements ApiRepository {
 
     @Autowired
     private MembershipRedisRepository membershipRedisRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public Set<Api> findAll() throws TechnicalException {
@@ -75,17 +80,23 @@ public class RedisApiRepository implements ApiRepository {
 
     @Override
     public Set<Api> findByMember(String username, MembershipType membershipType, Visibility visibility) throws TechnicalException {
-        Set<RedisMembership> memberships = membershipRedisRepository.getMemberships(username);
+        if (username != null) {
+            Set<RedisMembership> memberships = membershipRedisRepository.getMemberships(username);
 
-        return memberships.stream()
-                .filter(redisMembership ->
-                        redisMembership.getMembershipFor() == RedisMembership.MembershipFor.API &&
-                                (membershipType == null || (membershipType.name().equals(redisMembership.getMembershipType()
-                                ))))
-                .map(RedisMembership::getOwner)
-                .distinct()
-                .map(api -> convert(apiRedisRepository.find(api)))
-                .collect(Collectors.toSet());
+            return memberships.stream()
+                    .filter(redisMembership ->
+                            redisMembership.getMembershipFor() == RedisMembership.MembershipFor.API &&
+                                    (membershipType == null || (membershipType.name().equals(redisMembership.getMembershipType()
+                                    ))))
+                    .map(RedisMembership::getOwner)
+                    .distinct()
+                    .map(api -> convert(apiRedisRepository.find(api)))
+                    .collect(Collectors.toSet());
+        } else {
+            return apiRedisRepository.findByVisibility(visibility.name()).stream()
+                    .map(this::convert)
+                    .collect(Collectors.toSet());
+        }
     }
 
     @Override
@@ -148,8 +159,15 @@ public class RedisApiRepository implements ApiRepository {
                     .filter(redisMembership ->
                             (redisMembership.getMembershipFor() == RedisMembership.MembershipFor.API) &&
                                     redisMembership.getOwner().equals(apiId))
-                    .filter(membership -> membershipType.name().equalsIgnoreCase(membership.getMembershipType()))
-                    .forEach(redisMembership -> memberships.add(convert(redisMembership)));
+                    .filter(membership -> membershipType == null || membershipType.name().equalsIgnoreCase(membership.getMembershipType()))
+                    .forEach(redisMembership -> {
+                        try {
+                            User user = userRepository.findByUsername(member).get();
+                            Membership membership = convert(redisMembership);
+                            membership.setUser(user);
+                            memberships.add(membership);
+                        } catch (TechnicalException te) {}
+                    });
         }
 
         return memberships;
@@ -162,7 +180,12 @@ public class RedisApiRepository implements ApiRepository {
         for(RedisMembership redisMembership : memberships) {
             if (redisMembership.getMembershipFor() == RedisMembership.MembershipFor.API &&
                     redisMembership.getOwner().equals(apiId)) {
-                return convert(redisMembership);
+                try {
+                    User user = userRepository.findByUsername(username).get();
+                    Membership membership = convert(redisMembership);
+                    membership.setUser(user);
+                    return membership;
+                } catch (TechnicalException te) {}
             }
         }
 
@@ -180,7 +203,9 @@ public class RedisApiRepository implements ApiRepository {
         api.setName(redisApi.getName());
         api.setCreatedAt(new Date(redisApi.getCreatedAt()));
         api.setUpdatedAt(new Date(redisApi.getUpdatedAt()));
-        api.setDeployedAt(new Date(redisApi.getDeployedAt()));
+        if (redisApi.getDeployedAt() != 0) {
+            api.setDeployedAt(new Date(redisApi.getDeployedAt()));
+        }
         api.setDefinition(redisApi.getDefinition());
         api.setDescription(redisApi.getDescription());
         api.setVersion(redisApi.getVersion());
@@ -197,7 +222,11 @@ public class RedisApiRepository implements ApiRepository {
         redisApi.setName(api.getName());
         redisApi.setCreatedAt(api.getCreatedAt().getTime());
         redisApi.setUpdatedAt(api.getUpdatedAt().getTime());
-        redisApi.setDeployedAt(api.getDeployedAt().getTime());
+
+        if (api.getDeployedAt() != null) {
+            redisApi.setDeployedAt(api.getDeployedAt().getTime());
+        }
+
         redisApi.setDefinition(api.getDefinition());
         redisApi.setDescription(api.getDescription());
         redisApi.setVersion(api.getVersion());

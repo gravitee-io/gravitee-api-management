@@ -35,6 +35,6 @@ public abstract class AbstractRedisTest {
 
     @Before
     public void setUp() throws Exception {
-        redisTemplate.getConnectionFactory().getConnection().flushAll();
+//        redisTemplate.getConnectionFactory().getConnection().flushAll();
     }
 }

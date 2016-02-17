@@ -68,6 +68,7 @@ public class RedisEventRepository implements EventRepository {
 
     @Override
     public Event create(Event event) throws TechnicalException {
+        event.setId(UUID.randomUUID().toString());
         RedisEvent redisEvent = eventRedisRepository.saveOrUpdate(convert(event));
         return convert(redisEvent);
     }

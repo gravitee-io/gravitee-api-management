@@ -31,7 +31,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 @ComponentScan
 public class RateLimitRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
-    @Bean
+    @Bean(name = "rateLimitRedisTemplate")
     public RedisTemplate redisTemplate(org.springframework.data.redis.connection.RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate redisTemplate = new StringRedisTemplate();
         redisTemplate.setConnectionFactory(redisConnectionFactory);

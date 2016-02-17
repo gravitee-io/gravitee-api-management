@@ -17,10 +17,9 @@ package io.gravitee.repository.redis.management.internal.impl;
 
 import io.gravitee.repository.redis.management.internal.ApiRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApi;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,9 +33,6 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
 
     private final static String REDIS_KEY = "api";
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
     @Override
     public RedisApi find(String apiId) {
         Object api = redisTemplate.opsForHash().get(REDIS_KEY, apiId);
@@ -49,17 +45,32 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
 
     @Override
     public Set<RedisApi> findAll() {
-        Map<Object, Object> apis = redisTemplate.opsForHash().entries(REDIS_KEY);
+        Map<Object, Object> applications = redisTemplate.opsForHash().entries(REDIS_KEY);
 
-        return apis.values()
+        return applications.values()
                 .stream()
                 .map(object -> convert(object, RedisApi.class))
                 .collect(Collectors.toSet());
     }
 
     @Override
+    public Set<RedisApi> findByVisibility(String visibility) {
+        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":visibility:" + visibility);
+        List<Object> apiObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
+
+        return apiObjects.stream()
+                .map(event -> convert(event, RedisApi.class))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public RedisApi saveOrUpdate(RedisApi api) {
+        RedisApi oldApi = find(api.getId());
         redisTemplate.opsForHash().put(REDIS_KEY, api.getId(), api);
+        redisTemplate.opsForSet().add(REDIS_KEY + ":visibility:" + api.getVisibility(), api.getId());
+        if (oldApi != null) {
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":visibility:" + oldApi.getVisibility(), api.getId());
+        }
         return api;
     }
 

@@ -20,6 +20,8 @@ import io.gravitee.repository.ratelimit.model.RateLimit;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
@@ -31,7 +33,18 @@ public class RedisRateLimitRepositoryTest extends AbstractRedisTest {
     
     @Test
     public void test() {
-        System.out.println(rateLimitRepository.get(new RateLimit("mykey")));
-        System.out.println(rateLimitRepository.get(new RateLimit("otherkey")));
+        RateLimit rateLimit = new RateLimit("mykey");
+        rateLimit.setResetTime(new Date().getTime() + 120000);
+
+        RateLimit rateLimit2 = new RateLimit("otherkey");
+        rateLimit2.setResetTime(new Date().getTime() + 120000);
+
+        System.out.println(rateLimitRepository.get(rateLimit));
+
+        rateLimitRepository.save(rateLimit);
+
+        System.out.println(rateLimitRepository.get(rateLimit));
+
+        System.out.println(rateLimitRepository.get(rateLimit2));
     }
 }
