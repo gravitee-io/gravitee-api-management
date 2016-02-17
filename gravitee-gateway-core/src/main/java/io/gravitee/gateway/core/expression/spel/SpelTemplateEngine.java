@@ -27,6 +27,9 @@ public class SpelTemplateEngine implements TemplateEngine {
 
     @Override
     public String convert(String expression) {
+        // Escape sequence
+        expression = expression.replaceAll("\\{([^#|T|(])", "{'{'}$1");
+
         return new SpelExpressionParser()
                 .parseExpression(expression, new TemplateParserContext())
                 .getValue(getTemplateContext().getContext(), String.class);
