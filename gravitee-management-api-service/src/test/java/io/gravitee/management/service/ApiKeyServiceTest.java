@@ -81,7 +81,6 @@ public class ApiKeyServiceTest {
         when(apiKey.getKey()).thenReturn(API_KEY);
         when(apiKey.getCreatedAt()).thenReturn(date);
         when(apiKey.isRevoked()).thenReturn(false);
-        when(apiKey.getExpiration()).thenReturn(date);
 
         when(apiKey.getApplication()).thenReturn(APPLICATION_NAME);
         when(applicationService.findById(APPLICATION_NAME)).thenReturn(applicationEntity);
@@ -94,7 +93,6 @@ public class ApiKeyServiceTest {
 
         assertEquals(API_KEY, apiKey.getKey());
         assertEquals(date, apiKey.getCreatedAt());
-        assertEquals(date, apiKey.getExpireOn());
         assertEquals(false, apiKey.isRevoked());
     }
 
