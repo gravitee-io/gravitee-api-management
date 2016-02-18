@@ -56,6 +56,12 @@
 		</fileSet>
 
 		<fileSet>
+			<directory>../target/distribution/logs</directory>
+			<outputDirectory>/logs</outputDirectory>
+			<fileMode>644</fileMode>
+		</fileSet>
+
+		<fileSet>
 			<directory>../target/distribution/bin</directory>
 			<outputDirectory>/bin</outputDirectory>
 			<includes>
