@@ -30,7 +30,7 @@ public interface ApiService {
 
     Set<ApiEntity> findByVisibility(Visibility visibility);
     
-    Set<ApiEntity> findByApplication(String applicationId);
+    int countByApplication(String applicationId);
 
     ApiEntity create(NewApiEntity api, String username);
 

@@ -15,46 +15,17 @@
  */
 package io.gravitee.management.service.impl;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.EventEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.NewApiEntity;
-import io.gravitee.management.model.PrimaryOwnerEntity;
-import io.gravitee.management.model.UpdateApiEntity;
-import io.gravitee.management.model.UserEntity;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.EmailService;
-import io.gravitee.management.service.EventService;
-import io.gravitee.management.service.IdGenerator;
-import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -63,14 +34,17 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiKey;
-import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.MembershipType;
-import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.Visibility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -207,12 +181,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findByApplication(String applicationId) {
+    public int countByApplication(String applicationId) {
         try {
             LOGGER.debug("Find APIs by application {}", applicationId);
-            Set<Api> applicationApis = apiRepository.findByApplication(applicationId);
-            return applicationApis.stream()
-                    .filter(api -> api != null).map(this::convert).collect(Collectors.toSet());
+            Set<ApiKey> applicationApiKeys = apiKeyRepository.findByApplication(applicationId);
+            return (int) applicationApiKeys.stream().map(apiKey -> apiKey.getApi()).distinct().count();
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
