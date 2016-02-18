@@ -15,30 +15,20 @@
  */
 package io.gravitee.repository.redis.ratelimit;
 
-import io.gravitee.repository.ratelimit.api.RateLimitRepository;
-import io.gravitee.repository.ratelimit.model.RateLimit;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Date;
+import io.gravitee.repository.redis.junit.RedisExternalResource;
+import org.junit.ClassRule;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public class RedisRateLimitRepositoryTest extends AbstractRedisTest {
+@RunWith(Suite.class)
+@Suite.SuiteClasses({RedisRateLimitRepositoryTest.class})
+public class RedisRateLimitSuiteTest {
 
-    @Autowired
-    private RateLimitRepository rateLimitRepository;
+    @ClassRule
+    public static RedisExternalResource redisExternalResource = new RedisExternalResource();
     
-    @Test
-    public void test() {
-        RateLimit rateLimit = new RateLimit("mykey");
-        rateLimit.setResetTime(new Date().getTime() + 120000);
-
-        RateLimit rateLimit2 = new RateLimit("otherkey");
-        rateLimit2.setResetTime(new Date().getTime() + 120000);
-
-        rateLimitRepository.save(rateLimit);
-    }
 }

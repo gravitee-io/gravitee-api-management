@@ -15,26 +15,26 @@
  */
 package io.gravitee.repository.redis.management;
 
-import org.junit.Before;
+import io.gravitee.repository.redis.junit.RedisExternalResource;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.runners.Suite;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { ManagementRepositoryConfiguration.class })
-public abstract class AbstractRedisTest {
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+        RedisApiKeyRepositoryTest.class,
+        RedisApiRepositoryTest.class,
+        RedisApplicationRepositoryTest.class,
+        RedisEventRepositoryTest.class
+})
+public class RedisManagementSuiteTest {
 
-    @Autowired
-    private RedisTemplate redisTemplate;
 
-    @Before
-    public void setUp() throws Exception {
-        redisTemplate.getConnectionFactory().getConnection().flushAll();
-    }
+    @ClassRule
+    public static RedisExternalResource redisExternalResource = new RedisExternalResource();
+    
 }

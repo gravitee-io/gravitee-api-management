@@ -21,6 +21,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import redis.clients.jedis.JedisPoolConfig;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -42,11 +43,15 @@ public class RedisConnectionFactory implements FactoryBean<org.springframework.d
     @Override
     public org.springframework.data.redis.connection.RedisConnectionFactory getObject() throws Exception {
         JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
-
         jedisConnectionFactory.setHostName(readPropertyValue(propertyPrefix + "host", String.class, "localhost"));
         jedisConnectionFactory.setPort(readPropertyValue(propertyPrefix + "port", int.class, 6379));
         jedisConnectionFactory.setPassword(readPropertyValue(propertyPrefix + "password", String.class, null));
         jedisConnectionFactory.setTimeout(readPropertyValue(propertyPrefix + "timeout", int.class, -1));
+
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig.setMaxTotal(128);
+        poolConfig.setBlockWhenExhausted(false);
+        jedisConnectionFactory.setPoolConfig(poolConfig);
 
         jedisConnectionFactory.afterPropertiesSet();
 
