@@ -87,6 +87,11 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/api/admin/general/apiGeneral.html',
       controller: 'ApiGeneralController',
       controllerAs: 'generalCtrl',
+      resolve: {
+        resolvedApi:function ($stateParams, ApiService) {
+          return ApiService.get($stateParams.apiId);
+        }
+      },
       menu: {
         label: 'Global settings',
         icon: 'blur_on'

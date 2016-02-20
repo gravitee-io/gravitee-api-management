@@ -23,6 +23,7 @@ class ApiAdminController {
     this.$mdEditDialog = $mdEditDialog;
     this.$mdDialog = $mdDialog;
     this.initialApi = _.cloneDeep(resolvedApi.data);
+    this.api = resolvedApi.data;
     this.$scope.selected = [];
 
     this.$scope.lbs = [
@@ -44,11 +45,20 @@ class ApiAdminController {
   }
 
   initState() {
-    this.$scope.apiEnabled = this.$scope.$parent.apiCtrl.api.state === 'started'? true : false;
+    this.$scope.apiEnabled = (this.$scope.$parent.apiCtrl.api.state === 'started');
+    this.failoverEnabled = (this.api.proxy.failover !== undefined);
+    if (!this.failoverEnabled) {
+      // Set default values
+      this.api.proxy.failover = {
+        maxAttempts: 1,
+        retryTimeout: 0,
+        cases: ['TIMEOUT']
+      }
+    }
   }
 
   changeLifecycle(id) {
-    var started = this.$scope.$parent.apiCtrl.api.state === 'started';
+    var started = this.api.state === 'started';
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
       content: 'Are you sure you want to ' + (started?'un':'') +'publish \'' + this.initialApi.name + '\' API ?',
@@ -61,12 +71,12 @@ class ApiAdminController {
       .then(function () {
         if (started) {
           that.ApiService.stop(id).then(function () {
-            that.$scope.$parent.apiCtrl.api.state = 'stopped';
+            that.api.state = 'stopped';
             that.NotificationService.show('API ' + that.initialApi.name + ' has been stopped !');
           });
         } else {
           that.ApiService.start(id).then(function () {
-            that.$scope.$parent.apiCtrl.api.state = 'started';
+            that.api.state = 'started';
             that.NotificationService.show('API ' + that.initialApi.name + ' has been started !');
           });
         }
@@ -85,7 +95,7 @@ class ApiAdminController {
       placeholder: 'Target URL',
       save: function (input) {
         endpoint.target = input.$modelValue;
-        _that.update(_that.$scope.$parent.apiCtrl.api);
+        _that.$scope.formApi.$setDirty();
       },
       targetEvent: event,
       title: 'Endpoint target URL',
@@ -114,7 +124,7 @@ class ApiAdminController {
       placeholder: 'Weight',
       save: function (input) {
         endpoint.weight = input.$modelValue;
-        _that.update(_that.$scope.$parent.apiCtrl.api);
+        _that.$scope.formApi.$setDirty();
       },
       targetEvent: event,
       title: 'Endpoint weight',
@@ -147,8 +157,8 @@ class ApiAdminController {
         templateUrl: 'app/api/admin/general/add-endpoint-dialog.html',
       }).then(function (endpoint) {
         if (endpoint) {
-          _that.$scope.$parent.apiCtrl.api.proxy.endpoints.push(endpoint);
-          _that.update(_that.$scope.$parent.apiCtrl.api);
+          _that.api.proxy.endpoints.push(endpoint);
+          _that.$scope.formApi.$setDirty();
         }
       });
   }
@@ -156,25 +166,25 @@ class ApiAdminController {
   removeEndpoints(event) {
     var _that = this;
     _(this.$scope.selected).forEach(function(endpoint) {
-      _(_that.$scope.$parent.apiCtrl.api.proxy.endpoints).forEach(function(endpoint2, index, object) {
+      _(_that.api.proxy.endpoints).forEach(function(endpoint2, index, object) {
         if (endpoint2 !== undefined && endpoint2.target === endpoint.target) {
           object.splice(index, 1);
         }
       });
     });
 
-    this.update(this.$scope.$parent.apiCtrl.api);
+    this.$scope.formApi.$setDirty();
   }
 
   reset() {
-    this.$scope.$parent.apiCtrl.api = _.cloneDeep(this.initialApi);
+    this.api = _.cloneDeep(this.initialApi);
     this.$scope.formApi.$setPristine();
   }
 
   delete(id) {
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
-      content: 'Are you sure you want to delete \'' + this.$scope.$parent.apiCtrl.api.name + '\' API ?',
+      content: 'Are you sure you want to delete \'' + this.api.name + '\' API ?',
       ok: 'OK',
       cancel: 'Cancel'
     });
@@ -192,8 +202,12 @@ class ApiAdminController {
   }
 
   update(api) {
+    if (!this.failoverEnabled) {
+      delete api.proxy.failover;
+    }
+
     this.ApiService.update(api).then((updatedApi) => {
-      this.$scope.$parent.apiCtrl.api = updatedApi.data;
+      this.api = updatedApi.data;
       this.initState();
       this.$scope.formApi.$setPristine();
       this.$rootScope.$broadcast("apiChangeSuccess");
