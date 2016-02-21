@@ -39,7 +39,10 @@ public class FailoverSerializer extends StdScalarSerializer<Failover> {
         jgen.writeStartObject();
 
         // Max attempts
-        jgen.writeNumberField("max_attempts", failover.getMaxAttempts());
+        jgen.writeNumberField("maxAttempts", failover.getMaxAttempts());
+
+        // Retry timeout
+        jgen.writeNumberField("retryTimeout", failover.getRetryTimeout());
 
         // Error cases
         jgen.writeArrayFieldStart("cases");

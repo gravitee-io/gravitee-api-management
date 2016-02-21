@@ -303,6 +303,7 @@ public class JacksonDeserializerTest {
         Assert.assertTrue(api.getProxy().failoverEnabled());
 
         Assert.assertEquals(Failover.DEFAULT_MAX_ATTEMPTS, api.getProxy().getFailover().getMaxAttempts());
+        Assert.assertEquals(Failover.DEFAULT_RETRY_TIMEOUT, api.getProxy().getFailover().getRetryTimeout());
         Assert.assertEquals(Failover.DEFAULT_FAILOVER_CASES, api.getProxy().getFailover().getCases());
     }
 
@@ -314,6 +315,7 @@ public class JacksonDeserializerTest {
         Assert.assertTrue(api.getProxy().failoverEnabled());
 
         Assert.assertEquals(3, api.getProxy().getFailover().getMaxAttempts());
+        Assert.assertEquals(3000, api.getProxy().getFailover().getRetryTimeout());
         Assert.assertEquals(Failover.DEFAULT_FAILOVER_CASES, api.getProxy().getFailover().getCases());
     }
 

@@ -11,8 +11,9 @@
         "target": "http://host2:8083/myapi"
       }
     ],
-    "fail_over": {
-      "max_attempts": 3,
+    "failover": {
+      "maxAttempts": 3,
+      "retryTimeout": 3000,
       "cases": ["TIMEOUT"]
     },
     "strip_context_path": false
