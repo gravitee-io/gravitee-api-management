@@ -22,9 +22,11 @@ package io.gravitee.definition.model;
 public class Failover {
 
     public static int DEFAULT_MAX_ATTEMPTS = 1;
+    public static long DEFAULT_RETRY_TIMEOUT = 0;
     public static FailoverCase [] DEFAULT_FAILOVER_CASES = {FailoverCase.TIMEOUT};
 
     private int maxAttempts = DEFAULT_MAX_ATTEMPTS;
+    private long retryTimeout = DEFAULT_RETRY_TIMEOUT;
     private FailoverCase [] cases = DEFAULT_FAILOVER_CASES;
 
     public int getMaxAttempts() {
@@ -41,5 +43,13 @@ public class Failover {
 
     public void setCases(FailoverCase[] cases) {
         this.cases = cases;
+    }
+
+    public long getRetryTimeout() {
+        return retryTimeout;
+    }
+
+    public void setRetryTimeout(long retryTimeout) {
+        this.retryTimeout = retryTimeout;
     }
 }

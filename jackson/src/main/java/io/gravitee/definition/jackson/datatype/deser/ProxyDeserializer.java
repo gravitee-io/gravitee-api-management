@@ -84,7 +84,7 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             proxy.setLoadBalancer(loadBalancer);
         }
 
-        JsonNode failoverNode = node.get("fail_over");
+        JsonNode failoverNode = node.get("failover");
         if (failoverNode != null) {
             Failover failover = failoverNode.traverse(jp.getCodec()).readValueAs(Failover.class);
             proxy.setFailover(failover);

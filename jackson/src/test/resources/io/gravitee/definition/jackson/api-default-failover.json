@@ -11,7 +11,7 @@
         "target": "http://host2:8083/myapi"
       }
     ],
-    "fail_over": {},
+    "failover": {},
     "strip_context_path": false
   },
 

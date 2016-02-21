@@ -57,12 +57,20 @@ public class FailoverDeserializer extends StdScalarDeserializer<Failover> {
             }
         }
 
-        JsonNode maxAttemptsNode = node.get("max_attempts");
+        JsonNode maxAttemptsNode = node.get("maxAttempts");
         if (maxAttemptsNode != null) {
             int maxAttempts = maxAttemptsNode.asInt(Failover.DEFAULT_MAX_ATTEMPTS);
             failover.setMaxAttempts(maxAttempts);
         } else {
             failover.setMaxAttempts(Failover.DEFAULT_MAX_ATTEMPTS);
+        }
+
+        JsonNode retryTimeoutNode = node.get("retryTimeout");
+        if (retryTimeoutNode != null) {
+            long retryTimeout = retryTimeoutNode.asLong(Failover.DEFAULT_RETRY_TIMEOUT);
+            failover.setRetryTimeout(retryTimeout);
+        } else {
+            failover.setRetryTimeout(Failover.DEFAULT_RETRY_TIMEOUT);
         }
 
         return failover;
