@@ -204,6 +204,17 @@
                         </span>
                     </md-checkbox>
                   </div>
+                  <div layout-xs="column" flex-xs="50">
+                    <md-checkbox
+                      ng-model="generalCtrl.api.proxy.http.configuration.pipelining"
+                      aria-label="HTTP pipe-lining"
+                      class="md-align-top-left" flex>
+                      HTTP pipe-lining<br/>
+                        <span class="ipsum">
+                          When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.
+                        </span>
+                    </md-checkbox>
+                  </div>
                 </div>
               </div>
             </v-pane-content>
