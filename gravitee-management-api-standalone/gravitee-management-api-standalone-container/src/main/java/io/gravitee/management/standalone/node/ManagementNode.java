@@ -17,7 +17,7 @@ package io.gravitee.management.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.common.node.Node;
-import io.gravitee.common.utils.ManifestUtils;
+import io.gravitee.common.util.Version;
 import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.plugin.core.internal.PluginEventListener;
@@ -97,7 +97,7 @@ public class ManagementNode implements Node, ApplicationContextAware {
 
         long endTime = System.currentTimeMillis(); // Get the end Time
 
-        LOGGER.info("Gravitee Management [{} - {}] started in {} ms.", new Object[]{name(), ManifestUtils.getVersion(), (endTime - startTime)});
+        LOGGER.info("Gravitee Management [{} - {}] started in {} ms.", name(), Version.RUNTIME_VERSION, (endTime - startTime));
     }
 
     private List<Class<? extends LifecycleComponent>> getLifecycleComponents() {
