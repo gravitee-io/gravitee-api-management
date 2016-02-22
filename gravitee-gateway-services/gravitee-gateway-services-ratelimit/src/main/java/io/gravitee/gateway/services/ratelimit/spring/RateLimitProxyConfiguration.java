@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.apikeyscache.spring;
+package io.gravitee.gateway.services.ratelimit.spring;
 
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
@@ -27,24 +27,25 @@ import java.io.File;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
 @Configuration
-public class ApiKeysCacheConfiguration {
+public class RateLimitProxyConfiguration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeysCacheConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RateLimitProxyConfiguration.class);
 
-    private static final String API_KEY_CACHE_NAME = "apikey";
+    private static final String RATE_LIMIT_CACHE_NAME = "ratelimit";
     @Bean
     public Cache cache() {
         CacheManager cacheManager = cacheManager();
-        Cache apiKeyCache = cacheManager.getCache(API_KEY_CACHE_NAME);
+        Cache apiKeyCache = cacheManager.getCache(RATE_LIMIT_CACHE_NAME);
         if (apiKeyCache == null) {
-            LOGGER.warn("EHCache cache for apikey not found. Fallback to default EHCache configuration");
-            CacheConfiguration cacheConfiguration = new CacheConfiguration(API_KEY_CACHE_NAME, 100);
+            LOGGER.warn("EHCache cache for {} not found. Fallback to default EHCache configuration", RATE_LIMIT_CACHE_NAME);
+            CacheConfiguration cacheConfiguration = new CacheConfiguration(RATE_LIMIT_CACHE_NAME, 1000);
             cacheManager.addCache(new Cache(cacheConfiguration));
         }
 
-        return cacheManager.getCache(API_KEY_CACHE_NAME);
+        return cacheManager.getCache(RATE_LIMIT_CACHE_NAME);
     }
 
     @Bean
