@@ -1,0 +1,176 @@
+[[gravitee-management-api-policy]]
+= Your APIs need some changes
+
+This guide walks you through the process of configuring, access, manage your Management API policies.
+
+NOTE: Policies allow the publisher to change the behavior of the API.
+
+== Manage your policies
+
+NOTE: The Management API is secured, all requests must contain the `Authorization` header with a specific authentication type (Basic/OAuth 2). See the <<management-api-security.adoc#,Management API : Security Guide>> to get more information
+
+=== Create policies
+
+[source]
+----
+Create policy :
+
+=============== =================================================
+Request         POST /policies
+Request Header  Authorization   Basic <Base64.encode(username:password)>
+                or
+                Authorization   Bearer <your-access-token>
+Request Body    ::
+                  {
+                    "id": "policy id",
+                    "name": "policy name",
+                    "description": "policy description",
+                    "version": "policy version"
+                  }
+
+=============== =================================================
+Response Codes  200 OK
+                401 Unauthorized
+                403 forbidden
+                400 Bad Request
+Response Body   ::
+                  {
+                    "id": "policy id",
+                    "name": "policy name",
+                    "description": "policy description",
+                    "version": "policy version",
+                    "created_at": "team creation date",
+                    "updated_at": "team update date"
+                  }
+
+=============== =================================================
+----
+
+=== Update policies
+
+[source]
+----
+Update policy :
+
+=============== =================================================
+Request         POST /policies/<policyName>
+Request Header  Authorization   Basic <Base64.encode(username:password)>
+                or
+                Authorization   Bearer <your-access-token>
+Request Body    ::
+                  {
+                    "description": "policy description",
+                    "version": "policy version"
+                  }
+
+=============== =================================================
+Response Codes  200 OK
+                401 Unauthorized
+                403 forbidden
+                400 Bad Request
+Response Body   ::
+                  {
+                    "id": "policy id",
+                    "name": "policy name",
+                    "description": "policy description",
+                    "version": "policy version",
+                    "created_at": "team creation date",
+                    "updated_at": "team update date"
+                  }
+
+=============== =================================================
+----
+
+=== Delete policies
+
+[source]
+----
+Delete policy :
+
+=============== =================================================
+Request         DELETE /policies/<policyName>
+Request Header  Authorization   Basic <Base64.encode(username:password)>
+                or
+                Authorization   Bearer <your-access-token>
+
+=============== =================================================
+Response Codes  200 OK
+                401 Unauthorized
+                403 forbidden
+                400 Bad Request
+
+=============== =================================================
+----
+
+=== Configure policies
+
+NOTE: Policies can be configure in many way, for example how they act on Request/Response events. Policies configuration are specified by API
+
+==== List Policies configuration by API
+
+[source]
+----
+List Policies configuration by API :
+
+=============== =================================================
+Request         GET /policies/<policyName>/<apiName>
+Request Header  Authorization   Basic <Base64.encode(username:password)>
+                or
+                Authorization   Bearer <your-access-token>
+
+=============== =================================================
+Response Codes  200 OK
+                401 Unauthorized
+                403 forbidden
+                400 Bad Request
+Response Body   ::
+                  [
+                    {
+                      "policy": "policy name",
+                      "configuration": "policy configuration",
+                      "created_at": "policy configuration creation date",
+                      "updated_at": "policy configuration update date"
+                    },
+                    {
+                      "policy": "policy 2 name",
+                      "configuration": "policy configuration 2",
+                      "created_at": "policy configuration 2 creation date",
+                      "updated_at": "policy configuration 2 update date"
+                    },
+                    ...
+                  ]
+
+=============== =================================================
+----
+
+==== Apply Policies configuration to the API
+
+[source]
+----
+Apply Policies configuration to the API :
+
+=============== =================================================
+Request         POST /policies/<policyName>/<apiName>
+Request Header  Authorization   Basic <Base64.encode(username:password)>
+                or
+                Authorization   Bearer <your-access-token>
+Request Body    ::
+                  {
+                    "configuration": "policy configuration"
+                  }
+=============== =================================================
+Response Codes  200 OK
+                401 Unauthorized
+                403 forbidden
+                400 Bad Request
+Response Body   ::
+                  {
+                    "api": "api name",
+                    "policy": "policy name",
+                    "configuration": "policy configuration",
+                    "created_at": "policy configuration creation date",
+                    "updated_at": "policy configuration update date"
+                  }
+
+=============== =================================================
+----

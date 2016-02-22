@@ -1,30 +1,35 @@
-# Gravitee Management REST API
+= Gravitee Management REST API
 
 Administrative Rest API to manage the Gateway
 
-[![Build Status](http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-management-rest-api)](http://build.gravitee.io/jenkins/view/Tous/job/gravitee-management-rest-api/)
+image:http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-management-rest-api["Build status", link="http://build.gravitee.io/jenkins/job/gravitee-management-rest-api/"]
 
-## Building
+== Building
 
-```
+[source,shell]
+----
 $ git clone https://github.com/gravitee-io/gravitee-management-rest-api.git
 $ cd gravitee-management-rest-api/war
 $ mvn -Djetty.port=8083 jetty:run -Dgravitee.home=/|gravite-home-path|/ -Dgravitee.conf=/|gravite-conf-path|/gravitee.yml
 
 ...
 <app starts and listens on port 8083>
-```
+----
+
 The application can be package and deploy as web application (war file)
-```
+[source,shell]
+----
 $ git clone https://github.com/gravitee-io/gravitee-management-rest-api.git
 $ cd gravitee-management-rest-api/war
 $ mvn package
 ...
 <app war file can be find inside target/ folder>
 <deploy it inside web container to get ready>
-```
+----
 and also as a executable jar (embedded web application)
-```
+
+[source,shell]
+----
 $ git clone https://github.com/gravitee-io/gravitee-management-rest-api.git
 $ cd gravitee-management-rest-api/standalone
 $ mvn package
@@ -34,12 +39,14 @@ $ mvn package
 $ java -jar target/<app_name>-executable.jar -Dgravitee.home=/|gravite-home-path|/ -Dgravitee.conf=/|gravite-conf-path|/gravitee.yml
 ...
 <app starts and listens on port 8083>
-```
-## Application configuration file
+----
+
+== Application configuration file
 
 A minimal configuration file (gravitee.yml) :
 
-```
+[source,yaml]
+----
 node:
   home: ${gravitee.home}
 
@@ -99,9 +106,19 @@ security:
       authentication-provider-3:
         type: gravitee
         password-encoding: true
-```
+----
 Subfolders (plugins, apis, ...) must be created before start the application.
 
 LDAP Embedded Server :
 
 User accounts : see gravitee-io-management-rest-api-ldap-test.ldif file to get your credentials
+
+== User guide
+
+include::./src/doc/management-api-api.adoc[leveloffset=+1]
+
+include::./src/doc/management-api-application.adoc[leveloffset=+1]
+
+include::./src/doc/management-api-policy.adoc[leveloffset=+1]
+
+include::./src/doc/management-api-user.adoc[leveloffset=+1]

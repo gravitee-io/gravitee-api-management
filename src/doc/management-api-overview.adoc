@@ -1,0 +1,30 @@
+= Management API
+ifndef::projectdir[:projectdir: ../..]
+
+ifdef::env-gravitee-doc[]
+:projectdir: https://raw.githubusercontent.com/gravitee-io/gravitee-management-rest-api/master
+endif::[]
+
+Gravitee.io Management API is a Rest API which make it easy to manage, monitor and overview your Apis.
+
+You can use Management API to :
+
+* Manage, Enhance, Document your APIs
+* Create and Manage your users
+
+Let's get starting out with Management API, try one of our guides :
+ifdef::env-gravitee-doc[]
+* <<gravitee-management-api-api,Management API : API Guide>>
+* <<gravitee-management-api-application,Management API : Application Guide>>
+* <<gravitee-management-api-policy,Management API : Policy Guide>>
+* <<gravitee-management-api-user,Management API : User Guide>>
+endif::[]
+
+
+include::{projectdir}/src/doc/management-api-api.adoc[leveloffset=+1]
+
+include::{projectdir}/src/doc/management-api-application.adoc[leveloffset=+1]
+
+include::{projectdir}/src/doc/management-api-policy.adoc[leveloffset=+1]
+
+include::{projectdir}/src/doc/management-api-user.adoc[leveloffset=+1]
