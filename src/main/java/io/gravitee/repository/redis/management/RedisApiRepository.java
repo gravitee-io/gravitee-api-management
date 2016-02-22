@@ -20,8 +20,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.redis.management.internal.ApiRedisRepository;
-import io.gravitee.repository.redis.management.internal.MembershipRedisRepository;
-import io.gravitee.repository.redis.management.internal.UserRedisRepository;
+import io.gravitee.repository.redis.management.internal.MemberRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApi;
 import io.gravitee.repository.redis.management.model.RedisMembership;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,7 @@ public class RedisApiRepository implements ApiRepository {
     private ApiRedisRepository apiRedisRepository;
 
     @Autowired
-    private MembershipRedisRepository membershipRedisRepository;
+    private MemberRedisRepository memberRedisRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -81,7 +80,7 @@ public class RedisApiRepository implements ApiRepository {
     @Override
     public Set<Api> findByMember(String username, MembershipType membershipType, Visibility visibility) throws TechnicalException {
         if (username != null) {
-            Set<RedisMembership> memberships = membershipRedisRepository.getMemberships(username);
+            Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
 
             return memberships.stream()
                     .filter(redisMembership ->
@@ -102,12 +101,10 @@ public class RedisApiRepository implements ApiRepository {
     @Override
     public void saveMember(String apiId, String username, MembershipType membershipType) throws TechnicalException {
         // Add member into the API
-        RedisApi redisApi = apiRedisRepository.find(apiId);
-        redisApi.getMembers().add(username);
-        apiRedisRepository.saveOrUpdate(redisApi);
+        apiRedisRepository.saveMember(apiId, username);
 
         // Save or saveOrUpdate membership entity
-        Set<RedisMembership> memberships = membershipRedisRepository.getMemberships(username);
+        Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
         List<RedisMembership> membershipList = new ArrayList<>(memberships);
 
         RedisMembership membership = new RedisMembership();
@@ -125,17 +122,15 @@ public class RedisApiRepository implements ApiRepository {
             membership.setUpdatedAt(membership.getCreatedAt());
             memberships.add(membership);
         }
-        membershipRedisRepository.save(username, memberships);
+        memberRedisRepository.save(username, memberships);
     }
 
     @Override
     public void deleteMember(String apiId, String username) throws TechnicalException {
         // Remove member from the API
-        RedisApi redisApi = apiRedisRepository.find(apiId);
-        redisApi.getMembers().remove(username);
-        apiRedisRepository.saveOrUpdate(redisApi);
+        apiRedisRepository.deleteMember(apiId, username);
 
-        Set<RedisMembership> memberships = membershipRedisRepository.getMemberships(username);
+        Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
 
         RedisMembership membership = new RedisMembership();
         membership.setOwner(apiId);
@@ -143,17 +138,17 @@ public class RedisApiRepository implements ApiRepository {
 
         if (memberships.contains(membership)) {
             memberships.remove(membership);
-            membershipRedisRepository.save(username, memberships);
+            memberRedisRepository.save(username, memberships);
         }
     }
 
     @Override
     public Collection<Membership> getMembers(String apiId, MembershipType membershipType) throws TechnicalException {
-        RedisApi api = apiRedisRepository.find(apiId);
-        Set<Membership> memberships = new HashSet<>();
+        Set<String> members = apiRedisRepository.getMembers(apiId);
+        Set<Membership> memberships = new HashSet<>(members.size());
 
-        for(String member : api.getMembers()) {
-            Set<RedisMembership> redisMemberships = membershipRedisRepository.getMemberships(member);
+        for(String member : members) {
+            Set<RedisMembership> redisMemberships = memberRedisRepository.getMemberships(member);
 
             redisMemberships.stream()
                     .filter(redisMembership ->
@@ -175,7 +170,7 @@ public class RedisApiRepository implements ApiRepository {
 
     @Override
     public Membership getMember(String apiId, String username) throws TechnicalException {
-        Set<RedisMembership> memberships = membershipRedisRepository.getMemberships(username);
+        Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
 
         for(RedisMembership redisMembership : memberships) {
             if (redisMembership.getMembershipFor() == RedisMembership.MembershipFor.API &&

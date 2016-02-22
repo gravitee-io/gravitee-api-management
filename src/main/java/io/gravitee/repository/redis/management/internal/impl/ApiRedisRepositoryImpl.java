@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -77,5 +78,27 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
     @Override
     public void delete(String api) {
         redisTemplate.opsForHash().delete(REDIS_KEY, api);
+    }
+
+    @Override
+    public void saveMember(String api, String member) {
+        String key = REDIS_KEY + ':' + api + ":members";
+
+        if (! redisTemplate.opsForSet().isMember(key, member)) {
+            redisTemplate.opsForSet().add(key, member);
+        }
+    }
+
+    @Override
+    public void deleteMember(String api, String member) {
+        redisTemplate.opsForSet().remove(REDIS_KEY + ':' + api + ":members", member);
+    }
+
+    @Override
+    public Set<String> getMembers(String api) {
+        return redisTemplate.opsForSet().members(REDIS_KEY + ':' + api + ":members")
+                .stream()
+                .map(obj -> (String) obj)
+                .collect(Collectors.toSet());
     }
 }

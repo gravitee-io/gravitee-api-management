@@ -62,4 +62,26 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
     public void delete(String application) {
         redisTemplate.opsForHash().delete(REDIS_KEY, application);
     }
+
+    @Override
+    public void saveMember(String application, String member) {
+        String key = REDIS_KEY + ':' + application + ":members";
+
+        if (! redisTemplate.opsForSet().isMember(key, member)) {
+            redisTemplate.opsForSet().add(key, member);
+        }
+    }
+
+    @Override
+    public void deleteMember(String application, String member) {
+        redisTemplate.opsForSet().remove(REDIS_KEY + ':' + application + ":members", member);
+    }
+
+    @Override
+    public Set<String> getMembers(String application) {
+        return redisTemplate.opsForSet().members(REDIS_KEY + ':' + application + ":members")
+                .stream()
+                .map(obj -> (String) obj)
+                .collect(Collectors.toSet());
+    }
 }

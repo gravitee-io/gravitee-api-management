@@ -32,4 +32,10 @@ public interface ApplicationRedisRepository {
     RedisApplication saveOrUpdate(RedisApplication application);
 
     void delete(String application);
+
+    void saveMember(String api, String member);
+
+    void deleteMember(String api, String member);
+
+    Set<String> getMembers(String api);
 }

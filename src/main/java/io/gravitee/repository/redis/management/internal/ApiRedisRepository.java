@@ -34,4 +34,10 @@ public interface ApiRedisRepository {
     RedisApi saveOrUpdate(RedisApi api);
 
     void delete(String api);
+
+    void saveMember(String api, String member);
+
+    void deleteMember(String api, String member);
+
+    Set<String> getMembers(String api);
 }

@@ -23,7 +23,7 @@ import java.util.Set;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public interface MembershipRedisRepository {
+public interface MemberRedisRepository {
 
     Set<RedisMembership> getMemberships(String username);
 

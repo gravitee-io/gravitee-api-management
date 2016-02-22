@@ -17,14 +17,13 @@ package io.gravitee.repository.redis.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.MembershipType;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
@@ -37,6 +36,9 @@ public class RedisApiRepositoryTest extends AbstractRedisTest {
 
     @Autowired
     private ApiRepository apiRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     public void shouldCreateApi() throws TechnicalException {
@@ -94,10 +96,103 @@ public class RedisApiRepositoryTest extends AbstractRedisTest {
     public void shouldSaveMember() throws TechnicalException {
         Api apiToCreate = api();
         apiRepository.create(apiToCreate);
-        apiRepository.saveMember(apiToCreate.getId(), "user@gravitee.io", MembershipType.PRIMARY_OWNER);
 
-        Set<Api> apis = apiRepository.findAll();
-        Assert.assertEquals(1, apis.size());
+        User user = new User();
+        user.setUsername("user@gravitee.io");
+        user.setCreatedAt(new Date());
+        user.setUpdatedAt(new Date());
+
+        userRepository.create(user);
+        apiRepository.saveMember(apiToCreate.getId(), user.getUsername(), MembershipType.PRIMARY_OWNER);
+
+        Membership member = apiRepository.getMember(apiToCreate.getId(), user.getUsername());
+        Assert.assertEquals(MembershipType.PRIMARY_OWNER, member.getMembershipType());
+        Assert.assertEquals(user.getUsername(), member.getUser().getUsername());
+
+        Collection<Membership> members = apiRepository.getMembers(apiToCreate.getId(), MembershipType.PRIMARY_OWNER);
+        Assert.assertEquals(1, members.size());
+
+        members = apiRepository.getMembers(apiToCreate.getId(), MembershipType.OWNER);
+        Assert.assertEquals(0, members.size());
+    }
+
+    @Test
+    public void shouldSaveMultipleMembers() throws TechnicalException {
+        Api apiToCreate = api();
+        apiRepository.create(apiToCreate);
+
+        User user = new User();
+        user.setUsername("user@gravitee.io");
+        user.setCreatedAt(new Date());
+        user.setUpdatedAt(new Date());
+
+        User user2 = new User();
+        user2.setUsername("user2@gravitee.io");
+        user2.setCreatedAt(new Date());
+        user2.setUpdatedAt(new Date());
+
+        userRepository.create(user);
+        userRepository.create(user2);
+        apiRepository.saveMember(apiToCreate.getId(), user.getUsername(), MembershipType.PRIMARY_OWNER);
+        apiRepository.saveMember(apiToCreate.getId(), user2.getUsername(), MembershipType.OWNER);
+
+        Membership member = apiRepository.getMember(apiToCreate.getId(), user.getUsername());
+        Assert.assertEquals(MembershipType.PRIMARY_OWNER, member.getMembershipType());
+        Assert.assertEquals(user.getUsername(), member.getUser().getUsername());
+
+        Collection<Membership> members = apiRepository.getMembers(apiToCreate.getId(), MembershipType.PRIMARY_OWNER);
+        Assert.assertEquals(1, members.size());
+
+        members = apiRepository.getMembers(apiToCreate.getId(), MembershipType.OWNER);
+        Assert.assertEquals(1, members.size());
+    }
+
+    @Test
+    public void shouldUpdateMembershipRole() throws TechnicalException {
+        Api apiToCreate = api();
+        apiRepository.create(apiToCreate);
+
+        User user = new User();
+        user.setUsername("user@gravitee.io");
+        user.setCreatedAt(new Date());
+        user.setUpdatedAt(new Date());
+
+        userRepository.create(user);
+        apiRepository.saveMember(apiToCreate.getId(), user.getUsername(), MembershipType.PRIMARY_OWNER);
+
+        apiRepository.saveMember(apiToCreate.getId(), user.getUsername(), MembershipType.USER);
+
+        Membership member = apiRepository.getMember(apiToCreate.getId(), user.getUsername());
+        Assert.assertEquals(MembershipType.USER, member.getMembershipType());
+    }
+
+    @Test
+    public void shouldDeleteMember() throws TechnicalException {
+        Api apiToCreate = api();
+        apiRepository.create(apiToCreate);
+
+        User user = new User();
+        user.setUsername("user@gravitee.io");
+        user.setCreatedAt(new Date());
+        user.setUpdatedAt(new Date());
+
+        User user2 = new User();
+        user2.setUsername("user2@gravitee.io");
+        user2.setCreatedAt(new Date());
+        user2.setUpdatedAt(new Date());
+
+        userRepository.create(user);
+        userRepository.create(user2);
+        apiRepository.saveMember(apiToCreate.getId(), user.getUsername(), MembershipType.PRIMARY_OWNER);
+        apiRepository.saveMember(apiToCreate.getId(), user2.getUsername(), MembershipType.OWNER);
+
+        apiRepository.deleteMember(apiToCreate.getId(), user2.getUsername());
+
+        Collection<Membership> members = apiRepository.getMembers(apiToCreate.getId(), MembershipType.PRIMARY_OWNER);
+        Assert.assertEquals(1, members.size());
+
+        members = apiRepository.getMembers(apiToCreate.getId(), MembershipType.OWNER);
+        Assert.assertTrue(members.isEmpty());
     }
 
     private Api api() {

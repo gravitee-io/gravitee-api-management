@@ -16,7 +16,7 @@
 package io.gravitee.repository.redis.management.internal.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import io.gravitee.repository.redis.management.internal.MembershipRedisRepository;
+import io.gravitee.repository.redis.management.internal.MemberRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisMembership;
 import org.springframework.stereotype.Component;
 
@@ -28,9 +28,9 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @Component
-public class MembershipRedisRepositoryImpl extends AbstractRedisRepository implements MembershipRedisRepository {
+public class MemberRedisRepositoryImpl extends AbstractRedisRepository implements MemberRedisRepository {
 
-    private final static String REDIS_KEY = "membership";
+    private final static String REDIS_KEY = "members";
 
     @Override
     public Set<RedisMembership> getMemberships(String username) {
@@ -47,6 +47,6 @@ public class MembershipRedisRepositoryImpl extends AbstractRedisRepository imple
 
     @Override
     public void save(String username, Set<RedisMembership> memberships) {
-        redisTemplate.opsForHash().put(REDIS_KEY, username, memberships);
+        redisTemplate.opsForSet().add(REDIS_KEY + ":username:" + username, memberships);
     }
 }

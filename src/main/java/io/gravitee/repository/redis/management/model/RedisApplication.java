@@ -15,9 +15,7 @@
  */
 package io.gravitee.repository.redis.management.model;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -31,7 +29,6 @@ public class RedisApplication {
     private String type;
     private long createdAt;
     private long updatedAt;
-    private Set<String> members = new HashSet<>();
 
     public long getCreatedAt() {
         return createdAt;
@@ -55,14 +52,6 @@ public class RedisApplication {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public Set<String> getMembers() {
-        return members;
-    }
-
-    public void setMembers(Set<String> members) {
-        this.members = members;
     }
 
     public String getName() {

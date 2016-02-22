@@ -23,7 +23,7 @@ import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.redis.management.internal.ApplicationRedisRepository;
-import io.gravitee.repository.redis.management.internal.MembershipRedisRepository;
+import io.gravitee.repository.redis.management.internal.MemberRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApplication;
 import io.gravitee.repository.redis.management.model.RedisMembership;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
     private ApplicationRedisRepository applicationRedisRepository;
 
     @Autowired
-    private MembershipRedisRepository membershipRedisRepository;
+    private MemberRedisRepository memberRedisRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -82,7 +82,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
 
     @Override
     public Set<Application> findByUser(String username, MembershipType membershipType) throws TechnicalException {
-        Set<RedisMembership> memberships = membershipRedisRepository.getMemberships(username);
+        Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
 
         return memberships.stream()
                 .filter(redisMembership ->
@@ -98,12 +98,10 @@ public class RedisApplicationRepository implements ApplicationRepository {
     @Override
     public void saveMember(String applicationId, String username, MembershipType membershipType) throws TechnicalException {
         // Add member into the application
-        RedisApplication redisApplication = applicationRedisRepository.find(applicationId);
-        redisApplication.getMembers().add(username);
-        applicationRedisRepository.saveOrUpdate(redisApplication);
+        applicationRedisRepository.saveMember(applicationId, username);
 
         // Save or saveOrUpdate membership entity
-        Set<RedisMembership> memberships = membershipRedisRepository.getMemberships(username);
+        Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
         List<RedisMembership> membershipList = new ArrayList<>(memberships);
 
         RedisMembership membership = new RedisMembership();
@@ -121,17 +119,15 @@ public class RedisApplicationRepository implements ApplicationRepository {
             membership.setUpdatedAt(membership.getCreatedAt());
             memberships.add(membership);
         }
-        membershipRedisRepository.save(username, memberships);
+        memberRedisRepository.save(username, memberships);
     }
 
     @Override
     public void deleteMember(String applicationId, String username) throws TechnicalException {
         // Remove member from the application
-        RedisApplication redisApplication = applicationRedisRepository.find(applicationId);
-        redisApplication.getMembers().remove(username);
-        applicationRedisRepository.saveOrUpdate(redisApplication);
+        applicationRedisRepository.deleteMember(applicationId, username);
 
-        Set<RedisMembership> memberships = membershipRedisRepository.getMemberships(username);
+        Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
 
         RedisMembership membership = new RedisMembership();
         membership.setOwner(applicationId);
@@ -139,17 +135,17 @@ public class RedisApplicationRepository implements ApplicationRepository {
 
         if (memberships.contains(membership)) {
             memberships.remove(membership);
-            membershipRedisRepository.save(username, memberships);
+            memberRedisRepository.save(username, memberships);
         }
     }
 
     @Override
     public Collection<Membership> getMembers(String applicationId, MembershipType membershipType) throws TechnicalException {
-        RedisApplication application = applicationRedisRepository.find(applicationId);
-        Set<Membership> memberships = new HashSet<>();
+        Set<String> members = applicationRedisRepository.getMembers(applicationId);
+        Set<Membership> memberships = new HashSet<>(members.size());
 
-        for(String member : application.getMembers()) {
-            Set<RedisMembership> redisMemberships = membershipRedisRepository.getMemberships(member);
+        for(String member : members) {
+            Set<RedisMembership> redisMemberships = memberRedisRepository.getMemberships(member);
 
             redisMemberships.stream()
                     .filter(redisMembership ->
@@ -171,7 +167,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
 
     @Override
     public Membership getMember(String applicationId, String username) throws TechnicalException {
-        Set<RedisMembership> memberships = membershipRedisRepository.getMemberships(username);
+        Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
 
         for(RedisMembership redisMembership : memberships) {
             if (redisMembership.getMembershipFor() == RedisMembership.MembershipFor.APPLICATION &&
