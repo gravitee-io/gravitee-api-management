@@ -17,10 +17,9 @@ package io.gravitee.gateway.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.common.node.Node;
+import io.gravitee.common.util.Version;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.standalone.util.ListReverser;
-import io.gravitee.gateway.standalone.util.Version;
-import io.gravitee.gateway.standalone.vertx.GraviteeVerticle;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
