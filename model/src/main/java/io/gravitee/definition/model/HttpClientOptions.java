@@ -26,6 +26,7 @@ public class HttpClientOptions {
     public static long DEFAULT_READ_TIMEOUT = 10000;
     public static boolean DEFAULT_KEEP_ALIVE = true;
     public static boolean DEFAULT_DUMP_REQUEST = false;
+    public static boolean DEFAULT_PIPELINING = false;
 
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
@@ -36,6 +37,8 @@ public class HttpClientOptions {
     private boolean dumpRequest = DEFAULT_DUMP_REQUEST;
 
     private long readTimeout = DEFAULT_READ_TIMEOUT;
+
+    private boolean pipelining = DEFAULT_PIPELINING;
 
     public long getConnectTimeout() {
         return connectTimeout;
@@ -75,5 +78,13 @@ public class HttpClientOptions {
 
     public void setReadTimeout(long readTimeout) {
         this.readTimeout = readTimeout;
+    }
+
+    public boolean isPipelining() {
+        return pipelining;
+    }
+
+    public void setPipelining(boolean pipelining) {
+        this.pipelining = pipelining;
     }
 }

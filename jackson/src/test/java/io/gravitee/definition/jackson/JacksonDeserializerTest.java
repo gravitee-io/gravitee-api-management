@@ -277,6 +277,7 @@ public class JacksonDeserializerTest {
         Assert.assertEquals(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT, options.getConnectTimeout());
         Assert.assertEquals(HttpClientOptions.DEFAULT_IDLE_TIMEOUT, options.getIdleTimeout());
         Assert.assertEquals(HttpClientOptions.DEFAULT_KEEP_ALIVE, options.isKeepAlive());
+        Assert.assertEquals(HttpClientOptions.DEFAULT_PIPELINING, options.isPipelining());
     }
 
     @Test

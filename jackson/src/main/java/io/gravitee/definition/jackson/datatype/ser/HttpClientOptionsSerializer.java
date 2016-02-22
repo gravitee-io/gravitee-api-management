@@ -40,6 +40,7 @@ public class HttpClientOptionsSerializer extends StdScalarSerializer<HttpClientO
         jgen.writeBooleanField("keepAlive", httpClientOptions.isKeepAlive());
         jgen.writeBooleanField("dumpRequest", httpClientOptions.isDumpRequest());
         jgen.writeNumberField("readTimeout", httpClientOptions.getReadTimeout());
+        jgen.writeBooleanField("pipelining", httpClientOptions.isPipelining());
         jgen.writeEndObject();
     }
 }
