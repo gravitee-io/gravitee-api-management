@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.ratelimit.model;
 
+import java.util.Objects;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
@@ -59,5 +61,18 @@ public class RateLimit {
 
     public void setResetTime(long resetTime) {
         this.resetTime = resetTime;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RateLimit rateLimit = (RateLimit) o;
+        return Objects.equals(key, rateLimit.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key);
     }
 }
