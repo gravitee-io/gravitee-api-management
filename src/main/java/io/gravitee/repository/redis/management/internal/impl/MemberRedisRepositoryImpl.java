@@ -47,6 +47,6 @@ public class MemberRedisRepositoryImpl extends AbstractRedisRepository implement
 
     @Override
     public void save(String username, Set<RedisMembership> memberships) {
-        redisTemplate.opsForSet().add(REDIS_KEY + ":username:" + username, memberships);
+        redisTemplate.opsForHash().put(REDIS_KEY, username, memberships);
     }
 }
