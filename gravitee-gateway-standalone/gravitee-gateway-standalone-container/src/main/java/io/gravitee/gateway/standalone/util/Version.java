@@ -78,6 +78,6 @@ public final class Version {
     }
 
     public String toString() {
-        return BUILD_VERSION + " revision#" + REVISION;
+        return MAJOR_VERSION + " (build: " + BUILD_ID + ") revision#" + REVISION;
     }
 }
