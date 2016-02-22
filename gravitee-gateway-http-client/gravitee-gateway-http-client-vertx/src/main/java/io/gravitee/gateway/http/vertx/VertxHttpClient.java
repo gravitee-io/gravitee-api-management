@@ -194,6 +194,7 @@ public class VertxHttpClient extends AbstractHttpClient {
 
         HttpClientOptions options = new HttpClientOptions();
 
+        options.setPipelining(proxyDefinition.getHttpClient().getOptions().isPipelining());
         options.setKeepAlive(proxyDefinition.getHttpClient().getOptions().isKeepAlive());
         options.setIdleTimeout((int) (proxyDefinition.getHttpClient().getOptions().getIdleTimeout() / 1000));
         options.setConnectTimeout((int) proxyDefinition.getHttpClient().getOptions().getConnectTimeout());
