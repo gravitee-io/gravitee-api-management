@@ -79,6 +79,14 @@ public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer
             httpClientOptions.setDumpRequest(HttpClientOptions.DEFAULT_DUMP_REQUEST);
         }
 
+        JsonNode pipeliningNode = node.get("pipelining");
+        if (pipeliningNode != null) {
+            boolean pipelining = pipeliningNode.asBoolean(HttpClientOptions.DEFAULT_PIPELINING);
+            httpClientOptions.setPipelining(pipelining);
+        } else {
+            httpClientOptions.setPipelining(HttpClientOptions.DEFAULT_PIPELINING);
+        }
+
         return httpClientOptions;
     }
 }
