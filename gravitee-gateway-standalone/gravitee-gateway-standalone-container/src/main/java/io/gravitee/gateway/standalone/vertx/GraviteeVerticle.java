@@ -17,6 +17,7 @@ package io.gravitee.gateway.standalone.vertx;
 
 import io.gravitee.gateway.core.Reactor;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,15 +43,17 @@ public class GraviteeVerticle extends AbstractVerticle {
     private VertxHttpServerConfiguration httpServerConfiguration;
 
     @Override
-    public void start() throws Exception {
+    public void start(Future<Void> startFuture) throws Exception {
         httpServer.requestHandler(new VertxReactorHandler(reactor));
 
         httpServer.listen(res -> {
             if (res.succeeded()) {
                 logger.info("Vert.x HTTP Server is now listening for requests on port {}",
                         httpServerConfiguration.getPort());
+                startFuture.complete();
             } else {
                 logger.error("Unable to start Vert.x HTTP Server", res.cause());
+                startFuture.fail(res.cause());
             }
         });
     }
