@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.monitoring;
+package io.gravitee.gateway.services.healthcheck;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;

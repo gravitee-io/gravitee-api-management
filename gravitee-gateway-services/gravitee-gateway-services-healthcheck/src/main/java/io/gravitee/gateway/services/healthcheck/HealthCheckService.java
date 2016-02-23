@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.monitoring;
+package io.gravitee.gateway.services.healthcheck;
 
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
@@ -37,9 +37,9 @@ import java.util.concurrent.ScheduledExecutorService;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class MonitoringService extends AbstractService implements EventListener<ApiEvent, Api> {
+public class HealthCheckService extends AbstractService implements EventListener<ApiEvent, Api> {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(MonitoringService.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(HealthCheckService.class);
 
     @Autowired
     private EventManager eventManager;

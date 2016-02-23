@@ -27,8 +27,8 @@
         <version>0.8.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-gateway-services-monitoring</artifactId>
-    <name>Gravitee IO - Gateway - Services - Monitoring</name>
+    <artifactId>gravitee-gateway-services-healthcheck</artifactId>
+    <name>Gravitee IO - Gateway - Services - Health Check</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

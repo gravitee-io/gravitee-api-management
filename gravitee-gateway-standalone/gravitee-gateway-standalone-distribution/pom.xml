@@ -65,7 +65,7 @@
 
         <dependency>
             <groupId>io.gravitee.gateway.services</groupId>
-            <artifactId>gravitee-gateway-services-monitoring</artifactId>
+            <artifactId>gravitee-gateway-services-healthcheck</artifactId>
             <version>${project.version}</version>
             <type>zip</type>
         </dependency>
