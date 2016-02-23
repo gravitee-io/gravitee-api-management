@@ -27,7 +27,9 @@ import io.gravitee.gateway.http.core.logger.LoggableClientRequest;
 import io.gravitee.gateway.http.core.logger.LoggableClientResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -114,19 +116,24 @@ public abstract class AbstractHttpInvoker implements Invoker {
                         .insert(0, endpointUri.toString());
 
         if (request.parameters() != null && ! request.parameters().isEmpty()) {
-            requestURI.append('?');
+            StringBuilder query = new StringBuilder();
+            query.append('?');
 
             for(Map.Entry<String, String> queryParam : request.parameters().entrySet()) {
-                requestURI.append(queryParam.getKey());
+                query.append(queryParam.getKey());
                 if (queryParam.getValue() != null && !queryParam.getValue().isEmpty()) {
-                    requestURI.append('=').append(queryParam.getValue());
+                    query.append('=').append(queryParam.getValue());
                 }
 
-                requestURI.append('&');
+                query.append('&');
             }
 
-            // Removing latest & separator
-            requestURI.deleteCharAt(requestURI.length() - 1);
+            // Removing latest & separator and encode query parameters
+            try {
+                requestURI.append(URLEncoder.encode(query.deleteCharAt(query.length() - 1).toString(), "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
 
         return URI.create(requestURI.toString());
