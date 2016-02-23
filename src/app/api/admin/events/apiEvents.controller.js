@@ -128,11 +128,12 @@ class ApiEventsController {
     var latestEvent = this.events[0];
     if (this.eventsSelected.length > 0) {
       if (this.eventsSelected[0].isCurrentAPI) {
-        this.left = this.eventsSelected[0].event;
+        this.right = this.eventsSelected[0].event;
+        this.left = this.reorganizeEvent(JSON.parse(latestEvent.payload));
       } else {
         this.left = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
+        this.right = this.reorganizeEvent(JSON.parse(latestEvent.payload));
       }
-      this.right = this.reorganizeEvent(JSON.parse(latestEvent.payload));
     }
   }
   
@@ -232,7 +233,6 @@ class ApiEventsController {
       "tags": eventPayloadDefinition.tags,
       "proxy": eventPayloadDefinition.proxy,
       "paths": eventPayloadDefinition.paths,
-      "deployed_at": _event.deployedAt,
       "properties": eventPayloadDefinition.properties
     };
     return reorganizedEvent;
