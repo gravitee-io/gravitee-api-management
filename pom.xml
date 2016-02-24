@@ -29,12 +29,11 @@
 	<groupId>io.gravitee.repository</groupId>
 	<artifactId>gravitee-repository-mongodb</artifactId>
 	<version>0.8.0-SNAPSHOT</version>
-	<name>Gravitee IO - Repository MongoDB</name>
+	<name>Gravitee IO - API Management - Repository MongoDB</name>
 
 	<properties>
 		<gravitee-repository.version>0.7.0</gravitee-repository.version>
-		<embed.mongo.version>1.47.3</embed.mongo.version>
-		<embedmongo-maven-plugin.version>0.1.12</embedmongo-maven-plugin.version>
+		<embed.mongo.version>1.50.2</embed.mongo.version>
 		<mongo.version>3.0.4</mongo.version>
 		<spring.data.mongodb.version>1.7.2.RELEASE</spring.data.mongodb.version>
 		<dozer.version>5.4.0</dozer.version>
@@ -136,29 +135,6 @@
 								<descriptor>src/main/assembly/distribution.xml</descriptor>
 							</descriptors>
 						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>com.github.joelittlejohn.embedmongo</groupId>
-				<artifactId>embedmongo-maven-plugin</artifactId>
-				<version>${embedmongo-maven-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>start</id>
-						<goals>
-							<goal>start</goal>
-						</goals>
-						<configuration>
-							<port>37017</port>
-						</configuration>
-					</execution>
-					<execution>
-						<id>stop</id>
-						<goals>
-							<goal>stop</goal>
-						</goals>
 					</execution>
 				</executions>
 			</plugin>
