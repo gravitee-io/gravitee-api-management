@@ -16,9 +16,9 @@
 package io.gravitee.gateway.services.ratelimit;
 
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.common.util.BlockingArrayQueue;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
-import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

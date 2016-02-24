@@ -142,13 +142,6 @@
             <version>${snakeyaml.version}</version>
         </dependency>
 
-        <!-- Utils dependency -->
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-util</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
