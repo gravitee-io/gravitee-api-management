@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApiEventsController {
-  constructor ($mdDialog, $scope, $window, $rootScope, $state, ApiService, NotificationService, resolvedApi, resolvedEvents) {
+  constructor ($mdDialog, $scope, $window, $rootScope, $state, ApiService, NotificationService, resolvedEvents) {
     'ngInject';
     this.$mdDialog = $mdDialog;
     this.$scope = $scope;
@@ -23,7 +23,7 @@ class ApiEventsController {
     this.$state = $state;
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
-    this.api = _.cloneDeep(resolvedApi.data);
+    this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.events = resolvedEvents.data;
     this.eventsSelected = [];
     this.eventsTimeline = [];
