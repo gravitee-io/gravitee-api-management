@@ -37,6 +37,5 @@
         <module>gravitee-gateway-services-sync</module>
         <module>gravitee-gateway-services-healthcheck</module>
         <module>gravitee-gateway-services-apikeyscache</module>
-        <module>gravitee-gateway-services-ratelimit</module>
     </modules>
 </project>
