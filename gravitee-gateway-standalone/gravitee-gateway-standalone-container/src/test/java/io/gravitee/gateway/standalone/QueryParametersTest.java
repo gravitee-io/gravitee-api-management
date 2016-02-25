@@ -25,6 +25,9 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.junit.Test;
 
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -55,6 +58,21 @@ public class QueryParametersTest extends AbstractGatewayTest {
     public void call_get_query_params_emptyvalue() throws Exception {
         String query = "query";
         Request request = Request.Get("http://localhost:8082/test/my_team?" + query);
+        Response response = request.execute();
+
+        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        assertEquals(query, responseContent);
+    }
+
+    @Test
+    public void call_get_query_params_spaces() throws Exception {
+        String query = "q=myparam:test AND myotherparam:12";
+        String encodedQuery = query; //URLEncoder.encode(query, "UTF-8");
+
+        Request request = Request.Get("http://localhost:8082/test/my_team?" + encodedQuery);
         Response response = request.execute();
 
         HttpResponse returnResponse = response.returnResponse();
