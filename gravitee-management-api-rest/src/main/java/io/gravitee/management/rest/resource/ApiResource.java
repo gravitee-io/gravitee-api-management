@@ -213,8 +213,7 @@ public class ApiResource extends AbstractResource {
     }
     
     private void setSynchronizationState(io.gravitee.management.rest.model.ApiEntity apiEntity) {
-        ApiEntity _apiEntity = apiService.findById(api);
-        if (apiService.isAPISynchronized(_apiEntity)) {
+        if (apiService.isAPISynchronized(api)) {
             apiEntity.setIsSynchronized(true);
         } else {
             apiEntity.setIsSynchronized(false);

@@ -50,7 +50,7 @@ public interface ApiService {
 
     void deleteMember(String apiId, String username);
     
-    boolean isAPISynchronized(ApiEntity api);
+    boolean isAPISynchronized(String apiId);
     
     ApiEntity deploy(String apiId, String username, EventType eventType);
     

@@ -31,6 +31,7 @@ import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ApiRunningStateException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -74,6 +75,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private EmailService emailService;
+    
+    @Autowired
+    private ApiSynchronizationProcessor apiSynchronizationProcessor;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
@@ -358,22 +362,31 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
     
     @Override
-    public boolean isAPISynchronized(ApiEntity api) {
-    	Set<EventEntity> events = eventService.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
-    	List<EventEntity> eventsSorted = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).collect(Collectors.toList());
-    	Collections.reverse(eventsSorted);
-    	try {
-    		for (EventEntity event : eventsSorted) {
-    			JsonNode node = objectMapper.readTree(event.getPayload());
-    			Api payloadEntity = objectMapper.convertValue(node, Api.class);
-    			if (api.getId().equals(payloadEntity.getId())) {
-    				return api.getUpdatedAt().compareTo(payloadEntity.getUpdatedAt()) <= 0;
-    			}
-    		}
-    	} catch (Exception e) {
-    		return false;
-    	}
-    	return false;
+    public boolean isAPISynchronized(String apiId) {
+        try {
+            ApiEntity api = findById(apiId);
+            
+            Set<EventEntity> events = eventService.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
+            List<EventEntity> eventsSorted = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).collect(Collectors.toList());
+            Collections.reverse(eventsSorted);
+            
+            for (EventEntity event : eventsSorted) {
+                JsonNode node = objectMapper.readTree(event.getPayload());
+                Api payloadEntity = objectMapper.convertValue(node, Api.class);
+                if (api.getId().equals(payloadEntity.getId())) {
+                    if(api.getUpdatedAt().compareTo(payloadEntity.getUpdatedAt()) <= 0) {
+                        return true;
+                    } else {
+                        // API is synchronized if API required deployment fields are the same as the event payload
+                        return apiSynchronizationProcessor.processCheckSynchronization(convert(payloadEntity), api);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("An error occurs while trying to check API synchronization state {}", apiId, e);
+            return false;
+        }
+        return false;
     }
     
     @Override
