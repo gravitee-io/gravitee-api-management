@@ -69,8 +69,8 @@ public class QueryParametersTest extends AbstractGatewayTest {
 
     @Test
     public void call_get_query_params_spaces() throws Exception {
-        String query = "q=myparam:test AND myotherparam:12";
-        String encodedQuery = query; //URLEncoder.encode(query, "UTF-8");
+        String query = "q=myparam:test+AND+myotherparam:12";
+        String encodedQuery = URLEncoder.encode(query, "UTF-8");
 
         Request request = Request.Get("http://localhost:8082/test/my_team?" + encodedQuery);
         Response response = request.execute();
