@@ -103,6 +103,12 @@
                 <version>${gravitee-plugin-policy.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>io.gravitee.reporter</groupId>
+                <artifactId>gravitee-reporter-api</artifactId>
+                <version>${gravitee-reporter-api.version}</version>
+            </dependency>
+
             <!-- Logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
