@@ -17,16 +17,21 @@ package io.gravitee.repository.ratelimit.api;
 
 import io.gravitee.repository.ratelimit.model.RateLimit;
 
-import java.util.Iterator;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
-public interface RateLimitRepository {
-    
-    RateLimit get(String rateLimitKey);
+public interface RateLimitService {
 
-    void save(RateLimit rateLimit);
+    RateLimit get(String rateLimitKey, boolean async);
 
-    Iterator<RateLimit> findAsyncAfter(long timestamp);
+    void save(RateLimit rateLimit, boolean async);
+
+    default RateLimit get(String rateLimitKey) {
+        return get(rateLimitKey, false);
+    }
+
+    default void save(RateLimit rateLimit) {
+        save(rateLimit, false);
+    }
 }

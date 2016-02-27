@@ -31,8 +31,27 @@ public class RateLimit {
 
     private long resetTime;
 
+    private long createdAt;
+
+    private long updatedAt;
+
+    private boolean async;
+
     public RateLimit(String key) {
         this.key = key;
+    }
+
+    public RateLimit(final RateLimit rateLimit) {
+        this(rateLimit.getKey(), rateLimit);
+    }
+
+    public RateLimit(String key, final RateLimit rateLimit) {
+        this(key);
+        this.setCounter(rateLimit.getCounter());
+        this.setLastRequest(rateLimit.getLastRequest());
+        this.setResetTime(rateLimit.getResetTime());
+        this.setCreatedAt(rateLimit.getCreatedAt());
+        this.setUpdatedAt(rateLimit.getUpdatedAt());
     }
 
     public long getCounter() {
@@ -63,6 +82,30 @@ public class RateLimit {
         this.resetTime = resetTime;
     }
 
+    public long getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public long getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(long updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isAsync() {
+        return async;
+    }
+
+    public void setAsync(boolean async) {
+        this.async = async;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -74,5 +117,18 @@ public class RateLimit {
     @Override
     public int hashCode() {
         return Objects.hash(key);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("{");
+        sb.append("counter=").append(counter);
+        sb.append(", key='").append(key).append('\'');
+        sb.append(", lastRequest=").append(lastRequest);
+        sb.append(", resetTime=").append(resetTime);
+        sb.append(", createdAt=").append(createdAt);
+        sb.append(", updatedAt=").append(updatedAt);
+        sb.append('}');
+        return sb.toString();
     }
 }
