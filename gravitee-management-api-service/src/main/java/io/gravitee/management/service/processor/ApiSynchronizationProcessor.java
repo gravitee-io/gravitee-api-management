@@ -16,7 +16,6 @@
 package io.gravitee.management.service.processor;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +47,7 @@ public class ApiSynchronizationProcessor {
         List<Object> requiredFieldsApiToDeploy = new ArrayList<Object>();
         for (Field f : cl.getDeclaredFields()) {
             if (f.getAnnotation(DeploymentRequired.class) != null) {
-                boolean previousAccessibleState = Modifier.isPublic(f.getModifiers());
+                boolean previousAccessibleState = f.isAccessible();
                 f.setAccessible(true);
                 try {
                     requiredFieldsDeployedApi.add(f.get(deployedApi));
