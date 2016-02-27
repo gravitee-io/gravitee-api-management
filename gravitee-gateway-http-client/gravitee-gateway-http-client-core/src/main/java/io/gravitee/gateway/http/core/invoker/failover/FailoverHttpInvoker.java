@@ -50,7 +50,7 @@ public class FailoverHttpInvoker extends AbstractHttpInvoker {
 
             LOGGER.debug("Current attempts is {} (max={})", attempts, maxAttempts);
 
-            if (attempts < maxAttempts) {
+            if (maxAttempts == 0 || attempts < maxAttempts) {
                 invoke(executionContext, serverRequest, response);
             } else {
                 LOGGER.warn("Failover reach max attempts limit ({})", maxAttempts);
