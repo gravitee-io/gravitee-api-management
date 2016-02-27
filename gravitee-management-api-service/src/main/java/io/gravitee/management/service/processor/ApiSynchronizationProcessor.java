@@ -16,6 +16,7 @@
 package io.gravitee.management.service.processor;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.RequiredDeployment;
+import io.gravitee.management.model.DeploymentRequired;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
@@ -46,13 +47,16 @@ public class ApiSynchronizationProcessor {
         List<Object> requiredFieldsDeployedApi = new ArrayList<Object>();
         List<Object> requiredFieldsApiToDeploy = new ArrayList<Object>();
         for (Field f : cl.getDeclaredFields()) {
-            if (f.getAnnotation(RequiredDeployment.class) != null) {
+            if (f.getAnnotation(DeploymentRequired.class) != null) {
+                boolean previousAccessibleState = Modifier.isPublic(f.getModifiers());
                 f.setAccessible(true);
                 try {
                     requiredFieldsDeployedApi.add(f.get(deployedApi));
                     requiredFieldsApiToDeploy.add(f.get(apiToDeploy));
                 } catch (Exception e) {
                     LOGGER.error("Error access API required deployment fields", e);
+                } finally {
+                    f.setAccessible(previousAccessibleState);
                 }
             }
         }

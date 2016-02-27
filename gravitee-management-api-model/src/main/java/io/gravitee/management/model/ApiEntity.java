@@ -35,11 +35,11 @@ public class ApiEntity {
     private String description;
 
     @NotNull
-    @RequiredDeployment
+    @DeploymentRequired
     @JsonProperty(value = "proxy", required = true)
     private Proxy proxy;
 
-    @RequiredDeployment
+    @DeploymentRequired
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
     
@@ -52,7 +52,7 @@ public class ApiEntity {
     @JsonProperty("updated_at")
     private Date updatedAt;
 
-    @RequiredDeployment
+    @DeploymentRequired
     private Visibility visibility;
 
     private Lifecycle.State state;
@@ -60,16 +60,16 @@ public class ApiEntity {
     @JsonProperty("owner")
     private PrimaryOwnerEntity primaryOwner;
 
-    @RequiredDeployment
+    @DeploymentRequired
     @JsonProperty(value = "properties")
     private Map<String, Object> properties;
 
     private MembershipType permission;
 
-    @RequiredDeployment
+    @DeploymentRequired
     private Monitoring monitoring;
 
-    @RequiredDeployment
+    @DeploymentRequired
     private Set<String> tags;
 
     public String getId() {

@@ -26,6 +26,6 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RequiredDeployment {
+public @interface DeploymentRequired {
 
 }
