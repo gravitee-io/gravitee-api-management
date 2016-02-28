@@ -24,6 +24,14 @@ class ApisController {
 		this.$rootScope = $rootScope;
 
     this.tableMode = this.$state.current.name.endsWith('table')? true : false;
+    this.init();
+  }
+  
+  init() {
+    var self = this;
+    this.$scope.$on("showApiModal", function() {
+      self.showApiModal();
+    });
   }
 
   list() {
@@ -109,6 +117,7 @@ class ApisController {
 		} else if (this.$state.includes("apis.list")) {
 			this.showApiModal();
 		} else {
+		  this.$scope.$broadcast("showApiModal");
 			this.$state.go('apis.list.thumb');
 		}
 	}
