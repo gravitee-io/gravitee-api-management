@@ -43,7 +43,7 @@ class ApplicationGeneralController {
   delete(application) {
     this.ApplicationService.delete(application).then(() => {
       this.NotificationService.show('Application ' + application.name + ' has been deleted');
-      this.$state.go('applications.thumb');
+      this.$state.go('applications.list.thumb');
     });
   }
 
