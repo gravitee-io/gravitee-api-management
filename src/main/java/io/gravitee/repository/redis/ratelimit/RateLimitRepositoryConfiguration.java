@@ -20,8 +20,15 @@ import io.gravitee.repository.redis.common.AbstractRepositoryConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -32,10 +39,18 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 public class RateLimitRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
     @Bean(name = "rateLimitRedisTemplate")
-    public RedisTemplate redisTemplate(org.springframework.data.redis.connection.RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate redisTemplate = new StringRedisTemplate();
+    public StringRedisTemplate redisTemplate(org.springframework.data.redis.connection.RedisConnectionFactory redisConnectionFactory) {
+        StringRedisTemplate redisTemplate = new StringRedisTemplate();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         return redisTemplate;
+    }
+
+    @Bean(name = "rateLimitAsyncScript")
+    public RedisScript<List> script() {
+        DefaultRedisScript<List> redisScript = new DefaultRedisScript<List>();
+        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("scripts/ratelimit-async.lua")));
+        redisScript.setResultType(List.class);
+        return  redisScript;
     }
 
     @Override

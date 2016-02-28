@@ -21,38 +21,45 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
 @Component
-public class RedisRateLimitRepository implements RateLimitRepository<String> {
+public class RedisRateLimitRepository implements RateLimitRepository {
 
     @Autowired
     @Qualifier("rateLimitRedisTemplate")
-    private RedisTemplate<String, String> redisTemplate;
+    private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    @Qualifier("rateLimitAsyncScript")
+    private RedisScript<List> rateLimitAsyncScript;
 
     private final static String REDIS_KEY_PREFIX = "ratelimit:";
-    private final static String FIELD_LAST_REQUEST = "last_request";
-    private final static String FIELD_COUNTER = "counter";
-    private final static String FIELD_RESET_TIME = "reset_time";
+    private final static String REDIS_ASYNC_SUFFIX = ":async";
 
     @Override
-    public RateLimit get(final RateLimit rateLimit) {
-        List<Object> values = redisTemplate.opsForHash().values(REDIS_KEY_PREFIX + rateLimit.getKey());
-        if(! values.isEmpty()) {
-            Iterator<Object> ite = values.iterator();
-            rateLimit.setLastRequest(Long.parseLong((String) ite.next()));
-            rateLimit.setResetTime(Long.parseLong((String) ite.next()));
-            rateLimit.setCounter(Long.parseLong((String) ite.next()));
+    public RateLimit get(String rateLimitKey) {
+        RateLimit rateLimit = new RateLimit(rateLimitKey);
+
+        List<String> members = redisTemplate.opsForList().range(REDIS_KEY_PREFIX + rateLimit.getKey(), 0, 5);
+
+        if (! members.isEmpty()) {
+            Iterator<String> ite = members.iterator();
+
+            rateLimit.setAsync(Boolean.parseBoolean(ite.next()));
+            rateLimit.setUpdatedAt(Long.parseLong(ite.next()));
+            rateLimit.setCreatedAt(Long.parseLong(ite.next()));
+            rateLimit.setCounter(Long.parseLong(ite.next()));
+            rateLimit.setResetTime(Long.parseLong(ite.next()));
+            rateLimit.setLastRequest(Long.parseLong(ite.next()));
         }
 
         return rateLimit;
@@ -61,14 +68,57 @@ public class RedisRateLimitRepository implements RateLimitRepository<String> {
     @Override
     public void save(RateLimit rateLimit) {
         redisTemplate.executePipelined((RedisConnection redisConnection) -> {
-            Map<String, String> fields = new HashMap<>(3);
-            fields.put(FIELD_LAST_REQUEST, Long.toString(rateLimit.getLastRequest()));
-            fields.put(FIELD_RESET_TIME, Long.toString(rateLimit.getResetTime()));
-            fields.put(FIELD_COUNTER, Long.toString(rateLimit.getCounter()));
-            ((StringRedisConnection) redisConnection).hMSet(REDIS_KEY_PREFIX + rateLimit.getKey(), fields);
-            ((StringRedisConnection) redisConnection).expireAt(REDIS_KEY_PREFIX + rateLimit.getKey(),
-                    rateLimit.getResetTime() / 1000L);
+            ((StringRedisConnection) redisConnection).lTrim(REDIS_KEY_PREFIX + rateLimit.getKey(), 1, 0);
+            ((StringRedisConnection) redisConnection).lPush(REDIS_KEY_PREFIX + rateLimit.getKey(),
+                    Long.toString(rateLimit.getLastRequest()),
+                    Long.toString(rateLimit.getResetTime()),
+                    Long.toString(rateLimit.getCounter()),
+                    Long.toString(rateLimit.getCreatedAt()),
+                    Long.toString(rateLimit.getUpdatedAt()),
+                    Boolean.toString(rateLimit.isAsync()));
+            ((StringRedisConnection) redisConnection).pExpireAt(REDIS_KEY_PREFIX + rateLimit.getKey(),
+                    rateLimit.getResetTime());
+
+            if (rateLimit.isAsync()) {
+                ((StringRedisConnection) redisConnection).lTrim(
+                        REDIS_KEY_PREFIX + rateLimit.getKey() + REDIS_ASYNC_SUFFIX, 1, 0);
+                ((StringRedisConnection) redisConnection).lPush(
+                        REDIS_KEY_PREFIX + rateLimit.getKey() + REDIS_ASYNC_SUFFIX,
+                        REDIS_KEY_PREFIX + rateLimit.getKey(),
+                        Long.toString(rateLimit.getUpdatedAt()));
+                ((StringRedisConnection) redisConnection).pExpireAt(REDIS_KEY_PREFIX + rateLimit.getKey() + REDIS_ASYNC_SUFFIX,
+                        rateLimit.getResetTime());
+            }
             return null;
         });
+    }
+
+    @Override
+    public Iterator<RateLimit> findAsyncAfter(long timestamp) {
+        final List<List<String>> rateLimits = redisTemplate.execute(
+                rateLimitAsyncScript, Collections.singletonList("after"), Long.toString(timestamp));
+        final Iterator<List<String>> iterator = rateLimits.iterator();
+
+        return new Iterator<RateLimit>() {
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public RateLimit next() {
+                List<String> lstRateLimit = iterator.next();
+                Iterator<String> innerIterator = lstRateLimit.iterator();
+                RateLimit rateLimit = new RateLimit(innerIterator.next());
+                rateLimit.setAsync(Boolean.parseBoolean(innerIterator.next()));
+                rateLimit.setUpdatedAt(Long.parseLong(innerIterator.next()));
+                rateLimit.setCreatedAt(Long.parseLong(innerIterator.next()));
+                rateLimit.setCounter(Long.parseLong(innerIterator.next()));
+                rateLimit.setResetTime(Long.parseLong(innerIterator.next()));
+                rateLimit.setLastRequest(Long.parseLong(innerIterator.next()));
+
+                return rateLimit;
+            }
+        };
     }
 }

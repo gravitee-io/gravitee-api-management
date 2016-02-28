@@ -17,10 +17,13 @@ package io.gravitee.repository.redis.ratelimit;
 
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
+import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
+import java.util.Iterator;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -32,13 +35,53 @@ public class RedisRateLimitRepositoryTest extends AbstractRedisTest {
     private RateLimitRepository rateLimitRepository;
     
     @Test
-    public void test() {
-        RateLimit rateLimit = new RateLimit("mykey");
-        rateLimit.setResetTime(new Date().getTime() + 120000);
+    public void saveRateLimit() {
+        RateLimit rateLimit = new RateLimit("api-id:app-id:1234:0");
+        rateLimit.setCreatedAt(System.currentTimeMillis());
+        rateLimit.setUpdatedAt(rateLimit.getCreatedAt());
+        rateLimit.setResetTime(rateLimit.getCreatedAt() + 240000);
 
-        RateLimit rateLimit2 = new RateLimit("otherkey");
-        rateLimit2.setResetTime(new Date().getTime() + 120000);
+        RateLimit rateLimit2 = new RateLimit("api2-id:app-id:1:0");
+        rateLimit2.setCreatedAt(System.currentTimeMillis());
+        rateLimit2.setUpdatedAt(rateLimit.getCreatedAt());
+        rateLimit2.setResetTime(new Date().getTime() + 240000);
 
         rateLimitRepository.save(rateLimit);
+        rateLimitRepository.save(rateLimit2);
+    }
+
+    @Test
+    public void saveRateLimitAsync() {
+        RateLimit rateLimit = new RateLimit("api-id:app-id:1234:0");
+        rateLimit.setCreatedAt(System.currentTimeMillis());
+        rateLimit.setUpdatedAt(rateLimit.getCreatedAt());
+        rateLimit.setResetTime(rateLimit.getCreatedAt() + 240000);
+        rateLimit.setAsync(true);
+
+        rateLimitRepository.save(rateLimit);
+    }
+
+    @Test
+    public void getRateLimit() {
+        RateLimit rateLimit = rateLimitRepository.get("api-id:app-id:1234:0");
+        Assert.assertNotNull(rateLimit);
+    }
+
+    @Test
+    @Ignore
+    public void findUpdatedRateLimit() {
+        RateLimit rateLimit = new RateLimit("api-id:app-id:1234:0");
+        rateLimit.setCreatedAt(System.currentTimeMillis());
+        rateLimit.setUpdatedAt(rateLimit.getCreatedAt());
+        rateLimit.setResetTime(rateLimit.getCreatedAt() + 240000);
+        rateLimit.setAsync(true);
+
+        rateLimitRepository.save(rateLimit);
+
+        Iterator<RateLimit> ite = rateLimitRepository.findAsyncAfter(System.currentTimeMillis() - 120000L);
+        Assert.assertTrue(ite.hasNext());
+
+        RateLimit rl = ite.next();
+        Assert.assertEquals(rateLimit.getKey(), rl.getKey());
     }
 }
