@@ -32,13 +32,13 @@
       </md-input-container>
       
       <div class="md-actions gravitee-api-save-button" layout="row">
-        <md-button type="submit" class="md-raised" ng-disabled="formApplication.$invalid || formApplication.$pristine">
+        <md-button class="md-raised" type="submit" ng-disabled="formApplication.$invalid || formApplication.$pristine">
           Save
         </md-button>
-        <md-button class="md-warn" type="button" ng-click="applicationGeneralCtrl.reset()" ng-disabled="formApplication.$invalid || formApplication.$pristine">
+        <md-button class="md-raised md-primary" type="button" ng-click="applicationGeneralCtrl.reset()" ng-disabled="formApplication.$invalid || formApplication.$pristine">
           Reset
         </md-button>
-        <md-button class="md-warn pull-right" type="button" ng-click="applicationGeneralCtrl.showDeleteApplicationConfirm($event)">
+        <md-button class="md-raised md-warn pull-right" type="button" ng-click="applicationGeneralCtrl.showDeleteApplicationConfirm($event)">
           Delete
         </md-button>
       </div>

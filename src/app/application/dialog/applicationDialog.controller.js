@@ -26,7 +26,7 @@ function DialogApplicationController($scope, $mdDialog, ApplicationService, Noti
       $mdDialog.hide(result);
     }).catch(function (error) {
 			NotificationService.show('Error while creating the application');
-      $scope.error = error;
+      $scope.error = error.data.message;
     });
   };
 }

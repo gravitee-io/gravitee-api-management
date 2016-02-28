@@ -28,18 +28,18 @@
     </md-toolbar>
     <md-dialog-content>
 			<md-content class="md-padding">
-		    <div layout="">
-		      <md-input-container>
+		    <div layout="row">
+		      <md-input-container flex-gt-xs>
 		        <label>Name *</label>
 		        <input ng-model="application.name" required>
 		      </md-input-container>
-					<md-input-container>
+					<md-input-container flex-gt-xs>
 		        <label>Type</label>
 		        <input ng-model="application.type">
 		      </md-input-container>
 		    </div>
-		    <div>
-		      <md-input-container>
+		    <div layout="row">
+		      <md-input-container flex>
 		        <label>Description *</label>
 		        <input ng-model="application.description" required>
 		      </md-input-container>
