@@ -18,7 +18,7 @@ package io.gravitee.reporter.file;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
-import io.gravitee.reporter.api.metrics.Metrics;
+import io.gravitee.reporter.api.http.RequestMetrics;
 import io.gravitee.reporter.file.config.Config;
 import org.eclipse.jetty.util.RolloverFileOutputStream;
 import org.slf4j.Logger;
@@ -81,13 +81,13 @@ public class FileReporter extends AbstractService implements Reporter {
 		}
 	}
 
-	private String format(Metrics metrics) {
+	private String format(RequestMetrics metrics) {
 		StringBuilder buf = buffers.get();
 		buf.setLength(0);
 
 		// Append request timestamp
 		buf.append('[');
-		buf.append(dateFormatter.format(Date.from(metrics.getRequestTimestamp())));
+		buf.append(dateFormatter.format(Date.from(metrics.timestamp())));
 		buf.append("] ");
 
 		// Append local IP
@@ -201,9 +201,9 @@ public class FileReporter extends AbstractService implements Reporter {
 
 	@Override
 	public void report(Reportable reportable) {
-		if (reportable instanceof Metrics) {
+		if (reportable instanceof RequestMetrics) {
 			try {
-				write(format((Metrics) reportable));
+				write(format((RequestMetrics) reportable));
 			} catch (IOException ioe) {
 				LOGGER.error("", ioe);
 			}
