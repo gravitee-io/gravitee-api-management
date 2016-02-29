@@ -201,12 +201,15 @@ public class FileReporter extends AbstractService implements Reporter {
 
 	@Override
 	public void report(Reportable reportable) {
-		if (reportable instanceof RequestMetrics) {
-			try {
-				write(format((RequestMetrics) reportable));
-			} catch (IOException ioe) {
-				LOGGER.error("", ioe);
-			}
+		try {
+			write(format((RequestMetrics) reportable));
+		} catch (IOException ioe) {
+			LOGGER.error("", ioe);
 		}
+	}
+
+	@Override
+	public boolean canHandle(Reportable reportable) {
+		return (reportable instanceof RequestMetrics);
 	}
 }
