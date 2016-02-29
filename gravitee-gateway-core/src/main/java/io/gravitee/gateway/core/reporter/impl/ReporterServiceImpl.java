@@ -36,9 +36,10 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
 
     @Override
     public void report(Reportable reportable) {
-        for(Reporter reporter: reporterManager.getReporters()) {
-            reporter.report(reportable);
-        }
+        reporterManager.getReporters()
+                .stream()
+                .filter(reporter -> reporter.canHandle(reportable))
+                .forEach(reporter -> reporter.report(reportable));
     }
 
     @Override

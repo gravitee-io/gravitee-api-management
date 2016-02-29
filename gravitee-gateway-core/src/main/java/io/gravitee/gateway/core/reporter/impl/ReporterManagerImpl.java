@@ -89,7 +89,7 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
         AsyncReporterWrapper reporter = new AsyncReporterWrapper(applicationContext.getBean(Reporter.class));
         reporter.setReporterName(reporterPlugin.id());
         reporter.setQueueCapacity(environment.getProperty("reporter." + reporterPlugin.id() + ".queue.size", int.class, 10240));
-        reporter.setPollingTimeout(environment.getProperty("reporter." + reporterPlugin.id() + ".queue.pollingTimeout", long.class, 1000l));
+        reporter.setPollingTimeout(environment.getProperty("reporter." + reporterPlugin.id() + ".queue.pollingTimeout", long.class, 1000L));
 
         return reporter;
     }
