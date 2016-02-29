@@ -19,8 +19,9 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.http.BodyPart;
-import io.gravitee.reporter.api.metrics.Metrics;
+import io.gravitee.reporter.api.http.RequestMetrics;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 
 /**
@@ -31,8 +32,6 @@ public class VertxHttpServerResponse implements Response {
     private final HttpServerResponse httpServerResponse;
 
     private final HttpHeaders headers = new HttpHeaders();
-
-    private final Metrics metrics = new Metrics();
 
     private boolean headersWritten = false;
 
@@ -86,11 +85,6 @@ public class VertxHttpServerResponse implements Response {
         }
 
         httpServerResponse.end();
-    }
-
-    @Override
-    public Metrics metrics() {
-        return metrics;
     }
 
     private void writeHeaders() {

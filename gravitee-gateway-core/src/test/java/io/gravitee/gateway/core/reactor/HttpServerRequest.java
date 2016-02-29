@@ -21,6 +21,7 @@ import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.BodyPart;
+import io.gravitee.reporter.api.http.RequestMetrics;
 
 import java.net.URI;
 import java.time.Instant;
@@ -54,9 +55,12 @@ public class HttpServerRequest implements Request {
 
 	private HttpHeaders headers = new HttpHeaders();
 
+	private final RequestMetrics metrics;
+
 	public HttpServerRequest() {
 		this.instant = Instant.now();
 		this.id = UUID.randomUUID().toString();
+		this.metrics = RequestMetrics.on(instant.toEpochMilli()).build();
 	}
 
 	public HttpMethod method() {
@@ -71,14 +75,6 @@ public class HttpServerRequest implements Request {
 	@Override
 	public Instant timestamp() {
 		return Instant.now();
-	}
-
-	public void setLocalAddress(String localAddress) {
-		this.localAddress = localAddress;
-	}
-
-	public void setRemoteAddress(String remoteAddress) {
-		this.remoteAddress = remoteAddress;
 	}
 
 	@Override
@@ -125,14 +121,6 @@ public class HttpServerRequest implements Request {
 		this.requestURI = requestURI;
 	}
 
-	public boolean isSecure() {
-		return secure;
-	}
-
-	public void setSecure(boolean secure) {
-		this.secure = secure;
-	}
-
 	public Map<String, String> parameters() {
 		return queryParameters;
 	}
@@ -146,8 +134,9 @@ public class HttpServerRequest implements Request {
 		return id;
 	}
 
-	public boolean hasContent() {
-		return false;
+	@Override
+	public RequestMetrics metrics() {
+		return metrics;
 	}
 
 	@Override

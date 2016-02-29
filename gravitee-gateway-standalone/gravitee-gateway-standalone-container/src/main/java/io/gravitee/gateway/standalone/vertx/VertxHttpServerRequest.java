@@ -22,6 +22,7 @@ import io.gravitee.common.utils.UUIDGenerator;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.BodyPart;
+import io.gravitee.reporter.api.http.RequestMetrics;
 import io.vertx.core.http.HttpServerRequest;
 
 import java.time.Instant;
@@ -42,10 +43,14 @@ public class VertxHttpServerRequest implements Request {
 
     private HttpHeaders headers = null;
 
+    private final RequestMetrics metrics;
+
     VertxHttpServerRequest(HttpServerRequest httpServerRequest) {
         this.httpServerRequest = httpServerRequest;
         this.instant = Instant.now();
         this.id = UUIDGenerator.generate().toString();
+        this.metrics = RequestMetrics.on(instant.toEpochMilli()).build();
+        this.init();
     }
 
     @Override
@@ -123,5 +128,21 @@ public class VertxHttpServerRequest implements Request {
     public Request endHandler(Handler<Void> endHandler) {
         httpServerRequest.endHandler(endHandler::handle);
         return this;
+    }
+
+    @Override
+    public RequestMetrics metrics() {
+        return metrics;
+    }
+
+    private void init() {
+        this.metrics.setRequestId(id());
+        this.metrics.setRequestHttpMethod(method());
+        this.metrics.setRequestLocalAddress(localAddress());
+        this.metrics.setRequestRemoteAddress(remoteAddress());
+        this.metrics.setRequestPath(path());
+        this.metrics.setRequestUri(uri());
+        this.metrics.setRequestContentType(headers().contentType());
+        this.metrics.setRequestContentLength(headers().contentLength());
     }
 }

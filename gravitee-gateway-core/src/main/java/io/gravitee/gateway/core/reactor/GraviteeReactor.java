@@ -103,21 +103,11 @@ public class GraviteeReactor extends AbstractService implements
         LOGGER.debug("Receiving a request {} for path {}", request.id(), request.path());
 
         try {
-            response.metrics().setRequestId(request.id());
-            response.metrics().setRequestTimestamp(request.timestamp());
-            response.metrics().setRequestHttpMethod(request.method());
-            response.metrics().setRequestLocalAddress(request.localAddress());
-            response.metrics().setRequestRemoteAddress(request.remoteAddress());
-            response.metrics().setRequestPath(request.path());
-            response.metrics().setRequestUri(request.uri());
-            response.metrics().setRequestContentType(request.headers().contentType());
-            response.metrics().setRequestContentLength(request.headers().contentLength());
-
             ReactorHandler reactorHandler = bestHandler(request);
 
             // Prepare the handler chain
-            handler = new ResponseTimeHandler(
-                    new ReporterHandler(reporterService, handler));
+            handler = new ResponseTimeHandler(request,
+                    new ReporterHandler(reporterService, request, handler));
 
             reactorHandler.handle(request, response, handler);
         } catch (Exception ex) {

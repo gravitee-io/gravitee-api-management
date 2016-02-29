@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.reactor.handler;
 
+import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 
@@ -24,11 +25,11 @@ import io.gravitee.gateway.api.handler.Handler;
 public class ResponseTimeHandler implements Handler<Response> {
 
     private final Handler<Response> wrappedHandler;
-    private final long proxyInvocationStart;
+    private final Request request;
 
-    public ResponseTimeHandler(Handler<Response> wrappedHandler) {
+    public ResponseTimeHandler(final Request request, final Handler<Response> wrappedHandler) {
+        this.request = request;
         this.wrappedHandler = wrappedHandler;
-        this.proxyInvocationStart = System.currentTimeMillis();
     }
 
     @Override
@@ -37,11 +38,11 @@ public class ResponseTimeHandler implements Handler<Response> {
         wrappedHandler.handle(response);
 
         // Compute response-time and add it to the metrics
-        long proxyResponseTimeInMs = System.currentTimeMillis() - proxyInvocationStart;
-        response.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
+        long proxyResponseTimeInMs = System.currentTimeMillis() - request.metrics().timestamp().toEpochMilli();
 
-        response.metrics().setResponseContentLength(response.headers().contentLength());
-        response.metrics().setResponseContentType(response.headers().contentType());
-        response.metrics().setResponseHttpStatus(response.status());
+        request.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
+        request.metrics().setResponseContentLength(response.headers().contentLength());
+        request.metrics().setResponseContentType(response.headers().contentType());
+        request.metrics().setResponseHttpStatus(response.status());
     }
 }

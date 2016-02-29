@@ -18,7 +18,6 @@ package io.gravitee.gateway.core.reactor;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.http.BodyPart;
-import io.gravitee.reporter.api.metrics.Metrics;
 
 /**
  *
@@ -29,8 +28,6 @@ public class HttpServerResponse implements Response {
     private int status;
 
     private final HttpHeaders headers = new HttpHeaders();
-
-    private final Metrics metrics = new Metrics();
 
     public int status() {
         return status;
@@ -54,11 +51,6 @@ public class HttpServerResponse implements Response {
     @Override
     public void end() {
         // Do nothing
-    }
-
-    @Override
-    public Metrics metrics() {
-        return metrics;
     }
 
     @Override

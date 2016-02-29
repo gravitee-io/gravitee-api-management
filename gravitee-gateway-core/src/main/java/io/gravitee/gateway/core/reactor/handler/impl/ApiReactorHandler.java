@@ -65,7 +65,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
     @Override
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
         // Set specific metrics for API handler
-        serverResponse.metrics().setApi(api.getId());
+        serverRequest.metrics().setApi(api.getId());
 
         // Resolve the "configured" path according to the inbound request
         Path path = pathResolver.resolve(serverRequest);
@@ -116,8 +116,8 @@ public class ApiReactorHandler extends ContextReactorHandler {
                             responseStream.endHandler(result -> {
                                 serverResponse.end();
 
-                                serverResponse.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
-                                LOGGER.debug("Remote API invocation took {} ms [request={}]", serverResponse.metrics().getApiResponseTimeMs(), serverRequest.id());
+                                serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
+                                LOGGER.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
 
                                 // Transfer proxy response to the initial consumer
                                 handler.handle(serverResponse);
