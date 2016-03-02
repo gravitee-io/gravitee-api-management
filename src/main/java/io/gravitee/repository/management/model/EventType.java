@@ -16,13 +16,16 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author GraviteeSource Team
  */
 public enum EventType {
 
-	PUBLISH_API,
-	PUBLISH_API_RESULT,
-	UNPUBLISH_API,
-	UNPUBLISH_API_RESULT,
-	SYSTEM_MONITOR
+    PUBLISH_API,
+    PUBLISH_API_RESULT,
+    UNPUBLISH_API,
+    UNPUBLISH_API_RESULT,
+    START_API,
+    STOP_API,
+    SYSTEM_MONITOR
 }
