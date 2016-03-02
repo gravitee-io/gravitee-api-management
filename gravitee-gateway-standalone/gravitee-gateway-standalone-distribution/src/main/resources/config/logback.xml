@@ -61,8 +61,9 @@
     </logger>
 
     <logger name="io.gravitee" level="INFO" />
-    <logger name="org.springframework" level="INFO" />
-    <logger name="org.eclipse.jetty" level="INFO" />
+    <logger name="org.reflections" level="WARN" />
+    <logger name="org.springframework" level="WARN" />
+    <logger name="org.eclipse.jetty" level="WARN" />
 
     <!-- Strictly speaking, the level attribute is not necessary since -->
     <!-- the level of the root level is set to DEBUG by default.       -->
