@@ -111,15 +111,9 @@ public class RepositoryManagerImpl implements PluginHandler, InitializingBean {
             Object repositoryClassInstance = repoApplicationContext.getBean(beanName);
             if (beanName.endsWith("Repository") && ! repository.getClass().equals(repositoryClassInstance.getClass())) {
                 Class<?> repositoryClass = repositoryClassInstance.getClass().getInterfaces()[0];
-                LOGGER.info("Register {} [{}] in gateway context", beanName, repositoryClass);
+                LOGGER.debug("Register {} [{}] in gateway context", beanName, repositoryClass);
                 beanFactory.registerSingleton(repositoryClass.getName(),
                         repositoryClassInstance);
-
-                /*
-                beanFactory.registerResolvableDependency(
-                        repositoryClass, repositoryClassInstance);
-                        */
-                //);registerSingleton(beanName, repositoryClassInstance);
             }
         }
     }

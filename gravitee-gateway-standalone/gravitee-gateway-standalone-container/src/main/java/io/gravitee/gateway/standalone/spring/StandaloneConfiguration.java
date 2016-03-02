@@ -34,31 +34,4 @@ public class StandaloneConfiguration {
     public Node node() {
         return new DefaultNode();
     }
-
-    /*
-    @Bean
-    public JettyConfiguration jettyConfiguration() {
-        return new JettyConfiguration();
-    }
-
-    @Bean
-    public JettyServerFactory server() {
-        return new JettyServerFactory();
-    }
-
-    @Bean(name = "jetty")
-    public LifecycleComponent container() {
-        return new JettyEmbeddedContainer();
-    }
-
-    @Bean
-    public ApisHandler apisHandler() {
-        return new ApisHandler();
-    }
-
-    @Bean
-    public NodeHandler nodeHandler() {
-        return new NodeHandler();
-    }
-    */
 }
