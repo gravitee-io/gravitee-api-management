@@ -79,8 +79,6 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             String oldBeanName = beanNames[0];
 
             beanFactory.destroySingleton(oldBeanName);
-            beanFactory.removeBeanDefinition(oldBeanName);
-            LOGGER.debug("API key repository implementation {} has been removed from context", oldBeanName);
 
             LOGGER.debug("Register API key repository implementation {}", CachedApiKeyRepository.class.getName());
             beanFactory.registerSingleton(ApiKeyRepository.class.getName(),

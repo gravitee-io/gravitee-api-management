@@ -53,6 +53,11 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.reporter</groupId>
+            <artifactId>gravitee-reporter-api</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.gateway.http</groupId>
             <artifactId>gravitee-gateway-http-client-core</artifactId>
             <version>${project.version}</version>

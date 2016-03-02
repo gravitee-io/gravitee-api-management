@@ -5,5 +5,8 @@ plugins:
 management:
   type: mock
 
+ratelimit:
+  type: mock
+
 sync:
   cron: '*/5 * * * * *'
