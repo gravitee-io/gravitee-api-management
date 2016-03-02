@@ -26,7 +26,6 @@
         <format>dir</format>
     </formats>
 
-
     <includeBaseDirectory>false</includeBaseDirectory>
 
     <fileSets>
@@ -81,6 +80,7 @@
             <includes>
                 <include>io.gravitee.*:*:zip</include>
             </includes>
+            <scope>runtime</scope>
             <useProjectArtifact>false</useProjectArtifact>
         </dependencySet>
         <dependencySet>
@@ -89,6 +89,7 @@
             <excludes>
                 <exclude>io.gravitee.*:*</exclude>
             </excludes>
+            <scope>compile</scope>
             <useProjectArtifact>false</useProjectArtifact>
         </dependencySet>
     </dependencySets>

@@ -68,6 +68,7 @@
             <artifactId>gravitee-gateway-services-healthcheck</artifactId>
             <version>${project.version}</version>
             <type>zip</type>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -75,6 +76,7 @@
             <artifactId>gravitee-gateway-services-sync</artifactId>
             <version>${project.version}</version>
             <type>zip</type>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -89,6 +91,15 @@
             <artifactId>gravitee-gateway-services-apikeyscache</artifactId>
             <version>${project.version}</version>
             <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.repository</groupId>
+            <artifactId>gravitee-repository-mongodb</artifactId>
+            <version>${gravitee-repository-mongodb.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
     
