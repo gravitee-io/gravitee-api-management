@@ -31,12 +31,8 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -54,6 +50,9 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     @Value("${services.apikeyscache.unit:SECONDS}")
     private TimeUnit unit;
 
+    @Value("${services.apikeyscache.threads:3}")
+    private int threads;
+
     @Autowired
     private EventManager eventManager;
 
@@ -62,7 +61,9 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     private ApiKeyRepository apiKeyRepository;
 
-    private final Map<Api, ExecutorService> refreshers = new HashMap<>();
+    private ExecutorService executorService;
+
+    private final Map<Api, ScheduledFuture> scheduledTasks = new HashMap<>();
 
     @Override
     protected void doStart() throws Exception {
@@ -85,6 +86,15 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                     new CachedApiKeyRepository(cache));
 
             eventManager.subscribeForEvents(this, ApiEvent.class);
+
+            executorService = Executors.newScheduledThreadPool(threads, new ThreadFactory() {
+                        private int counter = 0;
+                        private String prefix = "apikeys-refresher";
+
+                        public Thread newThread(Runnable r) {
+                            return new Thread(r, prefix + '-' + counter++);
+                        }
+                    });
         }
     }
 
@@ -93,12 +103,8 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
         if (enabled) {
             super.doStop();
 
-            Iterator<Map.Entry<Api, ExecutorService>> ite = refreshers.entrySet().iterator();
-            while (ite.hasNext())
-            {
-                Map.Entry<Api, ExecutorService> entry = ite.next();
-                stopRefresher(entry.getKey(), entry.getValue());
-                ite.remove();
+            if (executorService != null) {
+                executorService.shutdown();
             }
 
             LOGGER.info("Clear API keys from in-memory cache before stopping service");
@@ -121,10 +127,10 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                 startRefresher(api);
                 break;
             case UNDEPLOY:
-                stopRefresher(api);
+                stopRefresher(api, scheduledTasks.remove(api));
                 break;
             case UPDATE:
-                stopRefresher(api);
+                stopRefresher(api, scheduledTasks.remove(api));
                 startRefresher(api);
         }
     }
@@ -135,29 +141,22 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             refresher.setCache(cache);
             refresher.setApiKeyRepository(apiKeyRepository);
 
-            ExecutorService executor = Executors.newSingleThreadScheduledExecutor(
-                    r -> new Thread(r, "apikeys-refresher-" + api.getId()));
-
-            refreshers.put(api, executor);
-
-            LOGGER.info("Start api-keys refresher for {} each {} {} ", api, delay, unit.name());
-            ((ScheduledExecutorService) executor).scheduleWithFixedDelay(
+            LOGGER.info("Add a task to refresh keys for {} each {} {} ", api, delay, unit.name());
+            ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
                     refresher, 0, delay, unit);
+
+            scheduledTasks.put(api, scheduledFuture);
         }
     }
 
-    private void stopRefresher(Api api, ExecutorService executor) {
-        if (executor != null) {
-            if (! executor.isShutdown()) {
+    private void stopRefresher(Api api, ScheduledFuture scheduledFuture) {
+        if (scheduledFuture != null) {
+            if (! scheduledFuture.isCancelled()) {
                 LOGGER.info("Stop api-keys refresher for {}", api);
-                executor.shutdownNow();
+                scheduledFuture.cancel(true);
             } else {
                 LOGGER.info("API-key refresher already shutdown for {}", api);
             }
         }
-    }
-
-    private void stopRefresher(Api api) {
-        stopRefresher(api, refreshers.get(api));
     }
 }
