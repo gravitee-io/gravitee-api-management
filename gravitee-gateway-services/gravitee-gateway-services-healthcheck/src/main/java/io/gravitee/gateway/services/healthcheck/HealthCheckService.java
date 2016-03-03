@@ -26,13 +26,11 @@ import io.gravitee.gateway.core.reporter.ReporterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -41,37 +39,47 @@ public class HealthCheckService extends AbstractService implements EventListener
 
     private final static Logger LOGGER = LoggerFactory.getLogger(HealthCheckService.class);
 
+    @Value("${services.healthcheck.threads:3}")
+    private int threads;
+
     @Autowired
     private EventManager eventManager;
 
     @Autowired
     private ReporterService reporterService;
 
-    private final Map<Api, ExecutorService> monitors = new HashMap<>();
+    private ExecutorService executorService;
+
+    private final Map<Api, ScheduledFuture> scheduledTasks = new HashMap<>();
 
     @Override
     protected void doStart() throws Exception {
         super.doStart();
 
         eventManager.subscribeForEvents(this, ApiEvent.class);
+
+        executorService = Executors.newScheduledThreadPool(threads, new ThreadFactory() {
+            private int counter = 0;
+            private String prefix = "healthcheck";
+
+            public Thread newThread(Runnable r) {
+                return new Thread(r, prefix + '-' + counter++);
+            }
+        });
     }
 
     @Override
     protected void doStop() throws Exception {
         super.doStop();
 
-        Iterator<Map.Entry<Api, ExecutorService>> ite = monitors.entrySet().iterator();
-        while (ite.hasNext())
-        {
-            Map.Entry<Api, ExecutorService> entry = ite.next();
-            stopMonitor(entry.getKey(), entry.getValue());
-            ite.remove();
+        if (executorService != null) {
+            executorService.shutdown();
         }
     }
 
     @Override
     protected String name() {
-        return "Endpoint Monitoring Service";
+        return "Endpoint health-check service";
     }
 
     @Override
@@ -80,53 +88,44 @@ public class HealthCheckService extends AbstractService implements EventListener
 
         switch (event.type()) {
             case DEPLOY:
-                startMonitor(api);
+                startHealthCheck(api);
                 break;
             case UNDEPLOY:
-                stopMonitor(api);
+                stopHealthCheck(api, scheduledTasks.remove(api));
                 break;
             case UPDATE:
-                stopMonitor(api);
-                startMonitor(api);
+                stopHealthCheck(api, scheduledTasks.remove(api));
+                startHealthCheck(api);
                 break;
         }
     }
 
-    private void startMonitor(Api api) {
+    private void startHealthCheck(Api api) {
         if (api.isEnabled()) {
             Monitoring monitoring = api.getMonitoring();
             if (monitoring != null && monitoring.isEnabled()) {
-                LOGGER.info("Create an executor to monitor {}", api);
-
                 EndpointMonitor monitor = new EndpointMonitor(api);
                 monitor.setReporterService(reporterService);
 
-                ExecutorService executor = Executors.newSingleThreadScheduledExecutor(
-                        r -> new Thread(r, "monitor-" + api.getName()));
-
-                monitors.put(api, executor);
-
-                LOGGER.info("Start monitor for {}", api);
-                ((ScheduledExecutorService) executor).scheduleWithFixedDelay(
+                LOGGER.info("Add a scheduled task to health-check endpoints for {} each {} {} ", api, monitoring.getInterval(), monitoring.getUnit());
+                ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
                         monitor, 0, monitoring.getInterval(), monitoring.getUnit());
+
+                scheduledTasks.put(api, scheduledFuture);
             } else {
-                LOGGER.info("Monitoring is disabled for {}", api);
+                LOGGER.info("Health-check is disabled for {}", api);
             }
         }
     }
 
-    private void stopMonitor(Api api, ExecutorService executor) {
-        if (executor != null) {
-            if (! executor.isShutdown()) {
-                LOGGER.info("Stop monitor for {}", api);
-                executor.shutdownNow();
+    private void stopHealthCheck(Api api, ScheduledFuture scheduledFuture) {
+        if (scheduledFuture != null) {
+            if (! scheduledFuture.isCancelled()) {
+                LOGGER.info("Stop health-check for {}", api);
+                scheduledFuture.cancel(true);
             } else {
-                LOGGER.info("Monitor already shutdown for {}", api);
+                LOGGER.info("Health-check already shutdown for {}", api);
             }
         }
-    }
-
-    private void stopMonitor(Api api) {
-        stopMonitor(api, monitors.get(api));
     }
 }
