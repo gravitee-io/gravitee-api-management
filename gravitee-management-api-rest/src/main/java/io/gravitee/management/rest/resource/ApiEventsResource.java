@@ -15,20 +15,24 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.EventEntity;
-import io.gravitee.management.service.EventService;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import io.gravitee.management.model.EventEntity;
+import io.gravitee.management.rest.resource.param.EventTypeListParam;
+import io.gravitee.management.service.EventService;
+
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class ApiEventsResource extends AbstractResource {
 
@@ -40,9 +44,10 @@ public class ApiEventsResource extends AbstractResource {
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<EventEntity> events() {
-
+    public List<EventEntity> events(@DefaultValue("all") @QueryParam("type") EventTypeListParam eventTypeListParam) {
+        
         List<EventEntity> events = eventService.findByApi(api).stream()
+                .filter(event -> eventTypeListParam.getEventTypes().contains(event.getType()))
                 .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
                 .collect(Collectors.toList());
 
