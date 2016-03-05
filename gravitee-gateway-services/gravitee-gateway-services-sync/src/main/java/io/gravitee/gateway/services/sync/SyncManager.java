@@ -137,29 +137,29 @@ public class SyncManager {
     }
     
     private Set<Api> getDeployedApis(Set<io.gravitee.repository.management.model.Api> apis) {
-    	Set<Api> deployedApis = new HashSet<Api>();
-    	
-    	List<Event> events = eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API))
-    	                        .stream().sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt())).collect(Collectors.toList());;
-    	try {
-    		for (io.gravitee.repository.management.model.Api api : apis) {
-	    		for (Event _event : events) {
-	    			if (api.getId().equals(_event.getProperties().get(Event.EventProperties.API_ID.getValue()))) {
-	    				// only deploy STARTED API
-	    			    if (EventType.PUBLISH_API.equals(_event.getType())) {
-	    			        JsonNode node = objectMapper.readTree(_event.getPayload());
-	    			        io.gravitee.repository.management.model.Api payloadApi = objectMapper.convertValue(node, io.gravitee.repository.management.model.Api.class);
-	    			        deployedApis.add(convert(payloadApi));
-	    			    }
-	    				break;
-	    			}
-	    		}
-    		}
-    	} catch (Exception e) {
-    		logger.error("Error while determining deployed APIs store into events payload", e);
-    	}
-    	
-    	return deployedApis;
+        Set<Api> deployedApis = new HashSet<Api>();
+
+        List<Event> events = eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))
+                .stream().sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
+                .collect(Collectors.toList());
+        try {
+            for (io.gravitee.repository.management.model.Api api : apis) {
+                for (Event _event : events) {
+                    if (api.getId().equals(_event.getProperties().get(Event.EventProperties.API_ID.getValue()))) {
+                        if (!EventType.UNPUBLISH_API.equals(_event.getType())) {
+                            JsonNode node = objectMapper.readTree(_event.getPayload());
+                            io.gravitee.repository.management.model.Api payloadApi = objectMapper.convertValue(node, io.gravitee.repository.management.model.Api.class);
+                            deployedApis.add(convert(payloadApi));
+                        }
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error while determining deployed APIs store into events payload", e);
+        }
+
+        return deployedApis;
     }
 
     private Api convert(io.gravitee.repository.management.model.Api remoteApi) {
