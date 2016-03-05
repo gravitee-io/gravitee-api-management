@@ -131,8 +131,8 @@ class ApiService {
   /*
    * API events
    */
-  getApiEvents(api) {
-    return this.$http.get(this.apisURL + api + '/events');
+  getApiEvents(api, eventTypes) {
+    return this.$http.get(this.apisURL + api + '/events?type=' + eventTypes);
   }
 }
 

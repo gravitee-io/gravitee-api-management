@@ -183,6 +183,22 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
         icon: 'computer'
       }
     })
+    .state('apis.admin.history', {
+      url: '/history',
+      templateUrl: 'app/api/admin/history/apiHistory.html',
+      controller: 'ApiHistoryController',
+      controllerAs: 'apiHistoryCtrl',
+      resolve: {
+        resolvedEvents:function ($stateParams, ApiService) {
+          var eventTypes = "PUBLISH_API";
+          return ApiService.getApiEvents($stateParams.apiId, eventTypes);
+        }
+      },
+      menu: {
+        label: 'History',
+        icon: 'history'
+      }
+    })
     .state('apis.admin.events', {
       url: '/events',
       templateUrl: 'app/api/admin/events/apiEvents.html',
@@ -190,7 +206,8 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controllerAs: 'apiEventsCtrl',
       resolve: {
         resolvedEvents:function ($stateParams, ApiService) {
-          return ApiService.getApiEvents($stateParams.apiId);
+          var eventTypes = "START_API,STOP_API";
+          return ApiService.getApiEvents($stateParams.apiId, eventTypes);
         }
       },
       menu: {
