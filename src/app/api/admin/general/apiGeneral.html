@@ -46,7 +46,7 @@
               </md-radio-group>
             </md-input-container>
           </div>
-          <md-switch ng-model="apiEnabled"
+          <md-switch ng-model="apiEnabled" ng-disabled="generalCtrl.api.deployed_at == null"
                      ng-change="generalCtrl.changeLifecycle(generalCtrl.api.id)" flex="20" no-dirty-check>
             Started
           </md-switch>

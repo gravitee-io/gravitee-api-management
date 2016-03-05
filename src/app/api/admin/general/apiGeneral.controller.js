@@ -55,13 +55,18 @@ class ApiAdminController {
         cases: ['TIMEOUT']
       }
     }
+    var self = this;
+    this.$scope.$on("apiChangeSucceed", function() {
+      self.initialApi = _.cloneDeep(self.$scope.$parent.apiCtrl.api);
+      self.api = self.$scope.$parent.apiCtrl.api;
+    });
   }
 
   changeLifecycle(id) {
     var started = this.api.state === 'started';
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
-      content: 'Are you sure you want to ' + (started?'un':'') +'publish \'' + this.initialApi.name + '\' API ?',
+      content: 'Are you sure you want to ' + (started?'stop':'start') +' the API ?',
       ok: 'OK',
       cancel: 'Cancel'
     });
