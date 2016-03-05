@@ -262,24 +262,24 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public void start(String apiName) {
+    public void start(String apiId, String username) {
         try {
-            LOGGER.debug("Start API {}", apiName);
-            updateLifecycle(apiName, LifecycleState.STARTED);
+            LOGGER.debug("Start API {}", apiId);
+            updateLifecycle(apiId, LifecycleState.STARTED, username);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to start API {}", apiName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to start API " + apiName, ex);
+            LOGGER.error("An error occurs while trying to start API {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to start API " + apiId, ex);
         }
     }
 
     @Override
-    public void stop(String apiName) {
+    public void stop(String apiId, String username) {
         try {
-            LOGGER.debug("Stop API {}", apiName);
-            updateLifecycle(apiName, LifecycleState.STOPPED);
+            LOGGER.debug("Stop API {}", apiId);
+            updateLifecycle(apiId, LifecycleState.STOPPED, username);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to stop API {}", apiName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to stop API " + apiName, ex);
+            LOGGER.error("An error occurs while trying to stop API {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);
         }
     }
 
@@ -391,30 +391,14 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     
     @Override
     public ApiEntity deploy(String apiId, String username, EventType eventType) {
-    	 try {
-             LOGGER.debug("Deploy API : {}", apiId);
+        try {
+            LOGGER.debug("Deploy API : {}", apiId);
 
-             Optional<Api> api = apiRepository.findById(apiId);
-
-             if (api.isPresent()) {
-                 Map<String, String> properties = new HashMap<String, String>();
-                 properties.put(Event.EventProperties.API_ID.getValue(), api.get().getId());
-                 properties.put(Event.EventProperties.USERNAME.getValue(), username);
-            	 EventEntity event = eventService.create(eventType, objectMapper.writeValueAsString(api.get()), properties);
-            	 // add deployment date
-            	 if (event != null) {
-            	     Api apiValue = api.get();
-            	     apiValue.setDeployedAt(event.getCreatedAt());
-            	     apiRepository.update(apiValue);
-            	 }
-            	 return convert(api.get());
-             } else {
-            	 throw new ApiNotFoundException(apiId);
-             }
-         } catch (TechnicalException | JsonProcessingException ex) {
-             LOGGER.error("An error occurs while trying to deploy API: {}", apiId, ex);
-             throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
-         } 
+            return deployCurrentAPI(apiId, username, eventType);
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while trying to deploy API: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
+        }
     }
     
     @Override
@@ -428,21 +412,74 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
         return null;
     }
+    
+    private ApiEntity deployCurrentAPI(String apiId, String username, EventType eventType) throws Exception {
+        Optional<Api> api = apiRepository.findById(apiId);
 
-    private void updateLifecycle(String apiName, LifecycleState lifecycleState) throws TechnicalException {
-        Optional<Api> optApi = apiRepository.findById(apiName);
+        if (api.isPresent()) {
+            Map<String, String> properties = new HashMap<String, String>();
+            properties.put(Event.EventProperties.API_ID.getValue(), api.get().getId());
+            properties.put(Event.EventProperties.USERNAME.getValue(), username);
+            EventEntity event = eventService.create(eventType, objectMapper.writeValueAsString(api.get()), properties);
+            // add deployment date
+            if (event != null) {
+                Api apiValue = api.get();
+                apiValue.setDeployedAt(event.getCreatedAt());
+                apiValue.setUpdatedAt(event.getCreatedAt());
+                apiRepository.update(apiValue);
+            }
+            return convert(api.get());
+        } else {
+            throw new ApiNotFoundException(apiId);
+        }
+    }
+
+    private ApiEntity deployLastPublishedAPI(String apiId, String username, EventType eventType) throws TechnicalException {
+        Optional<EventEntity> optEvent = eventService.findByApi(apiId).stream()
+                .filter(event -> EventType.PUBLISH_API.equals(event.getType()))
+                .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt())).findFirst();
+        try {
+            if (optEvent.isPresent()) {
+                EventEntity event = optEvent.get();
+                JsonNode node = objectMapper.readTree(event.getPayload());
+                Api lastPublishedAPI = objectMapper.convertValue(node, Api.class);
+                lastPublishedAPI.setLifecycleState(convert(eventType));
+                lastPublishedAPI.setUpdatedAt(new Date());
+                lastPublishedAPI.setDeployedAt(lastPublishedAPI.getUpdatedAt());
+                Map<String, String> properties = new HashMap<String, String>();
+                properties.put(Event.EventProperties.API_ID.getValue(), lastPublishedAPI.getId());
+                properties.put(Event.EventProperties.USERNAME.getValue(), username);
+                eventService.create(eventType, objectMapper.writeValueAsString(lastPublishedAPI), properties);
+                return convert(lastPublishedAPI);
+            } else {
+                throw new TechnicalException("No event found for API " + apiId);
+            }
+        } catch (Exception e) {
+            LOGGER.error("An error occurs while trying to deploy last published API {}", apiId, e);
+            throw new TechnicalException("An error occurs while trying to deploy last published API " + apiId, e);
+        }
+    }
+
+    private void updateLifecycle(String apiId, LifecycleState lifecycleState, String username) throws TechnicalException {
+        Optional<Api> optApi = apiRepository.findById(apiId);
         if (optApi.isPresent()) {
             Api api = optApi.get();
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
             apiRepository.update(api);
-        }
-
-        //TODO: username must be changed
-        if (LifecycleState.STARTED.equals(lifecycleState)) {
-            deploy(apiName, "admin", EventType.PUBLISH_API);
+            
+            switch (lifecycleState) {
+                case STARTED:
+                    deployLastPublishedAPI(apiId, username, EventType.START_API);
+                    break;
+                case STOPPED:
+                    deployLastPublishedAPI(apiId, username, EventType.STOP_API);
+                    break;
+                default:
+                    break;
+            }
         } else {
-            deploy(apiName, "admin", EventType.UNPUBLISH_API);
+            throw new ApiNotFoundException(apiId);
         }
     }
 
@@ -575,5 +612,20 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));
 
         return member;
+    }
+    
+    private LifecycleState convert(EventType eventType) {
+        LifecycleState lifecycleState = null;
+        switch(eventType) {
+            case START_API:
+                lifecycleState = LifecycleState.STARTED;
+                break;
+            case STOP_API:
+                lifecycleState = LifecycleState.STOPPED;
+                break;
+            default: 
+                throw new IllegalArgumentException("Unknown EventType " + eventType.toString() + " to convert EventType into Lifecycle");
+        }
+        return lifecycleState;
     }
 }

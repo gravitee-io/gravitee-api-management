@@ -101,7 +101,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(NO_CONTENT_204, response.getStatus());
 
-        verify(apiService).start(API_NAME);
+        verify(apiService).start(API_NAME, "admin");
     }
 
     @Test

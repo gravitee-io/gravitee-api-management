@@ -38,9 +38,9 @@ public interface ApiService {
 
     void delete(String apiId);
 
-    void start(String apiId);
+    void start(String apiId, String username);
 
-    void stop(String apiId);
+    void stop(String apiId, String username);
 
     Set<MemberEntity> getMembers(String apiId, MembershipType membershipType);
 
