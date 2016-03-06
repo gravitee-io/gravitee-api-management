@@ -253,7 +253,7 @@ public class ApiServiceTest {
         objectMapper.addMixIn(Api.class, ApiMixin.class);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         
-        final EventEntity event = mockEvent(EventType.START_API);
+        final EventEntity event = mockEvent(EventType.PUBLISH_API);
         when(eventService.findByApi(API_ID)).thenReturn(Collections.singleton(event));
         apiService.start(API_ID, USER_NAME);
 
@@ -284,7 +284,7 @@ public class ApiServiceTest {
         objectMapper.addMixIn(Api.class, ApiMixin.class);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        final EventEntity event = mockEvent(EventType.STOP_API);
+        final EventEntity event = mockEvent(EventType.PUBLISH_API);
         when(eventService.findByApi(API_ID)).thenReturn(Collections.singleton(event));
         apiService.stop(API_ID, USER_NAME);
 
