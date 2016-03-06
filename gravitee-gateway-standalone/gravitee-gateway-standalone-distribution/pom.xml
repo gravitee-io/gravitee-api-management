@@ -106,6 +106,7 @@
             <groupId>io.gravitee.gateway.services</groupId>
             <artifactId>gravitee-gateway-services-monitoring</artifactId>
             <version>${project.version}</version>
+            <scope>runtime</scope>
             <type>zip</type>
         </dependency>
     </dependencies>
