@@ -35,7 +35,7 @@
                   <small class="text-muted ng-binding"><i class="glyphicon glyphicon-time"></i>{{eventTimeline.when | date : 'medium'}} by {{eventTimeline.username}}</small>
                 </p>
                 <p ng-if="eventTimeline.isCurrentAPI">
-                  <small class="text-muted ng-binding"><i class="glyphicon glyphicon-info-sign"></i>The current undeployed API</small>
+                  <small class="text-muted ng-binding"><i class="glyphicon glyphicon-info-sign"></i>In progress API definition</small>
                 </p>
               </timeline-heading>
             </timeline-panel>
@@ -44,7 +44,7 @@
       </div>
     </timeline>
   </div>
-  
+
   <div class="api-events-content" flex="80">
     <div ng-show="apiHistoryCtrl.eventsSelected.length == 1" class="api-events-content-descriptor">
       <md-card style="box-shadow:none;">
@@ -58,8 +58,8 @@
           <pre ng-show="!apiHistoryCtrl.diffMode" class="api-history-definition">{{apiHistoryCtrl.eventSelectedPayloadDefinition | json }}</pre>
           <pre ng-show="apiHistoryCtrl.diffMode" class="api-history-definition" gravitee-diff old-value="apiHistoryCtrl.left" new-value="apiHistoryCtrl.right"></pre>
         </md-card-content>
-      </md-card>    
+      </md-card>
     </div>
   </div>
-  
+
 </div>
