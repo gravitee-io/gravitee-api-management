@@ -101,6 +101,14 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway.services</groupId>
+            <artifactId>gravitee-gateway-services-monitoring</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
     </dependencies>
     
 	<build>
