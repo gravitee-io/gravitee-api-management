@@ -37,6 +37,7 @@ public class EndpointSerializer extends StdScalarSerializer<Endpoint> {
         jgen.writeStartObject();
         jgen.writeStringField("target", endpoint.getTarget());
         jgen.writeNumberField("weight", endpoint.getWeight());
+        jgen.writeBooleanField("backup", endpoint.isBackup());
         jgen.writeEndObject();
     }
 }

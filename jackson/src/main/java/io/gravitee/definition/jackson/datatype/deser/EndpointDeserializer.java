@@ -49,6 +49,14 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
             endpoint.setWeight(Endpoint.DEFAULT_WEIGHT);
         }
 
+        JsonNode backupNode = node.get("backup");
+        if (backupNode != null) {
+            boolean backup = backupNode.asBoolean(false);
+            endpoint.setBackup(backup);
+        } else {
+            endpoint.setBackup(false);
+        }
+
         return endpoint;
     }
 }

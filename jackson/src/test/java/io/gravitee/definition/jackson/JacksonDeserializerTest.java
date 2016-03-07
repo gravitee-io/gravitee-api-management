@@ -226,6 +226,13 @@ public class JacksonDeserializerTest {
     }
 
     @Test
+    public void definition_singleEndpoint_backup() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-singleendpoint.json");
+        Assert.assertEquals(1, api.getProxy().getEndpoints().size());
+        Assert.assertFalse(api.getProxy().getEndpoints().get(0).isBackup());
+    }
+
+    @Test
     public void definition_singleEndpoint_inArray() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-singleendpoint-inarray.json");
         Assert.assertEquals(1, api.getProxy().getEndpoints().size());
@@ -235,6 +242,13 @@ public class JacksonDeserializerTest {
     public void definition_multipleEndpoints() throws Exception {
         Api api = getDefinition("/io/gravitee/definition/jackson/api-multipleendpoints.json");
         Assert.assertEquals(2, api.getProxy().getEndpoints().size());
+    }
+
+    @Test
+    public void definition_singleEndpoint_inArray_backup() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-singleendpoint-inarray.json");
+        Assert.assertEquals(1, api.getProxy().getEndpoints().size());
+        Assert.assertFalse(api.getProxy().getEndpoints().get(0).isBackup());
     }
 
     @Test
@@ -329,6 +343,14 @@ public class JacksonDeserializerTest {
 
         Assert.assertEquals(3, api.getProxy().getFailover().getMaxAttempts());
         Assert.assertEquals(Failover.DEFAULT_FAILOVER_CASES, api.getProxy().getFailover().getCases());
+    }
+
+    @Test
+    public void definition_failover_singlecase_backup() throws Exception {
+        Api api = getDefinition("/io/gravitee/definition/jackson/api-failover-singlecase.json");
+
+        Assert.assertFalse(api.getProxy().getEndpoints().get(0).isBackup());
+        Assert.assertTrue(api.getProxy().getEndpoints().get(1).isBackup());
     }
 
     private Api getDefinition(String resource) throws Exception {

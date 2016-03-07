@@ -8,7 +8,8 @@
       {
         "target": "http://host1:8083/myapi"
       }, {
-        "target": "http://host2:8083/myapi"
+        "target": "http://host2:8083/myapi",
+        "backup": true
       }
     ],
     "failover": {
