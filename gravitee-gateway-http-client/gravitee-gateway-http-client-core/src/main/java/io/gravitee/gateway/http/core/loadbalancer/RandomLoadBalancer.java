@@ -35,16 +35,16 @@ public class RandomLoadBalancer extends LoadBalancerSupport {
 
     @Override
     public synchronized String chooseEndpoint(Request request) {
-        int size = endpoints().size();
+        int size = availableEndpoints().size();
         if (size == 0) {
             return null;
         } else if (size == 1) {
             // There is only 1
-            return endpoints().get(0).getTarget();
+            return availableEndpoints().get(0).getTarget();
         }
 
         index = RANDOM.nextInt(size);
-        return endpoints().get(index).getTarget();
+        return availableEndpoints().get(index).getTarget();
     }
 
     @Override

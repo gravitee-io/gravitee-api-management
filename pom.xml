@@ -139,7 +139,7 @@
     </dependencies>
 
     <properties>
-        <gravitee-definition.version>0.7.0</gravitee-definition.version>
+        <gravitee-definition.version>0.8.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>0.5.0-SNAPSHOT</gravitee-common.version>
         <gravitee-repository.version>0.8.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-plugin-core.version>0.6.0-SNAPSHOT</gravitee-plugin-core.version>

@@ -39,7 +39,7 @@ public abstract class WeightedLoadBalancer extends LoadBalancerSupport {
     protected void loadRuntimeRatios() {
         int position = 0;
 
-        for(Endpoint endpoint : api.getProxy().getEndpoints()) {
+        for(Endpoint endpoint : availableEndpoints()) {
             runtimeRatios.add(new WeightRatio(position++, endpoint.getWeight()));
         }
     }

@@ -20,6 +20,7 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -28,12 +29,25 @@ import java.util.List;
 public abstract class LoadBalancerSupport implements LoadBalancer {
 
     protected final Api api;
+    private List<Endpoint> endpoints;
 
     protected LoadBalancerSupport(final Api api) {
         this.api = api;
     }
 
-    protected List<Endpoint> endpoints() {
-        return api.getProxy().getEndpoints();
+    /**
+     * Returns a list of non-backup endpoints
+     *
+     * @return List of non-backup endpoints.
+     */
+    protected List<Endpoint> availableEndpoints() {
+        if (endpoints == null) {
+            endpoints = api.getProxy().getEndpoints()
+                    .stream()
+                    .filter(endpoint -> !endpoint.isBackup())
+                    .collect(Collectors.toList());
+        }
+
+        return endpoints;
     }
 }
