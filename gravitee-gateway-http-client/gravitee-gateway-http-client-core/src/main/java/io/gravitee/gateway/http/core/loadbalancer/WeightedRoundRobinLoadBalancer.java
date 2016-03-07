@@ -53,7 +53,7 @@ public class WeightedRoundRobinLoadBalancer extends WeightedLoadBalancer {
 
         lastIndex = counter;
 
-        return endpoints().get(counter++).getTarget();
+        return availableEndpoints().get(counter++).getTarget();
     }
 
     @Override

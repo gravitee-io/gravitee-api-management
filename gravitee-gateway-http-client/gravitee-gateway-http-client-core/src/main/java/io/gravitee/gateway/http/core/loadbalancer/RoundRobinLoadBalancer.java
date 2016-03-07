@@ -32,11 +32,11 @@ public class RoundRobinLoadBalancer extends LoadBalancerSupport {
 
     @Override
     public synchronized String chooseEndpoint(Request request) {
-        int size = endpoints().size();
+        int size = availableEndpoints().size();
         if (++counter >= size) {
             counter = 0;
         }
-        return endpoints().get(counter).getTarget();
+        return availableEndpoints().get(counter).getTarget();
     }
 
     @Override

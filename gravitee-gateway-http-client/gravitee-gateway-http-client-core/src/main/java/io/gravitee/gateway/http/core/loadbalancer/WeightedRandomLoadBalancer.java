@@ -34,7 +34,7 @@ public class WeightedRandomLoadBalancer extends WeightedLoadBalancer {
     public WeightedRandomLoadBalancer(Api api) {
         super(api);
         int sum = 0;
-        for (Endpoint endpoint : api.getProxy().getEndpoints()) {
+        for (Endpoint endpoint : availableEndpoints()) {
             sum += endpoint.getWeight();
         }
         distributionRatioSum = sum;
@@ -45,7 +45,7 @@ public class WeightedRandomLoadBalancer extends WeightedLoadBalancer {
     public synchronized String chooseEndpoint(Request request) {
         int index = selectProcessIndex();
         lastIndex = index;
-        return endpoints().get(index).getTarget();
+        return availableEndpoints().get(index).getTarget();
     }
 
     public int selectProcessIndex() {
