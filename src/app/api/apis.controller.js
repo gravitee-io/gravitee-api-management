@@ -26,7 +26,7 @@ class ApisController {
     this.tableMode = this.$state.current.name.endsWith('table')? true : false;
     this.init();
   }
-  
+
   init() {
     var self = this;
     this.$scope.$on("showApiModal", function() {
@@ -121,6 +121,20 @@ class ApisController {
 			this.$state.go('apis.list.thumb');
 		}
 	}
+
+  showImportDialog() {
+    var that = this;
+    this.$mdDialog.show({
+      controller: 'DialogApiDefinitionController',
+      controllerAs: 'dialogApiDefinitionCtrl',
+      templateUrl: 'app/api/admin/general/dialog/apiDefinition.dialog.html',
+      apiId: ''
+    }).then(function (response) {
+      if (response) {
+        that.list();
+      }
+    });
+  }
 }
 
 export default ApisController;

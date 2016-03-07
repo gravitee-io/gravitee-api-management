@@ -66,6 +66,7 @@ import PageDirective from './components/documentation/page.directive';
 import DialogLoginController from './login/dialog/loginDialog.controller';
 import RoleDirective from './components/role/role.directive';
 import DiffDirective from './components/diff/diff.directive';
+import DialogApiDefinitionController from './api/admin/general/dialog/apiDefinitionDialog.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
@@ -121,6 +122,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('DialogApplicationController', DialogApplicationController)
   .controller('DialogSubscribeApiController', DialogSubscribeApiController)
   .controller('DialogAddMemberController', DialogAddMemberController)
+  .controller('DialogApiDefinitionController', DialogApiDefinitionController)
   .controller('PageController', PageController)
   .service('ApplicationService', ApplicationService)
   .controller('DialogLoginController', DialogLoginController)
