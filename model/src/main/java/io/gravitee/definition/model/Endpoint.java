@@ -27,6 +27,8 @@ public class Endpoint {
 
     private int weight = DEFAULT_WEIGHT;
 
+    private boolean backup;
+
     public Endpoint(String target) {
         this();
         this.target = target;
@@ -50,5 +52,13 @@ public class Endpoint {
 
     public void setWeight(int weight) {
         this.weight = weight;
+    }
+
+    public boolean isBackup() {
+        return backup;
+    }
+
+    public void setBackup(boolean backup) {
+        this.backup = backup;
     }
 }
