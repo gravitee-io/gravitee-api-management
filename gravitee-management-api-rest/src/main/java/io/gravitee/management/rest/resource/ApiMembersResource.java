@@ -25,7 +25,7 @@ import io.gravitee.management.service.exceptions.UserNotFoundException;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import io.gravitee.common.http.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang.StringUtils;

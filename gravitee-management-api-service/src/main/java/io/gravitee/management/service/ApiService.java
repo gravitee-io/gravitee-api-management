@@ -55,4 +55,10 @@ public interface ApiService {
     ApiEntity deploy(String apiId, String username, EventType eventType);
     
     ApiEntity rollback(String apiId, UpdateApiEntity api);
+
+    String convertAsJsonForExport(String apiId);
+
+    ApiEntity updateWithDefinition(ApiEntity apiEntity, String apiDefinition);
+
+    ApiEntity createWithDefinition(String apiDefinition, String username);
 }

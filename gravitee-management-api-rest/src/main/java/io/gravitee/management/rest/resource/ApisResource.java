@@ -15,39 +15,28 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.*;
+import io.gravitee.management.rest.annotation.Role;
+import io.gravitee.management.rest.annotation.RoleType;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
+
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import io.gravitee.common.component.Lifecycle;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.ApiListItem;
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.MembershipType;
-import io.gravitee.management.model.NewApiEntity;
-import io.gravitee.management.model.PrimaryOwnerEntity;
-import io.gravitee.management.model.UserEntity;
-import io.gravitee.management.model.Visibility;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.UserService;
-import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -101,6 +90,14 @@ public class ApisResource extends AbstractResource {
         }
 
         return Response.serverError().build();
+    }
+
+    @POST
+    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("import")
+    public Response importDefinition(String apiDefinition) {
+        return Response.ok(apiService.createWithDefinition(apiDefinition, getAuthenticatedUsername())).build();
     }
 
     @Path("{api}")

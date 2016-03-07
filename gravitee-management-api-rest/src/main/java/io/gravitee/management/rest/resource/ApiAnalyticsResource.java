@@ -15,10 +15,10 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.analytics.HistogramAnalytics;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
-import io.gravitee.management.rest.resource.param.HealthParam;
 import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PermissionService;
@@ -29,7 +29,6 @@ import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**

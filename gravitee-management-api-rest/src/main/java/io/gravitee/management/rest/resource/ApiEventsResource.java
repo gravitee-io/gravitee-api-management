@@ -19,12 +19,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.*;
+
+import io.gravitee.common.http.MediaType;
 
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.rest.resource.param.EventTypeListParam;

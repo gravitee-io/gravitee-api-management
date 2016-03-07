@@ -60,13 +60,13 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private ApiKeyRepository apiKeyRepository;
-    
+
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private IdGenerator idGenerator;
-    
+
     @Autowired
     private EventService eventService;
 
@@ -75,7 +75,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private EmailService emailService;
-    
+
     @Autowired
     private ApiSynchronizationProcessor apiSynchronizationProcessor;
 
@@ -247,12 +247,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                         LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), e);
                     }
                 });
-                
+
                 Set<EventEntity> events = eventService.findByApi(apiName);
                 events.forEach(event -> {
                     eventService.delete(event.getId());
                 });
-                
+
                 apiRepository.delete(apiName);
             }
         } catch (TechnicalException ex) {
@@ -360,21 +360,21 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for API " + api, ex);
         }
     }
-    
+
     @Override
     public boolean isAPISynchronized(String apiId) {
         try {
             ApiEntity api = findById(apiId);
-            
+
             Set<EventEntity> events = eventService.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
             List<EventEntity> eventsSorted = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).collect(Collectors.toList());
             Collections.reverse(eventsSorted);
-            
+
             for (EventEntity event : eventsSorted) {
                 JsonNode node = objectMapper.readTree(event.getPayload());
                 Api payloadEntity = objectMapper.convertValue(node, Api.class);
                 if (api.getId().equals(payloadEntity.getId())) {
-                    if(api.getUpdatedAt().compareTo(payloadEntity.getUpdatedAt()) <= 0) {
+                    if (api.getUpdatedAt().compareTo(payloadEntity.getUpdatedAt()) <= 0) {
                         return true;
                     } else {
                         // API is synchronized if API required deployment fields are the same as the event payload
@@ -388,7 +388,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
         return false;
     }
-    
+
     @Override
     public ApiEntity deploy(String apiId, String username, EventType eventType) {
         try {
@@ -400,7 +400,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
         }
     }
-    
+
     @Override
     public ApiEntity rollback(String apiId, UpdateApiEntity api) {
         LOGGER.debug("Rollback API : {}", apiId);
@@ -412,7 +412,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
         return null;
     }
-    
+
     private ApiEntity deployCurrentAPI(String apiId, String username, EventType eventType) throws Exception {
         Optional<Api> api = apiRepository.findById(apiId);
 
@@ -460,6 +460,54 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
+    @Override
+    public String convertAsJsonForExport(final String apiId) {
+        final ApiEntity apiEntity = findById(apiId);
+
+        apiEntity.setId(null);
+        apiEntity.setCreatedAt(null);
+        apiEntity.setUpdatedAt(null);
+        apiEntity.setDeployedAt(null);
+        apiEntity.setPrimaryOwner(null);
+        apiEntity.setState(null);
+        try {
+            return objectMapper.writeValueAsString(apiEntity);
+        } catch (final Exception e) {
+            LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
+        }
+        return "";
+    }
+
+    @Override
+    public ApiEntity createWithDefinition(String apiDefinition, String username) {
+        try {
+            final UpdateApiEntity importedApi = objectMapper.readValue(apiDefinition, UpdateApiEntity.class);
+
+            final NewApiEntity newApiEntity = new NewApiEntity();
+            newApiEntity.setName(importedApi.getName());
+            newApiEntity.setVersion(importedApi.getVersion());
+            newApiEntity.setDescription(importedApi.getDescription());
+            newApiEntity.setProxy(importedApi.getProxy());
+
+            final ApiEntity apiEntity = create(newApiEntity, username);
+            return update(apiEntity.getId(), importedApi);
+        } catch (final IOException e) {
+            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
+        }
+        return null;
+    }
+
+    @Override
+    public ApiEntity updateWithDefinition(ApiEntity apiEntity, String apiDefinition) {
+        try {
+            final UpdateApiEntity importedApi = objectMapper.readValue(apiDefinition, UpdateApiEntity.class);
+            return update(apiEntity.getId(), importedApi);
+        } catch (final IOException e) {
+            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
+        }
+        return null;
+    }
+
     private void updateLifecycle(String apiId, LifecycleState lifecycleState, String username) throws TechnicalException {
         Optional<Api> optApi = apiRepository.findById(apiId);
         if (optApi.isPresent()) {
@@ -467,7 +515,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
             apiRepository.update(api);
-            
+
             switch (lifecycleState) {
                 case STARTED:
                     deployLastPublishedAPI(apiId, username, EventType.START_API);
@@ -613,17 +661,17 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         return member;
     }
-    
+
     private LifecycleState convert(EventType eventType) {
         LifecycleState lifecycleState = null;
-        switch(eventType) {
+        switch (eventType) {
             case START_API:
                 lifecycleState = LifecycleState.STARTED;
                 break;
             case STOP_API:
                 lifecycleState = LifecycleState.STOPPED;
                 break;
-            default: 
+            default:
                 throw new IllegalArgumentException("Unknown EventType " + eventType.toString() + " to convert EventType into Lifecycle");
         }
         return lifecycleState;

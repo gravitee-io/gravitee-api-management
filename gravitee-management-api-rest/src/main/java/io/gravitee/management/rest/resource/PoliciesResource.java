@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.PolicyEntity;
 import io.gravitee.management.model.PolicyListItem;
 import io.gravitee.management.service.PolicyService;
@@ -26,7 +27,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
