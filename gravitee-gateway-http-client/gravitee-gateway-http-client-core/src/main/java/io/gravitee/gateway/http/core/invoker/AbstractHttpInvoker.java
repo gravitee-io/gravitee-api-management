@@ -56,8 +56,9 @@ public abstract class AbstractHttpInvoker implements Invoker {
         // Endpoint URI
         URI endpoint = URI.create(sEndpoint);
 
-        // TODO: how to pass this to the response metrics
-        // serverResponse.metrics().setEndpoint(endpoint.toString());
+        // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the
+        // initial request
+        serverRequest.metrics().setEndpoint(endpoint.toString());
 
         URI rewrittenURI = rewriteURI(serverRequest, endpoint);
 
