@@ -25,7 +25,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
+import io.gravitee.common.http.MediaType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

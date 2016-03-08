@@ -24,6 +24,7 @@ import io.gravitee.management.model.Visibility;
 import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -42,9 +43,17 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.HttpHeaders;
+
+import io.gravitee.common.http.MediaType;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
+import static java.lang.String.format;
 
 /**
  * Defines the REST resources to manage API.
@@ -58,10 +67,13 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ApiService apiService;
-    
+
     @Inject
     private PermissionService permissionService;
-    
+
+    @Inject
+    private IdGenerator idGenerator;
+
     @PathParam("api")
     private String api;
 
@@ -118,10 +130,10 @@ public class ApiResource extends AbstractResource {
         permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);
 
         apiService.delete(api);
-        
+
         return Response.noContent().build();
     }
-    
+
     @POST
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     @Produces(MediaType.APPLICATION_JSON)
@@ -145,13 +157,13 @@ public class ApiResource extends AbstractResource {
         permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
 
         io.gravitee.management.rest.model.ApiEntity apiEntity = new io.gravitee.management.rest.model.ApiEntity();
-        
+
         apiEntity.setApiId(this.api);
         setSynchronizationState(apiEntity);
-        
+
         return apiEntity;
     }
-    
+
     @POST
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     @Consumes
@@ -167,7 +179,29 @@ public class ApiResource extends AbstractResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
     }
-       
+
+    @POST
+    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("import")
+    public Response importDefinition(String apiDefinition) {
+        final ApiEntity apiEntity = get();
+        return Response.ok(apiService.updateWithDefinition(apiEntity, apiDefinition)).build();
+    }
+
+    @GET
+    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Path("export")
+    public Response exportDefinition() {
+        final ApiEntity apiEntity = get();
+        return Response
+                .ok(apiService.convertAsJsonForExport(api))
+                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s.json",
+                        idGenerator.generate(apiEntity.getName())))
+                .build();
+    }
+
     @Path("keys")
     public ApiKeysResource getApiKeyResource() {
         return resourceContext.getResource(ApiKeysResource.class);
@@ -192,14 +226,14 @@ public class ApiResource extends AbstractResource {
     public ApiPagesResource getApiPagesResource() {
         return resourceContext.getResource(ApiPagesResource.class);
     }
-    
+
     @Path("events")
     public ApiEventsResource getApiEventsResource() {
         return resourceContext.getResource(ApiEventsResource.class);
     }
-    
+
     private void setPermission(ApiEntity api) {
-        if(isAuthenticated()) {
+        if (isAuthenticated()) {
             MemberEntity member = apiService.getMember(api.getId(), getAuthenticatedUsername());
             if (member != null) {
                 api.setPermission(member.getType());
@@ -211,7 +245,7 @@ public class ApiResource extends AbstractResource {
             }
         }
     }
-    
+
     private void setSynchronizationState(io.gravitee.management.rest.model.ApiEntity apiEntity) {
         if (apiService.isAPISynchronized(api)) {
             apiEntity.setIsSynchronized(true);

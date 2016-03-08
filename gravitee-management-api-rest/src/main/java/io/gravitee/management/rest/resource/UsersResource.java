@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.providers.User;
@@ -30,7 +31,6 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Collection;
