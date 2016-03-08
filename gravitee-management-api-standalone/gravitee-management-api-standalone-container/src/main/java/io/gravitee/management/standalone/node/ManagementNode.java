@@ -17,6 +17,7 @@ package io.gravitee.management.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.common.node.Node;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.plugin.core.api.PluginRegistry;
@@ -35,7 +36,7 @@ import java.util.List;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ManagementNode implements Node, ApplicationContextAware {
+public class ManagementNode extends AbstractService<Node> implements Node, ApplicationContextAware {
 
     /**
      * Logger.
@@ -45,14 +46,7 @@ public class ManagementNode implements Node, ApplicationContextAware {
     private ApplicationContext applicationContext;
 
     @Override
-    public void start() {
-        LOGGER.info("Gravitee Management [{}] is now starting...", name());
-
-        doStart();
-    }
-
-    @Override
-    public void stop() {
+    public void doStop() {
         LOGGER.info("Gravitee Management [{}] is stopping", name());
 
         List<Class<? extends LifecycleComponent>> components = getLifecycleComponents();
@@ -80,7 +74,9 @@ public class ManagementNode implements Node, ApplicationContextAware {
         }
     }
 
+    @Override
     protected void doStart() {
+        LOGGER.info("Gravitee Management [{}] is now starting...", name());
         long startTime = System.currentTimeMillis(); // Get the start Time
 
         List<Class<? extends LifecycleComponent>> components = getLifecycleComponents();

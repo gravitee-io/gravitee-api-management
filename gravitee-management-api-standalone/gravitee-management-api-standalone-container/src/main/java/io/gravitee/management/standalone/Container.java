@@ -37,7 +37,6 @@ public class Container {
 
     private final Node node;
     private ConfigurableApplicationContext ctx;
-    private Thread shutdownHook;
 
     public Container() {
         initialize();
@@ -101,10 +100,14 @@ public class Container {
     public void start() {
         LoggerFactory.getLogger(Container.class).info("Start Gravitee Management Standalone...");
 
-        node.start();
+        try {
+            node.start();
+        } catch (Exception ex) {
+            LoggerFactory.getLogger(Container.class).error("Unexpected error", ex);
+        }
 
         // Register shutdown hook
-        shutdownHook = new ContainerShutdownHook();
+        Thread shutdownHook = new ContainerShutdownHook();
         Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
@@ -114,8 +117,13 @@ public class Container {
     public void stop() {
         LoggerFactory.getLogger(Container.class).info("Shutting-down Gravitee Management Standalone...");
 
-        node.stop();
-        ctx.close();
+        try {
+            node.stop();
+        } catch (Exception ex) {
+            LoggerFactory.getLogger(Container.class).error("Unexpected error", ex);
+        } finally {
+            ctx.close();
+        }
     }
 
     private class ContainerShutdownHook extends Thread {
