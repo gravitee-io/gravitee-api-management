@@ -16,87 +16,26 @@
 package io.gravitee.management.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.common.node.Node;
-import io.gravitee.common.service.AbstractService;
-import io.gravitee.common.util.Version;
+import io.gravitee.common.node.AbstractNode;
 import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.plugin.core.internal.PluginEventListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ManagementNode extends AbstractService<Node> implements Node, ApplicationContextAware {
-
-    /**
-     * Logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(ManagementNode.class);
-
-    private ApplicationContext applicationContext;
-
-    @Override
-    public void doStop() {
-        LOGGER.info("Gravitee Management [{}] is stopping", name());
-
-        List<Class<? extends LifecycleComponent>> components = getLifecycleComponents();
-        for(Class<? extends LifecycleComponent> componentClass: components) {
-            LOGGER.info("\tStopping component: {}", componentClass.getSimpleName());
-
-            try {
-                LifecycleComponent lifecyclecomponent = applicationContext.getBean(componentClass);
-                lifecyclecomponent.stop();
-            } catch (Exception e) {
-                LOGGER.error("An error occurs while stopping component {}", componentClass.getSimpleName(), e);
-            }
-        }
-
-        LOGGER.info("Gravitee Management [{}] stopped", name());
-    }
+public class ManagementNode extends AbstractNode {
 
     @Override
     public String name() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (final UnknownHostException e) {
-            LOGGER.info("The local host name could not be resolved into an address", e);
-            return "localhost";
-        }
+        return "Gravitee.io - Management API";
     }
 
     @Override
-    protected void doStart() {
-        LOGGER.info("Gravitee Management [{}] is now starting...", name());
-        long startTime = System.currentTimeMillis(); // Get the start Time
-
-        List<Class<? extends LifecycleComponent>> components = getLifecycleComponents();
-        for(Class<? extends LifecycleComponent> componentClass: components) {
-            LOGGER.info("\tStarting component: {}", componentClass.getSimpleName());
-
-            try {
-                LifecycleComponent lifecyclecomponent = applicationContext.getBean(componentClass);
-                lifecyclecomponent.start();
-            } catch (Exception e) {
-                LOGGER.error("An error occurs while starting component {}", componentClass.getSimpleName(), e);
-            }
-        }
-
-        long endTime = System.currentTimeMillis(); // Get the end Time
-
-        LOGGER.info("Gravitee Management [{} - {}] started in {} ms.", name(), Version.RUNTIME_VERSION, (endTime - startTime));
-    }
-
-    private List<Class<? extends LifecycleComponent>> getLifecycleComponents() {
+    protected List<Class<? extends LifecycleComponent>> getLifecycleComponents() {
         List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
 
         components.add(PluginEventListener.class);
@@ -104,10 +43,5 @@ public class ManagementNode extends AbstractService<Node> implements Node, Appli
         components.add(JettyEmbeddedContainer.class);
 
         return components;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 }
