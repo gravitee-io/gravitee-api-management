@@ -36,6 +36,12 @@ public class MonitoringService extends AbstractService {
     @Value("${services.monitoring.enabled:true}")
     private boolean enabled;
 
+    @Value("${services.monitoring.delay:5000}")
+    private int delay;
+
+    @Value("${services.monitoring.unit:MILLISECONDS}")
+    private TimeUnit unit;
+
     private ExecutorService executorService;
 
     @Override
@@ -50,8 +56,10 @@ public class MonitoringService extends AbstractService {
             MonitorThread monitorThread = new MonitorThread();
             this.applicationContext.getAutowireCapableBeanFactory().autowireBean(monitorThread);
 
+            LOGGER.info("Monitoring scheduled with fixed delay {} {} ", delay, unit.name());
+
             ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
-                    monitorThread, 0, 5000L, TimeUnit.MILLISECONDS);
+                    monitorThread, 0, delay, unit);
 
             LOGGER.info("Start gateway monitor : DONE");
         }
