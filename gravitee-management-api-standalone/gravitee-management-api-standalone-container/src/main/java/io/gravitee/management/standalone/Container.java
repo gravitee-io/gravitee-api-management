@@ -90,7 +90,6 @@ public class Container {
         LoggerFactory.getLogger(Container.class).info("Initializing Gravitee Management Standalone context...");
         ctx = new AnnotationConfigApplicationContext();
         ((AnnotationConfigApplicationContext)ctx).register(StandaloneConfiguration.class);
-        ctx.registerShutdownHook();
         ctx.refresh();
     }
 
