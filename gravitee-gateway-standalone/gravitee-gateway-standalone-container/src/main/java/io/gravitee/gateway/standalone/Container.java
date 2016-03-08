@@ -104,7 +104,11 @@ public class Container {
      * Stop a new gravitee instance node.
      */
     public void start() {
-        node.start();
+        try {
+            node.start();
+        } catch (Exception ex) {
+            LoggerFactory.getLogger(Container.class).error("Unexpected error", ex);
+        }
 
         // Register shutdown hook
         Thread shutdownHook = new ContainerShutdownHook();
@@ -120,8 +124,13 @@ public class Container {
             LoggerFactory.getLogger(Container.class).info("Shutting-down Gravitee Container...");
 
             stopped = true;
-            node.stop();
-            ctx.close();
+            try {
+                node.stop();
+            } catch (Exception ex) {
+                LoggerFactory.getLogger(Container.class).error("Unexpected error", ex);
+            } finally {
+                ctx.close();
+            }
         }
     }
 

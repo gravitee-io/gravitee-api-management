@@ -17,6 +17,7 @@ package io.gravitee.gateway.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.common.node.Node;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.standalone.util.ListReverser;
@@ -35,7 +36,7 @@ import java.util.List;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class DefaultNode implements Node, ApplicationContextAware {
+public class DefaultNode extends AbstractService<Node> implements Node, ApplicationContextAware {
 
     /**
      * Logger.
@@ -43,33 +44,6 @@ public class DefaultNode implements Node, ApplicationContextAware {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultNode.class);
 
     private ApplicationContext applicationContext;
-
-    @Override
-    public void start() {
-        LOGGER.info("Gateway [{}] is now starting...", name());
-
-        doStart();
-    }
-
-    @Override
-    public void stop() {
-        LOGGER.info("Gateway [{}] is stopping", name());
-
-        ListReverser<Class<? extends LifecycleComponent>> components =
-                new ListReverser<>(getLifecycleComponents());
-        for(Class<? extends LifecycleComponent> componentClass: components) {
-            LOGGER.info("\tStopping component: {}", componentClass.getSimpleName());
-
-            try {
-                LifecycleComponent lifecyclecomponent = applicationContext.getBean(componentClass);
-                lifecyclecomponent.stop();
-            } catch (Exception e) {
-                LOGGER.error("An error occurs while stopping component {}", componentClass.getSimpleName(), e);
-            }
-        }
-
-        LOGGER.info("Gateway [{}] stopped", name());
-    }
 
     @Override
     public String name() {
@@ -81,7 +55,9 @@ public class DefaultNode implements Node, ApplicationContextAware {
         }
     }
 
+    @Override
     protected void doStart() {
+        LOGGER.info("Gateway [{}] is now starting...", name());
         long startTime = System.currentTimeMillis(); // Get the start Time
 
         List<Class<? extends LifecycleComponent>> components = getLifecycleComponents();
@@ -99,6 +75,26 @@ public class DefaultNode implements Node, ApplicationContextAware {
         long endTime = System.currentTimeMillis(); // Get the end Time
 
         LOGGER.info("Gateway [{} - {}] started in {} ms.", name(), Version.RUNTIME_VERSION, (endTime - startTime));
+    }
+
+    @Override
+    public void doStop() {
+        LOGGER.info("Gateway [{}] is stopping", name());
+
+        ListReverser<Class<? extends LifecycleComponent>> components =
+                new ListReverser<>(getLifecycleComponents());
+        for(Class<? extends LifecycleComponent> componentClass: components) {
+            LOGGER.info("\tStopping component: {}", componentClass.getSimpleName());
+
+            try {
+                LifecycleComponent lifecyclecomponent = applicationContext.getBean(componentClass);
+                lifecyclecomponent.stop();
+            } catch (Exception e) {
+                LOGGER.error("An error occurs while stopping component {}", componentClass.getSimpleName(), e);
+            }
+        }
+
+        LOGGER.info("Gateway [{}] stopped", name());
     }
 
     private List<Class<? extends LifecycleComponent>> getLifecycleComponents() {
