@@ -27,31 +27,31 @@ public class Config {
 	/**
 	 *  Reporter file name. 
 	 */
-	@Value("${reporter.file.fileName:#{systemProperties['gravitee.home']}/logs/access-yyyy_mm_dd.log}")
+	@Value("${reporters.file.fileName:#{systemProperties['gravitee.home']}/logs/access-yyyy_mm_dd.log}")
 	private String filename;
 
 	/**
 	 * Whether existing files will be appended to or not.
 	 */
-	@Value("${reporter.file.append:true}")
+	@Value("${reporters.file.append:true}")
 	private boolean append;
 
 	/**
 	 * The number of days to retain files before deleting them. 0 to retain forever.
 	 */
-	@Value("${reporter.file.retainDays:0}")
+	@Value("${reporters.file.retainDays:0}")
 	private int retainDays;
 
 	/**
 	 * The format for the date file substitution.
 	 */
-	@Value("${reporter.file.dateFormat:yyyy_MM_dd}")
+	@Value("${reporters.file.dateFormat:yyyy_MM_dd}")
 	private String dateFormat;
 
 	/**
 	 * The format for the file extension of backup files.
 	 */
-	@Value("${reporter.file.backupFormat:HHmmssSSS}")
+	@Value("${reporters.file.backupFormat:HHmmssSSS}")
 	private String backupFormat;
 
 	public String getFilename() {
