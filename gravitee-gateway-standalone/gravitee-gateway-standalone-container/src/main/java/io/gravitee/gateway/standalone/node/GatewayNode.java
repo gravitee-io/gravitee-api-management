@@ -17,11 +17,14 @@ package io.gravitee.gateway.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.common.node.AbstractNode;
+import io.gravitee.common.utils.UUIDGenerator;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
+import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -41,5 +44,32 @@ public class GatewayNode extends AbstractNode {
         components.add(VertxEmbeddedContainer.class);
 
         return components;
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
+        sendEvent(EventType.START_GATEWAY);
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        sendEvent(EventType.STOP_GATEWAY);
+        super.doStop();
+    }
+
+    private void sendEvent(EventType eventType) {
+        Event event = new Event();
+        event.setId(UUIDGenerator.generate().toString());
+        event.setType(eventType);
+        event.setCreatedAt(new Date());
+        Map<String, String> properties = new HashMap<>();
+        properties.put("gateway_id", this.id());
+        event.setProperties(properties);
+        try {
+            applicationContext.getBean(EventRepository.class).create(event);
+        } catch (Exception ex) {
+            LOGGER.error("Unexpected error while sending a {} event into the repository", eventType, ex);
+        }
     }
 }
