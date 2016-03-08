@@ -30,8 +30,8 @@
 #      password:
 
 # Plugins repository
-#plugins:
-#  path: ${gravitee.home}/plugins
+plugins:
+  path: ${gravitee.home}/plugins
 
 # Management repository is used to store global configuration such as APIs, applications, apikeys, ...
 # This is the default configuration using MongoDB (single server)
@@ -107,28 +107,41 @@ reporter:
       # Reporter thread is looking for data every x milliseconds (each second in this example)
       pollingTimeout: 1000
 
-# Services configuration
+# Gateway service configurations. Provided values are default values.
+# All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the
+# 'local' service for an example).
 services:
   # Synchronization daemon used to keep the gateway state in sync with the configuration from the management repository
-#  sync:
-#    enabled: true
-    # By default, the sync is run each 5 seconds
-#    cron: '*/5 * * * * *'
+  # Be aware that, by disabling it, the gateway will not be sync with the configuration done through management API
+  # and management UI
+  sync:
+    # Synchronization is done each 5 seconds
+    cron: '*/5 * * * * *'
 
-  # Service used to store and cache api-keys from the management repository to avoid direct communication
+  # Service used to store and cache api-keys from the management repository to avoid direct repository communication
   # while serving requests.
-#  apikeyscache:
-#    enabled: true
-#    delay: 10
-#    unit: SECONDS
+  apikeyscache:
+    delay: 10000
+    unit: MILLISECONDS
+    threads: 3 # Threads core size used to retrieve api-keys from repository.
 
   # Local registry service.
   # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
   # to configure your API using the web console or the rest API (but you need to know and understand the json descriptor
   # format to make it work....)
-#  local:
-#    enabled: false
-#    path: ${gravitee.home}/apis # The path to API descriptors
+  local:
+    enabled: false
+    path: ${gravitee.home}/apis # The path to API descriptors
+
+  # Gateway monitoring service.
+  # This service retrieves metrics like os / process / jvm metrics and send them to an underlying reporting service.
+  monitoring:
+    delay: 5000
+    unit: MILLISECONDS
+
+  # Endpoint healthcheck service.
+  healthcheck:
+    threads: 3 # Threads core size used to check endpoint availability
 
 # Referenced properties
 ds:
