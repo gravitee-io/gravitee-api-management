@@ -79,7 +79,7 @@ public class ApisResource extends AbstractResource {
 
         return apis.stream()
                 .map(this::convert)
-                .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
+                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .collect(Collectors.toList());
     }
 

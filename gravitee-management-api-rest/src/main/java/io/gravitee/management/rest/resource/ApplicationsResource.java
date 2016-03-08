@@ -55,7 +55,7 @@ public class ApplicationsResource extends AbstractResource {
         applications.forEach(api -> api = applicationEnhancer.enhance(getAuthenticatedUsername()).apply(api));
 
         return applications.stream()
-                .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
+                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .collect(Collectors.toList());
     }
 
