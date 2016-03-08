@@ -28,6 +28,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,14 +49,14 @@ public class ApplicationsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApplicationEntity> list() {
+    public List<ApplicationEntity> list() {
         Set<ApplicationEntity> applications = applicationService.findByUser(getAuthenticatedUsername());
 
         applications.forEach(api -> api = applicationEnhancer.enhance(getAuthenticatedUsername()).apply(api));
 
         return applications.stream()
                 .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     /**
