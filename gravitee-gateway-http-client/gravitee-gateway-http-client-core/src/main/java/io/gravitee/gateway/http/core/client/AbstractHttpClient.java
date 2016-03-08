@@ -21,8 +21,6 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.client.HttpClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -36,8 +34,6 @@ import java.util.Set;
 public abstract class AbstractHttpClient extends AbstractLifecycleComponent<HttpClient> implements HttpClient {
 
     protected static final Set<String> HOP_HEADERS;
-
-    protected final Logger loggerDumpHttpClient = LoggerFactory.getLogger("io.gravitee.gateway.http.client");
 
     static {
         Set<String> hopHeaders = new HashSet<>();
