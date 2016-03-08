@@ -17,6 +17,7 @@ package io.gravitee.repository.management.model;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
 public enum EventType {
@@ -26,5 +27,7 @@ public enum EventType {
     UNPUBLISH_API,
     UNPUBLISH_API_RESULT,
     START_API,
-    STOP_API
+    STOP_API,
+    START_GATEWAY,
+    STOP_GATEWAY
 }
