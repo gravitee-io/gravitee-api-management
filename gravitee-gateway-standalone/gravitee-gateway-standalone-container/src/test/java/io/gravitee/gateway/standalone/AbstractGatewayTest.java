@@ -31,11 +31,4 @@ public abstract class AbstractGatewayTest {
     public static final TestRule chain = RuleChain
             .outerRule(new ApiPublisher())
             .around(new ApiDeployer());
-
-    /*
-    @ClassRule
-    public final TestRule apiChain = RuleChain
-            .outerRule(new ApiPublisher())
-            .around(new ApiDeployer());
-            */
 }
