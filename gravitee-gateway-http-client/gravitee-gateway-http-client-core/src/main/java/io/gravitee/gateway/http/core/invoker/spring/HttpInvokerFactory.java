@@ -17,7 +17,7 @@ package io.gravitee.gateway.http.core.invoker.spring;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.Invoker;
-import io.gravitee.gateway.http.core.common.spring.AbstractAutowiringFactoryBean;
+import io.gravitee.common.spring.factory.AbstractAutowiringFactoryBean;
 import io.gravitee.gateway.http.core.invoker.DefaultHttpInvoker;
 import io.gravitee.gateway.http.core.invoker.failover.FailoverHttpInvoker;
 import org.slf4j.Logger;
