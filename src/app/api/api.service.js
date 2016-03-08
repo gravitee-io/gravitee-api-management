@@ -67,9 +67,17 @@ class ApiService {
   deploy(apiId) {
     return this.$http.post(this.apisURL + apiId + '/deploy');
   }
-  
+
   rollback(apiId, apiDescriptor) {
     return this.$http.post(this.apisURL + apiId + '/rollback', apiDescriptor);
+  }
+
+  import(apiId, apiDefinition) {
+    return this.$http.post(this.apisURL + (apiId?apiId:'') + '/import', apiDefinition);
+  }
+
+  getExportUrl(apiId) {
+    return this.apisURL + apiId + '/export';
   }
 
   /*
@@ -127,7 +135,7 @@ class ApiService {
   updateApiKey(api, apiKey) {
     return this.$http.put(this.apisURL + api + '/keys/' + apiKey.key, apiKey);
   }
-  
+
   /*
    * API events
    */

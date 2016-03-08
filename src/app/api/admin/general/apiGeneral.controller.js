@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor (ApiService, NotificationService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi) {
+  constructor(ApiService, NotificationService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi, $window) {
     'ngInject';
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
@@ -25,6 +25,7 @@ class ApiAdminController {
     this.initialApi = _.cloneDeep(resolvedApi.data);
     this.api = resolvedApi.data;
     this.$scope.selected = [];
+    this.$window = $window;
 
     this.$scope.lbs = [
       {
@@ -56,7 +57,7 @@ class ApiAdminController {
       }
     }
     var self = this;
-    this.$scope.$on("apiChangeSucceed", function() {
+    this.$scope.$on("apiChangeSucceed", function () {
       self.initialApi = _.cloneDeep(self.$scope.$parent.apiCtrl.api);
       self.api = self.$scope.$parent.apiCtrl.api;
     });
@@ -66,7 +67,7 @@ class ApiAdminController {
     var started = this.api.state === 'started';
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
-      content: 'Are you sure you want to ' + (started?'stop':'start') +' the API ?',
+      content: 'Are you sure you want to ' + (started ? 'stop' : 'start') + ' the API?',
       ok: 'OK',
       cancel: 'Cancel'
     });
@@ -77,12 +78,12 @@ class ApiAdminController {
         if (started) {
           that.ApiService.stop(id).then(function () {
             that.api.state = 'stopped';
-            that.NotificationService.show('API ' + that.initialApi.name + ' has been stopped !');
+            that.NotificationService.show('API ' + that.initialApi.name + ' has been stopped!');
           });
         } else {
           that.ApiService.start(id).then(function () {
             that.api.state = 'started';
-            that.NotificationService.show('API ' + that.initialApi.name + ' has been started !');
+            that.NotificationService.show('API ' + that.initialApi.name + ' has been started!');
           });
         }
       })
@@ -153,25 +154,25 @@ class ApiAdminController {
 
   addEndpoint(event) {
     var _that = this;
-      this.$mdDialog.show({
-        clickOutsideToClose: true,
-        controller: 'DialogEndpointController',
-        controllerAs: 'ctrl',
-        focusOnOpen: false,
-        targetEvent: event,
-        templateUrl: 'app/api/admin/general/add-endpoint-dialog.html',
-      }).then(function (endpoint) {
-        if (endpoint) {
-          _that.api.proxy.endpoints.push(endpoint);
-          _that.$scope.formApi.$setDirty();
-        }
-      });
+    this.$mdDialog.show({
+      clickOutsideToClose: true,
+      controller: 'DialogEndpointController',
+      controllerAs: 'ctrl',
+      focusOnOpen: false,
+      targetEvent: event,
+      templateUrl: 'app/api/admin/general/add-endpoint-dialog.html',
+    }).then(function (endpoint) {
+      if (endpoint) {
+        _that.api.proxy.endpoints.push(endpoint);
+        _that.$scope.formApi.$setDirty();
+      }
+    });
   }
 
   removeEndpoints(event) {
     var _that = this;
-    _(this.$scope.selected).forEach(function(endpoint) {
-      _(_that.api.proxy.endpoints).forEach(function(endpoint2, index, object) {
+    _(this.$scope.selected).forEach(function (endpoint) {
+      _(_that.api.proxy.endpoints).forEach(function (endpoint2, index, object) {
         if (endpoint2 !== undefined && endpoint2.target === endpoint.target) {
           object.splice(index, 1);
         }
@@ -206,18 +207,40 @@ class ApiAdminController {
       });
   }
 
+  onApiUpdate(updatedApi) {
+    this.api = updatedApi;
+    this.initState();
+    this.$scope.formApi.$setPristine();
+    this.$rootScope.$broadcast("apiChangeSuccess");
+    this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
+  }
+
   update(api) {
     if (!this.failoverEnabled) {
       delete api.proxy.failover;
     }
 
     this.ApiService.update(api).then((updatedApi) => {
-      this.api = updatedApi.data;
-      this.initState();
-      this.$scope.formApi.$setPristine();
-      this.$rootScope.$broadcast("apiChangeSuccess");
-      this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
+      this.onApiUpdate(updatedApi.data);
     });
+  }
+
+  showImportDialog() {
+    var that = this;
+    this.$mdDialog.show({
+      controller: 'DialogApiDefinitionController',
+      controllerAs: 'dialogApiDefinitionCtrl',
+      templateUrl: 'app/api/admin/general/dialog/apiDefinition.dialog.html',
+      apiId: this.$scope.$parent.apiCtrl.api.id
+    }).then(function (response) {
+      if (response) {
+        that.onApiUpdate(response.data);
+      }
+    });
+  }
+
+  export(id) {
+    this.$window.open(this.ApiService.getExportUrl(id), '_self');
   }
 }
 

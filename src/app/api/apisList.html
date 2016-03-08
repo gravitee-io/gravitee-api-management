@@ -15,20 +15,42 @@
     limitations under the License.
 
 -->
-<div ng-if="apisCtrl.apis.length > 0 && percentWidth < 50" layout="row" layout-align="end center" layout-padding>
-  <span class="btn-group">
-    <button ng-class="{'active': !apisCtrl.tableMode}" class="btn btn-default"
-            ng-click="apisCtrl.changeMode(false)" type="button">
-      <ng-md-icon icon="apps"></ng-md-icon>
-    </button>
-    <button ng-class="{'active': apisCtrl.tableMode}" class="btn btn-default"
-            ng-click="apisCtrl.changeMode(true)" type="button">
-      <ng-md-icon icon="list"></ng-md-icon>
-    </button>
-  </span>
+<div layout="row" layout-padding>
+  <div ng-if="apisCtrl.apis.length > 0 && percentWidth < 50" style="text-align: right;width: 100%">
+    <span class="btn-group">
+      <button ng-class="{'active': !apisCtrl.tableMode}" class="btn btn-default"
+              ng-click="apisCtrl.changeMode(false)" type="button">
+        <ng-md-icon icon="apps"></ng-md-icon>
+      </button>
+      <button ng-class="{'active': apisCtrl.tableMode}" class="btn btn-default"
+              ng-click="apisCtrl.changeMode(true)" type="button">
+        <ng-md-icon icon="list"></ng-md-icon>
+      </button>
+    </span>
+  </div>
 </div>
 <div ui-view></div>
 
-<md-button gravitee-roles-allowed="ADMIN, API_PUBLISHER" class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="apisCtrl.showApiModal()">
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
+<md-fab-speed-dial gravitee-roles-allowed="ADMIN, API_PUBLISHER" md-direction="left" md-open="false" class="md-scale md-fab-bottom-right">
+  <md-fab-trigger>
+    <md-button aria-label="menu" class="md-fab md-success">
+      <md-tooltip md-direction="top" md-visible="false">Create</md-tooltip>
+      <ng-md-icon icon="add"></ng-md-icon>
+    </md-button>
+  </md-fab-trigger>
+
+  <md-fab-actions>
+    <md-button class="md-fab md-success md-mini" ng-click="apisCtrl.showApiModal()">
+      <md-tooltip md-direction="top">
+        New API
+      </md-tooltip>
+      <ng-md-icon icon="assignment"></ng-md-icon>
+    </md-button>
+    <md-button class="md-fab md-success md-mini" ng-click="apisCtrl.showImportDialog()">
+      <md-tooltip md-direction="top">
+        From definition file
+      </md-tooltip>
+      <ng-md-icon icon="file_download"></ng-md-icon>
+    </md-button>
+  </md-fab-actions>
+</md-fab-speed-dial>
