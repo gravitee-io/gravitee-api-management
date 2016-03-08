@@ -13,38 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.util;
+package io.gravitee.gateway.standalone.node;
 
-import java.util.Iterator;
+import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.common.node.AbstractNode;
+import io.gravitee.gateway.core.Reactor;
+import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
+
+import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ListReverser<T> implements Iterable<T> {
-    private ListIterator<T> listIterator;
+public class GatewayNode extends AbstractNode {
 
-    public ListReverser(List<T> wrappedList) {
-        this.listIterator = wrappedList.listIterator(wrappedList.size());
+    @Override
+    public String name() {
+        return "Gravitee.io - Gateway";
     }
 
-    public Iterator<T> iterator() {
-        return new Iterator<T>() {
+    @Override
+    protected List<Class<? extends LifecycleComponent>> getLifecycleComponents() {
+        List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
 
-            public boolean hasNext() {
-                return listIterator.hasPrevious();
-            }
+        components.add(Reactor.class);
+        components.add(VertxEmbeddedContainer.class);
 
-            public T next() {
-                return listIterator.previous();
-            }
-
-            public void remove() {
-                listIterator.remove();
-            }
-
-        };
+        return components;
     }
-
 }

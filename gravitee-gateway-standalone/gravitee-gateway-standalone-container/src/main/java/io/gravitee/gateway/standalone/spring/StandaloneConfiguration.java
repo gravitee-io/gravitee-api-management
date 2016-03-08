@@ -17,7 +17,7 @@ package io.gravitee.gateway.standalone.spring;
 
 import io.gravitee.common.node.Node;
 import io.gravitee.gateway.core.spring.CoreConfiguration;
-import io.gravitee.gateway.standalone.node.DefaultNode;
+import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.vertx.VertxConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +32,6 @@ public class StandaloneConfiguration {
 
     @Bean
     public Node node() {
-        return new DefaultNode();
+        return new GatewayNode();
     }
 }
