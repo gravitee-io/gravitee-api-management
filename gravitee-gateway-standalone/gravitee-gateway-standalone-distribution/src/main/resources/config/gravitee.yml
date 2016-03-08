@@ -92,11 +92,11 @@ ratelimit:
   mongodb:
     uri: mongodb://${ds.mongodb.host}/${ds.mongodb.dbname}
 
-# Reporters configuration (used to store reporting data, metrics, healthchecks and so on...
-reporter:
+# Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
+# All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
+reporters:
   # Elasticsearch reporter
   elastic:
-    enabled: true
     host: ${ds.elastic.host}
     port: ${ds.elastic.port}
     # Reporters are async by nature so the gateway is keeping an internal in-memory structure to stack data before

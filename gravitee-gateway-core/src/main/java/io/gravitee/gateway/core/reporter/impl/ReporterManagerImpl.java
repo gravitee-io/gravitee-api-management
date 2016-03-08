@@ -80,7 +80,7 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
     }
 
     private boolean isEnabled(Plugin reporterPlugin) {
-        boolean enabled = environment.getProperty("reporter." + reporterPlugin.id() + ".enabled", Boolean.class, true);
+        boolean enabled = environment.getProperty("reporters." + reporterPlugin.id() + ".enabled", Boolean.class, true);
         LOGGER.debug("Plugin {} configuration: {}", reporterPlugin.id(), enabled);
         return enabled;
     }
@@ -88,8 +88,8 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
     private Reporter createAsyncReporter(Plugin reporterPlugin, ApplicationContext applicationContext) {
         AsyncReporterWrapper reporter = new AsyncReporterWrapper(applicationContext.getBean(Reporter.class));
         reporter.setReporterName(reporterPlugin.id());
-        reporter.setQueueCapacity(environment.getProperty("reporter." + reporterPlugin.id() + ".queue.size", int.class, 10240));
-        reporter.setPollingTimeout(environment.getProperty("reporter." + reporterPlugin.id() + ".queue.pollingTimeout", long.class, 1000L));
+        reporter.setQueueCapacity(environment.getProperty("reporters." + reporterPlugin.id() + ".queue.size", int.class, 10240));
+        reporter.setPollingTimeout(environment.getProperty("reporters." + reporterPlugin.id() + ".queue.pollingTimeout", long.class, 1000L));
 
         return reporter;
     }
