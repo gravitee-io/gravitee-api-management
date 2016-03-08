@@ -44,10 +44,10 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     @Value("${services.apikeyscache.enabled:true}")
     private boolean enabled;
 
-    @Value("${services.apikeyscache.delay:10}")
+    @Value("${services.apikeyscache.delay:10000}")
     private int delay;
 
-    @Value("${services.apikeyscache.unit:SECONDS}")
+    @Value("${services.apikeyscache.unit:MILLISECONDS}")
     private TimeUnit unit;
 
     @Value("${services.apikeyscache.threads:3}")
