@@ -27,6 +27,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -48,9 +49,9 @@ public class PoliciesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<PolicyListItem> list(@QueryParam("expand")List<String> expand) {
-        Stream<PolicyListItem> stream = policyService.findAll().stream()
-                .map(this::convert);
+    public Collection<PolicyListItem> list(@QueryParam("expand") List<String> expand) {
+        Stream<PolicyListItem> stream = policyService.findAll().stream().map(this::convert);
+
         if(expand!=null && !expand.isEmpty()) {
             for (String s : expand) {
                 switch (s) {
@@ -65,9 +66,9 @@ public class PoliciesResource {
             }
         }
 
-        Set<PolicyListItem> collect = stream.sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
-                .collect(Collectors.toSet());
-        return collect;
+        return stream
+                .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
+                .collect(Collectors.toList());
     }
 
     @Path("{policy}")
