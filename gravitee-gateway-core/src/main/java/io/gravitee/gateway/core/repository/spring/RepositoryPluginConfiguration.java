@@ -29,11 +29,6 @@ public class RepositoryPluginConfiguration {
 
     @Bean(name = "repositoryPluginHandler")
     public PluginHandler repositoryPluginHandler() {
-        return repositoryManager();
-    }
-
-    @Bean
-    public RepositoryManagerImpl repositoryManager() {
         return new RepositoryManagerImpl();
     }
 }
