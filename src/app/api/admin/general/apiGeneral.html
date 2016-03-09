@@ -16,25 +16,27 @@
 
 -->
 <form name="formApi" ng-submit="generalCtrl.update(generalCtrl.api)" novalidate>
-  <md-menu class="gravitee-api-menu-action">
-    <md-button aria-label="API actions" class="md-icon-button" ng-click="$mdOpenMenu($event)">
-      <ng-md-icon md-menu-origin="" icon="more_vert"></ng-md-icon>
-    </md-button>
-    <md-menu-content width="2">
-      <md-menu-item>
-        <md-button aria-label="Export definition" ng-click="generalCtrl.export(generalCtrl.api.id)">
-          <ng-md-icon icon="file_upload"></ng-md-icon>
-          Export
-        </md-button>
-      </md-menu-item>
-      <md-menu-item>
-        <md-button aria-label="Import definition" ng-click="generalCtrl.showImportDialog()">
-          <ng-md-icon icon="file_download"></ng-md-icon>
-          Import
-        </md-button>
-      </md-menu-item>
-    </md-menu-content>
-  </md-menu>
+  <div style="position:relative;">
+    <md-menu class="gravitee-api-menu-action">
+      <md-button aria-label="API actions" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+        <ng-md-icon md-menu-origin="" icon="more_vert"></ng-md-icon>
+      </md-button>
+      <md-menu-content width="2">
+        <md-menu-item>
+          <md-button aria-label="Export definition" ng-click="generalCtrl.export(generalCtrl.api.id)">
+            <ng-md-icon icon="file_upload"></ng-md-icon>
+            Export
+          </md-button>
+        </md-menu-item>
+        <md-menu-item>
+          <md-button aria-label="Import definition" ng-click="generalCtrl.showImportDialog()">
+            <ng-md-icon icon="file_download"></ng-md-icon>
+            Import
+          </md-button>
+        </md-menu-item>
+      </md-menu-content>
+    </md-menu>
+  </div>
   <md-tabs class="gravitee-api-general-tabs" md-dynamic-height md-border-bottom>
     <md-tab label="General">
       <div layout="column" layout-wrap layout-gt-sm="row">
