@@ -84,6 +84,7 @@
             <artifactId>gravitee-gateway-services-localregistry</artifactId>
             <version>${project.version}</version>
             <type>zip</type>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
