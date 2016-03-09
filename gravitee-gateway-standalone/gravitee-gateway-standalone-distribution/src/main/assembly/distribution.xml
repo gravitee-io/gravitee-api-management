@@ -50,18 +50,18 @@
 
         <fileSet>
             <directory>src/main/assembly</directory>
-            <outputDirectory>/plugins</outputDirectory>
+            <outputDirectory>/apis</outputDirectory>
             <excludes>
                 <exclude>*</exclude>
             </excludes>
         </fileSet>
 
         <fileSet>
-            <directory>src/main/assembly</directory>
-            <outputDirectory>/apis</outputDirectory>
-            <excludes>
-                <exclude>*</exclude>
-            </excludes>
+            <directory>target/staging</directory>
+            <outputDirectory>/plugins</outputDirectory>
+            <includes>
+                <include>*.zip</include>
+            </includes>
         </fileSet>
     </fileSets>
 
@@ -72,15 +72,6 @@
             <includes>
                 <include>io.gravitee.*:*:jar</include>
             </includes>
-            <useProjectArtifact>false</useProjectArtifact>
-        </dependencySet>
-        <dependencySet>
-            <outputDirectory>/plugins</outputDirectory>
-            <unpack>false</unpack>
-            <includes>
-                <include>io.gravitee.*:*:zip</include>
-            </includes>
-            <scope>runtime</scope>
             <useProjectArtifact>false</useProjectArtifact>
         </dependencySet>
         <dependencySet>
