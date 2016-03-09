@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.management.providers</groupId>
         <artifactId>gravitee-management-api-providers</artifactId>
-        <version>0.8.1-SNAPSHOT</version>
+        <version>0.8.1</version>
     </parent>
 
     <artifactId>gravitee-management-api-providers-core</artifactId>
