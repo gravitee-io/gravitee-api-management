@@ -15,19 +15,20 @@
  */
 package io.gravitee.gateway.core.service.spring;
 
+import io.gravitee.gateway.core.service.ServiceManager;
 import io.gravitee.gateway.core.service.impl.ServiceManagerImpl;
-import io.gravitee.plugin.core.api.PluginHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
 @Configuration
 public class ServiceConfiguration {
 
-    @Bean(name = "servicePluginHandler")
-    public PluginHandler servicePluginHandler() {
+    @Bean
+    public ServiceManager serviceManager() {
         return new ServiceManagerImpl();
     }
 }

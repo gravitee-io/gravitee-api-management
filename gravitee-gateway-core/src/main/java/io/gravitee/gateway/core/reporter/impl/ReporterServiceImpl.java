@@ -16,13 +16,14 @@
 package io.gravitee.gateway.core.reporter.impl;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.core.reporter.ReporterManager;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -31,12 +32,16 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
 
     private final Logger LOGGER = LoggerFactory.getLogger(ReporterServiceImpl.class);
 
-    @Autowired
-    private ReporterManager reporterManager;
+    private final Collection<Reporter> reporters = new ArrayList<>();
+
+    @Override
+    public void register(Reporter reporter) {
+        reporters.add(reporter);
+    }
 
     @Override
     public void report(Reportable reportable) {
-        reporterManager.getReporters()
+        reporters
                 .stream()
                 .filter(reporter -> reporter.canHandle(reportable))
                 .forEach(reporter -> reporter.report(reportable));
@@ -46,8 +51,8 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
     protected void doStart() throws Exception {
         super.doStart();
 
-        if (! reporterManager.getReporters().isEmpty()) {
-            for (Reporter reporter : reporterManager.getReporters()) {
+        if (! reporters.isEmpty()) {
+            for (Reporter reporter : reporters) {
                 try {
                     reporter.start();
                 } catch (Exception ex) {
@@ -63,7 +68,7 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
     protected void doStop() throws Exception {
         super.doStop();
 
-        for(Reporter reporter: reporterManager.getReporters()) {
+        for(Reporter reporter: reporters) {
             try {
                 reporter.stop();
             } catch (Exception ex) {

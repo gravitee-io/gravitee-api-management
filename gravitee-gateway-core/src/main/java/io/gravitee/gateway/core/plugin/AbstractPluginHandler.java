@@ -13,22 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.repository.spring;
+package io.gravitee.gateway.core.plugin;
 
-import io.gravitee.gateway.core.repository.impl.RepositoryManagerImpl;
+import io.gravitee.plugin.core.api.PluginContextFactory;
 import io.gravitee.plugin.core.api.PluginHandler;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-@Configuration
-public class RepositoryPluginConfiguration {
+public abstract class AbstractPluginHandler implements PluginHandler {
 
-    @Bean(name = "repositoryPluginHandler")
-    public PluginHandler repositoryPluginHandler() {
-        return new RepositoryManagerImpl();
+    @Autowired
+    protected Environment environment;
+
+    @Autowired
+    protected PluginContextFactory pluginContextFactory;
+
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
+    }
+
+    public void setPluginContextFactory(PluginContextFactory pluginContextFactory) {
+        this.pluginContextFactory = pluginContextFactory;
     }
 }

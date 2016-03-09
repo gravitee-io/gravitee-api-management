@@ -15,10 +15,13 @@
  */
 package io.gravitee.gateway.core.service;
 
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.service.Service;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface ServiceManager extends Service {
+
+    void register(AbstractService service);
 }

@@ -30,7 +30,6 @@ import io.gravitee.gateway.core.reactor.handler.NotFoundReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
 import io.gravitee.gateway.core.reporter.spring.ReporterConfiguration;
-import io.gravitee.gateway.core.repository.spring.RepositoryPluginConfiguration;
 import io.gravitee.gateway.core.service.spring.ServiceConfiguration;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
@@ -51,9 +50,8 @@ import java.util.Properties;
         PropertiesConfiguration.class,
         PluginConfiguration.class,
         PolicyPluginConfiguration.class,
-        RepositoryPluginConfiguration.class,
         ReporterConfiguration.class,
-        ServiceConfiguration.class,
+        ServiceConfiguration.class
 })
 public class CoreConfiguration {
 

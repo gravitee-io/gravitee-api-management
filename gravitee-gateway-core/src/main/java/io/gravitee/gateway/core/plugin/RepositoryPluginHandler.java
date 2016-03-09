@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.repository.impl;
+package io.gravitee.gateway.core.plugin;
 
 import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.plugin.core.api.PluginContextFactory;
-import io.gravitee.plugin.core.api.PluginHandler;
 import io.gravitee.plugin.core.api.PluginType;
 import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
-import io.gravitee.repository.management.api.ApiKeyRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -29,10 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
 
-import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,22 +36,17 @@ import java.util.Map;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public class RepositoryManagerImpl implements PluginHandler, InitializingBean {
+public class RepositoryPluginHandler extends AbstractPluginHandler implements InitializingBean {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(RepositoryManagerImpl.class);
-
-    @Autowired
-    private Environment environment;
+    private final static Logger LOGGER = LoggerFactory.getLogger(RepositoryPluginHandler.class);
 
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Autowired
-    private PluginContextFactory pluginContextFactory;
-
     private final Map<Scope, Repository> repositories = new HashMap<>();
     private final Map<Scope, String> repositoryTypeByScope = new HashMap<>();
 
+    @Override
     public void afterPropertiesSet() throws Exception {
         // The gateway need 2 repositories :
         // 1_ Management
@@ -74,6 +64,8 @@ public class RepositoryManagerImpl implements PluginHandler, InitializingBean {
     public void handle(Plugin plugin) {
         try {
             final Class<?> repositoryClass = plugin.clazz();
+            LOGGER.info("Register a new repository: {} [{}]", plugin.id(), plugin.clazz().getName());
+
             Assert.isAssignable(Repository.class, repositoryClass);
 
             Repository repository = createInstance((Class<Repository>) repositoryClass);

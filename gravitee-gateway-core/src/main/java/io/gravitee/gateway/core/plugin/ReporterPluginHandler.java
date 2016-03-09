@@ -13,42 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reporter.impl;
+package io.gravitee.gateway.core.plugin;
 
-import io.gravitee.gateway.core.reporter.ReporterManager;
+import io.gravitee.gateway.core.reporter.ReporterService;
+import io.gravitee.gateway.core.reporter.impl.AsyncReporterWrapper;
 import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.plugin.core.api.PluginContextFactory;
-import io.gravitee.plugin.core.api.PluginHandler;
 import io.gravitee.reporter.api.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
+ * @author GraviteeSource Team
  */
-public class ReporterManagerImpl implements ReporterManager, PluginHandler {
+public class ReporterPluginHandler extends AbstractPluginHandler {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ReporterManagerImpl.class);
-
-    private final Collection<Reporter> reporters = new ArrayList<>();
+    private final static Logger LOGGER = LoggerFactory.getLogger(ReporterPluginHandler.class);
 
     @Autowired
-    private Environment environment;
-
-    @Autowired
-    private PluginContextFactory pluginContextFactory;
-
-    @Override
-    public Collection<Reporter> getReporters() {
-        return reporters;
-    }
+    private ReporterService reporterService;
 
     @Override
     public boolean canHandle(Plugin plugin) {
@@ -63,12 +49,13 @@ public class ReporterManagerImpl implements ReporterManager, PluginHandler {
 
     @Override
     public void handle(Plugin plugin) {
+        LOGGER.info("Register a new reporter: {} [{}]", plugin.id(), plugin.clazz().getName());
         boolean enabled = isEnabled(plugin);
         if (enabled) {
             try {
                 ApplicationContext context = pluginContextFactory.create(plugin);
                 Reporter reporter = createAsyncReporter(plugin, context);
-                reporters.add(reporter);
+                reporterService.register(reporter);
             } catch (Exception iae) {
                 LOGGER.error("Unexpected error while create reporter instance", iae);
                 // Be sure that the context does not exist anymore.

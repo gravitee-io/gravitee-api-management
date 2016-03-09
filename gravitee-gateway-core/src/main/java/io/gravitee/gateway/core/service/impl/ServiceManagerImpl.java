@@ -17,14 +17,8 @@ package io.gravitee.gateway.core.service.impl;
 
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.core.service.ServiceManager;
-import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.plugin.core.api.PluginContextFactory;
-import io.gravitee.plugin.core.api.PluginHandler;
-import io.gravitee.plugin.core.api.PluginType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,32 +26,15 @@ import java.util.List;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ServiceManagerImpl extends AbstractService implements ServiceManager, PluginHandler {
+public class ServiceManagerImpl extends AbstractService implements ServiceManager {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ServiceManagerImpl.class);
-
-    @Autowired
-    private PluginContextFactory pluginContextFactory;
 
     private final List<AbstractService> services = new ArrayList<>();
 
     @Override
-    public boolean canHandle(Plugin plugin) {
-        return plugin.type() == PluginType.SERVICE;
-    }
-
-    @Override
-    public void handle(Plugin plugin) {
-        try {
-            LOGGER.info("Register a new service: {}", plugin.clazz());
-            ApplicationContext context = pluginContextFactory.create(plugin);
-            services.add((AbstractService) context.getBean(plugin.clazz()));
-
-        } catch (Exception iae) {
-            LOGGER.error("Unexpected error while create reporter instance", iae);
-            // Be sure that the context does not exist anymore.
-            pluginContextFactory.remove(plugin);
-        }
+    public void register(AbstractService service) {
+        services.add(service);
     }
 
     @Override

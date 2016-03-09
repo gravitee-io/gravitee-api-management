@@ -17,11 +17,14 @@ package io.gravitee.gateway.core.reporter;
 
 import io.gravitee.common.service.Service;
 import io.gravitee.reporter.api.Reportable;
+import io.gravitee.reporter.api.Reporter;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface ReporterService extends Service {
+
+    void register(Reporter reporter);
 
     void report(Reportable reportable);
 }
