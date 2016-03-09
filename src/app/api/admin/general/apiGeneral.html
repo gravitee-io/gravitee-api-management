@@ -47,38 +47,26 @@
           <input ng-model="generalCtrl.api.version" type="text" required>
         </md-input-container>
 
-          <div layout="column" flex="20">
-            <md-input-container>
-              <md-radio-group ng-model="generalCtrl.api.visibility">
-                <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public">
-                  <md-tooltip md-direction="bottom">Public: API is visible by all</md-tooltip>
-                  <ng-md-icon icon="public"></ng-md-icon>
-                </md-radio-button>
-                <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private">
-                  <md-tooltip md-direction="bottom">Private: API is visible only by its members</md-tooltip>
-                  <ng-md-icon icon="lock"></ng-md-icon>
-                </md-radio-button>
-                <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted">
-                  <md-tooltip md-direction="bottom">Restricted: API is visible by all but can be used only by its members</md-tooltip>
-                  <ng-md-icon icon="vpn_lock"></ng-md-icon>
-                </md-radio-button>
-              </md-radio-group>
-            </md-input-container>
-          </div>
-          <md-switch ng-model="apiEnabled" ng-disabled="generalCtrl.api.deployed_at == null"
-                     ng-change="generalCtrl.changeLifecycle(generalCtrl.api.id)" flex="10" no-dirty-check>
-            Started
-          </md-switch>
-        </div>
-
-        <div layout="" layout-sm="column">
-          <md-input-container class="flex">
-            <label>Description *</label>
-            <textarea ng-model="generalCtrl.api.description" required></textarea>
+        <div layout="column" flex="20">
+          <md-input-container>
+            <md-radio-group ng-model="generalCtrl.api.visibility">
+              <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public">
+                <md-tooltip md-direction="bottom">Public: API is visible by all</md-tooltip>
+                <ng-md-icon icon="public"></ng-md-icon>
+              </md-radio-button>
+              <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private">
+                <md-tooltip md-direction="bottom">Private: API is visible only by its members</md-tooltip>
+                <ng-md-icon icon="lock"></ng-md-icon>
+              </md-radio-button>
+              <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted">
+                <md-tooltip md-direction="bottom">Restricted: API is visible by all but can be used only by its members</md-tooltip>
+                <ng-md-icon icon="vpn_lock"></ng-md-icon>
+              </md-radio-button>
+            </md-radio-group>
           </md-input-container>
         </div>
         <md-switch ng-model="apiEnabled" ng-disabled="generalCtrl.api.deployed_at == null"
-                   ng-change="generalCtrl.changeLifecycle(generalCtrl.api.id)" flex="20" no-dirty-check>
+                   ng-change="generalCtrl.changeLifecycle(generalCtrl.api.id)" flex="10" no-dirty-check>
           Started
         </md-switch>
       </div>
