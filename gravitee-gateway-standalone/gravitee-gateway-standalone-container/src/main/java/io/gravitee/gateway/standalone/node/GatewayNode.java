@@ -21,9 +21,11 @@ import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUIDGenerator;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
+import io.gravitee.gateway.standalone.vertx.VertxHttpServerConfiguration;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.net.InetAddress;
@@ -41,6 +43,9 @@ public class GatewayNode extends AbstractNode {
 
     @Value("${tags:}")
     private String propertyTags;
+
+    @Autowired
+    private VertxHttpServerConfiguration serverConfiguration;
 
     @Override
     public String name() {
@@ -82,6 +87,7 @@ public class GatewayNode extends AbstractNode {
             try {
                 properties.put("hostname", InetAddress.getLocalHost().getHostName());
                 properties.put("ip", InetAddress.getLocalHost().getHostAddress());
+                properties.put("port", Integer.toString(serverConfiguration.getPort()));
             } catch (UnknownHostException uhe) {}
         }
         event.setProperties(properties);
