@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.services.sync;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -23,23 +25,15 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.LifecycleState;
-
-import java.io.IOException;
-import java.text.Collator;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.text.Collator;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -120,7 +114,7 @@ public class SyncManager {
         if (tags != null && !tags.isEmpty()) {
             if (api.getTags() != null) {
                 final List<String> tagList = Arrays.asList(tags.split(","));
-                return tagList.stream()
+                final boolean isTagConfigured = tagList.stream()
                         .anyMatch(tag -> api.getTags().stream()
                                 .anyMatch(apiTag -> {
                                     final Collator collator = Collator.getInstance();
@@ -128,8 +122,12 @@ public class SyncManager {
                                     return collator.compare(tag, apiTag) == 0;
                                 })
                         );
+                if (!isTagConfigured) {
+                    logger.info("The API {} has been ignored because not in configured tags {}", api.getName(), tags);
+                }
+                return isTagConfigured;
             }
-            // tags are configured on gateway instance but not found on api
+            logger.info("Tags {} are configured on gateway instance but not found on the API {}", tags, api.getName());
             return false;
         }
         // no tags configured on this gateway instance
@@ -137,7 +135,7 @@ public class SyncManager {
     }
     
     private Set<Api> getDeployedApis(Set<io.gravitee.repository.management.model.Api> apis) {
-        Set<Api> deployedApis = new HashSet<Api>();
+        Set<Api> deployedApis = new HashSet<>();
 
         List<Event> events = eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))
                 .stream().sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
