@@ -31,8 +31,6 @@ public class EventMongo extends Auditable {
     private String type;
     private String payload;
     private String parentId;
-    private String origin;
-    private String username;
     private Map<String, String> properties;
 
     public String getId() {
@@ -65,22 +63,6 @@ public class EventMongo extends Auditable {
 
     public void setParentId(String parentId) {
         this.parentId = parentId;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public Map<String, String> getProperties() {

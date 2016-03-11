@@ -22,11 +22,7 @@ import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.mongodb.management.internal.event.EventMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -85,7 +81,7 @@ public class MongoEventRepository implements EventRepository {
             eventMongo.setType(event.getType().toString());
             eventMongo.setPayload(event.getPayload());
             eventMongo.setParentId(event.getParentId());
-
+            eventMongo.setUpdatedAt(event.getUpdatedAt());
             EventMongo eventMongoUpdated = internalEventRepo.save(eventMongo);
             return mapEvent(eventMongoUpdated);
         } catch (Exception e) {
