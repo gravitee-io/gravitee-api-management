@@ -167,3 +167,12 @@
   right: 0;
   z-index: 1;
 }
+
+.gravitee-api-card {
+  box-shadow: none;
+  background:#f7f7f7;
+}
+
+.gravitee-api-card:hover {
+  box-shadow:0 1px 6px 1px rgba(0,0,0,.17);
+}

@@ -24,6 +24,8 @@ class ApisController {
 		this.$rootScope = $rootScope;
 
     this.tableMode = this.$state.current.name.endsWith('table')? true : false;
+    this.apisScrollAreaHeight = this.$state.current.name === 'home' ? 205 : 175;
+    this.isAPIsHome = this.$state.current.name.startsWith('apis')? true : false;
     this.init();
   }
 
@@ -59,25 +61,6 @@ class ApisController {
       this.$scope.formApi.$setPristine();
       this.NotificationService.show('Api updated with success');
     });
-  }
-
-  bgColorByIndex(index) {
-    switch (index % 6) {
-      case 0 :
-        return '#f39c12';
-      case 1 :
-        return '#29b6f6';
-      case 2 :
-        return '#26c6da';
-      case 3 :
-        return '#26a69a';
-      case 4 :
-        return '#259b24';
-      case 5 :
-        return '#26a69a';
-      default :
-        return 'black';
-    }
   }
 
   changeMode(tableMode) {

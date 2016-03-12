@@ -15,33 +15,50 @@
     limitations under the License.
 
 -->
-<div layout="row" layout-wrap class="inset">
-	<div class="apis-box" flex="{{percentWidth}}" ng-repeat="application in applicationsCtrl.applications">
-		<a ui-sref="applications.portal.general({applicationId: application.id})">
-			<md-card class="api-box gravitee-card">
-				<div class="api-box-header" ng-style="{'background-color': applicationsCtrl.bgColorByIndex($index)}">
-					<h3>{{application.name}}</h3>
-					<h5><span ng-if="application.type">{{application.type}}</span><span ng-if="!application.type"><br/></span></h5>
-				</div>
-				<md-card-content>
-					<div layout="row">
-						<div class="border-right" flex>
-							<div class="description-block">
-								<h5 class="description-header">{{application.apis_size}}</h5>
-								<span class="description-text">APIS</span>
-							</div>
-						</div>
-						<div flex>
-							<div class="description-block">
-								<h5 class="description-header">{{application.members_size}}</h5>
-								<span class="description-text">MEMBERS</span>
-							</div>
-						</div>
-					</div>
-				</md-card-content>
-			</md-card>
-		</a>
-	</div>
+<div ng-init="apisCtrl.list()">
+  <md-card  ng-if="!isLoading && applicationsCtrl.applications.length > 0">
+    <md-card-header>
+      <md-card-header-text layout="row" layout-align="center">
+        <div class="input-group input-group-lg" flex="60" flex-xs="100">
+          <input class="form-control" type="text" ng-model="searchApplications" placeholder="Search Applications ..." style="border-radius: 1px;" />
+          <span class="input-group-addon" style="border-radius: 1px; padding-bottom:0px;"><ng-md-icon icon="search" style="top: 0px;"></ng-md-icon></span>
+        </div>
+      </md-card-header-text>
+    </md-card-header>
+    <md-card-content style="padding: 0px; overflow-y: auto; height: calc(100vh - 175px);">
+      <div layout="row" layout-wrap class="inset">
+      	<div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33" ng-repeat="application in applicationsCtrl.applications | filter:searchApplications">
+      		<a ui-sref="applications.portal.general({applicationId: application.id})">
+      			<md-card class="api-box gravitee-card gravitee-api-card">
+              <md-card-header layout="row" layout-align="end start">
+                <md-card-avatar>
+                </md-card-avatar>
+              </md-card-header>
+      				<md-card-content>
+                <div class="api-box-description">
+                  <div class="api-box-icon">
+                    <img src="app/images/GRAVITEE_LOGOsstxtclair-05.png"/>
+                  </div>
+                  <div class="api-box-name-version" layout-padding>
+                    {{application.name}}
+                  </div>
+                  <div class="api-box-state">
+                    <span style="color:#cdcdcd;">{{application.type}}</span>
+                  </div>
+                </div>
+      				</md-card-content>
+              <md-card-footer>
+                <div class="api-box-footer" layout="row" layout-align="end">
+                  <span><span style="top: 2px; position: relative;">{{application.apis_size}}</span><ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;"></ng-md-icon></span>
+                  <span><span style="top: 2px; position: relative;">{{application.members_size}}</span><ng-md-icon icon="people" size="20" style="fill: #cdcdcd;"></ng-md-icon></span>
+                </div>
+              </md-card-footer>
+      			</md-card>
+      		</a>
+      	</div>
+      </div>
+    </md-card-content>
+  </md-card>
 </div>
 
 <div ng-if="!isLoading && applicationsCtrl.applications.length === 0" style="text-align:center; color: #424E5A; fill: #424E5A; ">

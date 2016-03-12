@@ -57,25 +57,6 @@ class ApplicationsController {
     });
   }
 
-	bgColorByIndex(index) {
-    switch (index % 6) {
-      case 0 :
-        return '#f39c12';
-      case 1 :
-        return '#29b6f6';
-      case 2 :
-        return '#26c6da';
-      case 3 :
-        return '#26a69a';
-      case 4 :
-        return '#259b24';
-      case 5 :
-        return '#26a69a';
-      default :
-        return 'black';
-    }
-  }
-
 	changeMode(tableMode) {
     this.tableMode = tableMode;
     this.$state.go(this.tableMode ? 'applications.list.table' : 'applications.list.thumb');
