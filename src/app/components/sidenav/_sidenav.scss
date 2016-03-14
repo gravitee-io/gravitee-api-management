@@ -113,4 +113,29 @@ md-sidenav.md-sidenav-theme {
   hr {
     width: 90%;
   }
+  
+  .md-button.sidenav-toggle {
+    position: absolute;
+    right: -15px;
+    top: 70px;
+    width: 18px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    line-height: 18px !important;
+    background-color: #979797;
+  }
+  
+  .md-button.sidenav-toggle:hover, .md-button.sidenav-toggle:focus {
+    background-color: #979797;
+  }
+  
+  ng-md-icon.sidenav-toggle-icon {
+    top: 1px;
+    right: 4px;
+    font-weight: bold;
+  }
+  
+  md-list-item:last-child {
+    margin-top: 40px;
+  }
 }
