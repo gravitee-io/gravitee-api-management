@@ -78,6 +78,7 @@ public class MongoEventRepository implements EventRepository {
         }
 
         try {
+            eventMongo.setProperties(event.getProperties());
             eventMongo.setType(event.getType().toString());
             eventMongo.setPayload(event.getPayload());
             eventMongo.setParentId(event.getParentId());
