@@ -21,6 +21,8 @@ import io.gravitee.gateway.services.monitoring.probe.JvmProbe;
 import io.gravitee.gateway.services.monitoring.probe.OsProbe;
 import io.gravitee.gateway.services.monitoring.probe.ProcessProbe;
 import io.gravitee.reporter.api.monitor.Monitor;
+import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.model.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,13 +41,30 @@ public class MonitorThread implements Runnable {
     private ReporterService reporterService;
 
     @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
     private Node node;
+
+    private Event heartbeatEvent;
+
+    MonitorThread(Event heartbeatEvent) {
+        this.heartbeatEvent = heartbeatEvent;
+    }
 
     @Override
     public void run() {
         LOGGER.debug("Run monitor for gateway at {}", new Date());
 
         try {
+            // Update heartbeat timestamp
+            heartbeatEvent.setUpdatedAt(new Date());
+            heartbeatEvent.getProperties().put("last_heartbeat_at",
+                    Long.toString(heartbeatEvent.getUpdatedAt().getTime()));
+            LOGGER.debug("Sending an heartbeat event");
+            eventRepository.update(heartbeatEvent);
+
+            // And generate monitoring metrics
             reporterService.report(
                     Monitor
                     .on(node.id())
