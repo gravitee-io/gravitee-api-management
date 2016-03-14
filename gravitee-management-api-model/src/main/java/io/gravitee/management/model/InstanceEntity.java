@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,7 +22,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
 public class InstanceEntity {
@@ -16,6 +31,9 @@ public class InstanceEntity {
 
     @JsonProperty("started_at")
     private Date startedAt;
+
+    @JsonProperty("heartbeat_at")
+    private Date lastHeartbeatAt;
 
     @JsonProperty("stopped_at")
     private Date stoppedAt;
@@ -29,6 +47,8 @@ public class InstanceEntity {
     private String version;
 
     private List<String> tags;
+
+    private State state = State.UNKNOWN;
 
     public InstanceEntity(String id) {
         this.id = id;
@@ -69,8 +89,12 @@ public class InstanceEntity {
         this.stoppedAt = stoppedAt;
     }
 
-    public boolean isRunning() {
-        return stoppedAt == null;
+    public Date getLastHeartbeatAt() {
+        return lastHeartbeatAt;
+    }
+
+    public void setLastHeartbeatAt(Date lastHeartbeatAt) {
+        this.lastHeartbeatAt = lastHeartbeatAt;
     }
 
     public List<String> getTags() {
@@ -105,6 +129,14 @@ public class InstanceEntity {
         this.port = port;
     }
 
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -116,5 +148,12 @@ public class InstanceEntity {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public enum State {
+
+        STARTED,
+        UNKNOWN,
+        STOPPED
     }
 }

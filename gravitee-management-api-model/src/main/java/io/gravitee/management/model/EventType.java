@@ -27,6 +27,6 @@ public enum EventType {
     UNPUBLISH_API_RESULT,
     START_API,
     STOP_API,
-    START_GATEWAY,
-    STOP_GATEWAY
+    GATEWAY_STARTED,
+    GATEWAY_STOPPED
 }
