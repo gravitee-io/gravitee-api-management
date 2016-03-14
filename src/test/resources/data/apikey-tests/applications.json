@@ -1,0 +1,54 @@
+[
+  {
+    "id": "application1",
+    "name": "application-sample1",
+    "description": "Sample application1 description",
+    "type": "Web",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "members": [
+      {
+        "user": {
+          "username": "po"
+        },
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "membershipType": "PRIMARY_OWNER"
+      },
+      {
+        "user": {
+          "username": "user"
+        },
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "membershipType": "USER"
+      }
+    ]
+  },
+  {
+    "id": "application2",
+    "name": "application-sample2",
+    "description": "Sample application2 description",
+    "type": "Web",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "members": [
+      {
+        "user": {
+          "username": "po"
+        },
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "membershipType": "PRIMARY_OWNER"
+      },
+      {
+        "user": {
+          "username": "user"
+        },
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "membershipType": "USER"
+      }
+    ]
+  }
+]
