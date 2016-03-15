@@ -191,7 +191,7 @@ public class ApiResource extends AbstractResource {
 
     @GET
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("export")
     public Response exportDefinition() {
         final ApiEntity apiEntity = get();
