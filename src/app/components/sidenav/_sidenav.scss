@@ -97,6 +97,7 @@ md-sidenav.md-sidenav-theme {
 }
 
 .sidenav-footer {
+  position: absolute;
   bottom: 0;
   height: $sidenavFooterHeight;
   width: 100%;
@@ -117,7 +118,7 @@ md-sidenav.md-sidenav-theme {
   .md-button.sidenav-toggle {
     position: absolute;
     right: -15px;
-    top: 70px;
+    top: 20px;
     width: 18px !important;
     height: 18px !important;
     min-height: 18px !important;
@@ -136,6 +137,6 @@ md-sidenav.md-sidenav-theme {
   }
   
   md-list-item:last-child {
-    margin-top: 40px;
+    margin-top: -10px;
   }
 }
