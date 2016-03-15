@@ -1,0 +1,40 @@
+{
+  "name": "angular-base64",
+  "version": "2.0.5",
+  "author": "Ninjatronic",
+  "description": "Base64 Conversion for AngularJS Apps",
+  "contributors": [
+    {
+      "name": "Pete Martin",
+      "email": "pete@ninjatronic.com"
+    },
+    {
+      "name": "Nick Galbreath"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ninjatronic/angular-base64.git"
+  },
+  "main": [
+    "angular-base64.js"
+  ],
+  "ignore": [
+    "package.json",
+    "Gruntfile.js"
+  ],
+  "dependencies": {
+    "angular": ">= 1.0.8"
+  },
+  "homepage": "https://github.com/ninjatronic/angular-base64",
+  "_release": "2.0.5",
+  "_resolution": {
+    "type": "version",
+    "tag": "v2.0.5",
+    "commit": "ded42ea8e64aac28b066d8a10b073b73aef629fe"
+  },
+  "_source": "git://github.com/ninjatronic/angular-base64.git",
+  "_target": "~2.0.5",
+  "_originalSource": "angular-base64",
+  "_direct": true
+}
