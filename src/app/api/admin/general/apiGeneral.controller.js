@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor(ApiService, NotificationService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi, $window) {
+  constructor(ApiService, NotificationService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi, base64) {
     'ngInject';
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
@@ -25,7 +25,7 @@ class ApiAdminController {
     this.initialApi = _.cloneDeep(resolvedApi.data);
     this.api = resolvedApi.data;
     this.$scope.selected = [];
-    this.$window = $window;
+    this.base64 = base64;
 
     this.$scope.lbs = [
       {
@@ -240,7 +240,16 @@ class ApiAdminController {
   }
 
   export(id) {
-    this.$window.open(this.ApiService.getExportUrl(id), '_self');
+    var that = this;
+    this.ApiService.export(id).then(function (response) {
+      var link = document.createElement('a');
+      document.body.appendChild(link);
+      link.href = 'data:application/json;charset=utf-8;base64,' + that.base64.encode(JSON.stringify(response.data, null, 2));
+      link.download = response.headers('content-disposition').split('=')[1];
+      link.target = "_self";
+      link.click();
+      document.body.removeChild(link);
+    });
   }
 }
 
