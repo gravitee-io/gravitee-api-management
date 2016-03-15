@@ -76,8 +76,8 @@ class ApiService {
     return this.$http.post(this.apisURL + (apiId?apiId:'') + '/import', apiDefinition);
   }
 
-  getExportUrl(apiId) {
-    return this.apisURL + apiId + '/export';
+  export(apiId) {
+    return this.$http.get(this.apisURL + apiId + '/export');
   }
 
   /*

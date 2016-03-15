@@ -70,7 +70,7 @@ import DialogApiDefinitionController from './api/admin/general/dialog/apiDefinit
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
-    'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline'])
+    'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline', 'ab-base64'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
