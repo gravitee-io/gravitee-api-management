@@ -16,16 +16,15 @@
 
 -->
 <div ng-init="apisCtrl.list()">
-  <md-card  ng-if="!isLoading && applicationsCtrl.applications.length > 0">
+  <md-card class="no-box-shadow" ng-if="!isLoading && applicationsCtrl.applications.length > 0">
     <md-card-header>
       <md-card-header-text layout="row" layout-align="center">
-        <div class="input-group input-group-lg" flex="60" flex-xs="100">
-          <input class="form-control" type="text" ng-model="searchApplications" placeholder="Search Applications ..." style="border-radius: 1px;" />
-          <span class="input-group-addon" style="border-radius: 1px; padding-bottom:0px;"><ng-md-icon icon="search" style="top: 0px;"></ng-md-icon></span>
+        <div class="input-group apis-header-filter" flex="60" flex-xs="100">
+          <input class="form-control" type="text" ng-model="searchApplications" placeholder="Search applications ..." autofocus/>
         </div>
       </md-card-header-text>
     </md-card-header>
-    <md-card-content style="padding: 0px; overflow-y: auto; height: calc(100vh - 175px);">
+    <md-card-content style="padding: 0px; overflow-y: auto; height: calc(100vh - 90px);">
       <div layout="row" layout-wrap class="inset">
       	<div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33" ng-repeat="application in applicationsCtrl.applications | filter:searchApplications">
       		<a ui-sref="applications.portal.general({applicationId: application.id})">
@@ -49,8 +48,8 @@
       				</md-card-content>
               <md-card-footer>
                 <div class="api-box-footer" layout="row" layout-align="end">
-                  <span><span style="top: 2px; position: relative;">{{application.apis_size}}</span><ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;"></ng-md-icon></span>
-                  <span><span style="top: 2px; position: relative;">{{application.members_size}}</span><ng-md-icon icon="people" size="20" style="fill: #cdcdcd;"></ng-md-icon></span>
+                  <span><span style="top: 2px; position: relative;">{{application.apis_size}}</span><ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;"><md-tooltip>APIs</md-tooltip></ng-md-icon></span>
+                  <span><span style="top: 2px; position: relative;">{{application.members_size}}</span><ng-md-icon icon="people" size="20" style="fill: #cdcdcd;"><md-tooltip>Members</md-tooltip></ng-md-icon></span>
                 </div>
               </md-card-footer>
       			</md-card>

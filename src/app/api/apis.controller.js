@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope) {
+  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants) {
     'ngInject';
     this.$window = $window;
     this.ApiService = ApiService;
@@ -22,9 +22,10 @@ class ApisController {
     this.$scope = $scope;
     this.$state = $state;
 		this.$rootScope = $rootScope;
+		this.graviteeUIVersion = Constants.version;
 
     this.tableMode = this.$state.current.name.endsWith('table')? true : false;
-    this.apisScrollAreaHeight = this.$state.current.name === 'home' ? 205 : 175;
+    this.apisScrollAreaHeight = this.$state.current.name === 'home' ? 195 : 90;
     this.isAPIsHome = this.$state.current.name.startsWith('apis')? true : false;
     this.init();
   }
@@ -83,6 +84,17 @@ class ApisController {
         return 'vpn_lock';
       case 'private':
         return 'lock';
+    }
+  }
+  
+  getVisibility(api) {
+    switch (api.visibility) {
+      case 'public':
+        return 'Public';
+      case 'restricted':
+        return 'Restricted';
+      case 'private':
+        return 'Private';
     }
   }
 

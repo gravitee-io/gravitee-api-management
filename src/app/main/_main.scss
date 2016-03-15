@@ -1,23 +1,15 @@
 .landing-header {
-  padding: 8px 16px 0px 16px;
-  
-  .landing-header-image {
-  	background: #16222A; /* fallback for old browsers */
-  	background: -webkit-linear-gradient(to left, #16222A , #3A6073); /* Chrome 10-25, Safari 5.1-6 */
-  	background: linear-gradient(to left, #16222A , #3A6073); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-  }
-
-  .landing-header-image-text {
-    color:white;
+	padding: 8px 16px 0px 16px;
+	
+  h3 {
+    color: #006CAB;
+	  font-size: 32px;
+	}
 	  
-	  h2 {
-	   margin-bottom: 0px;
-	  }
-	  
-	  h4 {
-      margin-top: 0px;
-      color: #d3d3d3;
-	  }
+  p {
+    color: #707070;
+    font-size: 16px;
+    margin: 0 0 20px;
   }
 }
 
@@ -85,7 +77,7 @@
 }
 
 md-content, .main-content {
-	background: #fafafa;
+	background: #fff;
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	color: #333;
 	font-size: 12px;
@@ -104,4 +96,8 @@ v-pane-header {
   ng-md-icon {
     top: 4px;
   }
+}
+
+md-card.no-box-shadow {
+  box-shadow: none;
 }

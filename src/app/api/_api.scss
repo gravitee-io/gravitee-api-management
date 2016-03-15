@@ -176,3 +176,25 @@
 .gravitee-api-card:hover {
   box-shadow:0 1px 6px 1px rgba(0,0,0,.17);
 }
+
+.apis-view-mode {
+  position:absolute;
+  top: 24px;
+  right: 30px;
+  text-align: right;
+  width: 100%;
+  
+  button {
+    padding: 2px 6px;
+    border-radius: 0px;
+  }
+}
+
+.apis-header-filter {
+  width: 100%;
+  
+  input:focus {
+    box-shadow: none;
+    outline: 0 none;
+  }
+}
