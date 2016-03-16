@@ -1,9 +1,0 @@
-[
-	{
-		"_id" : "node-to-unregister",
-		"_class" : "io.gravitee.repository.mongodb.management.internal.model.NodeMongo",
-		"host" : "localhost",
-		"cluster" : "clusterA",
-		"startedOn" : { "$date" : 1439022010883 }
-	}
-]

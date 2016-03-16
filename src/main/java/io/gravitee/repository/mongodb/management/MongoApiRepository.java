@@ -19,7 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.internal.model.MemberMongo;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
@@ -38,9 +37,6 @@ import java.util.stream.Collectors;
 @Component
 public class MongoApiRepository implements ApiRepository {
 
-	@Autowired
-	private ApiKeyMongoRepository internalApiKeyRepo;
-	
 	@Autowired
 	private ApiMongoRepository internalApiRepo;
 	
