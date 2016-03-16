@@ -1,0 +1,38 @@
+[
+	{
+	    "id":"event1",
+	    "type":"PUBLISH_API",
+	    "payload": "{}",
+	    "parentId": null,
+	    "properties" : { "api_id" : "api-1" },
+		"createdAt": 1356114198000,
+		"updatedAt": 1356114198000
+	},
+	{
+	    "id":"event2",
+	    "type":"UNPUBLISH_API",
+	    "payload": "{}",
+	    "parentId": null,
+	    "properties" : { "api_id" : "api-1" },
+		"createdAt": 1387650198000,
+		"updatedAt": 1387650198000
+	},
+	{
+	    "id":"event3",
+	    "type":"PUBLISH_API",
+	    "payload": "{}",
+	    "parentId": null,
+	    "properties" : { "api_id" : "api-2" },
+		"createdAt": 1482344598000,
+		"updatedAt": 1482344598000
+	},
+	{
+	    "id":"event4",
+	    "type":"STOP_API",
+	    "payload": "{}",
+	    "parentId": null,
+	    "properties" : { "api_id" : "api-2" },
+        "createdAt": 1482344598000,
+		"updatedAt": 1482344598000
+	}
+]

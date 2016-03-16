@@ -1,0 +1,80 @@
+[
+  {
+    "id": "application-sample",
+    "name": "application-sample",
+    "description": "Sample application description",
+    "type": "Web",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "members": [
+      {
+        "user": {
+          "username": "po"
+        },
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "membershipType": "PRIMARY_OWNER"
+      },
+      {
+        "user": {
+          "username": "user"
+        },
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "membershipType": "USER"
+      }
+    ]
+  },
+  {
+    "id": "updated-app",
+    "name": "updated-app",
+    "description": "Sample updated-app description",
+    "type": "Web",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "members": [
+      {
+        "user": {
+          "username": "po"
+        },
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "membershipType": "PRIMARY_OWNER"
+      },
+      {
+        "user": {
+          "username": "user"
+        },
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "membershipType": "USER"
+      }
+    ]
+  },
+  {
+    "id": "deleted-app",
+    "name": "deleted-app",
+    "description": "Sample deleted-app description",
+    "type": "Web",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "members": [
+      {
+        "user": {
+          "username": "po"
+        },
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "membershipType": "PRIMARY_OWNER"
+      },
+      {
+        "user": {
+          "username": "user"
+        },
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "membershipType": "USER"
+      }
+    ]
+  }
+]

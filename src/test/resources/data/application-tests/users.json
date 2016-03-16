@@ -1,0 +1,32 @@
+[
+   {
+      "username":"user-b6e1b84c-3c0b-4217-b13a-914a801f901c",
+      "email":"user-b6e1b84c-3c0b-4217-b13a-914a801f901c@gravitee.io",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "username":"findByUser",
+      "email":"findByUser@gravitee.io",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "username":"findByTeam",
+      "email":"findByTeam@gravitee.io",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "username":"creator",
+      "email":"creator@gravitee.io",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "username":"updater",
+      "email":"updater@gravitee.io",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }
+]
