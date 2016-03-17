@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor(ApiService, NotificationService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi, base64) {
+  constructor(ApiService, NotificationService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi, base64, Upload) {
     'ngInject';
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
@@ -26,6 +26,7 @@ class ApiAdminController {
     this.api = resolvedApi.data;
     this.$scope.selected = [];
     this.base64 = base64;
+    this.Upload = Upload;
 
     this.$scope.lbs = [
       {
@@ -222,6 +223,13 @@ class ApiAdminController {
 
     this.ApiService.update(api).then((updatedApi) => {
       this.onApiUpdate(updatedApi.data);
+    });
+  }
+  
+  selectAPIPicture(file) {
+    var self = this;
+    this.Upload.base64DataUrl(file).then(function(url){
+      self.api.picture = url;
     });
   }
 

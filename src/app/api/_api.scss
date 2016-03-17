@@ -198,3 +198,18 @@
     outline: 0 none;
   }
 }
+
+.api-picture {
+  margin-bottom: 20px;
+  
+  label {
+    color: rgba(0,0,0,0.54);
+    font-size: 11px;
+    margin-left: 3px;
+    margin-bottom: 10px; 
+  }
+  
+  div.button {
+    margin-left: 50px;
+  }
+}
