@@ -75,6 +75,11 @@ public class Api {
     private LifecycleState lifecycleState = LifecycleState.STOPPED;
 
     private List<Membership> members;
+    
+    /**
+     * The api picture
+     */
+    private String picture;
 
     public Date getCreatedAt() {
         return createdAt;
@@ -162,6 +167,14 @@ public class Api {
 
     public void setMembers(List<Membership> members) {
         this.members = members;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     @Override
