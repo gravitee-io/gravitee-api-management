@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div ng-init="apisCtrl.list()">
+<div>
   <md-card class="no-box-shadow" ng-if="!isLoading && applicationsCtrl.applications.length > 0">
     <md-card-header>
       <md-card-header-text layout="row" layout-align="center">
@@ -48,8 +48,8 @@
       				</md-card-content>
               <md-card-footer>
                 <div class="api-box-footer" layout="row" layout-align="end">
-                  <span><span style="top: 2px; position: relative;">{{application.apis_size}}</span><ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;"><md-tooltip>APIs</md-tooltip></ng-md-icon></span>
-                  <span><span style="top: 2px; position: relative;">{{application.members_size}}</span><ng-md-icon icon="people" size="20" style="fill: #cdcdcd;"><md-tooltip>Members</md-tooltip></ng-md-icon></span>
+                  <span><span style="top: 2px; position: relative;">{{application.apis_size}}</span><ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;"><md-tooltip>{{application.apis_size}} API(s)</md-tooltip></ng-md-icon></span>
+                  <span><span style="top: 2px; position: relative;">{{application.members_size}}</span><ng-md-icon icon="people" size="20" style="fill: #cdcdcd;"><md-tooltip>{{application.members_size}} member(s)</md-tooltip></ng-md-icon></span>
                 </div>
               </md-card-footer>
       			</md-card>

@@ -21,6 +21,11 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/main/main.html',
       controller: 'ApisController',
       controllerAs: 'apisCtrl',
+      resolve: {
+        resolvedApis: function ($stateParams, ApiService) {
+          return ApiService.list();
+        }
+      },
 			menu: {
         label: 'Home',
         icon: 'home',
@@ -32,7 +37,12 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       url: '/apis',
       templateUrl: 'app/api/apis.html',
       controller: 'ApisController',
-      controllerAs: 'apisCtrl'
+      controllerAs: 'apisCtrl',
+      resolve: {
+        resolvedApis: function ($stateParams, ApiService) {
+          return ApiService.list();
+        }
+      }
     })
     .state('apis.list', {
       abstract: true,
@@ -226,7 +236,12 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       url: '/applications',
       templateUrl: 'app/application/applications.html',
       controller: 'ApplicationsController',
-      controllerAs: 'applicationsCtrl'
+      controllerAs: 'applicationsCtrl',
+      resolve: {
+        resolvedApplications: function (ApplicationService) {
+          return ApplicationService.list();
+        }
+      }
     })
     .state('applications.list', {
       abstract: true,

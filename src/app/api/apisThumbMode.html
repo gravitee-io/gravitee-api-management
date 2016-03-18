@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div ng-init="apisCtrl.list()">
+<div>
   <md-card class="no-box-shadow"nng-if="!isLoading && (apisCtrl.apis.length > 0 || (apisCtrl.apis.length == 0 && !apisCtrl.isAPIsHome))">
     <md-card-header>
       <md-card-header-text layout="row" layout-align="center">
@@ -54,7 +54,7 @@
       				</md-card-content>
               <md-card-footer>
                 <div class="api-box-footer" layout="row" layout-align="end">
-                  <span><span style="top: 2px; position: relative;">{{api.applicationsSize}}</span><ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;"><md-tooltip>Applications</md-tooltip></ng-md-icon></span>
+                  <span><span style="top: 2px; position: relative;">{{api.applicationsSize}}</span><ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;"><md-tooltip>{{api.applicationsSize}} application(s)</md-tooltip></ng-md-icon></span>
                   <ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}" size="20" style="fill: #cdcdcd;"><md-tooltip>{{apisCtrl.getVisibility(api)}}</md-tooltip></ng-md-icon>
                 </div>
               </md-card-footer>
@@ -70,5 +70,5 @@
 </div>
 
 <div ng-if="!isLoading && apisCtrl.apis.length === 0 && apisCtrl.isAPIsHome" 
-    ng-include="'app/api/apisEmptyMode.html'">
+  ng-include="'app/api/apisEmptyMode.html'">
 </div>

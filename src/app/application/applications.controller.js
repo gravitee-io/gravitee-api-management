@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApplicationsController {
-  constructor($window, $mdDialog, $state, $rootScope, ApplicationService, NotificationService) {
+  constructor($window, $mdDialog, $state, $rootScope, ApplicationService, NotificationService, resolvedApplications) {
 		'ngInject';
     this.$window = $window;
 		this.$mdDialog = $mdDialog;
@@ -22,7 +22,7 @@ class ApplicationsController {
 		this.$rootScope = $rootScope;
 		this.ApplicationService = ApplicationService;
 		this.NotificationService = NotificationService;
-		this.applications = [];
+		this.applications = resolvedApplications.data;
 		this.list();
 		this.tableMode = $state.current.name.endsWith('table')? true : false;
 	}

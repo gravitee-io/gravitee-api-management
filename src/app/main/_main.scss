@@ -4,6 +4,10 @@
   h3 {
     color: #006CAB;
 	  font-size: 32px;
+	  
+	  small {
+	    font-size: 40%;
+	  }
 	}
 	  
   p {
@@ -44,7 +48,7 @@
     .api-box-name-version {
       font-size: 14px;
       font-weight: 700;
-      color: #bdbdbd;
+      color: grey;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;

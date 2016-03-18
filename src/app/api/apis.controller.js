@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants) {
+  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis) {
     'ngInject';
     this.$window = $window;
     this.ApiService = ApiService;
@@ -23,6 +23,7 @@ class ApisController {
     this.$state = $state;
 		this.$rootScope = $rootScope;
 		this.graviteeUIVersion = Constants.version;
+		this.apis = resolvedApis.data;
 
     this.tableMode = this.$state.current.name.endsWith('table')? true : false;
     this.apisScrollAreaHeight = this.$state.current.name === 'home' ? 195 : 90;
