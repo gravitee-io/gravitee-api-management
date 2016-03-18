@@ -556,6 +556,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setUpdatedAt(api.getUpdatedAt());
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
+        apiEntity.setPicture(api.getPicture());
         final LifecycleState lifecycleState = api.getLifecycleState();
         if (lifecycleState != null) {
             apiEntity.setState(Lifecycle.State.valueOf(lifecycleState.name()));
@@ -629,6 +630,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         api.setVersion(updateApiEntity.getVersion().trim());
         api.setName(updateApiEntity.getName().trim());
         api.setDescription(updateApiEntity.getDescription().trim());
+        api.setPicture(updateApiEntity.getPicture());
 
         try {
             io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();

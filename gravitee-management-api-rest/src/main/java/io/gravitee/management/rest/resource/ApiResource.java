@@ -50,9 +50,6 @@ import io.gravitee.common.http.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 import static java.lang.String.format;
 
 /**
