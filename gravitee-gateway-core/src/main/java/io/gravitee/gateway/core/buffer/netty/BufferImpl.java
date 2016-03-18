@@ -18,6 +18,7 @@ package io.gravitee.gateway.core.buffer.netty;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -55,6 +56,29 @@ public class BufferImpl implements Buffer {
         this(str, StandardCharsets.UTF_8);
     }
 
+    public Buffer appendBuffer(Buffer buff) {
+        ByteBuf cb = (ByteBuf) buff.getNativeBuffer();
+        buffer.writeBytes(cb);
+        cb.readerIndex(0); // Need to reset readerindex since Netty write modifies readerIndex of source!
+        return this;
+    }
+
+    @Override
+    public Buffer appendString(String str, String enc) {
+        return append(str, Charset.forName(Objects.requireNonNull(enc)));
+    }
+
+    @Override
+    public Buffer appendString(String str) {
+        return append(str, CharsetUtil.UTF_8);
+    }
+
+    private Buffer append(String str, Charset charset) {
+        byte[] bytes = str.getBytes(charset);
+        buffer.writeBytes(bytes);
+        return this;
+    }
+
     @Override
     public String toString() {
         return buffer.toString(StandardCharsets.UTF_8);
@@ -80,5 +104,10 @@ public class BufferImpl implements Buffer {
     @Override
     public int length() {
         return buffer.writerIndex();
+    }
+
+    @Override
+    public Object getNativeBuffer() {
+        return buffer;
     }
 }
