@@ -13,33 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.policy;
+package io.gravitee.gateway.core.buffer.netty;
 
-import io.gravitee.gateway.api.stream.ReadWriteStream;
-import io.gravitee.policy.api.PolicyChain;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.buffer.BufferFactory;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
-public class SuccessPolicy implements Policy {
-
+public class BufferFactoryImpl implements BufferFactory  {
     @Override
-    public void onRequest(Object... args) throws Exception {
-        ((PolicyChain)args[2]).doNext(null, null);
+    public Buffer buffer(int initialSizeHint) {
+        return new BufferImpl(initialSizeHint);
     }
 
     @Override
-    public void onResponse(Object... args) throws Exception {
-        ((PolicyChain)args[2]).doNext(null, null);
+    public Buffer buffer() {
+        return new BufferImpl();
     }
 
     @Override
-    public ReadWriteStream<?> onRequestContent(Object... args) throws Exception {
-        return null;
+    public Buffer buffer(String str) {
+        return new BufferImpl(str);
     }
 
     @Override
-    public ReadWriteStream<?> onResponseContent(Object... args) throws Exception {
-        return null;
+    public Buffer buffer(String str, String enc) {
+        return new BufferImpl(str, enc);
+    }
+
+    @Override
+    public Buffer buffer(byte[] bytes) {
+        return new BufferImpl(bytes);
     }
 }

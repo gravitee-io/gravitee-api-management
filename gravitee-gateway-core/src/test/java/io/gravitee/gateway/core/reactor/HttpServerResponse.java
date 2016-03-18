@@ -17,7 +17,7 @@ package io.gravitee.gateway.core.reactor;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.http.BodyPart;
+import io.gravitee.gateway.api.buffer.Buffer;
 
 /**
  *
@@ -44,7 +44,7 @@ public class HttpServerResponse implements Response {
     }
 
     @Override
-    public Response write(BodyPart bodyPart) {
+    public Response write(Buffer chunk) {
         return null;
     }
 

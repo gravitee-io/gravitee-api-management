@@ -20,10 +20,11 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.utils.UUIDGenerator;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.BodyPart;
 import io.gravitee.reporter.api.http.RequestMetrics;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.net.SocketAddress;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -110,17 +111,19 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public String remoteAddress() {
-        return httpServerRequest.remoteAddress().host();
+        SocketAddress address = httpServerRequest.remoteAddress();
+        return (address != null) ? address.host() : null;
     }
 
     @Override
     public String localAddress() {
-        return httpServerRequest.localAddress().host();
+        SocketAddress address = httpServerRequest.localAddress();
+        return (address != null) ? address.host() : null;
     }
 
     @Override
-    public Request bodyHandler(Handler<BodyPart> bodyHandler) {
-        httpServerRequest.handler(buffer -> bodyHandler.handle(new VertxBufferBodyPart(buffer)));
+    public Request bodyHandler(Handler<Buffer> bodyHandler) {
+        httpServerRequest.handler(buffer -> bodyHandler.handle(Buffer.buffer(buffer.getBytes())));
         return this;
     }
 

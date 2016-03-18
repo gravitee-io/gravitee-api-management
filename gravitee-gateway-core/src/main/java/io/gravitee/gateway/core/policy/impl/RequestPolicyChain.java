@@ -19,48 +19,42 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.policy.Policy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.gravitee.policy.api.PolicyResult;
 
+import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class RequestPolicyChain extends AbstractPolicyChain {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(RequestPolicyChain.class);
+    private static final PolicyResult SUCCESS_POLICY_CHAIN = new SuccessPolicyResult();
 
-    private final ListIterator<Policy> iterator;
+    private RequestPolicyChain(final List<Policy> policies, final ExecutionContext executionContext) {
+        super(policies, executionContext);
+    }
 
-    private final ExecutionContext executionContext;
-
-    public RequestPolicyChain(final List<Policy> policies, final ExecutionContext executionContext) {
-        if (policies == null) {
-            throw new IllegalArgumentException("List of policies can't be null.");
-        }
-
-        this.executionContext = executionContext;
-        this.iterator = policies.listIterator();
+    public static RequestPolicyChain create(List<Policy> policies, ExecutionContext executionContext) {
+        return new RequestPolicyChain(policies, executionContext);
     }
 
     @Override
     public void doNext(Request request, Response response) {
-        if (iterator().hasNext()) {
-            Policy policy = iterator().next();
-            try {
-                policy.onRequest(request, response, this, executionContext);
-            } catch (Exception ex) {
-                LOGGER.error("Unexpected error while running onRequest method for policy {}", policy, ex);
-                failWith(ex);
-            }
+        if (iterator.hasNext()) {
+            super.doNext(request, response);
         } else {
             resultHandler.handle(SUCCESS_POLICY_CHAIN);
         }
     }
 
-    public ListIterator<Policy> iterator() {
-        return iterator;
+    @Override
+    protected void execute(Policy policy, Object... args) throws Exception {
+        policy.onRequest(args);
+    }
+
+    @Override
+    public Iterator<Policy> iterator() {
+        return policies.iterator();
     }
 }

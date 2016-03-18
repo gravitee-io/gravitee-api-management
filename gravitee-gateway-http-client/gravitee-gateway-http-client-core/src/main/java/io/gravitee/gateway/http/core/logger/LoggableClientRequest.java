@@ -17,8 +17,9 @@ package io.gravitee.gateway.http.core.logger;
 
 import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.BodyPart;
+import io.gravitee.gateway.api.stream.WriteStream;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -47,11 +48,11 @@ public class LoggableClientRequest implements ClientRequest {
     }
 
     @Override
-    public ClientRequest write(BodyPart bodyPart) {
+    public WriteStream<Buffer> write(Buffer chunk) {
         HttpDump.logger.info("{} >> proxying content to upstream: {} bytes", request.id(),
-                bodyPart.getBodyPartAsBytes().length);
-        HttpDump.logger.info("{} >> {}", request.id(), new String(bodyPart.getBodyPartAsBytes()));
+                chunk.length());
+        HttpDump.logger.info("{} >> {}", request.id(), chunk.toString());
 
-        return clientRequest.write(bodyPart);
+        return clientRequest.write(chunk);
     }
 }

@@ -19,8 +19,8 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.BodyPart;
 import io.gravitee.reporter.api.http.RequestMetrics;
 
 import java.net.URI;
@@ -88,7 +88,7 @@ public class HttpServerRequest implements Request {
 	}
 
 	@Override
-	public Request bodyHandler(Handler<BodyPart> handler) {
+	public Request bodyHandler(Handler<Buffer> bodyHandler) {
 		return this;
 	}
 

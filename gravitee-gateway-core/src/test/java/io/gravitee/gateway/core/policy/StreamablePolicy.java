@@ -13,36 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.vertx;
+package io.gravitee.gateway.core.policy;
 
-import io.gravitee.gateway.api.http.BodyPart;
-import io.vertx.core.buffer.Buffer;
-
-import java.nio.ByteBuffer;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.policy.api.PolicyChain;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class VertxBufferBodyPart implements BodyPart<ByteBuffer> {
+public class StreamablePolicy implements Policy {
 
-    private final byte[] bytes;
-
-    public VertxBufferBodyPart(Buffer buffer) {
-        bytes = buffer.getBytes();
+    @Override
+    public void onRequest(Object... args) throws Exception {
+        throw new RuntimeException();
     }
 
     @Override
-    public int length() {
-        return bytes.length;
+    public void onResponse(Object... args) throws Exception {
+        ((PolicyChain)args[2]).doNext(null, null);
     }
 
     @Override
-    public byte[] getBodyPartAsBytes() {
-        return bytes;
+    public ReadWriteStream<Buffer> onRequestContent(Object... args) throws Exception {
+        return null;
     }
 
     @Override
-    public ByteBuffer getBodyPart() {
-        return ByteBuffer.wrap(bytes);
+    public ReadWriteStream<?> onResponseContent(Object... args) throws Exception {
+        return null;
     }
 }

@@ -20,7 +20,10 @@ import io.gravitee.gateway.core.policy.PathResolver;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyFactory;
 import io.gravitee.gateway.core.policy.PolicyResolver;
-import io.gravitee.gateway.core.policy.impl.*;
+import io.gravitee.gateway.core.policy.impl.PathResolverImpl;
+import io.gravitee.gateway.core.policy.impl.PolicyConfigurationFactoryImpl;
+import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
+import io.gravitee.gateway.core.policy.impl.PolicyResolverImpl;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,16 +54,6 @@ public class ApiHandlerConfiguration {
     @Bean
     public PolicyConfigurationFactory policyConfigurationFactory() {
         return new PolicyConfigurationFactoryImpl();
-    }
-
-    @Bean
-    public RequestPolicyChainBuilder requestPolicyChainBuilder() {
-        return new RequestPolicyChainBuilder();
-    }
-
-    @Bean
-    public ResponsePolicyChainBuilder responsePolicyChainBuilder() {
-        return new ResponsePolicyChainBuilder();
     }
 
     @Bean
