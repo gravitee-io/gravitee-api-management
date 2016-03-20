@@ -15,9 +15,16 @@
     limitations under the License.
 
 -->
-<md-card>
-	<md-card-content>
-		<md-table-container ng-init="apisCtrl.list()">
+<md-card class="no-box-shadow">
+  <md-card-header>
+    <md-card-header-text layout="row" layout-align="center">
+      <div class="input-group apis-header-filter" flex="60" flex-xs="100">
+        <input class="form-control" type="text" ng-model="searchAPIs" placeholder="Search APIs ..." autofocus/>
+      </div>
+    </md-card-header-text>
+  </md-card-header>
+	<md-card-content style="overflow-y: auto; height: calc(100vh - {{apisCtrl.apisScrollAreaHeight}}px);">
+		<md-table-container>
 			<table md-table>
 				<thead md-head md-order="order">
           <tr md-row>
@@ -30,7 +37,7 @@
           </tr>
 				</thead>
 				<tbody md-body>
-					<tr md-row ng-repeat="api in apisCtrl.apis | orderBy: order" title="{{api.description}}" ui-sref="apis.portal({apiId: api.id})">
+					<tr md-row ng-repeat="api in apisCtrl.apis | filter:searchAPIs | orderBy: order" title="{{api.description}}" ui-sref="apis.portal({apiId: api.id})">
 						<td md-cell>
 							<ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}"></ng-md-icon>
 						</td>

@@ -15,8 +15,8 @@
     limitations under the License.
 
 -->
-<div layout="row" layout-padding>
-  <div ng-if="apisCtrl.apis.length > 0 && percentWidth < 50" style="text-align: right;width: 100%">
+<div layout="row">
+  <div class="apis-view-mode" ng-if="apisCtrl.apis.length > 0 && percentWidth < 50">
     <span class="btn-group">
       <button ng-class="{'active': !apisCtrl.tableMode}" class="btn btn-default"
               ng-click="apisCtrl.changeMode(false)" type="button">

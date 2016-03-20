@@ -15,54 +15,60 @@
     limitations under the License.
 
 -->
-<div layout="row" layout-wrap class="inset" ng-init="apisCtrl.list()">
-	<div class="apis-box" flex="{{percentWidth}}" ng-repeat="api in apisCtrl.apis">
-		<a ui-sref="apis.portal({apiId: api.id})">
-			<md-card class="api-box gravitee-card" style="position: relative;">
-				<div class="api-box-header" ng-style="{'background-color': apisCtrl.bgColorByIndex($index)}" layout="row">
-					<div layout="column">
-						<h3>{{api.name}} <small>({{api.version}})</small></h3>
-						<h5 class="gravitee-api-description">{{api.description}}</h5>
-					</div>
-					<md-button class="md-icon-button md-icon-right" ng-if="apisCtrl.isOwner(api)"
-										 ng-click="$event.stopPropagation()" ui-sref="apis.admin.general({apiId: api.id})">
-            <md-tooltip md-direction="left">Manage this API</md-tooltip>
-						<ng-md-icon icon="settings" aria-label="{{api.id}}" style="fill:white;"></ng-md-icon>
-					</md-button>
-				</div>
-				<md-card-content>
-					<div layout="row">
-						<div flex="30" class="border-right">
-							<div class="description-block">
-								<ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}"></ng-md-icon>
-							</div>
-						</div>
-						<div flex="40" class="border-right">
-							<div class="description-block">
-								<h5 class="description-header">{{api.applicationsSize}}</h5>
-								<span class="description-text">APPLICATION(S)</span>
-							</div>
-						</div>
-						<div flex="30">
-							<div class="description-block">
-								<ng-md-icon ng-if="api.state === 'started'" icon="radio_button_on" size="32" style="fill: green;" title="Started"></ng-md-icon>
-								<ng-md-icon ng-if="api.state !== 'started'" icon="radio_button_off" size="32" style="fill: red;" title="Stopped"></ng-md-icon>
-							</div>
-						</div>
-					</div>
-				</md-card-content>
-			</md-card>
-		</a>
-	</div>
+<div>
+  <md-card class="no-box-shadow"nng-if="!isLoading && (apisCtrl.apis.length > 0 || (apisCtrl.apis.length == 0 && !apisCtrl.isAPIsHome))">
+    <md-card-header>
+      <md-card-header-text layout="row" layout-align="center">
+        <div class="input-group apis-header-filter" flex="60" flex-xs="100">
+          <input class="form-control" type="text" ng-model="searchAPIs" placeholder="Search APIs ..." autofocus/>
+        </div>
+      </md-card-header-text>
+    </md-card-header>
+    <md-card-content style="padding: 0px; overflow-y: auto; height: calc(100vh - {{apisCtrl.apisScrollAreaHeight}}px);">
+      <div layout="row" layout-wrap class="inset">
+      	<div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33" ng-repeat="api in apisCtrl.apis | filter:searchAPIs">
+      		<a ui-sref="apis.portal({apiId: api.id})">
+      			<md-card class="api-box gravitee-card gravitee-api-card">
+              <md-card-header layout="row" layout-align="end start">
+                <md-card-avatar>
+                  <md-button class="md-icon-button" ng-if="apisCtrl.isOwner(api)"
+                           ng-click="$event.stopPropagation()" ui-sref="apis.admin.general({apiId: api.id})">
+                    <md-tooltip>Manage this API</md-tooltip>
+                    <ng-md-icon icon="settings" aria-label="{{api.id}}" size="20" style="fill: #006CAB;"></ng-md-icon>
+                  </md-button>
+                </md-card-avatar>
+              </md-card-header>
+      				<md-card-content layout="column">
+                <div class="api-box-description">
+                  <div class="api-box-icon">
+                    <img src="app/images/GRAVITEE_LOGOsstxtclair-05.png"/>
+                  </div>
+                  <div class="api-box-name-version" layout-padding>
+                    {{api.name}} <small>({{api.version}})</small>
+                  </div>
+                  <div class="api-box-state">
+                    <span ng-if="api.state === 'started'" style="color: #429f46;">Started</span>
+                    <span ng-if="api.state !== 'started'" style="color: red">Stopped</span>
+                  </div>
+                </div>
+      				</md-card-content>
+              <md-card-footer>
+                <div class="api-box-footer" layout="row" layout-align="end">
+                  <span><span style="top: 2px; position: relative;">{{api.applicationsSize}}</span><ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;"><md-tooltip>{{api.applicationsSize}} application(s)</md-tooltip></ng-md-icon></span>
+                  <ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}" size="20" style="fill: #cdcdcd;"><md-tooltip>{{apisCtrl.getVisibility(api)}}</md-tooltip></ng-md-icon>
+                </div>
+              </md-card-footer>
+      			</md-card>
+      		</a>
+      	</div>
+      </div>
+      <div ng-if="apisCtrl.apis.length === 0"
+          ng-include="'app/api/apisEmptyMode.html'">
+      </div>
+    </md-card-content>
+  </md-card>
 </div>
 
-<div ng-if="!isLoading && apisCtrl.apis.length === 0" style="text-align:center; color: #424E5A; fill: #424E5A; ">
-	<h1><ng-md-icon size="48" icon="error"></ng-md-icon> Hmmm, there is no API for you here :(</h1>
-	<div>
-    <h4 style="margin-top: 30px;" gravitee-roles-allowed="ADMIN, API_PUBLISHER">Let's start using Gravitee.io portal</h4>
-		<p style="margin-top: 30px;">
-			<md-button ng-if="authenticated" gravitee-roles-allowed="ADMIN, API_PUBLISHER" class="md-raised" ng-click="apisCtrl.createInitAPI()">Create your first API</md-button>
-			<md-button ng-if="!authenticated" class="md-raised" ng-click="apisCtrl.login()">Login</md-button>
-		</p>
-	</div>
+<div ng-if="!isLoading && apisCtrl.apis.length === 0 && apisCtrl.isAPIsHome" 
+  ng-include="'app/api/apisEmptyMode.html'">
 </div>

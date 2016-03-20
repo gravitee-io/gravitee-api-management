@@ -16,7 +16,7 @@
 
 -->
 <md-sidenav class="md-sidenav-left md-whiteframe-z2 md-sidenav-theme" md-component-id="left" md-is-locked-open="true"
-  ng-class="{'md-sidenav-min': reducedMode}">
+  ng-class="{'md-sidenav-min': reducedMode}" style="overflow: inherit;">
 	<div>
 		<div class="sidenav-user-contents">
 			<div>
@@ -46,18 +46,17 @@
       </md-list-item>
     </md-list>
     <md-list class="sidenav-footer">
-      <hr>
+      <md-list-item style="cursor: auto;">
+        <md-button class="md-fab md-mini sidenav-toggle" md-no-ink md-no-focus-style ng-click="reducedMode = !reducedMode" aria-label="Mini FAB">
+           <ng-md-icon class="sidenav-toggle-icon" size="16" icon="{{reducedMode?'chevron_right':'chevron_left'}}"></ng-md-icon>
+        </md-button>
+      </md-list-item>
       <md-list-item>
         <a href="#" ng-click="sidenavCtrl.showLoginModal($event)" ng-if="!authenticated">
           <ng-md-icon icon="login"></ng-md-icon> <span ng-if="!reducedMode">Login</span>
         </a>
         <a href="#" ng-click="sidenavCtrl.logout()" ng-if="authenticated">
           <ng-md-icon icon="logout"></ng-md-icon> <span ng-if="!reducedMode">Sign out</span>
-        </a>
-      </md-list-item>
-      <md-list-item>
-        <a href="" ng-click="reducedMode = !reducedMode">
-          <ng-md-icon icon="{{reducedMode?'chevron_right':'chevron_left'}}"></ng-md-icon> <span ng-if="!reducedMode">Reduce the menu</span>
         </a>
       </md-list-item>
 		</md-list>

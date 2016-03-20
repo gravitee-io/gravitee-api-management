@@ -1,109 +1,69 @@
-.landing-header-image {
-	padding-top: 20px;
-  height: 280px;
-	background: #16222A; /* fallback for old browsers */
-	background: -webkit-linear-gradient(to left, #16222A , #3A6073); /* Chrome 10-25, Safari 5.1-6 */
-	background: linear-gradient(to left, #16222A , #3A6073); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+.landing-header {
+	padding: 8px 16px 0px 16px;
+	
+  h3 {
+    color: #006CAB;
+	  font-size: 32px;
+	  
+	  small {
+	    font-size: 40%;
+	  }
+	}
+	  
+  p {
+    color: #707070;
+    font-size: 16px;
+    margin: 0 0 20px;
+  }
 }
 
-.landing-header-image-text {
-	color:white;
-}
-
-.landing-header-image-text h1 {
-	margin-bottom: 0px;
-}
-
-.landing-header-image-text h3 {
-	margin-top: 0px;
-	color: #d3d3d3;
-}
-
-.landing-header-content ul > li {
-	display: inline-block;
-	margin-left: 0.3em;
-	margin-right: 0.35em;
-	margin-bottom: .5em;
-}
-
-.landing-header-content ul li a {
-	color: #08c;
-}
-
-.section-main-header .section-title {
-  font-size: 44px;
-  color: #272727;
-  text-transform: uppercase;
-  position: relative;
-  padding-bottom: 20px;
-}
-
-.section-main-header .section-title::before {
-  content: "";
-  position: absolute;
-  height: 1px;
-  background: #EBEBEB none repeat scroll 0% 0%;
-  margin-left: -70px;
-  left: 50%;
-  bottom: 0px;
-  width: 140px;
-}
-
-.section-main-header .section-title::after {
-  content: "";
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  bottom: -11px;
-  left: 50%;
-  margin-left: -12px;
-}
-
-.widget-user .widget-user-image {
-	position: absolute;
-	top: 65px;
-	left: 50%;
-	margin-left: -45px;
-}
-
-.apis-box a, .apis-box a:link, .apis-box a:visited, .apis-box a:hover, .apis-box a:active {
-	text-decoration: none;
-  color: black;
-}
-
-.api-box .border-right {
-	border-right: 1px solid #f4f4f4;
-}
-
-.api-box .api-box-header {
-	padding: 20px;
-	border-top-right-radius: 3px;
-	border-top-left-radius: 3px;
-}
-
-.api-box .api-box-header h3 {
-	color:white;
-	margin-top: 20px;
-	margin-bottom: 5px;
-	font-weight: 300;
-	text-shadow: 0 1px 1px rgba(0,0,0,0.2);
-}
-
-.api-box .api-box-header h5 {
-	color:white;
-}
-
-.description-block {
-	display: block;
-	margin: 10px 0;
-	text-align: center;
-}
-
-.description-block>.description-header {
-	margin: 0;
-	padding: 0;
-	font-weight: 600;
-	font-size: 16px;
+.apis-box {
+  a, a:link, a:visited, a:hover, a:active {
+  	text-decoration: none;
+    color: black;
+  }
+  
+  .api-box {
+    md-card-header {
+      padding: 0px;
+    }
+    md-card-avatar {
+      width: 35px; 
+      height: 20px;
+    }
+    md-card-content {
+      padding: 0px;
+    }
+    md-card-footer {
+      padding: 0px 5px 5px 5px;
+    }
+    .api-box-description {
+      text-align: center;
+    }
+    .api-box-icon {
+      img {
+        width: 60%;
+      }
+    }
+    .api-box-name-version {
+      font-size: 14px;
+      font-weight: 700;
+      color: grey;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      
+      small {
+        padding: 0px;
+      }
+    }
+    .api-box-state {
+      font-size: 12px;
+    }
+    .api-box-footer {
+      color: #cdcdcd;
+    }
+  }
 }
 
 .icon-circle {
@@ -121,7 +81,7 @@
 }
 
 md-content, .main-content {
-	background: #fafafa;
+	background: #fff;
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	color: #333;
 	font-size: 12px;
@@ -140,4 +100,8 @@ v-pane-header {
   ng-md-icon {
     top: 4px;
   }
+}
+
+md-card.no-box-shadow {
+  box-shadow: none;
 }

@@ -15,13 +15,13 @@
     limitations under the License.
 
 -->
-<section style="height: 100%; width: 100%;">
-	<md-content style="height: 100%; width: 100%;">
-    <div class="landing-header">
-      <h3>Gravitee.io Portal <small>version {{apisCtrl.graviteeUIVersion}}</small></h3>
-    </div>
-		<div>
-			<div ng-include="'app/api/apisThumbMode.html'"></div>
-		</div>
-	</md-content>
-</section>
+<div style="text-align:center; color: #424E5A; fill: #424E5A; ">
+  <h1><ng-md-icon size="48" icon="error"></ng-md-icon> Hmmm, there is no API for you here :(</h1>
+  <div>
+    <h4 style="margin-top: 30px;" gravitee-roles-allowed="ADMIN, API_PUBLISHER">Let's start using Gravitee.io portal</h4>
+    <p style="margin-top: 30px;">
+      <md-button ng-if="authenticated" gravitee-roles-allowed="ADMIN, API_PUBLISHER" class="md-raised" ng-click="apisCtrl.createInitAPI()">Create your first API</md-button>
+      <md-button ng-if="!authenticated" class="md-raised" ng-click="apisCtrl.login()">Login</md-button>
+    </p>
+  </div>
+</div>

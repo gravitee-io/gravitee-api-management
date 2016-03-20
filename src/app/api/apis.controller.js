@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope) {
+  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis) {
     'ngInject';
     this.$window = $window;
     this.ApiService = ApiService;
@@ -22,8 +22,12 @@ class ApisController {
     this.$scope = $scope;
     this.$state = $state;
 		this.$rootScope = $rootScope;
+		this.graviteeUIVersion = Constants.version;
+		this.apis = resolvedApis.data;
 
     this.tableMode = this.$state.current.name.endsWith('table')? true : false;
+    this.apisScrollAreaHeight = this.$state.current.name === 'home' ? 195 : 90;
+    this.isAPIsHome = this.$state.current.name.startsWith('apis')? true : false;
     this.init();
   }
 
@@ -61,25 +65,6 @@ class ApisController {
     });
   }
 
-  bgColorByIndex(index) {
-    switch (index % 6) {
-      case 0 :
-        return '#f39c12';
-      case 1 :
-        return '#29b6f6';
-      case 2 :
-        return '#26c6da';
-      case 3 :
-        return '#26a69a';
-      case 4 :
-        return '#259b24';
-      case 5 :
-        return '#26a69a';
-      default :
-        return 'black';
-    }
-  }
-
   changeMode(tableMode) {
     this.tableMode = tableMode;
     this.$state.go(tableMode? 'apis.list.table' : 'apis.list.thumb');
@@ -100,6 +85,17 @@ class ApisController {
         return 'vpn_lock';
       case 'private':
         return 'lock';
+    }
+  }
+  
+  getVisibility(api) {
+    switch (api.visibility) {
+      case 'public':
+        return 'Public';
+      case 'restricted':
+        return 'Restricted';
+      case 'private':
+        return 'Private';
     }
   }
 

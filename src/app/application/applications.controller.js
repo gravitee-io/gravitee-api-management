@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApplicationsController {
-  constructor($window, $mdDialog, $state, $rootScope, ApplicationService, NotificationService) {
+  constructor($window, $mdDialog, $state, $rootScope, ApplicationService, NotificationService, resolvedApplications) {
 		'ngInject';
     this.$window = $window;
 		this.$mdDialog = $mdDialog;
@@ -22,7 +22,7 @@ class ApplicationsController {
 		this.$rootScope = $rootScope;
 		this.ApplicationService = ApplicationService;
 		this.NotificationService = NotificationService;
-		this.applications = [];
+		this.applications = resolvedApplications.data;
 		this.list();
 		this.tableMode = $state.current.name.endsWith('table')? true : false;
 	}
@@ -55,25 +55,6 @@ class ApplicationsController {
     }, function() {
        // You cancelled the dialog
     });
-  }
-
-	bgColorByIndex(index) {
-    switch (index % 6) {
-      case 0 :
-        return '#f39c12';
-      case 1 :
-        return '#29b6f6';
-      case 2 :
-        return '#26c6da';
-      case 3 :
-        return '#26a69a';
-      case 4 :
-        return '#259b24';
-      case 5 :
-        return '#26a69a';
-      default :
-        return 'black';
-    }
   }
 
 	changeMode(tableMode) {
