@@ -50,6 +50,8 @@ public class ApiListItem {
     private MembershipType permission;
 
     private int applicationsSize;
+    
+    private String picture;
 
     public String getId() {
         return id;
@@ -137,6 +139,14 @@ public class ApiListItem {
 
     public void setApplicationsSize(int applicationsSize) {
         this.applicationsSize = applicationsSize;
+    }
+    
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     @Override

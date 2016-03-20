@@ -112,6 +112,7 @@ public class ApisResource extends AbstractResource {
         apiItem.setName(api.getName());
         apiItem.setVersion(api.getVersion());
         apiItem.setDescription(api.getDescription());
+        apiItem.setPicture(api.getPicture());
         apiItem.setCreatedAt(api.getCreatedAt());
         apiItem.setUpdatedAt(api.getUpdatedAt());
 
