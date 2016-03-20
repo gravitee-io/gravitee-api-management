@@ -15,10 +15,8 @@
  */
 package io.gravitee.gateway.core.reactor.handler;
 
-import io.gravitee.gateway.core.policy.PolicyChainBuilder;
+import io.gravitee.gateway.core.policy.PathResolver;
 import io.gravitee.gateway.core.policy.PolicyResolver;
-import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
-import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -27,25 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class ContextReactorHandler extends AbstractReactorHandler implements ReactorHandler {
 
     @Autowired
-    private PolicyChainBuilder<RequestPolicyChain> requestPolicyChainBuilder;
+    protected PolicyResolver policyResolver;
 
     @Autowired
-    private PolicyChainBuilder<ResponsePolicyChain> responsePolicyChainBuilder;
-
-    @Autowired
-    private PolicyResolver policyResolver;
-
-    public PolicyResolver getPolicyResolver() {
-        return policyResolver;
-    }
-
-    public PolicyChainBuilder<RequestPolicyChain> getRequestPolicyChainBuilder() {
-        return requestPolicyChainBuilder;
-    }
-
-    public PolicyChainBuilder<ResponsePolicyChain> getResponsePolicyChainBuilder() {
-        return responsePolicyChainBuilder;
-    }
+    protected PathResolver pathResolver;
 
     public abstract String getContextPath();
 }

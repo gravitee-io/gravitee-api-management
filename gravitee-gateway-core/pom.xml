@@ -110,6 +110,13 @@
             <version>${jackson.version}</version>
         </dependency>
 
+        <!-- Netty.io -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-buffer</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>

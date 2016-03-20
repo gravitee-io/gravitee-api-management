@@ -103,7 +103,17 @@ public class PolicyFactoryTest {
             }
 
             @Override
+            public Method onRequestContentMethod() {
+                return null;
+            }
+
+            @Override
             public Method onResponseMethod() {
+                return null;
+            }
+
+            @Override
+            public Method onResponseContentMethod() {
                 return null;
             }
 
@@ -137,7 +147,17 @@ public class PolicyFactoryTest {
             }
 
             @Override
+            public Method onRequestContentMethod() {
+                return null;
+            }
+
+            @Override
             public Method onResponseMethod() {
+                return null;
+            }
+
+            @Override
+            public Method onResponseContentMethod() {
                 return null;
             }
 

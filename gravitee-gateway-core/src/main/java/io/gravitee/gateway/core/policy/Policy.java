@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.policy;
 
+import io.gravitee.gateway.api.stream.ReadWriteStream;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -23,4 +25,8 @@ public interface Policy {
     void onRequest(Object ... args) throws Exception;
 
     void onResponse(Object ... args) throws Exception;
+
+    ReadWriteStream<?> onRequestContent(Object ... args) throws Exception;
+
+    ReadWriteStream<?> onResponseContent(Object ... args) throws Exception;
 }

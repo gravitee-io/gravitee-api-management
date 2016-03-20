@@ -58,7 +58,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(policyDefinition.policy(), OnRequest.class);
 
-        Policy policy = new PolicyImpl(policyInst, onRequestMethod, null);
+        Policy policy = PolicyImpl.with(policyInst).onRequestMethod(onRequestMethod).build();
         policy.onRequest();
 
         verify(policyInst, atLeastOnce()).onRequest(any(), any(), any());
@@ -72,7 +72,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(policyDefinition.policy(), OnResponse.class);
 
-        Policy policy = new PolicyImpl(policyInst, null, onResponseMethod);
+        Policy policy = PolicyImpl.with(policyInst).onResponseMethod(onResponseMethod).build();
         policy.onResponse();
 
         verify(policyInst, never()).onRequest(any(), any(), any());
@@ -86,7 +86,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(policyDefinition.policy(), OnRequest.class);
 
-        Policy policy = new PolicyImpl(policyInst, onRequestMethod, null);
+        Policy policy = PolicyImpl.with(policyInst).onRequestMethod(onRequestMethod).build();
         policy.onRequest();
 
         verify(policyInst, atLeastOnce()).onRequest(any(), any(), any());
@@ -99,7 +99,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(policyDefinition.policy(), OnResponse.class);
 
-        Policy policy = new PolicyImpl(policyInst, null, onResponseMethod);
+        Policy policy = PolicyImpl.with(policyInst).onResponseMethod(onResponseMethod).build();
         policy.onResponse();
 
         verify(policyInst, atLeastOnce()).onResponse(any(), any(), any());
@@ -112,7 +112,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(policyDefinition.policy(), OnRequest.class);
 
-        Policy policy = new PolicyImpl(policyInst, onRequestMethod, null);
+        Policy policy = PolicyImpl.with(policyInst).onRequestMethod(onRequestMethod).build();
         Request mockRequest = mock(Request.class);
         Response mockResponse = mock(Response.class);
 
@@ -128,7 +128,7 @@ public class PolicyTest {
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(policyDefinition.policy(), OnResponse.class);
 
-        Policy policy = new PolicyImpl(policyInst,  null, onResponseMethod);
+        Policy policy = PolicyImpl.with(policyInst).onResponseMethod(onResponseMethod).build();
         Request mockRequest = mock(Request.class);
         Response mockResponse = mock(Response.class);
 
@@ -173,7 +173,17 @@ public class PolicyTest {
             }
 
             @Override
+            public Method onRequestContentMethod() {
+                return null;
+            }
+
+            @Override
             public Method onResponseMethod() {
+                return null;
+            }
+
+            @Override
+            public Method onResponseContentMethod() {
                 return null;
             }
 

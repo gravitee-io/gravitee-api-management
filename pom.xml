@@ -103,12 +103,6 @@
                 <version>${gravitee-plugin-policy.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>io.gravitee.reporter</groupId>
-                <artifactId>gravitee-reporter-api</artifactId>
-                <version>${gravitee-reporter-api.version}</version>
-            </dependency>
-
             <!-- Logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -146,17 +140,18 @@
 
     <properties>
         <gravitee-definition.version>0.8.0</gravitee-definition.version>
-        <gravitee-common.version>0.5.0</gravitee-common.version>
+        <gravitee-common.version>0.6.0-SNAPSHOT</gravitee-common.version>
         <gravitee-repository.version>0.9.0-SNAPSHOT</gravitee-repository.version>
-        <gravitee-plugin-core.version>0.7.0</gravitee-plugin-core.version>
-        <gravitee-plugin-policy.version>0.7.0</gravitee-plugin-policy.version>
-        <gravitee-policy-api.version>0.5.0</gravitee-policy-api.version>
-        <gravitee-gateway-api.version>0.8.0</gravitee-gateway-api.version>
+        <gravitee-plugin-core.version>0.8.0-SNAPSHOT</gravitee-plugin-core.version>
+        <gravitee-plugin-policy.version>0.8.0-SNAPSHOT</gravitee-plugin-policy.version>
+        <gravitee-policy-api.version>0.6.0-SNAPSHOT</gravitee-policy-api.version>
+        <gravitee-gateway-api.version>0.9.0-SNAPSHOT</gravitee-gateway-api.version>
         <gravitee-repository-mongodb.version>0.8.0</gravitee-repository-mongodb.version>
         <gravitee-reporter-api.version>0.6.0</gravitee-reporter-api.version>
         <jackson.version>2.5.3</jackson.version>
         <vertx.version>3.2.1</vertx.version>
         <jetty.version>9.3.3.v20150827</jetty.version>
+        <netty.version>4.0.33.Final</netty.version>
         <httpclient.version>4.5</httpclient.version>
         <reflections.version>0.9.10</reflections.version>
         <snakeyaml.version>1.16</snakeyaml.version>

@@ -18,8 +18,8 @@ package io.gravitee.gateway.http.core.invoker;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.*;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.StringBodyPart;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
 import io.gravitee.gateway.http.core.logger.HttpDump;
@@ -93,7 +93,7 @@ public abstract class AbstractHttpInvoker implements Invoker {
                     .endHandler(endResult -> finalClientRequest.end());
         } else {
             String content = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_BODY_CONTENT);
-            clientRequest.write(new StringBodyPart(content));
+            clientRequest.write(Buffer.buffer(content));
             clientRequest.end();
         }
 

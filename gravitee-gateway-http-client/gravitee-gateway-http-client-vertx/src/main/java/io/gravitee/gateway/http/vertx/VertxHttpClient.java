@@ -22,12 +22,11 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.StringBodyPart;
 import io.gravitee.gateway.http.core.client.AbstractHttpClient;
 import io.netty.channel.ConnectTimeoutException;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.net.PemTrustOptions;
 import org.slf4j.Logger;
@@ -77,18 +76,18 @@ public class VertxHttpClient extends AbstractHttpClient {
 
                 clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
-                StringBodyPart responseBody = null;
+                Buffer buffer = null;
 
                 if (event.getMessage() != null) {
                     // Create body content with error message
-                    responseBody = new StringBodyPart(event.getMessage());
-                    clientResponse.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(responseBody.length()));
+                    buffer = Buffer.buffer(event.getMessage());
+                    clientResponse.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(buffer.length()));
                 }
 
                 responseHandler.handle(clientResponse);
 
-                if (responseBody != null) {
-                    clientResponse.bodyHandler().handle(responseBody);
+                if (buffer != null) {
+                    clientResponse.bodyHandler().handle(buffer);
                 }
 
                 clientResponse.endHandler().handle(null);
@@ -123,7 +122,7 @@ public class VertxHttpClient extends AbstractHttpClient {
                 proxyClientResponse.headers().add(header.getKey(), header.getValue()));
 
         // Copy body content
-        clientResponse.handler(event -> proxyClientResponse.bodyHandler().handle(new VertxBufferBodyPart(event)));
+        clientResponse.handler(event -> proxyClientResponse.bodyHandler().handle(Buffer.buffer(event.getBytes())));
 
         // Signal end of the response
         clientResponse.endHandler(v -> proxyClientResponse.endHandler().handle(null));
@@ -211,7 +210,8 @@ public class VertxHttpClient extends AbstractHttpClient {
             if (proxyDefinition.getHttpClient().getSsl().getPem() != null &&
                     ! proxyDefinition.getHttpClient().getSsl().getPem().isEmpty()) {
                 options.setPemTrustOptions(
-                        new PemTrustOptions().addCertValue(Buffer.buffer(proxyDefinition.getHttpClient().getSsl().getPem())));
+                        new PemTrustOptions().addCertValue(
+                                io.vertx.core.buffer.Buffer.buffer(proxyDefinition.getHttpClient().getSsl().getPem())));
             }
         }
 

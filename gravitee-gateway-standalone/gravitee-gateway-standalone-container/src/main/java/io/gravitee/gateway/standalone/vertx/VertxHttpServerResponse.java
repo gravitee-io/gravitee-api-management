@@ -18,10 +18,7 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.http.BodyPart;
-import io.gravitee.reporter.api.http.RequestMetrics;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpServerRequest;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.vertx.core.http.HttpServerResponse;
 
 /**
@@ -56,7 +53,7 @@ public class VertxHttpServerResponse implements Response {
     }
 
     @Override
-    public Response write(BodyPart bodyPart) {
+    public Response write(Buffer chunk) {
         if (! headersWritten) {
             writeHeaders();
 
@@ -74,7 +71,7 @@ public class VertxHttpServerResponse implements Response {
             }
         }
 
-        httpServerResponse.write(Buffer.buffer(bodyPart.getBodyPartAsBytes()));
+        httpServerResponse.write(io.vertx.core.buffer.Buffer.buffer(chunk.getBytes()));
         return this;
     }
 

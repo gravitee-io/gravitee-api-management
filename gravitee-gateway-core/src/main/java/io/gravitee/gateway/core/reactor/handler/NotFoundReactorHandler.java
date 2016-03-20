@@ -19,7 +19,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.http.StringBodyPart;
+import io.gravitee.gateway.api.buffer.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -44,10 +44,9 @@ public class NotFoundReactorHandler extends AbstractReactorHandler {
 
         response.status(HttpStatusCode.NOT_FOUND_404);
 
-        StringBodyPart responseBody = new StringBodyPart(message);
-        response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(responseBody.length()));
+        response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(message.length()));
         response.headers().set(HttpHeaders.CONTENT_TYPE, "text/plain");
-        response.write(responseBody);
+        response.write(Buffer.buffer(message));
 
         response.end();
         handler.handle(response);

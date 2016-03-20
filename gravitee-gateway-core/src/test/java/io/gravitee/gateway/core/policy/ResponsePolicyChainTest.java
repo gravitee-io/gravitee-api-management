@@ -15,21 +15,29 @@
  */
 package io.gravitee.gateway.core.policy;
 
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
+import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
+import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
+import io.gravitee.policy.api.PolicyChain;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Spy;
 
-import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
-import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+
+import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -50,9 +58,21 @@ public class ResponsePolicyChainTest {
         initMocks(this);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void buildPolicyChain_withNullPolicies() {
+        ResponsePolicyChain.create(null, mock(ExecutionContext.class));
+    }
+
+    @Test
+    public void buildPolicyChain_withEmptyPolicies() {
+        PolicyChain chain = ResponsePolicyChain.create(new ArrayList<>(), mock(ExecutionContext.class));
+
+        Assert.assertNotNull(chain);
+    }
+
     @Test
     public void doNext_emptyPolicies() throws Exception {
-        AbstractPolicyChain chain = new ResponsePolicyChain(new ArrayList<>(), mock(ExecutionContext.class));
+        AbstractPolicyChain chain = ResponsePolicyChain.create(Collections.emptyList(), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 
@@ -62,7 +82,8 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_singlePolicy() throws Exception {
-        AbstractPolicyChain chain = new ResponsePolicyChain(policies(), mock(ExecutionContext.class));
+        AbstractPolicyChain chain = ResponsePolicyChain.create(
+                Collections.singletonList(policy), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 
@@ -73,7 +94,8 @@ public class ResponsePolicyChainTest {
     @Test
     public void doNext_multiplePolicy() throws Exception {
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        AbstractPolicyChain chain = new ResponsePolicyChain(policies2(), executionContext);
+        AbstractPolicyChain chain = ResponsePolicyChain.create(
+                Arrays.asList(policy, policy2), executionContext);
         chain.setResultHandler(result -> {});
 
         chain.doNext(null, null);
@@ -84,7 +106,8 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_multiplePolicyOrder() throws Exception {
-        AbstractPolicyChain chain = new ResponsePolicyChain(policies2(), mock(ExecutionContext.class));
+        AbstractPolicyChain chain = ResponsePolicyChain.create(
+                Arrays.asList(policy, policy2), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
 
         InOrder inOrder = inOrder(policy, policy2);
@@ -98,7 +121,8 @@ public class ResponsePolicyChainTest {
     @Test
     public void doNext_multiplePolicy_throwError() throws Exception {
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        AbstractPolicyChain chain = new ResponsePolicyChain(policies3(), executionContext);
+        AbstractPolicyChain chain = ResponsePolicyChain.create(
+                Arrays.asList(policy2, policy3), executionContext);
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 
@@ -106,23 +130,96 @@ public class ResponsePolicyChainTest {
         verify(policy2, never()).onResponse(null, null, chain, executionContext);
     }
 
-    private List<Policy> policies() {
-        List<Policy> policies = new ArrayList<>();
-        policies.add(policy);
-        return policies;
+    @Test
+    public void doNext_streamablePolicy() throws Exception {
+        Policy policy4 = spy(new StreamablePolicy());
+
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+
+        ReadWriteStream stream = spy(new BufferedReadWriteStream());
+        when(policy4.onResponseContent(
+                any(Request.class), any(Response.class), eq(executionContext)
+        )).thenReturn(stream);
+
+        AbstractPolicyChain chain = ResponsePolicyChain.create(
+                Collections.singletonList(policy4), executionContext);
+        chain.setResultHandler(result -> {});
+        chain.doNext(null, null);
+
+        verify(stream, atLeastOnce()).bodyHandler(any(Handler.class));
+        verify(stream, atLeastOnce()).endHandler(any(Handler.class));
+        verify(policy4, atLeastOnce()).onResponse(null, null, chain, executionContext);
     }
 
-    private List<Policy> policies2() {
-        List<Policy> policies = new ArrayList<>();
-        policies.add(policy);
-        policies.add(policy2);
-        return policies;
+    @Test
+    public void doNext_streamablePolicies() throws Exception {
+        Policy policy4 = spy(new StreamablePolicy());
+        Policy policy5 = spy(new StreamablePolicy());
+
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+
+        ReadWriteStream streamPolicy4 = spy(new BufferedReadWriteStream());
+        when(policy4.onResponseContent(
+                any(Request.class), any(Response.class), eq(executionContext)
+        )).thenReturn(streamPolicy4);
+
+        ReadWriteStream streamPolicy5 = spy(new BufferedReadWriteStream());
+        when(policy5.onResponseContent(
+                any(Request.class), any(Response.class), eq(executionContext)
+        )).thenReturn(streamPolicy5);
+
+        InOrder inOrder = inOrder(streamPolicy4, streamPolicy5);
+
+        AbstractPolicyChain chain = ResponsePolicyChain.create(
+                Arrays.asList(policy4, policy5), executionContext);
+        chain.setResultHandler(result -> {});
+        chain.doNext(null, null);
+
+        inOrder.verify(streamPolicy4, atLeastOnce()).bodyHandler(any(Handler.class));
+        inOrder.verify(streamPolicy4, atLeastOnce()).endHandler(any(Handler.class));
+
+        inOrder.verify(streamPolicy5, atLeastOnce()).bodyHandler(any(Handler.class));
+        inOrder.verify(streamPolicy5, atLeastOnce()).endHandler(any(Handler.class));
+
+        verify(policy4, atLeastOnce()).onResponse(null, null, chain, executionContext);
     }
 
-    private List<Policy> policies3() {
-        List<Policy> policies = new ArrayList<>();
-        policies.add(policy2);
-        policies.add(policy3);
-        return policies;
+    @Test
+    public void doNext_streamablePolicies_streaming() throws Exception {
+        Policy policy4 = spy(new StreamablePolicy());
+        Policy policy5 = spy(new StreamablePolicy());
+
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+
+        ReadWriteStream streamPolicy4 = spy(new BufferedReadWriteStream());
+        when(policy4.onResponseContent(
+                any(Request.class), any(Response.class), eq(executionContext)
+        )).thenReturn(streamPolicy4);
+
+        ReadWriteStream streamPolicy5 = spy(new BufferedReadWriteStream());
+        when(policy5.onResponseContent(
+                any(Request.class), any(Response.class), eq(executionContext)
+        )).thenReturn(streamPolicy5);
+
+        InOrder inOrder = inOrder(streamPolicy4, streamPolicy5);
+
+        AbstractPolicyChain chain = ResponsePolicyChain.create(
+                Arrays.asList(policy4, policy5), executionContext);
+        chain.setResultHandler(result -> {});
+        chain.bodyHandler(mock(Handler.class));
+        chain.endHandler(mock(Handler.class));
+        chain.doNext(null, null);
+
+        chain.write(Buffer.buffer("TEST"));
+        chain.write(Buffer.buffer("TEST"));
+        chain.end();
+
+        inOrder.verify(streamPolicy4, atLeastOnce()).bodyHandler(any(Handler.class));
+        inOrder.verify(streamPolicy4, atLeastOnce()).endHandler(any(Handler.class));
+
+        inOrder.verify(streamPolicy5, atLeastOnce()).bodyHandler(any(Handler.class));
+        inOrder.verify(streamPolicy5, atLeastOnce()).endHandler(any(Handler.class));
+
+        verify(policy4, atLeastOnce()).onResponse(null, null, chain, executionContext);
     }
 }

@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.policy;
 
+import io.gravitee.gateway.api.stream.ReadWriteStream;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -28,5 +30,15 @@ public class FailurePolicy implements Policy {
     @Override
     public void onResponse(Object... args) throws Exception {
         throw new RuntimeException();
+    }
+
+    @Override
+    public ReadWriteStream<?> onRequestContent(Object... args) throws Exception {
+        return null;
+    }
+
+    @Override
+    public ReadWriteStream<?> onResponseContent(Object... args) throws Exception {
+        return null;
     }
 }

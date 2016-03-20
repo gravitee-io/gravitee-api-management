@@ -23,8 +23,8 @@ import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.BodyPart;
 import io.gravitee.gateway.http.core.invoker.AbstractHttpInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +100,7 @@ public class FailoverHttpInvoker extends AbstractHttpInvoker {
         }
 
         @Override
-        public ClientResponse bodyHandler(Handler<BodyPart> bodyPartHandler) {
+        public ClientResponse bodyHandler(Handler<Buffer> bodyHandler) {
             // No need to record this handler because no data will be handle
             return this;
         }

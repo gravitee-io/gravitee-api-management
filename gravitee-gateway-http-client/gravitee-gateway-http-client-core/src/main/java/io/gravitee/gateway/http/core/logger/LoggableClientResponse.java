@@ -18,8 +18,9 @@ package io.gravitee.gateway.http.core.logger;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.BodyPart;
+import io.gravitee.gateway.api.stream.ReadStream;
 
 import java.util.stream.Collectors;
 
@@ -38,18 +39,18 @@ public class LoggableClientResponse implements ClientResponse {
     }
 
     @Override
-    public ClientResponse bodyHandler(Handler<BodyPart> bodyPartHandler) {
-        return clientResponse.bodyHandler(bodyPart -> {
+    public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
+        return clientResponse.bodyHandler(chunk -> {
             HttpDump.logger.info("{} << proxying content to downstream: {} bytes", request.id(),
-                    bodyPart.getBodyPartAsBytes().length);
-            HttpDump.logger.info("{} << {}", request.id(), new String(bodyPart.getBodyPartAsBytes()));
+                    chunk.length());
+            HttpDump.logger.info("{} << {}", request.id(), chunk.toString());
 
-            bodyPartHandler.handle(bodyPart);
+            bodyHandler.handle(chunk);
         });
     }
 
     @Override
-    public ClientResponse endHandler(Handler<Void> endHandler) {
+    public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
         return clientResponse.endHandler(result -> {
             HttpDump.logger.info("{} << downstream proxying complete", request.id());
 

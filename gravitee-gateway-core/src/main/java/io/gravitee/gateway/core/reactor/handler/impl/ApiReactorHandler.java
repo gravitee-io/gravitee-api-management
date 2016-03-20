@@ -21,17 +21,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.definition.model.Path;
-import io.gravitee.gateway.api.*;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Invoker;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.StringBodyPart;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.expression.spel.WrappedRequestVariable;
-import io.gravitee.gateway.core.policy.PathResolver;
 import io.gravitee.gateway.core.policy.Policy;
 import io.gravitee.gateway.core.policy.StreamType;
-import io.gravitee.gateway.core.policy.impl.AbstractPolicyChain;
 import io.gravitee.gateway.core.policy.impl.ExecutionContextImpl;
+import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
@@ -51,16 +54,13 @@ public class ApiReactorHandler extends ContextReactorHandler {
     private Api api;
 
     @Autowired
-    private Invoker remoteInvoker;
+    private Invoker defaultInvoker;
 
     @Autowired
     private HttpClient httpClient;
 
     @Autowired
     private ObjectMapper mapper;
-
-    @Autowired
-    private PathResolver pathResolver;
 
     @Override
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
@@ -71,7 +71,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
         Path path = pathResolver.resolve(serverRequest);
 
         // Calculate request policies
-        List<Policy> requestPolicies = getPolicyResolver().resolve(StreamType.REQUEST, serverRequest, path.getRules());
+        List<Policy> requestPolicies = policyResolver.resolve(StreamType.REQUEST, serverRequest, path.getRules());
 
         // Prepare execution context
         ExecutionContext executionContext = createExecutionContext();
@@ -79,10 +79,10 @@ public class ApiReactorHandler extends ContextReactorHandler {
         executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.getProperties());
         executionContext.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, path.getPath());
         executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
-        executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, remoteInvoker);
+        executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, defaultInvoker);
 
         // Apply request policies
-        AbstractPolicyChain requestPolicyChain = getRequestPolicyChainBuilder().newPolicyChain(requestPolicies, executionContext);
+        RequestPolicyChain requestPolicyChain = RequestPolicyChain.create(requestPolicies, executionContext);
         requestPolicyChain.setResultHandler(requestPolicyResult -> {
             if (requestPolicyResult.isFailure()) {
                 writePolicyResult(requestPolicyResult, serverResponse);
@@ -102,29 +102,32 @@ public class ApiReactorHandler extends ContextReactorHandler {
                     responseStream.headers().forEach((headerName, headerValues) -> serverResponse.headers().put(headerName, headerValues));
 
                     // Calculate response policies
-                    List<Policy> responsePolicies = getPolicyResolver().resolve(StreamType.RESPONSE, serverRequest, path.getRules());
-                    AbstractPolicyChain responsePolicyChain = getResponsePolicyChainBuilder().newPolicyChain(responsePolicies, executionContext);
+                    List<Policy> responsePolicies = policyResolver.resolve(StreamType.RESPONSE, serverRequest, path.getRules());
+                    ResponsePolicyChain responsePolicyChain = ResponsePolicyChain.create(responsePolicies, executionContext);
 
                     responsePolicyChain.setResultHandler(responsePolicyResult -> {
                         if (responsePolicyResult.isFailure()) {
                             writePolicyResult(responsePolicyResult, serverResponse);
 
                             handler.handle(serverResponse);
-                        } else {
-                            responseStream.bodyHandler(serverResponse::write);
-
-                            responseStream.endHandler(result -> {
-                                serverResponse.end();
-
-                                serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
-                                LOGGER.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
-
-                                // Transfer proxy response to the initial consumer
-                                handler.handle(serverResponse);
-                            });
                         }
                     });
 
+                    responsePolicyChain.bodyHandler(serverResponse::write);
+                    responsePolicyChain.endHandler(responseEndResult -> {
+                        serverResponse.end();
+
+                        serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
+                        LOGGER.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
+
+                        // Transfer proxy response to the initial consumer
+                        handler.handle(serverResponse);
+                    });
+
+                    responseStream.bodyHandler(responsePolicyChain::write);
+                    responseStream.endHandler(aVoid -> responsePolicyChain.end());
+
+                    // Execute response policy chain
                     responsePolicyChain.doNext(serverRequest, serverResponse);
                 });
             }
@@ -141,10 +144,10 @@ public class ApiReactorHandler extends ContextReactorHandler {
         if (policyResult.message() != null) {
             try {
                 String contentAsJson = mapper.writeValueAsString(new PolicyResultAsJson(policyResult));
-                StringBodyPart responseBody = new StringBodyPart(contentAsJson);
-                response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(responseBody.length()));
+                Buffer buf = Buffer.buffer(contentAsJson);
+                response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(buf.length()));
                 response.headers().set(HttpHeaders.CONTENT_TYPE, "application/json");
-                response.write(responseBody);
+                response.write(buf);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }

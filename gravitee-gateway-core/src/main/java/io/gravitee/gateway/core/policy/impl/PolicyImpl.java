@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
+import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.core.policy.Policy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +30,10 @@ public class PolicyImpl implements Policy {
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyImpl.class);
 
     private final Object policyInst;
-    private final Method onRequestMethod, onResponseMethod;
+    private Method onRequestMethod, onResponseMethod, onRequestContentMethod, onResponseContentMethod;
 
-    public PolicyImpl(Object policyInst, Method onRequestMethod, Method onResponseMethod) {
+    private PolicyImpl(Object policyInst) {
         this.policyInst = policyInst;
-        this.onRequestMethod = onRequestMethod;
-        this.onResponseMethod = onResponseMethod;
     }
 
     @Override
@@ -51,7 +50,45 @@ public class PolicyImpl implements Policy {
         }
     }
 
-    private void invoke(Method invokedMethod, Object ... args) throws Exception {
+    @Override
+    public ReadWriteStream<?> onResponseContent(Object ... args) throws Exception {
+        if (onResponseContentMethod != null) {
+            return (ReadWriteStream) invoke(onResponseContentMethod, args);
+        }
+
+        return null;
+    }
+
+    @Override
+    public ReadWriteStream<?> onRequestContent(Object ... args) throws Exception {
+        if (onRequestContentMethod != null) {
+            return (ReadWriteStream) invoke(onRequestContentMethod, args);
+        }
+
+        return null;
+    }
+
+    private PolicyImpl onRequestContentMethod(Method onRequestContentMethod) {
+        this.onRequestContentMethod = onRequestContentMethod;
+        return this;
+    }
+
+    private PolicyImpl onRequestMethod(Method onRequestMethod) {
+        this.onRequestMethod = onRequestMethod;
+        return this;
+    }
+
+    private PolicyImpl onResponseContentMethod(Method onResponseContentMethod) {
+        this.onResponseContentMethod = onResponseContentMethod;
+        return this;
+    }
+
+    private PolicyImpl onResponseMethod(Method onResponseMethod) {
+        this.onResponseMethod = onResponseMethod;
+        return this;
+    }
+
+    private Object invoke(Method invokedMethod, Object ... args) throws Exception {
         LOGGER.debug("Calling {} method on policy {}", invokedMethod.getName(), policyInst.getClass().getName());
 
         Class<?>[] parametersType = invokedMethod.getParameterTypes();
@@ -64,7 +101,7 @@ public class PolicyImpl implements Policy {
             parameters[idx++] = getParameterAssignableTo(paramType, args);
         }
 
-        invokedMethod.invoke(policyInst, parameters);
+        return invokedMethod.invoke(policyInst, parameters);
     }
 
     private Object getParameterAssignableTo(Class<?> paramType, Object ... args) {
@@ -75,5 +112,47 @@ public class PolicyImpl implements Policy {
         }
 
         return null;
+    }
+
+    public static Builder with(Object policyInstance) {
+        return new Builder(policyInstance);
+    }
+
+    public static class Builder {
+
+        private final Object policyInstance;
+        private Method onRequestMethod, onResponseMethod, onRequestContentMethod, onResponseContentMethod;
+
+        private Builder(Object policyInstance) {
+            this.policyInstance = policyInstance;
+        }
+
+        public Builder onRequestContentMethod(Method onRequestContentMethod) {
+            this.onRequestContentMethod = onRequestContentMethod;
+            return this;
+        }
+
+        public Builder onRequestMethod(Method onRequestMethod) {
+            this.onRequestMethod = onRequestMethod;
+            return this;
+        }
+
+        public Builder onResponseContentMethod(Method onResponseContentMethod) {
+            this.onResponseContentMethod = onResponseContentMethod;
+            return this;
+        }
+
+        public Builder onResponseMethod(Method onResponseMethod) {
+            this.onResponseMethod = onResponseMethod;
+            return this;
+        }
+
+        public PolicyImpl build() {
+            return new PolicyImpl(policyInstance)
+                    .onRequestContentMethod(onRequestContentMethod)
+                    .onRequestMethod(onRequestMethod)
+                    .onResponseContentMethod(onResponseContentMethod)
+                    .onResponseMethod(onResponseMethod);
+        }
     }
 }

@@ -16,9 +16,8 @@
 package io.gravitee.gateway.http.vertx;
 
 import io.gravitee.gateway.api.ClientRequest;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.BodyPart;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 
 /**
@@ -45,8 +44,8 @@ class VertxClientRequest implements ClientRequest {
     }
 
     @Override
-    public ClientRequest write(BodyPart bodyPart) {
-        httpClientRequest.write(Buffer.buffer(bodyPart.getBodyPartAsBytes()));
+    public ClientRequest write(Buffer chunk) {
+        httpClientRequest.write(io.vertx.core.buffer.Buffer.buffer(chunk.getBytes()));
 
         return this;
     }

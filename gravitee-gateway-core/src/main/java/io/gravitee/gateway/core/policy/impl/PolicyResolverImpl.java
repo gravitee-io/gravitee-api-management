@@ -15,11 +15,12 @@
  */
 package io.gravitee.gateway.core.policy.impl;
 
-import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.policy.*;
+import io.gravitee.gateway.core.policy.Policy;
+import io.gravitee.gateway.core.policy.PolicyFactory;
+import io.gravitee.gateway.core.policy.PolicyResolver;
+import io.gravitee.gateway.core.policy.StreamType;
 import io.gravitee.plugin.policy.PolicyDefinition;
 import io.gravitee.plugin.policy.PolicyManager;
 import org.slf4j.Logger;
@@ -40,9 +41,6 @@ public class PolicyResolverImpl implements PolicyResolver {
     private PolicyManager policyManager;
 
     @Autowired
-    private Api api;
-
-    @Autowired
     private PolicyFactory policyFactory;
 
     @Override
@@ -56,27 +54,23 @@ public class PolicyResolverImpl implements PolicyResolver {
                         rule.getPolicy().getName(), request.id());
             } else if (
                     (streamType == StreamType.REQUEST && policyDefinition.onRequestMethod() != null) ||
-                            (streamType == StreamType.RESPONSE && policyDefinition.onResponseMethod() != null)){
+                            (streamType == StreamType.RESPONSE && policyDefinition.onResponseMethod() != null)) {
 
                 Object policyInst = policyFactory.create(policyDefinition, rule.getPolicy().getConfiguration());
 
                 if (policyInst != null) {
                     LOGGER.debug("Policy {} has been added to the chain for request {}", policyDefinition.id(), request.id());
-                    policies.add(new PolicyImpl(policyInst, policyDefinition.onRequestMethod(), policyDefinition.onResponseMethod()));
+                    policies.add(PolicyImpl
+                            .with(policyInst)
+                            .onRequestMethod(policyDefinition.onRequestMethod())
+                            .onRequestContentMethod(policyDefinition.onRequestContentMethod())
+                            .onResponseMethod(policyDefinition.onResponseMethod())
+                            .onResponseContentMethod(policyDefinition.onResponseContentMethod())
+                            .build());
                 }
             }
         });
 
         return policies;
     }
-
-    public Api getApi() {
-        return api;
-    }
-
-    public void setApi(Api api) {
-        this.api = api;
-    }
-
-
 }

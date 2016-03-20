@@ -16,10 +16,7 @@
 package io.gravitee.gateway.http.core.invoker;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.gateway.api.ClientRequest;
-import io.gravitee.gateway.api.ClientResponse;
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.*;
 import io.gravitee.gateway.api.handler.Handler;
 
 /**
