@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.EventEntity;
@@ -8,7 +23,12 @@ import io.gravitee.management.service.InstanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.EMPTY_LIST;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -20,43 +40,60 @@ public class InstanceServiceImpl implements InstanceService {
     @Autowired
     private EventService eventService;
 
-    private List<EventType> instanceEventTypes = new ArrayList<>();
+    private static final List<EventType> instancesAllState = new ArrayList<>();
     {
-        instanceEventTypes.add(EventType.START_GATEWAY);
-        instanceEventTypes.add(EventType.STOP_GATEWAY);
+        instancesAllState.add(EventType.GATEWAY_STARTED);
+        instancesAllState.add(EventType.GATEWAY_STOPPED);
+    }
+
+    private static final List<EventType> instancesRunningOnly = new ArrayList<>();
+    {
+        instancesRunningOnly.add(EventType.GATEWAY_STARTED);
     }
 
     @Override
-    public Collection<InstanceEntity> findInstances() {
-        Set<EventEntity> events = eventService.findByType(instanceEventTypes);
-        Map<String, InstanceEntity> instances = new HashMap<>();
+    public Collection<InstanceEntity> findInstances(boolean includeStopped) {
+        Set<EventEntity> events;
 
-        events.stream().forEach(event -> {
-            String gatewayId = event.getProperties().get("id");
-            InstanceEntity instance = instances.getOrDefault(gatewayId, new InstanceEntity(gatewayId));
+        if (includeStopped) {
+            events = eventService.findByType(instancesAllState);
+        } else {
+            events = eventService.findByType(instancesRunningOnly);
+        }
 
-            switch (event.getType()) {
-                case START_GATEWAY:
-                    instance.setStartedAt(event.getCreatedAt());
-                    instance.setHostname(event.getProperties().get("hostname"));
-                    instance.setVersion(event.getProperties().get("version"));
-                    instance.setIp(event.getProperties().get("ip"));
-                    instance.setPort(Integer.parseInt(event.getProperties().get("port")));
-                    String tags = event.getProperties().get("tags");
+        Instant nowMinusXMinutes = Instant.now().minus(5, ChronoUnit.MINUTES);
+        return events.stream().map(
+                event -> {
+                    Map<String, String> props = event.getProperties();
+                    InstanceEntity instance = new InstanceEntity(props.get("id"));
+                    instance.setHostname(props.get("hostname"));
+                    instance.setVersion(props.get("version"));
+                    instance.setIp(props.get("ip"));
+                    instance.setPort(-1);
+                    // instance.setPort(Integer.parseInt(event.getProperties().get("port")));
+                    String tags = props.get("tags");
                     if (tags != null && ! tags.isEmpty()) {
-                        instance.setTags(Arrays.asList(event.getProperties().get("tags").trim().split(",")));
+                        instance.setTags(Arrays.asList(tags.trim().split(",")));
                     } else {
-                        instance.setTags(Collections.EMPTY_LIST);
+                        instance.setTags(EMPTY_LIST);
                     }
-                    break;
-                case STOP_GATEWAY:
-                    instance.setStoppedAt(event.getCreatedAt());
-                    break;
-            }
 
-            instances.put(gatewayId, instance);
-        });
+                    instance.setLastHeartbeatAt(new Date(Long.parseLong(props.get("last_heartbeat_at"))));
+                    instance.setStartedAt(new Date(Long.parseLong(props.get("started_at"))));
 
-        return instances.values();
+                    if (event.getType() == EventType.GATEWAY_STARTED) {
+                        instance.setState(InstanceEntity.State.STARTED);
+                        // If last heartbeat timestamp is < now - 5m, set as unknown state
+                        Instant lastHeartbeat = Instant.ofEpochMilli(instance.getLastHeartbeatAt().getTime());
+                        if (lastHeartbeat.isBefore(nowMinusXMinutes)) {
+                            instance.setState(InstanceEntity.State.UNKNOWN);
+                        }
+                    } else {
+                        instance.setState(InstanceEntity.State.STOPPED);
+                        instance.setStoppedAt(new Date(Long.parseLong(props.get("stopped_at"))));
+                    }
+                    return instance;
+                }
+        ).collect(Collectors.toList());
     }
 }
