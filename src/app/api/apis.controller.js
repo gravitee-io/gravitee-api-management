@@ -74,7 +74,7 @@ class ApisController {
     if (!this.$scope.previousState) {
       this.$scope.previousState = 'apis.list.thumb';
     }
-    this.$state.go(this.$scope.previousState);
+    this.$state.go(this.$scope.previousState, {}, {reload: true});
   }
 
   getVisibilityIcon(api) {
