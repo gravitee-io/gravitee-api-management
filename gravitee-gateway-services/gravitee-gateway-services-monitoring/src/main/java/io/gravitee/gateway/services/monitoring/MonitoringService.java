@@ -15,10 +15,13 @@
  */
 package io.gravitee.gateway.services.monitoring;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.node.Node;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUIDGenerator;
+import io.gravitee.gateway.services.monitoring.event.InstanceEventPayload;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
@@ -34,7 +37,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -46,6 +48,9 @@ public class MonitoringService extends AbstractService {
 
     private static final String TAGS_PROP = "tags";
     private static final String TAGS_DELIMITER = ",";
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Value("${services.monitoring.enabled:true}")
     private boolean enabled;
@@ -122,18 +127,35 @@ public class MonitoringService extends AbstractService {
         event.setUpdatedAt(event.getCreatedAt());
         Map<String, String> properties = new HashMap<>();
         properties.put("id", node.id());
-        properties.put("version", Version.RUNTIME_VERSION.toString());
-        properties.put("tags", tags().stream().collect(Collectors.joining(TAGS_DELIMITER)));
         properties.put("started_at", Long.toString(event.getCreatedAt().getTime()));
+        properties.put("last_heartbeat_at", Long.toString(event.getCreatedAt().getTime()));
+        event.setProperties(properties);
+
+        InstanceEventPayload instance = createInstanceInfo();
+
         try {
-            properties.put("hostname", InetAddress.getLocalHost().getHostName());
-            properties.put("ip", InetAddress.getLocalHost().getHostAddress());
-                //TODO: how to get HTTP(S) port ?
-            // properties.put("port", Integer.toString(serverConfiguration.getPort()));
+            String payload = objectMapper.writeValueAsString(instance);
+            event.setPayload(payload);
+        } catch (JsonProcessingException jsex) {
+            LOGGER.error("An error occurs while transforming instance information into JSON", jsex);
+        }
+        return event;
+    }
+
+    private InstanceEventPayload createInstanceInfo() {
+        InstanceEventPayload instanceInfo = new InstanceEventPayload();
+
+        instanceInfo.setId(node.id());
+        instanceInfo.setVersion(Version.RUNTIME_VERSION.toString());
+        instanceInfo.setTags(tags());
+        instanceInfo.setSystemProperties(new HashMap<>((Map) System.getProperties()));
+
+        try {
+            instanceInfo.setHostname(InetAddress.getLocalHost().getHostName());
+            instanceInfo.setIp(InetAddress.getLocalHost().getHostAddress());
         } catch (UnknownHostException uhe) {}
 
-        event.setProperties(properties);
-        return event;
+        return instanceInfo;
     }
 
     public List<String> tags() {
