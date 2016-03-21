@@ -28,7 +28,8 @@
     "v-accordion": "~1.4.1",
     "angular-timeline": "~1.6.2",
     "jsdiff": "~2.2.1",
-    "angular-utf8-base64": "~0.0.5"
+    "angular-utf8-base64": "~0.0.5",
+    "ng-file-upload": "^12.0.4"
   },
   "resolutions": {
     "angular": "~1.4.9",

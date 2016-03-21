@@ -25,7 +25,7 @@
   
   .api-box {
     md-card-header {
-      padding: 0px;
+      padding: 0px 0px 20px 0px;
     }
     md-card-avatar {
       width: 35px; 
@@ -41,9 +41,13 @@
       text-align: center;
     }
     .api-box-icon {
-      img {
-        width: 60%;
-      }
+      max-height: 80px;
+      min-height: 80px;
+      height: 80px;
+      background-image: url('images/GRAVITEE_LOGOsstxtclair-05.png');
+      background-size: auto 100%;
+      background-position: center center;
+      background-repeat: no-repeat;
     }
     .api-box-name-version {
       font-size: 14px;
