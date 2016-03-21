@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -32,7 +33,7 @@ public class InstanceEntity {
     @JsonProperty("started_at")
     private Date startedAt;
 
-    @JsonProperty("heartbeat_at")
+    @JsonProperty("last_heartbeat_at")
     private Date lastHeartbeatAt;
 
     @JsonProperty("stopped_at")
@@ -42,13 +43,13 @@ public class InstanceEntity {
 
     private String ip;
 
-    private int port;
-
     private String version;
 
     private List<String> tags;
 
-    private State state = State.UNKNOWN;
+    private InstanceState state = InstanceState.UNKNOWN;
+
+    private Map<String, String> systemProperties;
 
     public InstanceEntity(String id) {
         this.id = id;
@@ -121,20 +122,20 @@ public class InstanceEntity {
         this.ip = ip;
     }
 
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public State getState() {
+    public InstanceState getState() {
         return state;
     }
 
-    public void setState(State state) {
+    public void setState(InstanceState state) {
         this.state = state;
+    }
+
+    public Map<String, String> getSystemProperties() {
+        return systemProperties;
+    }
+
+    public void setSystemProperties(Map<String, String> systemProperties) {
+        this.systemProperties = systemProperties;
     }
 
     @Override
@@ -150,10 +151,5 @@ public class InstanceEntity {
         return Objects.hash(id);
     }
 
-    public enum State {
 
-        STARTED,
-        UNKNOWN,
-        STOPPED
-    }
 }

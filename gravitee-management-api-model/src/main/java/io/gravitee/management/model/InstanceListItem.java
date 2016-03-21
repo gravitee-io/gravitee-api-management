@@ -1,0 +1,137 @@
+package io.gravitee.management.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
+ */
+public class InstanceListItem {
+
+    private String event;
+
+    private String id;
+
+    @JsonProperty("started_at")
+    private Date startedAt;
+
+    @JsonProperty("last_heartbeat_at")
+    private Date lastHeartbeatAt;
+
+    @JsonProperty("stopped_at")
+    private Date stoppedAt;
+
+    private String hostname;
+
+    private String ip;
+
+    private String version;
+
+    private List<String> tags;
+
+    private InstanceState state = InstanceState.UNKNOWN;
+
+    public InstanceListItem(String id) {
+        this.id = id;
+    }
+
+    public InstanceListItem() {
+    }
+
+    public String getHostname() {
+        return hostname;
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public String getEvent() {
+        return event;
+    }
+
+    public void setEvent(String event) {
+        this.event = event;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public Date getLastHeartbeatAt() {
+        return lastHeartbeatAt;
+    }
+
+    public void setLastHeartbeatAt(Date lastHeartbeatAt) {
+        this.lastHeartbeatAt = lastHeartbeatAt;
+    }
+
+    public Date getStartedAt() {
+        return startedAt;
+    }
+
+    public void setStartedAt(Date startedAt) {
+        this.startedAt = startedAt;
+    }
+
+    public InstanceState getState() {
+        return state;
+    }
+
+    public void setState(InstanceState state) {
+        this.state = state;
+    }
+
+    public Date getStoppedAt() {
+        return stoppedAt;
+    }
+
+    public void setStoppedAt(Date stoppedAt) {
+        this.stoppedAt = stoppedAt;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InstanceListItem that = (InstanceListItem) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+}

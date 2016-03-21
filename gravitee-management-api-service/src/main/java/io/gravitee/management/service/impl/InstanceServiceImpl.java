@@ -15,20 +15,20 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.model.EventEntity;
-import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.InstanceEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.EventService;
 import io.gravitee.management.service.InstanceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.EMPTY_LIST;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -37,8 +37,13 @@ import static java.util.Collections.EMPTY_LIST;
 @Component
 public class InstanceServiceImpl implements InstanceService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(InstanceServiceImpl.class);
+
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private static final List<EventType> instancesAllState = new ArrayList<>();
     {
@@ -52,7 +57,7 @@ public class InstanceServiceImpl implements InstanceService {
     }
 
     @Override
-    public Collection<InstanceEntity> findInstances(boolean includeStopped) {
+    public Collection<InstanceListItem> findInstances(boolean includeStopped) {
         Set<EventEntity> events;
 
         if (includeStopped) {
@@ -65,35 +70,133 @@ public class InstanceServiceImpl implements InstanceService {
         return events.stream().map(
                 event -> {
                     Map<String, String> props = event.getProperties();
-                    InstanceEntity instance = new InstanceEntity(props.get("id"));
-                    instance.setHostname(props.get("hostname"));
-                    instance.setVersion(props.get("version"));
-                    instance.setIp(props.get("ip"));
-                    instance.setPort(-1);
-                    // instance.setPort(Integer.parseInt(event.getProperties().get("port")));
-                    String tags = props.get("tags");
-                    if (tags != null && ! tags.isEmpty()) {
-                        instance.setTags(Arrays.asList(tags.trim().split(",")));
-                    } else {
-                        instance.setTags(EMPTY_LIST);
-                    }
-
+                    InstanceListItem instance = new InstanceListItem(props.get("id"));
+                    instance.setEvent(event.getId());
                     instance.setLastHeartbeatAt(new Date(Long.parseLong(props.get("last_heartbeat_at"))));
                     instance.setStartedAt(new Date(Long.parseLong(props.get("started_at"))));
 
+                    if (event.getPayload() != null) {
+                        try {
+                            InstanceInfo info = objectMapper.readValue(event.getPayload(), InstanceInfo.class);
+                            instance.setHostname(info.getHostname());
+                            instance.setIp(info.getIp());
+                            instance.setVersion(info.getVersion());
+                            instance.setTags(info.getTags());
+                        } catch (IOException ioe) {
+                            LOGGER.error("Unexpected error while getting instance informations from event payload", ioe);
+                        }
+                    }
+
                     if (event.getType() == EventType.GATEWAY_STARTED) {
-                        instance.setState(InstanceEntity.State.STARTED);
+                        instance.setState(InstanceState.STARTED);
                         // If last heartbeat timestamp is < now - 5m, set as unknown state
                         Instant lastHeartbeat = Instant.ofEpochMilli(instance.getLastHeartbeatAt().getTime());
                         if (lastHeartbeat.isBefore(nowMinusXMinutes)) {
-                            instance.setState(InstanceEntity.State.UNKNOWN);
+                            instance.setState(InstanceState.UNKNOWN);
                         }
                     } else {
-                        instance.setState(InstanceEntity.State.STOPPED);
+                        instance.setState(InstanceState.STOPPED);
                         instance.setStoppedAt(new Date(Long.parseLong(props.get("stopped_at"))));
                     }
+
                     return instance;
                 }
         ).collect(Collectors.toList());
+    }
+
+    @Override
+    public InstanceEntity findById(String eventId) {
+        EventEntity event = eventService.findById(eventId);
+        Instant nowMinusXMinutes = Instant.now().minus(5, ChronoUnit.MINUTES);
+
+        Map<String, String> props = event.getProperties();
+        InstanceEntity instance = new InstanceEntity(props.get("id"));
+        instance.setLastHeartbeatAt(new Date(Long.parseLong(props.get("last_heartbeat_at"))));
+        instance.setStartedAt(new Date(Long.parseLong(props.get("started_at"))));
+
+        if (event.getPayload() != null) {
+            try {
+                InstanceInfo info = objectMapper.readValue(event.getPayload(), InstanceInfo.class);
+                instance.setHostname(info.getHostname());
+                instance.setIp(info.getIp());
+                instance.setVersion(info.getVersion());
+                instance.setTags(info.getTags());
+                instance.setSystemProperties(info.getSystemProperties());
+            } catch (IOException ioe) {
+                LOGGER.error("Unexpected error while getting instance informations from event payload", ioe);
+            }
+        }
+
+        if (event.getType() == EventType.GATEWAY_STARTED) {
+            instance.setState(InstanceState.STARTED);
+            // If last heartbeat timestamp is < now - 5m, set as unknown state
+            Instant lastHeartbeat = Instant.ofEpochMilli(instance.getLastHeartbeatAt().getTime());
+            if (lastHeartbeat.isBefore(nowMinusXMinutes)) {
+                instance.setState(InstanceState.UNKNOWN);
+            }
+        } else {
+            instance.setState(InstanceState.STOPPED);
+            instance.setStoppedAt(new Date(Long.parseLong(props.get("stopped_at"))));
+        }
+
+        return instance;
+    }
+
+
+    private static class InstanceInfo {
+        private String id;
+        private String version;
+        private List<String> tags;
+        private String hostname;
+        private String ip;
+        private Map<String, String> systemProperties;
+
+        public String getHostname() {
+            return hostname;
+        }
+
+        public void setHostname(String hostname) {
+            this.hostname = hostname;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getIp() {
+            return ip;
+        }
+
+        public void setIp(String ip) {
+            this.ip = ip;
+        }
+
+        public Map<String, String> getSystemProperties() {
+            return systemProperties;
+        }
+
+        public void setSystemProperties(Map<String, String> systemProperties) {
+            this.systemProperties = systemProperties;
+        }
+
+        public List<String> getTags() {
+            return tags;
+        }
+
+        public void setTags(List<String> tags) {
+            this.tags = tags;
+        }
+
+        public String getVersion() {
+            return version;
+        }
+
+        public void setVersion(String version) {
+            this.version = version;
+        }
     }
 }

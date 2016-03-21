@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.InstanceEntity;
+import io.gravitee.management.model.InstanceListItem;
 
 import java.util.Collection;
 
@@ -25,5 +26,7 @@ import java.util.Collection;
  */
 public interface InstanceService {
 
-    Collection<InstanceEntity> findInstances(boolean includeStopped);
+    Collection<InstanceListItem> findInstances(boolean includeStopped);
+
+    InstanceEntity findById(String id);
 }

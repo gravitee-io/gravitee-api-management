@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.InstanceEntity;
+import io.gravitee.management.model.InstanceListItem;
 import io.gravitee.management.service.InstanceService;
 
 import javax.inject.Inject;
@@ -43,9 +44,14 @@ public class InstancesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<InstanceEntity> instances() {
+    public Collection<InstanceListItem> instances() {
         return instanceService.findInstances(false)
                 .stream()
                 .collect(Collectors.toList());
+    }
+
+    @Path("{instance}")
+    public InstanceResource getInstanceResource() {
+        return resourceContext.getResource(InstanceResource.class);
     }
 }
