@@ -53,8 +53,10 @@ public class PolicyResolverImpl implements PolicyResolver {
                 LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}",
                         rule.getPolicy().getName(), request.id());
             } else if (
-                    (streamType == StreamType.REQUEST && policyDefinition.onRequestMethod() != null) ||
-                            (streamType == StreamType.RESPONSE && policyDefinition.onResponseMethod() != null)) {
+                    ((streamType == StreamType.REQUEST &&
+                            (policyDefinition.onRequestMethod() != null || policyDefinition.onRequestContentMethod() != null)) ||
+                            (streamType == StreamType.RESPONSE && (
+                                    policyDefinition.onResponseMethod() != null || policyDefinition.onResponseContentMethod() != null)))) {
 
                 Object policyInst = policyFactory.create(policyDefinition, rule.getPolicy().getConfiguration());
 
