@@ -20,6 +20,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
 import io.gravitee.management.rest.mapper.ObjectMapperResolver;
+import io.gravitee.management.rest.provider.BadRequestExceptionMapper;
 import io.gravitee.management.rest.provider.CorsResponseFilter;
 import io.gravitee.management.rest.provider.ManagementExceptionMapper;
 import io.gravitee.management.rest.provider.NotFoundExceptionMapper;
@@ -45,6 +46,7 @@ public class GraviteeApplication extends ResourceConfig {
         register(UnrecognizedPropertyExceptionMapper.class);
         register(ThrowableMapper.class);
         register(NotFoundExceptionMapper.class);
+        register(BadRequestExceptionMapper.class);
 
         register(CorsResponseFilter.class);
 

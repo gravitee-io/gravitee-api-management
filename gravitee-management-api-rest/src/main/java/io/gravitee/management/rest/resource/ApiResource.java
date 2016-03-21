@@ -23,6 +23,7 @@ import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.model.Visibility;
 import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
+import io.gravitee.management.rest.resource.LifecycleActionParam.LifecycleAction;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.PermissionService;
@@ -32,6 +33,7 @@ import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -95,9 +97,11 @@ public class ApiResource extends AbstractResource {
 
         switch (action.getAction()) {
             case START:
+                checkAPILifeCycle(api, action.getAction());
                 apiService.start(api.getId(), getAuthenticatedUsername());
                 break;
             case STOP:
+                checkAPILifeCycle(api, action.getAction());
                 apiService.stop(api.getId(), getAuthenticatedUsername());
                 break;
             default:
@@ -248,6 +252,23 @@ public class ApiResource extends AbstractResource {
             apiEntity.setIsSynchronized(true);
         } else {
             apiEntity.setIsSynchronized(false);
+        }
+    }
+    
+    private void checkAPILifeCycle(ApiEntity api, LifecycleAction action) {
+        switch(api.getState()) {
+            case STARTED:
+                if (LifecycleAction.START.equals(action)) {
+                    throw new BadRequestException("API is already started");
+                }
+                break;
+            case STOPPED:
+                if (LifecycleAction.STOP.equals(action)) {
+                    throw new BadRequestException("API is already stopped");
+                }
+                break;
+            default:
+                break;
         }
     }
 }
