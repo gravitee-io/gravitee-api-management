@@ -86,6 +86,11 @@ public final class AsyncReporterWrapper extends AbstractService implements Repor
         }
     }
 
+    @Override
+    public boolean canHandle(Reportable reportable) {
+        return reporter.canHandle(reportable);
+    }
+
     public long getPollingTimeout() {
         return pollingTimeout;
     }
