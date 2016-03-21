@@ -84,6 +84,9 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
       .backgroundPalette('grey', {
         'default': '50'
       });
+
+    $mdThemingProvider.theme('toast-success');
+    $mdThemingProvider.theme('toast-error');
   })
   .run(runBlock)
   .service('ApiService', ApiService)

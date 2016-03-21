@@ -17,17 +17,18 @@ class NotificationService {
   constructor ($mdToast) {
     'ngInject';
 
-    this.show = function (message) {
+    this.show = function (message, isError) {
       $mdToast.show(
         $mdToast.simple()
           .content(message.statusText || message)
           .position('bottom right')
           .hideDelay(3000)
+          .theme(isError ? 'toast-error' : 'toast-success')
       );
     };
 
     this.error = function (error, message) {
-      this.show(message || (error.data? error.data.message : error));
+      this.show(message || (error.data ? error.data.message : error), true);
     };
   }
 }

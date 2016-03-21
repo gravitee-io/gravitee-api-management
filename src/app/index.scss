@@ -145,6 +145,15 @@ table[md-data-table] {
   background-color: $backgroundColor;
 }
 
+md-toast {
+  &.md-toast-success-theme .md-toast-content {
+    background-color: green;
+  }
+  &.md-toast-error-theme .md-toast-content {
+    background-color: red;
+  }
+}
+
 /**
  *  Do not remove this comments bellow. It's the markers used by gulp-inject to inject
  *  all your sass files automatically
