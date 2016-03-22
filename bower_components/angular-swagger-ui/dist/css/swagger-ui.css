@@ -1,5 +1,5 @@
 /*
- * Orange angular-swagger-ui - v0.2.6
+ * Orange angular-swagger-ui - v0.3.1
  *
  * (C) 2015 Orange, all right reserved
  * MIT Licensed
@@ -68,6 +68,9 @@
   padding-left: 10px;
   display: inline-block;
 }
+.swagger-ui .operation .path.deprecated {
+  text-decoration: line-through;
+}
 .swagger-ui .operation .description {
   margin: 2px 10px 0 0;
 }
@@ -78,7 +81,8 @@
   padding: 10px;
   border-top: 0 !important;
 }
-.swagger-ui .operation .content h5 {
+.swagger-ui .operation .content h5,
+.swagger-ui .operation .content .h5 {
   font-weight: bold;
   padding: 15px 0 5px;
   margin: 0;
@@ -192,6 +196,7 @@
   background-color: #0f6ab4;
 }
 .swagger-ui .get h5,
+.swagger-ui .get .h5,
 .swagger-ui .get .description {
   color: #0f6ab4;
 }
@@ -207,6 +212,7 @@
   background-color: #10a54a;
 }
 .swagger-ui .post h5,
+.swagger-ui .post .h5,
 .swagger-ui .post .description {
   color: #10a54a;
 }
@@ -222,6 +228,7 @@
   background-color: #c5862b;
 }
 .swagger-ui .put h5,
+.swagger-ui .put .h5,
 .swagger-ui .put .description {
   color: #c5862b;
 }
@@ -237,6 +244,7 @@
   background-color: #a41e22;
 }
 .swagger-ui .delete h5,
+.swagger-ui .delete .h5,
 .swagger-ui .delete .description {
   color: #a41e22;
 }
@@ -252,6 +260,7 @@
   background-color: #d38042;
 }
 .swagger-ui .patch h5,
+.swagger-ui .patch .h5,
 .swagger-ui .patch .description {
   color: #d38042;
 }
@@ -267,6 +276,7 @@
   background-color: #ffd20f;
 }
 .swagger-ui .head h5,
+.swagger-ui .head .h5,
 .swagger-ui .head .description {
   color: #ffd20f;
 }

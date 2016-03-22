@@ -16,19 +16,5 @@
 
 -->
 <section>
-  <div ng-include="'app/api/apiHeader.html'"></div>
-	<div ng-if="apiCtrl.pages.length === 0" style="text-align:center; color: #424E5A; fill: #424E5A; ">
-		<h2><ng-md-icon size="42" icon="error"></ng-md-icon> There is no published documentation for this API</h2>
-		<div>
-			<p>
-				The API will be complete shortly.
-			</p>
-		</div>
-	</div>
-
-  <md-tabs md-selected="apiCtrl.selectedIndex" md-stretch-tabs md-dynamic-height md-border-bottom ng-if="apiCtrl.pages.length > 0">
-    <md-tab label="{{page.name}}" ui-sref="apis.portal.page({pageId: page.id})" ng-repeat="page in apiCtrl.pages"></md-tab>
-  </md-tabs>
-
-  <div ui-view flex class="inset"></div>
+  <gravitee-page page="apiPortalPageCtrl.page" enable-try-it="false"></gravitee-page>
 </section>

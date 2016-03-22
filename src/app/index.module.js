@@ -24,6 +24,7 @@ import FormDirective from './components/form/form.directive';
 import ApiService from './api/api.service';
 import ApisController from './api/apis.controller';
 import ApiPortalController from './api/portal/apiPortal.controller';
+import ApiPortalPageController from './api/portal/apiPage.controller';
 import ApiGeneralController from './api/admin/general/apiGeneral.controller';
 import ApiAdminController from './api/admin/apiAdmin.controller';
 import ApiAnalyticsController from './api/admin/analytics.controller';
@@ -97,6 +98,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('AddPoliciesPathController', AddPoliciesPathController)
   .controller('ApiMembersController', ApiMembersController)
   .controller('ApiPortalController', ApiPortalController)
+  .controller('ApiPortalPageController', ApiPortalPageController)
   .controller('ApiGeneralController', ApiGeneralController)
   .controller('ApiMonitoringController', ApiMonitoringController)
   .controller('ApiPropertiesController', ApiPropertiesController)

@@ -71,13 +71,24 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
         resolvedApi:function ($stateParams, ApiService) {
           return ApiService.get($stateParams.apiId);
         },
-        resolvedPage:function ($stateParams, DocumentationService) {
+        resolvedPages:function ($stateParams, DocumentationService) {
           return DocumentationService.list($stateParams.apiId);
         }
       },
       menu: {
         label: 'Documentation',
         icon: 'insert_drive_file'
+      }
+    })
+    .state('apis.portal.page', {
+      url: '/pages/:pageId',
+      templateUrl: 'app/api/portal/apiPage.html',
+      controller: 'ApiPortalPageController',
+      controllerAs: 'apiPortalPageCtrl',
+      resolve: {
+        resolvedPage:function ($stateParams, DocumentationService) {
+          return DocumentationService.get($stateParams.apiId, $stateParams.pageId);
+        }
       }
     })
     .state('apis.admin', {

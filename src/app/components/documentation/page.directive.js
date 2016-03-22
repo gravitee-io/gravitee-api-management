@@ -31,7 +31,7 @@ class PageDirective {
 }
 
 class PageController {
-  constructor($scope, $state, DocumentationService) {
+  constructor($scope, $state, DocumentationService, Constants) {
     'ngInject';
     this.$scope = $scope;
     this.$state = $state;
@@ -40,10 +40,12 @@ class PageController {
     this.MARKDOWN_PAGE = 'MARKDOWN';
     this.RAML_PAGE = 'RAML';
     this.SWAGGER_PAGE = 'SWAGGER';
-  }
 
-  getContentUrl() {
-    return this.DocumentationService.getContentUrl(this.$state.params.apiId, this.$scope.page.id);
+    if (this.$scope.$parent.page === undefined) {
+      this.url = Constants.baseURL + 'apis/' + this.$state.params.apiId + '/pages/' + this.$state.params.pageId + '/content';
+    } else {
+      this.url = Constants.baseURL + 'apis/' + this.$state.params.apiId + '/pages/' + this.$scope.$parent.page.id + '/content';
+    }
   }
 
   ramlType() {

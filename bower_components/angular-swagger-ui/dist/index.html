@@ -1,41 +1,85 @@
 <!doctype html>
 <html class="no-js" ng-app="myApp">
-  <head>
+<head>
     <meta charset="utf-8">
-    <title>angular-swagger-ui sample</title>
+    <title swagger-translate="appTitle"></title>
     <meta name="viewport" content="width=device-width">
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/swagger-ui.min.css">
-  </head>
-  <body>
-    <div ng-controller="MyCtrl" class="container" style="margin-bottom:100px">
-        <h1>angular-swagger-ui sample</h1>
-        <form name="urlForm" ng-submit="urlForm.$valid&&(swaggerUrl=url)" class="form-inline">
-            <input type="url" placeholder="swagger URL" class="form-control" id="url" name="url" ng-model="url" required style="width:400px">
-            <button type="submit" class="btn btn-primary" ng-disabled="isLoading">explore</button>
-        </form>
-        <h3 ng-show="isLoading">loading ...</h3>
-        <div swagger-ui url="swaggerUrl" loading="isLoading" parser="json" api-explorer="true" error-handler="myErrorHandler"></div>
+    <link rel="stylesheet" href="css/demo.css">
+</head>
+<body>
+    <div ng-controller="MyCtrl" class="container my-ctrl">
+        <h1 swagger-translate="appTitle"></h1>
+        <form name="urlForm" ng-submit="swaggerUrl=url" class="form-inline">
+            <input type="text" placeholder="swagger URL" class="form-control" id="url" name="url" ng-model="url" required>
+            <button type="submit" class="btn btn-primary" swagger-translate="explore"></button>
+            <button type="button" ng-click="setFr()" class="btn btn-link pull-right" ng-disabled="getLang()=='fr'">
+                <span class="country fr"></span>
+                <span swagger-translate="french"></span>
+            </button>
+            <button type="button" ng-click="setEn()" class="btn btn-link pull-right" ng-disabled="getLang()=='en'">
+                <span class="country en"></span>
+                <span swagger-translate="english"></span>
+            </button>
+       </form>
+         <h3 ng-show="isLoading" swagger-translate="loading"></h3>
+        <div swagger-ui url="swaggerUrl" loading="isLoading" api-explorer="true" trusted-sources="true" error-handler="myErrorHandler" permalinks="true"></div>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-sanitize.min.js"></script>
+    <!-- dependencies -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.1/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.1/angular-sanitize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.5.4/js-yaml.min.js"></script>
+    <!-- angular-swagger-ui -->
     <script src="scripts/swagger-ui.min.js"></script>
     <script src="scripts/modules/swagger-external-references.min.js"></script>
     <script src="scripts/modules/swagger1-to-swagger2-converter.min.js"></script>
+    <script src="scripts/modules/swagger-xml-formatter.min.js"></script>
+    <script src="scripts/modules/swagger-yaml-parser.min.js"></script>
+    <script src="scripts/i18n/fr.min.js"></script>
     <script type="text/javascript">
         angular
             .module('myApp', ['ngSanitize', 'swaggerUi'])
-            .run(function(swaggerModules, swaggerUiExternalReferences, swagger1ToSwagger2Converter){
-                swaggerModules.add(swaggerModules.BEFORE_PARSE, swagger1ToSwagger2Converter);
-                swaggerModules.add(swaggerModules.BEFORE_PARSE, swaggerUiExternalReferences);
+            .config(function(swaggerTranslatorProvider) {
+                swaggerTranslatorProvider
+                    .setLanguage('en')
+                    .addTranslations('en', {
+                        appTitle: 'angular-swagger-ui sample',
+                        explore: 'Explore',
+                        loading: 'loading...',
+                        error: 'Failed to generate Swagger-UI: {{code}} {{message}}',
+                        french: 'french',
+                        english: 'english'
+                    })
+                    .addTranslations('fr', {
+                        appTitle: 'Exemple angular-swagger-ui',
+                        explore: 'Explorer',
+                        loading: 'Chargement ...',
+                        error: 'Impossible de générer Swagger-UI: {{code}} {{message}}',
+                        french: 'français',
+                        english: 'anglais'
+                    });
             })
-            .controller('MyCtrl', function($scope){
+            .controller('MyCtrl', function($scope, swaggerTranslator) {
                 // init form
                 $scope.isLoading = false;
                 $scope.url = $scope.swaggerUrl = 'http://petstore.swagger.io/v2/swagger.json';
                 // error management
                 $scope.myErrorHandler = function(data, status){
-                    alert('failed to load swagger: '+status+'   '+data);
+                    alert(swaggerTranslator.translate('error', {
+                        message: data,
+                        code: status
+                    }));
+                };
+                $scope.setFr = function() {
+                    swaggerTranslator.useLanguage('fr');
+                };
+                $scope.setEn = function() {
+                    swaggerTranslator.useLanguage('en');
+                };
+                $scope.getLang = function() {
+                    return swaggerTranslator.language();
                 };
             });
     </script>

@@ -14,11 +14,26 @@
  * limitations under the License.
  */
 class ApiPortalController {
-  constructor (DocumentationService, resolvedApi, resolvedPage) {
+  constructor ($scope, $state, $location, DocumentationService, resolvedApi, resolvedPages) {
     'ngInject';
+    this.$scope = $scope;
+    this.$state = $state;
+    this.$location = $location;
     this.DocumentationService = DocumentationService;
     this.api = resolvedApi.data;
-    this.pages = resolvedPage.data;
+    this.pages = resolvedPages.data;
+    this.$scope.selectedIndex = 0;
+
+    var that = this;
+    this.$scope.$watch('selectedIndex', function(current, old) {
+      if (that.pages.length > 0 && that.$state.params.pageId === undefined) {
+        switch (current) {
+          case 0:
+            $location.url('/apis/' + that.$state.params.apiId + '/pages/' + that.pages[0].id);
+            break;
+        }
+      }
+    });
   }
 
   fetchPage(page) {
