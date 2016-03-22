@@ -15,25 +15,9 @@
  */
 package io.gravitee.management.service.impl;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.PageListItem;
-import io.gravitee.management.model.PageType;
-import io.gravitee.management.model.UpdatePageEntity;
+import com.google.gson.Gson;
+import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
@@ -42,6 +26,19 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 /**
  * @author Titouan COMPIEGNE
@@ -252,6 +249,14 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			pageEntity.setType(page.getType().toString());
 		}
 		pageEntity.setContent(page.getContent());
+
+		if (isJson(page.getContent())) {
+			pageEntity.setContentType(MediaType.APPLICATION_JSON);
+		} else {
+			// Yaml or RAML format ?
+			pageEntity.setContentType("text/yaml");
+		}
+
 		pageEntity.setLastContributor(page.getLastContributor());
 		pageEntity.setLastModificationDate(page.getUpdatedAt());
 		pageEntity.setOrder(page.getOrder());
@@ -269,6 +274,17 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setPublished(updatePageEntity.isPublished());
 
 		return page;
+	}
+
+	private static final Gson gson = new Gson();
+
+	public static boolean isJson(String content) {
+		try {
+			gson.fromJson(content, Object.class);
+			return true;
+		} catch(com.google.gson.JsonSyntaxException ex) {
+			return false;
+		}
 	}
 
 	public IdGenerator getIdGenerator() {

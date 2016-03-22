@@ -39,6 +39,8 @@ public class PageEntity {
 
 	private Date lastModificationDate;
 
+	private String contentType;
+
 	public String getId() {
 		return id;
 	}
@@ -101,6 +103,14 @@ public class PageEntity {
 
 	public void setLastModificationDate(Date lastModificationDate) {
 		this.lastModificationDate = lastModificationDate;
+	}
+
+	public String getContentType() {
+		return contentType;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
 	}
 
 	public boolean equals(Object o) {

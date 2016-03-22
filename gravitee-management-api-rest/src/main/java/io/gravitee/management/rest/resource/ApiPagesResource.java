@@ -69,9 +69,9 @@ public class ApiPagesResource extends AbstractResource {
 
     @GET
     @Path("/{page}/content")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getContent(@PathParam("page") String page) {
-        return get(page).getContent();
+    public Response getContent(@PathParam("page") String page) {
+        PageEntity pageEntity = get(page);
+        return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
     }
 
     @GET
