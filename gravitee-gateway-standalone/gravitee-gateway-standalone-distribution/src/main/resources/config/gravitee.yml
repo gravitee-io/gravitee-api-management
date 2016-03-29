@@ -92,6 +92,9 @@ ratelimit:
   mongodb:
     uri: mongodb://${ds.mongodb.host}/${ds.mongodb.dbname}
 
+cache:
+  type: ehcache
+
 # Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
 # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
 reporters:

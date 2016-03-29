@@ -8,6 +8,9 @@ management:
 ratelimit:
   type: mock
 
+cache:
+  type: mock
+
 sync:
   enabled: false
   cron: '*/5 * * * * *'

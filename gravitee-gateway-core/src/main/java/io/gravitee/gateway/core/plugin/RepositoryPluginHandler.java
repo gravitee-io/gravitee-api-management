@@ -53,6 +53,8 @@ public class RepositoryPluginHandler extends AbstractPluginHandler implements In
         lookForRepositoryType(Scope.MANAGEMENT);
         // 2_ Rate limit
         lookForRepositoryType(Scope.RATE_LIMIT);
+        // 3_ Caching
+        lookForRepositoryType(Scope.CACHE);
     }
 
     @Override
@@ -101,11 +103,14 @@ public class RepositoryPluginHandler extends AbstractPluginHandler implements In
         String [] beanNames = repoApplicationContext.getBeanDefinitionNames();
         for(String beanName : beanNames) {
             Object repositoryClassInstance = repoApplicationContext.getBean(beanName);
-            if (beanName.endsWith("Repository") && ! repository.getClass().equals(repositoryClassInstance.getClass())) {
-                Class<?> repositoryClass = repositoryClassInstance.getClass().getInterfaces()[0];
-                LOGGER.debug("Register {} [{}] in gateway context", beanName, repositoryClass);
-                beanFactory.registerSingleton(repositoryClass.getName(),
-                        repositoryClassInstance);
+            if ((beanName.endsWith("Repository") || beanName.endsWith("Manager")) && ! repository.getClass().equals(repositoryClassInstance.getClass())) {
+                Class<?> repositoryObjectClass = repositoryClassInstance.getClass();
+                if (repositoryObjectClass.getInterfaces().length > 0) {
+                    Class<?> repositoryItfClass = repositoryObjectClass.getInterfaces()[0];
+                    LOGGER.debug("Register {} [{}] in gateway context", beanName, repositoryItfClass);
+                    beanFactory.registerSingleton(repositoryItfClass.getName(),
+                            repositoryClassInstance);
+                }
             }
         }
     }
