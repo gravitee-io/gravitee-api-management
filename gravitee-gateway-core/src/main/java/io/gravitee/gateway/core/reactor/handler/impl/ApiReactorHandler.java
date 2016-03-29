@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Path;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
@@ -64,76 +65,86 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
     @Override
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
-        // Set specific metrics for API handler
-        serverRequest.metrics().setApi(api.getId());
+        try {
+            // Set specific metrics for API handler
+            serverRequest.metrics().setApi(api.getId());
 
-        // Resolve the "configured" path according to the inbound request
-        Path path = pathResolver.resolve(serverRequest);
+            // Resolve the "configured" path according to the inbound request
+            Path path = pathResolver.resolve(serverRequest);
 
-        // Calculate request policies
-        List<Policy> requestPolicies = policyResolver.resolve(StreamType.REQUEST, serverRequest, path.getRules());
+            // Calculate request policies
+            List<Policy> requestPolicies = policyResolver.resolve(StreamType.REQUEST, serverRequest, path.getRules());
 
-        // Prepare execution context
-        ExecutionContext executionContext = createExecutionContext();
-        executionContext.getTemplateEngine().getTemplateContext().setVariable("request", new WrappedRequestVariable(serverRequest));
-        executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.getProperties());
-        executionContext.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, path.getPath());
-        executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
-        executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, defaultInvoker);
+            // Prepare execution context
+            ExecutionContext executionContext = createExecutionContext();
+            executionContext.getTemplateEngine().getTemplateContext().setVariable("request", new WrappedRequestVariable(serverRequest));
+            executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.getProperties());
+            executionContext.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, path.getPath());
+            executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
+            executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, defaultInvoker);
 
-        // Apply request policies
-        RequestPolicyChain requestPolicyChain = RequestPolicyChain.create(requestPolicies, executionContext);
-        requestPolicyChain.setResultHandler(requestPolicyResult -> {
-            if (requestPolicyResult.isFailure()) {
-                writePolicyResult(requestPolicyResult, serverResponse);
+            // Apply request policies
+            RequestPolicyChain requestPolicyChain = RequestPolicyChain.create(requestPolicies, executionContext);
+            requestPolicyChain.setResultHandler(requestPolicyResult -> {
+                if (requestPolicyResult.isFailure()) {
+                    writePolicyResult(requestPolicyResult, serverResponse);
 
-                handler.handle(serverResponse);
-            } else {
-                // Use the upstream invoker (call the remote API using HTTP client)
-                Invoker invoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
+                    handler.handle(serverResponse);
+                } else {
+                    // Use the upstream invoker (call the remote API using HTTP client)
+                    Invoker invoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
 
-                long serviceInvocationStart = System.currentTimeMillis();
-                invoker.invoke(executionContext, serverRequest, responseStream -> {
+                    long serviceInvocationStart = System.currentTimeMillis();
+                    invoker.invoke(executionContext, serverRequest, responseStream -> {
 
-                    // Set the status
-                    serverResponse.status(responseStream.status());
+                        // Set the status
+                        serverResponse.status(responseStream.status());
 
-                    // Copy HTTP headers
-                    responseStream.headers().forEach((headerName, headerValues) -> serverResponse.headers().put(headerName, headerValues));
+                        // Copy HTTP headers
+                        responseStream.headers().forEach((headerName, headerValues) -> serverResponse.headers().put(headerName, headerValues));
 
-                    // Calculate response policies
-                    List<Policy> responsePolicies = policyResolver.resolve(StreamType.RESPONSE, serverRequest, path.getRules());
-                    ResponsePolicyChain responsePolicyChain = ResponsePolicyChain.create(responsePolicies, executionContext);
+                        // Calculate response policies
+                        List<Policy> responsePolicies = policyResolver.resolve(StreamType.RESPONSE, serverRequest, path.getRules());
+                        ResponsePolicyChain responsePolicyChain = ResponsePolicyChain.create(responsePolicies, executionContext);
 
-                    responsePolicyChain.setResultHandler(responsePolicyResult -> {
-                        if (responsePolicyResult.isFailure()) {
-                            writePolicyResult(responsePolicyResult, serverResponse);
+                        responsePolicyChain.setResultHandler(responsePolicyResult -> {
+                            if (responsePolicyResult.isFailure()) {
+                                writePolicyResult(responsePolicyResult, serverResponse);
 
+                                handler.handle(serverResponse);
+                            }
+                        });
+
+                        responsePolicyChain.bodyHandler(serverResponse::write);
+                        responsePolicyChain.endHandler(responseEndResult -> {
+                            serverResponse.end();
+
+                            serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
+                            LOGGER.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
+
+                            // Transfer proxy response to the initial consumer
                             handler.handle(serverResponse);
-                        }
+                        });
+
+                        responseStream.bodyHandler(responsePolicyChain::write);
+                        responseStream.endHandler(aVoid -> responsePolicyChain.end());
+
+                        // Execute response policy chain
+                        responsePolicyChain.doNext(serverRequest, serverResponse);
                     });
+                }
+            });
 
-                    responsePolicyChain.bodyHandler(serverResponse::write);
-                    responsePolicyChain.endHandler(responseEndResult -> {
-                        serverResponse.end();
+            requestPolicyChain.doNext(serverRequest, serverResponse);
+        } catch (Exception ex) {
+            LOGGER.error("An unexpected error occurs while processing request", ex);
 
-                        serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
-                        LOGGER.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
-
-                        // Transfer proxy response to the initial consumer
-                        handler.handle(serverResponse);
-                    });
-
-                    responseStream.bodyHandler(responsePolicyChain::write);
-                    responseStream.endHandler(aVoid -> responsePolicyChain.end());
-
-                    // Execute response policy chain
-                    responsePolicyChain.doNext(serverRequest, serverResponse);
-                });
-            }
-        });
-
-        requestPolicyChain.doNext(serverRequest, serverResponse);
+            // Send an INTERNAL_SERVER_ERROR (500)
+            serverResponse.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+            serverResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+            serverResponse.end();
+            handler.handle(serverResponse);
+        }
     }
 
     private void writePolicyResult(PolicyResult policyResult, Response response) {

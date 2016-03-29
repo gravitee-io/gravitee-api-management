@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,6 @@ package io.gravitee.gateway.core.reactor;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpHeadersValues;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -90,7 +87,7 @@ public class GraviteeReactor extends AbstractService implements
 
         LOGGER.debug("Found {} handlers for path {}", mapHandlers.size(), path);
 
-        if (! mapHandlers.isEmpty()) {
+        if (!mapHandlers.isEmpty()) {
             ContextReactorHandler handler = mapHandlers.iterator().next();
             LOGGER.debug("Returning the first handler matching path {} : {}", path, handler);
             return handler;
@@ -102,28 +99,18 @@ public class GraviteeReactor extends AbstractService implements
     public void process(Request request, Response response, Handler<Response> handler) {
         LOGGER.debug("Receiving a request {} for path {}", request.id(), request.path());
 
-        try {
-            ReactorHandler reactorHandler = bestHandler(request);
+        ReactorHandler reactorHandler = bestHandler(request);
 
-            // Prepare the handler chain
-            handler = new ResponseTimeHandler(request,
-                    new ReporterHandler(reporterService, request, handler));
+        // Prepare the handler chain
+        handler = new ResponseTimeHandler(request,
+                new ReporterHandler(reporterService, request, handler));
 
-            reactorHandler.handle(request, response, handler);
-        } catch (Exception ex) {
-            LOGGER.error("An unexpected error occurs while processing request", ex);
-
-            // Send an INTERNAL_SERVER_ERROR (500)
-            response.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-            response.end();
-            handler.handle(response);
-        }
+        reactorHandler.handle(request, response, handler);
     }
 
     @Override
     public void onEvent(Event<ApiEvent, Api> event) {
-        switch(event.type()) {
+        switch (event.type()) {
             case DEPLOY:
                 createHandler(event.content());
                 break;
