@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository;
+package io.gravitee.repository.cache.model;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
-public enum Scope {
+public interface Element {
 
-    MANAGEMENT("management"),
-    RATE_LIMIT("ratelimit"),
-    ANALYTICS("analytics"),
-    CACHE("cache");
+    Object key();
 
-    String name;
+    Object value();
 
-    Scope(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return this.name;
+    default int timeToLive() {
+        return 0;
     }
 }
