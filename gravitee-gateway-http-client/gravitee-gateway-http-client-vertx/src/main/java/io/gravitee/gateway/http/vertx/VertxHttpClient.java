@@ -198,7 +198,7 @@ public class VertxHttpClient extends AbstractHttpClient {
         options.setIdleTimeout((int) (proxyDefinition.getHttpClient().getOptions().getIdleTimeout() / 1000));
         options.setConnectTimeout((int) proxyDefinition.getHttpClient().getOptions().getConnectTimeout());
         options.setUsePooledBuffers(true);
-        options.setMaxPoolSize(100);
+        options.setMaxPoolSize(proxyDefinition.getHttpClient().getOptions().getMaxConcurrentConnections());
 
         if (proxyDefinition.getHttpClient().getSsl() != null
                 && proxyDefinition.getHttpClient().getSsl().isEnabled()) {
