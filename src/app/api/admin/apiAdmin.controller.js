@@ -27,42 +27,8 @@ class ApiAdminController {
     this.apiIsSynchronized = true;
     this.init();
     this.checkAPISynchronization(this.api);
-
-    var that = this;
-    $scope.$on('$stateChangeSuccess', function (ev, to, toParams, from) {
-      // check authorization
-      if (!$scope.$parent.apisCtrl.isOwner(that.api)) {
-        $state.go('home');
-      }
-
-      if (from.name.startsWith('apis.list.')) {
-        $scope.$parent.previousState = from.name;
-      }
-
-      if ($state.current.name.includes('general')) {
-        $scope.selectedTab = 0;
-      } else if ($state.current.name.includes('policies')) {
-        $scope.selectedTab = 1;
-      } else if ($state.current.name.includes('documentation')) {
-        $scope.selectedTab = 2;
-      } else if ($state.current.name.endsWith('apikeys')) {
-        $scope.selectedTab = 3;
-      } else if ($state.current.name.endsWith('members')) {
-        $scope.selectedTab = 4;
-      } else if ($state.current.name.endsWith('properties')) {
-        $scope.selectedTab = 5;
-      } else if ($state.current.name.includes('analytics')) {
-        $scope.selectedTab = 6;
-      } else if ($state.current.name.endsWith('monitoring')) {
-        $scope.selectedTab = 7;
-      } else if ($state.current.name.endsWith('descriptor')) {
-        $scope.selectedTab = 8;
-      } else if ($state.current.name.endsWith('events')) {
-        $scope.selectedTab = 9;
-      }
-    });
   }
-  
+
   init() {
     var self = this;
     this.$scope.$on("apiChangeSuccess", function() {
@@ -73,7 +39,7 @@ class ApiAdminController {
       });
     });
   }
-  
+
   checkAPISynchronization(api) {
     this.ApiService.isAPISynchronized(api.id).then(response => {
       this.apiJustDeployed = false;
@@ -85,7 +51,7 @@ class ApiAdminController {
       this.$rootScope.$broadcast("checkAPISynchronizationSucceed");
     });
   }
-  
+
   showDeployAPIConfirm(ev, api) {
     var confirm = this.$mdDialog.confirm()
       .title('Would you like to deploy your API?')
@@ -100,7 +66,7 @@ class ApiAdminController {
       self.$mdDialog.cancel();
     });
   }
-  
+
   deploy(api) {
     this.ApiService.deploy(api.id).then((deployedApi) => {
       this.NotificationService.show("API deployed");
