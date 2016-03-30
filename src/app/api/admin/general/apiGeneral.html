@@ -79,7 +79,7 @@
           <textarea ng-model="generalCtrl.api.description" required></textarea>
         </md-input-container>
       </div>
-       
+
       <div layout="column" class="api-picture">
         <label>Picture</label>
         <div>
@@ -91,7 +91,7 @@
           <p>Formats: jpeg, png, gif</p>
         </div>
       </div>
-            
+
       <div layout="" layout-sm="column">
         <md-input-container class="flex">
           <label>Deployment tags</label>
@@ -221,6 +221,14 @@
                   <input ng-model="generalCtrl.api.proxy.http.configuration.idleTimeout" type="number" required min="0">
                 </md-input-container>
               </div>
+              <div flex-xs flex="50">
+                <md-input-container flex-xs flex="50">
+                  <label>Max concurrent connections *</label>
+                  <input ng-model="generalCtrl.api.proxy.http.configuration.maxConcurrentConnections" type="number" required min="0">
+                </md-input-container>
+              </div>
+            </div>
+            <div layout="column" layout-wrap layout-gt-sm="row">
               <div flex-xs flex="50">
                 <div layout-xs="column" flex-xs="50">
                   <md-checkbox
