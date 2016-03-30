@@ -87,6 +87,14 @@ public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer
             httpClientOptions.setPipelining(HttpClientOptions.DEFAULT_PIPELINING);
         }
 
+        JsonNode maxConcurrentConnectionsNode = node.get("maxConcurrentConnections");
+        if (maxConcurrentConnectionsNode != null) {
+            int maxConcurrentConnections = maxConcurrentConnectionsNode.asInt(HttpClientOptions.DEFAULT_MAX_CONCURRENT_CONNECTIONS);
+            httpClientOptions.setMaxConcurrentConnections(maxConcurrentConnections);
+        } else {
+            httpClientOptions.setMaxConcurrentConnections(HttpClientOptions.DEFAULT_MAX_CONCURRENT_CONNECTIONS);
+        }
+
         return httpClientOptions;
     }
 }

@@ -24,6 +24,7 @@ public class HttpClientOptions {
     public static long DEFAULT_IDLE_TIMEOUT = 60000;
     public static long DEFAULT_CONNECT_TIMEOUT = 5000;
     public static long DEFAULT_READ_TIMEOUT = 10000;
+    public static int DEFAULT_MAX_CONCURRENT_CONNECTIONS = 100;
     public static boolean DEFAULT_KEEP_ALIVE = true;
     public static boolean DEFAULT_DUMP_REQUEST = false;
     public static boolean DEFAULT_PIPELINING = false;
@@ -39,6 +40,8 @@ public class HttpClientOptions {
     private long readTimeout = DEFAULT_READ_TIMEOUT;
 
     private boolean pipelining = DEFAULT_PIPELINING;
+
+    private int maxConcurrentConnections = DEFAULT_MAX_CONCURRENT_CONNECTIONS;
 
     public long getConnectTimeout() {
         return connectTimeout;
@@ -86,5 +89,13 @@ public class HttpClientOptions {
 
     public void setPipelining(boolean pipelining) {
         this.pipelining = pipelining;
+    }
+
+    public int getMaxConcurrentConnections() {
+        return maxConcurrentConnections;
+    }
+
+    public void setMaxConcurrentConnections(int maxConcurrentConnections) {
+        this.maxConcurrentConnections = maxConcurrentConnections;
     }
 }
