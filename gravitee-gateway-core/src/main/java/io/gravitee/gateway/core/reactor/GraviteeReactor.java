@@ -37,11 +37,8 @@ import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.plugin.core.internal.PluginEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.util.Map;
 import java.util.Set;
@@ -53,14 +50,12 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class GraviteeReactor extends AbstractService implements
-        Reactor, EventListener<ApiEvent, Api>, ApplicationContextAware {
+        Reactor, EventListener<ApiEvent, Api> {
 
     private final Logger LOGGER = LoggerFactory.getLogger(GraviteeReactor.class);
 
     @Autowired
     private EventManager eventManager;
-
-    private ApplicationContext applicationContext;
 
     @Autowired
     @Qualifier("notFoundHandler")
@@ -180,11 +175,6 @@ public class GraviteeReactor extends AbstractService implements
             }
         });
         contextPaths.clear();
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 
     public void setContextHandlerFactory(ContextHandlerFactory contextHandlerFactory) {
