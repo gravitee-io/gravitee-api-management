@@ -16,8 +16,6 @@
 package io.gravitee.gateway.core.policy;
 
 import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
-import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.plugin.policy.PolicyDefinition;
 import io.gravitee.policy.api.PolicyConfiguration;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,7 +44,7 @@ public class PolicyFactoryTest {
 
     @Test
     public void createPolicyWithConfigurationAndWithoutConfigurationData() {
-        PolicyDefinition definition = getPolicyDefinitionWithConfiguration();
+        PolicyClassDefinition definition = getPolicyDefinitionWithConfiguration();
         Object policy = policyFactory.create(definition, null);
 
         verify(policyConfigurationFactory, never()).create(any(), anyString());
@@ -55,7 +53,7 @@ public class PolicyFactoryTest {
 
     @Test
     public void createPolicyWithoutConfigurationAndWithoutConfigurationData() {
-        PolicyDefinition definition = getPolicyDefinitionWithoutConfiguration();
+        PolicyClassDefinition definition = getPolicyDefinitionWithoutConfiguration();
         Object policy = policyFactory.create(definition, null);
 
         verify(policyConfigurationFactory, never()).create(any(), anyString());
@@ -64,7 +62,7 @@ public class PolicyFactoryTest {
 
     @Test
     public void createPolicyWithConfigurationAndConfigurationData() {
-        PolicyDefinition definition = getPolicyDefinitionWithConfiguration();
+        PolicyClassDefinition definition = getPolicyDefinitionWithConfiguration();
         Object policy = policyFactory.create(definition, "{}");
 
         verify(policyConfigurationFactory, times(1)).create(any(), anyString());
@@ -73,15 +71,15 @@ public class PolicyFactoryTest {
 
     @Test
     public void createPolicyWithoutConfigurationAndWithConfigurationData() {
-        PolicyDefinition definition = getPolicyDefinitionWithoutConfiguration();
+        PolicyClassDefinition definition = getPolicyDefinitionWithoutConfiguration();
         Object policy = policyFactory.create(definition, "{}");
 
         verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNotNull(policy);
     }
 
-    private PolicyDefinition getPolicyDefinitionWithConfiguration() {
-        return new PolicyDefinition() {
+    private PolicyClassDefinition getPolicyDefinitionWithConfiguration() {
+        return new PolicyClassDefinition() {
             @Override
             public String id() {
                 return null;
@@ -116,16 +114,11 @@ public class PolicyFactoryTest {
             public Method onResponseContentMethod() {
                 return null;
             }
-
-            @Override
-            public Plugin plugin() {
-                return null;
-            }
         };
     }
 
-    private PolicyDefinition getPolicyDefinitionWithoutConfiguration() {
-        return new PolicyDefinition() {
+    private PolicyClassDefinition getPolicyDefinitionWithoutConfiguration() {
+        return new PolicyClassDefinition() {
             @Override
             public String id() {
                 return null;
@@ -158,11 +151,6 @@ public class PolicyFactoryTest {
 
             @Override
             public Method onResponseContentMethod() {
-                return null;
-            }
-
-            @Override
-            public Plugin plugin() {
                 return null;
             }
         };

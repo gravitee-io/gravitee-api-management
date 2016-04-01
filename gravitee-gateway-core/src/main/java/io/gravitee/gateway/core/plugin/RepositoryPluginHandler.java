@@ -65,8 +65,10 @@ public class RepositoryPluginHandler extends AbstractPluginHandler implements In
     @Override
     public void handle(Plugin plugin) {
         try {
-            final Class<?> repositoryClass = plugin.clazz();
-            LOGGER.info("Register a new repository: {} [{}]", plugin.id(), plugin.clazz().getName());
+            ClassLoader classloader = classLoaderFactory.getOrCreatePluginClassLoader(plugin, this.getClass().getClassLoader());
+
+            final Class<?> repositoryClass = classloader.loadClass(plugin.clazz());
+            LOGGER.info("Register a new repository: {} [{}]", plugin.id(), plugin.clazz());
 
             Assert.isAssignable(Repository.class, repositoryClass);
 

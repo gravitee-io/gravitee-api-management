@@ -16,9 +16,9 @@
 package io.gravitee.gateway.core.policy.impl;
 
 import com.google.common.base.Predicate;
+import io.gravitee.gateway.core.policy.PolicyClassDefinition;
 import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.core.policy.PolicyFactory;
-import io.gravitee.plugin.policy.PolicyDefinition;
 import io.gravitee.policy.api.PolicyConfiguration;
 import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
@@ -47,19 +47,19 @@ public class PolicyFactoryImpl implements PolicyFactory {
     private Map<Class<?>, Constructor<?>> constructorCache = new HashMap<>();
 
     @Override
-    public Object create(PolicyDefinition policyDefinition, String configuration) {
-        Class<? extends PolicyConfiguration> policyConfigurationClazz = policyDefinition.configuration();
-        Class<?> policyClass = policyDefinition.policy();
+    public Object create(PolicyClassDefinition policyClassDefinition, String configuration) {
+        Class<? extends PolicyConfiguration> policyConfigurationClazz = policyClassDefinition.configuration();
+        Class<?> policyClass = policyClassDefinition.policy();
 
         LOGGER.debug("Create a new policy instance for {}", policyClass.getName());
 
         PolicyConfiguration policyConfiguration = null;
         if (policyConfigurationClazz != null) {
             if (configuration == null) {
-                LOGGER.error("A configuration is required for policy {}, returning a null policy", policyDefinition.id());
+                LOGGER.error("A configuration is required for policy {}, returning a null policy", policyClassDefinition.id());
                 return null;
             } else {
-                LOGGER.debug("Create policy configuration for policy {}", policyDefinition.id());
+                LOGGER.debug("Create policy configuration for policy {}", policyClassDefinition.id());
                 policyConfiguration = policyConfigurationFactory.create(policyConfigurationClazz, configuration);
             }
         }

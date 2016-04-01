@@ -29,7 +29,7 @@ import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ResponseTimeHandler;
-import io.gravitee.gateway.core.reactor.handler.impl.ApiReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.impl.api.ApiReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.reporter.ReporterHandler;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.service.ServiceManager;
@@ -120,7 +120,7 @@ public class GraviteeReactor extends AbstractService implements
 
     public void createHandler(Api api) {
         if (api.isEnabled()) {
-            LOGGER.info("API {} has been deployed in reactor", api.getId());
+            LOGGER.info("Start deployment in reactor");
 
             ContextReactorHandler handler = contextHandlerFactory.create(api);
             try {
@@ -131,7 +131,7 @@ public class GraviteeReactor extends AbstractService implements
                 LOGGER.error("Unable to deploy handler", ex);
             }
         } else {
-            LOGGER.warn("Api {} is disabled !", api.getId());
+            LOGGER.warn("Api is disabled !");
         }
     }
 
@@ -157,7 +157,7 @@ public class GraviteeReactor extends AbstractService implements
                 try {
                     handler.stop();
                     handlers.remove(handler.getContextPath());
-                    LOGGER.info("API {} has been removed from reactor", api.getId());
+                    LOGGER.info("API has been removed from reactor");
                 } catch (Exception e) {
                     LOGGER.error("Unable to remove handler", e);
                 }

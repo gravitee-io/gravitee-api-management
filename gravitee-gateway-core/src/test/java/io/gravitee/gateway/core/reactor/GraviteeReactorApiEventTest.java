@@ -22,7 +22,7 @@ import io.gravitee.gateway.core.builder.ApiDefinitionBuilder;
 import io.gravitee.gateway.core.builder.ProxyDefinitionBuilder;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
-import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
+import io.gravitee.gateway.core.reactor.handler.impl.api.ApiContextHandlerFactory;
 import org.junit.Before;
 import org.junit.Test;
 

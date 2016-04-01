@@ -22,7 +22,7 @@ import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
-import io.gravitee.gateway.core.reactor.handler.impl.ApiReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.impl.api.ApiReactorHandler;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

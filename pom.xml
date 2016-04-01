@@ -142,8 +142,8 @@
         <gravitee-definition.version>0.9.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>0.6.0</gravitee-common.version>
         <gravitee-repository.version>0.10.0-SNAPSHOT</gravitee-repository.version>
-        <gravitee-plugin-core.version>0.8.0</gravitee-plugin-core.version>
-        <gravitee-plugin-policy.version>0.8.0</gravitee-plugin-policy.version>
+        <gravitee-plugin-core.version>0.9.0-SNAPSHOT</gravitee-plugin-core.version>
+        <gravitee-plugin-policy.version>0.9.0-SNAPSHOT</gravitee-plugin-policy.version>
         <gravitee-policy-api.version>0.6.0</gravitee-policy-api.version>
         <gravitee-gateway-api.version>0.9.0</gravitee-gateway-api.version>
         <gravitee-repository-mongodb.version>0.9.0</gravitee-repository-mongodb.version>

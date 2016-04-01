@@ -127,10 +127,10 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                 startRefresher(api);
                 break;
             case UNDEPLOY:
-                stopRefresher(api, scheduledTasks.remove(api));
+                stopRefresher(api);
                 break;
             case UPDATE:
-                stopRefresher(api, scheduledTasks.remove(api));
+                stopRefresher(api);
                 startRefresher(api);
         }
     }
@@ -141,7 +141,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             refresher.setCache(cache);
             refresher.setApiKeyRepository(apiKeyRepository);
 
-            LOGGER.info("Add a task to refresh keys for {} each {} {} ", api, delay, unit.name());
+            LOGGER.info("Add a task to refresh keys each {} {} ", delay, unit.name());
             ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
                     refresher, 0, delay, unit);
 
@@ -149,13 +149,14 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
         }
     }
 
-    private void stopRefresher(Api api, ScheduledFuture scheduledFuture) {
+    private void stopRefresher(Api api) {
+        ScheduledFuture scheduledFuture = scheduledTasks.remove(api);
         if (scheduledFuture != null) {
             if (! scheduledFuture.isCancelled()) {
-                LOGGER.info("Stop api-keys refresher for {}", api);
+                LOGGER.info("Stop api-keys refresher");
                 scheduledFuture.cancel(true);
             } else {
-                LOGGER.info("API-key refresher already shutdown for {}", api);
+                LOGGER.info("API-key refresher already shutdown");
             }
         }
     }

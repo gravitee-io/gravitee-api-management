@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reactor.handler.impl;
+package io.gravitee.gateway.core.reactor.handler.impl.api;
 
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.impl.AbstractContextHandlerFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Properties;
 
 /**
@@ -31,14 +34,17 @@ public class ApiContextHandlerFactory extends AbstractContextHandlerFactory {
     @Override
     public ContextReactorHandler create(Api api) {
         AbstractApplicationContext internalApplicationContext = createApplicationContext(api);
-        return internalApplicationContext.getBean(ContextReactorHandler.class);
+        internalApplicationContext.setClassLoader(new ReactorHandlerClassLoader(ContextReactorHandler.class.getClassLoader()));
+        ContextReactorHandler handler = internalApplicationContext.getBean(ContextReactorHandler.class);
+        handler.setClassLoader(internalApplicationContext.getClassLoader());
+        return handler;
     }
 
     private AbstractApplicationContext createApplicationContext(Api api) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.setParent(applicationContext);
 
-        PropertyPlaceholderConfigurer configurer=new PropertyPlaceholderConfigurer();
+        PropertyPlaceholderConfigurer configurer = new PropertyPlaceholderConfigurer();
         final Properties properties = applicationContext.getBean("graviteeProperties", Properties.class);
         configurer.setProperties(properties);
         configurer.setIgnoreUnresolvablePlaceholders(true);
@@ -50,5 +56,12 @@ public class ApiContextHandlerFactory extends AbstractContextHandlerFactory {
         context.refresh();
 
         return context;
+    }
+
+    private static class ReactorHandlerClassLoader extends URLClassLoader {
+
+        public ReactorHandlerClassLoader(ClassLoader parent) {
+            super(new URL[]{}, parent);
+        }
     }
 }

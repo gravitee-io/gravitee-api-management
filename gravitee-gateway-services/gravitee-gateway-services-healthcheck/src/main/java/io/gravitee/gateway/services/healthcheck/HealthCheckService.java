@@ -91,10 +91,10 @@ public class HealthCheckService extends AbstractService implements EventListener
                 startHealthCheck(api);
                 break;
             case UNDEPLOY:
-                stopHealthCheck(api, scheduledTasks.remove(api));
+                stopHealthCheck(api);
                 break;
             case UPDATE:
-                stopHealthCheck(api, scheduledTasks.remove(api));
+                stopHealthCheck(api);
                 startHealthCheck(api);
                 break;
         }
@@ -107,24 +107,25 @@ public class HealthCheckService extends AbstractService implements EventListener
                 EndpointMonitor monitor = new EndpointMonitor(api);
                 monitor.setReporterService(reporterService);
 
-                LOGGER.info("Add a scheduled task to health-check endpoints for {} each {} {} ", api, monitoring.getInterval(), monitoring.getUnit());
+                LOGGER.info("Add a scheduled task to health-check endpoints each {} {} ", monitoring.getInterval(), monitoring.getUnit());
                 ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
                         monitor, 0, monitoring.getInterval(), monitoring.getUnit());
 
                 scheduledTasks.put(api, scheduledFuture);
             } else {
-                LOGGER.info("Health-check is disabled for {}", api);
+                LOGGER.info("Health-check is disabled");
             }
         }
     }
 
-    private void stopHealthCheck(Api api, ScheduledFuture scheduledFuture) {
+    private void stopHealthCheck(Api api) {
+        ScheduledFuture scheduledFuture = scheduledTasks.remove(api);
         if (scheduledFuture != null) {
             if (! scheduledFuture.isCancelled()) {
-                LOGGER.info("Stop health-check for {}", api);
+                LOGGER.info("Stop health-check");
                 scheduledFuture.cancel(true);
             } else {
-                LOGGER.info("Health-check already shutdown for {}", api);
+                LOGGER.info("Health-check already shutdown");
             }
         }
     }

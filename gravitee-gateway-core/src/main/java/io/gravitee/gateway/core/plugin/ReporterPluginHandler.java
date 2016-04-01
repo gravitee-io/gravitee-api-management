@@ -18,12 +18,12 @@ package io.gravitee.gateway.core.plugin;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.reporter.impl.AsyncReporterWrapper;
 import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginType;
 import io.gravitee.reporter.api.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.util.Assert;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -38,21 +38,17 @@ public class ReporterPluginHandler extends AbstractPluginHandler {
 
     @Override
     public boolean canHandle(Plugin plugin) {
-        try {
-            Assert.isAssignable(Reporter.class, plugin.clazz());
-            return true;
-        } catch (IllegalArgumentException iae) {
-            LOGGER.trace("Class {} is not assignable to {}", plugin.clazz(), Reporter.class);
-            return false;
-        }
+        return plugin.type() == PluginType.REPORTER;
     }
 
     @Override
     public void handle(Plugin plugin) {
-        LOGGER.info("Register a new reporter: {} [{}]", plugin.id(), plugin.clazz().getName());
+        LOGGER.info("Register a new reporter: {} [{}]", plugin.id(), plugin.clazz());
         boolean enabled = isEnabled(plugin);
         if (enabled) {
             try {
+                classLoaderFactory.getOrCreatePluginClassLoader(plugin, this.getClass().getClassLoader());
+
                 ApplicationContext context = pluginContextFactory.create(plugin);
                 Reporter reporter = createAsyncReporter(plugin, context);
                 reporterService.register(reporter);

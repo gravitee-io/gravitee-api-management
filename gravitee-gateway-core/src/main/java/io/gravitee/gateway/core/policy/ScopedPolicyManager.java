@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reactor.handler;
+package io.gravitee.gateway.core.policy;
 
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.handler.Handler;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public interface ReactorHandler extends LifecycleComponent<ReactorHandler> {
+public interface ScopedPolicyManager extends LifecycleComponent<ScopedPolicyManager> {
 
-    void handle(Request request, Response response, Handler<Response> handler);
-
-    ClassLoader getClassLoader();
+    PolicyClassDefinition getPolicyClassDefinition(String policy);
 }

@@ -39,7 +39,7 @@ public class HttpClientBeanFactoryPostProcessor implements BeanFactoryPostProces
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        LOGGER.info("Looking for an HTTP Client implementation");
+        LOGGER.debug("Looking for an HTTP Client implementation");
 
         Set<String> httpClients = new HashSet<>(
                 SpringFactoriesLoader.loadFactoryNames(HttpClient.class, beanFactory.getBeanClassLoader()));
@@ -49,7 +49,7 @@ public class HttpClientBeanFactoryPostProcessor implements BeanFactoryPostProces
             throw new IllegalStateException("No HTTP client implementation can be found !");
         } else {
             int size = httpClients.size();
-            LOGGER.info("\tFound {} {} implementation(s)", size, HttpClient.class.getSimpleName());
+            LOGGER.debug("\tFound {} {} implementation(s)", size, HttpClient.class.getSimpleName());
 
             DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) beanFactory;
             HttpClient httpClient = null;
@@ -70,7 +70,7 @@ public class HttpClientBeanFactoryPostProcessor implements BeanFactoryPostProces
                     defaultListableBeanFactory.registerBeanDefinition(httpClient.getClass().getName(),
                             new RootBeanDefinition(httpClient.getClass().getName()));
 
-                    LOGGER.info("\tRegistering HTTP Client implementation: {}", httpClient.getClass().getName());
+                    LOGGER.info("Register HTTP client: {}", httpClient.getClass().getName());
 
             } else {
                 LOGGER.error("HTTP Client implementation can not be found. Please add correct module in classpath");

@@ -23,6 +23,7 @@ import io.gravitee.gateway.core.event.ApiEvent;
 import io.gravitee.gateway.core.manager.ApiManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
@@ -46,7 +47,8 @@ public class ApiManagerImpl implements ApiManager {
 
     @Override
     public void deploy(Api api) {
-        logger.info("Deploying {} [{}]", api.getName(), api.getId());
+        MDC.put("api", api.getId());
+        logger.info("Deployment of {}", api);
 
         try {
             validator.validate(api);
@@ -59,12 +61,15 @@ public class ApiManagerImpl implements ApiManager {
             }
         } catch (ValidationException ve) {
             logger.error("API {} can't be deployed because of validation errors", api, ve);
+        } finally {
+            MDC.remove("api");
         }
     }
 
     @Override
     public void update(Api api) {
-        logger.info("Updating {} [{}]", api.getName(), api.getId());
+        MDC.put("api", api.getId());
+        logger.info("Updating {}", api);
 
         try {
             validator.validate(api);
@@ -73,18 +78,22 @@ public class ApiManagerImpl implements ApiManager {
             eventManager.publishEvent(ApiEvent.UPDATE, api);
         } catch (ValidationException ve) {
             logger.error("API {} can't be updated because of validation errors", api, ve);
+        } finally {
+            MDC.remove("api");
         }
     }
 
     @Override
     public void undeploy(String apiId) {
+        MDC.put("api", apiId);
         Api currentApi = apis.remove(apiId);
         if (currentApi != null) {
-            logger.info("Undeploying {} [{}]", currentApi.getName(), currentApi.getId());
+            logger.info("Undeployment of {}", currentApi);
 
             eventManager.publishEvent(ApiEvent.UNDEPLOY, currentApi);
             logger.info("{} has been undeployed", apiId);
         }
+        MDC.remove("api");
     }
 
     @Override

@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reactor.handler.impl;
+package io.gravitee.gateway.core.reactor.handler.impl.api;
 
 import io.gravitee.gateway.core.http.client.spring.HttpClientConfiguration;
-import io.gravitee.gateway.core.policy.PathResolver;
-import io.gravitee.gateway.core.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.core.policy.PolicyFactory;
-import io.gravitee.gateway.core.policy.PolicyResolver;
-import io.gravitee.gateway.core.policy.impl.PathResolverImpl;
-import io.gravitee.gateway.core.policy.impl.PolicyConfigurationFactoryImpl;
-import io.gravitee.gateway.core.policy.impl.PolicyFactoryImpl;
-import io.gravitee.gateway.core.policy.impl.PolicyResolverImpl;
+import io.gravitee.gateway.core.policy.*;
+import io.gravitee.gateway.core.policy.ScopedPolicyManager;
+import io.gravitee.gateway.core.policy.impl.*;
 import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +39,16 @@ public class ApiHandlerConfiguration {
     @Bean
     public PolicyResolver policyResolver() {
         return new PolicyResolverImpl();
+    }
+
+    @Bean
+    public ScopedPolicyManager scopedPolicyManager() {
+        return new DefaultScopedPolicyManager();
+    }
+
+    @Bean
+    public PolicyClassLoaderFactory policyClassLoaderFactory() {
+        return new PolicyClassLoaderFactoryImpl();
     }
 
     @Bean

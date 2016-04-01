@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.plugin;
 
+import io.gravitee.plugin.core.api.ClassLoaderFactory;
 import io.gravitee.plugin.core.api.PluginContextFactory;
 import io.gravitee.plugin.core.api.PluginHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public abstract class AbstractPluginHandler implements PluginHandler {
 
     @Autowired
     protected PluginContextFactory pluginContextFactory;
+
+    @Autowired
+    protected ClassLoaderFactory classLoaderFactory;
 
     public void setEnvironment(Environment environment) {
         this.environment = environment;

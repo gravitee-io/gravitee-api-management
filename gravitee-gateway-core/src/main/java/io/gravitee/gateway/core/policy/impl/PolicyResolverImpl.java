@@ -17,12 +17,8 @@ package io.gravitee.gateway.core.policy.impl;
 
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.core.policy.Policy;
-import io.gravitee.gateway.core.policy.PolicyFactory;
-import io.gravitee.gateway.core.policy.PolicyResolver;
-import io.gravitee.gateway.core.policy.StreamType;
-import io.gravitee.plugin.policy.PolicyDefinition;
-import io.gravitee.plugin.policy.PolicyManager;
+import io.gravitee.gateway.core.policy.*;
+import io.gravitee.gateway.core.policy.ScopedPolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +34,7 @@ public class PolicyResolverImpl implements PolicyResolver {
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyResolverImpl.class);
 
     @Autowired
-    private PolicyManager policyManager;
+    private ScopedPolicyManager policyManager;
 
     @Autowired
     private PolicyFactory policyFactory;
@@ -48,7 +44,7 @@ public class PolicyResolverImpl implements PolicyResolver {
         List<Policy> policies = new ArrayList<>();
 
         rules.stream().filter(rule -> rule.getMethods().contains(request.method())).forEach(rule -> {
-            PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(rule.getPolicy().getName());
+            PolicyClassDefinition policyDefinition = policyManager.getPolicyClassDefinition(rule.getPolicy().getName());
             if (policyDefinition == null) {
                 LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}",
                         rule.getPolicy().getName(), request.id());

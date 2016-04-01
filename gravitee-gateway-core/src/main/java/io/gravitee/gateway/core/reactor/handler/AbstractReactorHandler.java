@@ -20,6 +20,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.util.ClassUtils;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -27,6 +28,17 @@ import org.springframework.context.ConfigurableApplicationContext;
 public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<ReactorHandler> implements ReactorHandler, ApplicationContextAware {
 
     protected ApplicationContext applicationContext;
+
+    private ClassLoader classLoader;
+
+    @Override
+    public ClassLoader getClassLoader() {
+        return (this.classLoader != null ? this.classLoader : ClassUtils.getDefaultClassLoader());
+    }
+
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
 
     @Override
     protected void doStart() throws Exception {

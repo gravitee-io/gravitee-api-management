@@ -28,7 +28,7 @@ import io.gravitee.gateway.core.reactor.GraviteeReactor;
 import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.NotFoundReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
-import io.gravitee.gateway.core.reactor.handler.impl.ApiContextHandlerFactory;
+import io.gravitee.gateway.core.reactor.handler.impl.api.ApiContextHandlerFactory;
 import io.gravitee.gateway.core.reporter.spring.ReporterConfiguration;
 import io.gravitee.gateway.core.service.spring.ServiceConfiguration;
 import io.gravitee.plugin.core.spring.PluginConfiguration;

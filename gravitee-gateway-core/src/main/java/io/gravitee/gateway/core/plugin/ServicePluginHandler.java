@@ -43,7 +43,9 @@ public class ServicePluginHandler extends AbstractPluginHandler {
     @Override
     public void handle(Plugin plugin) {
         try {
-            LOGGER.info("Register a new service: {} [{}]", plugin.id(), plugin.clazz().getName());
+            classLoaderFactory.getOrCreatePluginClassLoader(plugin, this.getClass().getClassLoader());
+
+            LOGGER.info("Register a new service: {} [{}]", plugin.id(), plugin.clazz());
             ApplicationContext context = pluginContextFactory.create(plugin);
             serviceManager.register((AbstractService) context.getBean(plugin.clazz()));
 

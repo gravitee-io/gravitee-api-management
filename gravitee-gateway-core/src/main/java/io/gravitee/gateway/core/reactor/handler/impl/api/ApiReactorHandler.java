@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reactor.handler.impl;
+package io.gravitee.gateway.core.reactor.handler.impl.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,6 +22,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
@@ -32,6 +33,7 @@ import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.expression.spel.WrappedRequestVariable;
 import io.gravitee.gateway.core.policy.Policy;
+import io.gravitee.gateway.core.policy.ScopedPolicyManager;
 import io.gravitee.gateway.core.policy.StreamType;
 import io.gravitee.gateway.core.policy.impl.ExecutionContextImpl;
 import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
@@ -42,7 +44,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -56,9 +61,6 @@ public class ApiReactorHandler extends ContextReactorHandler {
 
     @Autowired
     private Invoker defaultInvoker;
-
-    @Autowired
-    private HttpClient httpClient;
 
     @Autowired
     private ObjectMapper mapper;
@@ -136,8 +138,8 @@ public class ApiReactorHandler extends ContextReactorHandler {
             });
 
             requestPolicyChain.doNext(serverRequest, serverResponse);
-        } catch (Exception ex) {
-            LOGGER.error("An unexpected error occurs while processing request", ex);
+        } catch (Throwable t) {
+            LOGGER.error("An unexpected error occurs while processing request", t);
 
             // Send an INTERNAL_SERVER_ERROR (500)
             serverResponse.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
@@ -199,15 +201,42 @@ public class ApiReactorHandler extends ContextReactorHandler {
     }
 
     @Override
+    public Set<io.gravitee.definition.model.Policy> findPluginDependencies() {
+        Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
+
+        if (api.getPaths() != null) {
+            api.getPaths().values()
+                    .forEach(path -> policies.addAll(
+                            path.getRules()
+                                    .stream()
+                                    .map(Rule::getPolicy)
+                                    .distinct()
+                                    .collect(Collectors.toSet())));
+        }
+
+        return policies;
+    }
+
+    @Override
     protected void doStart() throws Exception {
+        LOGGER.info("API handler is starting, prepare API context...");
+        long startTime = System.currentTimeMillis(); // Get the start Time
         super.doStart();
-        httpClient.start();
+        applicationContext.getBean(ScopedPolicyManager.class).start();
+        applicationContext.getBean(HttpClient.class).start();
+        long endTime = System.currentTimeMillis(); // Get the end Time
+        LOGGER.info("API handler started in {} ms and now ready to accept requests for path {}/*",
+                (endTime - startTime), api.getProxy().getContextPath());
     }
 
     @Override
     protected void doStop() throws Exception {
+        LOGGER.info("API handler is stopping, close context...");
+        applicationContext.getBean(ScopedPolicyManager.class).stop();
+        applicationContext.getBean(HttpClient.class).stop();
+
         super.doStop();
-        httpClient.stop();
+        LOGGER.info("API handler is now stopped", api);
     }
 
     @Override
