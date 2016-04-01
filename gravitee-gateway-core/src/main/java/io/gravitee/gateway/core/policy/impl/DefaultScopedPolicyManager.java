@@ -18,7 +18,7 @@ package io.gravitee.gateway.core.policy.impl;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.core.policy.PolicyClassLoaderFactory;
-import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
 import io.gravitee.plugin.policy.PolicyDefinition;
 import io.gravitee.policy.api.PolicyConfiguration;
 import org.slf4j.Logger;
@@ -42,8 +42,7 @@ public class DefaultScopedPolicyManager extends AbstractLifecycleComponent<io.gr
 
     private final Logger LOGGER = LoggerFactory.getLogger(DefaultScopedPolicyManager.class);
 
-    @Autowired
-    private ContextReactorHandler reactorHandler;
+    private final ReactorHandler reactorHandler;
 
     @Autowired
     private io.gravitee.plugin.policy.PolicyManager policyManager;
@@ -56,6 +55,10 @@ public class DefaultScopedPolicyManager extends AbstractLifecycleComponent<io.gr
 
     private final Map<io.gravitee.gateway.core.policy.PolicyClassDefinition, ClassLoader> policiesClassloader = new HashMap<>();
     private final Map<String, io.gravitee.gateway.core.policy.PolicyClassDefinition> policiesDefinition = new HashMap<>();
+
+    public DefaultScopedPolicyManager(ReactorHandler reactorHandler) {
+        this.reactorHandler = reactorHandler;
+    }
 
     @Override
     protected void doStart() throws Exception {

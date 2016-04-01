@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reactor.handler.impl.api;
+package io.gravitee.gateway.handlers.api;
 
 import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
-import io.gravitee.gateway.core.reactor.handler.impl.AbstractContextHandlerFactory;
+import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.ReactorHandlerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 
@@ -29,23 +31,26 @@ import java.util.Properties;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiContextHandlerFactory extends AbstractContextHandlerFactory {
+public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
+
+    @Autowired
+    private ApplicationContext gatewayApplicationContext;
 
     @Override
-    public ContextReactorHandler create(Api api) {
+    public ReactorHandler create(Api api) {
         AbstractApplicationContext internalApplicationContext = createApplicationContext(api);
-        internalApplicationContext.setClassLoader(new ReactorHandlerClassLoader(ContextReactorHandler.class.getClassLoader()));
-        ContextReactorHandler handler = internalApplicationContext.getBean(ContextReactorHandler.class);
+        internalApplicationContext.setClassLoader(new ReactorHandlerClassLoader(ReactorHandler.class.getClassLoader()));
+        ApiReactorHandler handler = internalApplicationContext.getBean(ApiReactorHandler.class);
         handler.setClassLoader(internalApplicationContext.getClassLoader());
         return handler;
     }
 
     private AbstractApplicationContext createApplicationContext(Api api) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-        context.setParent(applicationContext);
+        context.setParent(gatewayApplicationContext);
 
         PropertyPlaceholderConfigurer configurer = new PropertyPlaceholderConfigurer();
-        final Properties properties = applicationContext.getBean("graviteeProperties", Properties.class);
+        final Properties properties = gatewayApplicationContext.getBean("graviteeProperties", Properties.class);
         configurer.setProperties(properties);
         configurer.setIgnoreUnresolvablePlaceholders(true);
         context.addBeanFactoryPostProcessor(configurer);

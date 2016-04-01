@@ -25,11 +25,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
-import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
-import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
-import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
-import io.gravitee.gateway.core.reactor.handler.ResponseTimeHandler;
-import io.gravitee.gateway.core.reactor.handler.impl.api.ApiReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.*;
 import io.gravitee.gateway.core.reactor.handler.reporter.ReporterHandler;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.service.ServiceManager;
@@ -62,12 +58,12 @@ public class GraviteeReactor extends AbstractService implements
     private ReactorHandler notFoundHandler;
 
     @Autowired
-    private ContextHandlerFactory contextHandlerFactory;
+    private ReactorHandlerManager reactorHandlerManager;
 
     @Autowired
     private ReporterService reporterService;
 
-    private final ConcurrentMap<String, ContextReactorHandler> handlers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, ReactorHandler> handlers = new ConcurrentHashMap<>();
     private final ConcurrentMap<Api, String> contextPaths = new ConcurrentHashMap<>();
 
     protected ReactorHandler bestHandler(Request request) {
@@ -77,13 +73,13 @@ public class GraviteeReactor extends AbstractService implements
             path.append('/');
         }
 
-        Set<ContextReactorHandler> mapHandlers = handlers.entrySet().stream().filter(
+        Set<ReactorHandler> mapHandlers = handlers.entrySet().stream().filter(
                 entry -> path.toString().startsWith(entry.getKey())).map(Map.Entry::getValue).collect(Collectors.toSet());
 
         LOGGER.debug("Found {} handlers for path {}", mapHandlers.size(), path);
 
         if (!mapHandlers.isEmpty()) {
-            ContextReactorHandler handler = mapHandlers.iterator().next();
+            ReactorHandler handler = mapHandlers.iterator().next();
             LOGGER.debug("Returning the first handler matching path {} : {}", path, handler);
             return handler;
         }
@@ -122,11 +118,11 @@ public class GraviteeReactor extends AbstractService implements
         if (api.isEnabled()) {
             LOGGER.info("Start deployment in reactor");
 
-            ContextReactorHandler handler = contextHandlerFactory.create(api);
+            ReactorHandler handler = reactorHandlerManager.create(api);
             try {
                 handler.start();
-                handlers.putIfAbsent(handler.getContextPath(), handler);
-                contextPaths.putIfAbsent(api, handler.getContextPath());
+                handlers.putIfAbsent(handler.contextPath(), handler);
+                contextPaths.putIfAbsent(api, handler.contextPath());
             } catch (Exception ex) {
                 LOGGER.error("Unable to deploy handler", ex);
             }
@@ -138,7 +134,7 @@ public class GraviteeReactor extends AbstractService implements
     public void updateHandler(Api api) {
         String contextPath = contextPaths.get(api);
         if (contextPath != null) {
-            ApiReactorHandler handler = (ApiReactorHandler) handlers.get(contextPath);
+            ReactorHandler handler = handlers.get(contextPath);
             if (handler != null) {
                 removeHandler(api);
                 createHandler(api);
@@ -151,12 +147,12 @@ public class GraviteeReactor extends AbstractService implements
     public void removeHandler(Api api) {
         String contextPath = contextPaths.remove(api);
         if (contextPath != null) {
-            ContextReactorHandler handler = handlers.remove(contextPath);
+            ReactorHandler handler = handlers.remove(contextPath);
 
             if (handler != null) {
                 try {
                     handler.stop();
-                    handlers.remove(handler.getContextPath());
+                    handlers.remove(handler.contextPath());
                     LOGGER.info("API has been removed from reactor");
                 } catch (Exception e) {
                     LOGGER.error("Unable to remove handler", e);
@@ -169,7 +165,7 @@ public class GraviteeReactor extends AbstractService implements
         handlers.forEach((s, handler) -> {
             try {
                 handler.stop();
-                handlers.remove(handler.getContextPath());
+                handlers.remove(handler.contextPath());
             } catch (Exception e) {
                 LOGGER.error("Unable to remove reactor handler", e);
             }
@@ -177,8 +173,8 @@ public class GraviteeReactor extends AbstractService implements
         contextPaths.clear();
     }
 
-    public void setContextHandlerFactory(ContextHandlerFactory contextHandlerFactory) {
-        this.contextHandlerFactory = contextHandlerFactory;
+    public void setReactorHandlerManager(ReactorHandlerManager reactorHandlerManager) {
+        this.reactorHandlerManager = reactorHandlerManager;
     }
 
     @Override

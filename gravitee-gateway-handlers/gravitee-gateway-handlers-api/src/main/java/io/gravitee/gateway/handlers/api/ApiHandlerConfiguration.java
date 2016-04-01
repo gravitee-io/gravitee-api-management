@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reactor.handler.impl.api;
+package io.gravitee.gateway.handlers.api;
 
-import io.gravitee.gateway.core.http.client.spring.HttpClientConfiguration;
 import io.gravitee.gateway.core.policy.*;
-import io.gravitee.gateway.core.policy.ScopedPolicyManager;
 import io.gravitee.gateway.core.policy.impl.*;
-import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.handlers.api.http.client.spring.HttpClientConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -43,7 +42,7 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public ScopedPolicyManager scopedPolicyManager() {
-        return new DefaultScopedPolicyManager();
+        return new DefaultScopedPolicyManager(apiReactorHandler());
     }
 
     @Bean
@@ -62,7 +61,7 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ContextReactorHandler handler() {
+    public ReactorHandler apiReactorHandler() {
         return new ApiReactorHandler();
     }
 }

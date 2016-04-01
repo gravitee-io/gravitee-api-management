@@ -22,7 +22,7 @@ import io.gravitee.gateway.core.builder.ApiDefinitionBuilder;
 import io.gravitee.gateway.core.builder.ProxyDefinitionBuilder;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
-import io.gravitee.gateway.core.reactor.handler.impl.api.ApiContextHandlerFactory;
+import io.gravitee.gateway.core.reactor.handler.ReactorHandlerManager;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,15 +34,14 @@ import static org.mockito.Mockito.*;
 public class GraviteeReactorApiEventTest extends AbstractCoreTest {
 
     private GraviteeReactor reactor;
-    private ApiContextHandlerFactory handlerFactory;
+    private ReactorHandlerManager reactorHandlerManager;
 
     @Before
     public void setUp() {
         reactor = spy(new GraviteeReactor());
 
-        handlerFactory = spy(new ApiContextHandlerFactory());
-        handlerFactory.setApplicationContext(applicationContext);
-        reactor.setContextHandlerFactory(handlerFactory);
+        reactorHandlerManager = mock(ReactorHandlerManager.class);
+        reactor.setReactorHandlerManager(reactorHandlerManager);
         reactor.setApplicationContext(applicationContext);
     }
 
@@ -56,7 +55,7 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
         reactor.onEvent(evt);
 
         verify(reactor).createHandler(api);
-        verify(handlerFactory).create(api);
+        verify(reactorHandlerManager).create(api);
         verify(reactor, never()).removeHandler(api);
     }
 
@@ -70,7 +69,7 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
         reactor.onEvent(evt);
 
         verify(reactor).createHandler(api);
-        verify(handlerFactory, never()).create(api);
+        verify(reactorHandlerManager, never()).create(api);
         verify(reactor, never()).removeHandler(api);
     }
 
@@ -83,9 +82,8 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
 
         reactor.onEvent(evt);
 
-//        verify(reactor).removeHandler(api);
         verify(reactor).createHandler(api);
-        verify(handlerFactory, never()).create(api);
+        verify(reactorHandlerManager, never()).create(api);
     }
 
     @Test
@@ -97,9 +95,8 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
 
         reactor.onEvent(evt);
 
-//        verify(reactor).removeHandler(api);
         verify(reactor).createHandler(api);
-        verify(handlerFactory).create(api);
+        verify(reactorHandlerManager).create(api);
     }
 
     @Test

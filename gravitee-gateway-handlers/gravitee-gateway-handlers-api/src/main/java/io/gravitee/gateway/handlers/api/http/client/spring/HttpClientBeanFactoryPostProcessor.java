@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.http.client.spring;
+package io.gravitee.gateway.handlers.api.http.client.spring;
 
 import io.gravitee.gateway.api.http.client.HttpClient;
 import org.slf4j.Logger;

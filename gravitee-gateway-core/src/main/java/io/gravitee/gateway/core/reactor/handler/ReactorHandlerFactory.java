@@ -15,25 +15,11 @@
  */
 package io.gravitee.gateway.core.reactor.handler;
 
-import io.gravitee.definition.model.Policy;
-import io.gravitee.gateway.core.policy.PathResolver;
-import io.gravitee.gateway.core.policy.PolicyResolver;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Set;
-
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
-public abstract class ContextReactorHandler extends AbstractReactorHandler implements ReactorHandler {
+public interface ReactorHandlerFactory<T> {
 
-    @Autowired
-    protected PolicyResolver policyResolver;
-
-    @Autowired
-    protected PathResolver pathResolver;
-
-    public abstract String getContextPath();
-
-    public abstract Set<Policy> findPluginDependencies();
+    ReactorHandler create(T data);
 }

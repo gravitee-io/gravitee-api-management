@@ -25,10 +25,10 @@ import io.gravitee.gateway.core.definition.validator.ValidatorImpl;
 import io.gravitee.gateway.core.manager.ApiManager;
 import io.gravitee.gateway.core.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.core.reactor.GraviteeReactor;
-import io.gravitee.gateway.core.reactor.handler.ContextHandlerFactory;
 import io.gravitee.gateway.core.reactor.handler.NotFoundReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
-import io.gravitee.gateway.core.reactor.handler.impl.api.ApiContextHandlerFactory;
+import io.gravitee.gateway.core.reactor.handler.ReactorHandlerManager;
+import io.gravitee.gateway.core.reactor.handler.impl.DefaultReactorHandlerManager;
 import io.gravitee.gateway.core.reporter.spring.ReporterConfiguration;
 import io.gravitee.gateway.core.service.spring.ServiceConfiguration;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
@@ -87,8 +87,8 @@ public class CoreConfiguration {
     }
 
     @Bean
-    public ContextHandlerFactory handlerFactory() {
-        return new ApiContextHandlerFactory();
+    public ReactorHandlerManager reactorHandlerManager() {
+        return new DefaultReactorHandlerManager();
     }
 
     @Bean

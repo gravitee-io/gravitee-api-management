@@ -64,12 +64,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.http</groupId>
-            <artifactId>gravitee-gateway-http-client-vertx</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
         </dependency>

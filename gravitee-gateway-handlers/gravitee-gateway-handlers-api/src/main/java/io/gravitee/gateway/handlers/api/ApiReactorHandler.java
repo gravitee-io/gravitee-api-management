@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.reactor.handler.impl.api;
+package io.gravitee.gateway.handlers.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,13 +32,11 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.expression.spel.WrappedRequestVariable;
-import io.gravitee.gateway.core.policy.Policy;
-import io.gravitee.gateway.core.policy.ScopedPolicyManager;
-import io.gravitee.gateway.core.policy.StreamType;
+import io.gravitee.gateway.core.policy.*;
 import io.gravitee.gateway.core.policy.impl.ExecutionContextImpl;
 import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
 import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
-import io.gravitee.gateway.core.reactor.handler.ContextReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.AbstractReactorHandler;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +50,7 @@ import java.util.stream.Collectors;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiReactorHandler extends ContextReactorHandler {
+public class ApiReactorHandler extends AbstractReactorHandler {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ApiReactorHandler.class);
 
@@ -65,10 +63,16 @@ public class ApiReactorHandler extends ContextReactorHandler {
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    private PolicyResolver policyResolver;
+
+    @Autowired
+    private PathResolver pathResolver;
+
     @Override
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
         try {
-            // Set specific metrics for API handler
+            // Set specific metrics for API apiReactorHandler
             serverRequest.metrics().setApi(api.getId());
 
             // Resolve the "configured" path according to the inbound request
@@ -196,7 +200,7 @@ public class ApiReactorHandler extends ContextReactorHandler {
     }
 
     @Override
-    public String getContextPath() {
+    public String contextPath() {
         return api.getProxy().getContextPath() + '/';
     }
 

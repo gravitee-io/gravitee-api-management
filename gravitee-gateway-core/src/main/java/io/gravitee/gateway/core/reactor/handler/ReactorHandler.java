@@ -16,9 +16,12 @@
 package io.gravitee.gateway.core.reactor.handler;
 
 import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
+
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -27,5 +30,9 @@ public interface ReactorHandler extends LifecycleComponent<ReactorHandler> {
 
     void handle(Request request, Response response, Handler<Response> handler);
 
-    ClassLoader getClassLoader();
+    Set<Policy> findPluginDependencies();
+    
+    ClassLoader classloader();
+
+    String contextPath();
 }

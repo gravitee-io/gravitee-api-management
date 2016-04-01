@@ -46,6 +46,12 @@
             <artifactId>gravitee-gateway-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.gateway.handlers</groupId>
+            <artifactId>gravitee-gateway-handlers-api</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
 
         <dependency>
             <groupId>io.vertx</groupId>
