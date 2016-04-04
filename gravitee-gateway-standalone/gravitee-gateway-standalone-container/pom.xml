@@ -72,7 +72,7 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
+            <groupId>io.gravitee.gateway.services</groupId>
             <artifactId>gravitee-gateway-services-core</artifactId>
             <version>${project.version}</version>
         </dependency>
