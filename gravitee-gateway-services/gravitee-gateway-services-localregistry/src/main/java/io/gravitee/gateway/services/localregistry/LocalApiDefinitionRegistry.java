@@ -17,8 +17,8 @@ package io.gravitee.gateway.services.localregistry;
 
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

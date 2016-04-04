@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
-import io.gravitee.gateway.core.Reactor;
+import io.gravitee.gateway.reactor.Reactor;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
 

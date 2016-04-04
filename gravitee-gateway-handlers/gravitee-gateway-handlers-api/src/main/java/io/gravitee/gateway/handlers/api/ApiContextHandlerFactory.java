@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.handlers.api;
 
-import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
-import io.gravitee.gateway.core.reactor.handler.ReactorHandlerFactory;
+import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,8 @@ import java.net.URLClassLoader;
 import java.util.Properties;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
 

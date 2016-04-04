@@ -19,8 +19,9 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.event.ApiEvent;
+import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import net.sf.ehcache.Cache;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ import java.util.concurrent.*;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiKeysCacheService extends AbstractService implements EventListener<ApiEvent, Api> {
+public class ApiKeysCacheService extends AbstractService implements EventListener<ReactorEvent, Reactable> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeysCacheService.class);
 
@@ -85,7 +86,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             beanFactory.registerSingleton(ApiKeyRepository.class.getName(),
                     new CachedApiKeyRepository(cache));
 
-            eventManager.subscribeForEvents(this, ApiEvent.class);
+            eventManager.subscribeForEvents(this, ReactorEvent.class);
 
             executorService = Executors.newScheduledThreadPool(threads, new ThreadFactory() {
                         private int counter = 0;
@@ -119,8 +120,8 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     }
 
     @Override
-    public void onEvent(Event<ApiEvent, Api> event) {
-        final Api api = event.content();
+    public void onEvent(Event<ReactorEvent, Reactable> event) {
+        final Api api = (Api) event.content().item();
 
         switch (event.type()) {
             case DEPLOY:

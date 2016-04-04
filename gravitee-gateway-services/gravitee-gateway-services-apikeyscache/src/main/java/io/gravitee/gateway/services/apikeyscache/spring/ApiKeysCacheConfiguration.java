@@ -34,6 +34,7 @@ public class ApiKeysCacheConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeysCacheConfiguration.class);
 
     private static final String API_KEY_CACHE_NAME = "apikey";
+
     @Bean
     public Cache cache() {
         CacheManager cacheManager = cacheManager();

@@ -16,7 +16,7 @@
 package io.gravitee.gateway.services.monitoring;
 
 import io.gravitee.common.node.Node;
-import io.gravitee.gateway.core.reporter.ReporterService;
+import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.services.monitoring.probe.JvmProbe;
 import io.gravitee.gateway.services.monitoring.probe.OsProbe;
 import io.gravitee.gateway.services.monitoring.probe.ProcessProbe;

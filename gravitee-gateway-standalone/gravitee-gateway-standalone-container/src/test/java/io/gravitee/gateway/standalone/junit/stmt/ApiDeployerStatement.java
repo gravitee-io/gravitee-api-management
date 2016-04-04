@@ -17,7 +17,8 @@ package io.gravitee.gateway.standalone.junit.stmt;
 
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.core.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.standalone.Container;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.utils.SocketUtils;
@@ -56,7 +57,7 @@ public class ApiDeployerStatement extends Statement {
         Thread.sleep(1000);
 
         ApiManager apiManager = container.getApplicationContext().getBean(ApiManager.class);
-        io.gravitee.gateway.core.definition.Api api = loadApi(description.getAnnotation(ApiDescriptor.class).value());
+        Api api = loadApi(description.getAnnotation(ApiDescriptor.class).value());
 
         try {
             apiManager.deploy(api);
@@ -67,9 +68,9 @@ public class ApiDeployerStatement extends Statement {
         }
     }
 
-    private io.gravitee.gateway.core.definition.Api loadApi(String apiDescriptorPath) throws Exception {
+    private Api loadApi(String apiDescriptorPath) throws Exception {
         URL jsonFile = ApiDeployerStatement.class.getResource(apiDescriptorPath);
-        io.gravitee.gateway.core.definition.Api api = new GraviteeMapper().readValue(jsonFile, io.gravitee.gateway.core.definition.Api.class);
+        Api api = new GraviteeMapper().readValue(jsonFile, Api.class);
 
         boolean enhanceHttpPort = description.getAnnotation(ApiDescriptor.class).enhanceHttpPort();
 

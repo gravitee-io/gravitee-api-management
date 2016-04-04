@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -29,13 +30,16 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.client.HttpClient;
-import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.expression.spel.WrappedRequestVariable;
-import io.gravitee.gateway.core.policy.*;
-import io.gravitee.gateway.core.policy.impl.ExecutionContextImpl;
-import io.gravitee.gateway.core.policy.impl.RequestPolicyChain;
-import io.gravitee.gateway.core.policy.impl.ResponsePolicyChain;
-import io.gravitee.gateway.core.reactor.handler.AbstractReactorHandler;
+import io.gravitee.gateway.el.http.EvaluableRequest;
+import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.impl.ExecutionContextImpl;
+import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.PolicyResolver;
+import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.gateway.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
+import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +52,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class ApiReactorHandler extends AbstractReactorHandler {
 
@@ -63,7 +68,6 @@ public class ApiReactorHandler extends AbstractReactorHandler {
     @Autowired
     private ObjectMapper mapper;
 
-    @Autowired
     private PolicyResolver policyResolver;
 
     @Autowired
@@ -74,18 +78,18 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         CompletableFuture<Response> future = new CompletableFuture<>();
 
         try {
-            // Set specific metrics for API apiReactorHandler
+            // Set specific metrics for API
             serverRequest.metrics().setApi(api.getId());
 
             // Resolve the "configured" path according to the inbound request
             Path path = pathResolver.resolve(serverRequest);
 
             // Calculate request policies
-            List<Policy> requestPolicies = policyResolver.resolve(StreamType.REQUEST, serverRequest, path.getRules());
+            List<Policy> requestPolicies = getPolicyResolver().resolve(StreamType.REQUEST, serverRequest, path.getRules());
 
             // Prepare execution context
             ExecutionContext executionContext = createExecutionContext();
-            executionContext.getTemplateEngine().getTemplateContext().setVariable("request", new WrappedRequestVariable(serverRequest));
+            executionContext.getTemplateEngine().getTemplateContext().setVariable("request", new EvaluableRequest(serverRequest));
             executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.getProperties());
             executionContext.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, path.getPath());
             executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
@@ -112,7 +116,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
                         responseStream.headers().forEach((headerName, headerValues) -> serverResponse.headers().put(headerName, headerValues));
 
                         // Calculate response policies
-                        List<Policy> responsePolicies = policyResolver.resolve(StreamType.RESPONSE, serverRequest, path.getRules());
+                        List<Policy> responsePolicies = getPolicyResolver().resolve(StreamType.RESPONSE, serverRequest, path.getRules());
                         ResponsePolicyChain responsePolicyChain = ResponsePolicyChain.create(responsePolicies, executionContext);
 
                         responsePolicyChain.setResultHandler(responsePolicyResult -> {
@@ -168,7 +172,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
                 String contentAsJson = mapper.writeValueAsString(new PolicyResultAsJson(policyResult));
                 Buffer buf = Buffer.buffer(contentAsJson);
                 response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(buf.length()));
-                response.headers().set(HttpHeaders.CONTENT_TYPE, "application/json");
+                response.headers().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
                 response.write(buf);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
@@ -210,7 +214,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
     }
 
     @Override
-    public Set<io.gravitee.definition.model.Policy> findPluginDependencies() {
+    public Set<io.gravitee.definition.model.Policy> dependencies() {
         Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
 
         if (api.getPaths() != null) {
@@ -226,22 +230,29 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         return policies;
     }
 
+    private PolicyResolver getPolicyResolver() {
+        if (policyResolver == null) {
+            policyResolver = applicationContext.getBean(PolicyResolver.class);
+        }
+        return policyResolver;
+    }
+
     @Override
     protected void doStart() throws Exception {
         LOGGER.info("API handler is starting, prepare API context...");
         long startTime = System.currentTimeMillis(); // Get the start Time
         super.doStart();
-        applicationContext.getBean(ScopedPolicyManager.class).start();
+        applicationContext.getBean(PolicyManager.class).start();
         applicationContext.getBean(HttpClient.class).start();
         long endTime = System.currentTimeMillis(); // Get the end Time
-        LOGGER.info("API handler started in {} ms and now ready to accept requests for path {}/*",
+        LOGGER.info("API handler started in {} ms and now ready to accept requests on {}/*",
                 (endTime - startTime), api.getProxy().getContextPath());
     }
 
     @Override
     protected void doStop() throws Exception {
         LOGGER.info("API handler is stopping, close context...");
-        applicationContext.getBean(ScopedPolicyManager.class).stop();
+        applicationContext.getBean(PolicyManager.class).stop();
         applicationContext.getBean(HttpClient.class).stop();
 
         super.doStop();

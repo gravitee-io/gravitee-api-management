@@ -1,2 +1,2 @@
-io.gravitee.gateway.core.reactor.handler.ReactorHandlerFactory=\
+io.gravitee.gateway.reactor.handler.ReactorHandlerFactory=\
 io.gravitee.gateway.handlers.api.ApiContextHandlerFactory

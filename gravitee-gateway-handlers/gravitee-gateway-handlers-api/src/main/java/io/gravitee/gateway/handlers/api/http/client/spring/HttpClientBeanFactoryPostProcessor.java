@@ -31,7 +31,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class HttpClientBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 

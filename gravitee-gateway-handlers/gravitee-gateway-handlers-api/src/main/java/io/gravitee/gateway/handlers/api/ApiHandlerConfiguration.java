@@ -15,16 +15,18 @@
  */
 package io.gravitee.gateway.handlers.api;
 
-import io.gravitee.gateway.core.policy.*;
-import io.gravitee.gateway.core.policy.impl.*;
-import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.policy.*;
+import io.gravitee.gateway.policy.impl.*;
+import io.gravitee.gateway.handlers.api.impl.PathResolverImpl;
+import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.handlers.api.http.client.spring.HttpClientConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 @Configuration
 @Import({HttpClientConfiguration.class})
@@ -41,8 +43,8 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ScopedPolicyManager scopedPolicyManager() {
-        return new DefaultScopedPolicyManager(apiReactorHandler());
+    public PolicyManager scopedPolicyManager() {
+        return new DefaultPolicyManager(apiReactorHandler());
     }
 
     @Bean
