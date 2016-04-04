@@ -18,7 +18,8 @@ package io.gravitee.gateway.core;
 import io.gravitee.common.service.Service;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.handler.Handler;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  *
@@ -26,5 +27,5 @@ import io.gravitee.gateway.api.handler.Handler;
  */
 public interface Reactor extends Service {
 
-	void process(Request request, Response response, Handler<Response> handler);
+	CompletableFuture<Response> process(Request serverRequest, Response serverResponse);
 }

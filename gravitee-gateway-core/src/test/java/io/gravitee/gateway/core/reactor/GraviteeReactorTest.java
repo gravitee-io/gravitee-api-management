@@ -58,7 +58,6 @@ public class GraviteeReactorTest extends AbstractCoreTest {
 
     @After
     public void tearDown() throws Exception {
-        reactor.clearHandlers();
         reactor.doStop();
     }
 
@@ -76,11 +75,10 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         Response response = new HttpServerResponse();
 
         final CountDownLatch lock = new CountDownLatch(1);
-        reactor.process(req, response,
-                resp -> {
-                    Assert.assertEquals(HttpStatusCode.OK_200, resp.status());
-                    lock.countDown();
-                });
+        reactor.process(req, response).thenAccept(resp -> {
+            Assert.assertEquals(HttpStatusCode.OK_200, resp.status());
+            lock.countDown();
+        });
 
         req.endHandler().handle(null);
         Assert.assertEquals(true, lock.await(10000, TimeUnit.MILLISECONDS));
@@ -100,11 +98,10 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         Response response = new HttpServerResponse();
 
         final CountDownLatch lock = new CountDownLatch(1);
-        reactor.process(req, response,
-                resp -> {
-                    Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
-                    lock.countDown();
-                });
+        reactor.process(req, response).thenAccept(resp -> {
+            Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
+            lock.countDown();
+        });
 
         Assert.assertEquals(true, lock.await(10000, TimeUnit.MILLISECONDS));
     }
@@ -123,11 +120,10 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         Response response = new HttpServerResponse();
 
         final CountDownLatch lock = new CountDownLatch(1);
-        reactor.process(req, response,
-                resp -> {
-                    Assert.assertEquals(HttpStatusCode.BAD_GATEWAY_502, resp.status());
-                    lock.countDown();
-                });
+        reactor.process(req, response).thenAccept(resp -> {
+            Assert.assertEquals(HttpStatusCode.BAD_GATEWAY_502, resp.status());
+            lock.countDown();
+        });
 
         req.endHandler().handle(null);
         Assert.assertEquals(true, lock.await(1000, TimeUnit.MILLISECONDS));
@@ -148,11 +144,10 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         Response response = new HttpServerResponse();
 
         final CountDownLatch lock = new CountDownLatch(1);
-        reactor.process(req, response,
-                resp -> {
-                    Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
-                    lock.countDown();
-                });
+        reactor.process(req, response).thenAccept(resp -> {
+            Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
+            lock.countDown();
+        });
 
         Assert.assertEquals(true, lock.await(1000, TimeUnit.MILLISECONDS));
     }
@@ -171,11 +166,10 @@ public class GraviteeReactorTest extends AbstractCoreTest {
         Response response = new HttpServerResponse();
 
         final CountDownLatch lock = new CountDownLatch(1);
-        reactor.process(req, response,
-                resp -> {
-                    Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
-                    lock.countDown();
-                });
+        reactor.process(req, response).thenAccept(resp -> {
+            Assert.assertEquals(HttpStatusCode.NOT_FOUND_404, resp.status());
+            lock.countDown();
+        });
 
         Assert.assertEquals(true, lock.await(1000, TimeUnit.MILLISECONDS));
     }

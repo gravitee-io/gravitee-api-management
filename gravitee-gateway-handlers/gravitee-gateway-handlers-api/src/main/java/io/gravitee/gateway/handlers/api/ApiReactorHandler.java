@@ -28,7 +28,6 @@ import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.expression.spel.WrappedRequestVariable;
@@ -45,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -70,7 +70,9 @@ public class ApiReactorHandler extends AbstractReactorHandler {
     private PathResolver pathResolver;
 
     @Override
-    public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
+    public CompletableFuture<Response> handle(Request serverRequest, Response serverResponse) {
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
         try {
             // Set specific metrics for API apiReactorHandler
             serverRequest.metrics().setApi(api.getId());
@@ -95,7 +97,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
                 if (requestPolicyResult.isFailure()) {
                     writePolicyResult(requestPolicyResult, serverResponse);
 
-                    handler.handle(serverResponse);
+                    future.complete(serverResponse);
                 } else {
                     // Use the upstream invoker (call the remote API using HTTP client)
                     Invoker invoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
@@ -117,7 +119,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
                             if (responsePolicyResult.isFailure()) {
                                 writePolicyResult(responsePolicyResult, serverResponse);
 
-                                handler.handle(serverResponse);
+                                future.complete(serverResponse);
                             }
                         });
 
@@ -129,7 +131,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
                             LOGGER.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
 
                             // Transfer proxy response to the initial consumer
-                            handler.handle(serverResponse);
+                            future.complete(serverResponse);
                         });
 
                         responseStream.bodyHandler(responsePolicyChain::write);
@@ -149,8 +151,11 @@ public class ApiReactorHandler extends AbstractReactorHandler {
             serverResponse.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
             serverResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
             serverResponse.end();
-            handler.handle(serverResponse);
+
+            future.complete(serverResponse);
         }
+
+        return future;
     }
 
     private void writePolicyResult(PolicyResult policyResult, Response response) {

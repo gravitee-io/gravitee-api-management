@@ -19,16 +19,17 @@ import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.handler.Handler;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public interface ReactorHandler extends LifecycleComponent<ReactorHandler> {
 
-    void handle(Request request, Response response, Handler<Response> handler);
+    CompletableFuture<Response> handle(Request request, Response response);
 
     Set<Policy> findPluginDependencies();
     

@@ -15,11 +15,21 @@
  */
 package io.gravitee.gateway.core.reactor.handler;
 
+import java.util.Collection;
+
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public interface ReactorHandlerManager {
+public interface ReactorHandlerRegistry {
 
-    ReactorHandler create(Object item);
+    void create(Object item);
+
+    void update(Object item);
+
+    void remove(Object item);
+
+    void clear();
+
+    Collection<ReactorHandler> getReactorHandlers();
 }

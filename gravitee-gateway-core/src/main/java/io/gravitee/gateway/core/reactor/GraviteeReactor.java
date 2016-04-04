@@ -21,12 +21,12 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.Reactor;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
-import io.gravitee.gateway.core.reactor.handler.*;
-import io.gravitee.gateway.core.reactor.handler.reporter.ReporterHandler;
+import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.core.reactor.handler.ReactorHandlerRegistry;
+import io.gravitee.gateway.core.reactor.handler.ReactorHandlerResolver;
 import io.gravitee.gateway.core.reporter.ReporterService;
 import io.gravitee.gateway.core.service.ServiceManager;
 import io.gravitee.plugin.core.api.PluginRegistry;
@@ -36,11 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -58,123 +54,47 @@ public class GraviteeReactor extends AbstractService implements
     private ReactorHandler notFoundHandler;
 
     @Autowired
-    private ReactorHandlerManager reactorHandlerManager;
+    private ReactorHandlerRegistry reactorHandlerRegistry;
+
+    @Autowired
+    private ReactorHandlerResolver reactorHandlerResolver;
 
     @Autowired
     private ReporterService reporterService;
 
-    private final ConcurrentMap<String, ReactorHandler> handlers = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Api, String> contextPaths = new ConcurrentHashMap<>();
+    public CompletableFuture<Response> process(Request serverRequest, Response serverResponse) {
+        LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
 
-    protected ReactorHandler bestHandler(Request request) {
-        StringBuilder path = new StringBuilder(request.path());
-
-        if (path.lastIndexOf("/") < path.length() - 1) {
-            path.append('/');
-        }
-
-        Set<ReactorHandler> mapHandlers = handlers.entrySet().stream().filter(
-                entry -> path.toString().startsWith(entry.getKey())).map(Map.Entry::getValue).collect(Collectors.toSet());
-
-        LOGGER.debug("Found {} handlers for path {}", mapHandlers.size(), path);
-
-        if (!mapHandlers.isEmpty()) {
-            ReactorHandler handler = mapHandlers.iterator().next();
-            LOGGER.debug("Returning the first handler matching path {} : {}", path, handler);
-            return handler;
-        }
-
-        return notFoundHandler;
-    }
-
-    public void process(Request request, Response response, Handler<Response> handler) {
-        LOGGER.debug("Receiving a request {} for path {}", request.id(), request.path());
-
-        ReactorHandler reactorHandler = bestHandler(request);
+        ReactorHandler reactorHandler = reactorHandlerResolver.resolve(serverRequest);
+        reactorHandler = (reactorHandler != null) ? reactorHandler : notFoundHandler;
 
         // Prepare the handler chain
+        //TODO: how to handle this with CompletableFuture ?
+        /*
         handler = new ResponseTimeHandler(request,
                 new ReporterHandler(reporterService, request, handler));
+                */
 
-        reactorHandler.handle(request, response, handler);
+        return reactorHandler.handle(serverRequest, serverResponse);
     }
 
     @Override
     public void onEvent(Event<ApiEvent, Api> event) {
         switch (event.type()) {
             case DEPLOY:
-                createHandler(event.content());
+                reactorHandlerRegistry.create(event.content());
                 break;
             case UPDATE:
-                updateHandler(event.content());
+                reactorHandlerRegistry.update(event.content());
                 break;
             case UNDEPLOY:
-                removeHandler(event.content());
+                reactorHandlerRegistry.remove(event.content());
                 break;
         }
     }
 
-    public void createHandler(Api api) {
-        if (api.isEnabled()) {
-            LOGGER.info("Start deployment in reactor");
-
-            ReactorHandler handler = reactorHandlerManager.create(api);
-            try {
-                handler.start();
-                handlers.putIfAbsent(handler.contextPath(), handler);
-                contextPaths.putIfAbsent(api, handler.contextPath());
-            } catch (Exception ex) {
-                LOGGER.error("Unable to deploy handler", ex);
-            }
-        } else {
-            LOGGER.warn("Api is disabled !");
-        }
-    }
-
-    public void updateHandler(Api api) {
-        String contextPath = contextPaths.get(api);
-        if (contextPath != null) {
-            ReactorHandler handler = handlers.get(contextPath);
-            if (handler != null) {
-                removeHandler(api);
-                createHandler(api);
-            }
-        } else {
-            createHandler(api);
-        }
-    }
-
-    public void removeHandler(Api api) {
-        String contextPath = contextPaths.remove(api);
-        if (contextPath != null) {
-            ReactorHandler handler = handlers.remove(contextPath);
-
-            if (handler != null) {
-                try {
-                    handler.stop();
-                    handlers.remove(handler.contextPath());
-                    LOGGER.info("API has been removed from reactor");
-                } catch (Exception e) {
-                    LOGGER.error("Unable to remove handler", e);
-                }
-            }
-        }
-    }
-
-    public void clearHandlers() {
-        handlers.forEach((s, handler) -> {
-            try {
-                handler.stop();
-                handlers.remove(handler.contextPath());
-            } catch (Exception e) {
-                LOGGER.error("Unable to remove reactor handler", e);
-            }
-        });
-        contextPaths.clear();
-    }
-
-    public void setReactorHandlerManager(ReactorHandlerManager reactorHandlerManager) {
-        this.reactorHandlerManager = reactorHandlerManager;
+    public void setReactorHandlerRegistry(ReactorHandlerRegistry reactorHandlerRegistry) {
+        this.reactorHandlerRegistry = reactorHandlerRegistry;
     }
 
     @Override
@@ -197,7 +117,7 @@ public class GraviteeReactor extends AbstractService implements
         applicationContext.getBean(PluginRegistry.class).stop();
         applicationContext.getBean(PluginEventListener.class).stop();
 
-        clearHandlers();
+        reactorHandlerRegistry.clear();
 
         applicationContext.getBean(ServiceManager.class).stop();
         applicationContext.getBean(ReporterService.class).stop();

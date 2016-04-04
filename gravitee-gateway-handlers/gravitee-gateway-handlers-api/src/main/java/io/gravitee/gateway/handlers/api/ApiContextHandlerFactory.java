@@ -18,6 +18,8 @@ package io.gravitee.gateway.handlers.api;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.core.reactor.handler.ReactorHandlerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ApplicationContext;
@@ -33,16 +35,23 @@ import java.util.Properties;
  */
 public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
 
+    private final Logger LOGGER = LoggerFactory.getLogger(ApiContextHandlerFactory.class);
+
     @Autowired
     private ApplicationContext gatewayApplicationContext;
 
     @Override
     public ReactorHandler create(Api api) {
-        AbstractApplicationContext internalApplicationContext = createApplicationContext(api);
-        internalApplicationContext.setClassLoader(new ReactorHandlerClassLoader(ReactorHandler.class.getClassLoader()));
-        ApiReactorHandler handler = internalApplicationContext.getBean(ApiReactorHandler.class);
-        handler.setClassLoader(internalApplicationContext.getClassLoader());
-        return handler;
+        if (api.isEnabled()) {
+            AbstractApplicationContext internalApplicationContext = createApplicationContext(api);
+            internalApplicationContext.setClassLoader(new ReactorHandlerClassLoader(ReactorHandler.class.getClassLoader()));
+            ApiReactorHandler handler = internalApplicationContext.getBean(ApiReactorHandler.class);
+            handler.setClassLoader(internalApplicationContext.getClassLoader());
+            return handler;
+        } else {
+            LOGGER.warn("Api is disabled !");
+            return null;
+        }
     }
 
     private AbstractApplicationContext createApplicationContext(Api api) {

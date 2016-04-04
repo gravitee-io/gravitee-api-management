@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -39,16 +41,16 @@ public class NotFoundReactorHandler extends AbstractReactorHandler {
     }
 
     @Override
-    public void handle(Request request, Response response, io.gravitee.gateway.api.handler.Handler<Response> handler) {
-        LOGGER.debug("No Gravitee handler can be found for request {}, returns NOT_FOUND(404)", request.path());
+    public CompletableFuture<Response> handle(Request serverRequest, Response serverResponse) {
+        LOGGER.debug("No Gravitee handler can be found for request {}, returns NOT_FOUND(404)", serverRequest.path());
 
-        response.status(HttpStatusCode.NOT_FOUND_404);
+        serverResponse.status(HttpStatusCode.NOT_FOUND_404);
 
-        response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(message.length()));
-        response.headers().set(HttpHeaders.CONTENT_TYPE, "text/plain");
-        response.write(Buffer.buffer(message));
+        serverResponse.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(message.length()));
+        serverResponse.headers().set(HttpHeaders.CONTENT_TYPE, "text/plain");
+        serverResponse.write(Buffer.buffer(message));
 
-        response.end();
-        handler.handle(response);
+        serverResponse.end();
+        return CompletableFuture.completedFuture(serverResponse);
     }
 }

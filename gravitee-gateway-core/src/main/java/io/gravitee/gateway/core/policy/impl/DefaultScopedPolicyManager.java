@@ -67,7 +67,7 @@ public class DefaultScopedPolicyManager extends AbstractLifecycleComponent<io.gr
         requiredPlugins.forEach(policy -> {
             final PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(policy.getName());
             ClassLoader policyClassLoader = policyClassLoaderFactory.createPolicyClassLoader(policyDefinition,
-                    applicationContext.getClassLoader());
+                    reactorHandler.classloader());
 
             LOGGER.debug("Loading a contextualized policy: {}", policyDefinition);
 

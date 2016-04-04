@@ -38,7 +38,6 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
     private void handleRequest(HttpServerRequest httpServerRequest) {
         reactor.process(
                 new VertxHttpServerRequest(httpServerRequest),
-                new VertxHttpServerResponse(httpServerRequest.response()),
-                response -> {});
+                new VertxHttpServerResponse(httpServerRequest.response())).thenAccept(response -> {});
     }
 }

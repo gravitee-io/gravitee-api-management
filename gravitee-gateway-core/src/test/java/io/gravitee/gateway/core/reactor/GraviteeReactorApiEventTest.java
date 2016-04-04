@@ -17,36 +17,37 @@ package io.gravitee.gateway.core.reactor;
 
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.impl.SimpleEvent;
-import io.gravitee.gateway.core.AbstractCoreTest;
 import io.gravitee.gateway.core.builder.ApiDefinitionBuilder;
 import io.gravitee.gateway.core.builder.ProxyDefinitionBuilder;
 import io.gravitee.gateway.core.definition.Api;
 import io.gravitee.gateway.core.event.ApiEvent;
-import io.gravitee.gateway.core.reactor.handler.ReactorHandlerManager;
+import io.gravitee.gateway.core.reactor.handler.ReactorHandlerRegistry;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class GraviteeReactorApiEventTest extends AbstractCoreTest {
+public class GraviteeReactorApiEventTest {
 
+    @InjectMocks
     private GraviteeReactor reactor;
-    private ReactorHandlerManager reactorHandlerManager;
+
+    @Mock
+    private ReactorHandlerRegistry reactorHandlerRegistry;
 
     @Before
     public void setUp() {
-        reactor = spy(new GraviteeReactor());
-
-        reactorHandlerManager = mock(ReactorHandlerManager.class);
-        reactor.setReactorHandlerManager(reactorHandlerManager);
-        reactor.setApplicationContext(applicationContext);
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test
-    public void handleApiEvent_create_started() {
+    public void handleEvent_create() {
         Api api = new ApiDefinitionBuilder().name("my-api")
                 .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("http://localhost:8083").build()).build();
 
@@ -54,40 +55,11 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
 
         reactor.onEvent(evt);
 
-        verify(reactor).createHandler(api);
-        verify(reactorHandlerManager).create(api);
-        verify(reactor, never()).removeHandler(api);
+        verify(reactorHandlerRegistry).create(api);
     }
 
     @Test
-    public void handleApiEvent_create_stopped() {
-        Api api = new ApiDefinitionBuilder().name("my-api")
-                .proxy(new ProxyDefinitionBuilder().contextPath("/team").build()).enabled(false).build();
-
-        Event<ApiEvent, Api> evt = new SimpleEvent<>(ApiEvent.DEPLOY, api);
-
-        reactor.onEvent(evt);
-
-        verify(reactor).createHandler(api);
-        verify(reactorHandlerManager, never()).create(api);
-        verify(reactor, never()).removeHandler(api);
-    }
-
-    @Test
-    public void handleApiEvent_update_stopped() {
-        Api api = new ApiDefinitionBuilder().name("my-api")
-                .proxy(new ProxyDefinitionBuilder().contextPath("/team").build()).enabled(false).build();
-
-        Event<ApiEvent, Api> evt = new SimpleEvent<>(ApiEvent.UPDATE, api);
-
-        reactor.onEvent(evt);
-
-        verify(reactor).createHandler(api);
-        verify(reactorHandlerManager, never()).create(api);
-    }
-
-    @Test
-    public void handleApiEvent_update_started() {
+    public void handleEvent_update() {
         Api api = new ApiDefinitionBuilder().name("my-api")
                 .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("http://localhost:8083").build()).build();
 
@@ -95,12 +67,11 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
 
         reactor.onEvent(evt);
 
-        verify(reactor).createHandler(api);
-        verify(reactorHandlerManager).create(api);
+        verify(reactorHandlerRegistry).update(api);
     }
 
     @Test
-    public void handleApiEvent_remove() {
+    public void handleEvent_remove() {
         Api api = new ApiDefinitionBuilder().name("my-api")
                 .proxy(new ProxyDefinitionBuilder().contextPath("/team").build()).build();
 
@@ -108,7 +79,6 @@ public class GraviteeReactorApiEventTest extends AbstractCoreTest {
 
         reactor.onEvent(evt);
 
-        verify(reactor).removeHandler(api);
-        verify(reactor, never()).createHandler(api);
+        verify(reactorHandlerRegistry).remove(api);
     }
 }

@@ -15,8 +15,13 @@
  */
 package io.gravitee.gateway.core.reactor.handler;
 
+import io.gravitee.gateway.api.Request;
+
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
-public class ApiHandlerTest {
+public interface ReactorHandlerResolver {
+
+    ReactorHandler resolve(Request request);
 }
