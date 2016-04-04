@@ -20,7 +20,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import io.gravitee.common.node.Node;
-import io.gravitee.gateway.core.spring.PropertiesConfiguration;
+import io.gravitee.gateway.env.PropertiesConfiguration;
 import io.gravitee.gateway.standalone.spring.StandaloneConfiguration;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.StaticLoggerBinder;

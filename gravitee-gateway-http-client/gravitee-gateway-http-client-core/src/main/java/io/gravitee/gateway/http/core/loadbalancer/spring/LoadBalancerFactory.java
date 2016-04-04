@@ -67,7 +67,7 @@ public class LoadBalancerFactory extends AbstractFactoryBean<LoadBalancer> {
         // Set default LB to round-robin even if there is only a unique endpoint.
         loadBalancer = (loadBalancer != null) ? loadBalancer : new RoundRobinLoadBalancer(api);
 
-        LOGGER.info("Create a load-balancer instance of type {} for API {}", loadBalancer, api.getName());
+        LOGGER.info("Create a load-balancer instance of type {}", loadBalancer);
 
         return loadBalancer;
     }

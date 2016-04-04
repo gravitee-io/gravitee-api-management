@@ -1,4 +1,0 @@
-io.gravitee.plugin.core.api.PluginHandler=\
-    io.gravitee.gateway.core.plugin.RepositoryPluginHandler,\
-    io.gravitee.gateway.core.plugin.ReporterPluginHandler,\
-    io.gravitee.gateway.core.plugin.ServicePluginHandler

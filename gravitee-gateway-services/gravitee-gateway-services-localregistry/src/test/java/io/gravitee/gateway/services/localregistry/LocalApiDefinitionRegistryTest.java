@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.localregistry;
 
-import io.gravitee.gateway.core.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

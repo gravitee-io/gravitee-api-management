@@ -34,9 +34,16 @@
     <name>Gravitee IO - Gateway</name>
 
     <modules>
-        <module>gravitee-gateway-core</module>
+        <module>gravitee-gateway-env</module>
+        <module>gravitee-gateway-buffer</module>
+        <module>gravitee-gateway-reactor</module>
+        <module>gravitee-gateway-reporting</module>
+        <module>gravitee-gateway-repository</module>
+        <module>gravitee-gateway-policy</module>
+        <module>gravitee-gateway-el</module>
         <module>gravitee-gateway-http-client</module>
         <module>gravitee-gateway-standalone</module>
+        <module>gravitee-gateway-handlers</module>
         <module>gravitee-gateway-services</module>
     </modules>
 
@@ -65,12 +72,6 @@
                 <groupId>io.gravitee.definition</groupId>
                 <artifactId>gravitee-definition-model</artifactId>
                 <version>${gravitee-definition.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.repository</groupId>
-                <artifactId>gravitee-repository-mongodb</artifactId>
-                <version>${gravitee-repository-mongodb.version}</version>
             </dependency>
 
             <dependency>
@@ -142,11 +143,10 @@
         <gravitee-definition.version>0.9.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>0.6.0</gravitee-common.version>
         <gravitee-repository.version>0.10.0-SNAPSHOT</gravitee-repository.version>
-        <gravitee-plugin-core.version>0.8.0</gravitee-plugin-core.version>
-        <gravitee-plugin-policy.version>0.8.0</gravitee-plugin-policy.version>
+        <gravitee-plugin-core.version>0.9.0-SNAPSHOT</gravitee-plugin-core.version>
+        <gravitee-plugin-policy.version>0.9.0-SNAPSHOT</gravitee-plugin-policy.version>
         <gravitee-policy-api.version>0.6.0</gravitee-policy-api.version>
         <gravitee-gateway-api.version>0.9.0</gravitee-gateway-api.version>
-        <gravitee-repository-mongodb.version>0.9.0</gravitee-repository-mongodb.version>
         <gravitee-reporter-api.version>0.6.0</gravitee-reporter-api.version>
         <jackson.version>2.5.3</jackson.version>
         <vertx.version>3.2.1</vertx.version>

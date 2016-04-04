@@ -15,10 +15,21 @@
  */
 package io.gravitee.gateway.standalone.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.event.EventManager;
+import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.node.Node;
-import io.gravitee.gateway.core.spring.CoreConfiguration;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.gateway.env.EnvironmentConfiguration;
+import io.gravitee.gateway.reactor.spring.ReactorConfiguration;
+import io.gravitee.gateway.report.spring.ReporterConfiguration;
+import io.gravitee.gateway.services.spring.ServiceConfiguration;
 import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.vertx.VertxConfiguration;
+import io.gravitee.plugin.core.spring.PluginConfiguration;
+import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
+import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -27,8 +38,27 @@ import org.springframework.context.annotation.Import;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@Import(value = {CoreConfiguration.class, VertxConfiguration.class})
+@Import({
+        EnvironmentConfiguration.class,
+        ReactorConfiguration.class,
+        VertxConfiguration.class,
+        ServiceConfiguration.class,
+        PluginConfiguration.class,
+        PolicyPluginConfiguration.class,
+        ReporterConfiguration.class,
+        ApiHandlerConfiguration.class
+})
 public class StandaloneConfiguration {
+
+    @Bean
+    public EventManager eventManager() {
+        return new EventManagerImpl();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new GraviteeMapper();
+    }
 
     @Bean
     public Node node() {

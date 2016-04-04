@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
-import io.gravitee.gateway.core.Reactor;
+import io.gravitee.gateway.reactor.Reactor;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
 
@@ -38,7 +38,6 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
     private void handleRequest(HttpServerRequest httpServerRequest) {
         reactor.process(
                 new VertxHttpServerRequest(httpServerRequest),
-                new VertxHttpServerResponse(httpServerRequest.response()),
-                response -> {});
+                new VertxHttpServerResponse(httpServerRequest.response())).thenAccept(response -> {});
     }
 }

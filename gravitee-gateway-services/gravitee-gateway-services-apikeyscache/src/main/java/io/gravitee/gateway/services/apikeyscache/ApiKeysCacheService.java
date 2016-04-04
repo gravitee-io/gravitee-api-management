@@ -19,8 +19,9 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.event.ApiEvent;
+import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import net.sf.ehcache.Cache;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ import java.util.concurrent.*;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class ApiKeysCacheService extends AbstractService implements EventListener<ApiEvent, Api> {
+public class ApiKeysCacheService extends AbstractService implements EventListener<ReactorEvent, Reactable> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeysCacheService.class);
 
@@ -85,7 +86,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             beanFactory.registerSingleton(ApiKeyRepository.class.getName(),
                     new CachedApiKeyRepository(cache));
 
-            eventManager.subscribeForEvents(this, ApiEvent.class);
+            eventManager.subscribeForEvents(this, ReactorEvent.class);
 
             executorService = Executors.newScheduledThreadPool(threads, new ThreadFactory() {
                         private int counter = 0;
@@ -119,18 +120,18 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     }
 
     @Override
-    public void onEvent(Event<ApiEvent, Api> event) {
-        final Api api = event.content();
+    public void onEvent(Event<ReactorEvent, Reactable> event) {
+        final Api api = (Api) event.content().item();
 
         switch (event.type()) {
             case DEPLOY:
                 startRefresher(api);
                 break;
             case UNDEPLOY:
-                stopRefresher(api, scheduledTasks.remove(api));
+                stopRefresher(api);
                 break;
             case UPDATE:
-                stopRefresher(api, scheduledTasks.remove(api));
+                stopRefresher(api);
                 startRefresher(api);
         }
     }
@@ -141,7 +142,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             refresher.setCache(cache);
             refresher.setApiKeyRepository(apiKeyRepository);
 
-            LOGGER.info("Add a task to refresh keys for {} each {} {} ", api, delay, unit.name());
+            LOGGER.info("Add a task to refresh keys each {} {} ", delay, unit.name());
             ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
                     refresher, 0, delay, unit);
 
@@ -149,13 +150,14 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
         }
     }
 
-    private void stopRefresher(Api api, ScheduledFuture scheduledFuture) {
+    private void stopRefresher(Api api) {
+        ScheduledFuture scheduledFuture = scheduledTasks.remove(api);
         if (scheduledFuture != null) {
             if (! scheduledFuture.isCancelled()) {
-                LOGGER.info("Stop api-keys refresher for {}", api);
+                LOGGER.info("Stop api-keys refresher");
                 scheduledFuture.cancel(true);
             } else {
-                LOGGER.info("API-key refresher already shutdown for {}", api);
+                LOGGER.info("API-key refresher already shutdown");
             }
         }
     }

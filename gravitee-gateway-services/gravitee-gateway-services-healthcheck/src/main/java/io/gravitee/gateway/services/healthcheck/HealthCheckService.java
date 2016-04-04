@@ -20,9 +20,10 @@ import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.Monitoring;
-import io.gravitee.gateway.core.definition.Api;
-import io.gravitee.gateway.core.event.ApiEvent;
-import io.gravitee.gateway.core.reporter.ReporterService;
+import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.gateway.report.ReporterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ import java.util.concurrent.*;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class HealthCheckService extends AbstractService implements EventListener<ApiEvent, Api> {
+public class HealthCheckService extends AbstractService implements EventListener<ReactorEvent, Reactable> {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(HealthCheckService.class);
 
@@ -56,7 +57,7 @@ public class HealthCheckService extends AbstractService implements EventListener
     protected void doStart() throws Exception {
         super.doStart();
 
-        eventManager.subscribeForEvents(this, ApiEvent.class);
+        eventManager.subscribeForEvents(this, ReactorEvent.class);
 
         executorService = Executors.newScheduledThreadPool(threads, new ThreadFactory() {
             private int counter = 0;
@@ -83,18 +84,18 @@ public class HealthCheckService extends AbstractService implements EventListener
     }
 
     @Override
-    public void onEvent(Event<ApiEvent, Api> event) {
-        final Api api = event.content();
+    public void onEvent(Event<ReactorEvent, Reactable> event) {
+        final Api api = (Api) event.content().item();
 
         switch (event.type()) {
             case DEPLOY:
                 startHealthCheck(api);
                 break;
             case UNDEPLOY:
-                stopHealthCheck(api, scheduledTasks.remove(api));
+                stopHealthCheck(api);
                 break;
             case UPDATE:
-                stopHealthCheck(api, scheduledTasks.remove(api));
+                stopHealthCheck(api);
                 startHealthCheck(api);
                 break;
         }
@@ -107,24 +108,25 @@ public class HealthCheckService extends AbstractService implements EventListener
                 EndpointMonitor monitor = new EndpointMonitor(api);
                 monitor.setReporterService(reporterService);
 
-                LOGGER.info("Add a scheduled task to health-check endpoints for {} each {} {} ", api, monitoring.getInterval(), monitoring.getUnit());
+                LOGGER.info("Add a scheduled task to health-check endpoints each {} {} ", monitoring.getInterval(), monitoring.getUnit());
                 ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
                         monitor, 0, monitoring.getInterval(), monitoring.getUnit());
 
                 scheduledTasks.put(api, scheduledFuture);
             } else {
-                LOGGER.info("Health-check is disabled for {}", api);
+                LOGGER.info("Health-check is disabled");
             }
         }
     }
 
-    private void stopHealthCheck(Api api, ScheduledFuture scheduledFuture) {
+    private void stopHealthCheck(Api api) {
+        ScheduledFuture scheduledFuture = scheduledTasks.remove(api);
         if (scheduledFuture != null) {
             if (! scheduledFuture.isCancelled()) {
-                LOGGER.info("Stop health-check for {}", api);
+                LOGGER.info("Stop health-check");
                 scheduledFuture.cancel(true);
             } else {
-                LOGGER.info("Health-check already shutdown for {}", api);
+                LOGGER.info("Health-check already shutdown");
             }
         }
     }
