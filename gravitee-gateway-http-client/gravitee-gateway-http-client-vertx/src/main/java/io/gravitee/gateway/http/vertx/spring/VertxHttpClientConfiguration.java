@@ -13,30 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.http.client.spring;
+package io.gravitee.gateway.http.vertx.spring;
 
-import io.gravitee.gateway.http.core.invoker.spring.HttpInvokerFactory;
-import io.gravitee.gateway.http.core.loadbalancer.spring.LoadBalancerFactory;
+import io.gravitee.gateway.api.http.client.HttpClient;
+import io.gravitee.gateway.http.vertx.VertxHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({HttpClientConfigurationImportSelector.class})
-public class HttpClientConfiguration {
+public class VertxHttpClientConfiguration {
 
     @Bean
-    public LoadBalancerFactory loadBalancerFactory() {
-        return new LoadBalancerFactory();
+    public HttpClient httpClient() {
+        return new VertxHttpClient();
     }
-
-    @Bean
-    public HttpInvokerFactory httpInvokerFactory() {
-        return new HttpInvokerFactory();
-    }
-
 }

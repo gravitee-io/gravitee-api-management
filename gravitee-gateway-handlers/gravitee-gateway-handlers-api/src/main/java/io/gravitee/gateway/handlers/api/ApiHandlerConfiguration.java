@@ -15,11 +15,12 @@
  */
 package io.gravitee.gateway.handlers.api;
 
+import io.gravitee.gateway.handlers.api.http.client.spring.HttpClientConfiguration;
+import io.gravitee.gateway.handlers.api.http.client.spring.HttpClientConfigurationImportSelector;
+import io.gravitee.gateway.handlers.api.impl.PathResolverImpl;
 import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.policy.impl.*;
-import io.gravitee.gateway.handlers.api.impl.PathResolverImpl;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
-import io.gravitee.gateway.handlers.api.http.client.spring.HttpClientConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
