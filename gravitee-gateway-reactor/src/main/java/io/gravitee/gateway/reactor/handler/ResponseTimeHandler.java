@@ -17,33 +17,33 @@ package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.handler.Handler;
+
+import java.util.function.BiConsumer;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public class ResponseTimeHandler implements Handler<Response> {
+public class ResponseTimeHandler implements BiConsumer<Response, Throwable> {
 
-    private final Handler<Response> wrappedHandler;
-    private final Request request;
+    private final Request serverRequest;
 
-    public ResponseTimeHandler(final Request request, final Handler<Response> wrappedHandler) {
-        this.request = request;
-        this.wrappedHandler = wrappedHandler;
+    public ResponseTimeHandler(final Request serverRequest) {
+        this.serverRequest = serverRequest;
     }
 
     @Override
-    public void handle(Response response) {
-        // Provide the response to the wrapped handler
-        wrappedHandler.handle(response);
+    public void accept(Response response, Throwable throwable) {
+        try {
+            // Compute response-time and add it to the metrics
+            long proxyResponseTimeInMs = System.currentTimeMillis() - serverRequest.metrics().timestamp().toEpochMilli();
 
-        // Compute response-time and add it to the metrics
-        long proxyResponseTimeInMs = System.currentTimeMillis() - request.metrics().timestamp().toEpochMilli();
-
-        request.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
-        request.metrics().setResponseContentLength(response.headers().contentLength());
-        request.metrics().setResponseContentType(response.headers().contentType());
-        request.metrics().setResponseHttpStatus(response.status());
+            serverRequest.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
+            serverRequest.metrics().setResponseContentLength(response.headers().contentLength());
+            serverRequest.metrics().setResponseContentType(response.headers().contentType());
+            serverRequest.metrics().setResponseHttpStatus(response.status());
+        } catch (Exception ex) {
+            // Do nothing
+        }
     }
 }

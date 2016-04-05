@@ -25,6 +25,7 @@ import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
+import io.gravitee.reporter.api.http.RequestMetrics;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +65,7 @@ public class ReactorTest {
         Request request = mock(Request.class);
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.path()).thenReturn("/team");
+        when(request.metrics()).thenReturn(RequestMetrics.on(System.currentTimeMillis()).build());
 
         when(handlerResolver.resolve(request)).thenReturn(new AbstractReactorHandler() {
             @Override

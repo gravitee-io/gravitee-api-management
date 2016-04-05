@@ -27,6 +27,8 @@ import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
+import io.gravitee.gateway.reactor.handler.ResponseTimeHandler;
+import io.gravitee.gateway.reactor.handler.reporter.ReporterHandler;
 import io.gravitee.gateway.report.ReporterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,20 +62,15 @@ public class DefaultReactor extends AbstractService implements
     @Autowired
     private ReporterService reporterService;
 
-    public CompletableFuture<Response> process(Request serverRequest, Response serverResponse) {
+    public CompletableFuture<Response> process(final Request serverRequest, final Response serverResponse) {
         LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
 
         ReactorHandler reactorHandler = reactorHandlerResolver.resolve(serverRequest);
         reactorHandler = (reactorHandler != null) ? reactorHandler : notFoundHandler;
 
         // Prepare the handler chain
-        //TODO: how to handle this with CompletableFuture ?
-        /*
-        handler = new ResponseTimeHandler(request,
-                new ReporterHandler(reporterService, request, handler));
-                */
-
-        return reactorHandler.handle(serverRequest, serverResponse);
+        return reactorHandler.handle(serverRequest, serverResponse).whenCompleteAsync(
+                new ResponseTimeHandler(serverRequest).andThen(new ReporterHandler(reporterService, serverRequest)));
     }
 
     @Override
@@ -95,25 +92,13 @@ public class DefaultReactor extends AbstractService implements
     protected void doStart() throws Exception {
         super.doStart();
 
-//        applicationContext.getBean(PluginEventListener.class).start();
-//        applicationContext.getBean(PluginRegistry.class).start();
-
         eventManager.subscribeForEvents(this, ReactorEvent.class);
-
-//        applicationContext.getBean(ServiceManager.class).start();
-//        applicationContext.getBean(ReporterService.class).start();
     }
 
     @Override
     protected void doStop() throws Exception {
         super.doStop();
 
-//        applicationContext.getBean(PluginRegistry.class).stop();
-//        applicationContext.getBean(PluginEventListener.class).stop();
-
         reactorHandlerRegistry.clear();
-
-//        applicationContext.getBean(ServiceManager.class).stop();
-//        applicationContext.getBean(ReporterService.class).stop();
     }
 }
