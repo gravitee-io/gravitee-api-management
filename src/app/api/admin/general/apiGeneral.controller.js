@@ -225,7 +225,7 @@ class ApiAdminController {
       this.onApiUpdate(updatedApi.data);
     });
   }
-  
+
   selectAPIPicture(file) {
     var self = this;
     this.Upload.base64DataUrl(file).then(function(url){
@@ -253,8 +253,8 @@ class ApiAdminController {
       var link = document.createElement('a');
       document.body.appendChild(link);
       link.href = 'data:application/json;charset=utf-8;base64,' + that.base64.encode(JSON.stringify(response.data, null, 2));
-      link.download = response.headers('content-disposition').split('=')[1];
-      link.target = "_self";
+      var contentDispositionHeader = response.headers('content-disposition') || response.headers('Content-Disposition');
+      link.download = contentDispositionHeader.split('=')[1];      link.target = "_self";
       link.click();
       document.body.removeChild(link);
     });
