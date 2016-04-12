@@ -256,15 +256,15 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
     .state('applications.list', {
       abstract: true,
-      url: '/applications',
+      url: '/',
       templateUrl: 'app/application/applicationsList.html'
     })
-		.state('applications.list.table', {
-      url: '/table',
+    .state('applications.list.table', {
+      url: 'table',
       templateUrl: 'app/application/applicationsTableMode.html'
     })
     .state('applications.list.thumb', {
-      url: '/thumb',
+      url: 'thumb',
       templateUrl: 'app/application/applicationsThumbMode.html',
       menu: {
         label: 'Applications',

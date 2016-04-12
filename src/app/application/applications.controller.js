@@ -23,15 +23,8 @@ class ApplicationsController {
 		this.ApplicationService = ApplicationService;
 		this.NotificationService = NotificationService;
 		this.applications = resolvedApplications.data;
-		this.list();
 		this.tableMode = $state.current.name.endsWith('table')? true : false;
 	}
-
-	list() {
-		this.ApplicationService.list().then(response => {
-			this.applications = response.data;
-		});
-  }
 
 	createInitApplication() {
 		if (!this.$rootScope.authenticated) {
