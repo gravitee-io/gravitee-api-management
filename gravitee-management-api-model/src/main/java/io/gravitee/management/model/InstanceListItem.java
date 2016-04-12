@@ -50,6 +50,8 @@ public class InstanceListItem {
 
     private InstanceState state = InstanceState.UNKNOWN;
 
+    private String operatingSystemName;
+
     public InstanceListItem(String id) {
         this.id = id;
     }
@@ -135,6 +137,14 @@ public class InstanceListItem {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getOperatingSystemName() {
+        return operatingSystemName;
+    }
+
+    public void setOperatingSystemName(String operatingSystemName) {
+        this.operatingSystemName = operatingSystemName;
     }
 
     @Override

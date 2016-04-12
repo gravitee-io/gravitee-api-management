@@ -82,6 +82,7 @@ public class InstanceServiceImpl implements InstanceService {
                             instance.setIp(info.getIp());
                             instance.setVersion(info.getVersion());
                             instance.setTags(info.getTags());
+                            instance.setOperatingSystemName(info.getSystemProperties().get("os.name"));
                         } catch (IOException ioe) {
                             LOGGER.error("Unexpected error while getting instance informations from event payload", ioe);
                         }
