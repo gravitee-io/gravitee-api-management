@@ -174,6 +174,13 @@ class ApiPoliciesController {
   editPolicy(index, path) {
     this.selectedApiPolicy = this.apiPoliciesByPath[path][index];
     this.$scope.policyJsonSchema = this.selectedApiPolicy.schema;
+    if (Object.keys(this.$scope.policyJsonSchema).length == 0) {
+      this.$scope.policyJsonSchema = {
+        "type": "object",
+        "id": "empty",
+        "properties": {"" : {}}
+      };
+    }
     this.$scope.policyJsonSchemaForm = ["*"];
   }
 
