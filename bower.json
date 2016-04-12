@@ -4,7 +4,7 @@
   "description": "Gravitee IO - API Management - Admin - Web Console",
   "dependencies": {
     "angular-ui-router": "~0.2.15",
-    "angular-material": "1.0.3",
+    "angular-material": "^1.0.7",
     "angular": "~1.4.9",
     "angular-drag-and-drop-lists": "~1.3.0",
     "angular-markdown-directive": "~0.3.1",
