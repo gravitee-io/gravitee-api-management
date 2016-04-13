@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configurers.provisioning.InMemoryUserDetailsManagerConfigurer;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -36,11 +37,14 @@ public class InMemoryAuthentificationProvider implements AuthenticationManager {
     @Override
     public void configure(AuthenticationManagerBuilder authenticationManagerBuilder, int providerIdx) throws Exception {
         boolean found = true;
+        boolean init = false;
         int userIdx = 0;
+
+        InMemoryUserDetailsManagerConfigurer configurer = authenticationManagerBuilder.inMemoryAuthentication();
 
         while (found) {
             String user = environment.getProperty("security.providers[" + providerIdx + "].users[" + userIdx + "].user");
-            found = (user != null);
+            found = (user != null && user.isEmpty());
 
             if (found) {
                 String username = environment.getProperty("security.providers[" + providerIdx + "].users[" + userIdx + "].username");
@@ -48,8 +52,13 @@ public class InMemoryAuthentificationProvider implements AuthenticationManager {
                 String roles = environment.getProperty("security.providers[" + providerIdx + "].users[" + userIdx + "].roles");
                 LOGGER.debug("Adding an in-memory user for username {}", username);
                 userIdx++;
-                authenticationManagerBuilder.inMemoryAuthentication().withUser(username).password(password).roles(roles);
+                init = true;
+                configurer.withUser(username).password(password).roles(roles);
             }
+        }
+
+        if (! init) {
+            authenticationManagerBuilder.removeConfigurer(InMemoryUserDetailsManagerConfigurer.class);
         }
     }
 
