@@ -100,7 +100,7 @@ security:
         - user:
           username: user
           password: $2a$10$9kjw/SH9gucCId3Lnt6EmuFreUAcXSZgpvAYuW2ISv7hSOhHRH1AO
-          roles: USER # you can declare multiple roles with comma separator (USER, OWNER, ADMIN ...)
+          roles: USER # you can declare multiple roles with comma separator (USER, ADMIN ...)
         - user:
           username: admin
           password: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq

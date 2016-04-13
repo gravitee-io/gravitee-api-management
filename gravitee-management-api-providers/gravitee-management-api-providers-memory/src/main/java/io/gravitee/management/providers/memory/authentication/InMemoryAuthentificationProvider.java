@@ -64,17 +64,11 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
                 String username = environment.getProperty("security.providers[" + providerIdx + "].users[" + userIdx + "].username");
                 String password = environment.getProperty("security.providers[" + providerIdx + "].users[" + userIdx + "].password");
                 String roles = environment.getProperty("security.providers[" + providerIdx + "].users[" + userIdx + "].roles");
+                List<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roles);
                 LOGGER.debug("Adding an in-memory user for username {}", username);
                 userIdx++;
 
-                List<GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
-
-            //    if (roles != null) {
-                    authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roles);
-            //    }
-
                 userDetailsService.createUser(new User(username, password, authorities));
-//                configurer.withUser(username).password(password).roles(roles);
             }
         }
 
