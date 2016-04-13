@@ -1,17 +1,14 @@
 'use strict';
 
-var examplesAppModule = require('../examplesApp');
+var DirectiveCtrl = function ($scope) {
+  $scope.dragularOptions = {
+    classes: {
+      mirror: 'custom-green-mirror'
+    },
+    nameSpace: 'same' // just connecting left and right container
+  };
+};
 
-/**
- * @ngInject
- */
+DirectiveCtrl.$inject = ['$scope'];
 
-examplesAppModule
-  .controller('Directive', ['$scope', function DirectiveCtrl($scope) {
-    $scope.dragularOptions = {
-      classes: {
-        mirror: 'custom-green-mirror'
-      },
-      nameSpace: 'same' // just connecting left and right container
-    };
-  }]);
+module.exports = DirectiveCtrl;

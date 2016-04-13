@@ -1,16 +1,14 @@
 'use strict';
 
-var examplesAppModule = require('../examplesApp');
+var BoundingBoxCtrl = function ($element, dragularService) {
+  var boundingBox = $element[0];
+  dragularService.cleanEnviroment();
 
-/**
-* @ngInject
-*/
+  dragularService($element.children(), {
+    boundingBox: boundingBox
+  });
+};
 
-examplesAppModule
-  .controller('BoundingBox', ['$element', 'dragularService', function TodoCtrl($element, dragularService) {
-    var boundingBox = $element[0];
-    dragularService.cleanEnviroment();
-	dragularService($element.children(), {
-      boundingBox: boundingBox
-    });
-  }]);
+BoundingBoxCtrl.$inject = ['$element', 'dragularService'];
+
+module.exports = BoundingBoxCtrl;

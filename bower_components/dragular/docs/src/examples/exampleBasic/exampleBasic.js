@@ -1,13 +1,10 @@
 'use strict';
 
-var examplesAppModule = require('../examplesApp');
+var BasicCtrl = function ($element, dragularService) {
+  dragularService.cleanEnviroment();
+  dragularService('.containerVertical');
+};
 
-/**
-* @ngInject
-*/
+BasicCtrl.$inject = ['$element', 'dragularService'];
 
-examplesAppModule
-  .controller('Basic', ['$element', 'dragularService', function TodoCtrl($element, dragularService) {
-    dragularService.cleanEnviroment();
-	dragularService('.containerVertical');
-  }]);
+module.exports = BasicCtrl;

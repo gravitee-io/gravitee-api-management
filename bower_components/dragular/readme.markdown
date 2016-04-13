@@ -10,7 +10,7 @@ Browser support includes every sane browser and **IE7+**. <sub>_(Granted you pol
 
 I am working on huge angular project and I am using several drag&drop libraries in it, one for UI, one for lists, etc.. I want to use one full-featured drag&drop library for whole project. As I could not find any suitable, I decided to create one. I have choosen great library [dragula](http://github.com/bevacqua/dragula) by [Nicolas Bevacqua](http://github.com/bevacqua) as my starting point, make it more angular and started to put features in it! If you wish light-weight angular version of dragula, there is [official angular version of dragula](http://github.com/bevacqua/angular-dragula).
 
-<b>Actual version 3.4.0 is based on dragula 3.6.0 and tested with angular 1.4.3.</b>
+<b>Actual version 4.1.0 is based on dragula 3.6.3 and tested with angular 1.4.9.</b>
 
 # Differences of dragular (against dragula)
 
@@ -20,6 +20,7 @@ I am working on huge angular project and I am using several drag&drop libraries 
 - automatic direction if not provided in options, instead of default vertical
 - accepting arraylike objects as containers array (jQuery, jQlite collections etc..)
 - accepting custom classes via option.classes
+- accepting custom event names via option.eventNames
 - namespaced containers groups available via option.nameSpace (containers in same nameSpace cooperate)
 - boundingBox (dragging element can me moved only in specific area)
 - lockX/Y (dragging element can me moved only in specific direction)
@@ -31,6 +32,7 @@ I am working on huge angular project and I am using several drag&drop libraries 
 # Todo towards next versions
 
 - improving docs
+- universal example (alowing all combinations of options to be set via form)
 
 # Features
 
@@ -100,20 +102,23 @@ Type                    | Description
 You can also provide an `options` object into service as second parameter.
 
 ```js
+dragularService(containers, options);
+```
+for example
+```js
 dragularService(containers, {
   moves: function (el, container, handle) {
-    return true;         // elements are always draggable by default
+    return true;                      // elements are always draggable by default
   },
   accepts: function (el, target, source, sibling) { // applied with target container options
-    return true;         // elements can be dropped in any of the `containers` by default
+    return true;                      // can target accept dragged item? (target context used)
   },
   canBeAccepted: function (el, target, source, sibling) { // applied with source container options
-    return true;         // elements can be dropped in any of the `containers` by default
+    return true;                      // can be dragged item accepted by target? (source context used)
   },
-  direction: 'vertical', // Y axis is considered when determining where an element would be dropped
-  copy: false,           // elements are moved by default, not copied
-  revertOnSpill: false,  // spilling will put the element back where it was dragged from, if this is true
-  removeOnSpill: false   // spilling will `.remove` the element, if this is true
+  direction: 'vertical',              // Y axis is considered when determining where an element would be dropped
+  revertOnSpill: false,               // item returns to original place
+  removeOnSpill: false                // item will be removed if not placed into valid target
 });
 ```
 
@@ -148,10 +153,21 @@ Model can be optionaly provided via `dragular-model` atribute, but only in case 
 ```html
 <div dragular-model="items"></div>
 ```
+### dragular-name-space atribute
+
+For better readability of views.
+
+```html
+<div dragular-name-space="oranges"></div>
+```
 
 ## Options
 
-The options are detailed below.
+The options are detailed below. All boolean options can be also function returning boolean except lockX and lockY!
+
+### `options.containers`
+
+Container element, NodeList, array of elements, jQuery object returnet by selector or any array-like object where containers elements are placed on properties named 0,1,2,.. etc. 
 
 ### `options.containersModel`
 
@@ -161,16 +177,55 @@ Please note that if you are using filters on your items you must provide filtere
 ```html
   <input ng-model="query">
   <div id="container">
-     <div ng-repeat="item in filteredItems = (sourceItems | orderBy:'order_prop' | filter:query | limitTo:4)">
+     <div ng-repeat="item in getFilteredModel(filteredItems, sourceItems, query)">
        {{item}}
      </div>
   </div>
  ```
  ```js
+$scope.filteredItems = [];
+ 
 dragularService('#container', {
-  containersModel: filteredItems
+  containersModel: sourceItems,
+  containersFilteredModel: $scope.filteredItems
 });
+
+$scope.getFilteredModel = function (filteredModel, items, filterQuery) {
+  filteredModel.length = 0;
+  /*
+  * Following one-liner is same like:
+  *   var filteredModelTemp = $filter('filter')(items, filterQuery);
+  *   angular.forEach(filteredModelTemp, function(item){
+  *     filteredModel.push(item);
+  *   });
+  * Or like:
+  *   var filteredModelTemp = $filter('filter')(items, filterQuery);
+  *   for(var i; i < filteredModelTemp.length; i++){
+  *     filteredModel.push(filteredModelTemp[i]);
+  *   }
+  *
+  * You cannot just assign filtered array to filteredModel like this:
+  *   filteredModel = $filter('filter')(items, filterQuery);
+  * Because you would replace the array object you provide to dragular with new one.
+  * So dragular will continue to use the one it was provided on init.
+  * Hopefully I make it clear. :)
+   */
+  [].push.apply(filteredModel, $filter('filter')(items, filterQuery));
+  return filteredModel;
+};
  ```
+
+### `options.containersFilteredModel`
+
+See 'options.containersModel' above for usecase.
+
+### `options.isContainer`
+
+Element can be forced to be container by custom logic function.
+
+### `options.isContainerModel`
+
+If isContainer function is provided, you can provide also respective model.
 
 ### `options.moves`
 
@@ -214,6 +269,15 @@ copy: true,
 copySortSource: true
 ```
 
+#### `options.copySortSource`
+
+If `copy` is set to `true` _(or a method that returns `true`)_ and `dontCopyModel` is `true` as well, dragular won`t make copy of model when coping item.
+
+```js
+copy: true,
+dontCopyModel: true
+```
+
 ### `options.revertOnSpill`
 
 By default, spilling an element outside of any containers will move the element back to the _drop position previewed by the feedback shadow_. Setting `revertOnSpill` to `true` will ensure elements dropped outside of any approved containers are moved back to the source element where the drag event began, rather than stay at the _drop position previewed by the feedback shadow_.
@@ -230,6 +294,78 @@ When an element is dropped onto a container, it'll be placed near the point wher
 
 Scope can be provided for emitting events, you can provide whichever scope you like.
 
+### `options.lockX' 
+
+Lock movement into x-axis.
+
+### `options.lockY
+
+Lock movement into y-axis.
+
+### `options.boundingBox'
+
+Lock movement inside provided element boundaries.
+
+### `options.mirrorContainer`
+
+Parent element for placing mirror helper element. (default is document.body)
+
+### `options.ignoreInputTextSelection`
+
+Text selection in inputs wont be considered as drag (default is true).
+
+### `options.eventNames`
+
+Default classe used by dragular can be modified here, providing object with custom names.
+
+```js
+defaultClasses = {
+  mirror: 'gu-mirror',
+  hide: 'gu-hide',
+  unselectable: 'gu-unselectable',
+  transit: 'gu-transit'
+},
+
+// custom example
+myClasses = {
+  mirror: 'super-mirror'
+}
+```
+
+### `options.eventNames`
+
+Default event names can be modified here, providing object with custom names.
+
+```js
+defaultEventNames = {
+  // drag-over DOM events
+  dragularenter: 'dragularenter',
+  dragularleave: 'dragularleave',
+  dragularrelease: 'dragularrelease',
+  // $scope events
+  dragularcloned: 'dragularcloned',
+  dragulardrag: 'dragulardrag',
+  dragularcancel: 'dragularcancel',
+  dragulardrop: 'dragulardrop',
+  dragularremove: 'dragularremove',
+  dragulardragend: 'dragulardragend',
+  dragularshadow: 'dragularshadow',
+  dragularover: 'dragularover',
+  dragularout: 'dragularout'
+}
+
+// custom example
+myEventNames = {
+  dragularenter: 'denter',
+  dragularleave: 'dleave'
+}
+```
+
+### `options.compileItemOnDrop`
+
+In case your draggable items are customized by other directives/attributes, you can use this flag to run compilation of droped item after drop. It is not supposed to be used with containers items rendered by ng-repeat. In such case you are supposed to add directives/attributes to item template and use logic in controller to enable/disable them.
+
+
 ## `Events`
 
 If $scope is provided as options.scope the following events can be tracked using `$scope.on(type, listener)`:
@@ -243,6 +379,8 @@ Event Name | Listener Arguments      | Event Description
 `dragularremove`   | `el, container`         | `el` was being dragged but it got nowhere and it was removed from the DOM. Its last stable parent was `container`.
 `dragularshadow`   | `el, container`         | `el`, _the visual aid shadow_, was moved into `container`. May trigger many times as the position of `el` changes, even within the same `container`
 `dragularcloned`   | `clone, original`       | DOM element `original` was cloned as `clone`. Triggers for mirror images and when `copy: true`
+
+Event names can be modified via options.eventNames.
 
 ## API
 

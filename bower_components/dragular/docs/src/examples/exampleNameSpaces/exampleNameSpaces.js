@@ -1,21 +1,18 @@
 'use strict';
 
-var examplesAppModule = require('../examplesApp');
+var NameSpacesCtrl = function ($element, dragularService) {
+  dragularService.cleanEnviroment();
+  dragularService([$element.children()[0], $element.children()[2]], {
+    nameSpace: 'apples'
+  });
+  dragularService($element.children()[1], {
+    nameSpace: 'oranges'
+  });
+  dragularService($element.children()[3], { // mixed
+    nameSpace: ['oranges', 'apples']
+  });
+};
 
-/**
-* @ngInject
-*/
+NameSpacesCtrl.$inject = ['$element', 'dragularService'];
 
-examplesAppModule
-  .controller('NameSpaces', ['$element', 'dragularService', function TodoCtrl($element, dragularService) {
-    dragularService.cleanEnviroment();
-    dragularService([$element.children()[0], $element.children()[2]], {
-      nameSpace: 'apples'
-    });
-    dragularService($element.children()[1], {
-      nameSpace: 'oranges'
-    });
-    dragularService($element.children()[3], { // mixed
-      nameSpace: ['oranges', 'apples']
-    });
-  }]);
+module.exports = NameSpacesCtrl;

@@ -1,17 +1,14 @@
 'use strict';
 
-var examplesAppModule = require('../examplesApp');
+var CustomClassesCtrl = function ($element, dragularService) {
+  dragularService.cleanEnviroment();
+  dragularService($element.children(), {
+    classes: {
+      mirror: 'custom-green-mirror'
+    }
+  });
+};
 
-/**
-* @ngInject
-*/
+CustomClassesCtrl.$inject = ['$element', 'dragularService'];
 
-examplesAppModule
-  .controller('CustomClasses', ['$element', 'dragularService', function TodoCtrl($element, dragularService) {
-    dragularService.cleanEnviroment();
-	dragularService($element.children(), {
-      classes: {
-        mirror: 'custom-green-mirror'
-      }
-    });
-  }]);
+module.exports = CustomClassesCtrl;

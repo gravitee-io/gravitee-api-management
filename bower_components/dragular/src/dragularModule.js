@@ -1,12 +1,15 @@
 /* global angular */
 'use strict';
-
-var bulk = require('bulk-require');
+var dragularDirective = require('./dragularDirective');
+var dragularService = require('./dragularService');
 
 /**
- * Dragular 3.4.0 by Luckylooke https://github.com/luckylooke/dragular
+ * Dragular 4.1.0 by Luckylooke https://github.com/luckylooke/dragular
  * Angular version of dragula https://github.com/bevacqua/dragula
  */
-module.exports = angular.module('dragularModule', []);
+module.exports = 'dragularModule';
 
-bulk(__dirname, ['./**/!(*Module).js']);
+angular
+  .module('dragularModule', [])
+  .factory('dragularService', dragularService)
+  .directive('dragular', dragularDirective);

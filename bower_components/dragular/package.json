@@ -1,6 +1,6 @@
 {
   "name": "dragular",
-  "version": "3.4.0",
+  "version": "4.1.0",
   "description": "Angular drag and drop based on dragula",
   "keywords": [
     "drag",
@@ -12,6 +12,16 @@
     "angularjs"
   ],
   "main": "./dist/dragular.js",
+  "jspm": {
+    "format": "global",
+    "shim": {
+      "dist/dragular": {
+        "deps": [
+          "./dragular.css!"
+        ]
+      }
+    }
+  },
   "repository": {
     "type": "git",
     "url": "http://github.com/luckylooke/dragular.git"
@@ -30,11 +40,7 @@
     "angular": "~1.4.0"
   },
   "devDependencies": {
-    "brfs": "^1.4.1",
     "browser-sync": "^2.8.0",
-    "browserify": "^11.0.0",
-    "browserify-ngannotate": "^1.0.1",
-    "bulkify": "^1.1.1",
     "gulp": "^3.9.0",
     "gulp-angular-templatecache": "^1.7.0",
     "gulp-autoprefixer": "^2.3.1",
@@ -51,9 +57,7 @@
     "gulp-util": "^3.0.6",
     "jshint-stylish": "^2.1.0",
     "run-sequence": "^1.1.2",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0",
-    "watchify": "^3.3.0"
+    "webpack-stream": "^3.1.0"
   },
   "maintainers": [
     {

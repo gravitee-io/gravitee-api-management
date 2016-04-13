@@ -1,24 +1,21 @@
+/* global process */
 'use strict';
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var gulpif = require('gulp-if');
-var browserify = require('browserify');
-var watchify = require('watchify');
-var buffer = require('vinyl-buffer');
-var uglify = require('gulp-uglify');
+var webpack = require('webpack-stream');
 var size = require('gulp-size');
-var source = require('vinyl-source-stream');
 var sequence = require('run-sequence');
+var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
 var minifyCss = require('gulp-minify-css');
 var autoprefixer = require('gulp-autoprefixer');
 var browserSync = require('browser-sync');
 var jshint = require('gulp-jshint');
-var sourcemaps = require('gulp-sourcemaps');
 var concat = require('gulp-concat');
-var ngAnnotate = require('browserify-ngannotate');
 var templateCache = require('gulp-angular-templatecache');
 var ghPages = require('gulp-gh-pages');
+var sourcemaps = require('gulp-sourcemaps');
 var markdown = require('gulp-markdown');
 
 var config = {
@@ -39,13 +36,13 @@ var config = {
     port: '3000',
     server: './docs'
   },
-  // Predefined browserify configs to keep tasks DRY
-  browserify: {
+  // Predefined scripts configs to keep tasks DRY
+  scripts: {
     dragular: {
       type: 'dragular',
       entryPoint: './src/dragularModule.js',
       bundleName: 'dragular.js',
-      dest: './dist',
+      dest: './dist'
     },
     docs: {
       type: 'docs',
@@ -54,16 +51,16 @@ var config = {
       dest: './docs/dist'
     }
   },
-  // A flag attribute to switch modes.
+  // A flag attribute to switch modes
   isProd: false
 };
 
 /*
-* browserifyDefaults stores current browserify settings (like entry point or
-* output directory). This metadata is used to configure the scripts compilation
+* scriptDefaults stores current scripts settings (like entry point or
+* output directory). This metadata is used to configure the webpack compilation
 * process.
 */
-var browserifyDefaults = config.browserify.dragular;
+var scriptDefaults = config.scripts.dragular;
 
 function handleErrors(err) {
   gutil.log(err.toString());
@@ -75,40 +72,16 @@ function handleErrors(err) {
 */
 function buildScript() {
 
-  var bundler = browserify({
-    entries: browserifyDefaults.entryPoint,
-    debug: false,
-    cache: {},
-    packageCache: {},
-    fullPaths: false
-  }, watchify.args);
-
-  var transforms = [
-    'brfs',
-    'bulkify',
-    ngAnnotate
-  ];
-
-  // Watch files for changes and only rebuilds what it needs to
-  if (!config.isProd) {
-    bundler = watchify(bundler);
-    bundler.on('update', function() {
-      lintAndRebundle();
-    });
-  }
-
-  // Apply browserify transformations
-  transforms.forEach(function(transform) {
-    bundler.transform(transform);
-  });
-
   function rebundle() {
-    var stream = bundler.bundle();
-
-    return stream.on('error', handleErrors)
-      .pipe(source(browserifyDefaults.bundleName))
-      .pipe(buffer())
-      .pipe(gulpif(config.isProd, gulp.dest(browserifyDefaults.dest)))
+    return gulp.src(scriptDefaults.entryPoint)
+      .on('error', handleErrors)
+      .pipe(webpack({
+        watch: config.isProd ? false : true,
+        output: {
+          filename: scriptDefaults.bundleName
+        }
+      }))
+      .pipe(gulpif(config.isProd, gulp.dest(scriptDefaults.dest)))
       .pipe(gulpif(config.isProd, sourcemaps.init({loadMaps: true})))
       .pipe(gulpif(config.isProd, uglify({
         compress: { drop_console: true }
@@ -120,12 +93,12 @@ function buildScript() {
         title: 'Scripts: '
       }))
       .pipe(gulpif(config.isProd, sourcemaps.write('./')))
-      .pipe(gulp.dest(browserifyDefaults.dest))
+      .pipe(gulp.dest(scriptDefaults.dest))
       .pipe(gulpif(browserSync.active, browserSync.stream()));
   }
 
   function lintAndRebundle() {
-    if (browserifyDefaults.type === 'dragular') {
+    if (scriptDefaults.type === 'dragular') {
       return sequence('lint', rebundle);
     }
 
@@ -135,7 +108,7 @@ function buildScript() {
   return lintAndRebundle();
 }
 
-gulp.task('browserify', function() {
+gulp.task('scripts', function() {
   return buildScript();
 });
 
@@ -191,10 +164,13 @@ gulp.task('lint:docs', function() {
 gulp.task('serve', function () {
 
   browserSync({
-    
-    port: process.env.PORT || config.browserSync.port, // cloud9 improvement
+    ui:{
+      port: '8081'
+    },
+    port: (typeof process !== 'undefined' && process.env.PORT) || config.browserSync.port, // cloud9 improvement
+    host: typeof process !== 'undefined' && process.env.IP, // cloud9 improvement
     server: {
-      baseDir: config.browserSync.server,
+      baseDir: config.browserSync.server
     },
     logConnections: true,
     logFileChanges: true,
@@ -211,7 +187,7 @@ gulp.task('templates:docs', function() {
   return gulp.src(config.docs.templates)
     .pipe(templateCache({
       moduleSystem: 'Browserify',
-      standalone: true,
+      standalone: true
     }))
     .pipe(gulp.dest(config.docs.src));
 });
@@ -236,16 +212,16 @@ gulp.task('watch:docs', ['serve'], function() {
 */
 gulp.task('dev', function() {
   config.isProd = false;
-  browserifyDefaults = config.browserify.dragular;
+  scriptDefaults = config.scripts.dragular;
 
-  sequence(['browserify', 'styles'], 'watch');
+  sequence(['scripts', 'styles'], 'watch');
 });
 
 gulp.task('dev:docs', function() {
   config.isProd = false;
-  browserifyDefaults = config.browserify.docs;
+  scriptDefaults = config.scripts.docs;
 
-  sequence('markdown', 'templates:docs', ['browserify', 'styles:docs'], 'watch:docs');
+  sequence('markdown', 'templates:docs', ['scripts', 'styles:docs'], 'watch:docs');
 });
 
 /*
@@ -253,16 +229,16 @@ gulp.task('dev:docs', function() {
 */
 gulp.task('build', function() {
   config.isProd = true;
-  browserifyDefaults = config.browserify.dragular;
+  scriptDefaults = config.scripts.dragular;
 
-  sequence(['browserify', 'styles'], 'build:docs');
+  sequence(['scripts', 'styles'], 'build:docs');
 });
 
 gulp.task('build:docs', function() {
   config.isProd = true;
-  browserifyDefaults = config.browserify.docs;
+  scriptDefaults = config.scripts.docs;
 
-  sequence('markdown', 'templates:docs', ['browserify', 'styles']);
+  sequence('markdown', 'templates:docs', ['scripts', 'styles']);
 });
 
 /*

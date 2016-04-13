@@ -1,48 +1,47 @@
 'use strict';
 
-var examplesAppModule = require('./examplesApp');
+var examplesRouter = function ($stateProvider, $urlRouterProvider) {
+  $urlRouterProvider.otherwise('/home');
 
-/**
- * @ngInject
- */
+  var timer,
+    ctrl = function routerCtrl($state, $stateParams, $timeout) {
+      // go to install notes by default
+      if (!$stateParams.link) {
+        timer = $timeout(function timer() {
+          $state.go('docs.detail', {
+            link: 'docsInstall'
+          });
+        },0);
+      }else{
+        $timeout.cancel(timer);
+      }
+    };
 
-examplesAppModule
-  .config(function($stateProvider, $urlRouterProvider) {
-    $urlRouterProvider.otherwise('/home');
+  ctrl.$inject = ['$state', '$stateParams', '$timeout'];
 
-    var timer,
-      ctrl = function routerCtrl($state, $stateParams, $timeout) {
-        // go to install notes by default
-        if (!$stateParams.link) {
-          timer = $timeout(function timer() {
-            $state.go('docs.detail', {
-              link: 'docsInstall'
-            });
-          },0);
-        }else{
-          $timeout.cancel(timer);
-        }
-      };
+  $stateProvider
+    .state('home', {
+      url: '/home',
+      templateUrl: 'partials/partial-home.html'
+    })
+    .state('docs', {
+      url: '/docs',
+      templateUrl: 'partials/partial-docs.html',
+      controller: ctrl
+    })
+    .state('docs.detail', {
+      url: '/:link',
+      templateUrl: function($stateParams) {
+        return $stateParams.link + '/' + $stateParams.link + '.html';
+      },
+      controller: ctrl
+    })
+    .state('contribute', {
+      url: '/contribute',
+      templateUrl: 'partials/partial-contribute.html'
+    });
+};
 
-    $stateProvider
-      .state('home', {
-        url: '/home',
-        templateUrl: 'partials/partial-home.html'
-      })
-      .state('docs', {
-        url: '/docs',
-        templateUrl: 'partials/partial-docs.html',
-        controller: ctrl
-      })
-      .state('docs.detail', {
-        url: '/:link',
-        templateUrl: function($stateParams) {
-          return $stateParams.link + '/' + $stateParams.link + '.html';
-        },
-        controller: ctrl
-      })
-      .state('contribute', {
-        url: '/contribute',
-        templateUrl: 'partials/partial-contribute.html'
-      });
-  });
+examplesRouter.$inject = ['$stateProvider', '$urlRouterProvider'];
+
+module.exports = examplesRouter;

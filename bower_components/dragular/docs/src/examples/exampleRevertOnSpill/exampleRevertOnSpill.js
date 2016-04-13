@@ -1,15 +1,12 @@
 'use strict';
 
-var examplesAppModule = require('../examplesApp');
+var RevertOnSpillCtrl = function ($element, dragularService) {
+  dragularService.cleanEnviroment();
+  dragularService($element.children(), {
+    revertOnSpill: true
+  });
+};
 
-/**
-* @ngInject
-*/
+RevertOnSpillCtrl.$inject = ['$element', 'dragularService'];
 
-examplesAppModule
-  .controller('RevertOnSpill', ['$element', 'dragularService', function TodoCtrl($element, dragularService) {
-    dragularService.cleanEnviroment();
-	dragularService($element.children(), {
-      revertOnSpill: true
-    });
-  }]);
+module.exports = RevertOnSpillCtrl;

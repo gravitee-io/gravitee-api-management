@@ -6,46 +6,44 @@
  * Angular version of dragula https://github.com/bevacqua/dragula
  */
 
-var dragularModule = require('./dragularModule'),
-  shared = { // sahred object between all service instances
-      classesCache: {}, // classes lookup cache
-      containersCtx: {}, // containers model
-      containers: {}, // containers
-      mirror: null, // mirror image
-      source: null, // source container
-      item: null, // item being dragged
-      copy: null, // isCopy flag
-      sourceItem: null, // item originaly dragged if copy is enabled
-      sourceModel: null, // source container model
-      sourceFilteredModel: null, // source container filtered model if relevant
-      target: null, // droppable container under drag item
-      targetCtx: null, // target container context
-      targetModel: null, // target container model
-      lastDropTarget: null, // last container item was over
-      offsetX: null, // reference x
-      offsetY: null, // reference y
-      moveX: null, // reference move x
-      moveY: null, // reference move y
-      offsetXr: null, // reference x right for boundingBox feature
-      offsetYb: null, // reference y bottom for boundingBox feature
-      clientX: null, // cache client x, init at grab, update at drag
-      clientY: null, // cache client y, init at grab, update at drag
-      mirrorWidth: null, // mirror width for boundingBox feature
-      mirrorHeight: null, // mirror height for boundingBox feature
-      initialSibling: null, // reference sibling when grabbed
-      currentSibling: null, // reference sibling now
-      initialIndex: null, // reference model index when grabbed
-      currentIndex: null, // reference model index now
-      tempModel: null, // if o.isContainer is used, model can be provided as well, it is temporary saved here during drags
-      dragOverEvents: {}, // drag over events fired on element behind cursor
-      lastElementBehindCursor: null, // last element behind cursor
-      grabbed: null // holds mousedown context until first mousemove
-    };
+var shared = { // sahred object between all service instances
+  classesCache: {}, // classes lookup cache
+  containersCtx: {}, // containers model
+  containers: {}, // containers
+  mirror: null, // mirror image
+  source: null, // source container
+  item: null, // item being dragged
+  copy: null, // copy flag
+  sourceItem: null, // item originaly dragged if copy is enabled
+  sourceModel: null, // source container model
+  sourceFilteredModel: null, // source container filtered model if relevant
+  target: null, // droppable container under drag item
+  targetCtx: null, // target container context
+  targetModel: null, // target container model
+  lastDropTarget: null, // last container item was over
+  offsetX: null, // reference x
+  offsetY: null, // reference y
+  moveX: null, // reference move x
+  moveY: null, // reference move y
+  offsetXr: null, // reference x right for boundingBox feature
+  offsetYb: null, // reference y bottom for boundingBox feature
+  clientX: null, // cache client x, init at grab, update at drag
+  clientY: null, // cache client y, init at grab, update at drag
+  mirrorWidth: null, // mirror width for boundingBox feature
+  mirrorHeight: null, // mirror height for boundingBox feature
+  initialSibling: null, // reference sibling when grabbed
+  currentSibling: null, // reference sibling now
+  initialIndex: null, // reference model index when grabbed
+  currentIndex: null, // reference model index now
+  tempModel: null, // if o.isContainer is used, model can be provided as well, it is temporary saved here during drags
+  dragOverEvents: {}, // drag over events fired on element behind cursor
+  lastElementBehindCursor: null, // last element behind cursor
+  grabbed: null // holds mousedown context until first mousemove
+};
 
-dragularModule.factory('dragularService', function dragularServiceFunction($rootScope) {
+var dragularService = function ($rootScope, $compile) {
   // abbreviations
   var doc = document,
-      body = doc.body,
       docElm = doc.documentElement;
 
   // clean common/shared objects
@@ -64,6 +62,8 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
   function service(arg0, arg1) {
     var initialContainers = arg0 || [],
       options = arg1 || {},
+      o, // shorthand for options
+      g = getBool, // shorthand for getBool
       // defaults
       defaultClasses = {
         mirror: 'gu-mirror',
@@ -87,68 +87,65 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
         dragularover: 'dragularover',
         dragularout: 'dragularout'
       },
-      o = { // options with defaults
-        // classes used by dragular
-        classes: defaultClasses,
-        // event names used by dragular
-        eventNames: defaultEventNames,
-        // initial containers provided via options object (are provided via parameter by default)
-        containers: false,
-        // if provided, model will be synced with DOM
-        containersModel: false,
-        // if provided, dragular will handle filtered model cases
-        containersFilteredModel: false,
-        // potential target can be forced to be container by custom logic
-        isContainer: never,
-        // if isContainer function is provided, you can provide also respective model
-        isContainerModel: getEmptyObject,
-        // can drag start?
-        moves: always,
-        // can target accept dragged item? (target context used)
-        accepts: always,
-        // can be dragged item accepted by target? (source context used)
-        canBeAccepted: always,
-        // dragged item will be copy of source? flag or function
-        copy: false,
-        // target (in)validity function
-        invalid: never,
-        // item returns to original place
-        revertOnSpill: false,
-        // item will be removed if not placed into valid target
-        removeOnSpill: false,
-        // lock movement into x-axis
-        lockX: false,
-        // lock movement into y-axis
-        lockY: false,
-        // lock movement inside this element boundaries
-        boundingBox: false,
-        // element for appending mirror
-        mirrorContainer: doc.body,
-        // text selection in inputs wont be considered as drag
-        ignoreInputTextSelection: false
+      defaultOptions = { // options with defaults
+        copyOptions: false, // copy options object when provided
+        classes: defaultClasses, // classes used by dragular
+        eventNames: defaultEventNames, // event names used by dragular
+        containers: false, // initial containers provided via options object (are provided via parameter by default)
+        containersModel: false, // if provided, model will be synced with DOM
+        containersFilteredModel: false, // if provided, dragular will handle filtered model cases
+        isContainer: never, // potential target can be forced to be container by custom logic
+        isContainerModel: getEmptyObject, // if isContainer function is provided, you can provide also respective model
+        moves: always, // can drag start?
+        accepts: always, // can target accept dragged item? (target context used)
+        canBeAccepted: always, // can be dragged item accepted by target? (source context used)
+        copy: false, // dragged item will be copy of source? flag or function
+        copySortSource: false, // enable sorting in source when copying item
+        dontCopyModel: false, // dont make copy of model when coping item (#61)
+        invalid: never, // target (in)validity function
+        revertOnSpill: false, // item returns to original place
+        removeOnSpill: false, // item will be removed if not placed into valid target
+        lockX: false, // lock movement into x-axis
+        lockY: false, // lock movement into y-axis
+        boundingBox: false, // lock movement inside this element boundaries
+        mirrorContainer: doc.body, // element for appending mirror
+        ignoreInputTextSelection: true, // text selection in inputs wont be considered as drag
+        compileItemOnDrop: false
+      },
+      drake = {
+        containers: shared.containers,
+        containersCtx: shared.containersCtx,
+        sanitizeContainersModel: sanitizeContainersModel,
+        isContainer: isContainer,
+        start: manualStart,
+        end: end,
+        cancel: cancel,
+        remove: remove,
+        destroy: destroy,
+        dragging: false
       };
 
     processServiceArguments(); // both arguments (containers and options) are optional, this function handle this
-    extendDefaultOptions();
+    extendOptions();
     processOptionsObject();
     registerEvents();
-
-    var drake = {
-      containers: shared.containers,
-      containersCtx: shared.containersCtx,
-      isContainer: isContainer,
-      start: manualStart,
-      end: end,
-      cancel: cancel,
-      remove: remove,
-      destroy: destroy,
-      dragging: false
-    };
 
     return drake;
 
     // Function definitions: ==============================================================================================================
     // Initial functions: -----------------------------------------------------------------------------------------------------------------
+
+    function sanitizeContainersModel(containersModel) {
+      if (typeof(containersModel) === 'function') {
+        return containersModel;
+      }
+      if (Array.isArray(containersModel)) {
+        //                  |-------- is 2D array? -----------|
+        return Array.isArray(containersModel[0]) ? containersModel : [containersModel];
+      } else {
+        return [];
+      }
+    }
 
     function processServiceArguments(){
       if (arguments.length === 1 && // if there is only one argument we need to distinguish if it is options object or container(s) reference
@@ -162,15 +159,19 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       } else if (typeof arg0 === 'string') {
         initialContainers = document.querySelectorAll(arg0);
       }
+      o = options.copyOptions ? angular.copy(options) : options;
     }
 
-    function extendDefaultOptions(){
-      angular.extend(o, options);
-      if(options.classes){
-        o.classes = angular.extend({}, defaultClasses, options.classes);
+    function extendOptions(){
+      var tmp = angular.extend({}, defaultOptions, o); // tmp for keeping defaults untouched
+      angular.extend(o, tmp); // merge defaults back into options
+      if(o.classes){
+        tmp = angular.extend({}, defaultClasses, o.classes);
+        angular.extend(o.classes, tmp);
       }
-      if(options.eventNames){
-        o.eventNames = angular.extend({}, defaultEventNames, options.eventNames);
+      if(o.eventNames){
+        tmp = angular.extend({}, defaultEventNames, o.eventNames);
+        angular.extend(o.eventNames, tmp);
       }
     }
 
@@ -188,12 +189,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       initialContainers = makeArray(initialContainers);
 
       // sanitize o.containersModel
-      if (Array.isArray(o.containersModel)) {
-        //                  |-------- is 2D array? -----------|
-        o.containersModel = Array.isArray(o.containersModel[0]) ? o.containersModel : [o.containersModel];
-      } else {
-        o.containersModel = [];
-      }
+      o.containersModel = sanitizeContainersModel(o.containersModel);
 
       // sanitize o.containersFilteredModel
       if (Array.isArray(o.containersFilteredModel)) {
@@ -221,7 +217,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
           shared.containers[nameSpace][i + shLen] = initialContainers[i];
           shared.containersCtx[nameSpace][i + shLen] = {
             o: o,
-            m: o.containersModel[i], // can be undefined
+            m: getContainersModel()[i], // can be undefined
             fm: o.containersFilteredModel[i] // can be undefined
           };
         }
@@ -231,7 +227,6 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
     function registerEvents(remove) {
       var op = remove ? 'off' : 'on';
       regEvent(docElm, op, 'mouseup', release);
-      // regEvent(docElm, op, 'mousemove', startBecauseMouseMoved);
 
       initialContainers.forEach(function addMouseDown(container) {
         regEvent(container, 'on', 'mousedown', grab);
@@ -286,6 +281,9 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       if (!drake.dragging) {
         return;
       }
+      if (e.originalEvent){
+          e = e.originalEvent; // jQuery enviroment
+      }
 
       shared.clientX = getCoord('clientX', e);
       shared.clientY = getCoord('clientY', e);
@@ -293,10 +291,10 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       var elementBehindCursor = getElementBehindPoint(shared.mirror, shared.clientX, shared.clientY),
         dropTarget = findDropTarget(elementBehindCursor, shared.clientX, shared.clientY);
 
-      if (dropTarget && ((shared.copy && o.copySortSource) || (!shared.copy || dropTarget !== shared.source))) {
+      if (dropTarget && ((shared.copy && g(o.copySortSource)) || (!shared.copy || dropTarget !== shared.source))) {
         // found valid target and (is not copy case or target is not initial container)
         drop(shared.item, dropTarget);
-      } else if (o.removeOnSpill) {
+      } else if (g(o.removeOnSpill)) {
         remove();
       } else {
         cancel();
@@ -335,6 +333,10 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       return false;
     }
 
+    function getContainersModel() {
+      return (typeof(o.containersModel) === 'function') ? sanitizeContainersModel(o.containersModel(drake, shared)) : o.containersModel;
+    }
+
     function removeContainers(all) {
       $rootScope.$applyAsync(function applyDestroyed() {
         var changes = Array.isArray(all) ? all : makeArray(all);
@@ -371,6 +373,9 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       if (!shared.grabbed || drake.dragging) {
         return;
       }
+      if (e.originalEvent){
+          e = e.originalEvent; // jQuery enviroment
+      }
       if (whichMouseButton(e) === 0) {
         release({});
         return; // when text is selected on an input and then dragged, mouseup doesn't fire. this is our only hope
@@ -379,7 +384,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       if (e.clientX && e.clientX === shared.moveX && e.clientY && e.clientY === shared.moveY) {
         return;
       }
-      if (o.ignoreInputTextSelection) {
+      if (g(o.ignoreInputTextSelection)) {
         var clientX = getCoord('clientX', e),
           clientY = getCoord('clientY', e),
           elementBehindCursor = doc.elementFromPoint(clientX, clientY);
@@ -471,7 +476,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       shared.source = context.source;
       shared.initialSibling = shared.currentSibling = nextEl(context.item);
 
-      if (isCopy(context.item, context.source)) {
+      if (g(o.copy, [context.item, context.source])) {
         shared.item = context.item.cloneNode(true);
         shared.copy = true;
         if (o.scope) {
@@ -483,7 +488,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
 
       // prepare models operations
       var containerIndex = initialContainers.indexOf(context.source);
-      shared.sourceModel = o.containersModel[containerIndex];
+      shared.sourceModel = getContainersModel()[containerIndex];
 
       shared.sourceFilteredModel = o.containersFilteredModel[containerIndex];
       shared.initialIndex = domIndexOf(context.item, context.source);
@@ -510,7 +515,10 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
     }
 
     function drop(item, target) {
-      if (shared.copy && o.copySortSource && target === shared.source && getParent(item)) {
+      var sourceItem = shared.sourceItem,
+          currentSibling = shared.currentSibling;
+        
+      if (shared.copy && g(o.copySortSource) && target === shared.source && getParent(item)) {
         item.parentNode.removeChild(shared.sourceItem);
       }
 
@@ -526,17 +534,20 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
           shared.initialIndex = shared.sourceModel.indexOf(shared.sourceFilteredModel[shared.initialIndex]);
         }
         $rootScope.$applyAsync(function applyDrop() {
+          if(!shared.sourceModel){
+              return;
+          }
           if (target === shared.source) {
             shared.sourceModel.splice(dropIndex, 0, shared.sourceModel.splice(shared.initialIndex, 1)[0]);
           } else {
-            shared.dropElmModel = shared.copy ? angular.copy(shared.sourceModel[shared.initialIndex]) : shared.sourceModel[shared.initialIndex];
+            shared.dropElmModel = shared.copy && !o.dontCopyModel ? angular.copy(shared.sourceModel[shared.initialIndex]) : shared.sourceModel[shared.initialIndex];
 
             if (!shared.tempModel) {
               shared.targetModel = shared.targetCtx.m;
             } else {
               shared.targetModel = shared.tempModel;
             }
-
+            
             target.removeChild(item); // element must be removed for ngRepeat to apply correctly
 
             if (!shared.copy) {
@@ -549,15 +560,24 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
             item.parentNode.removeChild(item);
           }
 
-          emitDropEvent();
-          cleanup();
+          afterDrop();
         });
       } else {
-        emitDropEvent();
-        cleanup();
+        afterDrop();
       }
 
-      function emitDropEvent() {
+      function afterDrop() {
+        if(o.compileItemOnDrop){
+            var scope = angular.element(target).scope();
+            scope.$applyAsync(function(){
+                var content = $compile(shared.copy ? sourceItem.cloneNode(true) : sourceItem)(scope);                   
+                if(item.parentNode === target){
+                    target.removeChild(item);
+                }
+                target.insertBefore(content[0], currentSibling);
+            });
+        }
+        
         if (o.scope) {
           if (isInitialPlacement(target)) {
             o.scope.$emit(o.eventNames.dragularcancel, item, shared.source, shared.sourceModel, shared.initialIndex);
@@ -565,6 +585,8 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
             o.scope.$emit(o.eventNames.dragulardrop, item, target, shared.source, shared.sourceModel, shared.initialIndex, shared.targetModel, dropIndex);
           }
         }
+        
+        cleanup();
       }
     }
 
@@ -597,7 +619,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       if (!drake.dragging) {
         return;
       }
-      var reverts = arguments.length > 0 ? revert : o.revertOnSpill,
+      var reverts = arguments.length > 0 ? revert : g(o.revertOnSpill),
         parent = getParent(shared.item);
 
       var initial = isInitialPlacement(parent);
@@ -627,7 +649,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
 
       drake.dragging = false;
 
-      if (o.removeOnSpill === true) {
+      if (g(o.removeOnSpill) === true) {
         spillOut();
       }
 
@@ -694,6 +716,9 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       if (!shared.mirror) {
         return;
       }
+      if (e.originalEvent){
+          e = e.originalEvent; // jQuery enviroment
+      }
 
       // update coordinates
       shared.clientX = getCoord('clientX', e);
@@ -757,7 +782,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       }
 
       // do not copy in same container
-      if (dropTarget === shared.source && shared.copy && !o.copySortSource) {
+      if (dropTarget === shared.source && shared.copy && !g(o.copySortSource)) {
         if (getParent(shared.item)) {
           shared.item.parentNode.removeChild(shared.item);
         }
@@ -769,7 +794,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
 
       if (immediate !== null) {
         reference = getReference(dropTarget, immediate, shared.clientX, shared.clientY);
-      } else if (o.revertOnSpill === true && !shared.copy) {
+      } else if (g(o.revertOnSpill) === true && !shared.copy) {
         // the case that mirror is not over valid target and reverting is on and copy is off
         reference = shared.initialSibling;
         dropTarget = shared.source;
@@ -800,7 +825,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
         if (o.scope) {
           o.scope.$emit(o.eventNames['dragular' + type], shared.item, shared.lastDropTarget, shared.source);
         }
-        if (o.removeOnSpill === true) {
+        if (g(o.removeOnSpill) === true) {
           type === 'over' ? spillOver() : spillOut();
         }
       }
@@ -818,6 +843,9 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
 
     function scrollContainer(e) {
       if (shared.target) {
+        if (e.originalEvent){
+            e = e.originalEvent; // jQuery enviroment
+        }
         var before = shared.target.scrollTop;
         shared.target.scrollTop += e.deltaY;
         // block scroll of the document when container can be scrolled
@@ -842,7 +870,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       addClass(shared.mirror, o.classes.mirror);
       o.mirrorContainer.appendChild(shared.mirror);
       regEvent(docElm, 'on', 'mousemove', drag);
-      addClass(body, o.classes.unselectable);
+      addClass(doc.body, o.classes.unselectable);
       regEvent(shared.mirror, 'on', 'wheel', scrollContainer);
       if (o.scope) {
         o.scope.$emit(o.eventNames.dragularcloned, shared.mirror, shared.sourceItem);
@@ -851,7 +879,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
 
     function removeMirrorImage() {
       if (shared.mirror) {
-        rmClass(body, o.classes.unselectable);
+        rmClass(doc.body, o.classes.unselectable);
         regEvent(docElm, 'off', 'mousemove', drag);
         regEvent(shared.mirror, 'off', 'wheel', scrollContainer);
         if(getParent(shared.mirror)){
@@ -905,10 +933,6 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
       }
     }
 
-    function isCopy(item, container) {
-      return typeof o.copy === 'boolean' ? o.copy : o.copy(item, container);
-    }
-
     function getElementBehindPoint(point, x, y) { // watch performance - running each move!
       var p = point || {},
         state = p.className,
@@ -932,9 +956,23 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
         mousedown: 'touchstart',
         mousemove: 'touchmove'
       },
+      pointers = {
+        mouseup: 'pointerup',
+        mousedown: 'pointerdown',
+        mousemove: 'pointermove'
+      },
+      microsoft = {
+        mouseup: 'MSPointerUp',
+        mousedown: 'MSPointerDown',
+        mousemove: 'MSPointerMove'
+      },
       $el = angular.element(el);
 
-    if (touch[type]) {
+    if (global.navigator.pointerEnabled && pointers[type]) {
+      $el[op](pointers[type], fn);
+    } else if (global.navigator.msPointerEnabled && microsoft[type]) {
+      $el[op](microsoft[type], fn);
+    } else if (touch[type]) {
       $el[op](touch[type], fn);
     }
     $el[op](type, fn);
@@ -961,7 +999,8 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
   }
 
   function whichMouseButton (e) {
-    if (e.touches !== void 0) { return e.touches.length; }
+    if (e.touches) { return e.touches.length; }
+    if (e.originalEvent && e.originalEvent.touches) { return e.originalEvent.touches.length; }
     if (e.buttons !== undefined) { return e.buttons; }
     if (e.which !== undefined) { return e.which; }
     var button = e.button;
@@ -971,6 +1010,9 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
   }
 
   function preventGrabbed(e) {
+    if (e.originalEvent){
+        e = e.originalEvent; // jQuery enviroment
+    }
     if (shared.grabbed) {
       e.preventDefault();
     }
@@ -983,7 +1025,7 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
     if (docElm.clientHeight) {
       return docElm[scrollProp];
     }
-    return body[scrollProp];
+    return doc.body[scrollProp];
   }
 
   function getOffset(el) { // watch performance - running each move!
@@ -1023,10 +1065,10 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
   }
 
   //Cannot use angular.isElement because we need to check plain dom element, no jQlite wrapped
-  function isElement(o) {
+  function isElement(obj) {
     return (
-      typeof HTMLElement === 'object' ? o instanceof HTMLElement : //DOM2
-      o && typeof o === 'object' && o !== null && o.nodeType === 1 && typeof o.nodeName === 'string'
+      typeof HTMLElement === 'object' ? obj instanceof HTMLElement : //DOM2
+      obj && typeof obj === 'object' && obj !== null && obj.nodeType === 1 && typeof obj.nodeName === 'string'
     );
   }
 
@@ -1120,4 +1162,16 @@ dragularModule.factory('dragularService', function dragularServiceFunction($root
     }
   }
 
-});
+  function getBool(prop, args, context){
+    if(angular.isFunction(prop)){
+      return !!prop.apply(context || this, args || shared);
+    }else{
+      return !!prop;
+    }
+  }
+
+};
+
+dragularService.$inject = ['$rootScope', '$compile'];
+
+module.exports = dragularService;

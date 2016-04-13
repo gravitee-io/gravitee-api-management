@@ -1,15 +1,12 @@
 'use strict';
 
-var examplesAppModule = require('../examplesApp');
+var CopyCtrl = function ($element, dragularService) {
+  dragularService.cleanEnviroment();
+  dragularService($element.children(), {
+    copy: true
+  });
+};
 
-/**
-* @ngInject
-*/
+CopyCtrl.$inject = ['$element', 'dragularService'];
 
-examplesAppModule
-  .controller('Copy', ['$element', 'dragularService', function TodoCtrl($element, dragularService) {
-    dragularService.cleanEnviroment();
-	dragularService($element.children(), {
-      copy: true
-    });
-  }]);
+module.exports = CopyCtrl;

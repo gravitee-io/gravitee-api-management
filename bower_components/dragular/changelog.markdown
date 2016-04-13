@@ -1,3 +1,30 @@
+# X.X.X planned - not implemented
+- **[Braking change!]** rename 'shared' property to 'state'
+- **[Braking change!]** rename 'dragulardrag' event to 'dragulardragstart'
+- new event 'dragulardrag' emited each iteration while dragging
+
+# 4.1.0 Dora
+- IE bug fixes #68
+- compileItemOnDrop fixes #71
+
+# 4.0.1 John Whick
+- possibility to use it as a CommonJS module #62
+- jQuery enviroment fixes #63
+
+# 4.0.0 Uprising
+
+- **[Braking change!]** options object reference is now live, so can be changed on the fly with instant effect, this feature can be disabled by 'options.copyOptions = true' flag so dragular then make copy of options object. It also means than provided options object will be extended with default value where option property is undefined.
+- **[Braking change!]** flag 'options.ignoreInputTextSelection' default value is 'true'! Meaning that selecting text in input elements is not considered as drag, now by default!
+- all boolean type options can be functions returning boolean
+- options.containersModel can be function returning model
+- new directive attribute dragular-name-space for better readability of views
+- new options flag `options.dynamicModelAttribute`, if true dragular will react on model changes
+- new options flag `options.dontCopyModel`, dont make copy of model when coping item (#61)
+
+### Changes merged from dragula 3.6.3
+- Fixed an issue that prevented `dragular` from execution early in the document load life-cycle
+- Fixed issues in touch-enabled browsers such as Windows Phone 10
+
 # 3.4.0 StarWars
 - support filtered ng-repeats
 - the 'shared' object is truly shared between service instances as it was originally intended
