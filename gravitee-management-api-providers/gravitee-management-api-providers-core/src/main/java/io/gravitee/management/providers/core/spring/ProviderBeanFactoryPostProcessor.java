@@ -91,6 +91,7 @@ public class ProviderBeanFactoryPostProcessor implements BeanFactoryPostProcesso
                                     new RootBeanDefinition(extension.getName()));
 
                             LOGGER.info("\tLoading @Configuration from previous extension {}", extension.getName());
+                            configurationClassPostProcessor.enhanceConfigurationClasses(defaultListableBeanFactory);
                             configurationClassPostProcessor.processConfigBeanDefinitions(defaultListableBeanFactory);
                         }
                     }
