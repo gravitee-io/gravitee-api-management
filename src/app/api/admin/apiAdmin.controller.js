@@ -26,7 +26,6 @@ class ApiAdminController {
     this.apiJustDeployed = false;
     this.apiIsSynchronized = true;
     this.init();
-    this.checkAPISynchronization(this.api);
   }
 
   init() {

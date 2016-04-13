@@ -98,6 +98,9 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiAdminController',
       controllerAs: 'apiCtrl',
       resolve: {
+        resolvedApiState:function ($stateParams, ApiService) {
+          return ApiService.isAPISynchronized($stateParams.apiId);
+        },
         resolvedApi:function ($stateParams, ApiService) {
           return ApiService.get($stateParams.apiId);
         }
@@ -108,11 +111,6 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/api/admin/general/apiGeneral.html',
       controller: 'ApiGeneralController',
       controllerAs: 'generalCtrl',
-      resolve: {
-        resolvedApi:function ($stateParams, ApiService) {
-          return ApiService.get($stateParams.apiId);
-        }
-      },
       menu: {
         label: 'Global settings',
         icon: 'blur_on'
