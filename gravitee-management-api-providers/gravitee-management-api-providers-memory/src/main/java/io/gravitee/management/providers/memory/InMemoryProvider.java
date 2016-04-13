@@ -19,6 +19,7 @@ import io.gravitee.management.providers.core.authentication.AuthenticationManage
 import io.gravitee.management.providers.core.identity.IdentityManager;
 import io.gravitee.management.providers.core.Provider;
 import io.gravitee.management.providers.memory.authentication.InMemoryAuthentificationProvider;
+import io.gravitee.management.providers.memory.spring.InMemoryConfiguration;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -44,6 +45,6 @@ public class InMemoryProvider implements Provider {
 
     @Override
     public Class<?> configuration() {
-        return null;
+        return InMemoryConfiguration.class;
     }
 }

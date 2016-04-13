@@ -21,26 +21,40 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configurers.provisioning.InMemoryUserDetailsManagerConfigurer;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class InMemoryAuthentificationProvider implements AuthenticationManager {
+public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthenticationProvider implements AuthenticationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryAuthentificationProvider.class);
 
     @Autowired
     private Environment environment;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private InMemoryUserDetailsManager userDetailsService;
+
     @Override
     public void configure(AuthenticationManagerBuilder authenticationManagerBuilder, int providerIdx) throws Exception {
         boolean found = true;
-        boolean init = false;
         int userIdx = 0;
-
-        InMemoryUserDetailsManagerConfigurer configurer = authenticationManagerBuilder.inMemoryAuthentication();
 
         while (found) {
             String user = environment.getProperty("security.providers[" + providerIdx + "].users[" + userIdx + "].user");
@@ -52,18 +66,43 @@ public class InMemoryAuthentificationProvider implements AuthenticationManager {
                 String roles = environment.getProperty("security.providers[" + providerIdx + "].users[" + userIdx + "].roles");
                 LOGGER.debug("Adding an in-memory user for username {}", username);
                 userIdx++;
-                init = true;
-                configurer.withUser(username).password(password).roles(roles);
+
+                List<GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
+
+            //    if (roles != null) {
+                    authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roles);
+            //    }
+
+                userDetailsService.createUser(new User(username, password, authorities));
+//                configurer.withUser(username).password(password).roles(roles);
             }
         }
 
-        if (! init) {
-            authenticationManagerBuilder.removeConfigurer(InMemoryUserDetailsManagerConfigurer.class);
-        }
+        authenticationManagerBuilder.authenticationProvider(this);
     }
 
     @Override
     public boolean canHandle(String type) throws Exception {
         return (type != null && type.equalsIgnoreCase(InMemoryProvider.PROVIDER_TYPE));
+    }
+
+    @Override
+    protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+        if (authentication.getCredentials() == null) {
+            LOGGER.debug("Authentication failed: no credentials provided");
+            throw new BadCredentialsException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+        }
+
+        String presentedPassword = authentication.getCredentials().toString();
+
+        if (!passwordEncoder.matches(presentedPassword, userDetails.getPassword())) {
+            LOGGER.debug("Authentication failed: password does not match stored value");
+            throw new BadCredentialsException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+        }
+    }
+
+    @Override
+    protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+        return userDetailsService.loadUserByUsername(username);
     }
 }
