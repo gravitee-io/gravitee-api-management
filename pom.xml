@@ -104,6 +104,12 @@
                 <version>${gravitee-plugin-policy.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>io.gravitee.policy</groupId>
+                <artifactId>gravitee-policy-core</artifactId>
+                <version>${gravitee-policy-core.version}</version>
+            </dependency>
+
             <!-- Logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -143,9 +149,10 @@
         <gravitee-definition.version>0.9.0</gravitee-definition.version>
         <gravitee-common.version>0.6.0</gravitee-common.version>
         <gravitee-repository.version>0.10.0</gravitee-repository.version>
-        <gravitee-plugin-core.version>0.9.0</gravitee-plugin-core.version>
-        <gravitee-plugin-policy.version>0.9.0</gravitee-plugin-policy.version>
-        <gravitee-policy-api.version>0.6.0</gravitee-policy-api.version>
+        <gravitee-plugin-core.version>0.9.0-SNAPSHOT</gravitee-plugin-core.version>
+        <gravitee-plugin-policy.version>0.9.0-SNAPSHOT</gravitee-plugin-policy.version>
+        <gravitee-policy-api.version>0.7.0-SNAPSHOT</gravitee-policy-api.version>
+        <gravitee-policy-core.version>0.1.0-SNAPSHOT</gravitee-policy-core.version>
         <gravitee-gateway-api.version>0.9.0</gravitee-gateway-api.version>
         <gravitee-reporter-api.version>0.6.0</gravitee-reporter-api.version>
         <jackson.version>2.5.3</jackson.version>

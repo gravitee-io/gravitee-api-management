@@ -40,6 +40,13 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-buffer</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
         </dependency>
@@ -55,10 +62,8 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-buffer</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-core</artifactId>
         </dependency>
 
         <!-- Logging -->

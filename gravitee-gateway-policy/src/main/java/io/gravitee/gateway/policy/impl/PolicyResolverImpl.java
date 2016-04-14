@@ -18,12 +18,19 @@ package io.gravitee.gateway.policy.impl;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.policy.*;
+import io.gravitee.policy.api.PolicyConfiguration;
+import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnRequestContent;
+import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.annotations.OnResponseContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -38,31 +45,40 @@ public class PolicyResolverImpl implements PolicyResolver {
     @Autowired
     private PolicyFactory policyFactory;
 
+    @Autowired
+    private PolicyConfigurationFactory policyConfigurationFactory;
+
     @Override
     public List<Policy> resolve(StreamType streamType, Request request, List<Rule> rules) {
         List<Policy> policies = new ArrayList<>();
 
         rules.stream().filter(rule -> rule.getMethods().contains(request.method())).forEach(rule -> {
-            PolicyClassDefinition policyDefinition = policyManager.getPolicyClassDefinition(rule.getPolicy().getName());
-            if (policyDefinition == null) {
+            PolicyMetadata policyMetadata = policyManager.get(rule.getPolicy().getName());
+            if (policyMetadata == null) {
                 LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}",
                         rule.getPolicy().getName(), request.id());
             } else if (
-                    ((streamType == StreamType.REQUEST &&
-                            (policyDefinition.onRequestMethod() != null || policyDefinition.onRequestContentMethod() != null)) ||
-                            (streamType == StreamType.RESPONSE && (
-                                    policyDefinition.onResponseMethod() != null || policyDefinition.onResponseContentMethod() != null)))) {
+                    ((streamType == StreamType.ON_REQUEST &&
+                            (policyMetadata.method(OnRequest.class) != null || policyMetadata.method(OnRequestContent.class) != null)) ||
+                            (streamType == StreamType.ON_RESPONSE && (
+                                    policyMetadata.method(OnResponse.class) != null || policyMetadata.method(OnResponseContent.class) != null)))) {
 
-                Object policyInst = policyFactory.create(policyDefinition, rule.getPolicy().getConfiguration());
+                PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
+                        policyMetadata.configuration(), rule.getPolicy().getConfiguration());
+
+                Map<Class<?>, Object> injectables = new HashMap<>(2);
+                injectables.put(policyMetadata.configuration(), policyConfiguration);
+                if (policyMetadata.context() != null) {
+                    injectables.put(policyMetadata.context().getClass(), policyMetadata.context());
+                }
+
+                Object policyInst = policyFactory.create(policyMetadata, injectables);
 
                 if (policyInst != null) {
-                    LOGGER.debug("Policy {} has been added to the chain for request {}", policyDefinition.id(), request.id());
+                    LOGGER.debug("Policy {} has been added to the chain for request {}", policyMetadata.id(), request.id());
                     policies.add(PolicyImpl
-                            .with(policyInst)
-                            .onRequestMethod(policyDefinition.onRequestMethod())
-                            .onRequestContentMethod(policyDefinition.onRequestContentMethod())
-                            .onResponseMethod(policyDefinition.onResponseMethod())
-                            .onResponseContentMethod(policyDefinition.onResponseContentMethod())
+                            .target(policyInst)
+                            .definition(policyMetadata)
                             .build());
                 }
             }

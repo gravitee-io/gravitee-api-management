@@ -21,14 +21,14 @@ import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Properties;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -45,7 +45,6 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     public ReactorHandler create(Api api) {
         if (api.isEnabled()) {
             AbstractApplicationContext internalApplicationContext = createApplicationContext(api);
-            internalApplicationContext.setClassLoader(new ReactorHandlerClassLoader(ReactorHandler.class.getClassLoader()));
             ApiReactorHandler handler = internalApplicationContext.getBean(ApiReactorHandler.class);
             handler.setClassLoader(internalApplicationContext.getClassLoader());
             return handler;
@@ -58,11 +57,12 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     private AbstractApplicationContext createApplicationContext(Api api) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.setParent(gatewayApplicationContext);
+        context.setClassLoader(new ReactorHandlerClassLoader(gatewayApplicationContext.getClassLoader()));
+        context.setEnvironment((ConfigurableEnvironment) gatewayApplicationContext.getEnvironment());
 
-        PropertyPlaceholderConfigurer configurer = new PropertyPlaceholderConfigurer();
-        final Properties properties = gatewayApplicationContext.getBean("graviteeProperties", Properties.class);
-        configurer.setProperties(properties);
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
         configurer.setIgnoreUnresolvablePlaceholders(true);
+        configurer.setEnvironment(gatewayApplicationContext.getEnvironment());
         context.addBeanFactoryPostProcessor(configurer);
 
         context.getBeanFactory().registerSingleton("api", api);

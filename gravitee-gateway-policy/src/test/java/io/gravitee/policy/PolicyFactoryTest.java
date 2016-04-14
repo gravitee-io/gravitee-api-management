@@ -15,7 +15,7 @@
  */
 package io.gravitee.policy;
 
-import io.gravitee.gateway.policy.PolicyClassDefinition;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
@@ -23,8 +23,9 @@ import io.gravitee.policy.api.PolicyConfiguration;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.stubbing.Answer;
 
-import java.lang.reflect.Method;
+import java.util.Collections;
 
 import static org.mockito.Mockito.*;
 
@@ -36,127 +37,52 @@ public class PolicyFactoryTest {
 
     private PolicyFactory policyFactory;
 
-    private PolicyConfigurationFactory policyConfigurationFactory;
-
     @Before
     public void setUp() {
         policyFactory = new PolicyFactoryImpl();
-        policyConfigurationFactory = mock(PolicyConfigurationFactory.class);
-        ((PolicyFactoryImpl) policyFactory).setPolicyConfigurationFactory(policyConfigurationFactory);
     }
 
     @Test
     public void createPolicyWithConfigurationAndWithoutConfigurationData() {
-        PolicyClassDefinition definition = getPolicyDefinitionWithConfiguration();
-        Object policy = policyFactory.create(definition, null);
+        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
+        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
+        when(policyDefinition.configuration()).then((Answer<Class>) invocationOnMock -> DummyPolicyConfiguration.class);
+        Object policy = policyFactory.create(policyDefinition, null);
 
-        verify(policyConfigurationFactory, never()).create(any(), anyString());
-        Assert.assertNull(policy);
+//        verify(policyConfigurationFactory, never()).create(any(), anyString());
+        Assert.assertNotNull(policy);
     }
 
     @Test
     public void createPolicyWithoutConfigurationAndWithoutConfigurationData() {
-        PolicyClassDefinition definition = getPolicyDefinitionWithoutConfiguration();
-        Object policy = policyFactory.create(definition, null);
+        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
+        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
+        Object policy = policyFactory.create(policyDefinition, null);
 
-        verify(policyConfigurationFactory, never()).create(any(), anyString());
+//        verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNotNull(policy);
     }
 
     @Test
     public void createPolicyWithConfigurationAndConfigurationData() {
-        PolicyClassDefinition definition = getPolicyDefinitionWithConfiguration();
-        Object policy = policyFactory.create(definition, "{}");
+        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
+        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
+        when(policyDefinition.configuration()).then((Answer<Class>) invocationOnMock -> DummyPolicyConfiguration.class);
 
-        verify(policyConfigurationFactory, times(1)).create(any(), anyString());
+        Object policy = policyFactory.create(policyDefinition, Collections.emptyMap());
+
+//        verify(policyConfigurationFactory, times(1)).create(any(), anyString());
         Assert.assertNotNull(policy);
     }
 
     @Test
     public void createPolicyWithoutConfigurationAndWithConfigurationData() {
-        PolicyClassDefinition definition = getPolicyDefinitionWithoutConfiguration();
-        Object policy = policyFactory.create(definition, "{}");
+        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
+        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
+        Object policy = policyFactory.create(policyDefinition, Collections.emptyMap());
 
-        verify(policyConfigurationFactory, never()).create(any(), anyString());
+//        verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNotNull(policy);
-    }
-
-    private PolicyClassDefinition getPolicyDefinitionWithConfiguration() {
-        return new PolicyClassDefinition() {
-            @Override
-            public String id() {
-                return null;
-            }
-
-            @Override
-            public Class<?> policy() {
-                return DummyPolicy.class;
-            }
-
-            @Override
-            public Class<? extends PolicyConfiguration> configuration() {
-                return DummyPolicyConfiguration.class;
-            }
-
-            @Override
-            public Method onRequestMethod() {
-                return null;
-            }
-
-            @Override
-            public Method onRequestContentMethod() {
-                return null;
-            }
-
-            @Override
-            public Method onResponseMethod() {
-                return null;
-            }
-
-            @Override
-            public Method onResponseContentMethod() {
-                return null;
-            }
-        };
-    }
-
-    private PolicyClassDefinition getPolicyDefinitionWithoutConfiguration() {
-        return new PolicyClassDefinition() {
-            @Override
-            public String id() {
-                return null;
-            }
-
-            @Override
-            public Class<?> policy() {
-                return DummyPolicy.class;
-            }
-
-            @Override
-            public Class<? extends PolicyConfiguration> configuration() {
-                return null;
-            }
-
-            @Override
-            public Method onRequestMethod() {
-                return null;
-            }
-
-            @Override
-            public Method onRequestContentMethod() {
-                return null;
-            }
-
-            @Override
-            public Method onResponseMethod() {
-                return null;
-            }
-
-            @Override
-            public Method onResponseContentMethod() {
-                return null;
-            }
-        };
     }
 
     class DummyPolicyConfiguration implements PolicyConfiguration {

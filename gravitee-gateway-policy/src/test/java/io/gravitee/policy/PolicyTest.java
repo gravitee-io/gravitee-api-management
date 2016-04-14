@@ -18,16 +18,16 @@ package io.gravitee.policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.PolicyClassDefinition;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
 import io.gravitee.gateway.policy.impl.PolicyImpl;
 import io.gravitee.policy.api.PolicyChain;
-import io.gravitee.policy.api.PolicyConfiguration;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnResponse;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.stubbing.Answer;
 import org.reflections.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -54,12 +54,15 @@ public class PolicyTest {
 
     @Test
     public void onRequest() throws Exception {
-        PolicyClassDefinition policyDefinition = getPolicyDefinition();
+        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
+        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(DummyPolicy.class, OnRequest.class);
 
-        Policy policy = PolicyImpl.with(policyInst).onRequestMethod(onRequestMethod).build();
+        when(policyDefinition.method(OnRequest.class)).thenReturn(onRequestMethod);
+
+        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
         policy.onRequest();
 
         verify(policyInst, atLeastOnce()).onRequest(any(), any(), any());
@@ -68,12 +71,15 @@ public class PolicyTest {
 
     @Test
     public void onResponse() throws Exception {
-        PolicyClassDefinition policyDefinition = getPolicyDefinition();
+        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
+        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(DummyPolicy.class, OnResponse.class);
 
-        Policy policy = PolicyImpl.with(policyInst).onResponseMethod(onResponseMethod).build();
+        when(policyDefinition.method(OnResponse.class)).thenReturn(onResponseMethod);
+
+        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
         policy.onResponse();
 
         verify(policyInst, never()).onRequest(any(), any(), any());
@@ -82,12 +88,15 @@ public class PolicyTest {
 
     @Test
     public void onRequest_emptyParameters() throws Exception {
-        PolicyClassDefinition policyDefinition = getPolicyDefinition();
+        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
+        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(DummyPolicy.class, OnRequest.class);
 
-        Policy policy = PolicyImpl.with(policyInst).onRequestMethod(onRequestMethod).build();
+        when(policyDefinition.method(OnRequest.class)).thenReturn(onRequestMethod);
+
+        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
         policy.onRequest();
 
         verify(policyInst, atLeastOnce()).onRequest(any(), any(), any());
@@ -95,12 +104,15 @@ public class PolicyTest {
 
     @Test
     public void onResponse_emptyParameters() throws Exception {
-        PolicyClassDefinition policyDefinition = getPolicyDefinition();
+        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
+        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(DummyPolicy.class, OnResponse.class);
 
-        Policy policy = PolicyImpl.with(policyInst).onResponseMethod(onResponseMethod).build();
+        when(policyDefinition.method(OnResponse.class)).thenReturn(onResponseMethod);
+
+        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
         policy.onResponse();
 
         verify(policyInst, atLeastOnce()).onResponse(any(), any(), any());
@@ -108,12 +120,15 @@ public class PolicyTest {
 
     @Test
     public void onRequest_mockParameters() throws Exception {
-        PolicyClassDefinition policyDefinition = getPolicyDefinition();
+        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
+        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(DummyPolicy.class, OnRequest.class);
 
-        Policy policy = PolicyImpl.with(policyInst).onRequestMethod(onRequestMethod).build();
+        when(policyDefinition.method(OnRequest.class)).thenReturn(onRequestMethod);
+
+        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
         Request mockRequest = mock(Request.class);
         Response mockResponse = mock(Response.class);
 
@@ -124,12 +139,16 @@ public class PolicyTest {
 
     @Test
     public void onResponse_mockParameters() throws Exception {
-        PolicyClassDefinition policyDefinition = getPolicyDefinition();
+        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
+        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
         DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(DummyPolicy.class, OnResponse.class);
 
-        Policy policy = PolicyImpl.with(policyInst).onResponseMethod(onResponseMethod).build();
+        when(policyDefinition.method(OnResponse.class)).thenReturn(onResponseMethod);
+
+        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
+
         Request mockRequest = mock(Request.class);
         Response mockResponse = mock(Response.class);
 
@@ -149,44 +168,5 @@ public class PolicyTest {
         }
 
         return methods.iterator().next();
-    }
-
-    private PolicyClassDefinition getPolicyDefinition() {
-        return new PolicyClassDefinition() {
-            @Override
-            public String id() {
-                return null;
-            }
-
-            @Override
-            public Class<?> policy() {
-                return DummyPolicy.class;
-            }
-
-            @Override
-            public Class<? extends PolicyConfiguration> configuration() {
-                return null;
-            }
-
-            @Override
-            public Method onRequestMethod() {
-                return null;
-            }
-
-            @Override
-            public Method onRequestContentMethod() {
-                return null;
-            }
-
-            @Override
-            public Method onResponseMethod() {
-                return null;
-            }
-
-            @Override
-            public Method onResponseContentMethod() {
-                return null;
-            }
-        };
     }
 }

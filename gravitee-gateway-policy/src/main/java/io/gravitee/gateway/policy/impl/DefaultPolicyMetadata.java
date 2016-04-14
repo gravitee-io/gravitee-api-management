@@ -15,29 +15,42 @@
  */
 package io.gravitee.gateway.policy.impl;
 
-import io.gravitee.gateway.policy.PolicyClassDefinition;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.policy.api.PolicyConfiguration;
+import io.gravitee.policy.api.PolicyContext;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public class DefaultPolicyClassDefinition implements PolicyClassDefinition {
+public class DefaultPolicyMetadata implements PolicyMetadata {
 
     private String id;
-    private Class<? extends PolicyConfiguration> configuration;
-    private Class<?> policy;
-    private Method onRequestMethod, onResponseMethod, onRequestContentMethod, onResponseContentMethod;
 
-    public DefaultPolicyClassDefinition(String id) {
+    private Class<? extends PolicyConfiguration> configuration;
+
+    private PolicyContext context;
+
+    private Class<?> policy;
+
+    private Map<Class<? extends Annotation>, Method> methods;
+
+    public DefaultPolicyMetadata(String id) {
         this.id = id;
     }
 
     @Override
     public Class<? extends PolicyConfiguration> configuration() {
         return configuration;
+    }
+
+    @Override
+    public PolicyContext context() {
+        return context;
     }
 
     @Override
@@ -51,43 +64,24 @@ public class DefaultPolicyClassDefinition implements PolicyClassDefinition {
     }
 
     @Override
-    public Method onRequestMethod() {
-        return onRequestMethod;
-    }
-
-    @Override
-    public Method onRequestContentMethod() {
-        return onRequestContentMethod;
-    }
-
-    @Override
-    public Method onResponseMethod() {
-        return onResponseMethod;
-    }
-
-    @Override
-    public Method onResponseContentMethod() {
-        return onResponseContentMethod;
+    public Method method(Class<? extends Annotation> annotationType) {
+        return methods.get(annotationType);
     }
 
     public void setConfiguration(Class<? extends PolicyConfiguration> configuration) {
         this.configuration = configuration;
     }
 
-    public void setOnRequestContentMethod(Method onRequestContentMethod) {
-        this.onRequestContentMethod = onRequestContentMethod;
+    public void setContext(PolicyContext context) {
+        this.context = context;
     }
 
-    public void setOnRequestMethod(Method onRequestMethod) {
-        this.onRequestMethod = onRequestMethod;
+    public Map<Class<? extends Annotation>, Method> getMethods() {
+        return methods;
     }
 
-    public void setOnResponseContentMethod(Method onResponseContentMethod) {
-        this.onResponseContentMethod = onResponseContentMethod;
-    }
-
-    public void setOnResponseMethod(Method onResponseMethod) {
-        this.onResponseMethod = onResponseMethod;
+    public void setMethods(Map<Class<? extends Annotation>, Method> methods) {
+        this.methods = methods;
     }
 
     public void setPolicy(Class<?> policy) {

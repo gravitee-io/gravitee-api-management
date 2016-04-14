@@ -15,27 +15,16 @@
  */
 package io.gravitee.gateway.policy;
 
-import io.gravitee.policy.api.PolicyConfiguration;
-
-import java.lang.reflect.Method;
+import io.gravitee.policy.api.PolicyContext;
+import io.gravitee.policy.api.PolicyContextProvider;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public interface PolicyClassDefinition {
+public interface PolicyContextProviderFactory {
 
-    String id();
+    boolean canHandle(PolicyContext policyContext);
 
-    Class<?> policy();
-
-    Class<? extends PolicyConfiguration> configuration();
-
-    Method onRequestMethod();
-
-    Method onRequestContentMethod();
-
-    Method onResponseMethod();
-
-    Method onResponseContentMethod();
+    PolicyContextProvider create(PolicyContext policyContext);
 }

@@ -15,10 +15,12 @@
  */
 package io.gravitee.gateway.policy;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface PolicyFactory {
 
-    Object create(PolicyClassDefinition policyClassDefinition, String configuration);
+    Object create(PolicyMetadata policyMetadata, Map<Class<?>, Object> injectables);
 }

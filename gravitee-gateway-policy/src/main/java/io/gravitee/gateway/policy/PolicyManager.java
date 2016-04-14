@@ -22,5 +22,5 @@ import io.gravitee.common.component.LifecycleComponent;
  */
 public interface PolicyManager extends LifecycleComponent<PolicyManager> {
 
-    PolicyClassDefinition getPolicyClassDefinition(String policy);
+    PolicyMetadata get(String policy);
 }
