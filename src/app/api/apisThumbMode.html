@@ -40,7 +40,8 @@
               </md-card-header>
       				<md-card-content layout="column">
                 <div class="api-box-description">
-                  <div class="api-box-icon" ng-style="api.picture && {'background-image': 'url('+ api.picture +')'}">
+                  <div class="api-box-icon">
+                    <img ng-src="{{api.picture_url}}" />
                   </div>
                   <div class="api-box-name-version" layout-padding>
                     {{api.name}} <small>({{api.version}})</small>
@@ -68,6 +69,6 @@
   </md-card>
 </div>
 
-<div ng-if="!isLoading && apisCtrl.apis.length === 0 && apisCtrl.isAPIsHome" 
+<div ng-if="!isLoading && apisCtrl.apis.length === 0 && apisCtrl.isAPIsHome"
   ng-include="'app/api/apisEmptyMode.html'">
 </div>
