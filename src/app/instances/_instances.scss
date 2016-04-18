@@ -1,0 +1,38 @@
+.gravitee-instances-container {
+  margin: 20px;
+}
+
+.gravitee-instances-content {
+  border: 1px solid silver;
+  margin-bottom: 20px;
+}
+
+.gravitee-instances-table-title {
+  background-color: $bgColor;
+  color: $fontColor;
+  fill: $fontColor;
+  height: 35px;
+  padding: 0 5px 5px 5px;
+}
+
+.gravitee-instances-table-content {
+  padding: 5px;
+  width: 50%;
+  word-wrap: break-word;
+}
+
+.gravitee-instances-table-search {
+  top: 1px;
+  position: relative;
+  height: 100%;
+}
+
+.gravitee-instances-started {
+  color: #429f46;
+  text-transform: capitalize;
+}
+
+.gravitee-instances-stopped {
+  color: red;
+  text-transform: capitalize;
+}

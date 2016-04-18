@@ -50,9 +50,14 @@ class SideNavController {
 
     $scope.$on('$stateChangeSuccess', function (event, toState, toParams) {
       $scope.subMenuItems = _.filter(routeMenuItems, function (routeMenuItem) {
-        $scope.currentResource = _.values(toParams)[0];
+        var firstParam = _.values(toParams)[0];
+        if (firstParam && !self.isUUID(firstParam)) {
+          $scope.currentResource = firstParam;
+        } else {
+          delete $scope.currentResource;
+        }
         var routeMenuItemSplitted = routeMenuItem.name.split('.'), toStateSplitted = toState.name.split('.');
-        return $scope.currentResource && !routeMenuItem.menu.firstLevel &&
+        return !routeMenuItem.menu.firstLevel &&
           routeMenuItemSplitted[0] === toStateSplitted[0] && routeMenuItemSplitted[1] === toStateSplitted[1];
       });
     });
@@ -60,6 +65,10 @@ class SideNavController {
     $scope.$on('authenticationRequired', function () {
       self.showLoginModal();
     });
+  }
+
+  isUUID(param) {
+    return param.match('[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}');
   }
 
   getUser() {

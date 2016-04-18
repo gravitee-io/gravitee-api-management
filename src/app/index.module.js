@@ -68,10 +68,15 @@ import DialogLoginController from './login/dialog/loginDialog.controller';
 import RoleDirective from './components/role/role.directive';
 import DiffDirective from './components/diff/diff.directive';
 import DialogApiDefinitionController from './api/admin/general/dialog/apiDefinitionDialog.controller';
+import InstancesService from './instances/instances.service';
+import InstancesController from './instances/instances.controller';
+import InstanceController from './instances/details/instance.controller';
+import InstanceEnvironmentController from './instances/details/environment/instanceEnvironment.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
-    'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline', 'ab-base64','ngFileUpload'])
+    'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
+    'ab-base64',  'ngFileUpload'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -90,7 +95,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
     $mdThemingProvider.theme('toast-error');
   })
   .run(runBlock)
-  .service('ApiService', ApiService)
   .controller('ApisController', ApisController)
   .controller('ApiAdminController', ApiAdminController)
   .controller('ApiAnalyticsController', ApiAnalyticsController)
@@ -111,13 +115,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('DialogDocumentationController', DialogDocumentationController)
   .controller('DialogApiKeyExpirationController', DialogApiKeyExpirationController)
   .controller('DialogEndpointController', DialogEndpointController)
-  .service('TeamService', TeamService)
-  .service('UserService', UserService)
   .controller('UserController', UserController)
-  .service('LoginService', LoginService)
-  .service('NotificationService', NotificationService)
   .controller('DocumentationController', DocumentationController)
-  .service('DocumentationService', DocumentationService)
   .controller('ProfileController', ProfileController)
   .controller('ApplicationsController', ApplicationsController)
   .controller('ApplicationController', ApplicationController)
@@ -129,8 +128,19 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('DialogAddMemberController', DialogAddMemberController)
   .controller('DialogApiDefinitionController', DialogApiDefinitionController)
   .controller('PageController', PageController)
-  .service('ApplicationService', ApplicationService)
   .controller('DialogLoginController', DialogLoginController)
+  .controller('InstancesController', InstancesController)
+  .controller('InstanceController', InstanceController)
+  .controller('InstanceEnvironmentController', InstanceEnvironmentController)
+  .service('ApplicationService', ApplicationService)
+  .service('ApiService', ApiService)
+  .service('DocumentationService', DocumentationService)
+  .service('InstancesService', InstancesService)
+  .service('LoginService', LoginService)
+  .service('NotificationService', NotificationService)
+  .service('PolicyService', PolicyService)
+  .service('TeamService', TeamService)
+  .service('UserService', UserService)
   .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
@@ -138,7 +148,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('graviteeRolesAllowed', () => new RoleDirective())
   .directive('graviteeDiff', () => new DiffDirective())
-  .service('PolicyService', PolicyService)
   .filter('apiKeyFilter', function () {
     return function (keys) {
       return keys;

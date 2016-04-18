@@ -142,7 +142,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiKeysController',
       controllerAs: 'apiKeysCtrl',
       resolve: {
-        resolvedApiKeys:function ($stateParams, ApiService) {
+        resolvedApiKeys: function ($stateParams, ApiService) {
           return ApiService.getApiKeys($stateParams.apiId);
         }
       },
@@ -157,7 +157,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiMembersController',
       controllerAs: 'apiCtrl',
       resolve: {
-        resolvedMembers:function ($stateParams, ApiService) {
+        resolvedMembers: function ($stateParams, ApiService) {
           return ApiService.getMembers($stateParams.apiId);
         }
       },
@@ -181,10 +181,10 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/api/admin/analytics.html',
       controller: 'ApiAnalyticsController',
       controllerAs: 'analyticsCtrl',
-			menu: {
-				label: 'Analytics',
+      menu: {
+        label: 'Analytics',
         icon: 'insert_chart'
-			}
+      }
     })
     .state('apis.admin.documentation.page', {
       url: '/:pageId',
@@ -208,7 +208,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiHistoryController',
       controllerAs: 'apiHistoryCtrl',
       resolve: {
-        resolvedEvents:function ($stateParams, ApiService) {
+        resolvedEvents: function ($stateParams, ApiService) {
           var eventTypes = "PUBLISH_API";
           return ApiService.getApiEvents($stateParams.apiId, eventTypes);
         }
@@ -224,7 +224,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiEventsController',
       controllerAs: 'apiEventsCtrl',
       resolve: {
-        resolvedEvents:function ($stateParams, ApiService) {
+        resolvedEvents: function ($stateParams, ApiService) {
           var eventTypes = "START_API,STOP_API";
           return ApiService.getApiEvents($stateParams.apiId, eventTypes);
         }
@@ -277,7 +277,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApplicationController',
       controllerAs: 'applicationCtrl',
       resolve: {
-        resolvedApplication:function ($stateParams, ApplicationService) {
+        resolvedApplication: function ($stateParams, ApplicationService) {
           return ApplicationService.get($stateParams.applicationId);
         }
       }
@@ -298,7 +298,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApplicationAPIKeysController',
       controllerAs: 'applicationAPIKeysCtrl',
       resolve: {
-        resolvedAPIKeys:function ($stateParams, ApplicationService) {
+        resolvedAPIKeys: function ($stateParams, ApplicationService) {
           return ApplicationService.getAPIKeys($stateParams.applicationId);
         }
       },
@@ -313,13 +313,56 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApplicationMembersController',
       controllerAs: 'applicationMembersCtrl',
       resolve: {
-        resolvedMembers:function ($stateParams, ApplicationService) {
+        resolvedMembers: function ($stateParams, ApplicationService) {
           return ApplicationService.getMembers($stateParams.applicationId);
         }
       },
       menu: {
         label: 'Members',
         icon: 'group'
+      }
+    })
+    .state('instances', {
+      abstract: true,
+      url: '/instances',
+      templateUrl: 'app/instances/instancesList.html'
+    })
+    .state('instances.list', {
+      url: '/',
+      templateUrl: 'app/instances/instances.html',
+      controller: 'InstancesController',
+      controllerAs: 'instancesCtrl',
+      resolve: {
+        resolvedInstances: function (InstancesService) {
+          return InstancesService.list();
+        }
+      },
+      menu: {
+        label: 'Instances',
+        icon: 'developer_dashboard',
+        firstLevel: true
+      }
+    })
+    .state('instances.detail', {
+      abstract: true,
+      url: '/:id',
+      templateUrl: 'app/instances/details/Instance.html',
+      controller: 'InstanceController',
+      controllerAs: 'instanceCtrl',
+      resolve: {
+        resolvedInstance: function ($stateParams, InstancesService) {
+          return InstancesService.get($stateParams.id);
+        }
+      }
+    })
+    .state('instances.detail.environment', {
+      url: '/environment',
+      templateUrl: 'app/instances/details/environment/InstanceEnvironment.html',
+      controller: 'InstanceEnvironmentController',
+      controllerAs: 'instanceEnvironmentCtrl',
+      menu: {
+        label: 'Environment',
+        icon: 'computer'
       }
     });
 
