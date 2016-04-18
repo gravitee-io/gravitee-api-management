@@ -18,14 +18,13 @@ package io.gravitee.management.service.impl;
 import io.gravitee.management.model.PluginEntity;
 import io.gravitee.management.model.PolicyDevelopmentEntity;
 import io.gravitee.management.model.PolicyEntity;
-import io.gravitee.management.model.PolicyType;
 import io.gravitee.management.service.PolicyService;
 import io.gravitee.management.service.exceptions.PolicyConfigurationNotFoundException;
 import io.gravitee.management.service.exceptions.PolicyNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.plugin.policy.PolicyDefinition;
-import io.gravitee.plugin.policy.PolicyManager;
+import io.gravitee.plugin.policy.Policy;
+import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,13 +47,13 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyServiceImpl.class);
 
     @Autowired
-    private PolicyManager policyManager;
+    private PolicyPluginManager policyManager;
 
     @Override
     public Set<PolicyEntity> findAll() {
         try {
             LOGGER.debug("List all policies");
-            final Collection<PolicyDefinition> policyDefinitions = policyManager.getPolicyDefinitions();
+            final Collection<Policy> policyDefinitions = policyManager.findAll();
 
             return policyDefinitions.stream()
                     .map(policyDefinition -> convert(policyDefinition, false))
@@ -68,7 +67,7 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
     @Override
     public PolicyEntity findById(String policyId) {
         LOGGER.debug("Find policy by ID: {}", policyId);
-        PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(policyId);
+        Policy policyDefinition = policyManager.get(policyId);
 
         if (policyDefinition == null) {
             throw new PolicyNotFoundException(policyId);
@@ -94,14 +93,15 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
         }
     }
 
-    private PolicyEntity convert(PolicyDefinition policyDefinition, boolean withPlugin) {
+    private PolicyEntity convert(Policy policy, boolean withPlugin) {
         PolicyEntity entity = new PolicyEntity();
 
-        entity.setId(policyDefinition.id());
-        entity.setDescription(policyDefinition.plugin().manifest().description());
-        entity.setName(policyDefinition.plugin().manifest().name());
-        entity.setVersion(policyDefinition.plugin().manifest().version());
+        entity.setId(policy.id());
+        entity.setDescription(policy.manifest().description());
+        entity.setName(policy.manifest().name());
+        entity.setVersion(policy.manifest().version());
 
+        /*
         if (policyDefinition.onRequestMethod() != null && policyDefinition.onResponseMethod() != null) {
             entity.setType(PolicyType.REQUEST_RESPONSE);
         } else if (policyDefinition.onRequestMethod() != null) {
@@ -109,10 +109,11 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
         } else if (policyDefinition.onResponseMethod() != null) {
             entity.setType(PolicyType.RESPONSE);
         }
+        */
 
         if (withPlugin) {
             // Plugin information
-            Plugin plugin = policyDefinition.plugin();
+            Plugin plugin = policy;
             PluginEntity pluginEntity = new PluginEntity();
 
             pluginEntity.setClassName(plugin.clazz());
@@ -124,9 +125,10 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
 
             // Policy development information
             PolicyDevelopmentEntity developmentEntity = new PolicyDevelopmentEntity();
-            developmentEntity.setClassName(policyDefinition.policy().getName());
+            developmentEntity.setClassName(policy.policy().getName());
 
-            if (policyDefinition.configuration() != null) {
+            /*
+            if (policy.configuration() != null) {
                 developmentEntity.setConfiguration(policyDefinition.configuration().getName());
             }
 
@@ -137,6 +139,7 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
             if (policyDefinition.onResponseMethod() != null) {
                 developmentEntity.setOnResponseMethod(policyDefinition.onResponseMethod().toGenericString());
             }
+            */
 
             entity.setDevelopment(developmentEntity);
         }
