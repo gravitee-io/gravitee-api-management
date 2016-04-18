@@ -74,6 +74,9 @@ public class ApiEntity {
     
     private String picture;
 
+    @JsonProperty(value = "picture_url")
+    private String pictureUrl;
+
     public String getId() {
         return id;
     }
@@ -208,6 +211,14 @@ public class ApiEntity {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 
     @Override

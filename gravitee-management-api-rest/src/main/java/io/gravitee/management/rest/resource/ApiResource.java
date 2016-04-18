@@ -15,12 +15,8 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.MembershipType;
-import io.gravitee.management.model.UpdateApiEntity;
-import io.gravitee.management.model.Visibility;
+import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.*;
 import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.rest.resource.LifecycleActionParam.LifecycleAction;
@@ -33,24 +29,12 @@ import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-
-import io.gravitee.common.http.MediaType;
-
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayOutputStream;
+import java.net.URI;
 
 import static java.lang.String.format;
 
@@ -60,6 +44,9 @@ import static java.lang.String.format;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public class ApiResource extends AbstractResource {
+
+    @Context
+    private UriInfo uriInfo;
 
     @Context
     private ResourceContext resourceContext;
@@ -79,13 +66,51 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ApiEntity get() throws ApiNotFoundException {
+        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.VIEW_API);
         ApiEntity api = apiService.findById(this.api);
 
-        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.VIEW_API);
-
+        UriBuilder ub = uriInfo.getAbsolutePathBuilder();
+        URI pictureUri = ub.path("picture").build();
+        api.setPictureUrl(pictureUri.toString());
+        api.setPicture(null);
         setPermission(api);
 
         return api;
+    }
+
+    @GET
+    @Path("picture")
+    public Response picture(@Context Request request) throws ApiNotFoundException {
+        apiService.findById(this.api);
+
+        CacheControl cc = new CacheControl();
+        cc.setNoTransform(true);
+        cc.setMustRevalidate(false);
+        cc.setNoCache(false);
+        cc.setMaxAge(86400);
+
+        ImageEntity image = apiService.getPicture(this.api);
+
+        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
+        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
+
+        if (builder != null) {
+            // Preconditions are not met, returning HTTP 304 'not-modified'
+            return builder
+                    .cacheControl(cc)
+                    .build();
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(image.getContent(), 0, image.getContent().length);
+
+        return Response
+                .ok()
+                .entity(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 
     @POST

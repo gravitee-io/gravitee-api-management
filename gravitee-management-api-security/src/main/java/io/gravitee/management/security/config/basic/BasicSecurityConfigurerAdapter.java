@@ -119,7 +119,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 				.authorizeRequests()
 					.antMatchers(HttpMethod.OPTIONS, "**").permitAll()
 					.antMatchers(HttpMethod.GET, "/apis/**").permitAll()
-					.antMatchers(HttpMethod.GET, "/apis/**/export").permitAll()
+					.antMatchers(HttpMethod.GET, "/apis/**/picture").permitAll()
 					.anyRequest().authenticated()
 			.and()
 				.csrf()

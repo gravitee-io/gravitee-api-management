@@ -32,6 +32,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
@@ -43,6 +45,9 @@ import java.util.stream.Collectors;
  */
 @Path("/apis")
 public class ApisResource extends AbstractResource {
+
+    @Context
+    private UriInfo uriInfo;
 
     @Context
     private ResourceContext resourceContext;
@@ -112,7 +117,11 @@ public class ApisResource extends AbstractResource {
         apiItem.setName(api.getName());
         apiItem.setVersion(api.getVersion());
         apiItem.setDescription(api.getDescription());
-        apiItem.setPicture(api.getPicture());
+
+        UriBuilder ub = uriInfo.getAbsolutePathBuilder();
+        URI pictureUri = ub.path(api.getId()).path("picture").build();
+        apiItem.setPictureUrl(pictureUri.toString());
+
         apiItem.setCreatedAt(api.getCreatedAt());
         apiItem.setUpdatedAt(api.getUpdatedAt());
 

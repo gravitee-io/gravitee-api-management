@@ -59,6 +59,6 @@ public class LdapAuthenticationProvider implements AuthenticationManager {
 
     @Override
     public boolean canHandle(String type) throws Exception {
-        return (type != null && type.equalsIgnoreCase(LdapProvider.PROVIDER_TYPE));
+        return LdapProvider.PROVIDER_TYPE.equalsIgnoreCase(type);
     }
 }

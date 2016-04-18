@@ -61,4 +61,6 @@ public interface ApiService {
     ApiEntity updateWithDefinition(ApiEntity apiEntity, String apiDefinition);
 
     ApiEntity createWithDefinition(String apiDefinition, String username);
+
+    ImageEntity getPicture(String apiId);
 }

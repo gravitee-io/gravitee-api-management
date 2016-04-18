@@ -38,11 +38,15 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.management.model.Visibility;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.DatatypeConverter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -78,6 +82,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private ApiSynchronizationProcessor apiSynchronizationProcessor;
+
+    @Value("${configuration.default-icon:${gravitee.home}/config/default-icon.png}")
+    private String defaultIcon;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
@@ -495,6 +502,28 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
         }
         return null;
+    }
+
+    @Override
+    public ImageEntity getPicture(String apiId) {
+        ApiEntity apiEntity = findById(apiId);
+        ImageEntity imageEntity = new ImageEntity();
+        if (apiEntity.getPicture() == null) {
+            imageEntity.setType("image/png");
+            try {
+                imageEntity.setContent(IOUtils.toByteArray(new FileInputStream(defaultIcon)));
+            } catch (IOException ioe) {
+                LOGGER.error("Default icon for API does not exist", ioe);
+            }
+
+        } else {
+            String[] parts = apiEntity.getPicture().split(";", 2);
+            imageEntity.setType(parts[0].split(":")[1]);
+            String base64Content = apiEntity.getPicture().split(",", 2)[1];
+            imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
+        }
+
+        return imageEntity;
     }
 
     @Override

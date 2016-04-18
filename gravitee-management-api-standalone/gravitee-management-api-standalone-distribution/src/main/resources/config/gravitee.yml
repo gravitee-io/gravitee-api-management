@@ -110,9 +110,9 @@ security:
 #    - type: ldap
 #      embedded: true                        # embedded mode (true to use the embedded ldap server, usefull for test/demo, possible values : true or false)
       # if embedded is false set the following values
-#      context-source-username: test
-#      context-source-password: test
-#      context-source-url: ldap://localhost:389/dc=gravitee,dc=io
+#      context-source-username: "uid=admin,ou=system"
+#      context-source-password: "secret"
+#      context-source-url: "ldap://localhost:10389/c=fr,o=aec,o=corp"
 #      role-mapping: true                    # role mapping mode for ldap user (possible values : true or false)
       # if role-mapping is true set the following role mapper LDAP values (syntax { "user_ldap_role" : "user_new_added_ldap_role"})
 #      role-mapper: {
@@ -122,7 +122,7 @@ security:
 #      }
 #      user-dn-patterns: uid={0},ou=people   # user dn patterns (default 'uid={0},ou=people')
 #      group-search-base: ou=groups          # groupe search base (default 'ou=groups')
-#      context-source-base: dc=gravitee,dc=io # the context source base
+#      context-source-base: c=fr,o=aec,o=corp # the context source base
 
 # SMTP configuration used to send mails
 email:
