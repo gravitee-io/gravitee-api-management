@@ -346,7 +346,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     .state('instances.detail', {
       abstract: true,
       url: '/:id',
-      templateUrl: 'app/instances/details/Instance.html',
+      templateUrl: 'app/instances/details/instance.html',
       controller: 'InstanceController',
       controllerAs: 'instanceCtrl',
       resolve: {
@@ -357,7 +357,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     })
     .state('instances.detail.environment', {
       url: '/environment',
-      templateUrl: 'app/instances/details/environment/InstanceEnvironment.html',
+      templateUrl: 'app/instances/details/environment/instanceEnvironment.html',
       controller: 'InstanceEnvironmentController',
       controllerAs: 'instanceEnvironmentCtrl',
       menu: {
