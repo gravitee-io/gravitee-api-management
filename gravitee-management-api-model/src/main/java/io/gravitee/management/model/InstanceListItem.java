@@ -50,6 +50,7 @@ public class InstanceListItem {
 
     private InstanceState state = InstanceState.UNKNOWN;
 
+    @JsonProperty("operating_system_name")
     private String operatingSystemName;
 
     public InstanceListItem(String id) {

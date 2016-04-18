@@ -16,7 +16,6 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.InstanceEntity;
 import io.gravitee.management.model.InstanceListItem;
 import io.gravitee.management.service.InstanceService;
 
@@ -24,6 +23,7 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import java.util.Collection;
@@ -44,8 +44,8 @@ public class InstancesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<InstanceListItem> instances() {
-        return instanceService.findInstances(false)
+    public Collection<InstanceListItem> instances(@QueryParam("includeStopped") boolean includeStopped) {
+        return instanceService.findInstances(includeStopped)
                 .stream()
                 .collect(Collectors.toList());
     }
