@@ -25,14 +25,14 @@
   </md-card-header>
 	<md-card-content style="overflow-y: auto; height: calc(100vh - 90px);">
 		<md-table-container ng-show="applicationsCtrl.applications.length > 0">
-			<table md-table>
+      <table md-table>
 				<thead md-head md-order="order">
 				<tr md-row>
 					<th md-column order-by="name">Name</th>
 					<th md-column order-by="type">Type</th>
 				</tr>
 				</thead>
-				<tbody>
+        <tbody md-body>
           <tr md-row md-auto-select ng-repeat="application in applicationsCtrl.applications | filter: searchApplications | orderBy: order"
               title="{{application.description}}" ui-sref="applications.portal.general({applicationId: application.id})">
             <td md-cell>{{application.name}}</td>
