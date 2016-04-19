@@ -22,6 +22,8 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUIDGenerator;
 import io.gravitee.gateway.services.monitoring.event.InstanceEventPayload;
+import io.gravitee.gateway.services.monitoring.event.Plugin;
+import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
@@ -37,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -66,6 +69,9 @@ public class MonitoringService extends AbstractService {
 
     @Autowired
     private Node node;
+
+    @Autowired
+    private PluginRegistry pluginRegistry;
 
     @Autowired
     private EventRepository eventRepository;
@@ -148,6 +154,7 @@ public class MonitoringService extends AbstractService {
         instanceInfo.setId(node.id());
         instanceInfo.setVersion(Version.RUNTIME_VERSION.toString());
         instanceInfo.setTags(tags());
+        instanceInfo.setPlugins(plugins());
         instanceInfo.setSystemProperties(new HashMap<>((Map) System.getProperties()));
 
         try {
@@ -158,12 +165,25 @@ public class MonitoringService extends AbstractService {
         return instanceInfo;
     }
 
-    public List<String> tags() {
+    public Set<String> tags() {
         final String systemPropertyTags = System.getProperty(TAGS_PROP);
         final String tags = systemPropertyTags == null ? propertyTags : systemPropertyTags;
         return (tags == null || tags.isEmpty()) ?
-                Collections.EMPTY_LIST :
-                Arrays.asList(tags.trim().split(TAGS_DELIMITER));
+                Collections.EMPTY_SET :
+                new HashSet<>(Arrays.asList(tags.trim().split(TAGS_DELIMITER)));
+    }
+
+    public Set<Plugin> plugins() {
+        return pluginRegistry.plugins().stream().map(regPlugin -> {
+            Plugin plugin = new Plugin();
+            plugin.setId(regPlugin.id());
+            plugin.setName(regPlugin.manifest().name());
+            plugin.setDescription(regPlugin.manifest().description());
+            plugin.setVersion(regPlugin.manifest().version());
+            plugin.setType(regPlugin.type().name().toLowerCase());
+            plugin.setPlugin(regPlugin.clazz());
+            return plugin;
+        }).collect(Collectors.toSet());
     }
 
     @Override

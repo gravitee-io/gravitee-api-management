@@ -15,29 +15,32 @@
  */
 package io.gravitee.gateway.services.monitoring.event;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public class InstanceEventPayload {
+public class Plugin {
 
     private String id;
-    private String version;
-    private Set<String> tags;
-    private Set<Plugin> plugins;
-    private String hostname;
-    private String ip;
-    private Map<String, String> systemProperties;
 
-    public String getHostname() {
-        return hostname;
+    private String name;
+
+    private String description;
+
+    private String version;
+
+    private String plugin;
+
+    private String type;
+
+    public String getDescription() {
+        return description;
     }
 
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getId() {
@@ -48,28 +51,28 @@ public class InstanceEventPayload {
         this.id = id;
     }
 
-    public String getIp() {
-        return ip;
+    public String getName() {
+        return name;
     }
 
-    public void setIp(String ip) {
-        this.ip = ip;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public Map<String, String> getSystemProperties() {
-        return systemProperties;
+    public String getPlugin() {
+        return plugin;
     }
 
-    public void setSystemProperties(Map<String, String> systemProperties) {
-        this.systemProperties = systemProperties;
+    public void setPlugin(String plugin) {
+        this.plugin = plugin;
     }
 
-    public Set<String> getTags() {
-        return tags;
+    public String getType() {
+        return type;
     }
 
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getVersion() {
@@ -80,11 +83,16 @@ public class InstanceEventPayload {
         this.version = version;
     }
 
-    public Set<Plugin> getPlugins() {
-        return plugins;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Plugin plugin = (Plugin) o;
+        return Objects.equals(id, plugin.id);
     }
 
-    public void setPlugins(Set<Plugin> plugins) {
-        this.plugins = plugins;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
