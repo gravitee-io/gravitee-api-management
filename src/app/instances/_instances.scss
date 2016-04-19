@@ -15,12 +15,6 @@
   padding: 0 5px 5px 5px;
 }
 
-.gravitee-instances-table-content {
-  padding: 5px;
-  width: 50%;
-  word-wrap: break-word;
-}
-
 .gravitee-instances-table-search {
   top: 1px;
   position: relative;
@@ -28,11 +22,11 @@
 }
 
 .gravitee-instances-started {
-  color: #429f46;
+  color: #429f46 !important;
   text-transform: capitalize;
 }
 
 .gravitee-instances-stopped {
-  color: red;
+  color: red !important;
   text-transform: capitalize;
 }
