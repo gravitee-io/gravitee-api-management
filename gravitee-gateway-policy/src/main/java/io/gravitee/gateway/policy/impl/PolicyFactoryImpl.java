@@ -16,23 +16,20 @@
 package io.gravitee.gateway.policy.impl;
 
 import com.google.common.base.Predicate;
-import io.gravitee.gateway.policy.PolicyClassDefinition;
-import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.policy.api.PolicyConfiguration;
 import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.reflections.ReflectionUtils.withModifier;
-import static org.reflections.ReflectionUtils.withParametersCount;
+import static org.reflections.ReflectionUtils.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -41,113 +38,118 @@ public class PolicyFactoryImpl implements PolicyFactory {
 
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyFactoryImpl.class);
 
-    @Autowired
-    private PolicyConfigurationFactory policyConfigurationFactory;
+    /**
+     * Cache of constructor by policy
+     */
+    private Map<Class<?>, Constructor<?>> constructors = new HashMap<>();
 
-    private Map<Class<?>, Constructor<?>> constructorCache = new HashMap<>();
+    /**
+     * Cache of injectable fields by policy
+     */
+    private Map<Class<?>, Set<Field>> injectableFields = new HashMap<>();
 
     @Override
-    public Object create(PolicyClassDefinition policyClassDefinition, String configuration) {
-        Class<? extends PolicyConfiguration> policyConfigurationClazz = policyClassDefinition.configuration();
-        Class<?> policyClass = policyClassDefinition.policy();
-
+    public Object create(PolicyMetadata policyMetadata, Map<Class<?>, Object> injectables) {
+        Class<?> policyClass = policyMetadata.policy();
         LOGGER.debug("Create a new policy instance for {}", policyClass.getName());
 
-        PolicyConfiguration policyConfiguration = null;
-        if (policyConfigurationClazz != null) {
-            if (configuration == null) {
-                LOGGER.error("A configuration is required for policy {}, returning a null policy", policyClassDefinition.id());
-                return null;
-            } else {
-                LOGGER.debug("Create policy configuration for policy {}", policyClassDefinition.id());
-                policyConfiguration = policyConfigurationFactory.create(policyConfigurationClazz, configuration);
-            }
-        }
-
-        return createPolicy(policyClass, policyConfiguration);
+        return createPolicy(policyMetadata, injectables);
     }
 
-    private Object createPolicy(Class<?> policyClass, Object ... args) {
-        Constructor<?> constr = getConstructor(policyClass);
+    private Object createPolicy(PolicyMetadata policyMetadata, Map<Class<?>, Object> injectables) {
+        Object policyInst = null;
+
+        Constructor<?> constr = lookingForConstructor(policyMetadata.policy());
 
         if (constr != null) {
             try {
                 if (constr.getParameterCount() > 0) {
-                    return constr.newInstance(args);
+                    policyInst = constr.newInstance(injectables.get(policyMetadata.configuration()));
                 } else {
-                    return constr.newInstance();
+                    policyInst = constr.newInstance();
                 }
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
-                LOGGER.error("Unable to instantiate policy {}", policyClass.getName(), ex);
+                LOGGER.error("Unable to instantiate policy {}", policyMetadata.policy().getName(), ex);
             }
         }
 
-        return null;
+        if (policyInst != null) {
+            Set<Field> fields = lookingForInjectableFields(policyMetadata.policy());
+            if (fields != null) {
+                for (Field field : fields) {
+                    boolean accessible = field.isAccessible();
+
+                    Class<?> type = field.getType();
+                    Object value = injectables.get(type);
+                    LOGGER.debug("Inject value into field {} [{}] in {}", field.getName(), type.getName(),
+                            policyMetadata.policy());
+                    try {
+                        field.setAccessible(true);
+                        field.set(policyInst, value);
+                    } catch (IllegalAccessException iae) {
+                        LOGGER.error("Unable to set field value for {} in {}", field.getName(),
+                                policyMetadata.policy(), iae);
+                    } finally {
+                        field.setAccessible(accessible);
+                    }
+                }
+            }
+        }
+
+        return policyInst;
     }
 
-    private Constructor<?> getConstructor(Class<?> policyClass) {
-        Constructor cons = constructorCache.get(policyClass);
-        if (cons == null) {
+    private Constructor<?> lookingForConstructor(Class<?> policyClass) {
+        Constructor constructor = constructors.get(policyClass);
+        if (constructor == null) {
             LOGGER.debug("Looking for a constructor to inject policy configuration");
 
-            Set<Constructor> constructors =
+            Set<Constructor> policyConstructors =
                     ReflectionUtils.getConstructors(policyClass,
                             withModifier(Modifier.PUBLIC),
                             withParametersAssignableFrom(PolicyConfiguration.class),
                             withParametersCount(1));
 
-            if (constructors.isEmpty()) {
+            if (policyConstructors.isEmpty()) {
                 LOGGER.debug("No configuration can be injected for {} because there is no valid constructor. " +
                         "Using default empty constructor.", policyClass.getName());
                 try {
-                    cons = policyClass.getConstructor();
+                    constructor = policyClass.getConstructor();
                 } catch (NoSuchMethodException nsme) {
                     LOGGER.error("Unable to find default empty constructor for {}", policyClass.getName(), nsme);
                 }
-            } else if (constructors.size() == 1) {
-                cons = constructors.iterator().next();
+            } else if (policyConstructors.size() == 1) {
+                constructor = policyConstructors.iterator().next();
             } else {
                 LOGGER.info("Too much constructors to instantiate policy {}", policyClass.getName());
             }
 
-            if (cons != null) {
-                // Put reference in cache
-                constructorCache.put(policyClass, cons);
-            }
+            constructors.put(policyClass, constructor);
         }
 
-        return cons;
+        return constructor;
     }
 
-    private <T> T createInstance(Class<T> clazz) throws IllegalAccessException, InstantiationException {
-        return clazz.newInstance();
-    }
-
-    public PolicyConfigurationFactory getPolicyConfigurationFactory() {
-        return policyConfigurationFactory;
-    }
-
-    public void setPolicyConfigurationFactory(PolicyConfigurationFactory policyConfigurationFactory) {
-        this.policyConfigurationFactory = policyConfigurationFactory;
+    private Set<Field> lookingForInjectableFields(Class<?> policyClass) {
+        return injectableFields.computeIfAbsent(policyClass,
+                aClass -> ReflectionUtils.getAllFields(policyClass, withAnnotation(Inject.class)));
     }
 
     public static Predicate<Member> withParametersAssignableFrom(final Class... types) {
-        return new Predicate<Member>() {
-            public boolean apply(@Nullable Member input) {
-                if (input != null) {
-                    Class<?>[] parameterTypes = parameterTypes(input);
-                    if (parameterTypes.length == types.length) {
-                        for (int i = 0; i < parameterTypes.length; i++) {
-                            if (!types[i].isAssignableFrom(parameterTypes[i]) ||
-                                    (parameterTypes[i] == Object.class && types[i] != Object.class)) {
-                                return false;
-                            }
+        return input -> {
+            if (input != null) {
+                Class<?>[] parameterTypes = parameterTypes(input);
+                if (parameterTypes.length == types.length) {
+                    for (int i = 0; i < parameterTypes.length; i++) {
+                        if (!types[i].isAssignableFrom(parameterTypes[i]) ||
+                                (parameterTypes[i] == Object.class && types[i] != Object.class)) {
+                            return false;
                         }
-                        return true;
                     }
+                    return true;
                 }
-                return false;
             }
+            return false;
         };
     }
 

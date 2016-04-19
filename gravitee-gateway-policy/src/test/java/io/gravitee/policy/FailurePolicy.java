@@ -35,11 +35,11 @@ public class FailurePolicy implements Policy {
 
     @Override
     public ReadWriteStream<?> onRequestContent(Object... args) throws Exception {
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
     public ReadWriteStream<?> onResponseContent(Object... args) throws Exception {
-        return null;
+        throw new RuntimeException();
     }
 }

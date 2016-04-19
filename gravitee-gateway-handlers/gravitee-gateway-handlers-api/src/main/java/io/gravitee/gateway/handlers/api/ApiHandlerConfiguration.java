@@ -16,10 +16,15 @@
 package io.gravitee.gateway.handlers.api;
 
 import io.gravitee.gateway.handlers.api.http.client.spring.HttpClientConfiguration;
-import io.gravitee.gateway.handlers.api.http.client.spring.HttpClientConfigurationImportSelector;
 import io.gravitee.gateway.handlers.api.impl.PathResolverImpl;
-import io.gravitee.gateway.policy.*;
-import io.gravitee.gateway.policy.impl.*;
+import io.gravitee.gateway.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.policy.PolicyFactory;
+import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.policy.PolicyResolver;
+import io.gravitee.gateway.policy.impl.DefaultPolicyManager;
+import io.gravitee.gateway.policy.impl.PolicyConfigurationFactoryImpl;
+import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
+import io.gravitee.gateway.policy.impl.PolicyResolverImpl;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,8 +35,18 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({HttpClientConfiguration.class})
+@Import({ HttpClientConfiguration.class })
 public class ApiHandlerConfiguration {
+
+    @Bean
+    public PathResolver pathResolver() {
+        return new PathResolverImpl();
+    }
+
+    @Bean
+    public ReactorHandler apiReactorHandler() {
+        return new ApiReactorHandler();
+    }
 
     @Bean
     public PolicyFactory policyFactory() {
@@ -44,27 +59,12 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public PolicyManager scopedPolicyManager() {
-        return new DefaultPolicyManager(apiReactorHandler());
-    }
-
-    @Bean
-    public PolicyClassLoaderFactory policyClassLoaderFactory() {
-        return new PolicyClassLoaderFactoryImpl();
-    }
-
-    @Bean
-    public PathResolver pathResolver() {
-        return new PathResolverImpl();
+    public PolicyManager policyManager() {
+        return new DefaultPolicyManager();
     }
 
     @Bean
     public PolicyConfigurationFactory policyConfigurationFactory() {
         return new PolicyConfigurationFactoryImpl();
-    }
-
-    @Bean
-    public ReactorHandler apiReactorHandler() {
-        return new ApiReactorHandler();
     }
 }

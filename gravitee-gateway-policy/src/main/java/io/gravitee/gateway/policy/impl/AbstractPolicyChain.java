@@ -61,7 +61,7 @@ public abstract class AbstractPolicyChain extends BufferedReadWriteStream implem
             try {
                 execute(policy, request, response, this, executionContext);
             } catch (Exception ex) {
-                LOGGER.error("Unexpected error while running onResponse for policy {}", policy, ex);
+                LOGGER.error("Unexpected error while running policy {}", policy, ex);
                 failWith(ex);
             }
         }

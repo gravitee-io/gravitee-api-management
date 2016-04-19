@@ -54,12 +54,14 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry, Ap
         LOGGER.info("Register a new handler for {} on path {}", reactable.item(), reactable.contextPath());
 
         ReactorHandler handler = create0(reactable);
-        try {
-            handler.start();
-            handlers.putIfAbsent(handler.contextPath(), handler);
-            contextPaths.putIfAbsent(reactable, handler.contextPath());
-        } catch (Exception ex) {
-            LOGGER.error("Unable to register handler", ex);
+        if (handler != null) {
+            try {
+                handler.start();
+                handlers.putIfAbsent(handler.contextPath(), handler);
+                contextPaths.putIfAbsent(reactable, handler.contextPath());
+            } catch (Exception ex) {
+                LOGGER.error("Unable to register handler", ex);
+            }
         }
     }
 

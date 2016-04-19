@@ -17,18 +17,22 @@ package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.gateway.policy.PolicyClassDefinition;
-import io.gravitee.gateway.policy.PolicyClassLoaderFactory;
 import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
-import io.gravitee.plugin.policy.PolicyDefinition;
-import io.gravitee.policy.api.PolicyConfiguration;
+import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
+import io.gravitee.plugin.policy.PolicyPluginManager;
+import io.gravitee.policy.api.PolicyContext;
+import io.gravitee.policy.core.impl.PolicyConfigurationClassFinder;
+import io.gravitee.policy.core.impl.PolicyContextClassFinder;
+import io.gravitee.policy.core.impl.PolicyMethodResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.util.ClassUtils;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,92 +47,116 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
 
     private final Logger LOGGER = LoggerFactory.getLogger(DefaultPolicyManager.class);
 
-    private final ReactorHandler reactorHandler;
-
     @Autowired
-    private io.gravitee.plugin.policy.PolicyManager policyManager;
+    private ApplicationContext applicationContext;
 
-    @Autowired
-    private PolicyClassLoaderFactory policyClassLoaderFactory;
-
-    private final Map<PolicyClassDefinition, ClassLoader> policiesClassloader = new HashMap<>();
-    private final Map<String, PolicyClassDefinition> policiesDefinition = new HashMap<>();
-
-    public DefaultPolicyManager(ReactorHandler reactorHandler) {
-        this.reactorHandler = reactorHandler;
-    }
+    private final Map<String, RegisteredPolicy> policies = new HashMap<>();
 
     @Override
     protected void doStart() throws Exception {
-        Set<Policy> requiredPlugins = reactorHandler.dependencies();
+        // Init required policies
+        initialize();
 
-        requiredPlugins.forEach(policy -> {
-            final PolicyDefinition policyDefinition = policyManager.getPolicyDefinition(policy.getName());
-            if (policyDefinition == null) {
-                LOGGER.error("Policy [{}] can no be found in registry", policy.getName());
-                throw new IllegalStateException("Policy ["+policy.getName()+"] can no be found in registry");
-            }
+        // Activate policy context
+        policies.values()
+                .stream()
+                .filter(registeredPolicy -> registeredPolicy.metadata.context() != null)
+                .forEach(registeredPolicy -> {
+                    try {
+                        LOGGER.info("Activating context for {} [{}]", registeredPolicy.metadata.id(),
+                                registeredPolicy.metadata.context().getClass().getName());
 
-            ClassLoader policyClassLoader = policyClassLoaderFactory.createPolicyClassLoader(policyDefinition,
-                    reactorHandler.classloader());
-
-            LOGGER.debug("Loading a contextualized policy: {}", policyDefinition);
-
-            DefaultPolicyClassDefinition policyClassDefinition = new DefaultPolicyClassDefinition(policyDefinition.id());
-
-            try {
-                policyClassDefinition.setPolicy(policyClassLoader.loadClass(policyDefinition.policy().getName()));
-                if (policyDefinition.configuration() != null) {
-                    policyClassDefinition.setConfiguration((Class<? extends PolicyConfiguration>)
-                            policyClassLoader.loadClass(policyDefinition.configuration().getName()));
-                }
-
-                policyClassDefinition.setOnRequestMethod(getMethod(policyClassDefinition.policy(), policyDefinition.onRequestMethod()));
-                policyClassDefinition.setOnResponseMethod(getMethod(policyClassDefinition.policy(), policyDefinition.onResponseMethod()));
-                policyClassDefinition.setOnRequestContentMethod(getMethod(policyClassDefinition.policy(), policyDefinition.onRequestContentMethod()));
-                policyClassDefinition.setOnResponseContentMethod(getMethod(policyClassDefinition.policy(), policyDefinition.onResponseContentMethod()));
-
-                policiesClassloader.put(policyClassDefinition, policyClassLoader);
-                policiesDefinition.put(policyClassDefinition.id(), policyClassDefinition);
-            } catch (ClassNotFoundException cnfe) {
-                LOGGER.error("Unable to load policy definition", cnfe);
-            }
-        });
-    }
-
-    private Method getMethod(Class<?> policy, Method method) {
-        if (method == null) {
-            return null;
-        }
-
-        try {
-            return policy.getMethod(method.getName(), method.getParameterTypes());
-        } catch (NoSuchMethodException nsme) {
-            LOGGER.error("Unable to find method", nsme);
-            return null;
-        }
+                        registeredPolicy.metadata.context().onActivation();
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to activate policy context", ex);
+                    }
+                });
     }
 
     @Override
     protected void doStop() throws Exception {
-        policiesClassloader.entrySet().stream().forEach(policy -> {
-            ClassLoader policyClassLoader = policy.getValue();
+        // Deactivate policy context
+        policies.values()
+                .stream()
+                .filter(registeredPolicy -> registeredPolicy.metadata.context() != null)
+                .forEach(registeredPolicy -> {
+                    try {
+                        LOGGER.info("De-activating context for {} [{}]", registeredPolicy.metadata.id(),
+                                registeredPolicy.metadata.context().getClass().getName());
+                        registeredPolicy.metadata.context().onDeactivation();
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to deactivate policy context", ex);
+                    }
+                });
+
+        // Close policy classloaders
+        policies.values().forEach(policy -> {
+            ClassLoader policyClassLoader = policy.classLoader;
             if (policyClassLoader instanceof URLClassLoader) {
                 try {
                     ((URLClassLoader)policyClassLoader).close();
                 } catch (IOException e) {
-                    LOGGER.error("Unable to close policy classloader for policy {}", policy.getKey().id());
+                    LOGGER.error("Unable to close policy classloader for policy {}", policy.metadata.id());
                 }
             }
         });
 
-        // Be sure to remove all references to policy definitions and their respective classloaders
-        policiesClassloader.clear();
-        policiesDefinition.clear();
+        // Be sure to remove all references to policies
+        policies.clear();
+    }
+
+    private void initialize() {
+        PolicyPluginManager ppm = applicationContext.getBean(PolicyPluginManager.class);
+        PolicyClassLoaderFactory pclf = applicationContext.getBean(PolicyClassLoaderFactory.class);
+        ReactorHandler rh = applicationContext.getBean(ReactorHandler.class);
+
+        Set<Policy> requiredPlugins = rh.dependencies();
+
+        requiredPlugins.forEach(policy -> {
+            final io.gravitee.plugin.policy.Policy policyPlugin = ppm.get(policy.getName());
+            if (policyPlugin == null) {
+                LOGGER.error("Policy [{}] can no be found in registry", policy.getName());
+                throw new IllegalStateException("Policy ["+policy.getName()+"] can no be found in registry");
+            }
+
+            ClassLoader policyClassLoader = pclf.create(policyPlugin, rh.classloader());
+
+            LOGGER.debug("Loading policy {} for {}", policy.getName(), rh);
+
+            DefaultPolicyMetadata policyMetadata = new DefaultPolicyMetadata(policyPlugin.id());
+
+            try {
+                // Prepare metadata
+                policyMetadata.setPolicy(ClassUtils.forName(policyPlugin.policy().getName(), policyClassLoader));
+                policyMetadata.setConfiguration(new PolicyConfigurationClassFinder().lookupFirst(
+                        policyPlugin.policy(), policyClassLoader));
+                Class<? extends PolicyContext> policyContextClass = new PolicyContextClassFinder().lookupFirst(
+                        policyPlugin.policy(), policyClassLoader);
+                policyMetadata.setMethods(new PolicyMethodResolver().resolve(policyMetadata.policy()));
+
+                RegisteredPolicy registeredPolicy = new RegisteredPolicy();
+                registeredPolicy.classLoader = policyClassLoader;
+                registeredPolicy.metadata = policyMetadata;
+
+                // Prepare context if defined
+                if (policyContextClass != null) {
+                    // Create policy context instance and initialize context provider (if used)
+                    policyMetadata.setContext(new PolicyContextInitializer().create(policyContextClass));
+                }
+                policies.put(policy.getName(), registeredPolicy);
+            } catch (Exception ex) {
+                LOGGER.error("Unable to load policy metadata", ex);
+            }
+        });
     }
 
     @Override
-    public PolicyClassDefinition getPolicyClassDefinition(String policy) {
-        return policiesDefinition.get(policy);
+    public PolicyMetadata get(String policy) {
+        return policies.get(policy).metadata;
+    }
+
+    static class RegisteredPolicy {
+        PolicyMetadata metadata;
+        ClassLoader classLoader;
     }
 }

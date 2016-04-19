@@ -85,7 +85,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
             Path path = pathResolver.resolve(serverRequest);
 
             // Calculate request policies
-            List<Policy> requestPolicies = getPolicyResolver().resolve(StreamType.REQUEST, serverRequest, path.getRules());
+            List<Policy> requestPolicies = getPolicyResolver().resolve(StreamType.ON_REQUEST, serverRequest, path.getRules());
 
             // Prepare execution context
             ExecutionContext executionContext = createExecutionContext();
@@ -116,7 +116,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
                         responseStream.headers().forEach((headerName, headerValues) -> serverResponse.headers().put(headerName, headerValues));
 
                         // Calculate response policies
-                        List<Policy> responsePolicies = getPolicyResolver().resolve(StreamType.RESPONSE, serverRequest, path.getRules());
+                        List<Policy> responsePolicies = getPolicyResolver().resolve(StreamType.ON_RESPONSE, serverRequest, path.getRules());
                         ResponsePolicyChain responsePolicyChain = ResponsePolicyChain.create(responsePolicies, executionContext);
 
                         responsePolicyChain.setResultHandler(responsePolicyResult -> {
@@ -239,7 +239,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
 
     @Override
     protected void doStart() throws Exception {
-        LOGGER.info("API handler is starting, prepare API context...");
+        LOGGER.info("API handler is now starting, preparing API context...");
         long startTime = System.currentTimeMillis(); // Get the start Time
         super.doStart();
         applicationContext.getBean(PolicyManager.class).start();
@@ -251,7 +251,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
 
     @Override
     protected void doStop() throws Exception {
-        LOGGER.info("API handler is stopping, close context...");
+        LOGGER.info("API handler is now stopping, closing context...");
         applicationContext.getBean(PolicyManager.class).stop();
         applicationContext.getBean(HttpClient.class).stop();
 

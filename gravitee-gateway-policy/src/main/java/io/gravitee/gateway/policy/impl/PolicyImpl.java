@@ -16,7 +16,12 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.Policy;
+import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnRequestContent;
+import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.annotations.OnResponseContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +35,7 @@ public class PolicyImpl implements Policy {
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyImpl.class);
 
     private final Object policyInst;
-    private Method onRequestMethod, onResponseMethod, onRequestContentMethod, onResponseContentMethod;
+    private PolicyMetadata policyMetadata;
 
     private PolicyImpl(Object policyInst) {
         this.policyInst = policyInst;
@@ -38,70 +43,44 @@ public class PolicyImpl implements Policy {
 
     @Override
     public void onRequest(Object ... args) throws Exception {
-        if (onRequestMethod != null) {
-            invoke(onRequestMethod, args);
-        }
+        invoke(policyMetadata.method(OnRequest.class), args);
     }
 
     @Override
     public void onResponse(Object ... args) throws Exception {
-        if (onResponseMethod != null) {
-            invoke(onResponseMethod, args);
-        }
+        invoke(policyMetadata.method(OnResponse.class), args);
     }
 
     @Override
     public ReadWriteStream<?> onResponseContent(Object ... args) throws Exception {
-        if (onResponseContentMethod != null) {
-            return (ReadWriteStream) invoke(onResponseContentMethod, args);
-        }
-
-        return null;
+        Object stream = invoke(policyMetadata.method(OnResponseContent.class), args);
+        return (stream != null) ? (ReadWriteStream) stream : null;
     }
 
     @Override
     public ReadWriteStream<?> onRequestContent(Object ... args) throws Exception {
-        if (onRequestContentMethod != null) {
-            return (ReadWriteStream) invoke(onRequestContentMethod, args);
-        }
-
-        return null;
-    }
-
-    private PolicyImpl onRequestContentMethod(Method onRequestContentMethod) {
-        this.onRequestContentMethod = onRequestContentMethod;
-        return this;
-    }
-
-    private PolicyImpl onRequestMethod(Method onRequestMethod) {
-        this.onRequestMethod = onRequestMethod;
-        return this;
-    }
-
-    private PolicyImpl onResponseContentMethod(Method onResponseContentMethod) {
-        this.onResponseContentMethod = onResponseContentMethod;
-        return this;
-    }
-
-    private PolicyImpl onResponseMethod(Method onResponseMethod) {
-        this.onResponseMethod = onResponseMethod;
-        return this;
+        Object stream = invoke(policyMetadata.method(OnRequestContent.class), args);
+        return (stream != null) ? (ReadWriteStream) stream : null;
     }
 
     private Object invoke(Method invokedMethod, Object ... args) throws Exception {
-        LOGGER.debug("Calling {} method on policy {}", invokedMethod.getName(), policyInst.getClass().getName());
+        if (invokedMethod != null) {
+            LOGGER.debug("Calling {} method on policy {}", invokedMethod.getName(), policyInst.getClass().getName());
 
-        Class<?>[] parametersType = invokedMethod.getParameterTypes();
-        Object[] parameters = new Object[parametersType.length];
+            Class<?>[] parametersType = invokedMethod.getParameterTypes();
+            Object[] parameters = new Object[parametersType.length];
 
-        int idx = 0;
+            int idx = 0;
 
-        // Map parameters according to parameter's type
-        for(Class<?> paramType : parametersType) {
-            parameters[idx++] = getParameterAssignableTo(paramType, args);
+            // Map parameters according to parameter's type
+            for (Class<?> paramType : parametersType) {
+                parameters[idx++] = getParameterAssignableTo(paramType, args);
+            }
+
+            return invokedMethod.invoke(policyInst, parameters);
         }
 
-        return invokedMethod.invoke(policyInst, parameters);
+        return null;
     }
 
     private Object getParameterAssignableTo(Class<?> paramType, Object ... args) {
@@ -114,45 +93,32 @@ public class PolicyImpl implements Policy {
         return null;
     }
 
-    public static Builder with(Object policyInstance) {
+    public static Builder target(Object policyInstance) {
         return new Builder(policyInstance);
+    }
+
+    private PolicyImpl definition(PolicyMetadata policyMetadata) {
+        this.policyMetadata = policyMetadata;
+        return this;
     }
 
     public static class Builder {
 
         private final Object policyInstance;
-        private Method onRequestMethod, onResponseMethod, onRequestContentMethod, onResponseContentMethod;
+        private PolicyMetadata policyMetadata;
 
         private Builder(Object policyInstance) {
             this.policyInstance = policyInstance;
         }
 
-        public Builder onRequestContentMethod(Method onRequestContentMethod) {
-            this.onRequestContentMethod = onRequestContentMethod;
-            return this;
-        }
-
-        public Builder onRequestMethod(Method onRequestMethod) {
-            this.onRequestMethod = onRequestMethod;
-            return this;
-        }
-
-        public Builder onResponseContentMethod(Method onResponseContentMethod) {
-            this.onResponseContentMethod = onResponseContentMethod;
-            return this;
-        }
-
-        public Builder onResponseMethod(Method onResponseMethod) {
-            this.onResponseMethod = onResponseMethod;
+        public Builder definition(PolicyMetadata policyMetadata) {
+            this.policyMetadata = policyMetadata;
             return this;
         }
 
         public PolicyImpl build() {
             return new PolicyImpl(policyInstance)
-                    .onRequestContentMethod(onRequestContentMethod)
-                    .onRequestMethod(onRequestMethod)
-                    .onResponseContentMethod(onResponseContentMethod)
-                    .onResponseMethod(onResponseMethod);
+                    .definition(policyMetadata);
         }
     }
 }

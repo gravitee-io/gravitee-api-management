@@ -15,11 +15,25 @@
  */
 package io.gravitee.gateway.policy;
 
-/**
- * @author David BRASSELY (brasseld at gmail.com)
- */
-public enum StreamType {
+import io.gravitee.policy.api.PolicyConfiguration;
+import io.gravitee.policy.api.PolicyContext;
 
-    ON_REQUEST,
-    ON_RESPONSE,
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+
+/**
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
+ */
+public interface PolicyMetadata {
+
+    String id();
+
+    Class<?> policy();
+
+    Class<? extends PolicyConfiguration> configuration();
+
+    PolicyContext context();
+
+    Method method(Class<? extends Annotation> type);
 }

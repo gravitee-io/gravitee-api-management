@@ -133,7 +133,7 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_streamablePolicy() throws Exception {
-        Policy policy4 = spy(new StreamablePolicy());
+        StreamablePolicy policy4 = spy(new StreamablePolicy());
 
         ExecutionContext executionContext = mock(ExecutionContext.class);
 
@@ -154,8 +154,8 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_streamablePolicies() throws Exception {
-        Policy policy4 = spy(new StreamablePolicy());
-        Policy policy5 = spy(new StreamablePolicy());
+        StreamablePolicy policy4 = spy(new StreamablePolicy());
+        StreamablePolicy policy5 = spy(new StreamablePolicy());
 
         ExecutionContext executionContext = mock(ExecutionContext.class);
 
@@ -187,8 +187,8 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_streamablePolicies_streaming() throws Exception {
-        Policy policy4 = spy(new StreamablePolicy());
-        Policy policy5 = spy(new StreamablePolicy());
+        StreamablePolicy policy4 = spy(new StreamablePolicy());
+        StreamablePolicy policy5 = spy(new StreamablePolicy());
 
         ExecutionContext executionContext = mock(ExecutionContext.class);
 
