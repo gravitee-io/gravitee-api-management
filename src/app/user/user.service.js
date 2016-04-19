@@ -43,7 +43,6 @@ class UserService {
 	}
 
 	isUserInRoles(roles) {
-	  let rolePrefix = "ROLE_";
 	  let authenticatedUser = this.$cookieStore.get('authenticatedUser');
 
 	  if (!authenticatedUser) {
@@ -57,7 +56,7 @@ class UserService {
 	  var rolesAllowed = false;
 	  _.forEach(roles, function(role) {
 	    _.forEach(authenticatedUser.principal.authorities, function(authority) {
-	      if (authority.authority === (rolePrefix + role)) {
+	      if (authority.authority === role) {
 	        rolesAllowed = true;
 	        return;
 	      }
