@@ -116,7 +116,7 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
             Plugin plugin = policy;
             PluginEntity pluginEntity = new PluginEntity();
 
-            pluginEntity.setClassName(plugin.clazz());
+            pluginEntity.setPlugin(plugin.clazz());
             pluginEntity.setPath(plugin.path().toString());
             pluginEntity.setType(plugin.type().toString().toLowerCase());
             pluginEntity.setDependencies(plugin.dependencies());

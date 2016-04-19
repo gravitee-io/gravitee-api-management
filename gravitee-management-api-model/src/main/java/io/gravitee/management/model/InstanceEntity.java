@@ -17,10 +17,7 @@ package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -50,6 +47,8 @@ public class InstanceEntity {
     private InstanceState state = InstanceState.UNKNOWN;
 
     private Map<String, String> systemProperties;
+
+    private Set<PluginEntity> plugins;
 
     public InstanceEntity(String id) {
         this.id = id;
@@ -136,6 +135,14 @@ public class InstanceEntity {
 
     public void setSystemProperties(Map<String, String> systemProperties) {
         this.systemProperties = systemProperties;
+    }
+
+    public Set<PluginEntity> getPlugins() {
+        return plugins;
+    }
+
+    public void setPlugins(Set<PluginEntity> plugins) {
+        this.plugins = plugins;
     }
 
     @Override

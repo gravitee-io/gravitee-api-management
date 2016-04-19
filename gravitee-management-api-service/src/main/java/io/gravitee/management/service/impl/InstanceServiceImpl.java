@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,12 +46,14 @@ public class InstanceServiceImpl implements InstanceService {
     private ObjectMapper objectMapper;
 
     private static final List<EventType> instancesAllState = new ArrayList<>();
+
     {
         instancesAllState.add(EventType.GATEWAY_STARTED);
         instancesAllState.add(EventType.GATEWAY_STOPPED);
     }
 
     private static final List<EventType> instancesRunningOnly = new ArrayList<>();
+
     {
         instancesRunningOnly.add(EventType.GATEWAY_STARTED);
     }
@@ -123,6 +125,7 @@ public class InstanceServiceImpl implements InstanceService {
                 instance.setVersion(info.getVersion());
                 instance.setTags(info.getTags());
                 instance.setSystemProperties(info.getSystemProperties());
+                instance.setPlugins(info.getPlugins());
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while getting instance informations from event payload", ioe);
             }
@@ -148,6 +151,7 @@ public class InstanceServiceImpl implements InstanceService {
         private String id;
         private String version;
         private List<String> tags;
+        private Set<PluginEntity> plugins;
         private String hostname;
         private String ip;
         private Map<String, String> systemProperties;
@@ -198,6 +202,14 @@ public class InstanceServiceImpl implements InstanceService {
 
         public void setVersion(String version) {
             this.version = version;
+        }
+
+        public Set<PluginEntity> getPlugins() {
+            return plugins;
+        }
+
+        public void setPlugins(Set<PluginEntity> plugins) {
+            this.plugins = plugins;
         }
     }
 }
