@@ -17,15 +17,15 @@
 -->
 <div>
   <md-card class="no-box-shadow" ng-if="!isLoading && instancesCtrl.instances.length > 0">
-    <md-card-header>
+    <md-card-header layout="column">
       <md-card-header-text layout="row" layout-align="center">
-        <div class="input-group apis-header-filter" flex="60" flex-xs="100">
+        <div class="input-group apis-header-filter" flex="60">
           <input class="form-control" type="text" ng-model="searchGatewayInstances" placeholder="Search Gateway instances..." autofocus/>
         </div>
-        <md-switch style="margin: 0 auto;" ng-model="displayAllInstances">
-          Display all instances
-        </md-switch>
       </md-card-header-text>
+      <md-switch style="margin: 0 auto;" ng-model="displayAllInstances">
+        Display all instances
+      </md-switch>
     </md-card-header>
     <md-card-content style="padding: 0; overflow-y: auto; height: calc(100vh - 90px);">
       <div layout="row" layout-wrap class="inset">

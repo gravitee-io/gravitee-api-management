@@ -28,7 +28,7 @@ class SideNavDirective {
 }
 
 class SideNavController {
-  constructor($rootScope, $cookieStore, $mdSidenav, $mdDialog, $scope, $state) {
+  constructor($rootScope, $cookieStore, $mdSidenav, $mdDialog, $scope, $state, UserService) {
     'ngInject';
     this.$rootScope = $rootScope;
     this.$cookieStore = $cookieStore;
@@ -45,12 +45,13 @@ class SideNavController {
     });
 
     $scope.menuItems = _.filter(routeMenuItems, function (routeMenuItem) {
-      return routeMenuItem.menu.firstLevel;
+      return routeMenuItem.menu.firstLevel && (!routeMenuItem.roles || UserService.isUserInRoles(routeMenuItem.roles));
     });
 
     $scope.$on('$stateChangeSuccess', function (event, toState, toParams) {
       $scope.subMenuItems = _.filter(routeMenuItems, function (routeMenuItem) {
         var firstParam = _.values(toParams)[0];
+        // do not display title if id is an UUID (not human readable)
         if (firstParam && !self.isUUID(firstParam)) {
           $scope.currentResource = firstParam;
         } else {

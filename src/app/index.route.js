@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function routerConfig ($stateProvider, $urlRouterProvider) {
+function routerConfig($stateProvider, $urlRouterProvider) {
   'ngInject';
   $stateProvider
     .state('home', {
@@ -26,11 +26,11 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
           return ApiService.list();
         }
       },
-			menu: {
+      menu: {
         label: 'Home',
         icon: 'home',
         firstLevel: true
-  		}
+      }
     })
     .state('apis', {
       abstract: true,
@@ -56,11 +56,11 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
     .state('apis.list.thumb', {
       url: 'thumb',
       templateUrl: 'app/api/apisThumbMode.html',
-			menu: {
-				label: 'APIs',
-				icon: 'dashboard',
+      menu: {
+        label: 'APIs',
+        icon: 'dashboard',
         firstLevel: true
-			}
+      }
     })
     .state('apis.portal', {
       url: '/:apiId',
@@ -68,10 +68,10 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiPortalController',
       controllerAs: 'apiCtrl',
       resolve: {
-        resolvedApi:function ($stateParams, ApiService) {
+        resolvedApi: function ($stateParams, ApiService) {
           return ApiService.get($stateParams.apiId);
         },
-        resolvedPages:function ($stateParams, DocumentationService) {
+        resolvedPages: function ($stateParams, DocumentationService) {
           return DocumentationService.list($stateParams.apiId);
         }
       },
@@ -86,7 +86,7 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiPortalPageController',
       controllerAs: 'apiPortalPageCtrl',
       resolve: {
-        resolvedPage:function ($stateParams, DocumentationService) {
+        resolvedPage: function ($stateParams, DocumentationService) {
           return DocumentationService.get($stateParams.apiId, $stateParams.pageId);
         }
       }
@@ -98,10 +98,10 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
       controller: 'ApiAdminController',
       controllerAs: 'apiCtrl',
       resolve: {
-        resolvedApiState:function ($stateParams, ApiService) {
+        resolvedApiState: function ($stateParams, ApiService) {
           return ApiService.isAPISynchronized($stateParams.apiId);
         },
-        resolvedApi:function ($stateParams, ApiService) {
+        resolvedApi: function ($stateParams, ApiService) {
           return ApiService.get($stateParams.apiId);
         }
       }
@@ -341,7 +341,8 @@ function routerConfig ($stateProvider, $urlRouterProvider) {
         label: 'Instances',
         icon: 'developer_dashboard',
         firstLevel: true
-      }
+      },
+      roles: ['ADMIN']
     })
     .state('instances.detail', {
       abstract: true,
