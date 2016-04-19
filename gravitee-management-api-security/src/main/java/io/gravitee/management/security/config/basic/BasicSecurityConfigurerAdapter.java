@@ -38,92 +38,101 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 
- * @author Titouan COMPIEGNE
- *
+ * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author GraviteeSource Team
  */
 @Configuration
 @Profile("basic")
 @EnableWebSecurity
 public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 
-	@Autowired
-	private Environment environment;
+    private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 
-	@Autowired
-	private Collection<AuthenticationManager> authenticationManagers;
+    @Autowired
+    private Environment environment;
 
-	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		LOGGER.info("Loading security providers for basic authentication");
+    @Autowired
+    private Collection<AuthenticationManager> authenticationManagers;
 
-		List<String> providers = getSecurityProviders();
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        LOGGER.info("Loading security providers for basic authentication");
 
-		for (int idx = 0 ; idx < providers.size() ; idx++) {
-			String providerType = providers.get(idx);
+        List<String> providers = getSecurityProviders();
 
-			boolean found = false;
-			for (AuthenticationManager authenticationManager : authenticationManagers) {
-				if (authenticationManager.canHandle(providerType)) {
-					authenticationManager.configure(auth, idx);
-					found = true;
-					break;
-				}
-			}
+        for (int idx = 0; idx < providers.size(); idx++) {
+            String providerType = providers.get(idx);
 
-			if (! found) {
-				LOGGER.error("No authentication provider found for type: {}", providerType);
-			}
-		}
-	}
+            boolean found = false;
+            for (AuthenticationManager authenticationManager : authenticationManagers) {
+                if (authenticationManager.canHandle(providerType)) {
+                    authenticationManager.configure(auth, idx);
+                    found = true;
+                    break;
+                }
+            }
 
-	private List<String> getSecurityProviders() {
-		LOGGER.debug("Looking for security provider...");
-		List<String> providers = new ArrayList<>();
+            if (!found) {
+                LOGGER.error("No authentication provider found for type: {}", providerType);
+            }
+        }
+    }
 
-		boolean found = true;
-		int idx = 0;
+    private List<String> getSecurityProviders() {
+        LOGGER.debug("Looking for security provider...");
+        List<String> providers = new ArrayList<>();
 
-		while (found) {
-			String type = environment.getProperty("security.providers[" + (idx++) + "].type");
-			found = (type != null);
-			if (found) {
-				LOGGER.debug("\tSecurity type {} has been defined", type);
-				providers.add(type);
-			}
-		}
+        boolean found = true;
+        int idx = 0;
 
-		return providers;
-	}
+        while (found) {
+            String type = environment.getProperty("security.providers[" + (idx++) + "].type");
+            found = (type != null);
+            if (found) {
+                LOGGER.debug("\tSecurity type {} has been defined", type);
+                providers.add(type);
+            }
+        }
 
-	/*
-     * TODO : fix filter order between Jersey Filter (CORSResponseFilter) and Spring Security Filter
-     * TODO : remove this filter or CORSResponseFilter when the problem will be solved
+        return providers;
+    }
+
+    /*
+     * TODO : fix filter order between Jersey Filter (CORSResponseFilter) and
+     * Spring Security Filter TODO : remove this filter or CORSResponseFilter
+     * when the problem will be solved
      */
     @Bean
-	public Filter corsFilter() {
-		return new CORSFilter();
-	}
-    
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http
-			.httpBasic()
-				.realmName("Gravitee.io Management API")
-			.and()
-				.sessionManagement()
-					.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			.and()
-				.authorizeRequests()
-					.antMatchers(HttpMethod.OPTIONS, "**").permitAll()
-					.antMatchers(HttpMethod.GET, "/apis/**").permitAll()
-					.antMatchers(HttpMethod.GET, "/apis/**/picture").permitAll()
-					.anyRequest().authenticated()
-			.and()
-				.csrf()
-					.disable()
-			.addFilterAfter(corsFilter(), AbstractPreAuthenticatedProcessingFilter.class);
-	}
+    public Filter corsFilter() {
+        return new CORSFilter();
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .httpBasic()
+                .realmName("Gravitee.io Management API")
+            .and()
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+                .authorizeRequests()
+                    .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
+                    // API requests
+                    .antMatchers(HttpMethod.GET, "/apis/**").permitAll()
+                    .antMatchers(HttpMethod.POST, "/apis/**").hasAnyAuthority("ADMIN", "API_PUBLISHER")
+                    .antMatchers(HttpMethod.PUT, "/apis/**").hasAnyAuthority("ADMIN", "API_PUBLISHER")
+                    .antMatchers(HttpMethod.DELETE, "/apis/**").hasAnyAuthority("ADMIN", "API_PUBLISHER")
+                    // Application requests
+                    .antMatchers(HttpMethod.POST, "/applications/**").hasAnyAuthority("ADMIN", "API_CONSUMER")
+                    .antMatchers(HttpMethod.PUT, "/applications/**").hasAnyAuthority("ADMIN", "API_CONSUMER")
+                    .antMatchers(HttpMethod.DELETE, "/applications/**").hasAnyAuthority("ADMIN", "API_CONSUMER")
+                    // Instance requests
+                    .antMatchers(HttpMethod.GET, "/instances/**").hasAuthority("ADMIN")
+                    .anyRequest().authenticated()
+            .and()
+                .csrf()
+                    .disable()
+            .addFilterAfter(corsFilter(), AbstractPreAuthenticatedProcessingFilter.class);
+    }
 }

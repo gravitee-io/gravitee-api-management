@@ -100,11 +100,19 @@ security:
         - user:
           username: user
           password: $2a$10$9kjw/SH9gucCId3Lnt6EmuFreUAcXSZgpvAYuW2ISv7hSOhHRH1AO
-          roles: USER # you can declare multiple roles with comma separator (USER, ADMIN ...)
+          roles: USER # you can declare multiple roles with comma separator (USER, ADMIN, API_PUBLISHER, API_CONSUMER ...)
         - user:
           username: admin
           password: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq
           roles: ADMIN
+        - user:
+          username: api1
+          password: $2a$10$iXdXO4wAYdhx2LOwijsp7.PsoAZQ05zEdHxbriIYCbtyo.y32LTji
+          roles: API_PUBLISHER, API_CONSUMER
+        - user:
+          username: application1
+          password: $2a$10$2gtKPYRB9zaVaPcn5RBx/.3T.7SeZoDGs9GKqbo9G64fKyXFR1He.
+          roles: API_CONSUMER
     - type: gravitee
       password-encoding: true
 #    - type: ldap
