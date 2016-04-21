@@ -21,7 +21,8 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 @Configuration
 public class LdapConfiguration {
@@ -29,21 +30,7 @@ public class LdapConfiguration {
 	@Bean
 	public LdapContextSourceFactory contextSourceFactory() {
 		return new LdapContextSourceFactory();
-
 	}
-
-	/*
-	@Bean
-	public LdapContextSource contextSource () {
-		// Embedded LDAP server (launch via the Security Configuration)
-		// TODO : Retrieve properties for gravitee.yml
-		// Make it an Identity Provider
-		LdapContextSource contextSource= new LdapContextSource();
-		contextSource.setUrl("ldap://localhost:33389");
-		contextSource.setBase("dc=gravitee,dc=io");
-		return contextSource;
-	}
-	*/
 
 	@Bean
 	public LdapTemplate ldapTemplate(LdapContextSource contextSource) {

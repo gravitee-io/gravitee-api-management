@@ -24,7 +24,6 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.filter.AndFilter;
 import org.springframework.ldap.filter.EqualsFilter;
 import org.springframework.ldap.filter.WhitespaceWildcardsFilter;
-import org.springframework.stereotype.Component;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -32,7 +31,9 @@ import javax.naming.directory.Attributes;
 import java.util.Collection;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class LdapIdentityManager implements IdentityManager {
 

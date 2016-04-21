@@ -23,7 +23,8 @@ import io.gravitee.management.providers.ldap.identity.LdapIdentityManager;
 import io.gravitee.management.providers.ldap.spring.LdapConfiguration;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class LdapProvider implements Provider {
 

@@ -27,7 +27,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSource> {
 
@@ -44,11 +45,10 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
 
     @Override
     protected LdapContextSource createInstance() throws Exception {
-        ContextSourceBuilder contextSourceBuilder =
-                new ContextSourceBuilder();
+        ContextSourceBuilder contextSourceBuilder = new ContextSourceBuilder();
 
         // TODO: remove this default index and get it by searching in the providers list configuration
-        int providerIdx = 0;
+        int providerIdx = 2;
 
         contextSourceBuilder
                 .root(environment.getProperty("security.providers[" + providerIdx + "].context-source-base"));

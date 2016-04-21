@@ -32,9 +32,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 
- * @author Titouan COMPIEGNE
- *
+ * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class UserDetailsContextPropertiesMapper implements UserDetailsContextMapper {
 	
@@ -51,7 +51,7 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 
 	@Override
 	public UserDetails mapUserFromContext(DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
-		List<GrantedAuthority> mappedAuthorities = new ArrayList<GrantedAuthority>();
+		List<GrantedAuthority> mappedAuthorities = new ArrayList<>();
 		try {
 			for (GrantedAuthority granted : authorities) {
 				String mappedAuthority = environment.getProperty("security.providers[" + authenticationProviderId+ "].role-mapper."+granted.getAuthority());

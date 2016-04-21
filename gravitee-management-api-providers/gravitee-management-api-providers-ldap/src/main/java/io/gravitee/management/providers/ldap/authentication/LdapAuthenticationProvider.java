@@ -21,12 +21,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
+import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
+import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class LdapAuthenticationProvider implements AuthenticationManager {
 
@@ -35,21 +37,43 @@ public class LdapAuthenticationProvider implements AuthenticationManager {
     @Autowired
     private Environment environment;
 
-    @Autowired
-    private LdapContextSource ldapContextSource;
-
     @Override
     public void configure(AuthenticationManagerBuilder authenticationManagerBuilder, int providerIdx) throws Exception {
         LOGGER.info("Configuring LDAP provider []", providerIdx);
         LdapAuthenticationProviderConfigurer<AuthenticationManagerBuilder> ldapAuthenticationProviderConfigurer =
                 authenticationManagerBuilder.ldapAuthentication();
 
-        ldapAuthenticationProviderConfigurer.userDnPatterns(environment.getProperty("security.providers[" + providerIdx + "].user-dn-patterns","uid={0},ou=people"));
-        ldapAuthenticationProviderConfigurer.groupSearchBase(environment.getProperty("security.providers[" + providerIdx + "].group-search-base","ou=groups"));
-        ldapAuthenticationProviderConfigurer.contextSource(ldapContextSource);
+        // Create LDAP context
+        DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(
+                environment.getProperty("security.providers[" + providerIdx + "].context-source-url"));
+        contextSource.setBase(environment.getProperty("security.providers[" + providerIdx + "].context-source-base"));
+        contextSource.setUserDn(environment.getProperty("security.providers[" + providerIdx + "].context-source-username"));
+        contextSource.setPassword(environment.getProperty("security.providers[" + providerIdx + "].context-source-password"));
+        contextSource.afterPropertiesSet();
+
+        String userDNPattern = environment.getProperty("security.providers[" + providerIdx + "].user-dn-pattern");
+        if (userDNPattern == null || userDNPattern.isEmpty()) {
+            ldapAuthenticationProviderConfigurer
+                    .userSearchBase(environment.getProperty("security.providers[" + providerIdx + "].user-search-base"))
+                    .userSearchFilter(environment.getProperty("security.providers[" + providerIdx + "].user-search-filter"));
+        } else {
+            ldapAuthenticationProviderConfigurer.userDnPatterns(userDNPattern);
+        }
+
+        ldapAuthenticationProviderConfigurer
+                .groupSearchBase(environment.getProperty("security.providers[" + providerIdx + "].group-search-base", ""))
+                .groupSearchFilter(environment.getProperty("security.providers[" + providerIdx + "].group-search-filter", "(uniqueMember={0})"))
+                .groupRoleAttribute(environment.getProperty("security.providers[" + providerIdx + "].group-role-attribute", "cn"))
+                .rolePrefix("");
+
+        DefaultLdapAuthoritiesPopulator populator = new DefaultLdapAuthoritiesPopulator(contextSource,
+                environment.getProperty("security.providers[" + providerIdx + "].group-search-base", ""));
+        populator.setRolePrefix("");
+
+        ldapAuthenticationProviderConfigurer.ldapAuthoritiesPopulator(populator).contextSource(contextSource);
 
         // set up roles mapper
-        if (environment.getProperty("security.providers[" + providerIdx + "].role-mapping", boolean.class, false)) {
+        if (environment.getProperty("security.providers[" + providerIdx + "].role-mapping", Boolean.class, false)) {
             UserDetailsContextPropertiesMapper userDetailsContextPropertiesMapper = new UserDetailsContextPropertiesMapper();
             userDetailsContextPropertiesMapper.setAuthenticationProviderId(providerIdx);
             userDetailsContextPropertiesMapper.setEnvironment(environment);
