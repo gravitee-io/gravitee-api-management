@@ -16,27 +16,27 @@
 
 -->
 <md-dialog aria-label="Login">
-    <md-dialog-content>
-        <div class="md-padding">
-            <form name="formUser" ng-submit="login()" class="gravitee-login-container" style="padding-top:20px;">
-                <div layout="column">
-                    <md-input-container class="md-icon-float">
-                        <label>Login</label>
-                        <input ng-model="user.username" type="text" ng-required="true" autofocus>
-                    </md-input-container>
+  <md-dialog-content>
+    <div class="md-padding">
+      <form name="formUser" ng-submit="login()" class="gravitee-login-container" style="padding-top:20px;">
+        <div layout="column">
+          <md-input-container class="md-icon-float">
+            <label>Login</label>
+            <input ng-model="user.username" type="text" ng-required="true" autofocus>
+          </md-input-container>
 
-                    <md-input-container class="md-icon-float">
-                        <label>Password</label>
-                        <input ng-model="user.password" type="password" ng-required="true">
-                    </md-input-container>
-                </div>
-
-                <div layout="column" flex>
-                    <md-button type="submit" class="md-raised md-primary" style="text-align:center;">
-                        Login
-                    </md-button>
-                </div>
-            </form>
+          <md-input-container class="md-icon-float">
+            <label>Password</label>
+            <input ng-model="user.password" type="password" ng-required="true">
+          </md-input-container>
         </div>
-    </md-dialog-content>
+
+        <div layout="column" flex>
+          <md-button type="submit" class="md-raised md-primary" style="text-align:center;">
+            Login
+          </md-button>
+        </div>
+      </form>
+    </div>
+  </md-dialog-content>
 </md-dialog>

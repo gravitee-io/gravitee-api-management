@@ -36,15 +36,16 @@
     <!-- endinject -->
     <!-- endbuild -->
   </head>
-  <body ng-cloak>
+  <body ng-cloak layout="column">
     <!--[if lt IE 10]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
-    <div style="height: 100%;width: 100%;" layout="row" flex="">
-      <md-progress-linear ng-show="isLoading" md-mode="buffer" value="{{progressValue}}" md-buffer-value="{{progressValue}}"></md-progress-linear>
-      <gravitee-sidenav style="height: 100%;z-index: 20"></gravitee-sidenav>
-      <div ui-view style="height: 100%;width: 100%;overflow-y: auto;"></div>
+    <md-progress-linear ng-show="isLoading" md-mode="buffer" value="{{progressValue}}" md-buffer-value="{{progressValue}}"></md-progress-linear>
+
+    <div layout="row" flex>
+      <gravitee-sidenav></gravitee-sidenav>
+      <md-content ui-view flex></md-content>
     </div>
 
     <script src="bower_components/jquery/dist/jquery.min.js" type="text/javascript"></script>

@@ -15,8 +15,8 @@
     limitations under the License.
 
 -->
-<div>
-  <md-card class="no-box-shadow"nng-if="!isLoading && (apisCtrl.apis.length > 0 || (apisCtrl.apis.length == 0 && !apisCtrl.isAPIsHome))">
+<div ng-if="!isLoading && apisCtrl.apis.length > 0">
+  <md-card class="no-box-shadow">
     <md-card-header>
       <md-card-header-text layout="row" layout-align="center">
         <div class="input-group apis-header-filter" flex="60" flex-xs="100">
@@ -62,13 +62,10 @@
       		</a>
       	</div>
       </div>
-      <div ng-if="apisCtrl.apis.length === 0"
-          ng-include="'app/api/apisEmptyMode.html'">
-      </div>
     </md-card-content>
   </md-card>
 </div>
 
-<div ng-if="!isLoading && apisCtrl.apis.length === 0 && apisCtrl.isAPIsHome"
+<div ng-if="!isLoading && apisCtrl.apis.length === 0"
   ng-include="'app/api/apisEmptyMode.html'">
 </div>

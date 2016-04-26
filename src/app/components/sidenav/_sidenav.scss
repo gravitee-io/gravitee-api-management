@@ -6,9 +6,7 @@
 
 md-sidenav {
   @include min-max-width($sidenavWidth);
-
   background-color: $bgColor;
-  height: 100%;
 }
 
 .md-sidenav-min {
@@ -97,8 +95,6 @@ md-sidenav.md-sidenav-theme {
 }
 
 .sidenav-footer {
-  position: absolute;
-  bottom: 0;
   height: $sidenavFooterHeight;
   width: 100%;
 
@@ -114,7 +110,7 @@ md-sidenav.md-sidenav-theme {
   hr {
     width: 90%;
   }
-  
+
   .md-button.sidenav-toggle {
     position: absolute;
     right: -15px;
@@ -125,17 +121,17 @@ md-sidenav.md-sidenav-theme {
     line-height: 18px !important;
     background-color: #006CAB;
   }
-  
+
   .md-button.sidenav-toggle:hover, .md-button.sidenav-toggle:focus {
     background-color: #006CAB;
   }
-  
+
   ng-md-icon.sidenav-toggle-icon {
     top: 1px;
     right: 4px;
     font-weight: bold;
   }
-  
+
   md-list-item:last-child {
     margin-top: -10px;
   }
