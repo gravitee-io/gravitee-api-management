@@ -89,8 +89,8 @@ management:
 analytics:
   type: elasticsearch
   elasticsearch:
-    host: ${ds.elastic.host}
-    port: ${ds.elastic.port}
+    hosts:
+      - ${ds.elastic.host}:${ds.elastic.port}
 
 # Authentication and identity sources
 # Users can have following roles (authorities):
