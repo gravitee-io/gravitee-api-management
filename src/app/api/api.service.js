@@ -48,7 +48,7 @@ class ApiService {
   update(api) {
     return this.$http.put(this.apisURL + api.id,
       {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private,
-        'visibility': api.visibility, 'name': api.name, 'monitoring': api.monitoring, 'properties': api.properties, 'tags': api.tags,
+        'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
         'picture': api.picture
       }
     );

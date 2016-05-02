@@ -31,7 +31,8 @@ import ApiAnalyticsController from './api/admin/analytics.controller';
 import ApiMembersController from './api/admin/members.controller';
 import ApiPoliciesController from './api/admin/policies/policies.controller';
 import AddPoliciesPathController from './api/admin/policies/addPoliciesPath.controller';
-import ApiMonitoringController from './api/admin/monitoring.controller';
+import ApiHealthCheckController from './api/admin/healthcheck/healthcheck.controller';
+import DialogAssertionInformationController from './api/admin/healthcheck/healthcheck-assertion-dialog.controller';
 import ApiPropertiesController from './api/admin/properties/properties.controller';
 import ApiKeysController from './api/admin/apikeys/apikeys.controller';
 import ApiEventsController from './api/admin/events/apiEvents.controller';
@@ -76,7 +77,7 @@ import InstanceEnvironmentController from './instances/details/environment/insta
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
     'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
-    'ab-base64',  'ngFileUpload'])
+    'ab-base64',  'ngFileUpload', 'n3-pie-chart'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -104,7 +105,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('ApiPortalController', ApiPortalController)
   .controller('ApiPortalPageController', ApiPortalPageController)
   .controller('ApiGeneralController', ApiGeneralController)
-  .controller('ApiMonitoringController', ApiMonitoringController)
+  .controller('ApiHealthCheckController', ApiHealthCheckController)
+  .controller('DialogAssertionInformationController', DialogAssertionInformationController)
   .controller('ApiPropertiesController', ApiPropertiesController)
   .controller('ApiKeysController', ApiKeysController)
   .controller('ApiEventsController', ApiEventsController)
