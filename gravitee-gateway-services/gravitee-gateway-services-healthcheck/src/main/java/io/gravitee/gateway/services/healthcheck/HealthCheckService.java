@@ -19,7 +19,7 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.definition.model.Monitoring;
+import io.gravitee.definition.model.services.healthcheck.HealthCheck;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
@@ -80,7 +80,7 @@ public class HealthCheckService extends AbstractService implements EventListener
 
     @Override
     protected String name() {
-        return "Endpoint health-check service";
+        return "Health-check service";
     }
 
     @Override
@@ -103,14 +103,14 @@ public class HealthCheckService extends AbstractService implements EventListener
 
     private void startHealthCheck(Api api) {
         if (api.isEnabled()) {
-            Monitoring monitoring = api.getMonitoring();
-            if (monitoring != null && monitoring.isEnabled()) {
-                EndpointMonitor monitor = new EndpointMonitor(api);
+            HealthCheck healthCheck = api.getServices().get(HealthCheck.class);
+            if (healthCheck != null && healthCheck.isEnabled()) {
+                EndpointHealthCheck monitor = new EndpointHealthCheck(api);
                 monitor.setReporterService(reporterService);
 
-                LOGGER.info("Add a scheduled task to health-check endpoints each {} {} ", monitoring.getInterval(), monitoring.getUnit());
+                LOGGER.info("Add a scheduled task to health-check endpoints each {} {} ", healthCheck.getInterval(), healthCheck.getUnit());
                 ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
-                        monitor, 0, monitoring.getInterval(), monitoring.getUnit());
+                        monitor, 0, healthCheck.getInterval(), healthCheck.getUnit());
 
                 scheduledTasks.put(api, scheduledFuture);
             } else {
