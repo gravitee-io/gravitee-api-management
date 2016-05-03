@@ -16,40 +16,29 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.InstanceEntity;
-import io.gravitee.management.service.InstanceService;
+import io.gravitee.management.model.monitoring.MonitoringData;
+import io.gravitee.management.service.MonitoringService;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
-import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  * @author GraviteeSource Team
  */
-public class InstanceResource extends AbstractResource {
-
-    @Context
-    private ResourceContext resourceContext;
+public class MonitoringResource extends AbstractResource {
 
     @Inject
-    private InstanceService instanceService;
+    private MonitoringService monitoringService;
 
-    @PathParam("instance")
-    private String instance;
+    @PathParam("gatewayId")
+    private String gatewayId;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public InstanceEntity get() {
-        return instanceService.findById(this.instance);
-    }
-
-    @Path("monitoring/{gatewayId}")
-    public MonitoringResource getMonitoringResource() {
-        return resourceContext.getResource(MonitoringResource.class);
+    public MonitoringData monitoring() {
+        return monitoringService.findMonitoring(this.gatewayId);
     }
 }
