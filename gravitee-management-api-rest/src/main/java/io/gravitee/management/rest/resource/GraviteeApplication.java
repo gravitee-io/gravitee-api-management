@@ -44,6 +44,7 @@ public class GraviteeApplication extends ResourceConfig {
         register(BadRequestExceptionMapper.class);
 
         register(CorsResponseFilter.class);
+        register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);
 
