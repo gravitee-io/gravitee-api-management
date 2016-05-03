@@ -365,6 +365,21 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         label: 'Environment',
         icon: 'computer'
       }
+    })
+    .state('instances.detail.monitoring', {
+      url: '/monitoring',
+      templateUrl: 'app/instances/details/monitoring/instanceMonitoring.html',
+      controller: 'InstanceMonitoringController',
+      controllerAs: 'instanceMonitoringCtrl',
+      menu: {
+        label: 'Monitoring',
+        icon: 'graphic_eq'
+      },
+      resolve: {
+        resolvedMonitoringData: function ($stateParams, InstancesService, resolvedInstance) {
+          return InstancesService.getMonitoringData($stateParams.id, resolvedInstance.data.id);
+        }
+      }
     });
 
   $urlRouterProvider.otherwise('/');

@@ -1,0 +1,18 @@
+{
+  "name": "humanize",
+  "version": "0.0.9",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/taijinlee/humanize"
+  },
+  "homepage": "https://github.com/taijinlee/humanize",
+  "_release": "0.0.9",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.0.9",
+    "commit": "81eac6c53289951a084001674e8bedebdafcc474"
+  },
+  "_source": "https://github.com/taijinlee/humanize.git",
+  "_target": "~0.0.9",
+  "_originalSource": "humanize"
+}

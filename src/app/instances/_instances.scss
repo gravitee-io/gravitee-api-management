@@ -30,3 +30,26 @@
   color: red !important;
   text-transform: capitalize;
 }
+
+.gravitee-monitoring-icon-title {
+  top: 22px;
+  margin-right: 10px;
+}
+
+.gravitee-monitoring-gauge {
+  position: relative;
+  width: 80%;
+  padding-bottom: 30px;
+}
+
+.gravitee-monitoring-indicator-value {
+  font-size: 30px;
+  line-height: 30px;
+  color: #1f77b4;
+}
+
+.gravitee-pie-chart-title {
+  color: #1f77b4;
+  font-size: 15px;
+  padding-top: 50px;
+}

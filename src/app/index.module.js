@@ -73,11 +73,12 @@ import InstancesService from './instances/instances.service';
 import InstancesController from './instances/instances.controller';
 import InstanceController from './instances/details/instance.controller';
 import InstanceEnvironmentController from './instances/details/environment/instanceEnvironment.controller';
+import InstanceMonitoringController from './instances/details/monitoring/instanceMonitoring.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
     'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
-    'ab-base64',  'ngFileUpload', 'n3-pie-chart'])
+    'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'angularMoment'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -134,6 +135,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('InstancesController', InstancesController)
   .controller('InstanceController', InstanceController)
   .controller('InstanceEnvironmentController', InstanceEnvironmentController)
+  .controller('InstanceMonitoringController', InstanceMonitoringController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)

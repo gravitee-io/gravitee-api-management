@@ -1,0 +1,33 @@
+{
+  "name": "humanize",
+  "description": "Javascript string formatter for human readability",
+  "homepage": "https://github.com/taijinlee/humanize",
+  "keywords": [
+    "util",
+    "client",
+    "browser"
+  ],
+  "author": {
+    "name": "Tai-Jin Lee",
+    "email": "taijin@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/taijinlee/humanize.git"
+  },
+  "main": "humanize.js",
+  "version": "0.0.9",
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "1.0.3",
+    "should": "0.6.3",
+    "jshint": "0.7.1"
+  },
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  },
+  "scripts": {
+    "test": "./node_modules/jshint/bin/hint humanize.js; find specs -type f -a -name *.spec.js -exec ./node_modules/mocha/bin/mocha --globals requirejsVars -R list --require should {} \\;"
+  }
+}

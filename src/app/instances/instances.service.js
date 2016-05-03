@@ -28,6 +28,10 @@ class InstancesService {
   get(id) {
     return this.$http.get(this.instancesURL + id);
   }
+
+  getMonitoringData(id, gatewayId) {
+    return this.$http.get(this.instancesURL + id + '/monitoring/' + gatewayId);
+  }
 }
 
 export default InstancesService;

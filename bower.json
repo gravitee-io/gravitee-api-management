@@ -19,7 +19,6 @@
     "api-console": "~2.0.4",
     "angular-material-icons": "~0.7.0",
     "Read-More-Directive": "git@github.com:andoulla/Read-More-Directive.git",
-    "moment": "momentjs#~2.11.1",
     "dragular": "^4.1.0",
     "angular-schema-form": "~0.8.12",
     "ngclipboard": "~1.1.0",
@@ -32,12 +31,15 @@
     "ng-file-upload": "^12.0.4",
     "js-yaml": "^3.5.5",
     "pie-chart": "n3-charts.pie-chart#^1.0.0",
-    "d3": "3.1.10"
+    "d3": "3.1.10",
+    "angular-moment": "^0.10.3",
+    "angular-animate": "^1.5.5"
   },
   "resolutions": {
-    "angular": "~1.4.9",
     "angular-material": "^1.0.0",
-    "jquery": "~2.2.0"
+    "jquery": "~2.2.0",
+    "moment": "~2.11.1",
+    "angular": "^1"
   },
   "overrides": {
     "api-console": {

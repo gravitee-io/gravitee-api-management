@@ -26,8 +26,8 @@
         <md-content flex class="gravitee-api-header-description">
           <div class="gravitee-api-header-read-more" ng-bind="instanceCtrl.instance.version"></div>
         </md-content>
-        <div ng-if="instance.tags && instance.tags.length > 0">Tags: {{instance.tags}}</div>
-        <div ng-if="!instance.tags || instance.tags.length === 0">No tag configured</div>
+        <div ng-if="instanceCtrl.instance.tags && instanceCtrl.instance.tags.length > 0">Tags: {{instanceCtrl.instance.tags}}</div>
+        <div ng-if="!instanceCtrl.instance.tags || instanceCtrl.instance.tags.length === 0">No tag configured</div>
       </div>
     </div>
   </div>

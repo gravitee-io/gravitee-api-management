@@ -1,5 +1,4 @@
 import isArray from '../utils/is-array';
-import isUndefined from '../utils/is-undefined';
 import compareArrays from '../utils/compare-arrays';
 import { Locale } from './constructor';
 
@@ -41,7 +40,7 @@ function chooseLocale(names) {
 function loadLocale(name) {
     var oldLocale = null;
     // TODO: Find a better way to register and load all the locales in Node
-    if (!locales[name] && (typeof module !== 'undefined') &&
+    if (!locales[name] && typeof module !== 'undefined' &&
             module && module.exports) {
         try {
             oldLocale = globalLocale._abbr;
@@ -60,7 +59,7 @@ function loadLocale(name) {
 export function getSetGlobalLocale (key, values) {
     var data;
     if (key) {
-        if (isUndefined(values)) {
+        if (typeof values === 'undefined') {
             data = getLocale(key);
         }
         else {

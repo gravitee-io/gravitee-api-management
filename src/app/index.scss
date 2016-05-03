@@ -158,6 +158,13 @@ gravitee-sidenav {
   z-index: 20;
 }
 
+.gravitee-pie-chart-container {
+  height: 150px;
+  margin: 0 auto;
+  text-align: center;
+  width: 150px;
+}
+
 /**
  *  Do not remove this comments bellow. It's the markers used by gulp-inject to inject
  *  all your sass files automatically

@@ -1,0 +1,26 @@
+{
+  "name": "angularjs-humanize",
+  "version": "0.0.1",
+  "main": "src/angular-humanize.js",
+  "description": "Angular filter for rendering human-readable data",
+  "license": "MIT",
+  "dependencies": {
+    "angular": "~1.2.7",
+    "humanize": "~0.0.9"
+  },
+  "devDependencies": {
+    "angular-mocks": "~1.2.7",
+    "jasmine": "~1.3.1"
+  },
+  "homepage": "https://github.com/saymedia/angularjs-humanize",
+  "_release": "0.0.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.0.1",
+    "commit": "84b0967fce7b719dee85dc45291f391a71d2f65b"
+  },
+  "_source": "https://github.com/saymedia/angularjs-humanize.git",
+  "_target": "^0.0.1",
+  "_originalSource": "angularjs-humanize",
+  "_direct": true
+}

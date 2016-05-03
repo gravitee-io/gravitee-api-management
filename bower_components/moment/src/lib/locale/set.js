@@ -1,10 +1,8 @@
-import isFunction from '../utils/is-function';
-
 export function set (config) {
     var prop, i;
     for (i in config) {
         prop = config[i];
-        if (isFunction(prop)) {
+        if (typeof prop === 'function') {
             this[i] = prop;
         } else {
             this['_' + i] = prop;

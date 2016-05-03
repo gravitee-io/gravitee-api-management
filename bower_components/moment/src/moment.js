@@ -1,17 +1,16 @@
 //! moment.js
-//! version : 2.11.1
+//! version : 2.10.6
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
 
 import { hooks as moment, setHookCallback } from './lib/utils/hooks';
 
-moment.version = '2.11.1';
+moment.version = '2.10.6';
 
 import {
     min,
     max,
-    now,
     isMoment,
     momentPrototype as fn,
     createUTC       as utc,
@@ -47,7 +46,6 @@ setHookCallback(local);
 moment.fn                    = fn;
 moment.min                   = min;
 moment.max                   = max;
-moment.now                   = now;
 moment.utc                   = utc;
 moment.unix                  = unix;
 moment.months                = months;
@@ -66,6 +64,5 @@ moment.defineLocale          = defineLocale;
 moment.weekdaysShort         = weekdaysShort;
 moment.normalizeUnits        = normalizeUnits;
 moment.relativeTimeThreshold = relativeTimeThreshold;
-moment.prototype             = fn;
 
 export default moment;
