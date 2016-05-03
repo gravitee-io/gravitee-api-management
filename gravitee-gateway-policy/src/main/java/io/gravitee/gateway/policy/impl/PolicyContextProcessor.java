@@ -13,30 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy.impl.spring;
+package io.gravitee.gateway.policy.impl;
 
-import io.gravitee.policy.api.*;
-import org.springframework.context.ApplicationContext;
+import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.policy.api.PolicyContext;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public class SpringPolicyContextProvider implements PolicyContextProvider {
+public interface PolicyContextProcessor {
 
-    private final ApplicationContext applicationContext;
-
-    public SpringPolicyContextProvider(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
-
-    @Override
-    public Object getNativeProvider() {
-        return applicationContext;
-    }
-
-    @Override
-    public <T> T getComponent(Class<T> componentClass) {
-        return applicationContext.getBean(componentClass);
-    }
+    void process(PolicyContext policyContext, Reactable reactable) throws Exception;
 }
