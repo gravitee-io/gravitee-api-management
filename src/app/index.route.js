@@ -192,14 +192,14 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       controller: 'PageController',
       controllerAs: 'pageCtrl'
     })
-    .state('apis.admin.monitoring', {
-      url: '/monitoring',
-      templateUrl: 'app/api/admin/apiMonitoring.html',
-      controller: 'ApiMonitoringController',
-      controllerAs: 'monitoringCtrl',
+    .state('apis.admin.healthcheck', {
+      url: '/healthcheck',
+      templateUrl: 'app/api/admin/healthcheck/healthcheck.html',
+      controller: 'ApiHealthCheckController',
+      controllerAs: 'healthCheckCtrl',
       menu: {
-        label: 'Monitoring',
-        icon: 'computer'
+        label: 'Health-check',
+        icon: 'favorite'
       }
     })
     .state('apis.admin.history', {

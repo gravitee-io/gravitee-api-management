@@ -1,0 +1,20 @@
+{
+  "name": "pie-chart",
+  "version": "1.0.0",
+  "homepage": "https://github.com/n3-charts/pie-chart",
+  "licenses": {
+    "type": "MIT",
+    "url": "https://github.com/n3-charts/pie-chart/blob/master/LICENCE"
+  },
+  "bugs": "https://github.com/n3-charts/pie-chart/issues",
+  "devDependencies": {
+    "matchdep": "~0.1.2",
+    "grunt": "~0.4.1",
+    "grunt-karma": "~0.6.2",
+    "grunt-contrib-watch": "~0.4.0",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-jshint": "~0.4.3",
+    "grunt-contrib-uglify": "~0.2.0",
+    "karma-coverage": "~0.1.0"
+  }
+}

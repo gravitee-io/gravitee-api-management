@@ -1,0 +1,38 @@
+body { 
+  margin: 0 auto;
+}
+
+.un-10 {
+  height: 100px;
+  border: 1px solid grey;
+  float: left;
+  width: 100px;
+}
+
+.un-20 {
+  height: 200px;
+  border: 1px solid grey;
+  float: left;
+  width: 200px!important;
+}
+
+.un-30 {
+  height: 300px;
+  border: 1px solid grey;
+  float: left;
+  width: 300px!important;
+}
+
+.un-40 {
+  height: 400px;
+  border: 1px solid grey;
+  float: left;
+  width: 400px!important;
+}
+
+.un-50 {
+  height: 500px;
+  border: 1px solid grey;
+  float: left;
+  width: 500px!important;
+}

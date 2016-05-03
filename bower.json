@@ -30,7 +30,9 @@
     "jsdiff": "~2.2.1",
     "angular-utf8-base64": "~0.0.5",
     "ng-file-upload": "^12.0.4",
-    "js-yaml": "^3.5.5"
+    "js-yaml": "^3.5.5",
+    "pie-chart": "n3-charts.pie-chart#^1.0.0",
+    "d3": "3.1.10"
   },
   "resolutions": {
     "angular": "~1.4.9",
@@ -54,6 +56,16 @@
         "./dist/scripts/swagger-ui.js",
         "./dist/css/swagger-ui.min.css",
         "./dist/scripts/modules/swagger-yaml-parser.min.js"
+      ]
+    },
+    "d3": {
+      "main": [
+        "./d3.min.js"
+      ]
+    },
+    "pie-chart": {
+      "main": [
+        "./dist/pie-chart.js"
       ]
     }
   }

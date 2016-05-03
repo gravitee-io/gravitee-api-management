@@ -1,0 +1,25 @@
+<md-dialog aria-label="Health-check Assertion" ng-cloak>
+  <form>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Health-check Assertion</h2>
+        <span flex></span>
+        <md-button type="button" class="md-icon-button" aria-label="Close dialog" ng-click="ctrl.cancel()">X</md-button>
+      </div>
+    </md-toolbar>
+    <md-dialog-content>
+      <div class="md-dialog-content">
+        <h3>How to write assertion</h3>
+        <p>
+          Example 1: Check the status of the HTTP response<br>
+          <code>#response.status == 200</code>
+        </p>
+        <br>
+        <p>
+          Example 2: Check the JSON content of the response<br>
+          <code>#jsonPath(#response.content, '$.status') == 'green'</code>
+        </p>
+      </div>
+    </md-dialog-content>
+  </form>
+</md-dialog>
