@@ -25,16 +25,12 @@ class ApiHealthCheckController {
     this.$rootScope = $rootScope;
     this.api = resolvedApi.data;
 
-    this.healthcheck = this.api.services['health-check'];
+    this.healthcheck = this.api.services && this.api.services['health-check'];
 
     this.timeUnits = [ 'SECONDS', 'MINUTES', 'HOURS' ];
     this.httpMethods = [ 'GET', 'POST', 'PUT' ];
 
-    this.data = [
-      {label: "Health", value: 78, color: "#d62728", suffix: "%"}
-    ];
-
-    this.options = {thickness: 5, mode: "gauge", total: 100};
+    this.hasData = false;
 
     this.analytics = this.analytics();
 
@@ -140,15 +136,16 @@ class ApiHealthCheckController {
     var timeframe = _.find(this.analytics.timeframes, function(timeframe) {
       return timeframe.id === timeframeId;
     });
-
-    var now = Date.now();
+    var now = moment();
 
     this.$scope.analytics = {
       timeframe: timeframe,
       range: {
         interval: timeframe.interval,
         from: now - timeframe.range,
-        to: now
+        to: now,
+        fromMoment: moment(now - timeframe.range).format("dddd, MMMM Do YYYY, h:mm:ss a"),
+        toMoment: moment(now).format("dddd, MMMM Do YYYY, h:mm:ss a")
       }
     };
   }
@@ -178,7 +175,7 @@ class ApiHealthCheckController {
           enabled: false
         },
         title: {
-          text: 'Health status'
+          text: 'Status'
         },
         subtitle: {
           text: ''
@@ -196,7 +193,7 @@ class ApiHealthCheckController {
             enabled: false
           }
         },
-        yAxis: {title: {text: 'Health'}},
+        yAxis: {title: {text: '% Health'}},
         tooltip: {
           pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.percentage:.1f}%</b><br/>',
           shared: true
@@ -214,6 +211,8 @@ class ApiHealthCheckController {
         },
         series: []
       };
+
+      this.hasData = !(_.isEmpty(response.data.buckets));
 
       // Push data for hits by status
       for (var property in response.data.buckets) {

@@ -16,47 +16,68 @@
 
 -->
 
-<div layout="column" ng-cloak>
+<div layout="column">
   <section layout="row" flex>
     <md-content flex layout-padding>
       <div layout="row">
-        <h4>Health-check</h4>
+        <h4>Health-check
+          <ng-md-icon ng-if="healthCheckCtrl.healthcheck.enabled" icon="play_circle_outline" style="fill: green;"></ng-md-icon>
+          <ng-md-icon ng-if="!healthCheckCtrl.healthcheck.enabled" icon="pause_circle_outline" style="fill: red;"></ng-md-icon>
+        </h4>
+        <span flex></span>
+        <md-content style="background: none">
+          <label style="color: #b1bdc5;">Timeframe:</label>
+          <md-menu>
+            <md-button aria-label="Timeframe: " ng-click="healthCheckCtrl.openMenu($mdOpenMenu, $event)" style="color: #b1bdc5;">
+              {{analytics.timeframe.title}}<ng-md-icon icon="expand_more" style="fill: #b1bdc5;"></ng-md-icon>
+            </md-button>
+            <md-menu-content>
+              <md-menu-item ng-repeat="timeframe in healthCheckCtrl.analytics.timeframes">
+                <md-button ng-click="healthCheckCtrl.updateTimeframe(timeframe.id)">
+                  {{timeframe.title}}
+                </md-button>
+              </md-menu-item>
+
+              <md-menu-divider>&nbsp;</md-menu-divider>
+
+              <md-menu-item>
+                <md-list layout="column" class="inset">
+                  <h6>CUSTOM TIMEFRAME</h6>
+                  <md-list layout="row" class="inset">
+                    <md-content>
+                      <div><md-datepicker ng-model="from" md-placeholder="Enter date"></md-datepicker></div>
+                    </md-content>
+                    <md-content>
+                      <div><md-datepicker ng-model="to" md-placeholder="Enter date"></md-datepicker></div>
+                    </md-content>
+                    <md-content>
+                      <md-button class="md-fab md-mini" aria-label="Validate custom timeframe">
+                        <ng-md-icon icon="restore"></ng-md-icon>
+                      </md-button>
+                    </md-content>
+                  </md-list>
+                </md-list>
+              </md-menu-item>
+            </md-menu-content>
+          </md-menu>
+        </md-content>
         <span flex></span>
         <ng-md-icon icon="settings" ng-click="healthCheckCtrl.toggleRight()"></ng-md-icon>
       </div>
 
-      <div layout="row" ng-switch on="healthCheckCtrl.healthcheck.enabled">
-        Actually, health-check is
-        <span ng-switch-when="true"> Active</span>
-        <span ng-switch-when="false"> Unactive</span>
-
-
+      <div layout="row">
+        Show data from <code>{{analytics.range.fromMoment}}</code> to <code>{{analytics.range.toMoment}}</code> with a range
+        of <code>{{analytics.range.interval}}</code> ms ({{analytics.timeframe.title | lowercase}}).
       </div>
 
-      <div layout="column" layout-fill layout-align="top center"  style="height: 100px; width: 100px;border: 1px solid #CECECE;box-shadow: 6px 6px 10px #DDD;margin-bottom: 30px;">
-        <pie-chart data="healthCheckCtrl.data" options="healthCheckCtrl.options"></pie-chart>
-      </div>
-
-      <div layout="column" layout-fill layout-align="top center">
+      <div layout="row" layout-fill layout-align="top center">
         <md-content flex="70">
-          <md-content style="background: none">
-            <label style="color: #b1bdc5;">Timeframe:</label>
-            <md-menu>
-              <md-button aria-label="Timeframe: " ng-click="healthCheckCtrl.openMenu($mdOpenMenu, $event)" style="color: #b1bdc5;">
-                {{analytics.timeframe.title}}<ng-md-icon icon="expand_more" style="fill: #b1bdc5;"></ng-md-icon>
-              </md-button>
-              <md-menu-content>
-                <md-menu-item ng-repeat="timeframe in healthCheckCtrl.analytics.timeframes">
-                  <md-button ng-click="healthCheckCtrl.updateTimeframe(timeframe.id)">
-                    {{timeframe.title}}
-                  </md-button>
-                </md-menu-item>
-              </md-menu-content>
-            </md-menu>
-          </md-content>
-
-          <md-card-content>
+          <md-card-content ng-if="healthCheckCtrl.hasData">
             <chart config="chartConfig"></chart>
+          </md-card-content>
+
+          <md-card-content ng-if="!healthCheckCtrl.hasData">
+            <b>No data in the specified interval !</b>
           </md-card-content>
         </md-content>
       </div>
@@ -81,7 +102,7 @@
         <form name="formApiHealthCheck" ng-submit="healthCheckCtrl.update()" novalidate>
 
           <h4>Frequency</h4>
-          <div layout="row" layout-sm="column" flex="80">
+          <div layout="row" layout-sm="column">
             <md-input-container class="md-block" flex-gt-xs>
               <label>Interval</label>
               <input required ng-model="healthCheckCtrl.healthcheck.interval" md-autofocus type="number" min="1" ng-required="true">
@@ -102,7 +123,7 @@
           <br>
 
           <h4>Request</h4>
-          <div layout="row" layout-sm="column" flex="80">
+          <div layout="row" layout-sm="column">
             <md-input-container class="md-block" flex-gt-sm>
               <label>URI</label>
               <input ng-model="healthCheckCtrl.healthcheck.request.uri" type="text" ng-required="true">
@@ -120,7 +141,7 @@
             </md-input-container>
           </div>
 
-          <div layout="row" layout-sm="column" flex="80">
+          <div layout="row" layout-sm="column">
             <md-input-container class="md-block" flex-gt-sm>
               <label>Request Body</label>
               <textarea ng-model="healthCheckCtrl.healthcheck.request.body" md-maxlength="1000" rows="5"
@@ -129,7 +150,7 @@
             </md-input-container>
           </div>
 
-          <div layout="column" layout-sm="column" flex="80">
+          <div layout="column" layout-sm="column">
             <h5 style="color: grey;">HTTP Headers
               <md-button class="md-icon-button" aria-label="Add HTTP header" ng-click="healthCheckCtrl.addHTTPHeader()">
                 <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5;"></ng-md-icon>
@@ -165,7 +186,7 @@
               <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5;"></ng-md-icon>
             </md-button>
           </h4>
-          <div layout="column" layout-sm="column" flex="80">
+          <div layout="column" layout-sm="column">
             <div layout="row" layout-sm="column" ng-repeat="assertion in healthCheckCtrl.healthcheck.expectation.assertions track by $index">
               <md-button class="md-icon-button" aria-label="Delete assertion" ng-click="healthCheckCtrl.removeAssertion($index)">
                 <ng-md-icon icon="remove_circle_outline" style="fill: #b1bdc5;"></ng-md-icon>
