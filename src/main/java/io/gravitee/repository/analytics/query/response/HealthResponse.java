@@ -24,7 +24,7 @@ public class HealthResponse implements Response {
 
     private long [] timestamps;
 
-    private Map<Integer, long[]> buckets;
+    private Map<Boolean, long[]> buckets;
 
     public long [] timestamps() {
         return timestamps;
@@ -34,11 +34,11 @@ public class HealthResponse implements Response {
         this.timestamps = timestamps;
     }
 
-    public Map<Integer, long[]> buckets() {
+    public Map<Boolean, long[]> buckets() {
         return buckets;
     }
 
-    public void buckets(Map<Integer, long[]> buckets) {
+    public void buckets(Map<Boolean, long[]> buckets) {
         this.buckets = buckets;
     }
 }
