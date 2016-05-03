@@ -15,9 +15,12 @@
  */
 package io.gravitee.gateway.handlers.api.definition;
 
+import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.reactor.Reactable;
 
-import java.util.Date;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -52,11 +55,34 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
 
     @Override
     public String contextPath() {
-        return this.getProxy().getContextPath();
+        return getProxy().getContextPath();
     }
 
     @Override
     public boolean enabled() {
         return isEnabled();
+    }
+
+    @Override
+    public Set<Policy> dependencies() {
+        if (getPaths() == null)
+            return Collections.EMPTY_SET;
+
+        Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
+
+            getPaths().values()
+                    .forEach(path -> policies.addAll(
+                            path.getRules()
+                                    .stream()
+                                    .map(Rule::getPolicy)
+                                    .distinct()
+                                    .collect(Collectors.toSet())));
+
+        return policies;
+    }
+
+    @Override
+    public Map<String, Object> properties() {
+        return new HashMap(getProperties());
     }
 }

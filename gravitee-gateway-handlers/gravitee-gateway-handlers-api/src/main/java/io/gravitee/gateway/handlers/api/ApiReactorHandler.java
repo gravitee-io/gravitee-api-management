@@ -23,7 +23,6 @@ import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
@@ -34,22 +33,20 @@ import io.gravitee.gateway.el.http.EvaluableRequest;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.impl.ExecutionContextImpl;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.PolicyResolver;
 import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.policy.PolicyResolver;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
+import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -210,24 +207,12 @@ public class ApiReactorHandler extends AbstractReactorHandler {
 
     @Override
     public String contextPath() {
-        return api.getProxy().getContextPath() + '/';
+        return reactable().contextPath() + '/';
     }
 
     @Override
-    public Set<io.gravitee.definition.model.Policy> dependencies() {
-        Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
-
-        if (api.getPaths() != null) {
-            api.getPaths().values()
-                    .forEach(path -> policies.addAll(
-                            path.getRules()
-                                    .stream()
-                                    .map(Rule::getPolicy)
-                                    .distinct()
-                                    .collect(Collectors.toSet())));
-        }
-
-        return policies;
+    public Reactable reactable() {
+        return api;
     }
 
     private PolicyResolver getPolicyResolver() {
@@ -265,9 +250,5 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         sb.append("contextPath=").append(api.getProxy().getContextPath());
         sb.append('}');
         return sb.toString();
-    }
-
-    public Api getApi() {
-        return api;
     }
 }

@@ -16,15 +16,12 @@
 package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.definition.model.Policy;
+import io.gravitee.gateway.reactor.Reactable;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.ClassUtils;
-
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -37,22 +34,22 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
     private ClassLoader classLoader;
 
     @Override
-    public Set<Policy> dependencies() {
-        return Collections.emptySet();
+    public ClassLoader classloader() {
+        return (this.classLoader != null ? this.classLoader : ClassUtils.getDefaultClassLoader());
+    }
+
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
     }
 
     @Override
-    public ClassLoader classloader() {
-        return (this.classLoader != null ? this.classLoader : ClassUtils.getDefaultClassLoader());
+    public Reactable reactable() {
+        return null;
     }
 
     @Override
     public String contextPath() {
         return "";
-    }
-
-    public void setClassLoader(ClassLoader classLoader) {
-        this.classLoader = classLoader;
     }
 
     @Override

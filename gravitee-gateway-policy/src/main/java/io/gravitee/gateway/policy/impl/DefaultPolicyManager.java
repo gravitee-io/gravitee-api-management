@@ -110,7 +110,7 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
         PolicyClassLoaderFactory pclf = applicationContext.getBean(PolicyClassLoaderFactory.class);
         ReactorHandler rh = applicationContext.getBean(ReactorHandler.class);
 
-        Set<Policy> requiredPlugins = rh.dependencies();
+        Set<Policy> requiredPlugins = rh.reactable().dependencies();
 
         requiredPlugins.forEach(policy -> {
             final io.gravitee.plugin.policy.Policy policyPlugin = ppm.get(policy.getName());

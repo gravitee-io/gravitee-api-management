@@ -15,6 +15,11 @@
  */
 package io.gravitee.gateway.reactor;
 
+import io.gravitee.definition.model.Policy;
+
+import java.util.Map;
+import java.util.Set;
+
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
@@ -26,4 +31,8 @@ public interface Reactable<T> {
     String contextPath();
 
     boolean enabled();
+
+    Set<Policy> dependencies();
+
+    Map<String, Object> properties();
 }
