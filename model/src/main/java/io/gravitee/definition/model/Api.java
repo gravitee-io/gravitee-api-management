@@ -15,14 +15,16 @@
  */
 package io.gravitee.definition.model;
 
+import io.gravitee.definition.model.services.Services;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
- * @author Gravitee.io Team
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class Api {
 
@@ -34,7 +36,7 @@ public class Api {
 
     private Proxy proxy;
 
-    private Monitoring monitoring;
+    private Services services = new Services();
 
     private Map<String, Path> paths;
 
@@ -90,12 +92,12 @@ public class Api {
         this.properties = properties;
     }
 
-    public Monitoring getMonitoring() {
-        return monitoring;
+    public Services getServices() {
+        return services;
     }
 
-    public void setMonitoring(Monitoring monitoring) {
-        this.monitoring = monitoring;
+    public void setServices(Services services) {
+        this.services = services;
     }
 
     public Set<String> getTags() {

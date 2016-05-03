@@ -13,37 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson.datatype;
+package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public abstract class GraviteeModule extends SimpleModule {
+public abstract class Service {
 
-    private static final long serialVersionUID = 1L;
+    private final String name;
 
-    @SuppressWarnings("unchecked")
-    public GraviteeModule(String name) {
-        super(name, new Version(0, 1, 0, null, null, null));
+    private boolean enabled;
+
+    public Service(String name) {
+        this.name = name;
     }
 
-    @Override
-    public String getModuleName() {
-        // yes, will try to avoid duplicate registrations (if MapperFeature enabled)
-        return getClass().getSimpleName();
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override
     public boolean equals(Object o) {
-        return this == o;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Service service = (Service) o;
+        return Objects.equals(name, service.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

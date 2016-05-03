@@ -18,16 +18,22 @@ package io.gravitee.definition.jackson.datatype;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.gravitee.definition.jackson.datatype.api.ApiModule;
+import io.gravitee.definition.jackson.datatype.services.core.ServiceModule;
+import io.gravitee.definition.jackson.datatype.services.healthcheck.HealthCheckModule;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
- * @author Gravitee.io Team
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class GraviteeMapper extends ObjectMapper {
     private static final long serialVersionUID = 1L;
 
     public GraviteeMapper() {
-        registerModule(new GraviteeModule());
+        registerModule(new ApiModule());
+        registerModule(new ServiceModule());
+        registerModule(new HealthCheckModule());
+
         enable(SerializationFeature.INDENT_OUTPUT);
         enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
