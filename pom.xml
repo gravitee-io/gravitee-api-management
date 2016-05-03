@@ -34,11 +34,11 @@
 	<name>Gravitee IO - Management</name>
 
 	<properties>
-		<gravitee-common.version>0.7.0</gravitee-common.version>
-		<gravitee-definition.version>0.9.0</gravitee-definition.version>
+		<gravitee-common.version>0.8.0-SNAPSHOT</gravitee-common.version>
+		<gravitee-definition.version>0.10.0-SNAPSHOT</gravitee-definition.version>
 		<gravitee-plugin-core.version>0.10.0</gravitee-plugin-core.version>
 		<gravitee-plugin-policy.version>0.10.0</gravitee-plugin-policy.version>
-		<gravitee-repository.version>0.10.0</gravitee-repository.version>
+		<gravitee-repository.version>0.11.0-SNAPSHOT</gravitee-repository.version>
 		<gravitee-repository-elasticsearch.version>0.7.0-SNAPSHOT</gravitee-repository-elasticsearch.version>
 		<gravitee-repository-mongodb.version>0.9.0</gravitee-repository-mongodb.version>
 		<gravitee-repository-couchbase.version>0.1.0-SNAPSHOT</gravitee-repository-couchbase.version>

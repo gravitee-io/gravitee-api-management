@@ -24,13 +24,13 @@ public class HealthAnalytics {
 
     private long [] timestamps;
 
-    private Map<Integer, long[]> buckets;
+    private Map<Boolean, long[]> buckets;
 
-    public Map<Integer, long[]> getBuckets() {
+    public Map<Boolean, long[]> getBuckets() {
         return buckets;
     }
 
-    public void setBuckets(Map<Integer, long[]> buckets) {
+    public void setBuckets(Map<Boolean, long[]> buckets) {
         this.buckets = buckets;
     }
 

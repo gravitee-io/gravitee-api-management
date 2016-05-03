@@ -38,6 +38,10 @@
 			<groupId>io.gravitee.definition</groupId>
 			<artifactId>gravitee-definition-model</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>io.gravitee.definition</groupId>
+			<artifactId>gravitee-definition-jackson</artifactId>
+		</dependency>
 
 		<!-- Jackson dependencies -->
 		<dependency>

@@ -17,9 +17,9 @@ package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.Monitoring;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.services.Services;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
@@ -67,7 +67,8 @@ public class ApiEntity {
     private MembershipType permission;
 
     @DeploymentRequired
-    private Monitoring monitoring;
+    @JsonProperty(value = "services")
+    private Services services;
 
     @DeploymentRequired
     private Set<String> tags;
@@ -173,12 +174,12 @@ public class ApiEntity {
         this.primaryOwner = primaryOwner;
     }
 
-    public Monitoring getMonitoring() {
-        return monitoring;
+    public Services getServices() {
+        return services;
     }
 
-    public void setMonitoring(Monitoring monitoring) {
-        this.monitoring = monitoring;
+    public void setServices(Services services) {
+        this.services = services;
     }
 
     public Map<String, Object> getProperties() {
@@ -249,7 +250,6 @@ public class ApiEntity {
             ", state=" + state +
             ", primaryOwner=" + primaryOwner +
             ", permission=" + permission +
-            ", monitoring=" + monitoring +
             ", tags=" + tags +
             '}';
     }
