@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy.impl.spring;
+package io.gravitee.gateway.policy.impl.processor.spring;
 
 import io.gravitee.gateway.policy.PolicyContextProviderFactory;
 import io.gravitee.policy.api.PolicyContext;
@@ -25,8 +25,6 @@ import org.springframework.context.annotation.Import;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**

@@ -83,6 +83,6 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
 
     @Override
     public Map<String, Object> properties() {
-        return new HashMap(getProperties());
+        return (getProperties() != null) ? Collections.unmodifiableMap(getProperties()) : Collections.EMPTY_MAP;
     }
 }

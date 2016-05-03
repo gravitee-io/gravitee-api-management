@@ -19,6 +19,7 @@ import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPluginManager;
@@ -109,8 +110,9 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
         PolicyPluginManager ppm = applicationContext.getBean(PolicyPluginManager.class);
         PolicyClassLoaderFactory pclf = applicationContext.getBean(PolicyClassLoaderFactory.class);
         ReactorHandler rh = applicationContext.getBean(ReactorHandler.class);
+        Reactable reactable = rh.reactable();
 
-        Set<Policy> requiredPlugins = rh.reactable().dependencies();
+        Set<Policy> requiredPlugins = reactable.dependencies();
 
         requiredPlugins.forEach(policy -> {
             final io.gravitee.plugin.policy.Policy policyPlugin = ppm.get(policy.getName());
@@ -141,7 +143,8 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
                 // Prepare context if defined
                 if (policyContextClass != null) {
                     // Create policy context instance and initialize context provider (if used)
-                    policyMetadata.setContext(new PolicyContextInitializer().create(policyContextClass));
+                    PolicyContext context = new PolicyContextFactory(reactable).create(policyContextClass);
+                    policyMetadata.setContext(context);
                 }
                 policies.put(policy.getName(), registeredPolicy);
             } catch (Exception ex) {
@@ -155,7 +158,7 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
         return policies.get(policy).metadata;
     }
 
-    static class RegisteredPolicy {
+    private static class RegisteredPolicy {
         PolicyMetadata metadata;
         ClassLoader classLoader;
     }
