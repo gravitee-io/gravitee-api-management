@@ -8,7 +8,7 @@
     "tag": "v2.0.0",
     "commit": "24f83eb4db4c798d849bfb842c0898c22bb5e1ef"
   },
-  "_source": "git://github.com/Stuk/jszip.git",
+  "_source": "https://github.com/Stuk/jszip.git",
   "_target": "~2.0.0",
   "_originalSource": "jszip"
 }

@@ -8,7 +8,7 @@
     "tag": "4.0.1",
     "commit": "ec46303d78460a2f4a6b7d0347a4c330450cc8f3"
   },
-  "_source": "git://github.com/lodash/lodash.git",
+  "_source": "https://github.com/lodash/lodash.git",
   "_target": "~4.0.1",
   "_originalSource": "lodash"
 }

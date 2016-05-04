@@ -8,7 +8,7 @@
     "tag": "7.0.1",
     "commit": "9143b185de2fea6c214df595aee8b2a22831a7b4"
   },
-  "_source": "git://github.com/isagalaev/highlight.js.git",
+  "_source": "https://github.com/isagalaev/highlight.js.git",
   "_target": "~7.0.1",
   "_originalSource": "highlight-js"
 }

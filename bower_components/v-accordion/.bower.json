@@ -26,14 +26,14 @@
     "valitycss": "~0.3.1"
   },
   "homepage": "https://github.com/LukaszWatroba/v-accordion",
-  "version": "1.4.1",
-  "_release": "1.4.1",
+  "version": "1.4.2",
+  "_release": "1.4.2",
   "_resolution": {
     "type": "version",
-    "tag": "v1.4.1",
-    "commit": "d37863f9477c1a6247becabf5e00480430ddfa31"
+    "tag": "v1.4.2",
+    "commit": "74afdef4631b059477541761be8a9155f49718f0"
   },
-  "_source": "git://github.com/LukaszWatroba/v-accordion.git",
+  "_source": "https://github.com/LukaszWatroba/v-accordion.git",
   "_target": "~1.4.1",
   "_originalSource": "v-accordion"
 }

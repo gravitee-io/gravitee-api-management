@@ -35,7 +35,7 @@
     "tag": "0.8.0",
     "commit": "08161c2cb104c6615d45d222388713334800feac"
   },
-  "_source": "git://github.com/dodo/node-slug.git",
+  "_source": "https://github.com/dodo/node-slug.git",
   "_target": "~0.8.0",
   "_originalSource": "slug"
 }

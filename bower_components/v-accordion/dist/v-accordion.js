@@ -1,6 +1,6 @@
 /**
  * vAccordion - AngularJS multi-level accordion component
- * @version v1.4.1
+ * @version v1.4.2
  * @link http://lukaszwatroba.github.io/v-accordion
  * @author Łukasz Wątroba <l@lukaszwatroba.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -46,46 +46,47 @@ function vAccordionDirective ($timeout) {
       collapseCb: '&?oncollapse',
       id: '@?'
     },
-    link: function (scope, iElement, iAttrs, ctrl, transclude) {
-      transclude(scope.$parent.$new(), function (clone, transclusionScope) {
-        transclusionScope.$accordion = scope.internalControl;
-        iElement.append(clone);
-      });
-
-      var protectedApiMethods = ['toggle', 'expand', 'collapse', 'expandAll', 'collapseAll', 'hasExpandedPane'];
-
-      function checkCustomControlAPIMethods () {
-        angular.forEach(protectedApiMethods, function (iteratedMethodName) {
-          if (scope.control[iteratedMethodName]) {
-            throw new Error('The `' + iteratedMethodName + '` method can not be overwritten');
-          }
+    link: {
+      pre: function (scope, iElement, iAttrs) {
+        scope.allowMultiple = (angular.isDefined(iAttrs.multiple) && iAttrs.multiple === '');
+      },
+      post: function (scope, iElement, iAttrs, ctrl, transclude) {
+        transclude(scope.$parent.$new(), function (clone, transclusionScope) {
+          transclusionScope.$accordion = scope.internalControl;
+          iElement.append(clone);
         });
+
+        iAttrs.$set('role', 'tablist');
+
+        if (scope.allowMultiple) {
+          iAttrs.$set('aria-multiselectable', 'true');
+        }
+
+        function checkCustomControlAPIMethods () {
+          var protectedApiMethods = ['toggle', 'expand', 'collapse', 'expandAll', 'collapseAll', 'hasExpandedPane'];
+
+          angular.forEach(protectedApiMethods, function (iteratedMethodName) {
+            if (scope.control[iteratedMethodName]) {
+              throw new Error('The `' + iteratedMethodName + '` method can not be overwritten');
+            }
+          });
+        }
+
+        if (angular.isDefined(scope.control)) {
+          checkCustomControlAPIMethods();
+
+          var mergedControl = angular.extend({}, scope.internalControl, scope.control);
+          scope.control = scope.internalControl = mergedControl;
+        }
+        else {
+          scope.control = scope.internalControl;
+        }
+
+        $timeout(function () {
+          var eventName = (angular.isDefined(ctrl.getAccordionId())) ? ctrl.getAccordionId() + ':onReady' : 'vAccordion:onReady';
+          scope.$emit(eventName);
+        }, 0);
       }
-
-      if (!angular.isDefined(scope.allowMultiple)) {
-        scope.allowMultiple = angular.isDefined(iAttrs.multiple);
-      }
-
-      iAttrs.$set('role', 'tablist');
-
-      if (scope.allowMultiple) {
-        iAttrs.$set('aria-multiselectable', 'true');
-      }
-
-      if (angular.isDefined(scope.control)) {
-        checkCustomControlAPIMethods();
-
-        var mergedControl = angular.extend({}, scope.internalControl, scope.control);
-        scope.control = scope.internalControl = mergedControl;
-      }
-      else {
-        scope.control = scope.internalControl;
-      }
-
-      $timeout(function () {
-        var eventName = (angular.isDefined(ctrl.getAccordionId())) ? ctrl.getAccordionId() + ':onReady' : 'vAccordion:onReady';
-        scope.$emit(eventName);
-      }, 0);
     }
   };
 }
@@ -338,7 +339,6 @@ function vPaneContentDirective () {
 
 
 
-
 // vPaneHeader directive
 angular.module('vAccordion.directives')
   .directive('vPaneHeader', vPaneHeaderDirective);
@@ -417,14 +417,9 @@ function vPaneDirective ($timeout, $animate, accordionConfig) {
       id: '@?'
     },
     link: function (scope, iElement, iAttrs, accordionCtrl, transclude) {
-
       transclude(scope.$parent.$new(), function (clone, transclusionScope) {
         transclusionScope.$pane = scope.internalControl;
-
-        if (scope.id) {
-          transclusionScope.$pane.id = scope.id;
-        }
-
+        if (scope.id) { transclusionScope.$pane.id = scope.id; }
         iElement.append(clone);
       });
 

@@ -1,6 +1,6 @@
 /**
  * vAccordion - AngularJS multi-level accordion component
- * @version v1.4.1
+ * @version v1.4.2
  * @link http://lukaszwatroba.github.io/v-accordion
  * @author Łukasz Wątroba <l@lukaszwatroba.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -72,12 +72,10 @@ v-pane-content {
     border-bottom-color: #2196F3; }
     .vAccordion--default v-pane.is-expanded > v-pane-header::after {
       -webkit-transform: rotate(90deg);
-          -ms-transform: rotate(90deg);
               transform: rotate(90deg);
       opacity: 0; }
     .vAccordion--default v-pane.is-expanded > v-pane-header::before {
       -webkit-transform: rotate(0deg);
-          -ms-transform: rotate(0deg);
               transform: rotate(0deg); }
   .vAccordion--default v-pane.is-expanded > v-pane-content > div {
     opacity: 1;
@@ -102,19 +100,17 @@ v-pane-content {
     height: 1px;
     background-color: #2196F3;
     -webkit-transform-origin: 50% 50%;
-        -ms-transform-origin: 50% 50%;
             transform-origin: 50% 50%;
+    will-change: transform;
     -webkit-transition: all 0.25s;
             transition: all 0.25s; }
   .vAccordion--default v-pane-header::before {
     -webkit-transform: rotate(-90deg);
-        -ms-transform: rotate(-90deg);
             transform: rotate(-90deg); }
   .vAccordion--default v-pane-header:hover, .vAccordion--default v-pane-header:focus {
     color: #2196F3; }
 .vAccordion--default v-pane-content > div {
   padding-bottom: 20px;
-  will-change: transform, opacity;
   opacity: 0;
   -webkit-transform: translate3d(0, 30px, 0);
           transform: translate3d(0, 30px, 0);

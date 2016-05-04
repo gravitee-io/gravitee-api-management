@@ -17,14 +17,9 @@ function vPaneDirective ($timeout, $animate, accordionConfig) {
       id: '@?'
     },
     link: function (scope, iElement, iAttrs, accordionCtrl, transclude) {
-
       transclude(scope.$parent.$new(), function (clone, transclusionScope) {
         transclusionScope.$pane = scope.internalControl;
-
-        if (scope.id) {
-          transclusionScope.$pane.id = scope.id;
-        }
-
+        if (scope.id) { transclusionScope.$pane.id = scope.id; }
         iElement.append(clone);
       });
 

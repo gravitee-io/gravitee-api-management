@@ -40,7 +40,7 @@
     "tag": "1.1.0",
     "commit": "e2f1075b9df469873ba9ca2d00134eddd376fa84"
   },
-  "_source": "git://github.com/julianshapiro/velocity.git",
+  "_source": "https://github.com/julianshapiro/velocity.git",
   "_target": "~1.1.0",
   "_originalSource": "velocity"
 }

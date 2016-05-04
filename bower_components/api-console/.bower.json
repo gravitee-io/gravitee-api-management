@@ -37,7 +37,7 @@
     "tag": "2.0.5",
     "commit": "d654204168e7421cec3d284ee67ba8303b4ec410"
   },
-  "_source": "git://github.com/mulesoft/api-console.git",
+  "_source": "https://github.com/mulesoft/api-console.git",
   "_target": "~2.0.4",
   "_originalSource": "api-console"
 }

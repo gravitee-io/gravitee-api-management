@@ -35,6 +35,5 @@
   },
   "_source": "https://github.com/n3-charts/pie-chart.git",
   "_target": "^1.0.0",
-  "_originalSource": "n3-charts.pie-chart",
-  "_direct": true
+  "_originalSource": "n3-charts.pie-chart"
 }

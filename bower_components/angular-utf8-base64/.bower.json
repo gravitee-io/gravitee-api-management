@@ -19,8 +19,7 @@
     "tag": "v0.0.5",
     "commit": "43cea612939acc07e06939f8da97e6f22186d1e2"
   },
-  "_source": "git://github.com/stranger82/angular-utf8-base64.git",
+  "_source": "https://github.com/stranger82/angular-utf8-base64.git",
   "_target": "~0.0.5",
-  "_originalSource": "angular-utf8-base64",
-  "_direct": true
+  "_originalSource": "angular-utf8-base64"
 }

@@ -32,7 +32,7 @@
     "tag": "0.3.4",
     "commit": "24c34596c198fde7bea61aeccc60045258bfd103"
   },
-  "_source": "git://github.com/showdownjs/showdown.git",
+  "_source": "https://github.com/showdownjs/showdown.git",
   "_target": "~0.3.1",
   "_originalSource": "showdown"
 }

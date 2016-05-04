@@ -1,6 +1,6 @@
 {
     "name": "ngclipboard",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Angularjs directive for clipboard.js",
     "keywords": [
         "ngclipboard",

@@ -1,8 +1,8 @@
 /**
- * @license Highcharts JS v4.2.1 (2015-12-21)
+ * @license Highcharts JS v4.2.4 (2016-04-14)
  * Plugin for displaying a message when there is no data visible in chart.
  *
- * (c) 2010-2014 Highsoft AS
+ * (c) 2010-2016 Highsoft AS
  * Author: Oystein Moseng
  *
  * License: www.highcharts.com/license
@@ -52,7 +52,7 @@
 		return !!this.points.length; /* != 0 */
 	}
 
-	each(['pie', 'gauge', 'waterfall', 'bubble'], function (type) {
+	each(['pie', 'gauge', 'waterfall', 'bubble', 'treemap'], function (type) {
 		if (seriesTypes[type]) {
 			seriesTypes[type].prototype.hasData = hasDataPie;
 		}

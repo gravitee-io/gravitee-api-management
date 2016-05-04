@@ -1,8 +1,8 @@
 /**
- * @license Highmaps JS v4.2.1 (2015-12-21)
+ * @license Highmaps JS v4.2.4 (2016-04-14)
  * Highmaps as a plugin for Highcharts 4.1.x or Highstock 2.1.x (x being the patch version of this file)
  *
- * (c) 2011-2014 Torstein Honsi
+ * (c) 2011-2016 Torstein Honsi
  *
  * License: www.highcharts.com/license
  */
@@ -17,6 +17,7 @@
 
 
     var UNDEFINED,
+        animObject = Highcharts.animObject,
         Axis = Highcharts.Axis,
         Chart = Highcharts.Chart,
         Color = Highcharts.Color,
@@ -36,6 +37,7 @@
         error = Highcharts.error,
         extend = Highcharts.extend,
         extendClass = Highcharts.extendClass,
+        format = Highcharts.format,
         merge = Highcharts.merge,
         pick = Highcharts.pick,
         defaultOptions = Highcharts.getOptions(),
@@ -43,8 +45,7 @@
         defaultPlotOptions = defaultOptions.plotOptions,
         wrap = Highcharts.wrap,
         noop = function () {};
-
-        /**
+    /**
      * Override to use the extreme coordinates from the SVG shape, not the
      * data values
      */
@@ -737,6 +738,7 @@
                 };
 
             if (pick(options.enableButtons, options.enabled) && !chart.renderer.forExport) {
+                chart.mapNavButtons = [];
                 for (n in buttons) {
                     if (buttons.hasOwnProperty(n)) {
                         buttonOptions = merge(options.buttonOptions, buttons[n]);
@@ -764,6 +766,7 @@
                         button.handler = buttonOptions.onclick;
                         button.align(extend(buttonOptions, { width: button.width, height: 2 * button.height }), null, buttonOptions.alignTo);
                         addEvent(button.element, 'dblclick', stopEvent); // Stop double click event (#4444)
+                        chart.mapNavButtons.push(button);
                     }
                 }
             }
@@ -884,7 +887,7 @@
         chart.renderMapNavigation();
 
         proceed.call(chart);
-
+    
         // Add the double click event
         if (pick(mapNavigation.enableDoubleClickZoom, mapNavigation.enabled) || mapNavigation.enableDoubleClickZoomTo) {
             addEvent(chart.container, 'dblclick', function (e) {
@@ -941,8 +944,7 @@
             delta = e.detail || -(e.wheelDelta / 120);
             if (chart.isInsidePlot(e.chartX - chart.plotLeft, e.chartY - chart.plotTop)) {
                 chart.mapZoom(
-                    //delta > 0 ? 2 : 0.5,
-                    Math.pow(2, delta),
+                    Math.pow(chart.options.mapNavigation.mouseWheelSensitivity, delta),
                     chart.xAxis[0].toValue(e.chartX),
                     chart.yAxis[0].toValue(e.chartY),
                     e.chartX,
@@ -1081,7 +1083,7 @@
                 normalColor = Color(point.color),
                 hoverColor = Color(point.pointAttr.hover.fill),
                 animation = point.series.options.states.normal.animation,
-                duration = animation && (animation.duration || 500),
+                duration = animObject(animation).duration,
                 fill;
 
             if (duration && normalColor.rgba.length === 4 && hoverColor.rgba.length === 4 && point.state !== 'select') {
@@ -1295,6 +1297,7 @@
                 joinBy = options.joinBy,
                 joinByNull = joinBy === null,
                 dataUsed = [],
+                mapMap = {},
                 mapPoint,
                 transform,
                 mapTransforms,
@@ -1339,9 +1342,7 @@
                     mapData = Highcharts.geojson(mapData, this.type, this);
                 }
 
-                this.getBox(mapData);
                 this.mapData = mapData;
-                this.mapMap = {};
 
                 for (i = 0; i < mapData.length; i++) {
                     mapPoint = mapData[i];
@@ -1352,28 +1353,35 @@
                     if (joinBy[0] && props && props[joinBy[0]]) {
                         mapPoint[joinBy[0]] = props[joinBy[0]];
                     }
-                    this.mapMap[mapPoint[joinBy[0]]] = mapPoint;
+                    mapMap[mapPoint[joinBy[0]]] = mapPoint;
+                }
+                this.mapMap = mapMap;
+
+                // Registered the point codes that actually hold data
+                if (data && joinBy[1]) {
+                    each(data, function (point) {
+                        if (mapMap[point[joinBy[1]]]) {
+                            dataUsed.push(mapMap[point[joinBy[1]]]);
+                        }
+                    });
                 }
 
                 if (options.allAreas) {
-
-                    data = data || [];
-
-                    // Registered the point codes that actually hold data
-                    if (joinBy[1]) {
-                        each(data, function (point) {
-                            dataUsed.push(point[joinBy[1]]);
-                        });
-                    }
+                    this.getBox(mapData);
+                    data = data || [];            
 
                     // Add those map points that don't correspond to data, which will be drawn as null points
-                    dataUsed = '|' + dataUsed.join('|') + '|'; // String search is faster than array.indexOf
-
+                    dataUsed = '|' + dataUsed.map(function (point) { 
+                        return point[joinBy[0]]; 
+                    }).join('|') + '|'; // String search is faster than array.indexOf
+                
                     each(mapData, function (mapPoint) {
                         if (!joinBy[0] || dataUsed.indexOf('|' + mapPoint[joinBy[0]] + '|') === -1) {
                             data.push(merge(mapPoint, { value: null }));
                         }
                     });
+                } else {
+                    this.getBox(dataUsed); // Issue #4784
                 }
             }
             Series.prototype.setData.call(this, data, redraw);
@@ -1897,7 +1905,11 @@
      * Test for point in polygon. Polygon defined as array of [x,y] points.
      */
     function pointInPolygon(point, polygon) {
-        var i, j, rel1, rel2, c = false,
+        var i,
+            j,
+            rel1,
+            rel2,
+            c = false,
             x = point.x,
             y = point.y;
 
@@ -2079,9 +2091,8 @@
 
         // Create a credits text that includes map source, to be picked up in Chart.showCredits
         if (series && geojson.copyrightShort) {
-            series.chart.mapCredits = '<a href="http://www.highcharts.com">Highcharts</a> \u00A9 ' +
-                '<a href="' + geojson.copyrightUrl + '">' + geojson.copyrightShort + '</a>';
-            series.chart.mapCreditsFull = geojson.copyright;
+            series.chart.mapCredits = format(series.chart.options.credits.mapText, { geojson: geojson });
+            series.chart.mapCreditsFull = format(series.chart.options.credits.mapTextFull, { geojson: geojson });
         }
 
         return mapData;
@@ -2092,14 +2103,17 @@
      */
     wrap(Chart.prototype, 'showCredits', function (proceed, credits) {
 
-        if (defaultOptions.credits.text === this.options.credits.text && this.mapCredits) { // default text and mapCredits is set
-            credits.text = this.mapCredits;
+        // Disable credits link if map credits enabled. This to allow for in-text anchors.
+        if (this.mapCredits) {
             credits.href = null;
         }
 
-        proceed.call(this, credits);
+        proceed.call(this, Highcharts.merge(credits, {
+            text: credits.text + (this.mapCredits || '') // Add map credits to credits text
+        }));
 
-        if (this.credits) {
+        // Add full map credits to hover
+        if (this.credits && this.mapCreditsFull) {
             this.credits.attr({
                 title: this.mapCreditsFull
             });
@@ -2147,7 +2161,8 @@
                 text: '-',
                 y: 28
             }
-        }
+        },
+        mouseWheelSensitivity: 1.1
         // enabled: false,
         // enableButtons: null, // inherit from enabled
         // enableTouchZoom: null, // inherit from enabled
@@ -2241,7 +2256,8 @@
                 title: null,
                 tickPositions: []
             },
-            seriesOptions;
+            seriesOptions,
+            defaultCreditsOptions = Highcharts.getOptions().credits;
 
         /* For visual testing
         hiddenAxis.gridLineWidth = 1;
@@ -2258,6 +2274,10 @@
                 chart: {
                     panning: 'xy',
                     type: 'map'
+                },
+                credits: {
+                    mapText: pick(defaultCreditsOptions.mapText, ' \u00a9 <a href="{geojson.copyrightUrl}">{geojson.copyrightShort}</a>'),
+                    mapTextFull: pick(defaultCreditsOptions.mapTextFull, '{geojson.copyright}')
                 },
                 xAxis: hiddenAxis,
                 yAxis: merge(hiddenAxis, { reversed: true })

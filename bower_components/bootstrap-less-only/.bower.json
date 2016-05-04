@@ -15,7 +15,7 @@
     "tag": "v3.3.6",
     "commit": "bf4a6c4a2725f41282bb41495cc58421004ef67b"
   },
-  "_source": "git://github.com/IberaSoft/bower-bootstrap-less.git",
+  "_source": "https://github.com/IberaSoft/bower-bootstrap-less.git",
   "_target": "~3.3",
   "_originalSource": "bootstrap-less-only"
 }

@@ -13,7 +13,7 @@
     "tag": "v0.1.6",
     "commit": "8dbe7d0c1f9f32856d137a8d65c93c47151dbdcc"
   },
-  "_source": "git://github.com/angular-ui/ui-codemirror.git",
+  "_source": "https://github.com/angular-ui/ui-codemirror.git",
   "_target": "0.1.6",
   "_originalSource": "angular-ui-codemirror"
 }

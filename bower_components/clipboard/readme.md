@@ -3,7 +3,7 @@
 [![Build Status](http://img.shields.io/travis/zenorocha/clipboard.js/master.svg?style=flat)](https://travis-ci.org/zenorocha/clipboard.js)
 ![Killing Flash](https://img.shields.io/badge/killing-flash-brightgreen.svg?style=flat)
 
-> Modern copy to clipboard. No Flash. Just 2kb
+> Modern copy to clipboard. No Flash. Just 3kb gzipped.
 
 <a href="http://clipboardjs.com/"><img width="728" src="https://cloud.githubusercontent.com/assets/398893/9983535/5ab0a950-5fb4-11e5-9602-e73c0b661883.jpg" alt="Demo"></a>
 
@@ -151,7 +151,7 @@ new Clipboard('.btn', {
 });
 ```
 
-Also, with are working with single page apps, you may want to manage the lifecycle of the DOM more precisely. Here's how you clean up the events and objects that we create.
+Also, if you are working with single page apps, you may want to manage the lifecycle of the DOM more precisely. Here's how you clean up the events and objects that we create.
 
 ```js
 var clipboard = new Clipboard('.btn');

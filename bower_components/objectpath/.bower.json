@@ -35,7 +35,7 @@
     "tag": "v1.1.0",
     "commit": "b438ce03c694305138e4a88a6f84f5cc4bfb4348"
   },
-  "_source": "git://github.com/mike-marcacci/objectpath.git",
+  "_source": "https://github.com/mike-marcacci/objectpath.git",
   "_target": "~1.1.0",
   "_originalSource": "objectpath"
 }
