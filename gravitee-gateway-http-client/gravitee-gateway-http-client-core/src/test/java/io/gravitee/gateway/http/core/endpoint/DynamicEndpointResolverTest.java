@@ -148,7 +148,7 @@ public class DynamicEndpointResolverTest {
 
     @Test
     public void test_dynamicEndpoint_usingProperties() {
-        final Map<String, Object> properties = new HashMap<>();
+        final Map<String, String> properties = new HashMap<>();
         properties.put("property_1", "value1");
 
         when(api.getProxy()).thenReturn(proxy);
@@ -178,7 +178,7 @@ public class DynamicEndpointResolverTest {
 
     @Test
     public void test_dynamicEndpoint_usingUnknownProperty() {
-        final Map<String, Object> properties = new HashMap<>();
+        final Map<String, String> properties = new HashMap<>();
 
         when(api.getProxy()).thenReturn(proxy);
         when(api.getProperties()).thenReturn(properties);
@@ -194,7 +194,7 @@ public class DynamicEndpointResolverTest {
 
     @Test
     public void test_dynamicEndpoint_usingPropertyAndPath() {
-        final Map<String, Object> properties = new HashMap<>();
+        final Map<String, String> properties = new HashMap<>();
         properties.put("store_99", "host_store_xxx");
 
         when(request.path()).thenReturn("/stores/99/products/123456");
