@@ -151,7 +151,7 @@ public class ApiDeserializerTest extends AbstractTest {
     @Test
     public void definition_apiWithoutProperties() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withoutproperties.json", Api.class);
-        Map<String, Object> properties = api.getProperties();
+        Map<String, String> properties = api.getProperties();
 
         Assert.assertNull(properties);
     }
@@ -159,7 +159,7 @@ public class ApiDeserializerTest extends AbstractTest {
     @Test
     public void definition_apiWithEmptyProperties() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withemptyproperties.json", Api.class);
-        Map<String, Object> properties = api.getProperties();
+        Map<String, String> properties = api.getProperties();
 
         Assert.assertNotNull(properties);
         Assert.assertTrue(properties.isEmpty());
@@ -168,14 +168,14 @@ public class ApiDeserializerTest extends AbstractTest {
     @Test
     public void definition_apiWithProperties() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withproperties.json", Api.class);
-        Map<String, Object> properties = api.getProperties();
+        Map<String, String> properties = api.getProperties();
 
         Assert.assertNotNull(properties);
-        Assert.assertEquals(3, properties.size());
-        Assert.assertEquals(properties.get("my_property"), true);
-        Assert.assertNotEquals(properties.get("my_property"), "true");
-        Assert.assertEquals(properties.get("my_property2"), 123);
-        Assert.assertEquals(properties.get("my_property3"), "text");
+        Assert.assertEquals(4, properties.size());
+        Assert.assertEquals("true", properties.get("my_property"));
+        Assert.assertEquals("123", properties.get("my_property2"));
+        Assert.assertEquals("text", properties.get("my_property3"));
+        Assert.assertEquals("text", properties.get("my_property4"));
     }
 
     @Test(expected = JsonMappingException.class)

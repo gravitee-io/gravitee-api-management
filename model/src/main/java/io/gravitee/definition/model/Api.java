@@ -40,7 +40,7 @@ public class Api {
 
     private Map<String, Path> paths;
 
-    private Map<String, Object> properties;
+    private Map<String, String> properties;
 
     private Set<String> tags = new HashSet<>();
 
@@ -84,11 +84,11 @@ public class Api {
         this.version = version;
     }
 
-    public Map<String, Object> getProperties() {
+    public Map<String, String> getProperties() {
         return properties;
     }
 
-    public void setProperties(Map<String, Object> properties) {
+    public void setProperties(Map<String, String> properties) {
         this.properties = properties;
     }
 
