@@ -62,7 +62,7 @@ public class ApiEntity {
 
     @DeploymentRequired
     @JsonProperty(value = "properties")
-    private Map<String, Object> properties;
+    private Map<String, String> properties;
 
     private MembershipType permission;
 
@@ -182,11 +182,11 @@ public class ApiEntity {
         this.services = services;
     }
 
-    public Map<String, Object> getProperties() {
+    public Map<String, String> getProperties() {
         return properties;
     }
 
-    public void setProperties(Map<String, Object> properties) {
+    public void setProperties(Map<String, String> properties) {
         this.properties = properties;
     }
 
