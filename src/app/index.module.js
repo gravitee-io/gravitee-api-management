@@ -78,7 +78,7 @@ import InstanceMonitoringController from './instances/details/monitoring/instanc
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
     'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
-    'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'angularMoment'])
+    'ab-base64',  'ngFileUpload', 'n3-pie-chart'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)

@@ -70,7 +70,7 @@
           <div layout="row">
             <b flex="50">Uptime</b>
             <div flex="50"
-                 ng-bind="-instanceMonitoringCtrl.monitoringData.jvm.uptime_in_millis | amDurationFormat:'':true"></div>
+                 ng-bind="instanceMonitoringCtrl.humanizeDuration(instanceMonitoringCtrl.monitoringData.jvm.uptime_in_millis)"></div>
           </div>
           <div layout="row">
             <b flex="50">Heap used</b>

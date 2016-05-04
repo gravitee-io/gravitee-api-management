@@ -27,6 +27,10 @@ class InstanceMonitoringController {
     }, 5000);
   }
 
+  humanizeDuration(timeInMillis) {
+    return moment.duration(-timeInMillis).humanize(true);
+  }
+  
   humanizeSize(bytes, precision) {
     if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
     if (typeof precision === 'undefined') precision = 1;
