@@ -14,23 +14,29 @@
  * limitations under the License.
  */
 class InstanceMonitoringController {
-  constructor(resolvedMonitoringData, $stateParams, resolvedInstance, InstancesService) {
+  constructor(resolvedMonitoringData, $stateParams, resolvedInstance, InstancesService, $scope) {
     'ngInject';
     this.monitoringData = resolvedMonitoringData.data;
     this.instanceStarted = resolvedInstance.data.state === 'started';
 
-    var that = this;
-    setInterval(function () {
-      InstancesService.getMonitoringData($stateParams.id, resolvedInstance.data.id).then(function (response) {
-        that.monitoringData = response.data;
+    if (this.instanceStarted) {
+      var that = this;
+      var interval = setInterval(function () {
+        InstancesService.getMonitoringData($stateParams.id, resolvedInstance.data.id).then(function (response) {
+          that.monitoringData = response.data;
+        });
+      }, 5000);
+
+      $scope.$on('$stateChangeStart', function () {
+        clearInterval(interval);
       });
-    }, 5000);
+    }
   }
 
   humanizeDuration(timeInMillis) {
     return moment.duration(-timeInMillis).humanize(true);
   }
-  
+
   humanizeSize(bytes, precision) {
     if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
     if (typeof precision === 'undefined') precision = 1;
