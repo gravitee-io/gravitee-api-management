@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope, resolvedApis) {
+  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis) {
     'ngInject';
     this.$window = $window;
     this.ApiService = ApiService;
