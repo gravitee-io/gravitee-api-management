@@ -1389,7 +1389,7 @@ angular.module('schemaForm').provider('schemaForm',
         if (obj.type === 'checkbox' && angular.isUndefined(obj.schema['default'])) {
           obj.schema['default'] = false;
         }
-        
+
         // Special case: template type with tempplateUrl that's needs to be loaded before rendering
         // TODO: this is not a clean solution. Maybe something cleaner can be made when $ref support
         // is introduced since we need to go async then anyway
@@ -1659,14 +1659,14 @@ angular.module('schemaForm').directive('sfArray', ['sfSelect', 'schemaForm', 'sf
           // An array model always needs a key so we know what part of the model
           // to look at. This makes us a bit incompatible with JSON Form, on the
           // other hand it enables two way binding.
-          var list = sfSelect(form.key, scope.model);
+          var list = sfSelect(form.key, scope.model) || [];
 
           // We only modify the same array instance but someone might change the array from
           // the outside so let's watch for that. We use an ordinary watch since the only case
           // we're really interested in is if its a new instance.
           var key = sfPath.normalize(form.key);
           scope.$watch('model' + (key[0] !== '[' ? '.' : '') + key, function(value) {
-            list = scope.modelArray = value;
+            list = scope.modelArray = value || [];
           });
 
           // Since ng-model happily creates objects in a deep path when setting a
@@ -2824,8 +2824,8 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', '$parse
 
         // A bit ugly but useful.
         scope.validateField =  function(formName) {
-          
-          // If we have specified a form name, and this model is not within 
+
+          // If we have specified a form name, and this model is not within
           // that form, then leave things be.
           if(formName != undefined && ngModel.$$parentForm.$name !== formName) {
             return;
