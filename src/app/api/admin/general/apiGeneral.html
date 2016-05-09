@@ -263,6 +263,17 @@
                         </span>
                   </md-checkbox>
                 </div>
+                <div layout-xs="column" flex-xs="50">
+                  <md-checkbox
+                    ng-model="generalCtrl.api.proxy.http.configuration.useCompression"
+                    aria-label="Enables compression"
+                    class="md-align-top-left" flex>
+                    Enables compression (gzip, deflate)<br/>
+                        <span class="ipsum">
+                          The gateway can let the remote http server know that it supports compression, and will be able to handle compressed response bodies.
+                        </span>
+                  </md-checkbox>
+                </div>
               </div>
             </div>
           </v-pane-content>
