@@ -42,6 +42,7 @@ public class HttpClientOptionsSerializer extends StdScalarSerializer<HttpClientO
         jgen.writeNumberField("readTimeout", httpClientOptions.getReadTimeout());
         jgen.writeBooleanField("pipelining", httpClientOptions.isPipelining());
         jgen.writeNumberField("maxConcurrentConnections", httpClientOptions.getMaxConcurrentConnections());
+        jgen.writeBooleanField("useCompression", httpClientOptions.isUseCompression());
         jgen.writeEndObject();
     }
 }

@@ -28,6 +28,7 @@ public class HttpClientOptions {
     public static boolean DEFAULT_KEEP_ALIVE = true;
     public static boolean DEFAULT_DUMP_REQUEST = false;
     public static boolean DEFAULT_PIPELINING = false;
+    public static boolean DEFAULT_USE_COMPRESSION = false;
 
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
@@ -42,6 +43,8 @@ public class HttpClientOptions {
     private boolean pipelining = DEFAULT_PIPELINING;
 
     private int maxConcurrentConnections = DEFAULT_MAX_CONCURRENT_CONNECTIONS;
+
+    private boolean useCompression = DEFAULT_USE_COMPRESSION;
 
     public long getConnectTimeout() {
         return connectTimeout;
@@ -97,5 +100,13 @@ public class HttpClientOptions {
 
     public void setMaxConcurrentConnections(int maxConcurrentConnections) {
         this.maxConcurrentConnections = maxConcurrentConnections;
+    }
+
+    public boolean isUseCompression() {
+        return useCompression;
+    }
+
+    public void setUseCompression(boolean useCompression) {
+        this.useCompression = useCompression;
     }
 }

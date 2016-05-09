@@ -95,6 +95,14 @@ public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer
             httpClientOptions.setMaxConcurrentConnections(HttpClientOptions.DEFAULT_MAX_CONCURRENT_CONNECTIONS);
         }
 
+        JsonNode useCompressionNode = node.get("useCompression");
+        if (useCompressionNode != null) {
+            boolean useCompression = useCompressionNode.asBoolean(HttpClientOptions.DEFAULT_USE_COMPRESSION);
+            httpClientOptions.setUseCompression(useCompression);
+        } else {
+            httpClientOptions.setUseCompression(HttpClientOptions.DEFAULT_USE_COMPRESSION);
+        }
+
         return httpClientOptions;
     }
 }
