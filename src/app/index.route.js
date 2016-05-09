@@ -35,7 +35,12 @@ function routerConfig($stateProvider, $urlRouterProvider) {
     .state('apis', {
       abstract: true,
       url: '/apis',
-      templateUrl: 'app/api/apis.html',
+      templateUrl: 'app/api/apis.html'
+    })
+    .state('apis.list', {
+      abstract: true,
+      url: '/',
+      templateUrl: 'app/api/apisList.html',
       controller: 'ApisController',
       controllerAs: 'apisCtrl',
       resolve: {
@@ -43,11 +48,6 @@ function routerConfig($stateProvider, $urlRouterProvider) {
           return ApiService.list();
         }
       }
-    })
-    .state('apis.list', {
-      abstract: true,
-      url: '/',
-      templateUrl: 'app/api/apisList.html'
     })
     .state('apis.list.table', {
       url: 'table',

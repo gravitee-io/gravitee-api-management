@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis) {
+  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope, resolvedApis) {
     'ngInject';
     this.$window = $window;
     this.ApiService = ApiService;
@@ -87,7 +87,7 @@ class ApisController {
         return 'lock';
     }
   }
-  
+
   getVisibility(api) {
     switch (api.visibility) {
       case 'public':
