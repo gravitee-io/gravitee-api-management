@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor (resolvedApi, $state, $scope, $rootScope, $mdDialog, ApiService, NotificationService) {
+  constructor (resolvedApi, $state, $scope, $rootScope, $mdDialog, ApiService, NotificationService, resolvedApiState) {
     'ngInject';
     this.$scope = $scope;
     this.$state = $state;
@@ -24,7 +24,7 @@ class ApiAdminController {
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.apiJustDeployed = false;
-    this.apiIsSynchronized = true;
+    this.apiIsSynchronized = resolvedApiState.data.is_synchronized;
     this.init();
   }
 
