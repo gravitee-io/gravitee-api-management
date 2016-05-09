@@ -134,6 +134,18 @@ public class VertxHttpServerRequest implements Request {
     }
 
     @Override
+    public Request pause() {
+        httpServerRequest.pause();
+        return this;
+    }
+
+    @Override
+    public Request resume() {
+        httpServerRequest.resume();
+        return this;
+    }
+
+    @Override
     public RequestMetrics metrics() {
         return metrics;
     }

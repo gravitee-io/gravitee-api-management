@@ -141,9 +141,13 @@ public class ApiReactorHandler extends AbstractReactorHandler {
                         // Execute response policy chain
                         responsePolicyChain.doNext(serverRequest, serverResponse);
                     });
+
+                    // Resume request read
+                    serverRequest.resume();
                 }
             });
 
+            serverRequest.pause();
             requestPolicyChain.doNext(serverRequest, serverResponse);
         } catch (Throwable t) {
             LOGGER.error("An unexpected error occurs while processing request", t);
