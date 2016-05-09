@@ -19,7 +19,6 @@ import io.gravitee.management.model.PluginEntity;
 import io.gravitee.management.model.PolicyDevelopmentEntity;
 import io.gravitee.management.model.PolicyEntity;
 import io.gravitee.management.service.PolicyService;
-import io.gravitee.management.service.exceptions.PolicyConfigurationNotFoundException;
 import io.gravitee.management.service.exceptions.PolicyNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.plugin.core.api.Plugin;
@@ -80,13 +79,7 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
     public String getSchema(String policyId) {
         try {
             LOGGER.debug("Find policy schema by ID: {}", policyId);
-            String configuration = policyManager.getPolicyConfiguration(policyId);
-
-            if (configuration == null) {
-                throw new PolicyConfigurationNotFoundException(policyId);
-            }
-
-            return configuration;
+            return policyManager.getPolicyConfiguration(policyId);
         } catch (IOException ioex) {
             LOGGER.error("An error occurs while trying to get policy schema for policy {}", policyId, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get policy schema for policy " + policyId, ioex);
