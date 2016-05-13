@@ -19,7 +19,6 @@ class ApplicationController {
 		this.application = resolvedApplication.data;
 		this.$state = $state;
 		this.$scope = $scope;
-		this.authenticatedUser = $cookieStore.get('authenticatedUser');
 		this.selectTab();
 	}
 

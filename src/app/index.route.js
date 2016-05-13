@@ -22,7 +22,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       controller: 'ApisController',
       controllerAs: 'apisCtrl',
       resolve: {
-        resolvedApis: function ($stateParams, ApiService) {
+        resolvedApis: function (ApiService) {
           return ApiService.list();
         }
       },

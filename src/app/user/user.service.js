@@ -15,11 +15,12 @@
  */
 class UserService {
 
-  constructor($http, $cookieStore, Constants) {
+  constructor($http, $rootScope, Constants) {
     'ngInject';
     this.$http = $http;
-    this.$cookieStore = $cookieStore;
+    this.$rootScope = $rootScope;
     this.usersURL = Constants.baseURL + 'users/';
+    this.userURL = Constants.baseURL + 'user/';
   }
 
   list() {
@@ -43,19 +44,17 @@ class UserService {
 	}
 
 	isUserInRoles(roles) {
-	  let authenticatedUser = this.$cookieStore.get('authenticatedUser');
-
-	  if (!authenticatedUser) {
+	  if (!this.$rootScope.graviteeUser) {
 	    return false;
 	  }
 
-	  if (authenticatedUser && (!roles || roles.length == 0)) {
+	  if (this.$rootScope.graviteeUser && (!roles || roles.length == 0)) {
 	    return false;
 	  }
 
-	  var rolesAllowed = false;
+	  var rolesAllowed = false, that = this;
 	  _.forEach(roles, function(role) {
-	    _.forEach(authenticatedUser.principal.authorities, function(authority) {
+	    _.forEach(that.$rootScope.graviteeUser.permissions, function(authority) {
 	      if (authority.authority === role) {
 	        rolesAllowed = true;
 	        return;
@@ -65,6 +64,25 @@ class UserService {
 
 	  return rolesAllowed;
 	}
+
+  current() {
+    return this.$http.get(this.userURL);
+  }
+
+  login(user) {
+    var req = {
+      method: 'POST',
+      url: this.userURL + 'login',
+      headers: {
+        'Authorization': "Basic " + btoa(user.username + ":" + user.password)
+      }
+    };
+    return this.$http(req);
+  }
+
+  logout() {
+    return this.$http.post(this.userURL + 'logout');
+  }
 }
 
 export default UserService;

@@ -20,8 +20,8 @@
   <div>
     <h4 style="margin-top: 30px;" gravitee-roles-allowed="ADMIN, API_PUBLISHER">Let's start using Gravitee.io portal</h4>
     <p style="margin-top: 30px;">
-      <md-button ng-if="authenticated" gravitee-roles-allowed="ADMIN, API_PUBLISHER" class="md-raised" ng-click="apisCtrl.createInitAPI()">Create your first API</md-button>
-      <md-button ng-if="!authenticated" class="md-raised" ng-click="apisCtrl.login()">Login</md-button>
+      <md-button ng-if="graviteeUser" gravitee-roles-allowed="ADMIN, API_PUBLISHER" class="md-raised" ng-click="apisCtrl.createInitAPI()">Create your first API</md-button>
+      <md-button ng-if="!graviteeUser" class="md-raised" ng-click="apisCtrl.login()">Login</md-button>
     </p>
   </div>
 </div>

@@ -31,16 +31,16 @@
             <span ng-switch-when="primary_owner"><b>{{member.user}}</b></span>
 			      <span ng-switch-default>{{member.user}}</span>
           </td>
-          <td md-cell ng-show="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != applicationCtrl.authenticatedUser.principal.username">
+          <td md-cell ng-show="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != graviteeUser.username">
             <md-select ng-model="member.type" placeholder="Other" ng-change="applicationMembersCtrl.updateMember(member)">
               <md-option ng-value="type" ng-repeat="type in applicationMembersCtrl.membershipTypes">{{type}}</md-option>
             </md-select>
 		      </td>
-          <td md-cell ng-hide="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != applicationCtrl.authenticatedUser.principal.username">
+          <td md-cell ng-hide="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != graviteeUser.username">
             <span>{{member.type}}</span>
 	        </td>
 	        <td md-cell>
-		        <div ng-if="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != applicationCtrl.authenticatedUser.principal.username">
+		        <div ng-if="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != graviteeUser.username">
               <ng-md-icon ng-click="applicationMembersCtrl.showDeleteMemberConfirm($event, member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
 			      </div>
           </td>

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogLoginController($scope, $mdDialog, $cookieStore, $window, LoginService) {
+function DialogLoginController($scope, $mdDialog, $window, UserService) {
   'ngInject';
 
 	$scope.user = {};
@@ -23,9 +23,7 @@ function DialogLoginController($scope, $mdDialog, $cookieStore, $window, LoginSe
   };
 
 	$scope.login = function () {
-    LoginService.login($scope.user).then(function(response) {
-			$cookieStore.put('GraviteeAuthentication', btoa($scope.user.username + ":" + $scope.user.password));
-			$cookieStore.put('authenticatedUser', response.data);
+    UserService.login($scope.user).then(function() {
       $window.location.reload();
     });
 	};

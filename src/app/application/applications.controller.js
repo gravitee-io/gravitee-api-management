@@ -27,7 +27,7 @@ class ApplicationsController {
 	}
 
 	createInitApplication() {
-		if (!this.$rootScope.authenticated) {
+		if (!this.$rootScope.graviteeUser) {
 			this.$rootScope.$broadcast("authenticationRequired");
 		} else {
 			this.showAddApplicationModal();

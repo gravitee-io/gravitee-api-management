@@ -35,6 +35,7 @@ md-sidenav.md-sidenav-theme {
 
 .sidenav-user-contents {
   height: $sidenavHeaderHeight;
+  white-space: nowrap;
 
   img {
     vertical-align: middle;

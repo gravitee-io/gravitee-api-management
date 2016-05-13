@@ -16,7 +16,7 @@
 function config ($logProvider) {
   'ngInject';
   // Enable log
-  $logProvider.debugEnabled(true);
+  $logProvider.debugEnabled(false);
 }
 
 export default config;

@@ -19,16 +19,17 @@
   ng-class="{'md-sidenav-min': reducedMode}" style="overflow: inherit;">
 	<div>
 		<div class="sidenav-user-contents">
-			<div>
+			<span>
 				<img src="app/images/GRAVITEE_LOGO1-01.png" />
-				<span id="sidenav-user-name">
-          <strong ng-if="!reducedMode">{{sidenavCtrl.user.principal.username}}</strong>
+				<span id="sidenav-user-name" ng-if="!reducedMode">
+          <strong>{{graviteeUser.firstname}} {{graviteeUser.lastname}}</strong>
+          <strong ng-if="!(graviteeUser.firstname && graviteeUser.lastname)">{{graviteeUser.username}}</strong>
         </span>
-			</div>
+			</span>
 			<md-divider></md-divider>
 		</div>
 		<md-list class="sidenav-list">
-      <md-list-item ng-repeat="menuItem in menuItems" ng-if="authenticated || menuItem.name === 'home'">
+      <md-list-item ng-repeat="menuItem in menuItems" ng-if="graviteeUser || menuItem.name === 'home'">
         <a ui-sref="{{menuItem.name}}" ui-sref-opts="{reload: true}" ui-sref-active="sidenav-active" title="{{menuItem.menu.label}}">
           <ng-md-icon icon="{{menuItem.menu.icon}}"></ng-md-icon>
           <span ng-if="!reducedMode">{{menuItem.menu.label}}</span>
@@ -52,10 +53,10 @@
         </md-button>
       </md-list-item>
       <md-list-item>
-        <a href="#" ng-click="sidenavCtrl.showLoginModal($event)" ng-if="!authenticated">
+        <a ng-click="sidenavCtrl.showLoginModal($event)" ng-if="!graviteeUser">
           <ng-md-icon icon="login"></ng-md-icon> <span ng-if="!reducedMode">Login</span>
         </a>
-        <a href="#" ng-click="sidenavCtrl.logout()" ng-if="authenticated">
+        <a ng-click="sidenavCtrl.logout()" ng-if="graviteeUser">
           <ng-md-icon icon="logout"></ng-md-icon> <span ng-if="!reducedMode">Sign out</span>
         </a>
       </md-list-item>

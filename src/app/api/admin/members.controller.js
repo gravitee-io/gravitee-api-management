@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 class ApiMembersController {
-  constructor (ApiService, resolvedApi, resolvedMembers, $state, $mdDialog, $cookieStore, NotificationService, $scope) {
+  constructor (ApiService, resolvedApi, resolvedMembers, $state, $mdDialog, NotificationService, $scope) {
     'ngInject';
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
@@ -27,7 +27,6 @@ class ApiMembersController {
     this.api = resolvedApi.data;
     this.members = resolvedMembers.data;
     this.membershipTypes = [ 'owner', 'user' ];
-		this.authenticatedUser = $cookieStore.get('authenticatedUser');
   }
 
   updateMember(member) {

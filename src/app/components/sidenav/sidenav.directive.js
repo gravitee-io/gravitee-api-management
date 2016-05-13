@@ -28,17 +28,12 @@ class SideNavDirective {
 }
 
 class SideNavController {
-  constructor($rootScope, $cookieStore, $mdSidenav, $mdDialog, $scope, $state, UserService) {
+  constructor($rootScope, $mdSidenav, $mdDialog, $scope, $state, UserService) {
     'ngInject';
     this.$rootScope = $rootScope;
-    this.$cookieStore = $cookieStore;
     this.$mdSidenav = $mdSidenav;
     this.$mdDialog = $mdDialog;
-    this.getUser();
-    var self = this;
-    this.$rootScope.$watch('authenticated', function () {
-      self.getUser();
-    });
+    this.UserService = UserService;
 
     var routeMenuItems = _.filter($state.get(), function (state) {
       return !state.abstract && state.menu;
@@ -48,11 +43,12 @@ class SideNavController {
       return routeMenuItem.menu.firstLevel && (!routeMenuItem.roles || UserService.isUserInRoles(routeMenuItem.roles));
     });
 
+    var _that = this;
     $scope.$on('$stateChangeSuccess', function (event, toState, toParams) {
       $scope.subMenuItems = _.filter(routeMenuItems, function (routeMenuItem) {
         var firstParam = _.values(toParams)[0];
         // do not display title if id is an UUID (not human readable)
-        if (firstParam && !self.isUUID(firstParam)) {
+        if (firstParam && !_that.isUUID(firstParam)) {
           $scope.currentResource = firstParam;
         } else {
           delete $scope.currentResource;
@@ -72,16 +68,16 @@ class SideNavController {
     return param.match('[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}');
   }
 
-  getUser() {
-    this.user = this.$cookieStore.get('authenticatedUser');
-  }
-
   close() {
     this.$mdSidenav('left').close();
   }
 
   logout() {
-    this.$rootScope.$broadcast('graviteeLogout');
+    var that = this;
+    this.UserService.logout().then(function () {
+      that.$rootScope.$broadcast('graviteeLogout');
+    })
+
   }
 
   showLoginModal(ev) {

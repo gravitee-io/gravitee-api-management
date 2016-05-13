@@ -14,30 +14,42 @@
  * limitations under the License.
  */
 /* global setInterval:false, clearInterval:false, screen:false */
-function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav) {
+function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav, UserService) {
   'ngInject';
-  var graviteeAuthenticationKey = 'GraviteeAuthentication';
+  var graviteeAuthenticationKey = 'Authorization';
 
-  function setAuthorization() {
-    var graviteeAuthentication = $cookieStore.get(graviteeAuthenticationKey);
-    if (graviteeAuthentication) {
-      $http.defaults.headers.common.Authorization = 'Basic ' + graviteeAuthentication;
-      $rootScope.authenticated = true;
+
+  function computeScreenSize(user){
+    if (screen.width < 500) {
+      $rootScope.percentWidth = 100;
+    } else if (screen.width < 770) {
+      $rootScope.percentWidth = 50;
     } else {
-      $http.defaults.headers.common.Authorization = '';
-      $rootScope.authenticated = false;
+      $rootScope.percentWidth = 33;
+    }
+    $rootScope.reducedMode = $rootScope.percentWidth > 33 || !user;
+  }
+
+  function setAuthorization(user) {
+    computeScreenSize(user);
+    if (user) {
+      $rootScope.graviteeUser = user;
+    } else {
+      delete $rootScope.graviteeUser;
     }
   }
 
-  setAuthorization();
+  UserService.current().then(function (response) {
+    setAuthorization(response.data);
+  });
 
   $rootScope.$on('graviteeLogout', function () {
+    // TODO remove me on 0.14.X release
     $cookieStore.remove(graviteeAuthenticationKey);
     $cookieStore.remove('authenticatedUser');
-    $rootScope.authenticated = false;
     setAuthorization();
     $mdSidenav('left').close();
-    $window.location.reload();
+    $window.location.href = '/';
   });
 
   // Progress Bar
@@ -64,15 +76,6 @@ function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav) {
     }
   });
 
-  if (screen.width < 500) {
-    $rootScope.percentWidth = 100;
-  } else if (screen.width < 770) {
-    $rootScope.percentWidth = 50;
-  } else {
-    $rootScope.percentWidth = 33;
-  }
-
-  $rootScope.reducedMode = $rootScope.percentWidth > 33 || !$rootScope.authenticated;
 }
 
 export default runBlock;

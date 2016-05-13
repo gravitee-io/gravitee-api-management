@@ -85,7 +85,7 @@ md-toolbar{
   }
 }
 
-tr[ui-sref] {
+a, tr[ui-sref] {
   cursor: pointer;
 }
 

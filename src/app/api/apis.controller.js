@@ -108,7 +108,7 @@ class ApisController {
 	}
 
 	createInitAPI() {
-		if (!this.$rootScope.authenticated) {
+		if (!this.$rootScope.graviteeUser) {
 			this.$rootScope.$broadcast("authenticationRequired");
 		} else if (this.$state.includes("apis.list")) {
 			this.showApiModal();

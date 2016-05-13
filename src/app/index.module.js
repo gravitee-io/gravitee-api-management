@@ -42,10 +42,8 @@ import DialogAddMemberApiController from './api/admin/members/addMemberDialog.co
 import DialogApiController from './api/dialog/apiDialog.controller';
 import DialogApiKeyExpirationController from './api/admin/apikeys/apikey-expiration.dialog.controller';
 import DialogEndpointController from './api/admin/general/addEndpointDialog.controller';
-import TeamService from './user/team.service';
 import UserService from './user/user.service';
 import UserController from './user/user.controller';
-import LoginService from './login/login.service';
 import NotificationService from './components/notification/notification.service';
 import DocumentationDirective from './api/admin/documentation/apiDocumentation.directive';
 import DocumentationController from './api/admin/documentation/apiDocumentation.controller';
@@ -140,10 +138,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
   .service('InstancesService', InstancesService)
-  .service('LoginService', LoginService)
   .service('NotificationService', NotificationService)
   .service('PolicyService', PolicyService)
-  .service('TeamService', TeamService)
   .service('UserService', UserService)
   .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective())
