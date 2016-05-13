@@ -13,31 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.common.http.MediaType;
-
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * 
- * @author Titouan COMPIEGNE
- *
+ * @author Azize Elamrani (azize at gravitee.io)
  */
-@Path("/login")
-public class LoginResource extends AbstractResource {
+public class UnauthorizedAccessException extends AbstractManagementException {
 
-	@Context
-	private SecurityContext securityContext;
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.UNAUTHORIZED_401;
+    }
 
-	@POST
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response login() {
-			return Response.ok(securityContext.getUserPrincipal(), MediaType.APPLICATION_JSON).build();
-	}
+    @Override
+    public String getMessage() {
+        return "You must be logged in to access this resource";
+    }
 }

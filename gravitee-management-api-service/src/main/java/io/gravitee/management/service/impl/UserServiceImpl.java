@@ -18,13 +18,11 @@ package io.gravitee.management.service.impl;
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
-import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
-import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,10 +51,10 @@ public class UserServiceImpl extends TransactionalService implements UserService
         try {
             LOGGER.debug("Find user by name: {}", username);
 
-            Optional<User> application = userRepository.findByUsername(username);
+            Optional<User> user = userRepository.findByUsername(username);
 
-            if (application.isPresent()) {
-                return convert(application.get());
+            if (user.isPresent()) {
+                return convert(user.get());
             }
 
             throw new UserNotFoundException(username);

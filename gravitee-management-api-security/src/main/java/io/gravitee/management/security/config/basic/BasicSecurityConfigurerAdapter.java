@@ -16,7 +16,10 @@
 package io.gravitee.management.security.config.basic;
 
 import io.gravitee.management.providers.core.authentication.AuthenticationManager;
+import io.gravitee.management.security.JWTCookieGenerator;
+import io.gravitee.management.security.config.basic.filter.AuthenticationSuccessFilter;
 import io.gravitee.management.security.config.basic.filter.CORSFilter;
+import io.gravitee.management.security.config.basic.filter.JWTAuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +34,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.Filter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
@@ -48,11 +53,17 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 
+    private static final int DEFAULT_JWT_EXPIRE_AFTER = 604800;
+    private static final String DEFAULT_JWT_ISSUER = "gravitee-management-auth";
+
     @Autowired
     private Environment environment;
 
     @Autowired
     private Collection<AuthenticationManager> authenticationManagers;
+
+    @Autowired
+    private JWTCookieGenerator jwtCookieGenerator;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -109,6 +120,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        final String jwtSecret = environment.getProperty("jwt.secret");
+        if (jwtSecret == null || jwtSecret.isEmpty()) {
+            throw new IllegalStateException("JWT secret is mandatory");
+        }
+
         http
             .httpBasic()
                 .realmName("Gravitee.io Management API")
@@ -118,6 +134,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
             .and()
                 .authorizeRequests()
                     .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
+                    .antMatchers(HttpMethod.GET, "/user/**").permitAll()
                     // API requests
                     .antMatchers(HttpMethod.GET, "/apis/**").permitAll()
                     .antMatchers(HttpMethod.POST, "/apis/**").hasAnyAuthority("ADMIN", "API_PUBLISHER")
@@ -133,6 +150,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
             .and()
                 .csrf()
                     .disable()
-            .addFilterAfter(corsFilter(), AbstractPreAuthenticatedProcessingFilter.class);
+            .addFilterAfter(corsFilter(), AbstractPreAuthenticatedProcessingFilter.class)
+            .addFilterBefore(new JWTAuthenticationFilter(jwtCookieGenerator, jwtSecret), BasicAuthenticationFilter.class)
+            .addFilterAfter(new AuthenticationSuccessFilter(jwtCookieGenerator, jwtSecret, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER),
+                            environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)),
+                    BasicAuthenticationFilter.class);
     }
 }

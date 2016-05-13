@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.providers.ldap.authentication;
 
+import io.gravitee.management.providers.core.authentication.GraviteeUserDetails;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,6 @@ import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
@@ -40,11 +40,6 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsContextPropertiesMapper.class);
 
-	private static final boolean accountNonExpired = true;
-	private static final boolean accountNonLocked = true;
-	private static final boolean credentialsNonExpired = true;
-	private static final boolean enabled = true;
-	
 	private int authenticationProviderId;
 	
 	private Environment environment;
@@ -63,7 +58,8 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 			LOGGER.error("Failed to load mapped authorities", e);
 		}
 		mappedAuthorities.addAll(authorities);
-		return new User(username, "", enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, mappedAuthorities);
+		return new GraviteeUserDetails(username, "", mappedAuthorities, ctx.getStringAttribute("mail"),
+				ctx.getStringAttribute("givenName"), ctx.getStringAttribute("sn"));
 	}
 
 	@Override

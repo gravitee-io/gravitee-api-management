@@ -62,5 +62,11 @@
 			<artifactId>spring-security-oauth2</artifactId>
 			<version>${spring.security.oauth2.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.auth0</groupId>
+			<artifactId>java-jwt</artifactId>
+			<version>${java-jwt.version}</version>
+		</dependency>
 	</dependencies>
 </project>

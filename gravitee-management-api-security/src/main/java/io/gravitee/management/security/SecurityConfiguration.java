@@ -36,4 +36,9 @@ public class SecurityConfiguration extends GlobalAuthenticationConfigurerAdapter
     public AuthenticationSuccessListener authenticationSuccessListener() {
         return new AuthenticationSuccessListener();
     }
+
+    @Bean
+    public JWTCookieGenerator jwtCookieGenerator() {
+        return new JWTCookieGenerator();
+    }
 }

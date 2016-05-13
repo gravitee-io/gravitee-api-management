@@ -176,3 +176,14 @@ ds:
   elastic:
     host: localhost
     port: 9300
+
+jwt:
+  secret: myJWT4Gr4v1t33_S3cr3t
+  # Allows to define the end of validity of the token in seconds (default 604800 = a week)
+  #expire-after: 604800
+  # Allows to define issuer (default gravitee-management-auth)
+  #issuer: gravitee-management-auth
+  # Allows to define cookie context path (default /)
+  #cookie-path: /
+  # Allows to define if cookie secure only (default false)
+  #cookie-secure: true

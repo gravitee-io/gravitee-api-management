@@ -16,6 +16,7 @@
 package io.gravitee.management.providers.memory.authentication;
 
 import io.gravitee.management.providers.core.authentication.AuthenticationManager;
+import io.gravitee.management.providers.core.authentication.GraviteeUserDetails;
 import io.gravitee.management.providers.memory.InMemoryProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +97,8 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
     }
 
     @Override
-    protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
-        return userDetailsService.loadUserByUsername(username);
+    protected GraviteeUserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        return new GraviteeUserDetails(userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
     }
 }

@@ -16,7 +16,6 @@
 package io.gravitee.management.security.listener;
 
 import io.gravitee.management.model.NewUserEntity;
-import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,6 @@ import org.springframework.security.authentication.event.AuthenticationSuccessEv
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 

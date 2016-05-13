@@ -18,6 +18,7 @@ package io.gravitee.management.service.impl;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
+import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +74,7 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
                 case RESTRICTED:
                     if (principal == null) {
                         LOGGER.error("Anonymous user does not have rights to view API {}", api);
-                        throw new ForbiddenAccessException();
+                        throw new UnauthorizedAccessException();
                     }
 
                     MemberEntity member = apiService.getMember(apiId, principal.getName());
@@ -86,7 +87,7 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
         } else if (permissionType == PermissionType.EDIT_API) {
             if (principal == null) {
                 LOGGER.error("Anonymous user does not have rights to edit API {}", api);
-                throw new ForbiddenAccessException();
+                throw new UnauthorizedAccessException();
             }
 
             MemberEntity member = apiService.getMember(apiId, principal.getName());
@@ -102,7 +103,7 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
 
         if (principal == null) {
             LOGGER.error("Anonymous user does not have rights to view application {}", applicationId);
-            throw new ForbiddenAccessException();
+            throw new UnauthorizedAccessException();
         }
 
         final ApplicationEntity application = applicationService.findById(applicationId);
