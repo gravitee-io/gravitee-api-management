@@ -16,6 +16,7 @@
 function interceptorConfig($httpProvider) {
   'ngInject';
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+  var sessionExpired;
 
   var interceptorUnauthorized = function ($q, $injector) {
     return {
@@ -23,20 +24,30 @@ function interceptorConfig($httpProvider) {
         var unauthorizedError = !error || error.status === 401;
         var errorMessage = '';
 
+        var notificationService = $injector.get('NotificationService');
         if (unauthorizedError) {
           if (error.config.headers['Authorization']) {
             errorMessage = 'Wrong user or password';
           } else {
-            $injector.get('$rootScope').$broadcast('graviteeLogout');
+            if (!sessionExpired) {
+              sessionExpired = true;
+              // session expired
+              notificationService.error(error, 'Session expired, redirecting to home...');
+              $injector.get('$timeout')(function () {
+                $injector.get('$rootScope').$broadcast('graviteeLogout');
+              }, 2000)
+            }
           }
-        } else if (error.status === 500) {
-          errorMessage = 'Unexpected error';
-        } else if (error.status === 503) {
-          errorMessage = 'Server unavailable';
+        } else {
+          if (error.status === 500) {
+            errorMessage = 'Unexpected error';
+          } else if (error.status === 503) {
+            errorMessage = 'Server unavailable';
+          }
         }
-
-        $injector.get('NotificationService').error(error, errorMessage);
-
+        if (!sessionExpired) {
+          notificationService.error(error, errorMessage);
+        }
         return $q.reject(error);
       }
     };
