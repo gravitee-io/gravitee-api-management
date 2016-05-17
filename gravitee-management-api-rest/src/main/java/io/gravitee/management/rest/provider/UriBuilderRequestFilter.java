@@ -40,7 +40,7 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
             ctx.setRequestUri(builder.scheme(scheme).build());
         }
 
-        List<String> hosts = ctx.getHeaders().get("x-forwarded-for");
+        List<String> hosts = ctx.getHeaders().get("x-forwarded-host");
         if (hosts != null && !hosts.isEmpty()) {
             String host = hosts.get(0);
             UriBuilder builder = ctx.getUriInfo().getRequestUriBuilder();
