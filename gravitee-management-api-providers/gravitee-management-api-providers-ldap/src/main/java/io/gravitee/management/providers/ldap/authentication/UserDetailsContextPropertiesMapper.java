@@ -57,7 +57,6 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 		} catch (Exception e){
 			LOGGER.error("Failed to load mapped authorities", e);
 		}
-		mappedAuthorities.addAll(authorities);
 		return new GraviteeUserDetails(username, "", mappedAuthorities, ctx.getStringAttribute("mail"),
 				ctx.getStringAttribute("givenName"), ctx.getStringAttribute("sn"));
 	}
