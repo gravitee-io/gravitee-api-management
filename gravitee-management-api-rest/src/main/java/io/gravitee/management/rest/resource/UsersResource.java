@@ -52,7 +52,7 @@ public class UsersResource {
     @Inject
     private IdentityService identityService;
     
-    @Autowired
+    @Autowired(required = false)
     private PasswordEncoder passwordEncoder;
     
     /**

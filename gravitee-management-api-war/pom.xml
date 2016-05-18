@@ -48,6 +48,7 @@
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository</artifactId>
 		</dependency>
+		<!--
 		<dependency>
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository-mongodb</artifactId>
@@ -66,6 +67,7 @@
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository-elasticsearch</artifactId>
 		</dependency>
+		-->
 	</dependencies>
 	
 	<build>

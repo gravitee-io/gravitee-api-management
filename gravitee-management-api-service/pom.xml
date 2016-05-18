@@ -43,8 +43,8 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.gravitee.management.providers</groupId>
-			<artifactId>gravitee-management-api-providers-core</artifactId>
+			<groupId>io.gravitee.management.idp</groupId>
+			<artifactId>gravitee-management-api-idp-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -72,6 +72,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
@@ -79,6 +84,17 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>1.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>${mail.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.freemarker</groupId>
+			<artifactId>freemarker</artifactId>
+			<version>${freemarker.version}</version>
 		</dependency>
 
 		<!-- HTML Parser -->

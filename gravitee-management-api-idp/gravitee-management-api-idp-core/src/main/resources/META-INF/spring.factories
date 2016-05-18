@@ -1,0 +1,2 @@
+io.gravitee.plugin.core.api.PluginHandler=\
+    io.gravitee.management.idp.core.plugin.IdentityProviderPluginHandler

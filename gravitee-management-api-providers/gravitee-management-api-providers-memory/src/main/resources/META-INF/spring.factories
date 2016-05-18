@@ -1,2 +1,0 @@
-io.gravitee.management.providers.core.Provider=\
-io.gravitee.management.providers.memory.InMemoryProvider

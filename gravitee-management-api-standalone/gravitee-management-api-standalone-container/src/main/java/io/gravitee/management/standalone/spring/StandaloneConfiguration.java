@@ -16,6 +16,7 @@
 package io.gravitee.management.standalone.spring;
 
 import io.gravitee.common.node.Node;
+import io.gravitee.management.repository.spring.RepositoryConfiguration;
 import io.gravitee.management.rest.spring.RestConfiguration;
 import io.gravitee.management.standalone.jetty.JettyConfiguration;
 import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
@@ -29,7 +30,7 @@ import org.springframework.context.annotation.Import;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Configuration
-@Import({RestConfiguration.class})
+@Import({RepositoryConfiguration.class, RestConfiguration.class})
 public class StandaloneConfiguration {
 
     @Bean

@@ -38,7 +38,13 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Gravitee Repository dependencies -->
+        <dependency>
+            <groupId>io.gravitee.management</groupId>
+            <artifactId>gravitee-management-api-repository</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Gravitee Repository dependencies
         <dependency>
             <groupId>io.gravitee.repository</groupId>
             <artifactId>gravitee-repository-mongodb</artifactId>
@@ -57,16 +63,15 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!--
         <dependency>
             <groupId>io.gravitee.repository</groupId>
             <artifactId>gravitee-repository-jdbc</artifactId>
         </dependency>
-        -->
         <dependency>
             <groupId>io.gravitee.repository</groupId>
             <artifactId>gravitee-repository-elasticsearch</artifactId>
         </dependency>
+         -->
 
         <dependency>
             <groupId>org.slf4j</groupId>

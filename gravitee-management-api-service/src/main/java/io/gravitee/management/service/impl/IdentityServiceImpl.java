@@ -15,15 +15,13 @@
  */
 package io.gravitee.management.service.impl;
 
+import io.gravitee.management.idp.core.authentication.IdentityManager;
 import io.gravitee.management.model.providers.User;
-import io.gravitee.management.providers.core.identity.IdentityManager;
 import io.gravitee.management.service.IdentityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,28 +31,20 @@ import java.util.stream.Collectors;
 public class IdentityServiceImpl implements IdentityService {
 
     @Autowired
-    private Collection<IdentityManager> identityManagers;
+    private IdentityManager identityManager;
 
     @Override
     public Collection<User> search(String query) {
-        Set<User> users = new HashSet<>();
-        for (IdentityManager identityManager : identityManagers) {
-            Collection<io.gravitee.management.providers.core.identity.User> lookupUsers = identityManager.search(query);
-            if (lookupUsers != null) {
-                users.addAll(lookupUsers.stream().map(this::convert).collect(Collectors.toSet()));
-            }
-        }
-
-        return users;
+        return identityManager.search(query).stream().map(this::convert).collect(Collectors.toSet());
     }
 
-    private User convert(io.gravitee.management.providers.core.identity.User identity) {
+    private User convert(io.gravitee.management.idp.api.identity.User identity) {
         User user = new User();
         user.setEmail(identity.getEmail());
         user.setFirstname(identity.getFirstname());
         user.setLastname(identity.getLastname());
-        user.setId(identity.getId());
-        user.setProvider(identity.getProvider());
+        user.setId((String) identity.getId());
+        user.setProvider(identity.getSource());
         return user;
     }
 }

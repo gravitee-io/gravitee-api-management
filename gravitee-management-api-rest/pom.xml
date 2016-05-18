@@ -48,30 +48,6 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>io.gravitee.management.providers</groupId>
-			<artifactId>gravitee-management-api-providers-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.gravitee.management.providers</groupId>
-			<artifactId>gravitee-management-api-providers-ldap</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.gravitee.management.providers</groupId>
-			<artifactId>gravitee-management-api-providers-memory</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.gravitee.management.providers</groupId>
-			<artifactId>gravitee-management-api-providers-repository</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
 		<!-- Gravitee dependencies -->
 		<dependency>
 			<groupId>io.gravitee.definition</groupId>
@@ -125,6 +101,12 @@
 					<artifactId>spring-web</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.4</version>
 		</dependency>
 
 		<!-- Jackson dependencies -->

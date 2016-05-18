@@ -16,7 +16,7 @@
 package io.gravitee.management.security.config.basic.filter;
 
 import com.auth0.jwt.JWTSigner;
-import io.gravitee.management.providers.core.authentication.GraviteeUserDetails;
+import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.security.JWTCookieGenerator;
 import io.gravitee.management.security.config.JWTClaims;
 import org.springframework.security.core.Authentication;
@@ -60,7 +60,7 @@ public class AuthenticationSuccessFilter extends GenericFilterBean {
             final Map<String, Object> claims = new HashMap<>();
             claims.put(JWTClaims.ISSUER, jwtIssuer);
 
-            final GraviteeUserDetails userDetails = (GraviteeUserDetails) authentication.getPrincipal();
+            final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             claims.put(JWTClaims.PERMISSIONS, userDetails.getAuthorities());
             claims.put(JWTClaims.SUBJECT, userDetails.getUsername());
             claims.put(JWTClaims.EMAIL, userDetails.getEmail());

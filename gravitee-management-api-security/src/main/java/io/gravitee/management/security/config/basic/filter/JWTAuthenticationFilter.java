@@ -18,7 +18,7 @@ package io.gravitee.management.security.config.basic.filter;
 import com.auth0.jwt.JWTVerifier;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.management.providers.core.authentication.GraviteeUserDetails;
+import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.security.JWTCookieGenerator;
 import io.gravitee.management.security.config.JWTClaims;
 import org.slf4j.Logger;
@@ -87,11 +87,11 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
                             .map(map -> new SimpleGrantedAuthority(map.get("authority").toString()))
                             .collect(Collectors.toList());
 
-                    final GraviteeUserDetails graviteeUserDetails = new GraviteeUserDetails(getStringValue(verify.get(JWTClaims.SUBJECT)), "",
+                    final UserDetails userDetails = new UserDetails(getStringValue(verify.get(JWTClaims.SUBJECT)), "",
                             authorities, getStringValue(verify.get(JWTClaims.EMAIL)), getStringValue(verify.get(JWTClaims.FIRSTNAME)),
                             getStringValue(verify.get(JWTClaims.LASTNAME)));
 
-                    SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(graviteeUserDetails, null, graviteeUserDetails.getAuthorities()));
+                    SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
                 } catch (Exception e) {
                     LOGGER.error("Invalid token", e);
 

@@ -36,6 +36,12 @@
 			<artifactId>gravitee-management-api-service</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.management.idp</groupId>
+			<artifactId>gravitee-management-api-idp-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	
 		<!-- Spring dependencies -->
 		<dependency>
@@ -61,6 +67,12 @@
 			<groupId>org.springframework.security.oauth</groupId>
 			<artifactId>spring-security-oauth2</artifactId>
 			<version>${spring.security.oauth2.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>${javax.servlet-api.version}</version>
 		</dependency>
 
 		<dependency>

@@ -16,7 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.providers.core.authentication.GraviteeUserDetails;
+import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.security.JWTCookieGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,7 +43,7 @@ public class UserResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response user() {
         final Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof GraviteeUserDetails) {
+        if (principal instanceof UserDetails) {
             return Response.ok(principal, MediaType.APPLICATION_JSON).build();
         }
         return Response.ok().build();
