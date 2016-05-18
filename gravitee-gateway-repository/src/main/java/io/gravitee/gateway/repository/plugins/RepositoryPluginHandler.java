@@ -16,6 +16,7 @@
 package io.gravitee.gateway.repository.plugins;
 
 import io.gravitee.plugin.core.api.*;
+import io.gravitee.plugin.core.internal.AnnotationBasedPluginContextConfigurer;
 import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import org.springframework.util.Assert;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -87,8 +89,12 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
                     // Not yet loaded, let's mount the repository in application context
                     try {
                         ApplicationContext repoApplicationContext = pluginContextFactory.create(
-                                plugin1 -> Collections.singleton(repository.configuration(scope)),
-                                plugin);
+                                new AnnotationBasedPluginContextConfigurer(plugin) {
+                                    @Override
+                                    public Set<Class<?>> configurations() {
+                                        return Collections.singleton(repository.configuration(scope));
+                                    }
+                                });
 
                         registerRepositoryDefinitions(repository, repoApplicationContext);
                         repositories.put(scope, repository);
