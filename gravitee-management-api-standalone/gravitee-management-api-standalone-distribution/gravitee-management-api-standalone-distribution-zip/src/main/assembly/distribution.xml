@@ -52,13 +52,19 @@
 		<fileSet>
 			<directory>../target/distribution/plugins</directory>
 			<outputDirectory>/plugins</outputDirectory>
-			<fileMode>644</fileMode>
+			<includes>
+				<include>**/*</include>
+			</includes>
+			<fileMode>755</fileMode>
 		</fileSet>
 
 		<fileSet>
 			<directory>../target/distribution/logs</directory>
 			<outputDirectory>/logs</outputDirectory>
 			<fileMode>644</fileMode>
+			<excludes>
+				<exclude>*</exclude>
+			</excludes>
 		</fileSet>
 
 		<fileSet>
