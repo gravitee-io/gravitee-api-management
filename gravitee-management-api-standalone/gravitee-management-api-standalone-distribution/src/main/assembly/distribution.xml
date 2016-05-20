@@ -49,11 +49,11 @@
         </fileSet>
 
         <fileSet>
-            <directory>src/main/assembly</directory>
+            <directory>target/staging</directory>
             <outputDirectory>/plugins</outputDirectory>
-            <excludes>
-                <exclude>*</exclude>
-            </excludes>
+            <includes>
+                <include>*.zip</include>
+            </includes>
         </fileSet>
 
         <fileSet>
