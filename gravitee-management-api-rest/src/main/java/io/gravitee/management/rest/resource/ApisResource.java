@@ -111,16 +111,20 @@ public class ApisResource extends AbstractResource {
     }
 
     private ApiListItem convert(ApiEntity api) {
-        ApiListItem apiItem = new ApiListItem();
+        final ApiListItem apiItem = new ApiListItem();
 
         apiItem.setId(api.getId());
         apiItem.setName(api.getName());
         apiItem.setVersion(api.getVersion());
         apiItem.setDescription(api.getDescription());
 
-        UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-        URI pictureUri = ub.path(api.getId()).path("picture").build();
-        apiItem.setPictureUrl(pictureUri.toString());
+        final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
+        final UriBuilder uriBuilder = ub.path(api.getId()).path("picture");
+        if (api.getPicture() != null) {
+            // force browser to get if updated
+            uriBuilder.queryParam("hash", api.getPicture().hashCode());
+        }
+        apiItem.setPictureUrl(uriBuilder.build().toString());
 
         apiItem.setCreatedAt(api.getCreatedAt());
         apiItem.setUpdatedAt(api.getUpdatedAt());
