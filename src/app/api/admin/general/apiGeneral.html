@@ -80,16 +80,9 @@
         </md-input-container>
       </div>
 
-      <div layout="column" class="api-picture">
+      <div layout="column" class="gravitee-api-picture-container">
         <label>Picture</label>
-        <div>
-          <img width="20%" ngf-no-object-url="true" ngf-src="generalCtrl.api.picture || apiPicture || 'app/images/GRAVITEE_LOGOsstxtclair-05.png'">
-        </div>
-        <div class="button" ngf-select="generalCtrl.selectAPIPicture($file)" ng-model="apiPicture" name="apiLogo" ngf-pattern="'image/*'"
-              ngf-accept="'image/*'" ngf-max-size="1MB">
-          <md-button class="md-raised">Select File</md-button>
-          <p>Formats: jpeg, png, gif</p>
-        </div>
+        <gravitee-image image="generalCtrl.api.picture" image-form="formApi" image-url="generalCtrl.api.picture_url"></gravitee-image>
       </div>
 
       <div layout="" layout-sm="column">

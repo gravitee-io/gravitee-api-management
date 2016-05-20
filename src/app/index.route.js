@@ -234,12 +234,6 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         icon: 'event_note'
       }
     })
-    .state('profile', {
-      url: '/profile',
-      templateUrl: 'app/profile/profile_stub.html',
-      controller: 'ProfileController',
-      controllerAs: 'profileCtrl'
-    })
     .state('applications', {
       abstract: true,
       url: '/applications',
@@ -380,6 +374,12 @@ function routerConfig($stateProvider, $urlRouterProvider) {
           return InstancesService.getMonitoringData($stateParams.id, resolvedInstance.data.id);
         }
       }
+    })
+    .state('user', {
+      url: '/user',
+      templateUrl: 'app/user/user.html',
+      controller: 'UserController',
+      controllerAs: 'userCtrl'
     });
 
   $urlRouterProvider.otherwise('/');

@@ -32,17 +32,17 @@ class ApiHistoryController {
     this.diffMode = false;
     this.eventToCompareRequired = false;
     this.eventTypes = "PUBLISH_API";
-    
+
     this.cleanAPI();
     this.init();
     this.initTimeline(this.events);
   }
-  
+
   init() {
     var self = this;
     this.$scope.$parent.apiCtrl.checkAPISynchronization(self.api);
     this.$scope.$on("apiChangeSucceed", function() {
-      if (self.$state.current.name.endsWith('events')) {
+      if (self.$state.current.name.endsWith('history')) {
         // reload API
         self.api = _.cloneDeep(self.$scope.$parent.apiCtrl.api);
         self.cleanAPI();
@@ -53,11 +53,11 @@ class ApiHistoryController {
         });
       }
     });
-    this.$scope.$on("checkAPISynchronizationSucceed", function() { 
+    this.$scope.$on("checkAPISynchronizationSucceed", function() {
       self.reloadEventsTimeline(self.events);
     });
   }
-  
+
   initTimeline(events) {
     var self = this;
     _.forEach(events, function(event) {
@@ -82,7 +82,7 @@ class ApiHistoryController {
       this.apisSelected = [];
       this.eventsSelected = [];
       this.clearDataToCompare();
-      
+
       var idx = this.eventsSelected.indexOf(_eventTimeline);
       if (idx > -1) {
         this.eventsSelected.splice(idx, 1);
@@ -90,7 +90,7 @@ class ApiHistoryController {
       else {
         this.eventsSelected.push(_eventTimeline);
       }
-      
+
       if (this.eventsSelected.length > 0) {
         var eventSelected = this.eventsSelected[0];
         if (eventSelected.isCurrentAPI) {
@@ -102,23 +102,23 @@ class ApiHistoryController {
       }
     }
   }
-  
+
   selectEventToCompare(_eventTimeline) {
     this.eventsToCompare.push(_eventTimeline);
   }
-  
+
   clearDataToCompare() {
     this.eventsToCompare = [];
   }
-  
+
   clearDataSelected() {
     this.eventsSelected = [];
   }
-  
+
   isEventSelectedForComparaison(_event) {
     return this.eventsToCompare.indexOf(_event) > -1;
   }
-  
+
   diffWithMaster() {
     this.clearDataToCompare();
     this.diffMode = true;
@@ -133,7 +133,7 @@ class ApiHistoryController {
       }
     }
   }
-  
+
   enableDiff() {
     this.clearDataToCompare();
     this.eventToCompareRequired = true;
@@ -142,7 +142,7 @@ class ApiHistoryController {
   disableDiff() {
     this.eventToCompareRequired = false;
   }
-  
+
   diff(eventTimeline) {
     this.diffMode = true;
     if (this.eventsSelected.length > 0) {
@@ -153,13 +153,13 @@ class ApiHistoryController {
         var eventSelected = {};
         var event1UpdatedAt = eventTimeline.event.updated_at;
         var event2UpdatedAt = this.eventsSelected[0].event.updated_at;
-        
+
         if (this.eventsSelected[0].isCurrentAPI) {
           eventSelected = this.eventsSelected[0].event
         } else {
           eventSelected = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
         }
-        
+
         if (event1UpdatedAt > event2UpdatedAt) {
           this.left = eventSelected;
           this.right = this.reorganizeEvent(JSON.parse(eventTimeline.event.payload));
@@ -171,11 +171,11 @@ class ApiHistoryController {
     }
     this.disableDiff();
   }
-  
+
   isEventSelected(_eventTimeline) {
     return this.eventsSelected.indexOf(_eventTimeline) > -1;
   }
-  
+
   rollback(_apiPayload) {
     var _apiDefinition = JSON.parse(_apiPayload.definition);
     delete _apiDefinition.id;
@@ -188,7 +188,7 @@ class ApiHistoryController {
       this.$rootScope.$broadcast("apiChangeSuccess");
     });
   }
-  
+
   showRollbackAPIConfirm(ev, api) {
     var confirm = this.$mdDialog.confirm()
       .title('Would you like to rollback your API?')
@@ -203,7 +203,7 @@ class ApiHistoryController {
       self.$mdDialog.cancel();
     });
   }
-  
+
   reloadEventsTimeline(events) {
     this.clearDataSelected();
     this.eventsTimeline = [];
@@ -219,7 +219,7 @@ class ApiHistoryController {
       this.eventsTimeline.unshift(eventTimeline);
     }
   }
-  
+
   reorganizeEvent(_event) {
     var eventPayloadDefinition = JSON.parse(_event.definition);
     var reorganizedEvent = {
@@ -234,7 +234,7 @@ class ApiHistoryController {
     };
     return reorganizedEvent;
   }
-  
+
   cleanAPI() {
     delete this.api.deployed_at;
     delete this.api.created_at;

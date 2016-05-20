@@ -38,9 +38,10 @@ md-sidenav.md-sidenav-theme {
   white-space: nowrap;
 
   img {
-    vertical-align: middle;
+    border-radius: 30px;
     height: $sidenavHeaderHeight;
-    margin-left: -5px;
+    max-width: 60px;
+    vertical-align: middle;
   }
 }
 

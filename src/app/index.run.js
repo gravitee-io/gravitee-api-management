@@ -18,8 +18,7 @@ function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav, UserServ
   'ngInject';
   var graviteeAuthenticationKey = 'Authorization';
 
-
-  function computeScreenSize(user){
+  function configureScreenSize(user) {
     if (screen.width < 500) {
       $rootScope.percentWidth = 100;
     } else if (screen.width < 770) {
@@ -30,24 +29,23 @@ function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav, UserServ
     $rootScope.reducedMode = $rootScope.percentWidth > 33 || !user;
   }
 
-  function setAuthorization(user) {
-    computeScreenSize(user);
-    if (user) {
-      $rootScope.graviteeUser = user;
-    } else {
-      delete $rootScope.graviteeUser;
-    }
-  }
+  UserService.current().then(function (user) {
+    $rootScope.graviteeUser = user.data;
+    $rootScope.$broadcast('userLoginSuccessful');
 
-  UserService.current().then(function (response) {
-    setAuthorization(response.data);
+    configureScreenSize($rootScope.graviteeUser);
+
+    if ($rootScope.graviteeUser) {
+      UserService.currentUserPicture().then(function (response) {
+        $rootScope.graviteeUser.picture = response.data;
+      });
+    }
   });
 
   $rootScope.$on('graviteeLogout', function () {
     // TODO remove me on 0.14.X release
     $cookieStore.remove(graviteeAuthenticationKey);
     $cookieStore.remove('authenticatedUser');
-    setAuthorization();
     $mdSidenav('left').close();
     $window.location.href = '/';
   });

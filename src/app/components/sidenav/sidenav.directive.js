@@ -35,17 +35,18 @@ class SideNavController {
     this.$mdDialog = $mdDialog;
     this.UserService = UserService;
 
-    var routeMenuItems = _.filter($state.get(), function (state) {
+    var _that = this;
+
+    this.routeMenuItems = _.filter($state.get(), function (state) {
       return !state.abstract && state.menu;
     });
 
-    $scope.menuItems = _.filter(routeMenuItems, function (routeMenuItem) {
-      return routeMenuItem.menu.firstLevel && (!routeMenuItem.roles || UserService.isUserInRoles(routeMenuItem.roles));
+    $rootScope.$on('userLoginSuccessful', function () {
+      _that.loadMenuItems($scope, UserService);
     });
 
-    var _that = this;
     $scope.$on('$stateChangeSuccess', function (event, toState, toParams) {
-      $scope.subMenuItems = _.filter(routeMenuItems, function (routeMenuItem) {
+      $scope.subMenuItems = _.filter(_that.routeMenuItems, function (routeMenuItem) {
         var firstParam = _.values(toParams)[0];
         // do not display title if id is an UUID (not human readable)
         if (firstParam && !_that.isUUID(firstParam)) {
@@ -60,7 +61,13 @@ class SideNavController {
     });
 
     $scope.$on('authenticationRequired', function () {
-      self.showLoginModal();
+      _that.showLoginModal();
+    });
+  }
+
+  loadMenuItems($scope, UserService) {
+    $scope.menuItems = _.filter(this.routeMenuItems, function (routeMenuItem) {
+      return routeMenuItem.menu.firstLevel && (!routeMenuItem.roles || UserService.isUserInRoles(routeMenuItem.roles));
     });
   }
 

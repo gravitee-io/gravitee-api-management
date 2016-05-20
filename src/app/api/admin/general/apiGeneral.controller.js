@@ -221,15 +221,8 @@ class ApiAdminController {
       delete api.proxy.failover;
     }
 
-    this.ApiService.update(api).then((updatedApi) => {
+    this.ApiService.update(api).then(updatedApi => {
       this.onApiUpdate(updatedApi.data);
-    });
-  }
-
-  selectAPIPicture(file) {
-    var self = this;
-    this.Upload.base64DataUrl(file).then(function(url){
-      self.api.picture = url;
     });
   }
 

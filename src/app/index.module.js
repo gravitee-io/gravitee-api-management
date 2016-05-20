@@ -49,7 +49,6 @@ import DocumentationDirective from './api/admin/documentation/apiDocumentation.d
 import DocumentationController from './api/admin/documentation/apiDocumentation.controller';
 import DocumentationService from './api/admin/documentation/apiDocumentation.service';
 import DialogDocumentationController from './api/admin/documentation/dialog/apiDocumentationDialog.controller';
-import ProfileController from './profile/profile.controller';
 import ApplicationsController from './application/applications.controller';
 import ApplicationController from './application/details/applications.controller';
 import ApplicationGeneralController from './application/details/general/applicationGeneral.controller';
@@ -72,6 +71,7 @@ import InstancesController from './instances/instances.controller';
 import InstanceController from './instances/details/instance.controller';
 import InstanceEnvironmentController from './instances/details/environment/instanceEnvironment.controller';
 import InstanceMonitoringController from './instances/details/monitoring/instanceMonitoring.controller';
+import ImageDirective from './components/image/image.directive';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
@@ -118,7 +118,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('DialogEndpointController', DialogEndpointController)
   .controller('UserController', UserController)
   .controller('DocumentationController', DocumentationController)
-  .controller('ProfileController', ProfileController)
   .controller('ApplicationsController', ApplicationsController)
   .controller('ApplicationController', ApplicationController)
   .controller('ApplicationGeneralController', ApplicationGeneralController)
@@ -148,6 +147,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('graviteeRolesAllowed', () => new RoleDirective())
   .directive('graviteeDiff', () => new DiffDirective())
+  .directive('graviteeImage', () => new ImageDirective())
   .filter('apiKeyFilter', function () {
     return function (keys) {
       return keys;

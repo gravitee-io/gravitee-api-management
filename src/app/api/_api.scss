@@ -183,7 +183,7 @@
   right: 30px;
   text-align: right;
   width: 100%;
-  
+
   button {
     padding: 2px 6px;
     border-radius: 0px;
@@ -192,23 +192,23 @@
 
 .apis-header-filter {
   width: 100%;
-  
+
   input:focus {
     box-shadow: none;
     outline: 0 none;
   }
 }
 
-.api-picture {
+.gravitee-api-picture-container {
   margin-bottom: 20px;
-  
+
   label {
     color: rgba(0,0,0,0.54);
     font-size: 11px;
     margin-left: 3px;
-    margin-bottom: 10px; 
+    margin-bottom: 10px;
   }
-  
+
   div.button {
     margin-left: 50px;
   }

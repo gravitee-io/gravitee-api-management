@@ -54,7 +54,7 @@ class UserService {
 
 	  var rolesAllowed = false, that = this;
 	  _.forEach(roles, function(role) {
-	    _.forEach(that.$rootScope.graviteeUser.permissions, function(authority) {
+	    _.forEach(that.$rootScope.graviteeUser.authorities, function(authority) {
 	      if (authority.authority === role) {
 	        rolesAllowed = true;
 	        return;
@@ -82,6 +82,14 @@ class UserService {
 
   logout() {
     return this.$http.post(this.userURL + 'logout');
+  }
+
+  currentUserPicture() {
+    return this.$http.get(this.userURL + this.$rootScope.graviteeUser.username + '/picture');
+  }
+
+  save(user) {
+    return this.$http.put(this.userURL + this.$rootScope.graviteeUser.username + '/', {username: user.username, picture: user.picture});
   }
 }
 

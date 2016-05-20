@@ -19,13 +19,13 @@
   ng-class="{'md-sidenav-min': reducedMode}" style="overflow: inherit;">
 	<div>
 		<div class="sidenav-user-contents">
-			<span>
-				<img src="app/images/GRAVITEE_LOGO1-01.png" />
+			<a ui-sref="user">
+				<img ng-src="{{graviteeUser.picture || 'app/images/GRAVITEE_LOGO1-01.png'}}" />
 				<span id="sidenav-user-name" ng-if="!reducedMode">
           <strong>{{graviteeUser.firstname}} {{graviteeUser.lastname}}</strong>
           <strong ng-if="!(graviteeUser.firstname && graviteeUser.lastname)">{{graviteeUser.username}}</strong>
         </span>
-			</span>
+			</a>
 			<md-divider></md-divider>
 		</div>
 		<md-list class="sidenav-list">

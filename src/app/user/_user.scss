@@ -1,15 +1,7 @@
-ul {
-  list-style-type: none;
-}
+$userImageSize: 160px;
 
-.gravitee-link {
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
+.gravitee-user-container {
+  ng-md-icon {
+    top: -5px;
   }
-}
-
-.gravitee-user-input {
-  width: 100%;
 }

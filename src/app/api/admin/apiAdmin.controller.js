@@ -32,10 +32,7 @@ class ApiAdminController {
     var self = this;
     this.$scope.$on("apiChangeSuccess", function() {
       self.checkAPISynchronization(self.api);
-      self.ApiService.get(self.api.id).then(response => {
-        self.api = response.data;
-        self.$rootScope.$broadcast("apiChangeSucceed");
-      });
+      self.$rootScope.$broadcast("apiChangeSucceed");
     });
   }
 
