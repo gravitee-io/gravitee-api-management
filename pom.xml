@@ -28,11 +28,11 @@
 
 	<groupId>io.gravitee.repository</groupId>
 	<artifactId>gravitee-repository-mongodb</artifactId>
-	<version>0.10.0-SNAPSHOT</version>
+	<version>0.10.0</version>
 	<name>Gravitee IO - API Management - Repository MongoDB</name>
 
 	<properties>
-		<gravitee-repository.version>0.12.0-SNAPSHOT</gravitee-repository.version>
+		<gravitee-repository.version>0.12.0</gravitee-repository.version>
 		<embed.mongo.version>1.50.2</embed.mongo.version>
 		<mongo.version>3.0.4</mongo.version>
 		<spring.data.mongodb.version>1.7.2.RELEASE</spring.data.mongodb.version>
