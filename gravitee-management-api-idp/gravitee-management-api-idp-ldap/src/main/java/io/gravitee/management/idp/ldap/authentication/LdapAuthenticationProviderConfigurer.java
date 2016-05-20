@@ -26,20 +26,12 @@ import org.springframework.security.config.annotation.authentication.ProviderMan
 import org.springframework.security.config.annotation.web.configurers.ChannelSecurityConfigurer;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
-import org.springframework.security.ldap.authentication.AbstractLdapAuthenticator;
-import org.springframework.security.ldap.authentication.BindAuthenticator;
+import org.springframework.security.ldap.authentication.*;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
-import org.springframework.security.ldap.authentication.LdapAuthenticator;
-import org.springframework.security.ldap.authentication.PasswordComparisonAuthenticator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.ldap.search.LdapUserSearch;
 import org.springframework.security.ldap.server.ApacheDSContainer;
-import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
-import org.springframework.security.ldap.userdetails.InetOrgPersonContextMapper;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
-import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
-import org.springframework.security.ldap.userdetails.PersonContextMapper;
-import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
+import org.springframework.security.ldap.userdetails.*;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
@@ -78,7 +70,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
 
         LdapAuthoritiesPopulator authoritiesPopulator = getLdapAuthoritiesPopulator();
 
-        LdapAuthenticationProvider ldapAuthenticationProvider = new LdapAuthenticationProvider(
+        LdapAuthenticationProvider ldapAuthenticationProvider = new LdapAuthenticationProviderProxy(
                 ldapAuthenticator, authoritiesPopulator);
         SimpleAuthorityMapper simpleAuthorityMapper = new SimpleAuthorityMapper();
         simpleAuthorityMapper.setPrefix(rolePrefix);
