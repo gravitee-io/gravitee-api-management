@@ -34,7 +34,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayOutputStream;
-import java.net.URI;
 
 import static java.lang.String.format;
 
@@ -69,9 +68,13 @@ public class ApiResource extends AbstractResource {
         permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.VIEW_API);
         ApiEntity api = apiService.findById(this.api);
 
-        UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-        URI pictureUri = ub.path("picture").build();
-        api.setPictureUrl(pictureUri.toString());
+        final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
+        final UriBuilder uriBuilder = ub.path("picture");
+        if (api.getPicture() != null) {
+            // force browser to get if updated
+            uriBuilder.queryParam("hash", api.getPicture().hashCode());
+        }
+        api.setPictureUrl(uriBuilder.build().toString());
         api.setPicture(null);
         setPermission(api);
 
