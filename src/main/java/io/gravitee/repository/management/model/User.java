@@ -64,6 +64,11 @@ public class User {
 	 */
 	private Date updatedAt;
 
+	/**
+	 * The user picture
+	 */
+	private String picture;
+
 	public String getFirstname() {
 		return firstname;
 	}
@@ -126,6 +131,14 @@ public class User {
 
 	public void setUpdatedAt(Date updatedAt) {
 		this.updatedAt = updatedAt;
+	}
+
+	public String getPicture() {
+		return picture;
+	}
+
+	public void setPicture(String picture) {
+		this.picture = picture;
 	}
 
 	@Override

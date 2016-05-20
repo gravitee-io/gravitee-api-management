@@ -35,6 +35,14 @@ public interface UserRepository {
 	User create(User user) throws TechnicalException;
 
 	/**
+	 * Update a {@link User}
+	 *
+	 * @param user user to update
+	 * @return User updated
+	 */
+	User update(User user) throws TechnicalException;
+
+	/**
 	 * Find a {@link User} by name
 	 *
 	 * @param username Name of the searched user
