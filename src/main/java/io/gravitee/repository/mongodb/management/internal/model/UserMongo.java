@@ -15,13 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Mongo objet model for user
@@ -40,6 +39,7 @@ public class UserMongo extends Auditable {
     private String firstname;
     private String lastname;
     private List<String> roles;
+    private String picture;
 
     public String getName() {
         return name;
@@ -88,6 +88,14 @@ public class UserMongo extends Auditable {
 	public void setRoles(List<String> roles) {
 		this.roles = roles;
 	}
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
 
     @Override
     public boolean equals(Object o) {

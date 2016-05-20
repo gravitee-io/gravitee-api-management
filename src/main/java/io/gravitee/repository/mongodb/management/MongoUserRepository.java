@@ -69,14 +69,25 @@ public class MongoUserRepository implements UserRepository {
 	@Override
 	public User create(User user) throws TechnicalException {
 		logger.debug("Create user [{}]", user.getUsername());
-		
+
 		UserMongo userMongo = mapper.map(user, UserMongo.class);
 		UserMongo createdUserMongo = internalUserRepo.insert(userMongo);
-		
+
 		User res = mapper.map(createdUserMongo, User.class);
-		
+
 		logger.debug("Create user [{}] - Done", user.getUsername());
-		
+
 		return res;
+	}
+
+	@Override
+	public User update(User user) throws TechnicalException {
+		final UserMongo userMongo = internalUserRepo.findOne(user.getUsername());
+
+		// Update, but don't change invariant other creation information
+		userMongo.setPicture(user.getPicture());
+
+		UserMongo userUpdated = internalUserRepo.save(userMongo);
+		return mapper.map(userUpdated, User.class);
 	}
 }
