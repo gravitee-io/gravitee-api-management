@@ -45,6 +45,12 @@ public class RedisUserRepository implements UserRepository {
     }
 
     @Override
+    public User update(User user) throws TechnicalException {
+        RedisUser redisUser = userRedisRepository.saveOrUpdate(convert(user));
+        return convert(redisUser);
+    }
+
+    @Override
     public Optional<User> findByUsername(String username) throws TechnicalException {
         RedisUser redisUser = userRedisRepository.find(username);
         return Optional.ofNullable(convert(redisUser));
@@ -73,6 +79,7 @@ public class RedisUserRepository implements UserRepository {
         user.setRoles(redisUser.getRoles());
         user.setCreatedAt(new Date(redisUser.getCreatedAt()));
         user.setUpdatedAt(new Date(redisUser.getUpdatedAt()));
+        user.setPicture(redisUser.getPicture());
 
         return user;
     }
@@ -87,6 +94,7 @@ public class RedisUserRepository implements UserRepository {
         redisUser.setRoles(user.getRoles());
         redisUser.setCreatedAt(user.getCreatedAt().getTime());
         redisUser.setUpdatedAt(user.getUpdatedAt().getTime());
+        redisUser.setPicture(user.getPicture());
 
         return redisUser;
     }

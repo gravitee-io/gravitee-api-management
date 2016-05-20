@@ -17,7 +17,6 @@ package io.gravitee.repository.redis.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.redis.management.internal.ApiRedisRepository;
 import io.gravitee.repository.redis.management.internal.MemberRedisRepository;
@@ -43,7 +42,7 @@ public class RedisApiRepository implements ApiRepository {
     private MemberRedisRepository memberRedisRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private RedisUserRepository userRepository;
 
     @Override
     public Set<Api> findAll() throws TechnicalException {
@@ -206,6 +205,7 @@ public class RedisApiRepository implements ApiRepository {
         api.setVersion(redisApi.getVersion());
         api.setVisibility(Visibility.valueOf(redisApi.getVisibility()));
         api.setLifecycleState(LifecycleState.valueOf(redisApi.getLifecycleState()));
+        api.setPicture(redisApi.getPicture());
 
         return api;
     }
@@ -227,6 +227,7 @@ public class RedisApiRepository implements ApiRepository {
         redisApi.setVersion(api.getVersion());
         redisApi.setVisibility(api.getVisibility().name());
         redisApi.setLifecycleState(api.getLifecycleState().name());
+        redisApi.setPicture(api.getPicture());
 
         return redisApi;
     }

@@ -33,6 +33,7 @@ public class RedisUser {
     private Set<String> roles = new HashSet<>();
     private long createdAt;
     private long updatedAt;
+    private String picture;
 
     public long getCreatedAt() {
         return createdAt;
@@ -96,6 +97,14 @@ public class RedisUser {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     @Override

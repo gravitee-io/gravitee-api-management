@@ -19,12 +19,26 @@ import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
 import io.gravitee.repository.redis.management.ManagementRepositoryConfiguration;
 import io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisConnection;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
 public class RedisRepository implements Repository {
+
+    public RedisRepository() {
+        ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+            try {
+                Class.forName(JedisConnection.class.getName(), true, getClass().getClassLoader());
+            } catch (ClassNotFoundException e) {
+            }
+        } finally {
+            Thread.currentThread().setContextClassLoader(tccl);
+        }
+    }
 
     @Override
     public String type() {

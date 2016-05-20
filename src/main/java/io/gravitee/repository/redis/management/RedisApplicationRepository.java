@@ -46,7 +46,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
     private MemberRedisRepository memberRedisRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private RedisUserRepository userRepository;
 
     @Override
     public Set<Application> findAll() throws TechnicalException {

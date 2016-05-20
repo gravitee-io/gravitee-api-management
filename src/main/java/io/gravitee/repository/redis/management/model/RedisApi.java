@@ -33,6 +33,7 @@ public class RedisApi {
     private long deployedAt;
     private long createdAt;
     private long updatedAt;
+    private String picture;
 
     public String getDefinition() {
         return definition;
@@ -112,6 +113,14 @@ public class RedisApi {
 
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     @Override
