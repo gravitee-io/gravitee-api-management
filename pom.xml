@@ -38,9 +38,9 @@
 		<gravitee-common.version>0.9.0-SNAPSHOT</gravitee-common.version>
 		<gravitee-plugin-core.version>0.11.0-SNAPSHOT</gravitee-plugin-core.version>
 		<gravitee-plugin-policy.version>0.11.0-SNAPSHOT</gravitee-plugin-policy.version>
-		<gravitee-repository.version>0.11.0</gravitee-repository.version>
+		<gravitee-repository.version>0.12.0-SNAPSHOT</gravitee-repository.version>
 		<gravitee-repository-elasticsearch.version>0.7.0</gravitee-repository-elasticsearch.version>
-		<gravitee-repository-mongodb.version>0.9.0</gravitee-repository-mongodb.version>
+		<gravitee-repository-mongodb.version>0.10.0-SNAPSHOT</gravitee-repository-mongodb.version>
 		<gravitee-repository-couchbase.version>0.1.0-SNAPSHOT</gravitee-repository-couchbase.version>
 		<gravitee-repository-jdbc.version>0.3.0</gravitee-repository-jdbc.version>
 		<gravitee-gateway-api.version>0.9.0</gravitee-gateway-api.version>

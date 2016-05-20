@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.model.UserEntity;
 
 /**
@@ -26,4 +27,6 @@ public interface UserService {
     UserEntity findByName(String username);
 
     UserEntity create(NewUserEntity newUserEntity);
+
+    UserEntity update(UpdateUserEntity updateUserEntity);
 }

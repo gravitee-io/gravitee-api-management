@@ -17,15 +17,17 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.idp.api.authentication.UserDetails;
+import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.security.JWTCookieGenerator;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
@@ -37,6 +39,8 @@ import javax.ws.rs.core.Response;
 public class UserResource extends AbstractResource {
 
     @Autowired
+    private UserService userService;
+    @Autowired
     private JWTCookieGenerator jwtCookieGenerator;
 
     @GET
@@ -47,6 +51,22 @@ public class UserResource extends AbstractResource {
             return Response.ok(principal, MediaType.APPLICATION_JSON).build();
         }
         return Response.ok().build();
+    }
+
+    @PUT
+    @Path("/{username}")
+    public Response update(@PathParam("username") final String username, @Valid @NotNull final UpdateUserEntity user) {
+        if (!username.equals(getAuthenticatedUsername())) {
+            throw new ForbiddenAccessException();
+        }
+
+        return Response.ok(userService.update(user)).build();
+    }
+
+    @GET
+    @Path("/{username}/picture")
+    public Response getPicture(@PathParam("username") final String username) {
+        return Response.ok(userService.findByName(username).getPicture()).build();
     }
 
     @POST

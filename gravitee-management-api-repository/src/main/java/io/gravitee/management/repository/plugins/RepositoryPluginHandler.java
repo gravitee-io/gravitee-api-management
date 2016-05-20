@@ -31,10 +31,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -58,6 +55,7 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
 
     private final Map<Scope, Repository> repositories = new HashMap<>();
     private final Map<Scope, String> repositoryTypeByScope = new HashMap<>();
+    private final Map<String, Collection<Scope>> scopeByRepositoryType = new HashMap<>();
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -84,7 +82,9 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
             Assert.isAssignable(Repository.class, repositoryClass);
 
             Repository repository = createInstance((Class<Repository>) repositoryClass);
-            for(Scope scope : repository.scopes()) {
+            Collection<Scope> scopes = scopeByRepositoryType.getOrDefault(repository.type(), Collections.EMPTY_LIST);
+
+            for(Scope scope : scopes) {
                 if (! repositories.containsKey(scope)) {
                     // Not yet loaded, let's mount the repository in application context
                     try {
@@ -153,6 +153,9 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
         }
 
         repositoryTypeByScope.put(scope, repositoryType);
+        Collection<Scope> scopes = scopeByRepositoryType.getOrDefault(repositoryType, new ArrayList<>());
+        scopes.add(scope);
+        scopeByRepositoryType.put(repositoryType, scopes);
         return repositoryType;
     }
 

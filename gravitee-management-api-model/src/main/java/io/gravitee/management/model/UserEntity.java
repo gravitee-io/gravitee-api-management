@@ -67,6 +67,8 @@ public class UserEntity {
      */
     @JsonProperty("updated_at")
     private Date updatedAt;
+
+    private String picture;
     
     public String getFirstname() {
   		return firstname;
@@ -131,6 +133,14 @@ public class UserEntity {
 	public void setRoles(Set<String> roles) {
 		this.roles = roles;
 	}
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
 
     @Override
     public boolean equals(Object o) {

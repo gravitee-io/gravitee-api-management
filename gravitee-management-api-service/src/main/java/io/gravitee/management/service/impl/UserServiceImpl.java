@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -87,6 +88,28 @@ public class UserServiceImpl extends TransactionalService implements UserService
         }
     }
 
+    @Override
+    public UserEntity update(UpdateUserEntity updateUserEntity) {
+        try {
+            LOGGER.debug("Updating {}", updateUserEntity);
+            Optional<User> checkUser = userRepository.findByUsername(updateUserEntity.getUsername());
+            if (!checkUser.isPresent()) {
+                throw new UserNotFoundException(updateUserEntity.getUsername());
+            }
+
+            User user = checkUser.get();
+
+            user.setUpdatedAt(user.getCreatedAt());
+            user.setPicture(updateUserEntity.getPicture());
+
+            User updatedUser = userRepository.update(user);
+            return convert(updatedUser);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to update {}", updateUserEntity, ex);
+            throw new TechnicalManagementException("An error occurs while trying update " + updateUserEntity, ex);
+        }
+    }
+
     private static User convert(NewUserEntity newUserEntity) {
         if (newUserEntity == null) {
             return null;
@@ -116,6 +139,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
         userEntity.setRoles(user.getRoles());
         userEntity.setCreatedAt(user.getCreatedAt());
         userEntity.setUpdatedAt(user.getUpdatedAt());
+        userEntity.setPicture(user.getPicture());
 
         return userEntity;
     }
