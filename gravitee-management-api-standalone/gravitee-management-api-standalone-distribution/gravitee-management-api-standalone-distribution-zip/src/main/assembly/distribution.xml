@@ -36,8 +36,20 @@
 			<includes>
 				<include>**/*</include>
 			</includes>
+			<excludes>
+				<exclude>**/*.png</exclude>
+			</excludes>
 			<fileMode>644</fileMode>
 			<filtered>true</filtered>
+		</fileSet>
+
+		<fileSet>
+			<directory>../target/distribution/config</directory>
+			<outputDirectory>/config</outputDirectory>
+			<includes>
+				<include>**/*.png</include>
+			</includes>
+			<fileMode>644</fileMode>
 		</fileSet>
 
 		<fileSet>
