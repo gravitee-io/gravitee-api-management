@@ -16,6 +16,7 @@
 package io.gravitee.management.security.config.basic.filter;
 
 import com.auth0.jwt.JWTSigner;
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.security.JWTCookieGenerator;
 import io.gravitee.management.security.config.JWTClaims;
@@ -28,10 +29,13 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Azize Elamrani (azize at gravitee.io)
@@ -54,8 +58,20 @@ public class AuthenticationSuccessFilter extends GenericFilterBean {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        final HttpServletRequest req = (HttpServletRequest) servletRequest;
+
+        final Optional<Cookie> optionalStringToken;
+
+        if (req.getCookies() == null) {
+            optionalStringToken = Optional.empty();
+        } else {
+            optionalStringToken = Arrays.stream(req.getCookies())
+                    .filter(cookie -> HttpHeaders.AUTHORIZATION.equals(cookie.getName()))
+                    .findAny();
+        }
+
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
+        if (authentication != null && !optionalStringToken.isPresent()) {
             // JWT signer
             final Map<String, Object> claims = new HashMap<>();
             claims.put(JWTClaims.ISSUER, jwtIssuer);

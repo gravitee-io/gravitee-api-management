@@ -185,5 +185,7 @@ jwt:
   #issuer: gravitee-management-auth
   # Allows to define cookie context path (default /)
   #cookie-path: /
+  # Allows to define cookie domain (default "")
+  #cookie-domain: .gravitee.io
   # Allows to define if cookie secure only (default false)
   #cookie-secure: true
