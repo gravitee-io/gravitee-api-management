@@ -47,7 +47,7 @@ function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav, UserServ
     $cookieStore.remove(graviteeAuthenticationKey);
     $cookieStore.remove('authenticatedUser');
     $mdSidenav('left').close();
-    $window.location.href = '/';
+    $window.location.href = $window.location.pathname;
   });
 
   // Progress Bar

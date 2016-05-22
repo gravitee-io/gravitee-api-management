@@ -41,6 +41,8 @@ class SideNavController {
       return !state.abstract && state.menu;
     });
 
+    _that.loadMenuItems($scope, UserService);
+
     $rootScope.$on('userLoginSuccessful', function () {
       _that.loadMenuItems($scope, UserService);
     });
