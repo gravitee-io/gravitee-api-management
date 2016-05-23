@@ -34,6 +34,7 @@ class SideNavController {
     this.$mdSidenav = $mdSidenav;
     this.$mdDialog = $mdDialog;
     this.UserService = UserService;
+    this.$state = $state;
 
     var _that = this;
 
@@ -86,17 +87,14 @@ class SideNavController {
     this.UserService.logout().then(function () {
       that.$rootScope.$broadcast('graviteeLogout');
     })
-
   }
 
-  showLoginModal(ev) {
-    this.$mdDialog.show({
-      controller: 'DialogLoginController',
-      templateUrl: 'app/login/dialog/login.dialog.html',
-      parent: angular.element(document.body),
-      targetEvent: ev,
-      clickOutsideToClose: true
-    });
+  isDisplayed() {
+    return 'login' !== this.$state.current.name;
+  }
+
+  goToUserPage() {
+    this.$state.go(this.$rootScope.graviteeUser?'user':'home');
   }
 }
 

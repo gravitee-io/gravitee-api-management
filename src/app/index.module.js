@@ -62,7 +62,7 @@ import SideNavDirective from './components/sidenav/sidenav.directive';
 import PageController from './api/admin/documentation/page/apiPage.controller';
 import PolicyService from './policy/policy.service';
 import PageDirective from './components/documentation/page.directive';
-import DialogLoginController from './login/dialog/loginDialog.controller';
+import LoginController from './login/login.controller';
 import RoleDirective from './components/role/role.directive';
 import DiffDirective from './components/diff/diff.directive';
 import DialogApiDefinitionController from './api/admin/general/dialog/apiDefinitionDialog.controller';
@@ -128,7 +128,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('DialogAddMemberController', DialogAddMemberController)
   .controller('DialogApiDefinitionController', DialogApiDefinitionController)
   .controller('PageController', PageController)
-  .controller('DialogLoginController', DialogLoginController)
+  .controller('LoginController', LoginController)
   .controller('InstancesController', InstancesController)
   .controller('InstanceController', InstanceController)
   .controller('InstanceEnvironmentController', InstanceEnvironmentController)

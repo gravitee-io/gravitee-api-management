@@ -16,10 +16,10 @@
 
 -->
 <md-sidenav class="md-sidenav-left md-whiteframe-z2 md-sidenav-theme" md-component-id="left" md-is-locked-open="true"
-  ng-class="{'md-sidenav-min': reducedMode}" style="overflow: inherit;">
+  ng-class="{'md-sidenav-min': reducedMode}" style="overflow: inherit;" ng-if="sidenavCtrl.isDisplayed()">
 	<div>
 		<div class="sidenav-user-contents">
-			<a ui-sref="user">
+			<a ng-click="sidenavCtrl.goToUserPage()">
 				<img ng-src="{{graviteeUser.picture || 'app/images/GRAVITEE_LOGO1-01.png'}}" />
 				<span id="sidenav-user-name" ng-if="!reducedMode">
           <strong>{{graviteeUser.firstname}} {{graviteeUser.lastname}}</strong>
@@ -53,7 +53,7 @@
         </md-button>
       </md-list-item>
       <md-list-item>
-        <a ng-click="sidenavCtrl.showLoginModal($event)" ng-if="!graviteeUser">
+        <a ui-sref="login" ng-if="!graviteeUser">
           <ng-md-icon icon="login"></ng-md-icon> <span ng-if="!reducedMode">Login</span>
         </a>
         <a ng-click="sidenavCtrl.logout()" ng-if="graviteeUser">

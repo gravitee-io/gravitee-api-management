@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogLoginController($scope, $mdDialog, $window, UserService) {
+function LoginController($scope, $mdDialog, $window, UserService, $rootScope, $state) {
   'ngInject';
+
+  $scope.goToHome = function (forceReload) {
+    if (forceReload) {
+      $window.location.href = $window.location.pathname;
+    } else {
+      $state.go('home');
+    }
+  }
+
+  if ($rootScope.graviteeUser) {
+    $scope.goToHome();
+  }
 
 	$scope.user = {};
 
@@ -24,9 +36,9 @@ function DialogLoginController($scope, $mdDialog, $window, UserService) {
 
 	$scope.login = function () {
     UserService.login($scope.user).then(function() {
-      $window.location.reload();
+      $scope.goToHome(true);
     });
 	};
 }
 
-export default DialogLoginController;
+export default LoginController;
