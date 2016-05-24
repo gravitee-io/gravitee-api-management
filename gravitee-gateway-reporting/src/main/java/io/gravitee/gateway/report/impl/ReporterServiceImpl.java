@@ -77,4 +77,8 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
             }
         }
     }
+
+    protected Collection<Reporter> getReporters() {
+        return reporters;
+    }
 }

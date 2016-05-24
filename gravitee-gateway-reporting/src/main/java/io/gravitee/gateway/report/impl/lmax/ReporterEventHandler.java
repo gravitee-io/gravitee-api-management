@@ -13,22 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.report.spring;
+package io.gravitee.gateway.report.impl.lmax;
 
-import io.gravitee.gateway.report.ReporterService;
-import io.gravitee.gateway.report.impl.lmax.LmaxReporterService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.lmax.disruptor.EventHandler;
+import io.gravitee.reporter.api.Reporter;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-@Configuration
-public class ReporterConfiguration {
+class ReporterEventHandler implements EventHandler<ReportableEvent> {
 
-    @Bean
-    public ReporterService reporterService() {
-        return new LmaxReporterService();
+    private final Reporter reporter;
+
+    ReporterEventHandler(final Reporter reporter) {
+        this.reporter = reporter;
+    }
+
+    @Override
+    public void onEvent(ReportableEvent event, long l, boolean b) throws Exception {
+        if (reporter.canHandle(event.getReportable())) {
+            reporter.report(event.getReportable());
+        }
     }
 }
