@@ -18,6 +18,7 @@
 <div layout="column" layout-align="end-start" layout-padding class="gravitee-api-header" flex>
 	<div class="gravitee-api-header-content inset">
 		<div ng-switch="apiCtrl.api.visibility" layout="row" layout-align="start center">
+      <img class="gravitee-api-header-image" src="{{apiCtrl.api.picture_url}}">
 
 			<div flex="70">
 				<h3>{{apiCtrl.api.name}}
