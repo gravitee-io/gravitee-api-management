@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor(ApiService, NotificationService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi, base64, Upload) {
+  constructor(ApiService, NotificationService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi, base64, $state) {
     'ngInject';
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
@@ -26,7 +26,7 @@ class ApiAdminController {
     this.api = resolvedApi.data;
     this.$scope.selected = [];
     this.base64 = base64;
-    this.Upload = Upload;
+    this.$state = $state;
 
     this.$scope.lbs = [
       {
@@ -170,7 +170,7 @@ class ApiAdminController {
     });
   }
 
-  removeEndpoints(event) {
+  removeEndpoints() {
     var _that = this;
     _(this.$scope.selected).forEach(function (endpoint) {
       _(_that.api.proxy.endpoints).forEach(function (endpoint2, index, object) {
@@ -203,7 +203,7 @@ class ApiAdminController {
       .then(function () {
         that.ApiService.delete(id).then(() => {
           that.NotificationService.show('API \'' + that.initialApi.name + '\' has been removed');
-          that.$scope.$parent.apisCtrl.backToPreviousState();
+          that.$state.go('apis.list.thumb', {}, {reload: true});
         });
       });
   }
