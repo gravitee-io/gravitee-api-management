@@ -43,6 +43,7 @@ import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -52,7 +53,7 @@ import java.util.concurrent.CompletableFuture;
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public class ApiReactorHandler extends AbstractReactorHandler {
+public class ApiReactorHandler extends AbstractReactorHandler implements InitializingBean {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ApiReactorHandler.class);
 
@@ -70,11 +71,15 @@ public class ApiReactorHandler extends AbstractReactorHandler {
     @Autowired
     private PathResolver pathResolver;
 
+    private String contextPath;
+
     @Override
     public CompletableFuture<Response> handle(Request serverRequest, Response serverResponse) {
         CompletableFuture<Response> future = new CompletableFuture<>();
 
         try {
+            serverRequest.pause();
+            
             // Set specific metrics for API
             serverRequest.metrics().setApi(api.getId());
 
@@ -147,7 +152,6 @@ public class ApiReactorHandler extends AbstractReactorHandler {
                 }
             });
 
-            serverRequest.pause();
             requestPolicyChain.doNext(serverRequest, serverResponse);
         } catch (Throwable t) {
             LOGGER.error("An unexpected error occurs while processing request", t);
@@ -210,8 +214,13 @@ public class ApiReactorHandler extends AbstractReactorHandler {
     }
 
     @Override
+    public void afterPropertiesSet() {
+        contextPath = reactable().contextPath() + '/';
+    }
+
+    @Override
     public String contextPath() {
-        return reactable().contextPath() + '/';
+        return contextPath;
     }
 
     @Override
