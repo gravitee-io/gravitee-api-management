@@ -23,7 +23,10 @@ import io.gravitee.common.util.TemplatedValueHashMap;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -35,6 +38,8 @@ import java.util.TreeMap;
  * @author Gravitee.io Team
  */
 public class ApiDeserializer extends StdScalarDeserializer<Api> {
+
+    private final Logger logger = LoggerFactory.getLogger(ApiDeserializer.class);
 
     public ApiDeserializer(Class<Api> vc) {
         super(vc);
@@ -72,13 +77,31 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
         if (proxyNode != null) {
             api.setProxy(proxyNode.traverse(jp.getCodec()).readValueAs(Proxy.class));
         } else {
-            throw ctxt.mappingException("Proxy part of API is required");
+            logger.error("A proxy property is required for {}", api.getName());
+            throw ctxt.mappingException("A proxy property is required for " + api.getName());
         }
 
         JsonNode servicesNode = node.get("services");
         if (servicesNode != null) {
             Services services = servicesNode.traverse(jp.getCodec()).readValueAs(Services.class);
             api.getServices().set(services.getAll());
+        }
+
+        JsonNode resourcesNode = node.get("resources");
+        if (resourcesNode != null && resourcesNode.isArray()) {
+            resourcesNode.elements().forEachRemaining(resourceNode -> {
+                try {
+                    Resource resource = resourceNode.traverse(jp.getCodec()).readValueAs(Resource.class);
+                    if (! api.getResources().contains(resource)) {
+                        api.getResources().add(resource);
+                    } else {
+                        logger.error("A resource already exists with name {}", resource.getName());
+                        throw ctxt.mappingException("A resource already exists with name " + resource.getName());
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
 
         JsonNode pathsNode = node.get("paths");
@@ -90,7 +113,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
                     path.setPath(jsonNode.getKey());
                     paths.put(jsonNode.getKey(), path);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("Path {} can not be de-serialized", jsonNode.getKey());
                 }
             });
 

@@ -15,12 +15,10 @@
  */
 package io.gravitee.definition.model;
 
+import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -37,6 +35,8 @@ public class Api {
     private Proxy proxy;
 
     private Services services = new Services();
+
+    private List<Resource> resources = new ArrayList<>();
 
     private Map<String, Path> paths;
 
@@ -106,6 +106,14 @@ public class Api {
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
+    }
+
+    public List<Resource> getResources() {
+        return resources;
+    }
+
+    public void setResources(List<Resource> resources) {
+        this.resources = resources;
     }
 
     @Override

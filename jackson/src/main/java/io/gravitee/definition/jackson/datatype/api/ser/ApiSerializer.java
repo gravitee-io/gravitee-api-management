@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.plugins.resources.Resource;
 
 import java.io.IOException;
 
@@ -58,6 +59,14 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
 
         if (api.getServices() != null && ! api.getServices().isEmpty()) {
             jgen.writeObjectField("services", api.getServices());
+        }
+
+        if (api.getResources() != null && ! api.getResources().isEmpty()) {
+            jgen.writeArrayFieldStart("resources");
+            for(Resource resource : api.getResources()) {
+                jgen.writeObject(resource);
+            }
+            jgen.writeEndArray();
         }
 
         if (api.getProperties() != null) {

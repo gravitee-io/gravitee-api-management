@@ -18,6 +18,7 @@ package io.gravitee.definition.jackson;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 
+import java.io.IOException;
 import java.net.URL;
 
 /**
@@ -26,12 +27,12 @@ import java.net.URL;
  */
 public abstract class AbstractTest {
 
-    public <T> T load(String resource, Class<T> type) throws Exception {
+    protected <T> T load(String resource, Class<T> type) throws IOException {
         URL jsonFile = this.getClass().getResource(resource);
         return objectMapper().readValue(jsonFile, type);
     }
 
-    public ObjectMapper objectMapper() {
+    protected ObjectMapper objectMapper() {
         return new GraviteeMapper();
     }
 }

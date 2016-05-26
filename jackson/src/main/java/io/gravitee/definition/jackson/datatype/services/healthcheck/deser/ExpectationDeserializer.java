@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.services.healthcheck.Expectation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +32,8 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class ExpectationDeserializer extends StdScalarDeserializer<Expectation> {
+
+    private final Logger logger = LoggerFactory.getLogger(ExpectationDeserializer.class);
 
     public ExpectationDeserializer(Class<Expectation> vc) {
         super(vc);
@@ -50,6 +54,7 @@ public class ExpectationDeserializer extends StdScalarDeserializer<Expectation> 
         }
 
         if (expectation.getAssertions() == null || expectation.getAssertions().isEmpty()) {
+            logger.error("[healthcheck] Expectation must contains at least a status or assertion(s)");
             throw ctxt.mappingException("[healthcheck] Expectation must contains at least a status or assertion(s)");
         }
 
