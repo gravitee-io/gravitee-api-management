@@ -18,37 +18,46 @@ package io.gravitee.gateway.http.core.loadbalancer;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.Request;
 
-import java.util.Random;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public class RandomLoadBalancer extends LoadBalancerSupport {
+public class WeightedRoundRobinLoadBalancerStrategy extends WeightedLoadBalancerStrategy {
 
-    private transient int index;
-    private static final Random RANDOM = new Random();
+    private int counter;
 
-    public RandomLoadBalancer(final Api api) {
+    public WeightedRoundRobinLoadBalancerStrategy(Api api) {
         super(api);
     }
 
     @Override
     public synchronized String chooseEndpoint(Request request) {
-        int size = availableEndpoints().size();
-        if (size == 0) {
-            return null;
-        } else if (size == 1) {
-            // There is only 1
-            return availableEndpoints().get(0).getTarget();
+        if (isRuntimeRatiosZeroed())  {
+            resetRuntimeRatios();
+            counter = 0;
         }
 
-        index = RANDOM.nextInt(size);
-        return availableEndpoints().get(index).getTarget();
+        boolean found = false;
+        while (!found) {
+            if (counter >= getRuntimeRatios().size()) {
+                counter = 0;
+            }
+
+            if (getRuntimeRatios().get(counter).getRuntime() > 0) {
+                getRuntimeRatios().get(counter).setRuntime((getRuntimeRatios().get(counter).getRuntime()) - 1);
+                found = true;
+            } else {
+                counter++;
+            }
+        }
+
+        lastIndex = counter;
+
+        return availableEndpoints().get(counter++).getTarget();
     }
 
     @Override
     public String toString() {
-        return "RandomLoadBalancer";
+        return "WeightedRoundRobinLoadBalancer";
     }
 }

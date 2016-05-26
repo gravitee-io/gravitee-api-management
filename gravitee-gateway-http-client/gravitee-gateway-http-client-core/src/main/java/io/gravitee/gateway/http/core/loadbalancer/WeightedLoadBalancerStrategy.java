@@ -25,13 +25,13 @@ import java.util.List;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public abstract class WeightedLoadBalancer extends LoadBalancerSupport {
+public abstract class WeightedLoadBalancerStrategy extends LoadBalancerSupportStrategy {
 
     transient int lastIndex;
 
     private List<WeightRatio> runtimeRatios = new ArrayList<>();
 
-    public WeightedLoadBalancer(Api api) {
+    public WeightedLoadBalancerStrategy(Api api) {
         super(api);
         loadRuntimeRatios();
     }

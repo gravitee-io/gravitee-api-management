@@ -25,13 +25,13 @@ import java.util.Random;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public class WeightedRandomLoadBalancer extends WeightedLoadBalancer {
+public class WeightedRandomLoadBalancerStrategy extends WeightedLoadBalancerStrategy {
 
     private final Random rnd = new Random();
     private final int distributionRatioSum;
     private int runtimeRatioSum;
 
-    public WeightedRandomLoadBalancer(Api api) {
+    public WeightedRandomLoadBalancerStrategy(Api api) {
         super(api);
         int sum = 0;
         for (Endpoint endpoint : availableEndpoints()) {

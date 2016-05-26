@@ -17,10 +17,10 @@ package io.gravitee.gateway.http.core.loadbalancer.spring;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
-import io.gravitee.gateway.http.core.loadbalancer.RandomLoadBalancer;
-import io.gravitee.gateway.http.core.loadbalancer.RoundRobinLoadBalancer;
-import io.gravitee.gateway.http.core.loadbalancer.WeightedRandomLoadBalancer;
-import io.gravitee.gateway.http.core.loadbalancer.WeightedRoundRobinLoadBalancer;
+import io.gravitee.gateway.http.core.loadbalancer.RandomLoadBalancerStrategy;
+import io.gravitee.gateway.http.core.loadbalancer.RoundRobinLoadBalancerStrategy;
+import io.gravitee.gateway.http.core.loadbalancer.WeightedRandomLoadBalancerStrategy;
+import io.gravitee.gateway.http.core.loadbalancer.WeightedRoundRobinLoadBalancerStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,22 +50,22 @@ public class LoadBalancerFactory extends AbstractFactoryBean<LoadBalancer> {
         if (lb != null) {
             switch(lb.getType()) {
                 case ROUND_ROBIN:
-                    loadBalancer = new RoundRobinLoadBalancer(api);
+                    loadBalancer = new RoundRobinLoadBalancerStrategy(api);
                     break;
                 case RANDOM:
-                    loadBalancer = new RandomLoadBalancer(api);
+                    loadBalancer = new RandomLoadBalancerStrategy(api);
                     break;
                 case WEIGHTED_RANDOM:
-                    loadBalancer = new WeightedRandomLoadBalancer(api);
+                    loadBalancer = new WeightedRandomLoadBalancerStrategy(api);
                     break;
                 case WEIGHTED_ROUND_ROBIN:
-                    loadBalancer = new WeightedRoundRobinLoadBalancer(api);
+                    loadBalancer = new WeightedRoundRobinLoadBalancerStrategy(api);
                     break;
             }
         }
 
         // Set default LB to round-robin even if there is only a unique endpoint.
-        loadBalancer = (loadBalancer != null) ? loadBalancer : new RoundRobinLoadBalancer(api);
+        loadBalancer = (loadBalancer != null) ? loadBalancer : new RoundRobinLoadBalancerStrategy(api);
 
         LOGGER.info("Create a load-balancer instance of type {}", loadBalancer);
 
