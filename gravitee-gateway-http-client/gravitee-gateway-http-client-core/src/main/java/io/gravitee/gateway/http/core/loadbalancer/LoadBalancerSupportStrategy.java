@@ -17,7 +17,7 @@ package io.gravitee.gateway.http.core.loadbalancer;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
+import io.gravitee.gateway.api.http.loadbalancer.LoadBalancerStrategy;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public abstract class LoadBalancerSupportStrategy implements LoadBalancer {
+public abstract class LoadBalancerSupportStrategy implements LoadBalancerStrategy {
 
     protected final Api api;
     private List<Endpoint> endpoints;
