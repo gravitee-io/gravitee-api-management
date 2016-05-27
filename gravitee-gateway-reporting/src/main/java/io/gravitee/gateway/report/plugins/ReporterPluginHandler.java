@@ -16,7 +16,6 @@
 package io.gravitee.gateway.report.plugins;
 
 import io.gravitee.gateway.report.ReporterService;
-import io.gravitee.gateway.report.impl.AsyncReporterWrapper;
 import io.gravitee.plugin.core.api.*;
 import io.gravitee.reporter.api.Reporter;
 import org.slf4j.Logger;
@@ -59,7 +58,7 @@ public class ReporterPluginHandler implements PluginHandler {
                 classLoaderFactory.getOrCreatePluginClassLoader(plugin, this.getClass().getClassLoader());
 
                 ApplicationContext context = pluginContextFactory.create(plugin);
-                Reporter reporter = createAsyncReporter(plugin, context);
+                Reporter reporter = context.getBean(Reporter.class);
                 reporterService.register(reporter);
             } catch (Exception iae) {
                 LOGGER.error("Unexpected error while create reporter instance", iae);
@@ -75,14 +74,5 @@ public class ReporterPluginHandler implements PluginHandler {
         boolean enabled = environment.getProperty("reporters." + reporterPlugin.id() + ".enabled", Boolean.class, true);
         LOGGER.debug("Plugin {} configuration: {}", reporterPlugin.id(), enabled);
         return enabled;
-    }
-
-    private Reporter createAsyncReporter(Plugin reporterPlugin, ApplicationContext applicationContext) {
-        AsyncReporterWrapper reporter = new AsyncReporterWrapper(applicationContext.getBean(Reporter.class));
-        reporter.setReporterName(reporterPlugin.id());
-        reporter.setQueueCapacity(environment.getProperty("reporters." + reporterPlugin.id() + ".queue.size", int.class, 10240));
-        reporter.setPollingTimeout(environment.getProperty("reporters." + reporterPlugin.id() + ".queue.pollingTimeout", long.class, 1000L));
-
-        return reporter;
     }
 }

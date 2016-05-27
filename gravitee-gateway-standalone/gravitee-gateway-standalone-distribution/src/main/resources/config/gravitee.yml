@@ -98,8 +98,13 @@ cache:
 # Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
 # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
 reporters:
+  # Reporting system configuration
+  system:
+    buffersize: 4096 # Must be a power of 2
+
   # Elasticsearch reporter
   elastic:
+    enabled: true # Is the reporter enabled or not (default to true)
     hosts:
       - ${ds.elastic.host}:${ds.elastic.port}
 #    index: gravitee
@@ -107,14 +112,6 @@ reporters:
 #      actions: 1000           # Number of requests action before flush
 #      flush_interval: 5       # Flush interval in seconds
 #      concurrent_requests: 5  # Concurrent requests
-
-    # Reporters are async by nature so the gateway is keeping an internal in-memory structure to stack data before
-    # pushing them into a final storage (Elasticsearch in this example)
-    queue:
-      # Number of elements to store in the queue (extra-elements will be loosed)
-      size: 10240
-      # Reporter thread is looking for data every x milliseconds (each second in this example)
-      pollingTimeout: 1000
 
 # Gateway service configurations. Provided values are default values.
 # All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the
