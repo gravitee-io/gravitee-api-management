@@ -62,15 +62,25 @@ public class DefaultReactor extends AbstractService implements
     @Autowired
     private ReporterService reporterService;
 
+    @Override
     public CompletableFuture<Response> process(final Request serverRequest, final Response serverResponse) {
         LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
 
-        ReactorHandler reactorHandler = reactorHandlerResolver.resolve(serverRequest);
-        reactorHandler = (reactorHandler != null) ? reactorHandler : notFoundHandler;
+        ReactorHandler handler = getHandler(serverRequest);
 
         // Prepare the handler chain
-        return reactorHandler.handle(serverRequest, serverResponse).whenCompleteAsync(
+        return handler.handle(serverRequest, serverResponse).whenCompleteAsync(
                 new ResponseTimeHandler(serverRequest).andThen(new ReporterHandler(reporterService, serverRequest)));
+    }
+
+    private ReactorHandler getHandler(final Request serverRequest) {
+            LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
+
+            ReactorHandler reactorHandler = reactorHandlerResolver.resolve(serverRequest);
+            reactorHandler = (reactorHandler != null) ? reactorHandler : notFoundHandler;
+
+            // Prepare the handler chain
+            return reactorHandler;
     }
 
     @Override
