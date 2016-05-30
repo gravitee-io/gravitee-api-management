@@ -18,12 +18,11 @@ package io.gravitee.management.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 
 import javax.validation.constraints.NotNull;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -47,6 +46,8 @@ public class UpdateApiEntity {
     private Map<String, Path> paths = new HashMap<>();
 
     private Services services;
+
+    private List<Resource> resources = new ArrayList<>();
 
     @JsonProperty(value = "properties")
     private Map<String, String> properties;
@@ -136,5 +137,13 @@ public class UpdateApiEntity {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public List<Resource> getResources() {
+        return resources;
+    }
+
+    public void setResources(List<Resource> resources) {
+        this.resources = resources;
     }
 }

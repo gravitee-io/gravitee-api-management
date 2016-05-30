@@ -603,6 +603,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 apiEntity.setProxy(apiDefinition.getProxy());
                 apiEntity.setPaths(apiDefinition.getPaths());
                 apiEntity.setServices(apiDefinition.getServices());
+                apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
             } catch (IOException ioe) {
@@ -697,6 +698,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiDefinition.setPaths(updateApiEntity.getPaths());
 
             apiDefinition.setServices(updateApiEntity.getServices());
+            apiDefinition.setResources(updateApiEntity.getResources());
             apiDefinition.setProperties(updateApiEntity.getProperties());
             apiDefinition.setTags(updateApiEntity.getTags());
 

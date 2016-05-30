@@ -64,6 +64,11 @@
 			<artifactId>gravitee-plugin-policy</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>io.gravitee.plugin</groupId>
+			<artifactId>gravitee-plugin-resource</artifactId>
+		</dependency>
+
 		<!-- Spring dependencies -->
 		<dependency>
 			<groupId>org.springframework</groupId>
