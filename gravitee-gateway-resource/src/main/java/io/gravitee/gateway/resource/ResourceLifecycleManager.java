@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor;
+package io.gravitee.gateway.resource;
 
-import java.util.Map;
-import java.util.Set;
+import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.resource.api.Resource;
+import io.gravitee.resource.api.ResourceManager;
+
+import java.util.Collection;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public interface Reactable<T> {
+public interface ResourceLifecycleManager extends ResourceManager, LifecycleComponent<ResourceManager> {
 
-    T item();
-
-    String contextPath();
-
-    boolean enabled();
-
-    <D> Set<D> dependencies(Class<D> type);
-
-    Map<String, Object> properties();
+    Collection<? extends Resource> getResources();
 }

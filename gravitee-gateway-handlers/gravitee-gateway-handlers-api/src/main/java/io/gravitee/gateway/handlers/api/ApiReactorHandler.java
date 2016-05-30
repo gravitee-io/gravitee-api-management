@@ -40,6 +40,7 @@ import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -240,6 +241,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         LOGGER.info("API handler is now starting, preparing API context...");
         long startTime = System.currentTimeMillis(); // Get the start Time
         super.doStart();
+
+        // Start resources before
+        applicationContext.getBean(ResourceLifecycleManager.class).start();
+
         applicationContext.getBean(PolicyManager.class).start();
         applicationContext.getBean(HttpClient.class).start();
         long endTime = System.currentTimeMillis(); // Get the end Time
@@ -252,6 +257,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         LOGGER.info("API handler is now stopping, closing context...");
         applicationContext.getBean(PolicyManager.class).stop();
         applicationContext.getBean(HttpClient.class).stop();
+        applicationContext.getBean(ResourceLifecycleManager.class).stop();
 
         super.doStop();
         LOGGER.info("API handler is now stopped", api);

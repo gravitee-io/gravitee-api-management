@@ -42,7 +42,7 @@ public class ServicePluginHandler implements PluginHandler {
     private PluginContextFactory pluginContextFactory;
 
     @Autowired
-    private ClassLoaderFactory classLoaderFactory;
+    private PluginClassLoaderFactory pluginClassLoaderFactory;
 
     @Override
     public boolean canHandle(Plugin plugin) {
@@ -52,7 +52,7 @@ public class ServicePluginHandler implements PluginHandler {
     @Override
     public void handle(Plugin plugin) {
         try {
-            classLoaderFactory.getOrCreatePluginClassLoader(plugin, this.getClass().getClassLoader());
+            pluginClassLoaderFactory.getOrCreateClassLoader(plugin, this.getClass().getClassLoader());
 
             LOGGER.info("Register a new service: {} [{}]", plugin.id(), plugin.clazz());
             ApplicationContext context = pluginContextFactory.create(plugin);

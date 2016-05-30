@@ -28,8 +28,8 @@
     </parent>
 
 
-    <artifactId>gravitee-gateway-policy</artifactId>
-    <name>Gravitee IO - Gateway - Policy</name>
+    <artifactId>gravitee-gateway-resource</artifactId>
+    <name>Gravitee IO - Gateway - Resource</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->
@@ -37,19 +37,6 @@
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-reactor</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-resource</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-buffer</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -64,7 +51,7 @@
 
         <dependency>
             <groupId>io.gravitee.plugin</groupId>
-            <artifactId>gravitee-plugin-policy</artifactId>
+            <artifactId>gravitee-plugin-resource</artifactId>
         </dependency>
 
         <!-- Logging -->
@@ -104,13 +91,6 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>${commons-io.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -49,7 +49,7 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
     private PluginContextFactory pluginContextFactory;
 
     @Autowired
-    private ClassLoaderFactory classLoaderFactory;
+    private PluginClassLoaderFactory pluginClassLoaderFactory;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -76,7 +76,7 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
     @Override
     public void handle(Plugin plugin) {
         try {
-            ClassLoader classloader = classLoaderFactory.getOrCreatePluginClassLoader(plugin, this.getClass().getClassLoader());
+            ClassLoader classloader = pluginClassLoaderFactory.getOrCreateClassLoader(plugin, this.getClass().getClassLoader());
 
             final Class<?> repositoryClass = classloader.loadClass(plugin.clazz());
             LOGGER.info("Register a new repository: {} [{}]", plugin.id(), plugin.clazz());
