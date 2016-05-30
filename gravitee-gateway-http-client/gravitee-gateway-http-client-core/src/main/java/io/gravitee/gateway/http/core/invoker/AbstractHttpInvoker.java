@@ -21,7 +21,7 @@ import io.gravitee.gateway.api.*;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
-import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
+import io.gravitee.gateway.api.http.loadbalancer.LoadBalancerStrategy;
 import io.gravitee.gateway.http.core.logger.HttpDump;
 import io.gravitee.gateway.http.core.logger.LoggableClientRequest;
 import io.gravitee.gateway.http.core.logger.LoggableClientResponse;
@@ -46,7 +46,7 @@ public abstract class AbstractHttpInvoker implements Invoker {
     protected HttpClient httpClient;
 
     @Autowired
-    protected LoadBalancer loadBalancer;
+    protected LoadBalancerStrategy loadBalancer;
 
     @Override
     public ClientRequest invoke(ExecutionContext executionContext, Request serverRequest, Handler<ClientResponse> result) {

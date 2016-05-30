@@ -16,7 +16,7 @@
 package io.gravitee.gateway.http.core.loadbalancer.spring;
 
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.api.http.loadbalancer.LoadBalancer;
+import io.gravitee.gateway.api.http.loadbalancer.LoadBalancerStrategy;
 import io.gravitee.gateway.http.core.loadbalancer.RandomLoadBalancerStrategy;
 import io.gravitee.gateway.http.core.loadbalancer.RoundRobinLoadBalancerStrategy;
 import io.gravitee.gateway.http.core.loadbalancer.WeightedRandomLoadBalancerStrategy;
@@ -30,7 +30,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public class LoadBalancerFactory extends AbstractFactoryBean<LoadBalancer> {
+public class LoadBalancerFactory extends AbstractFactoryBean<LoadBalancerStrategy> {
 
     private final Logger LOGGER = LoggerFactory.getLogger(LoadBalancerFactory.class);
 
@@ -39,12 +39,12 @@ public class LoadBalancerFactory extends AbstractFactoryBean<LoadBalancer> {
 
     @Override
     public Class<?> getObjectType() {
-        return LoadBalancer.class;
+        return LoadBalancerStrategy.class;
     }
 
     @Override
-    protected LoadBalancer createInstance() throws Exception {
-        LoadBalancer loadBalancer = null;
+    protected LoadBalancerStrategy createInstance() throws Exception {
+        LoadBalancerStrategy loadBalancer = null;
         io.gravitee.definition.model.LoadBalancer lb = api.getProxy().getLoadBalancer();
 
         if (lb != null) {
