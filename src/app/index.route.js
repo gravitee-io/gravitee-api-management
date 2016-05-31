@@ -116,6 +116,31 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         icon: 'blur_on'
       }
     })
+    .state('apis.admin.apikeys', {
+      url: '/apikeys',
+      templateUrl: 'app/api/admin/apikeys/apikeys.html',
+      controller: 'ApiKeysController',
+      controllerAs: 'apiKeysCtrl',
+      resolve: {
+        resolvedApiKeys: function ($stateParams, ApiService) {
+          return ApiService.getApiKeys($stateParams.apiId);
+        }
+      },
+      menu: {
+        label: 'Api keys',
+        icon: 'vpn_key'
+      }
+    })
+    .state('apis.admin.resources', {
+      url: '/resources',
+      templateUrl: 'app/api/admin/resources/resources.html',
+      controller: 'ApiResourcesController',
+      controllerAs: 'apiResourcesCtrl',
+      menu: {
+        label: 'Resources',
+        icon: 'style'
+      }
+    })
     .state('apis.admin.policies', {
       url: '/policies',
       templateUrl: 'app/api/admin/policies/apiPolicies.html',
@@ -134,21 +159,6 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       menu: {
         label: 'Documentation',
         icon: 'insert_drive_file'
-      }
-    })
-    .state('apis.admin.apikeys', {
-      url: '/apikeys',
-      templateUrl: 'app/api/admin/apikeys/apikeys.html',
-      controller: 'ApiKeysController',
-      controllerAs: 'apiKeysCtrl',
-      resolve: {
-        resolvedApiKeys: function ($stateParams, ApiService) {
-          return ApiService.getApiKeys($stateParams.apiId);
-        }
-      },
-      menu: {
-        label: 'Api keys',
-        icon: 'vpn_key'
       }
     })
     .state('apis.admin.members', {
