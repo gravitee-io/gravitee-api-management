@@ -380,6 +380,12 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/user/user.html',
       controller: 'UserController',
       controllerAs: 'userCtrl'
+    })
+    .state('login', {
+      url: '/login',
+      templateUrl: 'app/login/login.html',
+      controller: 'LoginController',
+      controllerAs: 'loginCtrl'
     });
 
   $urlRouterProvider.otherwise('/');
