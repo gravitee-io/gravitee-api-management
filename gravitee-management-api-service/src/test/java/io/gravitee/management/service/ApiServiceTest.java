@@ -15,25 +15,25 @@
  */
 package io.gravitee.management.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.management.model.*;
+import io.gravitee.management.model.EventType;
+import io.gravitee.management.model.mixin.ApiMixin;
+import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
+import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
+import io.gravitee.management.service.exceptions.ApiNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.impl.ApiServiceImpl;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.repository.management.model.Visibility;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -41,29 +41,11 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.*;
 
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.EventEntity;
-import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.NewApiEntity;
-import io.gravitee.management.model.UpdateApiEntity;
-import io.gravitee.management.model.mixin.ApiMixin;
-import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.impl.ApiServiceImpl;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.MembershipType;
-import io.gravitee.repository.management.model.Visibility;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -110,6 +92,9 @@ public class ApiServiceTest {
 
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
+        final Proxy proxy = mock(Proxy.class);
+        when(newApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn("/context");
 
         when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
 
@@ -126,6 +111,45 @@ public class ApiServiceTest {
 
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
+
+        when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
+
+        apiService.create(newApi, USER_NAME);
+    }
+
+    @Test
+    public void shouldCreateForUserBecauseContextPathNotExists() throws TechnicalException {
+        testCreationWithContextPath("/context", "/context2");
+    }
+
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotCreateForUserBecauseContextPathExists() throws TechnicalException {
+        testCreationWithContextPath("/context", "/context");
+    }
+
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotCreateForUserBecauseSubContextPathExists() throws TechnicalException {
+        testCreationWithContextPath("/context/toto", "/context");
+    }
+
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotCreateForUserBecauseSubContextPathExists2() throws TechnicalException {
+        testCreationWithContextPath("/context", "/context/toto");
+    }
+
+    private void testCreationWithContextPath(String existingContextPath, String contextPathToCreate) throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        when(newApi.getName()).thenReturn(API_NAME);
+        when(newApi.getVersion()).thenReturn("v1");
+        when(newApi.getDescription()).thenReturn("Ma description");
+
+        when(apiRepository.findAll()).thenReturn(new HashSet<>(Arrays.asList(api)));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
+
+        final Proxy proxy = mock(Proxy.class);
+        when(newApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn(contextPathToCreate);
 
         when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
 
@@ -204,6 +228,9 @@ public class ApiServiceTest {
         when(existingApi.getName()).thenReturn(API_NAME);
         when(existingApi.getVersion()).thenReturn("v1");
         when(existingApi.getDescription()).thenReturn("Ma description");
+        final Proxy proxy = mock(Proxy.class);
+        when(existingApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn("/context");
 
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
 
@@ -224,9 +251,50 @@ public class ApiServiceTest {
         when(existingApi.getName()).thenReturn(API_NAME);
         when(existingApi.getVersion()).thenReturn("v1");
         when(existingApi.getDescription()).thenReturn("Ma description");
+        final Proxy proxy = mock(Proxy.class);
+        when(existingApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn("/context");
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenThrow(TechnicalException.class);
+
+        apiService.update(API_ID, existingApi);
+    }
+
+    @Test
+    public void shouldUpdateForUserBecauseContextPathNotExists() throws TechnicalException {
+        testUpdateWithContextPath("/context", "/context2");
+    }
+
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotUpdateForUserBecauseContextPathExists() throws TechnicalException {
+        testUpdateWithContextPath("/context", "/context");
+    }
+
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotUpdateForUserBecauseSubContextPathExists() throws TechnicalException {
+        testUpdateWithContextPath("/context/toto", "/context");
+    }
+
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotUpdateForUserBecauseSubContextPathExists2() throws TechnicalException {
+        testUpdateWithContextPath("/context", "/context/toto");
+    }
+
+    private void testUpdateWithContextPath(String existingContextPath, String contextPathToCreate) throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.update(any())).thenReturn(api);
+        when(api.getName()).thenReturn(API_NAME);
+
+        when(existingApi.getName()).thenReturn(API_NAME);
+        when(existingApi.getVersion()).thenReturn("v1");
+        when(existingApi.getDescription()).thenReturn("Ma description");
+        final Proxy proxy = mock(Proxy.class);
+        when(existingApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn(contextPathToCreate);
+
+        when(apiRepository.findAll()).thenReturn(new HashSet<>(Arrays.asList(api)));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 
         apiService.update(API_ID, existingApi);
     }
@@ -320,6 +388,9 @@ public class ApiServiceTest {
         when(newApi.getName()).thenReturn(API_NAME);
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
+        final Proxy proxy = mock(Proxy.class);
+        when(newApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn("/context");
 
         when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
 

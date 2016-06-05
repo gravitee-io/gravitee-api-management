@@ -27,10 +27,7 @@ import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
-import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.management.service.exceptions.ApiRunningStateException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -97,6 +94,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 throw new ApiAlreadyExistsException(id);
             }
 
+            // check if context path is unique
+            checkContextPath(newApiEntity.getProxy().getContextPath());
+
             Api api = convert(id, newApiEntity);
 
             if (api != null) {
@@ -123,6 +123,22 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", newApiEntity, username, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + newApiEntity + " for user " + username, ex);
+        }
+    }
+
+    private void checkContextPath(final String newContextPath) throws TechnicalException {
+        final int indexOfEndOfNewSubContextPath = newContextPath.indexOf('/', 1);
+        final String newSubContextPath = newContextPath.substring(0, indexOfEndOfNewSubContextPath == -1 ? newContextPath.length() : indexOfEndOfNewSubContextPath);
+
+        final boolean contextPathExists = apiRepository.findAll().stream()
+                .anyMatch(api -> {
+                    final String contextPath = convert(api).getProxy().getContextPath();
+                    final int indexOfEndOfSubContextPath = contextPath.indexOf('/', 1);
+                    final String subContextPath = contextPath.substring(0, indexOfEndOfSubContextPath == -1 ? contextPath.length() : indexOfEndOfSubContextPath);
+                    return newSubContextPath.equals(subContextPath);
+                });
+        if (contextPathExists) {
+            throw new ApiContextPathAlreadyExistsException(newSubContextPath);
         }
     }
 
@@ -212,6 +228,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             if (!optApiToUpdate.isPresent()) {
                 throw new ApiNotFoundException(apiId);
             }
+
+            // check if context path is unique
+            checkContextPath(updateApiEntity.getProxy().getContextPath());
 
             Api apiToUpdate = optApiToUpdate.get();
             Api api = convert(apiId, updateApiEntity);
