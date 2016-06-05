@@ -64,7 +64,7 @@ class SideNavController {
     });
 
     $scope.$on('authenticationRequired', function () {
-      _that.showLoginModal();
+      _that.$state.go('login');
     });
   }
 
