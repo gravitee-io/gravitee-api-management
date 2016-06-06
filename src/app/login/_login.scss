@@ -5,6 +5,13 @@
   position: fixed;
   width: 100%;
 
+  @media screen and (max-height: 960px) {
+    padding-top: 50px;
+  }
+  @media screen and (max-height: 768px) {
+    padding-top: 0;
+  }
+
   & label {
     color: #fff !important;
     font-size: 2em;
