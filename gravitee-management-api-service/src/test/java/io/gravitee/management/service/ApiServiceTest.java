@@ -54,6 +54,7 @@ import static org.mockito.Mockito.*;
 public class ApiServiceTest {
 
     private static final String API_ID = "id-api";
+    private static final String API_ID2 = "id-api2";
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
 
@@ -145,6 +146,7 @@ public class ApiServiceTest {
         when(newApi.getDescription()).thenReturn("Ma description");
 
         when(apiRepository.findAll()).thenReturn(new HashSet<>(Arrays.asList(api)));
+        when(api.getId()).thenReturn(API_ID);
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 
         final Proxy proxy = mock(Proxy.class);
@@ -284,6 +286,7 @@ public class ApiServiceTest {
     private void testUpdateWithContextPath(String existingContextPath, String contextPathToCreate) throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
+        when(api.getId()).thenReturn(API_ID2);
         when(api.getName()).thenReturn(API_NAME);
 
         when(existingApi.getName()).thenReturn(API_NAME);

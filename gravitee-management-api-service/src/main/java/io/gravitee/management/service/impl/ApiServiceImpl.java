@@ -127,10 +127,15 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     private void checkContextPath(final String newContextPath) throws TechnicalException {
+        checkContextPath(newContextPath, null);
+    }
+
+    private void checkContextPath(final String newContextPath, final String apiId) throws TechnicalException {
         final int indexOfEndOfNewSubContextPath = newContextPath.indexOf('/', 1);
         final String newSubContextPath = newContextPath.substring(0, indexOfEndOfNewSubContextPath == -1 ? newContextPath.length() : indexOfEndOfNewSubContextPath);
 
         final boolean contextPathExists = apiRepository.findAll().stream()
+                .filter(api -> !api.getId().equals(apiId))
                 .anyMatch(api -> {
                     final String contextPath = convert(api).getProxy().getContextPath();
                     final int indexOfEndOfSubContextPath = contextPath.indexOf('/', 1);
@@ -230,7 +235,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             }
 
             // check if context path is unique
-            checkContextPath(updateApiEntity.getProxy().getContextPath());
+            checkContextPath(updateApiEntity.getProxy().getContextPath(), apiId);
 
             Api apiToUpdate = optApiToUpdate.get();
             Api api = convert(apiId, updateApiEntity);
