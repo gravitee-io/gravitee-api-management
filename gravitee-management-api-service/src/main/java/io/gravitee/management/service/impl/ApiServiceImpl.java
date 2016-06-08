@@ -248,6 +248,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 api.setDeployedAt(apiToUpdate.getDeployedAt());
                 api.setCreatedAt(apiToUpdate.getCreatedAt());
                 api.setLifecycleState(apiToUpdate.getLifecycleState());
+                if (updateApiEntity.getPicture() == null) {
+                    api.setPicture(apiToUpdate.getPicture());
+                }
 
                 Api updatedApi = apiRepository.update(api);
                 return convert(updatedApi);
