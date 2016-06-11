@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.node.Node;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
-import io.gravitee.common.utils.UUIDGenerator;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.services.monitoring.event.InstanceEventPayload;
 import io.gravitee.gateway.services.monitoring.event.Plugin;
 import io.gravitee.plugin.core.api.PluginRegistry;
@@ -127,7 +127,7 @@ public class MonitoringService extends AbstractService {
 
     private Event prepareEvent() {
         Event event = new Event();
-        event.setId(UUIDGenerator.generate().toString());
+        event.setId(UUID.random().toString());
         event.setType(EventType.GATEWAY_STARTED);
         event.setCreatedAt(new Date());
         event.setUpdatedAt(event.getCreatedAt());
