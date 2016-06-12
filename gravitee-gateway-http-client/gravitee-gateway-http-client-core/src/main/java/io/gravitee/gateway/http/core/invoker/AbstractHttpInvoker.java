@@ -63,6 +63,10 @@ public abstract class AbstractHttpInvoker implements Invoker {
         URI rewrittenURI = rewriteURI(serverRequest, endpoint);
 
         String uri = rewrittenURI.getPath();
+
+        // Remove duplicate slash
+        uri = uri.replaceAll("(?<!(http:|https:))[//]+", "/");
+
         if (rewrittenURI.getQuery() != null)
             uri += '?' + rewrittenURI.getQuery();
 
