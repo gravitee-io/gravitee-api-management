@@ -24,7 +24,7 @@ import io.vertx.core.http.HttpServerResponse;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class VertxHttpServerResponse implements Response {
+class VertxHttpServerResponse implements Response {
 
     private final HttpServerResponse httpServerResponse;
 
