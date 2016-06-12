@@ -94,8 +94,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 throw new ApiAlreadyExistsException(id);
             }
 
-            // check if context path is unique
-            checkContextPath(newApiEntity.getProxy().getContextPath());
+            // Format context-path and check if context path is unique
+            String contextPath = newApiEntity.getProxy().getContextPath();
+            contextPath = formatContextPath(contextPath);
+            checkContextPath(contextPath);
+            newApiEntity.getProxy().setContextPath(contextPath);
 
             Api api = convert(id, newApiEntity);
 
@@ -145,6 +148,19 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         if (contextPathExists) {
             throw new ApiContextPathAlreadyExistsException(newSubContextPath);
         }
+    }
+
+    private String formatContextPath(String contextPath) {
+        String [] parts = contextPath.split("/");
+        StringBuilder finalPath = new StringBuilder("/");
+
+        for(String part : parts) {
+            if (! part.isEmpty()) {
+                finalPath.append(part).append('/');
+            }
+        }
+
+        return finalPath.deleteCharAt(finalPath.length() - 1).toString();
     }
 
     @Override
@@ -234,8 +250,14 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 throw new ApiNotFoundException(apiId);
             }
 
-            // check if context path is unique
+            // Format context-path and check if context path is unique
+            String contextPath = updateApiEntity.getProxy().getContextPath();
+            contextPath = formatContextPath(contextPath);
             checkContextPath(updateApiEntity.getProxy().getContextPath(), apiId);
+            updateApiEntity.getProxy().setContextPath(contextPath);
+
+            // check if context path is unique
+
 
             Api apiToUpdate = optApiToUpdate.get();
             Api api = convert(apiId, updateApiEntity);

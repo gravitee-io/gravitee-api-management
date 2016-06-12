@@ -138,6 +138,16 @@ public class ApiServiceTest {
         testCreationWithContextPath("/context", "/context/toto");
     }
 
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotCreateForUserBecauseContextPathExists_TrailingSlash() throws TechnicalException {
+        testCreationWithContextPath("/context/", "/context/toto");
+    }
+
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotCreateForUserBecauseContextPathExists_TrailingSlash2() throws TechnicalException {
+        testCreationWithContextPath("/context//toto", "/context/toto");
+    }
+
     private void testCreationWithContextPath(String existingContextPath, String contextPathToCreate) throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
