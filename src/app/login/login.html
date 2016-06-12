@@ -15,24 +15,27 @@
     limitations under the License.
 
 -->
-<form class="gravitee-login-container" name="formUser" ng-submit="login()" ng-if="!graviteeUser">
+<md-content class="gravitee-login-container" flex>
   <div class="gravitee-login-header" layout="column">
     <a ng-click="goToHome()"><img src="app/images/GRAVITEE_LOGOsstxtclair-05.png" /></a>
     <label>Gravitee.io portal</label>
   </div>
-  <div class="gravitee-login-content" layout="column">
-    <md-input-container class="md-icon-float">
-      <label>Username</label>
-      <input ng-model="user.username" type="text" ng-required="true" autofocus>
-    </md-input-container>
+  <div class="gravitee-login-content">
+    <form name="formUser" ng-submit="login()" ng-if="!graviteeUser" layout="column">
+      <md-input-container class="md-icon-float">
+        <label>Username</label>
+        <input ng-model="user.username" type="text" ng-required="true" autofocus>
+      </md-input-container>
 
-    <md-input-container class="md-icon-float">
-      <label>Password</label>
-      <input ng-model="user.password" type="password" ng-required="true">
-    </md-input-container>
+      <md-input-container class="md-icon-float">
+        <label>Password</label>
+        <input ng-model="user.password" type="password" ng-required="true">
+      </md-input-container>
 
-    <md-button type="submit" class="md-raised md-primary">
-      Login
-    </md-button>
+      <md-button type="submit" class="md-raised md-primary">
+        Login
+      </md-button>
+    </form>
   </div>
-</form>
+</md-content>
+
