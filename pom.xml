@@ -40,6 +40,7 @@
         <module>gravitee-gateway-reporting</module>
         <module>gravitee-gateway-repository</module>
         <module>gravitee-gateway-policy</module>
+        <module>gravitee-gateway-resource</module>
         <module>gravitee-gateway-el</module>
         <module>gravitee-gateway-http-client</module>
         <module>gravitee-gateway-standalone</module>
@@ -105,9 +106,9 @@
             </dependency>
 
             <dependency>
-                <groupId>io.gravitee.policy</groupId>
-                <artifactId>gravitee-policy-core</artifactId>
-                <version>${gravitee-policy-core.version}</version>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-resource</artifactId>
+                <version>${gravitee-plugin-resource.version}</version>
             </dependency>
 
             <!-- Logging -->
@@ -146,13 +147,13 @@
     </dependencies>
 
     <properties>
-        <gravitee-definition.version>0.11.0</gravitee-definition.version>
+        <gravitee-definition.version>0.12.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>0.9.0</gravitee-common.version>
         <gravitee-repository.version>0.12.0</gravitee-repository.version>
-        <gravitee-plugin-core.version>0.11.0</gravitee-plugin-core.version>
-        <gravitee-plugin-policy.version>0.11.0</gravitee-plugin-policy.version>
+        <gravitee-plugin-core.version>0.12.0-SNAPSHOT</gravitee-plugin-core.version>
+        <gravitee-plugin-policy.version>0.12.0-SNAPSHOT</gravitee-plugin-policy.version>
+        <gravitee-plugin-resource.version>0.12.0-SNAPSHOT</gravitee-plugin-resource.version>
         <gravitee-policy-api.version>0.8.0</gravitee-policy-api.version>
-        <gravitee-policy-core.version>0.1.0</gravitee-policy-core.version>
         <gravitee-gateway-api.version>0.11.0-SNAPSHOT</gravitee-gateway-api.version>
         <gravitee-reporter-api.version>0.7.0</gravitee-reporter-api.version>
         <jackson.version>2.7.3</jackson.version>

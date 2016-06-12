@@ -30,6 +30,7 @@ import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
 
+import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -45,6 +46,7 @@ import org.springframework.context.annotation.Import;
         ServiceConfiguration.class,
         PluginConfiguration.class,
         PolicyPluginConfiguration.class,
+        ResourcePluginConfiguration.class,
         ReporterConfiguration.class,
         ApiHandlerConfiguration.class
 })

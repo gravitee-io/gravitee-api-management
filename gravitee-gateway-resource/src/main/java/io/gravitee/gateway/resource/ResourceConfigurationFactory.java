@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor;
+package io.gravitee.gateway.resource;
 
-import java.util.Map;
-import java.util.Set;
+import io.gravitee.resource.api.ResourceConfiguration;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public interface Reactable<T> {
+public interface ResourceConfigurationFactory {
 
-    T item();
-
-    String contextPath();
-
-    boolean enabled();
-
-    <D> Set<D> dependencies(Class<D> type);
-
-    Map<String, Object> properties();
+    <T extends ResourceConfiguration> T create(Class<T> resourceConfigurationClass, String configuration);
 }

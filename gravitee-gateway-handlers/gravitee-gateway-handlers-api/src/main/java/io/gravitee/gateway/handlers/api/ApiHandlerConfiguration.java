@@ -21,8 +21,15 @@ import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.PolicyResolver;
-import io.gravitee.gateway.policy.impl.*;
+import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
+import io.gravitee.gateway.policy.impl.DefaultPolicyManager;
+import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
+import io.gravitee.gateway.policy.impl.PolicyResolverImpl;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.resource.ResourceConfigurationFactory;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
+import io.gravitee.gateway.resource.internal.ResourceManagerImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -63,5 +70,15 @@ public class ApiHandlerConfiguration {
     @Bean
     public PolicyConfigurationFactory policyConfigurationFactory() {
         return new CachedPolicyConfigurationFactory();
+    }
+
+    @Bean
+    public ResourceLifecycleManager resourceLifecycleManager() {
+        return new ResourceManagerImpl();
+    }
+
+    @Bean
+    public ResourceConfigurationFactory resourceConfigurationFactory() {
+        return new ResourceConfigurationFactoryImpl();
     }
 }

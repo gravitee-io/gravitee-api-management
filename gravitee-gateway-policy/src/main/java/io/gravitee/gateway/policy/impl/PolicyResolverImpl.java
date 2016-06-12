@@ -66,6 +66,7 @@ public class PolicyResolverImpl implements PolicyResolver {
                 PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
                         policyMetadata.configuration(), rule.getPolicy().getConfiguration());
 
+                // TODO: this should be done only if policy is injectable
                 Map<Class<?>, Object> injectables = new HashMap<>(2);
                 injectables.put(policyMetadata.configuration(), policyConfiguration);
                 if (policyMetadata.context() != null) {

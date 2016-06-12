@@ -39,7 +39,7 @@ public class ReporterPluginHandler implements PluginHandler {
     private PluginContextFactory pluginContextFactory;
 
     @Autowired
-    private ClassLoaderFactory classLoaderFactory;
+    private PluginClassLoaderFactory pluginClassLoaderFactory;
 
     @Autowired
     private ReporterService reporterService;
@@ -55,7 +55,7 @@ public class ReporterPluginHandler implements PluginHandler {
         boolean enabled = isEnabled(plugin);
         if (enabled) {
             try {
-                classLoaderFactory.getOrCreatePluginClassLoader(plugin, this.getClass().getClassLoader());
+                pluginClassLoaderFactory.getOrCreateClassLoader(plugin, this.getClass().getClassLoader());
 
                 ApplicationContext context = pluginContextFactory.create(plugin);
                 Reporter reporter = context.getBean(Reporter.class);

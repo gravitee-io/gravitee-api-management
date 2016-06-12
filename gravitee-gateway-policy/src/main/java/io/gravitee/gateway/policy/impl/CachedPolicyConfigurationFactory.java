@@ -32,6 +32,10 @@ public class CachedPolicyConfigurationFactory extends PolicyConfigurationFactory
 
     @Override
     public <T extends PolicyConfiguration> T create(Class<T> policyConfigurationClass, String configuration) {
+        if (policyConfigurationClass == null) {
+            return null;
+        }
+
         String hash = hash(policyConfigurationClass, configuration);
         PolicyConfiguration config = cachedPolicyConfiguration.get(hash);
         if (config == null) {

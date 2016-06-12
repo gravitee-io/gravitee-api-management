@@ -21,12 +21,15 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
+import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.policy.PolicyPluginManager;
+import io.gravitee.plugin.policy.internal.PolicyMethodResolver;
+import io.gravitee.policy.api.PolicyConfiguration;
 import io.gravitee.policy.api.PolicyContext;
-import io.gravitee.policy.core.impl.PolicyConfigurationClassFinder;
-import io.gravitee.policy.core.impl.PolicyContextClassFinder;
-import io.gravitee.policy.core.impl.PolicyMethodResolver;
+import io.gravitee.resource.api.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +37,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.util.ClassUtils;
 
 import java.io.IOException;
-import java.net.URLClassLoader;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -93,9 +97,9 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
         // Close policy classloaders
         policies.values().forEach(policy -> {
             ClassLoader policyClassLoader = policy.classLoader;
-            if (policyClassLoader instanceof URLClassLoader) {
+            if (policyClassLoader instanceof PluginClassLoader) {
                 try {
-                    ((URLClassLoader)policyClassLoader).close();
+                    ((PluginClassLoader)policyClassLoader).close();
                 } catch (IOException e) {
                     LOGGER.error("Unable to close policy classloader for policy {}", policy.metadata.id());
                 }
@@ -110,18 +114,35 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
         PolicyPluginManager ppm = applicationContext.getBean(PolicyPluginManager.class);
         PolicyClassLoaderFactory pclf = applicationContext.getBean(PolicyClassLoaderFactory.class);
         ReactorHandler rh = applicationContext.getBean(ReactorHandler.class);
+        ResourceLifecycleManager rm = applicationContext.getBean(ResourceLifecycleManager.class);
         Reactable reactable = rh.reactable();
 
-        Set<Policy> requiredPlugins = reactable.dependencies();
+        Set<Policy> requiredPlugins = reactable.dependencies(Policy.class);
 
         requiredPlugins.forEach(policy -> {
-            final io.gravitee.plugin.policy.Policy policyPlugin = ppm.get(policy.getName());
+            final PolicyPlugin policyPlugin = ppm.get(policy.getName());
             if (policyPlugin == null) {
-                LOGGER.error("Policy [{}] can no be found in registry", policy.getName());
-                throw new IllegalStateException("Policy ["+policy.getName()+"] can no be found in registry");
+                LOGGER.error("Policy [{}] can not be found in registry", policy.getName());
+                throw new IllegalStateException("Policy ["+policy.getName()+"] can not be found in registry");
             }
 
-            ClassLoader policyClassLoader = pclf.create(policyPlugin, rh.classloader());
+            PluginClassLoader policyClassLoader = null;
+
+            // Load dependant resources to enhance policy classloader
+            Collection<? extends Resource> resources = rm.getResources();
+            if (! resources.isEmpty()) {
+                ClassLoader[] resourceClassLoaders = rm.getResources().stream().map(new Function<Resource, ClassLoader>() {
+                    @Override
+                    public ClassLoader apply(Resource resource) {
+                        return resource.getClass().getClassLoader();
+                    }
+                }).toArray(ClassLoader[]::new);
+
+                DelegatingClassLoader parentClassLoader = new DelegatingClassLoader(rh.classloader(), resourceClassLoaders);
+                policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, parentClassLoader);
+            } else {
+                policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, rh.classloader());
+            }
 
             LOGGER.debug("Loading policy {} for {}", policy.getName(), rh);
 
@@ -130,25 +151,35 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
             try {
                 // Prepare metadata
                 policyMetadata.setPolicy(ClassUtils.forName(policyPlugin.policy().getName(), policyClassLoader));
-                policyMetadata.setConfiguration(new PolicyConfigurationClassFinder().lookupFirst(
-                        policyPlugin.policy(), policyClassLoader));
-                Class<? extends PolicyContext> policyContextClass = new PolicyContextClassFinder().lookupFirst(
-                        policyPlugin.policy(), policyClassLoader);
                 policyMetadata.setMethods(new PolicyMethodResolver().resolve(policyMetadata.policy()));
+
+                if (policyPlugin.configuration() != null) {
+                    policyMetadata.setConfiguration((Class<? extends PolicyConfiguration>) ClassUtils.forName(policyPlugin.configuration().getName(), policyClassLoader));
+                }
+
+                // Prepare context if defined
+                if (policyPlugin.context() != null) {
+                    Class<? extends PolicyContext> policyContextClass = (Class<? extends PolicyContext>)ClassUtils.forName(policyPlugin.context().getName(), policyClassLoader);
+                    // Create policy context instance and initialize context provider (if used)
+                    PolicyContext context = new PolicyContextFactory(reactable).create(policyContextClass);
+                    policyMetadata.setContext(context);
+                }
 
                 RegisteredPolicy registeredPolicy = new RegisteredPolicy();
                 registeredPolicy.classLoader = policyClassLoader;
                 registeredPolicy.metadata = policyMetadata;
 
-                // Prepare context if defined
-                if (policyContextClass != null) {
-                    // Create policy context instance and initialize context provider (if used)
-                    PolicyContext context = new PolicyContextFactory(reactable).create(policyContextClass);
-                    policyMetadata.setContext(context);
-                }
                 policies.put(policy.getName(), registeredPolicy);
             } catch (Exception ex) {
                 LOGGER.error("Unable to load policy metadata", ex);
+
+                if (policyClassLoader != null) {
+                    try {
+                        policyClassLoader.close();
+                    } catch (IOException ioe) {
+                        LOGGER.error("Unable to close classloader for policy", ioe);
+                    }
+                }
             }
         });
     }

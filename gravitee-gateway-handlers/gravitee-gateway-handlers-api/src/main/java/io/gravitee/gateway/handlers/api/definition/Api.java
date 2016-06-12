@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.definition;
 
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.Reactable;
 
 import java.util.*;
@@ -64,19 +65,29 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
     }
 
     @Override
-    public Set<Policy> dependencies() {
+    public <D> Set<D> dependencies(Class<D> type) {
+        if (Policy.class.equals(type)) {
+            return (Set<D>) policies();
+        } else if (Resource.class.equals(type)) {
+            return (Set<D>) new HashSet<>(getResources());
+        }
+
+        return null;
+    }
+
+    private Set<Policy> policies() {
         if (getPaths() == null)
             return Collections.EMPTY_SET;
 
         Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
 
-            getPaths().values()
-                    .forEach(path -> policies.addAll(
-                            path.getRules()
-                                    .stream()
-                                    .map(Rule::getPolicy)
-                                    .distinct()
-                                    .collect(Collectors.toSet())));
+        getPaths().values()
+                .forEach(path -> policies.addAll(
+                        path.getRules()
+                                .stream()
+                                .map(Rule::getPolicy)
+                                .distinct()
+                                .collect(Collectors.toSet())));
 
         return policies;
     }
