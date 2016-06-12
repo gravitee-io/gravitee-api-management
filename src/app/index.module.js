@@ -32,6 +32,7 @@ import ApiMembersController from './api/admin/members.controller';
 import ApiPoliciesController from './api/admin/policies/policies.controller';
 import AddPoliciesPathController from './api/admin/policies/addPoliciesPath.controller';
 import ApiHealthCheckController from './api/admin/healthcheck/healthcheck.controller';
+import ApiResourcesController from './api/admin/resources/resources.controller';
 import DialogAssertionInformationController from './api/admin/healthcheck/healthcheck-assertion-dialog.controller';
 import ApiPropertiesController from './api/admin/properties/properties.controller';
 import ApiKeysController from './api/admin/apikeys/apikeys.controller';
@@ -61,6 +62,7 @@ import ApplicationService from './application/details/applications.service';
 import SideNavDirective from './components/sidenav/sidenav.directive';
 import PageController from './api/admin/documentation/page/apiPage.controller';
 import PolicyService from './policy/policy.service';
+import ResourceService from './resource/resource.service';
 import PageDirective from './components/documentation/page.directive';
 import LoginController from './login/login.controller';
 import RoleDirective from './components/role/role.directive';
@@ -110,6 +112,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('ApiKeysController', ApiKeysController)
   .controller('ApiEventsController', ApiEventsController)
   .controller('ApiHistoryController', ApiHistoryController)
+  .controller('ApiResourcesController', ApiResourcesController)
   .controller('DialogAddPropertyController', DialogAddPropertyController)
   .controller('DialogApiController', DialogApiController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
@@ -140,6 +143,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .service('NotificationService', NotificationService)
   .service('PolicyService', PolicyService)
   .service('UserService', UserService)
+  .service('ResourceService', ResourceService)
   .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())

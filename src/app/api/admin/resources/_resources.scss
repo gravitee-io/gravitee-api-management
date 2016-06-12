@@ -1,4 +1,4 @@
-$healthcheckSidenavWidth: 500px;
+$resourceSidenavWidth: 500px;
 
 @mixin min-max-width($width) {
   width: $width;
@@ -7,7 +7,7 @@ $healthcheckSidenavWidth: 500px;
   max-width: $width;
 }
 
-md-sidenav.healthcheck {
-  @include min-max-width($healthcheckSidenavWidth);
+md-sidenav.resource {
+  @include min-max-width($resourceSidenavWidth);
   background-color: $fontColor;
 }
