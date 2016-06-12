@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 
 import javax.validation.constraints.NotNull;
@@ -77,6 +78,10 @@ public class ApiEntity {
 
     @JsonProperty(value = "picture_url")
     private String pictureUrl;
+
+    @DeploymentRequired
+    @JsonProperty(value = "resources")
+    private List<Resource> resources = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -220,6 +225,14 @@ public class ApiEntity {
 
     public void setPictureUrl(String pictureUrl) {
         this.pictureUrl = pictureUrl;
+    }
+
+    public List<Resource> getResources() {
+        return resources;
+    }
+
+    public void setResources(List<Resource> resources) {
+        this.resources = resources;
     }
 
     @Override

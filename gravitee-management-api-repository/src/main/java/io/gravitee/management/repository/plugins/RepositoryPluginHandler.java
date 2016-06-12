@@ -24,13 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
 
+import javax.annotation.Resource;
 import java.util.*;
 
 /**
@@ -41,16 +41,16 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
 
     private final static Logger LOGGER = LoggerFactory.getLogger(RepositoryPluginHandler.class);
 
-    @Autowired
+    @Resource
     private Environment environment;
 
-    @Autowired
+    @Resource
     private PluginContextFactory pluginContextFactory;
 
-    @Autowired
-    private ClassLoaderFactory classLoaderFactory;
+    @Resource(name = "pluginClassLoaderFactory")
+    private PluginClassLoaderFactory pluginClassLoaderFactory;
 
-    @Autowired
+    @Resource
     private ApplicationContext applicationContext;
 
     private final Map<Scope, Repository> repositories = new HashMap<>();
@@ -74,7 +74,7 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
     @Override
     public void handle(Plugin plugin) {
         try {
-            ClassLoader classloader = classLoaderFactory.getOrCreatePluginClassLoader(plugin, this.getClass().getClassLoader());
+            ClassLoader classloader = pluginClassLoaderFactory.getOrCreateClassLoader(plugin, this.getClass().getClassLoader());
 
             final Class<?> repositoryClass = classloader.loadClass(plugin.clazz());
             LOGGER.info("Register a new repository: {} [{}]", plugin.id(), plugin.clazz());

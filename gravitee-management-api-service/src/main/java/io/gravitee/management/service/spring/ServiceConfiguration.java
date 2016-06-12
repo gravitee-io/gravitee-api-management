@@ -20,6 +20,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
+import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +33,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @ComponentScan("io.gravitee.management.service")
 @EnableTransactionManagement
-@Import({PolicyPluginConfiguration.class})
+@Import({PolicyPluginConfiguration.class, ResourcePluginConfiguration.class})
 public class ServiceConfiguration {
 
 	@Bean

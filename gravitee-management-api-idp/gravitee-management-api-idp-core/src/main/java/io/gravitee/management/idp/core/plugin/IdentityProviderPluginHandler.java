@@ -16,7 +16,7 @@
 package io.gravitee.management.idp.core.plugin;
 
 import io.gravitee.management.idp.api.IdentityProvider;
-import io.gravitee.plugin.core.api.ClassLoaderFactory;
+import io.gravitee.plugin.core.api.PluginClassLoaderFactory;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginHandler;
 import io.gravitee.plugin.core.api.PluginType;
@@ -34,7 +34,7 @@ public class IdentityProviderPluginHandler implements PluginHandler {
     private final static Logger LOGGER = LoggerFactory.getLogger(IdentityProviderPluginHandler.class);
 
     @Autowired
-    private ClassLoaderFactory classLoaderFactory;
+    private PluginClassLoaderFactory pluginClassLoaderFactory;
 
     @Autowired
     private IdentityProviderManager identityProviderManager;
@@ -47,7 +47,7 @@ public class IdentityProviderPluginHandler implements PluginHandler {
     @Override
     public void handle(Plugin plugin) {
         try {
-            ClassLoader classloader = classLoaderFactory.getOrCreatePluginClassLoader(plugin, this.getClass().getClassLoader());
+            ClassLoader classloader = pluginClassLoaderFactory.getOrCreateClassLoader(plugin, this.getClass().getClassLoader());
 
             final Class<?> identityProviderClass = classloader.loadClass(plugin.clazz());
             LOGGER.info("Register a new identity provider plugin: {} [{}]", plugin.id(), plugin.clazz());
