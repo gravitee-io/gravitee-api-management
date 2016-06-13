@@ -95,10 +95,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             }
 
             // Format context-path and check if context path is unique
-            String contextPath = newApiEntity.getProxy().getContextPath();
-            contextPath = formatContextPath(contextPath);
-            checkContextPath(contextPath);
-            newApiEntity.getProxy().setContextPath(contextPath);
+            checkContextPath(newApiEntity.getProxy().getContextPath());
 
             Api api = convert(id, newApiEntity);
 
@@ -148,19 +145,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         if (contextPathExists) {
             throw new ApiContextPathAlreadyExistsException(newSubContextPath);
         }
-    }
-
-    private String formatContextPath(String contextPath) {
-        String [] parts = contextPath.split("/");
-        StringBuilder finalPath = new StringBuilder("/");
-
-        for(String part : parts) {
-            if (! part.isEmpty()) {
-                finalPath.append(part).append('/');
-            }
-        }
-
-        return finalPath.deleteCharAt(finalPath.length() - 1).toString();
     }
 
     @Override
@@ -250,14 +234,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 throw new ApiNotFoundException(apiId);
             }
 
-            // Format context-path and check if context path is unique
-            String contextPath = updateApiEntity.getProxy().getContextPath();
-            contextPath = formatContextPath(contextPath);
+            // Check if context path is unique
             checkContextPath(updateApiEntity.getProxy().getContextPath(), apiId);
-            updateApiEntity.getProxy().setContextPath(contextPath);
-
-            // check if context path is unique
-
 
             Api apiToUpdate = optApiToUpdate.get();
             Api api = convert(apiId, updateApiEntity);
