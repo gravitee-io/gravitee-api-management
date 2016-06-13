@@ -62,6 +62,19 @@ public class ApiDeserializerTest extends AbstractTest {
     }
 
     @Test
+    public void definition_reformatContextPath() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-reformat-contextpath.json", Api.class);
+
+        Assert.assertNotNull(api.getProxy().getContextPath());
+        Assert.assertEquals("/my-api/team", api.getProxy().getContextPath());
+    }
+
+    @Test(expected = JsonMappingException.class)
+    public void definition_contextPathExpected() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-no-contextpath.json", Api.class);
+    }
+
+    @Test
     public void definition_defaultPath() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
 

@@ -41,7 +41,10 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         Proxy proxy = new Proxy();
         final JsonNode contextPath = node.get("context_path");
         if (contextPath != null) {
-            proxy.setContextPath(contextPath.asText());
+            String sContextPath = formatContextPath(contextPath.asText());
+            proxy.setContextPath(sContextPath);
+        } else {
+            throw ctxt.mappingException("[api] API must have a valid context path");
         }
 
         final JsonNode nodeEndpoint = node.get("endpoint");
@@ -91,5 +94,18 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         }
 
         return proxy;
+    }
+
+    private String formatContextPath(String contextPath) {
+        String [] parts = contextPath.split("/");
+        StringBuilder finalPath = new StringBuilder("/");
+
+        for(String part : parts) {
+            if (! part.isEmpty()) {
+                finalPath.append(part).append('/');
+            }
+        }
+
+        return finalPath.deleteCharAt(finalPath.length() - 1).toString();
     }
 }
