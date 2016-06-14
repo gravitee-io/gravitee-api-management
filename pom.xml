@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee</groupId>
 		<artifactId>gravitee-parent</artifactId>
-		<version>4</version>
+		<version>5</version>
 	</parent>
 
 	<groupId>io.gravitee.repository</groupId>
@@ -126,7 +126,7 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
-		
+
         <plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
