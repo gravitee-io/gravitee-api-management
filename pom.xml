@@ -28,16 +28,16 @@
 
 	<groupId>io.gravitee.reporter</groupId>
 	<artifactId>gravitee-reporter-file</artifactId>
-	<version>0.5.0-SNAPSHOT</version>
+	<version>0.5.0</version>
 	<packaging>jar</packaging>
 
 	<name>Gravitee IO - Gateway File Reporter</name>
 
 	<properties>
 		<!-- Gravitee's project versions -->
-		<gravitee-gateway-api.version>0.8.0</gravitee-gateway-api.version>
-		<gravitee-reporter-api.version>0.6.0</gravitee-reporter-api.version>
-		<gravitee-common.version>0.5.0</gravitee-common.version>
+		<gravitee-gateway-api.version>0.11.0</gravitee-gateway-api.version>
+		<gravitee-reporter-api.version>0.8.0</gravitee-reporter-api.version>
+		<gravitee-common.version>0.10.0</gravitee-common.version>
 
 		<!-- External project versions -->
 		<jetty.version>9.2.11.v20150529</jetty.version>
