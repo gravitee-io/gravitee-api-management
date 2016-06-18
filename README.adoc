@@ -1,7 +1,11 @@
-[![Build Status](http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-management-webui)](http://build.gravitee.io/jenkins/view/Tous/job/gravitee-management-webui/)
-# Gravitee Management Webui
+= Gravitee Management Webui
 
-# Install
+ifdef::env-github[]
+image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-management-webui/master["Build status", link="https://ci.gravitee.io/job/gravitee-io/job/gravitee-management-webui/"]
+image:https://badges.gitter.im/Join Chat.svg["Gitter", link="https://gitter.im/gravitee-io/gravitee-io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
+endif::[]
+
+= Install
 
 - Install [nodejs] [1]
 - It comes with [npm] [2]
@@ -22,11 +26,11 @@ npm install
 npm update
 ```
 
-# Working with [gulp] [4]
+= Working with [gulp] [4]
 
 Gulp tasks are run from this base dir.
 
-## Serve
+== Serve
 
 If you wanna serve the built version on dev mode :
 ```
