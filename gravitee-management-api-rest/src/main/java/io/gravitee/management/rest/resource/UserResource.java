@@ -21,6 +21,9 @@ import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.security.JWTCookieGenerator;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -38,16 +41,29 @@ import javax.ws.rs.core.Response;
 @Path("/user")
 public class UserResource extends AbstractResource {
 
+    private static Logger LOG = LoggerFactory.getLogger(UserResource.class);
+
     @Autowired
     private UserService userService;
+
     @Autowired
     private JWTCookieGenerator jwtCookieGenerator;
+
+    @Context
+    private HttpServletResponse response;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response user() {
         final Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetails) {
+            final String username = ((UserDetails) principal).getUsername();
+            try {
+                userService.findByName(username);
+            } catch (final UserNotFoundException unfe) {
+                LOG.info("User '{}' no longer exists.", username, unfe);
+                return logout();
+            }
             return Response.ok(principal, MediaType.APPLICATION_JSON).build();
         }
         return Response.ok().build();
@@ -77,7 +93,7 @@ public class UserResource extends AbstractResource {
 
     @POST
     @Path("/logout")
-    public Response logout(@Context HttpServletResponse response) {
+    public Response logout() {
         response.addCookie(jwtCookieGenerator.generate(null));
         return Response.ok().build();
     }
