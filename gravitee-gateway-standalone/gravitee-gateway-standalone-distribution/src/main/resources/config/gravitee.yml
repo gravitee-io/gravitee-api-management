@@ -103,7 +103,7 @@ reporters:
     buffersize: 4096 # Must be a power of 2
 
   # Elasticsearch reporter
-  elastic:
+  elasticsearch:
     enabled: true # Is the reporter enabled or not (default to true)
     hosts:
       - ${ds.elastic.host}:${ds.elastic.port}
