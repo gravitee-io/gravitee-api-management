@@ -123,6 +123,21 @@ public class ApiServiceTest {
         testCreationWithContextPath("/context", "/context2");
     }
 
+    @Test
+    public void shouldCreateForUserBecauseContextPathNotExists2() throws TechnicalException {
+        testCreationWithContextPath("/context2", "/context");
+    }
+
+    @Test
+    public void shouldCreateForUserBecauseContextPathNotExists3() throws TechnicalException {
+        testCreationWithContextPath("/products/sect/search", "/products/ecom/search");
+    }
+
+    @Test
+    public void shouldCreateForUserBecauseContextPathNotExists4() throws TechnicalException {
+        testCreationWithContextPath("/products/sect/search", "/products/ecom");
+    }
+
     @Test(expected = ApiContextPathAlreadyExistsException.class)
     public void shouldNotCreateForUserBecauseContextPathExists() throws TechnicalException {
         testCreationWithContextPath("/context", "/context");
@@ -136,6 +151,11 @@ public class ApiServiceTest {
     @Test(expected = ApiContextPathAlreadyExistsException.class)
     public void shouldNotCreateForUserBecauseSubContextPathExists2() throws TechnicalException {
         testCreationWithContextPath("/context", "/context/toto");
+    }
+
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotCreateForUserBecauseSubContextPathExists3() throws TechnicalException {
+        testCreationWithContextPath("/products/sect/search", "/products/sect");
     }
 
     @Test(expected = ApiContextPathAlreadyExistsException.class)
@@ -333,7 +353,7 @@ public class ApiServiceTest {
     public void shouldStart() throws Exception {
         objectMapper.addMixIn(Api.class, ApiMixin.class);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        
+
         final EventEntity event = mockEvent(EventType.PUBLISH_API);
         when(eventService.findByApi(API_ID)).thenReturn(Collections.singleton(event));
         apiService.start(API_ID, USER_NAME);
@@ -416,7 +436,7 @@ public class ApiServiceTest {
         assertEquals("paths.size == 1", apiEntity.getPaths().size(), 1);
         assertEquals("path == /* ", apiEntity.getPaths().get(0).getPath(), "/*");*/
     }
-    
+
     private EventEntity mockEvent(EventType eventType) throws Exception {
         final JsonNodeFactory factory = JsonNodeFactory.instance;
         ObjectNode node = factory.objectNode();
@@ -425,7 +445,7 @@ public class ApiServiceTest {
         Map<String, String> properties = new HashMap<String, String>();
         properties.put(Event.EventProperties.API_ID.getValue(), API_ID);
         properties.put(Event.EventProperties.USERNAME.getValue(), USER_NAME);
-        
+
         Api api = new Api();
         api.setId(API_ID);
 
