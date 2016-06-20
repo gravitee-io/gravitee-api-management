@@ -43,9 +43,6 @@ function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav, UserServ
   });
 
   $rootScope.$on('graviteeLogout', function () {
-    // TODO remove me on 0.14.X release
-    $cookieStore.remove(graviteeAuthenticationKey);
-    $cookieStore.remove('authenticatedUser');
     $mdSidenav('left').close();
     $window.location.href = $window.location.pathname;
   });
