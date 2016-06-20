@@ -21,6 +21,9 @@ class ApiAdminController {
     this.$mdDialog = $mdDialog;
     this.$rootScope = $rootScope;
     this.api = resolvedApi.data;
+
+    $rootScope.currentResource = this.api.name;
+
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.apiJustDeployed = false;

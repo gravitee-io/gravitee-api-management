@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 class ApiPortalController {
-  constructor ($scope, $state, $location, DocumentationService, resolvedApi, resolvedPages) {
+  constructor ($scope, $state, $location, DocumentationService, resolvedApi, resolvedPages, $rootScope) {
     'ngInject';
     this.$scope = $scope;
     this.$state = $state;
     this.$location = $location;
     this.DocumentationService = DocumentationService;
     this.api = resolvedApi.data;
+
+    $rootScope.currentResource = this.api.name;
+
     this.pages = resolvedPages.data;
     this.$scope.selectedIndex = 0;
 

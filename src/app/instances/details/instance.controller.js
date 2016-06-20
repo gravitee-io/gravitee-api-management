@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 class InstanceController {
-  constructor(resolvedInstance) {
+  constructor(resolvedInstance, $rootScope) {
 		'ngInject';
     this.instance = resolvedInstance.data;
+
+    $rootScope.currentResource = this.instance.hostname;
 	}
 }
 

@@ -48,15 +48,16 @@ class SideNavController {
       _that.loadMenuItems($scope, UserService);
     });
 
-    $scope.$on('$stateChangeSuccess', function (event, toState, toParams) {
+    $scope.$on('$stateChangeStart', function (event, toState, toParams, fromState) {
+      // init current resource name to delegate its initialization to specific modules
+      if (fromState.name.substring(0, _.lastIndexOf(fromState.name, '.')) !==
+        toState.name.substring(0, _.lastIndexOf(toState.name, '.'))) {
+        delete $scope.currentResource;
+      }
+    });
+
+    $scope.$on('$stateChangeSuccess', function (event, toState) {
       $scope.subMenuItems = _.filter(_that.routeMenuItems, function (routeMenuItem) {
-        var firstParam = _.values(toParams)[0];
-        // do not display title if id is an UUID (not human readable)
-        if (firstParam && !_that.isUUID(firstParam)) {
-          $scope.currentResource = firstParam;
-        } else {
-          delete $scope.currentResource;
-        }
         var routeMenuItemSplitted = routeMenuItem.name.split('.'), toStateSplitted = toState.name.split('.');
         return !routeMenuItem.menu.firstLevel &&
           routeMenuItemSplitted[0] === toStateSplitted[0] && routeMenuItemSplitted[1] === toStateSplitted[1];
@@ -72,10 +73,6 @@ class SideNavController {
     $scope.menuItems = _.filter(this.routeMenuItems, function (routeMenuItem) {
       return routeMenuItem.menu.firstLevel && (!routeMenuItem.roles || UserService.isUserInRoles(routeMenuItem.roles));
     });
-  }
-
-  isUUID(param) {
-    return param.match('[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}');
   }
 
   close() {
