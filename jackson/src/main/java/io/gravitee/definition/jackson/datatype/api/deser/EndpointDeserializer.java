@@ -57,6 +57,14 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
             endpoint.setBackup(false);
         }
 
+        JsonNode healthcheckNode = node.get("healthcheck");
+        if (healthcheckNode != null) {
+            boolean healthcheck = healthcheckNode.asBoolean(true);
+            endpoint.setHealthcheck(healthcheck);
+        } else {
+            endpoint.setHealthcheck(true);
+        }
+
         return endpoint;
     }
 }

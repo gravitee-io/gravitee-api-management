@@ -29,6 +29,8 @@ public class Endpoint {
 
     private boolean backup;
 
+    private boolean healthcheck = true;
+
     public Endpoint(String target) {
         this();
         this.target = target;
@@ -60,5 +62,13 @@ public class Endpoint {
 
     public void setBackup(boolean backup) {
         this.backup = backup;
+    }
+
+    public boolean isHealthcheck() {
+        return healthcheck;
+    }
+
+    public void setHealthcheck(boolean healthcheck) {
+        this.healthcheck = healthcheck;
     }
 }
