@@ -78,74 +78,76 @@ class EndpointHealthCheck implements Runnable {
 
         // Run request for each endpoint
         for (Endpoint endpoint : api.getProxy().getEndpoints()) {
-            String requestUri = endpoint.getTarget() + healthCheck.getRequest().getUri();
-            requestBuilder.setUri(Uri.create(requestUri));
+            if (endpoint.isHealthcheck()) {
+                String requestUri = endpoint.getTarget() + healthCheck.getRequest().getUri();
+                requestBuilder.setUri(Uri.create(requestUri));
 
-            Request request = requestBuilder.build();
-            LOGGER.debug("Execute health-check request: {}", request);
+                Request request = requestBuilder.build();
+                LOGGER.debug("Execute health-check request: {}", request);
 
-            final HealthStatus.Builder healthBuilder = HealthStatus
-                    .forApi(api.getId())
-                    .on(System.currentTimeMillis())
-                    .method(healthCheck.getRequest().getMethod())
-                    .url(requestUri);
+                final HealthStatus.Builder healthBuilder = HealthStatus
+                        .forApi(api.getId())
+                        .on(System.currentTimeMillis())
+                        .method(healthCheck.getRequest().getMethod())
+                        .url(requestUri);
 
-            asyncHttpClient.prepareRequest(requestBuilder.build()).execute(new AsyncCompletionHandler<Void>() {
-                @Override
-                public Void onCompleted(Response response) throws Exception {
-                    healthBuilder.success().status(response.getStatusCode());
+                asyncHttpClient.prepareRequest(requestBuilder.build()).execute(new AsyncCompletionHandler<Void>() {
+                    @Override
+                    public Void onCompleted(Response response) throws Exception {
+                        healthBuilder.success().status(response.getStatusCode());
 
-                    // Run assertions
-                    if (healthCheck.getExpectation().getAssertions() != null) {
-                        Iterator<String> assertionIterator = healthCheck.getExpectation().getAssertions().iterator();
-                        boolean success = true;
-                        while (success && assertionIterator.hasNext()) {
-                            String assertion = assertionIterator.next();
-                            ExpressionParser parser = new SpelExpressionParser();
-                            Expression expr = parser.parseExpression(assertion);
+                        // Run assertions
+                        if (healthCheck.getExpectation().getAssertions() != null) {
+                            Iterator<String> assertionIterator = healthCheck.getExpectation().getAssertions().iterator();
+                            boolean success = true;
+                            while (success && assertionIterator.hasNext()) {
+                                String assertion = assertionIterator.next();
+                                ExpressionParser parser = new SpelExpressionParser();
+                                Expression expr = parser.parseExpression(assertion);
 
-                            StandardEvaluationContext context = new StandardEvaluationContext();
-                            context.registerFunction("jsonPath",
-                                    BeanUtils.resolveSignature("evaluate", JsonPathUtils.class));
+                                StandardEvaluationContext context = new StandardEvaluationContext();
+                                context.registerFunction("jsonPath",
+                                        BeanUtils.resolveSignature("evaluate", JsonPathUtils.class));
 
-                            context.setVariable("response", new HealthCheckResponse(response));
+                                context.setVariable("response", new HealthCheckResponse(response));
 
-                            success = expr.getValue(context, boolean.class);
+                                success = expr.getValue(context, boolean.class);
 
-                            if (! success) {
-                                healthBuilder.message("Assertion can not be verified : " + assertion);
+                                if (!success) {
+                                    healthBuilder.message("Assertion can not be verified : " + assertion);
+                                }
                             }
+
+                            healthBuilder.success(success);
                         }
 
-                        healthBuilder.success(success);
+                        report();
+                        return null;
                     }
 
-                    report();
-                    return null;
-                }
+                    @Override
+                    public void onThrowable(Throwable t) {
+                        LOGGER.debug("An error occurs while executing request {}: {}", request, t.getMessage());
+                        healthBuilder.fail().message(t.getMessage());
 
-                @Override
-                public void onThrowable(Throwable t) {
-                    LOGGER.debug("An error occurs while executing request {}: {}", request, t.getMessage());
-                    healthBuilder.fail().message(t.getMessage());
+                        if (t instanceof SpelEvaluationException) {
+                            healthBuilder.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                        }
+                        if (t instanceof SocketTimeoutException) {
+                            healthBuilder.status(HttpStatusCode.REQUEST_TIMEOUT_408);
+                        } else {
+                            healthBuilder.status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+                        }
 
-                    if (t instanceof SpelEvaluationException) {
-                        healthBuilder.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                        report();
                     }
-                    if (t instanceof SocketTimeoutException) {
-                        healthBuilder.status(HttpStatusCode.REQUEST_TIMEOUT_408);
-                    } else {
-                        healthBuilder.status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+
+                    private void report() {
+                        LOGGER.debug("Report health results for {}", api);
+                        reporterService.report(healthBuilder.build());
                     }
-
-                    report();
-                }
-
-                private void report() {
-                    LOGGER.debug("Report health results for {}", api);
-                    reporterService.report(healthBuilder.build());
-                }
-            });
+                });
+            }
         }
     }
 
