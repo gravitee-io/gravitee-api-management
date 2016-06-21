@@ -50,25 +50,28 @@ public abstract class AbstractHttpInvoker implements Invoker {
 
     @Override
     public ClientRequest invoke(ExecutionContext executionContext, Request serverRequest, Handler<ClientResponse> result) {
-        // Get endpoint
-        String sEndpoint = nextEndpoint(executionContext, serverRequest);
+        // Get overriden endpoint
+        String sEndpoint = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
 
-        // Endpoint URI
-        URI endpoint = URI.create(sEndpoint);
+        // If not defined, use the one provided by load-balancer
+        if (sEndpoint == null) {
+            sEndpoint = loadBalancer.chooseEndpoint(serverRequest);
+            sEndpoint = rewriteURI(serverRequest, sEndpoint);
+        }
+
+        // Remove duplicate slash
+        sEndpoint = sEndpoint.replaceAll("(?<!(http:|https:))[//]+", "/");
+
+        URI endpoint = encodeQueryParameters(serverRequest, sEndpoint);
+
+        String uri = endpoint.getPath();
 
         // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the
         // initial request
-        serverRequest.metrics().setEndpoint(endpoint.toString());
+        serverRequest.metrics().setEndpoint(uri);
 
-        URI rewrittenURI = rewriteURI(serverRequest, endpoint);
-
-        String uri = rewrittenURI.getPath();
-
-        // Remove duplicate slash
-        uri = uri.replaceAll("(?<!(http:|https:))[//]+", "/");
-
-        if (rewrittenURI.getQuery() != null)
-            uri += '?' + rewrittenURI.getQuery();
+        if (endpoint.getQuery() != null)
+            uri += '?' + endpoint.getQuery();
 
         final int port = endpoint.getPort() != -1 ? endpoint.getPort() :
                 (endpoint.getScheme().equals("https") ? 443 : 80);
@@ -82,7 +85,7 @@ public abstract class AbstractHttpInvoker implements Invoker {
 
         if (enableHttpDump) {
             HttpDump.logger.info("{} >> Rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), uri);
-            HttpDump.logger.info("{} >> {} {}", serverRequest.id(), httpMethod, rewrittenURI.toString());
+            HttpDump.logger.info("{} >> {} {}", serverRequest.id(), httpMethod, endpoint.toString());
 
             serverRequest.headers().forEach((headerName, headerValues) -> HttpDump.logger.info("{} >> {}: {}",
                     serverRequest.id(), headerName, headerValues.stream().collect(Collectors.joining(","))));
@@ -114,11 +117,18 @@ public abstract class AbstractHttpInvoker implements Invoker {
 
     protected abstract ClientRequest invoke0(String host, int port, HttpMethod method, String requestUri, Request serverRequest, ExecutionContext executionContext, Handler<ClientResponse> response);
 
-    private URI rewriteURI(Request request, URI endpointUri) {
+    private String rewriteURI(Request request, String endpointUri) {
         final StringBuilder requestURI =
                 new StringBuilder(request.path())
                         .delete(0, api.getProxy().getContextPath().length())
-                        .insert(0, endpointUri.toString());
+                        .insert(0, endpointUri);
+
+        return requestURI.toString();
+    }
+
+    private URI encodeQueryParameters(Request request, String endpointUri) {
+        final StringBuilder requestURI =
+                new StringBuilder(endpointUri);
 
         if (request.parameters() != null && ! request.parameters().isEmpty()) {
             StringBuilder query = new StringBuilder();
