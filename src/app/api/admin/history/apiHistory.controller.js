@@ -243,6 +243,7 @@ class ApiHistoryController {
     delete this.api.state;
     delete this.api.permission;
     delete this.api.owner;
+    delete this.api.picture_url;
   }
 }
 

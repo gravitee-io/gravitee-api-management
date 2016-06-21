@@ -114,6 +114,7 @@
                   <th md-column md-order-by="target"><span>Target</span></th>
                   <th md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
                   <th md-column md-order-by="backup" hide-gt-xs show-gt-sm><span>Backup</span></th>
+                  <th md-column md-order-by="healthcheck" hide-gt-xs show-gt-sm><span>Health-check</span></th>
                   <th md-column>
                     <md-button class="md-icon-button" aria-label="Add endpoint" ng-click="generalCtrl.addEndpoint($event)">
                       <ng-md-icon icon="add"></ng-md-icon>
@@ -132,6 +133,13 @@
                     <md-checkbox
                       ng-model="endpoint.backup"
                       aria-label="Backup endpoint"
+                      class="md-align-top-left" flex>
+                    </md-checkbox>
+                  </td>
+                  <td md-cell>
+                    <md-checkbox
+                      ng-model="endpoint.healthcheck"
+                      aria-label="Health-check enable"
                       class="md-align-top-left" flex>
                     </md-checkbox>
                   </td>
