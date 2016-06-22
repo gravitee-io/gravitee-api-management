@@ -31,6 +31,8 @@ public class Endpoint {
 
     private boolean healthcheck = true;
 
+    private Status status = Status.UP;
+
     public Endpoint(String target) {
         this();
         this.target = target;
@@ -70,5 +72,46 @@ public class Endpoint {
 
     public void setHealthcheck(boolean healthcheck) {
         this.healthcheck = healthcheck;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Endpoint endpoint = (Endpoint) o;
+
+        return target != null ? target.equals(endpoint.target) : endpoint.target == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return target != null ? target.hashCode() : 0;
+    }
+
+    public enum Status {
+        UP(3),
+        DOWN(0),
+        TRANSITIONALLY_DOWN(1),
+        TRANSITIONALLY_UP(2);
+
+        private final int code;
+
+        Status(int code) {
+            this.code = code;
+        }
+
+        public int code() {
+            return this.code;
+        }
     }
 }
