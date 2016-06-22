@@ -19,6 +19,7 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.http.loadbalancer.LoadBalancerStrategy;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -26,9 +27,15 @@ import java.util.List;
  */
 public abstract class LoadBalancerSupportStrategy implements LoadBalancerStrategy {
 
-    protected final List<Endpoint> endpoints;
+    private final List<Endpoint> endpoints;
 
     protected LoadBalancerSupportStrategy(final List<Endpoint> endpoints) {
         this.endpoints = endpoints;
     }
+
+    protected List<Endpoint> endpoints() {
+        return endpoints.stream()
+                .filter(endpoint -> endpoint.getStatus() != Endpoint.Status.DOWN)
+                .collect(Collectors.toList());
+    };
 }

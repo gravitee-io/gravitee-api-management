@@ -34,6 +34,11 @@ public class WeightedRoundRobinLoadBalancerStrategy extends WeightedLoadBalancer
 
     @Override
     public synchronized String chooseEndpoint(Request request) {
+        List<Endpoint> endpoints = endpoints();
+        if (endpoints.isEmpty()) {
+            return null;
+        }
+
         if (isRuntimeRatiosZeroed())  {
             resetRuntimeRatios();
             counter = 0;

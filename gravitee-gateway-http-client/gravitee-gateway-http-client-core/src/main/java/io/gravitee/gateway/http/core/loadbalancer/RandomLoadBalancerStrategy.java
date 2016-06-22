@@ -36,16 +36,16 @@ public class RandomLoadBalancerStrategy extends LoadBalancerSupportStrategy {
 
     @Override
     public synchronized String chooseEndpoint(Request request) {
-        int size = endpoints.size();
+        int size = endpoints().size();
         if (size == 0) {
             return null;
         } else if (size == 1) {
             // There is only 1
-            return endpoints.get(0).getTarget();
+            return endpoints().get(0).getTarget();
         }
 
         index = RANDOM.nextInt(size);
-        return endpoints.get(index).getTarget();
+        return endpoints().get(index).getTarget();
     }
 
     @Override

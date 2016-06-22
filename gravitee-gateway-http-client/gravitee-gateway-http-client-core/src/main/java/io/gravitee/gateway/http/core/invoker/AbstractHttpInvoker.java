@@ -15,7 +15,10 @@
  */
 package io.gravitee.gateway.http.core.invoker;
 
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.*;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -50,13 +53,21 @@ public abstract class AbstractHttpInvoker implements Invoker {
 
     @Override
     public ClientRequest invoke(ExecutionContext executionContext, Request serverRequest, Handler<ClientResponse> result) {
-        // Get overriden endpoint
+        // Get overridden endpoint
         String sEndpoint = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
 
         // If not defined, use the one provided by load-balancer
         if (sEndpoint == null) {
             sEndpoint = loadBalancer.chooseEndpoint(serverRequest);
-            sEndpoint = rewriteURI(serverRequest, sEndpoint);
+            sEndpoint = (sEndpoint != null) ? rewriteURI(serverRequest, sEndpoint) : null;
+        }
+
+        // No endpoint has been selected by load-balancer strategy nor overridden value
+        if (sEndpoint == null) {
+            ServiceUnavailableResponse clientResponse = new ServiceUnavailableResponse();
+            result.handle(clientResponse);
+            clientResponse.endHandler().handle(null);
+            return null;
         }
 
         // Remove duplicate slash
@@ -130,11 +141,11 @@ public abstract class AbstractHttpInvoker implements Invoker {
         final StringBuilder requestURI =
                 new StringBuilder(endpointUri);
 
-        if (request.parameters() != null && ! request.parameters().isEmpty()) {
+        if (request.parameters() != null && !request.parameters().isEmpty()) {
             StringBuilder query = new StringBuilder();
             query.append('?');
 
-            for(Map.Entry<String, String> queryParam : request.parameters().entrySet()) {
+            for (Map.Entry<String, String> queryParam : request.parameters().entrySet()) {
                 query.append(queryParam.getKey());
                 if (queryParam.getValue() != null && !queryParam.getValue().isEmpty()) {
                     query.append('=').append(queryParam.getValue());
@@ -158,5 +169,47 @@ public abstract class AbstractHttpInvoker implements Invoker {
         io.gravitee.common.http.HttpMethod overrideMethod = (io.gravitee.common.http.HttpMethod)
                 executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_METHOD);
         return (overrideMethod == null) ? request.method() : overrideMethod;
+    }
+
+    private class ServiceUnavailableResponse implements ClientResponse {
+
+        private Handler<Buffer> bodyHandler;
+        private Handler<Void> endHandler;
+
+        private final HttpHeaders httpHeaders = new HttpHeaders();
+
+        public ServiceUnavailableResponse() {
+            httpHeaders.set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+        }
+
+        @Override
+        public int status() {
+            return HttpStatusCode.SERVICE_UNAVAILABLE_503;
+        }
+
+        @Override
+        public HttpHeaders headers() {
+            return httpHeaders;
+        }
+
+        @Override
+        public ClientResponse bodyHandler(Handler<Buffer> bodyHandler) {
+            this.bodyHandler = bodyHandler;
+            return this;
+        }
+
+        Handler<Buffer> bodyHandler() {
+            return this.bodyHandler;
+        }
+
+        @Override
+        public ClientResponse endHandler(Handler<Void> endHandler) {
+            this.endHandler = endHandler;
+            return this;
+        }
+
+        Handler<Void> endHandler() {
+            return this.endHandler;
+        }
     }
 }

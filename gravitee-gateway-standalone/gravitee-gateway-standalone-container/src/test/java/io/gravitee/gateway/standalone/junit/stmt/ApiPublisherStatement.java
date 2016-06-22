@@ -48,7 +48,7 @@ public class ApiPublisherStatement extends Statement {
 
     @Override
     public void evaluate() throws Throwable {
-        startServer(description.getAnnotation(ApiConfiguration.class));
+        startServer(description.getTestClass().getAnnotation(ApiConfiguration.class));
 
         try {
             base.evaluate();
