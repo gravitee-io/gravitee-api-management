@@ -19,6 +19,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
 import io.gravitee.gateway.standalone.Container;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.utils.SocketUtils;
@@ -37,13 +38,13 @@ import java.util.List;
 public class ApiDeployerStatement extends Statement {
 
     private final Statement base;
-    private final Description description;
+    private final Object target;
 
     private Container container;
 
-    public ApiDeployerStatement(Statement base, Description description) {
+    public ApiDeployerStatement(Statement base, Object target) {
         this.base = base;
-        this.description = description;
+        this.target = target;
     }
 
     @Override
@@ -57,7 +58,7 @@ public class ApiDeployerStatement extends Statement {
         Thread.sleep(1000);
 
         ApiManager apiManager = container.getApplicationContext().getBean(ApiManager.class);
-        Api api = loadApi(description.getAnnotation(ApiDescriptor.class).value());
+        Api api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
 
         try {
             apiManager.deploy(api);
@@ -72,7 +73,12 @@ public class ApiDeployerStatement extends Statement {
         URL jsonFile = ApiDeployerStatement.class.getResource(apiDescriptorPath);
         Api api = new GraviteeMapper().readValue(jsonFile, Api.class);
 
-        boolean enhanceHttpPort = description.getAnnotation(ApiDescriptor.class).enhanceHttpPort();
+        if (ApiLoaderInterceptor.class.isAssignableFrom(target.getClass())) {
+            ApiLoaderInterceptor loader = (ApiLoaderInterceptor) target;
+            loader.before(api);
+        }
+
+        boolean enhanceHttpPort = target.getClass().getAnnotation(ApiDescriptor.class).enhanceHttpPort();
 
         if (enhanceHttpPort) {
             List<Endpoint> endpoints = api.getProxy().getEndpoints();
@@ -92,6 +98,11 @@ public class ApiDeployerStatement extends Statement {
                     api.getProxy().getEndpoints().add(new Endpoint(newTarget.toString()));
                 }
             }
+        }
+
+        if (ApiLoaderInterceptor.class.isAssignableFrom(target.getClass())) {
+            ApiLoaderInterceptor loader = (ApiLoaderInterceptor) target;
+            loader.after(api);
         }
 
         return api;

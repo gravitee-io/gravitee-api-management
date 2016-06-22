@@ -15,21 +15,15 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
-import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestRule;
+import io.gravitee.definition.model.Api;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractGatewayTest {
+public interface ApiLoaderInterceptor {
 
-    @Rule
-    public final TestRule chain = RuleChain
-            .outerRule(new ApiPublisher())
-            .around(new ApiDeployer(this));
+    void before(Api api);
+
+    void after(Api api);
 }

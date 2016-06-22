@@ -43,6 +43,11 @@ public class WeightedRandomLoadBalancerStrategy extends WeightedLoadBalancerStra
 
     @Override
     public synchronized String chooseEndpoint(Request request) {
+        List<Endpoint> endpoints = endpoints();
+        if (endpoints.isEmpty()) {
+            return null;
+        }
+
         int index = selectProcessIndex();
         lastIndex = index;
         return endpoints.get(index).getTarget();

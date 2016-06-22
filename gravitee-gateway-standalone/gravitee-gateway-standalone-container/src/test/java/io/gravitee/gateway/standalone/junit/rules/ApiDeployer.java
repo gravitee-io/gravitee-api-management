@@ -27,12 +27,18 @@ import org.junit.runners.model.Statement;
  */
 public class ApiDeployer implements TestRule {
 
+    public final Object target;
+
+    public ApiDeployer(Object target) {
+        this.target = target;
+    }
+
     @Override
     public Statement apply(Statement base, Description description) {
         Statement result;
 
         if(hasAnnotation(description)) {
-            result = new ApiDeployerStatement(base, description);
+            result = new ApiDeployerStatement(base, target);
         } else {
             result = base;
         }
@@ -41,6 +47,6 @@ public class ApiDeployer implements TestRule {
     }
 
     private boolean hasAnnotation(Description description) {
-        return description.getAnnotation(ApiDescriptor.class) != null;
+        return description.getTestClass().getAnnotation(ApiDescriptor.class) != null;
     }
 }

@@ -31,7 +31,7 @@ public class ApiPublisher implements TestRule {
     public Statement apply(Statement base, Description description) {
         Statement result;
 
-        if(hasAnnotation( description)) {
+        if(hasAnnotation(description)) {
             result = new ApiPublisherStatement(base, description);
         } else {
             result = base;
@@ -41,6 +41,6 @@ public class ApiPublisher implements TestRule {
     }
 
     private boolean hasAnnotation(Description description) {
-        return description.getAnnotation(ApiConfiguration.class) != null;
+        return description.getTestClass().getAnnotation(ApiConfiguration.class) != null;
     }
 }

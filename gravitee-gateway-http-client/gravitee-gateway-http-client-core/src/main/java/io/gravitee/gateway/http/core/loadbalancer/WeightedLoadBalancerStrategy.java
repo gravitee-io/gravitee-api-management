@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.http.core.loadbalancer;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 
 import java.util.ArrayList;
@@ -39,7 +38,7 @@ public abstract class WeightedLoadBalancerStrategy extends LoadBalancerSupportSt
     protected void loadRuntimeRatios() {
         int position = 0;
 
-        for(Endpoint endpoint : endpoints) {
+        for(Endpoint endpoint : endpoints()) {
             runtimeRatios.add(new WeightRatio(position++, endpoint.getWeight()));
         }
     }
