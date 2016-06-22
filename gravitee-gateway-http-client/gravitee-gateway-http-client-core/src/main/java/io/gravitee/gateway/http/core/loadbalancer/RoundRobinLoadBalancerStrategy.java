@@ -15,8 +15,10 @@
  */
 package io.gravitee.gateway.http.core.loadbalancer;
 
-import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.Request;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -26,17 +28,17 @@ public class RoundRobinLoadBalancerStrategy extends LoadBalancerSupportStrategy 
 
     private int counter = -1;
 
-    public RoundRobinLoadBalancerStrategy(final Api api) {
-        super(api);
+    public RoundRobinLoadBalancerStrategy(final List<Endpoint> endpoints) {
+        super(endpoints);
     }
 
     @Override
     public synchronized String chooseEndpoint(Request request) {
-        int size = availableEndpoints().size();
+        int size = endpoints.size();
         if (++counter >= size) {
             counter = 0;
         }
-        return availableEndpoints().get(counter).getTarget();
+        return endpoints.get(counter).getTarget();
     }
 
     @Override
