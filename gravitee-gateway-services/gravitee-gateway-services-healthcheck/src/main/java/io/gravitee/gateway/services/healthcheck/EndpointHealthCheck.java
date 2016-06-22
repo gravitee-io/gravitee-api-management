@@ -53,6 +53,8 @@ class EndpointHealthCheck implements Runnable {
     private final Api api;
     private final HealthCheck healthCheck;
 
+    private final EndpointStatusManager statusManager = new EndpointStatusManager();
+
     EndpointHealthCheck(Api api) {
         this.api = api;
         this.healthCheck = api.getServices().get(HealthCheck.class);
@@ -144,6 +146,7 @@ class EndpointHealthCheck implements Runnable {
 
                     private void report() {
                         LOGGER.debug("Report health results for {}", api);
+                        statusManager.update(endpoint, healthBuilder.isSuccess());
                         reporterService.report(healthBuilder.build());
                     }
                 });

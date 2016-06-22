@@ -34,7 +34,8 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at gravitee.io)
+ * @author GraviteeSource Team
  */
 public class HealthCheckService extends AbstractService implements EventListener<ReactorEvent, Reactable> {
 

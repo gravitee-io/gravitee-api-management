@@ -31,15 +31,15 @@ public abstract class WeightedLoadBalancerStrategy extends LoadBalancerSupportSt
 
     private List<WeightRatio> runtimeRatios = new ArrayList<>();
 
-    public WeightedLoadBalancerStrategy(Api api) {
-        super(api);
+    public WeightedLoadBalancerStrategy(List<Endpoint> endpoints) {
+        super(endpoints);
         loadRuntimeRatios();
     }
 
     protected void loadRuntimeRatios() {
         int position = 0;
 
-        for(Endpoint endpoint : availableEndpoints()) {
+        for(Endpoint endpoint : endpoints) {
             runtimeRatios.add(new WeightRatio(position++, endpoint.getWeight()));
         }
     }

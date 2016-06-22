@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.http.core.loadbalancer;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.Request;
 
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -31,10 +31,10 @@ public class WeightedRandomLoadBalancerStrategy extends WeightedLoadBalancerStra
     private final int distributionRatioSum;
     private int runtimeRatioSum;
 
-    public WeightedRandomLoadBalancerStrategy(Api api) {
-        super(api);
+    public WeightedRandomLoadBalancerStrategy(List<Endpoint> endpoints) {
+        super(endpoints);
         int sum = 0;
-        for (Endpoint endpoint : availableEndpoints()) {
+        for (Endpoint endpoint : endpoints) {
             sum += endpoint.getWeight();
         }
         distributionRatioSum = sum;
@@ -45,10 +45,10 @@ public class WeightedRandomLoadBalancerStrategy extends WeightedLoadBalancerStra
     public synchronized String chooseEndpoint(Request request) {
         int index = selectProcessIndex();
         lastIndex = index;
-        return availableEndpoints().get(index).getTarget();
+        return endpoints.get(index).getTarget();
     }
 
-    public int selectProcessIndex() {
+    private int selectProcessIndex() {
         if (runtimeRatioSum == 0) {
             for (WeightRatio distributionRatio : getRuntimeRatios()) {
                 int weight = distributionRatio.getDistribution();

@@ -15,12 +15,10 @@
  */
 package io.gravitee.gateway.http.core.loadbalancer;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.http.loadbalancer.LoadBalancerStrategy;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -28,26 +26,9 @@ import java.util.stream.Collectors;
  */
 public abstract class LoadBalancerSupportStrategy implements LoadBalancerStrategy {
 
-    protected final Api api;
-    private List<Endpoint> endpoints;
+    protected final List<Endpoint> endpoints;
 
-    protected LoadBalancerSupportStrategy(final Api api) {
-        this.api = api;
-    }
-
-    /**
-     * Returns a list of non-backup endpoints
-     *
-     * @return List of non-backup endpoints.
-     */
-    protected List<Endpoint> availableEndpoints() {
-        if (endpoints == null) {
-            endpoints = api.getProxy().getEndpoints()
-                    .stream()
-                    .filter(endpoint -> !endpoint.isBackup())
-                    .collect(Collectors.toList());
-        }
-
-        return endpoints;
+    protected LoadBalancerSupportStrategy(final List<Endpoint> endpoints) {
+        this.endpoints = endpoints;
     }
 }
