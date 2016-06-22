@@ -94,6 +94,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
             ExecutionContext executionContext = createExecutionContext();
             executionContext.getTemplateEngine().getTemplateContext().setVariable("request", new EvaluableRequest(serverRequest));
             executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.getProperties());
+            executionContext.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, reactable().contextPath());
             executionContext.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, path.getPath());
             executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
             executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, defaultInvoker);
