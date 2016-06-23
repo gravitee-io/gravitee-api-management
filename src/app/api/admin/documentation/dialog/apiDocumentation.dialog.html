@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<md-dialog style="min-width:60%;">
+<md-dialog style="min-width:40%;">
   <form name="formPage" ng-submit="dialogDocumentationCtrl.createPage()" novalidate>
   <md-toolbar>
     <div class="md-toolbar-tools">
@@ -26,7 +26,7 @@
       </md-button>
     </div>
   </md-toolbar>
-  <md-dialog-content style="max-width:800px;max-height:810px; ">
+  <md-dialog-content >
     <div layout="row">
       <div flex>
         <md-button style="width: 100%" type="button" ng-click="dialogDocumentationCtrl.selectPageType(MARKDOWN_PAGE)"
@@ -35,7 +35,7 @@
         </md-button>
       </div>
       <div flex>
-        <md-button style="width: 100%" type="button" ng-click="dialogDocumentationCtrl.selectPageType(RAML_PAGE)"
+        <md-button style="width: 95%" type="button" ng-click="dialogDocumentationCtrl.selectPageType(RAML_PAGE)"
                    ng-class="{'selected' : RAML_PAGE === dialogDocumentationCtrl.selectedPageType}">
           <img src="app/images/logo_raml.png" />
         </md-button>
@@ -48,11 +48,11 @@
           <img src="app/images/logo_swagger.png" />
         </md-button>
       </div>
-      <div flex layout="row" layout-align="center center">
-        <md-button>
+      <div flex layout="column" layout-align="center center">
+        <h4>
           Import APIs definition from file
-          <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" />
-        </md-button>
+        </h4>
+        <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" />
       </div>
     </div>
     <div layout="row" ng-show="dialogDocumentationCtrl.selectedPageType != null">
