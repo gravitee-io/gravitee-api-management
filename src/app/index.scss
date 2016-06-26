@@ -165,6 +165,16 @@ gravitee-sidenav {
   width: 150px;
 }
 
+.form-control {
+  padding-right: 30px;
+}
+
+.form-control-feedback, .has-feedback label ~ .form-control-feedback {
+  position: relative;
+  float: right;
+  top: -35px;
+}
+
 /**
  *  Do not remove this comments bellow. It's the markers used by gulp-inject to inject
  *  all your sass files automatically
