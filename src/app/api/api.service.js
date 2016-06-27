@@ -75,7 +75,7 @@ class ApiService {
   }
 
   import(apiId, apiDefinition) {
-    return this.$http.post(this.apisURL + (apiId?apiId:'') + '/import', apiDefinition);
+    return this.$http.post(this.apisURL + (apiId?apiId + '/':'') + 'import', apiDefinition);
   }
 
   export(apiId) {

@@ -247,7 +247,8 @@ class ApiAdminController {
       document.body.appendChild(link);
       link.href = 'data:application/json;charset=utf-8;base64,' + that.base64.encode(JSON.stringify(response.data, null, 2));
       var contentDispositionHeader = response.headers('content-disposition') || response.headers('Content-Disposition');
-      link.download = contentDispositionHeader.split('=')[1];      link.target = "_self";
+      link.download = contentDispositionHeader ? contentDispositionHeader.split('=')[1] : id;
+      link.target = "_self";
       link.click();
       document.body.removeChild(link);
     });
