@@ -19,9 +19,9 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheck;
+import io.gravitee.gateway.el.function.JsonPathFunction;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.services.healthcheck.el.HealthCheckResponse;
-import io.gravitee.gateway.services.healthcheck.el.json.JsonPathUtils;
 import io.gravitee.reporter.api.health.HealthStatus;
 import org.asynchttpclient.*;
 import org.asynchttpclient.uri.Uri;
@@ -109,7 +109,7 @@ class EndpointHealthCheck implements Runnable {
 
                                 StandardEvaluationContext context = new StandardEvaluationContext();
                                 context.registerFunction("jsonPath",
-                                        BeanUtils.resolveSignature("evaluate", JsonPathUtils.class));
+                                        BeanUtils.resolveSignature("evaluate", JsonPathFunction.class));
 
                                 context.setVariable("response", new HealthCheckResponse(response));
 

@@ -19,7 +19,7 @@ import io.gravitee.gateway.api.expression.TemplateEngine;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class SpelTemplateEngine implements TemplateEngine {

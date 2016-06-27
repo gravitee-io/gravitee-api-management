@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.healthcheck.el.json;
+package io.gravitee.gateway.el.function;
+
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Predicate;
 
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
-
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Predicate;
 
 /**
  * Utility class to {@link #evaluate} a jsonPath on the provided object.
  * Delegates evaluation to <a href="https://github.com/jayway/JsonPath">JsonPath</a>.
  * Note {@link #evaluate} is used as {@code #jsonPath()} SpEL function.
  *
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public final class JsonPathUtils {
+public final class JsonPathFunction {
 
-    private JsonPathUtils() {
+    private JsonPathFunction() {
     }
 
     public static <T> T evaluate(Object json, String jsonPath, Predicate... predicates) throws Exception {

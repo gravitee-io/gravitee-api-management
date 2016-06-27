@@ -16,6 +16,8 @@
 package io.gravitee.gateway.el;
 
 import io.gravitee.gateway.api.expression.TemplateContext;
+import io.gravitee.gateway.el.function.JsonPathFunction;
+import org.springframework.beans.BeanUtils;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -25,7 +27,12 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  */
 public class SpelTemplateContext implements TemplateContext {
 
-    private final EvaluationContext context = new StandardEvaluationContext();
+    private final StandardEvaluationContext context = new StandardEvaluationContext();
+
+    public SpelTemplateContext() {
+        context.registerFunction("jsonPath",
+                BeanUtils.resolveSignature("evaluate", JsonPathFunction.class));
+    }
 
     @Override
     public void setVariable(String name, Object value) {
