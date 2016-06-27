@@ -21,6 +21,7 @@ import runBlock from './index.run';
 
 import ChartDirective from './components/chart/chart.directive';
 import FormDirective from './components/form/form.directive';
+import AutofocusDirective from './components/autofocus/autofocus.directive';
 import ApiService from './api/api.service';
 import ApisController from './api/apis.controller';
 import ApiPortalController from './api/portal/apiPortal.controller';
@@ -149,6 +150,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .directive('graviteeSidenav', () => new SideNavDirective())
   .directive('graviteePage', () => new PageDirective())
   .directive('noDirtyCheck', () => new FormDirective())
+  .directive('autofocus', () => new AutofocusDirective())
   .directive('graviteeRolesAllowed', () => new RoleDirective())
   .directive('graviteeDiff', () => new DiffDirective())
   .directive('graviteeImage', () => new ImageDirective())

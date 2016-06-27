@@ -13,32 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function LoginController($scope, $mdDialog, $window, UserService, $rootScope, $state) {
+class AutofocusDirective {
+
+  constructor() {
   'ngInject';
 
-  $scope.goToHome = function (forceReload) {
-    if (forceReload) {
-      $window.location.href = $window.location.pathname;
-    } else {
-      $state.go('home');
-    }
-  };
+    let directive = {
+      restrict: 'A',
+      require: 'ngModel',
+      link: function (scope, elm) {
+        setTimeout(function () {
+          elm[0].focus();
+        });
+      }
+    };
 
-  if ($rootScope.graviteeUser) {
-    $scope.goToHome();
+    return directive;
   }
-
-	$scope.user = {};
-
-  $scope.hide = function () {
-     $mdDialog.cancel();
-  };
-
-	$scope.login = function () {
-    UserService.login($scope.user).then(function() {
-      $scope.goToHome(true);
-    });
-	};
 }
 
-export default LoginController;
+export default AutofocusDirective;
