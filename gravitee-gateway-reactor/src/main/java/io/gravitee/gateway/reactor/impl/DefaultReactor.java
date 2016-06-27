@@ -74,8 +74,6 @@ public class DefaultReactor extends AbstractService implements
     }
 
     private ReactorHandler getHandler(final Request serverRequest) {
-            LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
-
             ReactorHandler reactorHandler = reactorHandlerResolver.resolve(serverRequest);
             reactorHandler = (reactorHandler != null) ? reactorHandler : notFoundHandler;
 
