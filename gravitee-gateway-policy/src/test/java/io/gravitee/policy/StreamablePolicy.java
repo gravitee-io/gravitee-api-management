@@ -44,4 +44,14 @@ public class StreamablePolicy implements Policy {
     public ReadWriteStream<?> onResponseContent(Object... args) throws Exception {
         return null;
     }
+
+    @Override
+    public boolean isStreamable() {
+        return true;
+    }
+
+    @Override
+    public boolean isRunnable() {
+        return true;
+    }
 }

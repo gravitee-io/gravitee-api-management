@@ -104,17 +104,6 @@ public abstract class AbstractHttpInvoker implements Invoker {
             clientRequest = new LoggableClientRequest(clientRequest, serverRequest);
         }
 
-        if (executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_BODY_CONTENT) == null) {
-            final ClientRequest finalClientRequest = clientRequest;
-            serverRequest
-                    .bodyHandler(clientRequest::write)
-                    .endHandler(endResult -> finalClientRequest.end());
-        } else {
-            String content = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_BODY_CONTENT);
-            clientRequest.write(Buffer.buffer(content));
-            clientRequest.end();
-        }
-
         return clientRequest;
     }
 

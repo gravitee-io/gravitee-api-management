@@ -23,10 +23,7 @@ import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.Path;
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Invoker;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.*;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.el.http.EvaluableRequest;
@@ -111,7 +108,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                     Invoker invoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
 
                     long serviceInvocationStart = System.currentTimeMillis();
-                    invoker.invoke(executionContext, serverRequest, responseStream -> {
+                    ClientRequest clientRequest = invoker.invoke(executionContext, serverRequest, responseStream -> {
 
                         // Set the status
                         serverResponse.status(responseStream.status());
@@ -128,26 +125,36 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                                 writePolicyResult(responsePolicyResult, serverResponse);
 
                                 future.complete(serverResponse);
+                            } else {
+                                responsePolicyChain.bodyHandler(serverResponse::write);
+                                responsePolicyChain.endHandler(responseEndResult -> {
+                                    serverResponse.end();
+
+                                    // Transfer proxy response to the initial consumer
+                                    future.complete(serverResponse);
+
+                                    serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
+                                    LOGGER.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
+                                });
+
+                                responseStream.bodyHandler(responsePolicyChain::write);
+                                responseStream.endHandler(aVoid -> responsePolicyChain.end());
                             }
                         });
-
-                        responsePolicyChain.bodyHandler(serverResponse::write);
-                        responsePolicyChain.endHandler(responseEndResult -> {
-                            serverResponse.end();
-
-                            serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
-                            LOGGER.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
-
-                            // Transfer proxy response to the initial consumer
-                            future.complete(serverResponse);
-                        });
-
-                        responseStream.bodyHandler(responsePolicyChain::write);
-                        responseStream.endHandler(aVoid -> responsePolicyChain.end());
 
                         // Execute response policy chain
                         responsePolicyChain.doNext(serverRequest, serverResponse);
                     });
+
+                    // Plug request policy chain stream to backend request stream
+                    requestPolicyChain
+                            .bodyHandler(clientRequest::write)
+                            .endHandler(aVoid -> clientRequest.end());
+
+                    // Plug server request stream to request policy chain stream
+                    serverRequest
+                            .bodyHandler(requestPolicyChain::write)
+                            .endHandler(aVoid -> requestPolicyChain.end());
 
                     // Resume request read
                     serverRequest.resume();

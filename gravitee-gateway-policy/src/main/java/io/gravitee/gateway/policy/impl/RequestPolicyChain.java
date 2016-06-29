@@ -16,10 +16,8 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.policy.api.PolicyResult;
 
 import java.util.Iterator;
 import java.util.List;
@@ -27,9 +25,7 @@ import java.util.List;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class RequestPolicyChain extends AbstractPolicyChain {
-
-    private static final PolicyResult SUCCESS_POLICY_CHAIN = new SuccessPolicyResult();
+public class RequestPolicyChain extends StreamablePolicyChain {
 
     private RequestPolicyChain(final List<Policy> policies, final ExecutionContext executionContext) {
         super(policies, executionContext);
@@ -40,17 +36,13 @@ public class RequestPolicyChain extends AbstractPolicyChain {
     }
 
     @Override
-    public void doNext(Request request, Response response) {
-        if (iterator.hasNext()) {
-            super.doNext(request, response);
-        } else {
-            resultHandler.handle(SUCCESS_POLICY_CHAIN);
-        }
+    protected void execute(Policy policy, Object... args) throws Exception {
+        policy.onRequest(args);
     }
 
     @Override
-    protected void execute(Policy policy, Object... args) throws Exception {
-        policy.onRequest(args);
+    protected ReadWriteStream<?> stream(Policy policy, Object... args) throws Exception {
+        return policy.onRequestContent(args);
     }
 
     @Override

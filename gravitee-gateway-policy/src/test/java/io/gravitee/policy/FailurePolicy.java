@@ -42,4 +42,14 @@ public class FailurePolicy implements Policy {
     public ReadWriteStream<?> onResponseContent(Object... args) throws Exception {
         throw new RuntimeException();
     }
+
+    @Override
+    public boolean isStreamable() {
+        return true;
+    }
+
+    @Override
+    public boolean isRunnable() {
+        return true;
+    }
 }
