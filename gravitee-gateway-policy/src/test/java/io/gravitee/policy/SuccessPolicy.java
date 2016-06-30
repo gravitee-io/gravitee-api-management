@@ -43,4 +43,14 @@ public class SuccessPolicy implements Policy {
     public ReadWriteStream<?> onResponseContent(Object... args) throws Exception {
         return null;
     }
+
+    @Override
+    public boolean isStreamable() {
+        return false;
+    }
+
+    @Override
+    public boolean isRunnable() {
+        return true;
+    }
 }

@@ -29,4 +29,8 @@ public interface Policy {
     ReadWriteStream<?> onRequestContent(Object ... args) throws Exception;
 
     ReadWriteStream<?> onResponseContent(Object ... args) throws Exception;
+
+    boolean isStreamable();
+
+    boolean isRunnable();
 }

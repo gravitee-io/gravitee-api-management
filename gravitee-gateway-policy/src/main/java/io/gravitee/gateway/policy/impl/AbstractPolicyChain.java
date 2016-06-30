@@ -39,6 +39,8 @@ public abstract class AbstractPolicyChain extends BufferedReadWriteStream implem
 
     protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
+    private static final PolicyResult SUCCESS_POLICY_CHAIN = new SuccessPolicyResult();
+
     protected Handler<PolicyResult> resultHandler;
     protected final List<Policy> policies;
     protected final Iterator<Policy> iterator;
@@ -59,11 +61,17 @@ public abstract class AbstractPolicyChain extends BufferedReadWriteStream implem
         if (iterator.hasNext()) {
             Policy policy = iterator.next();
             try {
-                execute(policy, request, response, this, executionContext);
+                if (policy.isRunnable()) {
+                    execute(policy, request, response, this, executionContext);
+                } else {
+                    doNext(request, response);
+                }
             } catch (Exception ex) {
                 LOGGER.error("Unexpected error while running policy {}", policy, ex);
                 failWith(ex);
             }
+        } else {
+            resultHandler.handle(SUCCESS_POLICY_CHAIN);
         }
     }
 

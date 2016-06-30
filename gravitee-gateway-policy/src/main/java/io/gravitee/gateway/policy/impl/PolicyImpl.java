@@ -58,6 +58,18 @@ public class PolicyImpl implements Policy {
     }
 
     @Override
+    public boolean isStreamable() {
+        return (policyMetadata.method(OnRequestContent.class) != null ||
+                policyMetadata.method(OnResponseContent.class) != null);
+    }
+
+    @Override
+    public boolean isRunnable() {
+        return (policyMetadata.method(OnRequest.class) != null ||
+                policyMetadata.method(OnResponse.class) != null);
+    }
+
+    @Override
     public ReadWriteStream<?> onRequestContent(Object ... args) throws Exception {
         Object stream = invoke(policyMetadata.method(OnRequestContent.class), args);
         return (stream != null) ? (ReadWriteStream) stream : null;

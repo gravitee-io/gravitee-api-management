@@ -43,7 +43,7 @@ public abstract class StreamablePolicyChain extends AbstractPolicyChain {
 
     @Override
     public void doNext(Request request, Response response) {
-        if (! initialized) {
+        if (! initialized && ! policies.isEmpty()) {
             prepareStreamablePolicyChain(request, response);
             initialized = true;
         }
@@ -56,9 +56,9 @@ public abstract class StreamablePolicyChain extends AbstractPolicyChain {
         for (Policy policy : policies) {
             try {
                 // Run OnXXXContent to get ReadWriteStream object
-                Object result = policy.onResponseContent(request, response, executionContext);
-                if (result != null && ReadWriteStream.class.isInstance(result)) {
-                    final ReadWriteStream<Buffer> streamer = (ReadWriteStream) result;
+                ReadWriteStream streamer = stream(policy, request, response, executionContext);
+                if (streamer != null) {
+                //    final ReadWriteStream streamer = result;
 
                     // An handler was never assigned to start the chain, so let's do it
                     if (streamablePolicyHandlerChain == null) {
@@ -75,7 +75,7 @@ public abstract class StreamablePolicyChain extends AbstractPolicyChain {
                     previousPolicyStreamer = streamer;
                 }
             } catch (Exception ex) {
-                LOGGER.error("Unexpected error while running onResponseContent for policy {}", policy, ex);
+                LOGGER.error("Unexpected error while running onXXXXContent for policy {}", policy, ex);
             }
         }
 
@@ -105,4 +105,6 @@ public abstract class StreamablePolicyChain extends AbstractPolicyChain {
             this.endHandler.handle(null);
         }
     }
+
+    protected abstract ReadWriteStream<?> stream(Policy policy, Object... args) throws Exception;
 }
