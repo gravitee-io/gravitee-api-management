@@ -38,6 +38,13 @@
             <artifactId>gravitee-gateway-api</artifactId>
         </dependency>
 
+        <!-- Json path -->
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>${json-path.version}</version>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>

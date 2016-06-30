@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.el.http;
+package io.gravitee.gateway.el;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
@@ -21,7 +21,7 @@ import io.gravitee.gateway.api.Request;
 import java.util.Map;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EvaluableRequest {
@@ -46,5 +46,9 @@ public class EvaluableRequest {
 
     public String[] getPaths() {
         return request.path().split("/");
+    }
+
+    public String getContent() {
+        return null;
     }
 }

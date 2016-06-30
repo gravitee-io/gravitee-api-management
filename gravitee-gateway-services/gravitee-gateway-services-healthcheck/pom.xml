@@ -40,6 +40,13 @@
 
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-el</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-reporting</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
@@ -57,12 +64,6 @@
             <artifactId>gravitee-gateway-reactor</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>2.2.0</version>
         </dependency>
 
         <!-- Spring dependencies -->

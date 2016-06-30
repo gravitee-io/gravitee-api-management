@@ -17,11 +17,11 @@ package io.gravitee.gateway.el;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.el.http.EvaluableRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class SpelTemplateEngineTest {
@@ -117,5 +117,22 @@ public class SpelTemplateEngineTest {
         String content = "age: {(T(java.lang.Math).random() * 60).intValue()}";
         String value = engine.convert(content);
         Assert.assertNotNull(value);
+    }
+
+    @Test
+    public void shouldJsonPathFunction() {
+        EvaluableRequest req = Mockito.mock(EvaluableRequest.class);
+        when(req.getContent()).thenReturn("{ \"lastname\": \"DOE\", \"firstname\": \"JOHN\", \"age\": 35 }");
+
+        SpelTemplateEngine engine = new SpelTemplateEngine();
+        engine.getTemplateContext().setVariable("request", req);
+
+        String content = "{#jsonPath(#request.content, '$.lastname')}";
+        String value = engine.convert(content);
+        Assert.assertEquals("DOE", value);
+
+        content = "{#jsonPath(#request.content, '$.age') + 20}";
+        value = engine.convert(content);
+        Assert.assertEquals("55", value);
     }
 }

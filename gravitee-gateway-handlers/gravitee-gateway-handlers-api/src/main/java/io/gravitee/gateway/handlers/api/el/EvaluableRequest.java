@@ -13,25 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.el;
+package io.gravitee.gateway.handlers.api.el;
 
-import org.springframework.expression.ParserContext;
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.gateway.api.Request;
+
+import java.util.Map;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public class TemplateParserContext implements ParserContext {
+public class EvaluableRequest {
 
-    public String getExpressionPrefix() {
-        return "{";
+    private final Request request;
+
+    public EvaluableRequest(Request request) {
+        this.request = request;
     }
 
-    public String getExpressionSuffix() {
-        return "}";
+    public String getId() {
+        return request.id();
     }
 
-    public boolean isTemplate() {
-        return true;
+    public HttpHeaders getHeaders() {
+        return request.headers();
+    }
+
+    public Map<String, String> getParams() {
+        return request.parameters();
+    }
+
+    public String[] getPaths() {
+        return request.path().split("/");
     }
 }
