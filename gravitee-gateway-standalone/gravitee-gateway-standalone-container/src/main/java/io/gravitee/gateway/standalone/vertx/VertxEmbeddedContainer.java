@@ -41,7 +41,7 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     protected void doStart() throws Exception {
         logger.info("Starting Vertx container and deploy Gravitee Verticles");
         // TODO: Providing a simple way to configure number of Gravitee instances
-        DeploymentOptions options = new DeploymentOptions();//.setWorker(true).setInstances(1);
+        DeploymentOptions options = new DeploymentOptions().setInstances(1);
         vertx.deployVerticle(GraviteeVerticleFactory.GRAVITEE_VERTICLE_PREFIX + ':' + GraviteeVerticle.class.getName(), options, event -> {
             deploymentId = event.result();
         });
