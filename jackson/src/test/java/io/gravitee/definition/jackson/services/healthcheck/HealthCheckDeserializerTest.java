@@ -61,8 +61,11 @@ public class HealthCheckDeserializerTest extends AbstractTest {
         Assert.assertEquals(TimeUnit.SECONDS, healthCheckService.getUnit());
     }
 
-    @Test//(expected = JsonMappingException.class)
+    @Test
     public void healthcheck_noExpectation() throws Exception {
-        load("/io/gravitee/definition/jackson/api-withservice-healthcheck-noExpectation.json", Api.class);
+        Api api = load("/io/gravitee/definition/jackson/api-withservice-healthcheck-noExpectation.json", Api.class);
+        HealthCheck healthCheckService = api.getServices().get(HealthCheck.class);
+
+        Assert.assertFalse(healthCheckService.getExpectation().getAssertions().isEmpty());
     }
 }

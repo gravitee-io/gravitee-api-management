@@ -24,6 +24,7 @@ import io.gravitee.definition.model.services.healthcheck.Expectation;
 import io.gravitee.definition.model.services.healthcheck.Request;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -68,7 +69,9 @@ public class HealthCheckDeserializer extends StdScalarDeserializer<HealthCheck> 
         if (expectationNode != null) {
             healthCheck.setExpectation(expectationNode.traverse(jp.getCodec()).readValueAs(Expectation.class));
         } else {
-            throw ctxt.mappingException("[healthcheck] Expectation are required");
+            Expectation expectation = new Expectation();
+            expectation.setAssertions(Collections.singletonList(Expectation.DEFAULT_ASSERTION));
+            healthCheck.setExpectation(expectation);
         }
 
         final JsonNode healthCheckEnabledNode = node.get("enabled");

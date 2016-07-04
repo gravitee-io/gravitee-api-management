@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -53,9 +54,9 @@ public class ExpectationDeserializer extends StdScalarDeserializer<Expectation> 
             expectation.setAssertions(assertions);
         }
 
-        if (expectation.getAssertions() == null || expectation.getAssertions().isEmpty()) {
-            logger.error("[healthcheck] Expectation must contains at least a status or assertion(s)");
-            throw ctxt.mappingException("[healthcheck] Expectation must contains at least a status or assertion(s)");
+        if (expectation.getAssertions().isEmpty()) {
+            // Add default assertion
+            expectation.setAssertions(Collections.singletonList(Expectation.DEFAULT_ASSERTION));
         }
 
         return expectation;

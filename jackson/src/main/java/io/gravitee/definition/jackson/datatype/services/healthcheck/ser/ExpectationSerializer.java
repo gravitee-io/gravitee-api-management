@@ -36,8 +36,8 @@ public class ExpectationSerializer extends StdScalarSerializer<Expectation> {
     public void serialize(Expectation expectation, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
 
+        jgen.writeArrayFieldStart("assertions");
         if (expectation.getAssertions() != null && ! expectation.getAssertions().isEmpty()) {
-            jgen.writeArrayFieldStart("assertions");
             expectation.getAssertions().forEach(assertion -> {
                 try {
                     jgen.writeString(assertion);
@@ -45,8 +45,11 @@ public class ExpectationSerializer extends StdScalarSerializer<Expectation> {
                     e.printStackTrace();
                 }
             });
-            jgen.writeEndArray();
+        } else {
+            jgen.writeString(Expectation.DEFAULT_ASSERTION);
         }
+
+        jgen.writeEndArray();
 
         jgen.writeEndObject();
     }

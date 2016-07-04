@@ -23,6 +23,8 @@ import java.util.List;
  */
 public class Expectation {
 
+    public final static String DEFAULT_ASSERTION = "#response.status == 200";
+
     private List<String> assertions;
 
     public List<String> getAssertions() {
