@@ -149,36 +149,37 @@
               </table>
             </md-table-container>
 
-            <br /><md-divider></md-divider>
+            <br />
 
             <md-subheader class="md-primary" style="background-color: #fafafa">Load balancing</md-subheader>
-            <div layout-gt-sm="row">
-              <md-input-container class="md-block" flex-gt-sm>
-                <label>Algorithm</label>
-                <md-select ng-model="generalCtrl.api.proxy.load_balancing.type">
-                  <md-option ng-repeat="lb in lbs" value="{{lb.value}}">
-                    {{lb.name}}
-                  </md-option>
-                </md-select>
-              </md-input-container>
-            </div>
-
-            <br /><md-divider></md-divider>
-
-            <md-subheader class="md-primary" style="background-color: #fafafa">Fail-over</md-subheader>
             <div layout="column" layout-wrap layout-gt-sm="row">
               <div flex-xs flex="50">
                 <md-input-container class="md-block" flex-gt-sm>
-                  <md-checkbox
-                    ng-model="generalCtrl.failoverEnabled"
-                    aria-label="Enable failover"
-                    class="md-align-top-left" flex>
-                    Enable failover
-                  </md-checkbox>
-                  <div class="hint">When gateway receives a connect timeout from backend servers, it redirects traffic to the next server until "max attempts" or "timeout" have been reached.</div>
+                  <label>Algorithm</label>
+                  <md-select ng-model="generalCtrl.api.proxy.load_balancing.type">
+                    <md-option ng-repeat="lb in lbs" value="{{lb.value}}">
+                      {{lb.name}}
+                    </md-option>
+                  </md-select>
                 </md-input-container>
               </div>
             </div>
+
+            <br />
+
+            <md-subheader class="md-primary" style="background-color: #fafafa">
+              <md-checkbox
+                ng-model="generalCtrl.failoverEnabled"
+                aria-label="Enable failover" flex>
+                <div ng-switch on="generalCtrl.failoverEnabled">
+                  Fail-over
+                  <span class="proxy-activated" ng-switch-when="true">(active)</span>
+                  <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
+                  <span class="proxy-deactivated" ng-switch-default>(not active)</span>
+                </div>
+                <div class="hints">When gateway receives a connect timeout from backend servers, it redirects traffic to the next server until "max attempts" or "timeout" have been reached.</div>
+              </md-checkbox>
+            </md-subheader>
             <div layout="column" layout-wrap layout-gt-sm="row">
               <div flex-xs flex="50">
                 <md-input-container class="md-block" flex-gt-sm>
@@ -198,11 +199,12 @@
           </v-pane-content>
         </v-pane>
 
-        <v-pane>
+        <v-pane expanded>
           <v-pane-header>
             <legend><ng-md-icon icon="leak_add"></ng-md-icon> HTTP Configuration</legend>
           </v-pane-header>
           <v-pane-content>
+            <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
             <div layout="column" layout-wrap layout-gt-sm="row">
               <div flex-xs flex="50">
                 <md-input-container flex-xs flex="50">
@@ -225,7 +227,7 @@
               <div flex-xs flex="50">
                 <md-input-container flex-xs flex="50">
                   <label>Max concurrent connections *</label>
-                  <input ng-model="generalCtrl.api.proxy.http.configuration.maxConcurrentConnections" type="number" required min="0">
+                  <input ng-model="generalCtrl.api.proxy.http.configuration.maxConcurrentConnections" type="number" required min="10">
                 </md-input-container>
               </div>
             </div>
@@ -277,10 +279,70 @@
                 </div>
               </div>
             </div>
+
+            <br />
+
+            <md-subheader class="md-primary" style="background-color: #fafafa">
+              <md-checkbox
+                ng-model="generalCtrl.api.proxy.http.http_proxy.enabled"
+                aria-label="Enable proxy" flex>
+                <div ng-switch on="generalCtrl.api.proxy.http.http_proxy.enabled">
+                  Proxy
+                  <span class="proxy-activated" ng-switch-when="true">(active)</span>
+                  <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
+                  <span class="proxy-deactivated" ng-switch-default>(not active)</span>
+                </div>
+                <div class="hints">Use proxy for client connections</div>
+              </md-checkbox>
+            </md-subheader>
+            <div layout="column" layout-wrap layout-gt-sm="row">
+              <div flex-xs flex="50">
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Proxy type</label>
+                  <md-select ng-model="generalCtrl.api.proxy.http.http_proxy.type" ng-required="generalCtrl.api.proxy.http.http_proxy.enabled" ng-disabled="!generalCtrl.api.proxy.http.http_proxy.enabled">
+                    <md-option ng-repeat="proxy in proxies" value="{{proxy.value}}">
+                      {{proxy.name}}
+                    </md-option>
+                  </md-select>
+                  <div class="hint">Type of the TCP proxy server</div>
+                </md-input-container>
+              </div>
+            </div>
+            <div layout="column" layout-wrap layout-gt-sm="row">
+              <div flex-xs flex="50">
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Host *</label>
+                  <input ng-model="generalCtrl.api.proxy.http.http_proxy.host" type="string" ng-required="generalCtrl.api.proxy.http.http_proxy.enabled" ng-disabled="!generalCtrl.api.proxy.http.http_proxy.enabled">
+                  <div class="hint">Proxy host to connect to</div>
+                </md-input-container>
+              </div>
+              <div flex-xs flex="50">
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Port *</label>
+                  <input ng-model="generalCtrl.api.proxy.http.http_proxy.port" type="number" min="0" max="65536" ng-required="generalCtrl.api.proxy.http.http_proxy.enabled" ng-disabled="!generalCtrl.api.proxy.http.http_proxy.enabled">
+                  <div class="hint">Proxy port to connect to</div>
+                </md-input-container>
+              </div>
+              <div flex-xs flex="50">
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Username</label>
+                  <input ng-model="generalCtrl.api.proxy.http.http_proxy.username" type="string" ng-disabled="!generalCtrl.api.proxy.http.http_proxy.enabled">
+                  <div class="hint">Optional proxy username</div>
+                </md-input-container>
+              </div>
+              <div flex-xs flex="50">
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Password</label>
+                  <input ng-model="generalCtrl.api.proxy.http.http_proxy.password" type="password" ng-disabled="!generalCtrl.api.proxy.http.http_proxy.enabled">
+                  <div class="hint">Optional proxy password</div>
+                </md-input-container>
+              </div>
+            </div>
+
           </v-pane-content>
         </v-pane>
 
-        <v-pane>
+        <v-pane expanded>
           <v-pane-header>
             <legend><ng-md-icon icon="security"></ng-md-icon> SSL Configuration</legend>
           </v-pane-header>
