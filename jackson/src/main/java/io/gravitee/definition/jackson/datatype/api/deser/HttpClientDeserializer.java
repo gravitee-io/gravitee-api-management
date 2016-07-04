@@ -43,12 +43,6 @@ public class HttpClientDeserializer extends StdScalarDeserializer<HttpClient> {
 
         HttpClient httpClient = new HttpClient();
 
-        JsonNode useProxyNode = node.get("use_proxy");
-        if (useProxyNode != null) {
-            boolean useProxy = useProxyNode.asBoolean(false);
-            httpClient.setUseProxy(useProxy);
-        }
-
         JsonNode httpProxyNode = node.get("http_proxy");
         if (httpProxyNode != null) {
             HttpProxy httpProxy = httpProxyNode.traverse(jp.getCodec()).readValueAs(HttpProxy.class);

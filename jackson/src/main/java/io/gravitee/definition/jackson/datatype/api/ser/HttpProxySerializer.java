@@ -18,7 +18,6 @@ package io.gravitee.definition.jackson.datatype.api.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.HttpClient;
 import io.gravitee.definition.model.HttpProxy;
 
 import java.io.IOException;
@@ -36,10 +35,16 @@ public class HttpProxySerializer extends StdScalarSerializer<HttpProxy> {
     @Override
     public void serialize(HttpProxy httpProxy, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
+        jgen.writeBooleanField("enabled", httpProxy.isEnabled());
         jgen.writeStringField("host", httpProxy.getHost());
         jgen.writeNumberField("port", httpProxy.getPort());
-        jgen.writeStringField("principal", httpProxy.getPrincipal());
-        jgen.writeStringField("password", httpProxy.getPassword());
+        if (httpProxy.getUsername() != null) {
+            jgen.writeStringField("username", httpProxy.getUsername());
+        }
+        if (httpProxy.getPassword() != null) {
+            jgen.writeStringField("password", httpProxy.getPassword());
+        }
+        jgen.writeStringField("type", httpProxy.getType().name());
         jgen.writeEndObject();
     }
 }

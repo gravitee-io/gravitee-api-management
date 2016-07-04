@@ -16,38 +16,12 @@
 package io.gravitee.definition.model;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Gravitee.io Team
  */
-public class HttpClient {
+public enum HttpProxyType {
 
-    private HttpProxy httpProxy;
-
-    private HttpClientOptions options = new HttpClientOptions();
-
-    private HttpClientSslOptions ssl;
-
-    public HttpProxy getHttpProxy() {
-        return httpProxy;
-    }
-
-    public void setHttpProxy(HttpProxy httpProxy) {
-        this.httpProxy = httpProxy;
-    }
-
-    public HttpClientOptions getOptions() {
-        return options;
-    }
-
-    public void setOptions(HttpClientOptions options) {
-        this.options = options;
-    }
-
-    public HttpClientSslOptions getSsl() {
-        return ssl;
-    }
-
-    public void setSsl(HttpClientSslOptions ssl) {
-        this.ssl = ssl;
-    }
+    HTTP,
+    SOCKS4,
+    SOCKS5
 }

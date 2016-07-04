@@ -21,10 +21,20 @@ package io.gravitee.definition.model;
  */
 public class HttpProxy {
 
+    private boolean enabled;
     private String host;
     private int port;
-    private String principal;
+    private String username;
     private String password;
+    private HttpProxyType type = HttpProxyType.HTTP;
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
     public String getHost() {
         return host;
@@ -50,11 +60,19 @@ public class HttpProxy {
         this.port = port;
     }
 
-    public String getPrincipal() {
-        return principal;
+    public String getUsername() {
+        return username;
     }
 
-    public void setPrincipal(String principal) {
-        this.principal = principal;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public HttpProxyType getType() {
+        return type;
+    }
+
+    public void setType(HttpProxyType type) {
+        this.type = type;
     }
 }

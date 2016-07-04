@@ -44,9 +44,8 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-overridedhttpconfig.json", Api.class);
 
         Assert.assertEquals("http://localhost:1234", api.getProxy().getEndpoints().iterator().next().getTarget());
-        Assert.assertTrue(api.getProxy().getHttpClient().isUseProxy());
-
         Assert.assertNotNull(api.getProxy().getHttpClient().getHttpProxy());
+        Assert.assertTrue(api.getProxy().getHttpClient().getHttpProxy().isEnabled());
     }
 
     @Test(expected = JsonMappingException.class)

@@ -37,8 +37,7 @@ public class HttpClientSerializer extends StdScalarSerializer<HttpClient> {
     public void serialize(HttpClient httpClient, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
 
-        if (httpClient.isUseProxy() && httpClient.getHttpProxy() != null) {
-            jgen.writeBooleanField("use_proxy", httpClient.isUseProxy());
+        if (httpClient.getHttpProxy() != null) {
             jgen.writeObjectField("http_proxy", httpClient.getHttpProxy());
         }
 

@@ -8,9 +8,8 @@
     "strip_context_path": false,
 
     "http": {
-      "use_proxy": true,
-
       "http_proxy": {
+        "enabled": true,
         "host": "proxy_host",
         "port": 1234,
         "principal": "username",

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.HttpProxy;
+import io.gravitee.definition.model.HttpProxyType;
 
 import java.io.IOException;
 
@@ -40,6 +41,12 @@ public class HttpProxyDeserializer extends StdScalarDeserializer<HttpProxy> {
 
         HttpProxy httpProxy = new HttpProxy();
 
+        JsonNode enabledNode = node.get("enabled");
+        if (enabledNode != null) {
+            boolean enabled = enabledNode.asBoolean(false);
+            httpProxy.setEnabled(enabled);
+        }
+
         httpProxy.setHost(readStringValue(node, "host"));
 
         String sPort = readStringValue(node, "port");
@@ -48,7 +55,12 @@ public class HttpProxyDeserializer extends StdScalarDeserializer<HttpProxy> {
         }
 
         httpProxy.setPassword(readStringValue(node, "password"));
-        httpProxy.setPrincipal(readStringValue(node, "principal"));
+        httpProxy.setUsername(readStringValue(node, "username"));
+
+        final JsonNode typeNode = node.get("type");
+        if (typeNode != null) {
+            httpProxy.setType(HttpProxyType.valueOf(typeNode.asText().toUpperCase()));
+        }
 
         return httpProxy;
     }
