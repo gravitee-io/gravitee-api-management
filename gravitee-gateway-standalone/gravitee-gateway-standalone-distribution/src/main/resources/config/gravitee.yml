@@ -153,8 +153,8 @@ services:
 ds:
   mongodb:
     dbname: gravitee
-    host: localhost
-    port: 27017
+    host: ${GRAVITEEIO_MONGODB_HOST:localhost}
+    port: ${GRAVITEEIO_MONGODB_PORT:27017}
   elastic:
-    host: localhost
-    port: 9300
+    host: ${GRAVITEEIO_ELASTIC_HOST:localhost}
+    port: ${GRAVITEEIO_ELASTIC_PORT:9300}
