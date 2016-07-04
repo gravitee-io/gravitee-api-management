@@ -18,6 +18,8 @@ package io.gravitee.gateway.http.vertx;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.HttpClientSslOptions;
+import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.ClientResponse;
@@ -29,6 +31,8 @@ import io.netty.channel.ConnectTimeoutException;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.core.net.PemTrustOptions;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -201,18 +205,31 @@ public class VertxHttpClient extends AbstractHttpClient {
         options.setMaxPoolSize(proxyDefinition.getHttpClient().getOptions().getMaxConcurrentConnections());
         options.setTryUseCompression(proxyDefinition.getHttpClient().getOptions().isUseCompression());
 
-        if (proxyDefinition.getHttpClient().getSsl() != null
-                && proxyDefinition.getHttpClient().getSsl().isEnabled()) {
-            options
-                    .setSsl(proxyDefinition.getHttpClient().getSsl().isEnabled())
-                    .setVerifyHost(proxyDefinition.getHttpClient().getSsl().isHostnameVerifier())
-                    .setTrustAll(proxyDefinition.getHttpClient().getSsl().isTrustAll());
+        // Configure proxy
+        HttpProxy proxy = proxyDefinition.getHttpClient().getHttpProxy();
+        if (proxy != null && proxy.isEnabled()) {
+            ProxyOptions proxyOptions = new ProxyOptions();
+            proxyOptions.setHost(proxy.getHost());
+            proxyOptions.setPort(proxy.getPort());
+            proxyOptions.setUsername(proxy.getUsername());
+            proxyOptions.setPassword(proxy.getPassword());
+            proxyOptions.setType(ProxyType.valueOf(proxy.getType().name()));
 
-            if (proxyDefinition.getHttpClient().getSsl().getPem() != null &&
-                    ! proxyDefinition.getHttpClient().getSsl().getPem().isEmpty()) {
+            options.setProxyOptions(proxyOptions);
+        }
+
+        // Configure SSL
+        HttpClientSslOptions sslOptions = proxyDefinition.getHttpClient().getSsl();
+        if (sslOptions != null && sslOptions.isEnabled()) {
+            options
+                    .setSsl(sslOptions.isEnabled())
+                    .setVerifyHost(sslOptions.isHostnameVerifier())
+                    .setTrustAll(sslOptions.isTrustAll());
+
+            if (sslOptions.getPem() != null && ! sslOptions.getPem().isEmpty()) {
                 options.setPemTrustOptions(
                         new PemTrustOptions().addCertValue(
-                                io.vertx.core.buffer.Buffer.buffer(proxyDefinition.getHttpClient().getSsl().getPem())));
+                                io.vertx.core.buffer.Buffer.buffer(sslOptions.getPem())));
             }
         }
 
