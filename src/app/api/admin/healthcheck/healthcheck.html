@@ -203,7 +203,7 @@
           <md-divider></md-divider>
 
           <div class="md-actions gravitee-api-save-button" layout="row">
-            <md-button class="md-accent" type="submit" ng-disabled="formApiHealthCheck.$invalid || formApiHealthCheck.$pristine">
+            <md-button class="md-accent" type="submit" ng-disabled="formApiHealthCheck.$invalid || formApiHealthCheck.$pristine ||  healthCheckCtrl.healthcheck.expectation.assertions.length == 0">
               Save
             </md-button>
             <md-button class="md-warn" type="button" ng-click="healthCheckCtrl.reset()"
