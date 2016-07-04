@@ -107,6 +107,31 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     }
 
     @Override
+    public Set<ApplicationEntity> findAll() {
+        try {
+            LOGGER.debug("Find all applications");
+
+            final Set<Application> applications = applicationRepository.findAll();
+
+            if (applications == null || applications.isEmpty()) {
+                return emptySet();
+            }
+
+            final Set<ApplicationEntity> applicationEntities = new HashSet<>(applications.size());
+
+            applicationEntities.addAll(applications.stream()
+                    .map(ApplicationServiceImpl::convert)
+                    .collect(Collectors.toSet())
+            );
+
+            return applicationEntities;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find all applications", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all applications", ex);
+        }
+    }
+
+    @Override
     public ApplicationEntity create(NewApplicationEntity newApplicationEntity, String username) {
         try {
             LOGGER.debug("Create {} for user {}", newApplicationEntity, username);

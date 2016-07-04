@@ -65,7 +65,9 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<ApiListItem> list() {
         Set<ApiEntity> apis;
-        if (isAuthenticated()) {
+        if (isAdmin()) {
+            apis = apiService.findAll();
+        } else if (isAuthenticated()) {
             apis = apiService.findByUser(getAuthenticatedUsername());
         } else {
             apis = apiService.findByVisibility(Visibility.PUBLIC);

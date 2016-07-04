@@ -184,6 +184,19 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
+    public Set<ApiEntity> findAll() {
+        try {
+            LOGGER.debug("Find all APIs");
+            return apiRepository.findAll()
+                    .stream()
+                    .map(this::convert).collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find all APIs", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
+        }
+    }
+
+    @Override
     public Set<ApiEntity> findByUser(String username) {
         try {
             LOGGER.debug("Find APIs by user {}", username);

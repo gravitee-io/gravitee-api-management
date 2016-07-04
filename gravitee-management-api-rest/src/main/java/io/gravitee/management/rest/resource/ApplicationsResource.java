@@ -51,7 +51,13 @@ public class ApplicationsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<ApplicationEntity> list() {
-        Set<ApplicationEntity> applications = applicationService.findByUser(getAuthenticatedUsername());
+        Set<ApplicationEntity> applications;
+
+        if (isAdmin()) {
+            applications = applicationService.findAll();
+        } else {
+            applications = applicationService.findByUser(getAuthenticatedUsername());
+        }
 
         applications.forEach(api -> api = applicationEnhancer.enhance(getAuthenticatedUsername()).apply(api));
 

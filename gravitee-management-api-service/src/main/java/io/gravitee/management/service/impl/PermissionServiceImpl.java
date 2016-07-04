@@ -50,7 +50,7 @@ public class PermissionServiceImpl extends TransactionalService implements Permi
     public void hasPermission(Principal principal, String item, PermissionType permissionType) {
         if (principal != null) {
             final UserEntity user = userService.findByName(principal.getName());
-            if (user != null && user.getRoles().contains("ROLE_ADMIN")) {
+            if (user != null && user.getRoles().contains("ADMIN")) {
                 LOGGER.debug("User {} has full access because of admin role", principal.getName());
                 return;
             }

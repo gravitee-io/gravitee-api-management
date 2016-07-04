@@ -72,8 +72,6 @@ public class ApplicationEnhancer {
                 MemberEntity member = applicationService.getMember(application.getId(), currentUser);
                 if (member != null) {
                     application.setPermission(member.getType());
-                } else {
-                    throw new IllegalStateException("You should never go there !");
                 }
             }
             

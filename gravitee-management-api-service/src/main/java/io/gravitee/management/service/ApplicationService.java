@@ -28,6 +28,8 @@ public interface ApplicationService {
 
     Set<ApplicationEntity> findByUser(String username);
 
+    Set<ApplicationEntity> findAll();
+
     ApplicationEntity create(NewApplicationEntity application, String username);
 
     ApplicationEntity update(String applicationId, UpdateApplicationEntity application);
