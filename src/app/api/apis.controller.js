@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis) {
+  constructor ($window, UserService, ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis) {
     'ngInject';
     this.$window = $window;
+    this.UserService = UserService;
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
     this.$scope = $scope;
@@ -100,7 +101,11 @@ class ApisController {
   }
 
   isOwner(api) {
-    return api.permission && (api.permission === 'owner' || api.permission === 'primary_owner');
+    if (this.UserService.isUserInRoles('ADMIN')) {
+      return true;
+    } else {
+      return api.permission && (api.permission === 'owner' || api.permission === 'primary_owner');
+    }
   }
 
 	login() {
