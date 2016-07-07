@@ -34,6 +34,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +43,9 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractHttpInvoker implements Invoker {
 
+	// Pattern reuse for duplicate slash removal
+	private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
+	
     @Autowired
     protected Api api;
 
@@ -71,7 +75,7 @@ public abstract class AbstractHttpInvoker implements Invoker {
         }
 
         // Remove duplicate slash
-        sEndpoint = sEndpoint.replaceAll("(?<!(http:|https:))[//]+", "/");
+        sEndpoint = DUPLICATE_SLASH_REMOVER.matcher(sEndpoint).replaceAll("/");
 
         URI endpoint = encodeQueryParameters(serverRequest, sEndpoint);
 
