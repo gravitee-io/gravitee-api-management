@@ -82,6 +82,10 @@ public class LmaxReporterService extends ReporterServiceImpl implements Initiali
 
     @Override
     public void report(Reportable reportable) {
-        disruptor.getRingBuffer().tryPublishEvent((reportableEvent, l) -> reportableEvent.setReportable(reportable));
+        boolean eventWasPublished = disruptor.getRingBuffer().tryPublishEvent((reportableEvent, l) -> reportableEvent.setReportable(reportable));
+        if(!eventWasPublished) {
+        	LOGGER.warn("A reportable event was dropped ! Check for slow reporter consumer or a too small {reporters.system.buffersize}, actual value = {}", 
+        			disruptor.getRingBuffer().getBufferSize());
+        }
     }
 }
