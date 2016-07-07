@@ -39,6 +39,8 @@ import java.util.TimeZone;
  * <pre>
  *     [TIMESTAMP] (LOCAL_IP) REMOTE_IP API KEY METHOD PATH STATUS LENGTH TOTAL_RESPONSE_TIME
  * </pre>
+ * 
+ * This class is not thread safe, the record method should only be called by a single thread
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -58,12 +60,7 @@ public class FileReporter extends AbstractService implements Reporter {
 
 	private static final String NO_INTEGER_DATA_VALUE = "-1";
 
-	private static ThreadLocal<StringBuilder> buffers = new ThreadLocal<StringBuilder>() {
-		@Override
-		protected StringBuilder initialValue() {
-			return new StringBuilder(256);
-		}
-	};
+	private StringBuilder accessLogBuffer = new StringBuilder(256);
 
 	private transient OutputStream _out;
 
@@ -76,13 +73,12 @@ public class FileReporter extends AbstractService implements Reporter {
 			}
 
 			_writer.write(accessLog);
-			_writer.write(System.lineSeparator());
 			_writer.flush();
 		}
 	}
 
 	private String format(RequestMetrics metrics) {
-		StringBuilder buf = buffers.get();
+		StringBuilder buf = accessLogBuffer;
 		buf.setLength(0);
 
 		// Append request timestamp
@@ -154,6 +150,8 @@ public class FileReporter extends AbstractService implements Reporter {
 
 		// Append total response time
 		buf.append(metrics.getProxyResponseTimeMs());
+		
+		buf.append(System.lineSeparator());
 
 		return buf.toString();
 	}
