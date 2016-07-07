@@ -15,23 +15,23 @@
  */
 package io.gravitee.reporter.file;
 
-import io.gravitee.common.service.AbstractService;
-import io.gravitee.reporter.api.Reportable;
-import io.gravitee.reporter.api.Reporter;
-import io.gravitee.reporter.api.http.RequestMetrics;
-import io.gravitee.reporter.file.config.Config;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.TimeZone;
+
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.eclipse.jetty.util.RolloverFileOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
+import io.gravitee.common.service.AbstractService;
+import io.gravitee.reporter.api.Reportable;
+import io.gravitee.reporter.api.Reporter;
+import io.gravitee.reporter.api.http.RequestMetrics;
+import io.gravitee.reporter.file.config.Config;
 
 /**
  * Write an access log to a file by using the following line format:
@@ -54,36 +54,56 @@ public class FileReporter extends AbstractService implements Reporter {
 
 	private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
-	private static final SimpleDateFormat dateFormatter = new SimpleDateFormat(RFC_3339_DATE_FORMAT);
+	private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
 
 	private static final String NO_STRING_DATA_VALUE = "-";
 
 	private static final String NO_INTEGER_DATA_VALUE = "-1";
 
-	private StringBuilder accessLogBuffer = new StringBuilder(256);
+	// buffer reused between calls to the report method
+	private final StringBuilder accessLogBuffer = new StringBuilder(256);
+	private final StringBuffer dateFormatBuffer = new StringBuffer();
+	private final char[] stringBuilderConverterBuffer = new char[2048];
 
 	private transient OutputStream _out;
 
 	private transient Writer _writer;
 
-	private void write(String accessLog) throws IOException {
+	private void write(StringBuilder accessLog) throws IOException {
 		synchronized (this) {
 			if (_writer == null) {
 				return;
 			}
 
-			_writer.write(accessLog);
+			/*
+			 * OMG What's going on ?
+			 * Why aren't you doing a _writer.write(accessLog.toString()) or _writer.write(accessLog) ?
+			 * Because it's doing too many memory allocations !
+			 * accessLog.toString() will create a copy of the the StringBuilder content into a String
+			 * then _writer.write will make another copy of the content of the String
+			 * Here we're doing only one copy AND we reuse the buffer.
+			 */
+			int length = accessLog.length();
+			int chunkLength = stringBuilderConverterBuffer.length;
+			for (int srcBegin = 0; srcBegin < length; srcBegin += chunkLength) {
+				final int srcEnd = Math.min(srcBegin + chunkLength, length);
+				accessLog.getChars(srcBegin, srcEnd, stringBuilderConverterBuffer, 0);
+				_writer.write(stringBuilderConverterBuffer, 0, srcEnd - srcBegin);
+			}
 			_writer.flush();
 		}
 	}
 
-	private String format(RequestMetrics metrics) {
+	private StringBuilder format(RequestMetrics metrics) {
 		StringBuilder buf = accessLogBuffer;
+		StringBuffer dateBuffer = dateFormatBuffer;
 		buf.setLength(0);
+		dateBuffer.setLength(0);
 
 		// Append request timestamp
 		buf.append('[');
-		buf.append(dateFormatter.format(Date.from(metrics.timestamp())));
+		dateFormatter.format(metrics.timestamp().toEpochMilli(), dateBuffer);
+		buf.append(dateBuffer);
 		buf.append("] ");
 
 		// Append local IP
@@ -120,8 +140,9 @@ public class FileReporter extends AbstractService implements Reporter {
 
 		// Append response status
 		int status = metrics.getResponseHttpStatus();
-		if (status <= 0)
+		if (status <= 0) {
 			status = 404;
+		}
 		buf.append((char) ('0' + ((status / 100) % 10)));
 		buf.append((char) ('0' + ((status / 10) % 10)));
 		buf.append((char) ('0' + (status % 10)));
@@ -153,7 +174,7 @@ public class FileReporter extends AbstractService implements Reporter {
 		
 		buf.append(System.lineSeparator());
 
-		return buf.toString();
+		return buf;
 	}
 
 	@Override

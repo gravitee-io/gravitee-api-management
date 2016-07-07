@@ -22,9 +22,9 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneOffset;
+import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -50,7 +50,6 @@ public class FileReporterTest {
 	@Rule
     public TemporaryFolder logFolder = new TemporaryFolder();
 
-	@Ignore
 	@Test
 	public void reportTest() throws Exception {
 		File logFile = logFolder.newFile();
@@ -80,11 +79,17 @@ public class FileReporterTest {
 				reporter.report(reportable);
 			}
 			
-			String logContent = new String(Files.readAllBytes(Paths.get(logFile.getAbsolutePath())), StandardCharsets.UTF_8);
-			String expected = "[2016-02-29T17:23:06.099+0100] (12.12.12.12) 123.123.123.123 myincredibleapi kjfhgdjfghdkjhgkdjhgjkdhfghdkghdhdkjfgh POST /dfhgkdlfjgklfgjflkd/yeah 200 12345 123"+ System.lineSeparator()+
-								"[2015-11-22T08:56:56.199+0100] (12.12.12.12) 123.123.123.123 myincredibleapi kjfhgdjfghdkjhgkdjhgjkdhfghdkghdhdkjfgh POST /dfhgkdlfjgklfgjflkd/yeah 200 12345 123"+ System.lineSeparator();	
-			System.out.println(logContent);
-			Assert.assertEquals(expected, logContent);
+			String[] expected = {/*[2016-02-29T17:23:06.099+0100]*/" (12.12.12.12) 123.123.123.123 myincredibleapi kjfhgdjfghdkjhgkdjhgjkdhfghdkghdhdkjfgh POST /dfhgkdlfjgklfgjflkd/yeah 200 12345 123",
+								 /*[2015-11-22T08:56:56.199+0100]*/" (12.12.12.12) 123.123.123.123 myincredibleapi kjfhgdjfghdkjhgkdjhgjkdhfghdkghdhdkjfgh POST /dfhgkdlfjgklfgjflkd/yeah 200 12345 123"};
+
+			List<String> logContent = Files.readAllLines(Paths.get(logFile.getAbsolutePath()), StandardCharsets.UTF_8);
+			Assert.assertEquals(expected.length, logContent.size());
+			
+			// not perfect as we don't check the date
+			//TODO : check the date in a way that don't depend on the computer TZ 
+			for (int i = 0; i < expected.length; i++) {
+				Assert.assertTrue(logContent.get(i).endsWith(expected[i]));
+			}
 		}
 		finally {
 			reporter.stop();			
