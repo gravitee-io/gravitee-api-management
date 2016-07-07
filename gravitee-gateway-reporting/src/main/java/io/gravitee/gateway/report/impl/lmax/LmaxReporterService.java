@@ -60,12 +60,11 @@ public class LmaxReporterService extends ReporterServiceImpl implements Initiali
     @Override
     protected void doStop() throws Exception {
         try {
+            LOGGER.info("Shutdown LMAX reporter");
+            disruptor.shutdown();
             super.doStop();
-        } finally {
-            if (disruptor != null) {
-                LOGGER.info("Shutdown reportable event disruptor");
-                disruptor.shutdown();
-            }
+        } catch (Exception ex) {
+            throw new IllegalStateException("LMAX reporter should never go here !");
         }
     }
 
@@ -81,7 +80,7 @@ public class LmaxReporterService extends ReporterServiceImpl implements Initiali
     }
 
     @Override
-    public void report(Reportable reportable) {
+    protected void doReport(Reportable reportable) {
         boolean eventWasPublished = disruptor.getRingBuffer().tryPublishEvent((reportableEvent, l) -> reportableEvent.setReportable(reportable));
         if(!eventWasPublished) {
         	LOGGER.warn("A reportable event was dropped ! Check for slow reporter consumer or a too small {reporters.system.buffersize}, actual value = {}", 
