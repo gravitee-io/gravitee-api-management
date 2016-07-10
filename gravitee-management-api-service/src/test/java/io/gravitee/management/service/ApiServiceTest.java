@@ -313,6 +313,21 @@ public class ApiServiceTest {
         testUpdateWithContextPath("/context", "/context/toto");
     }
 
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotUpdateForUserBecauseContextPathExistsWithSlash() throws TechnicalException {
+        testUpdateWithContextPath("/context", "/context/");
+    }
+
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotUpdateForUserBecauseSubContextPathExistsWithSlash() throws TechnicalException {
+        testUpdateWithContextPath("/context/toto", "/context/");
+    }
+
+    @Test(expected = ApiContextPathAlreadyExistsException.class)
+    public void shouldNotUpdateForUserBecauseSubContextPathExists2WithSlash() throws TechnicalException {
+        testUpdateWithContextPath("/context", "/context/toto/");
+    }
+
     private void testUpdateWithContextPath(String existingContextPath, String contextPathToCreate) throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);

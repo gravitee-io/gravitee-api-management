@@ -136,15 +136,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         final int indexOfEndOfNewSubContextPath = newContextPath.lastIndexOf('/', 1);
-        final String newSubContextPath = newContextPath.substring(0, indexOfEndOfNewSubContextPath <= 0 ? newContextPath.length() : indexOfEndOfNewSubContextPath);
+        final String newSubContextPath = newContextPath.substring(0, indexOfEndOfNewSubContextPath <= 0 ?
+                newContextPath.length() : indexOfEndOfNewSubContextPath) + '/';
 
         final boolean contextPathExists = apiRepository.findAll().stream()
                 .filter(api -> !api.getId().equals(apiId))
                 .anyMatch(api -> {
                     final String contextPath = convert(api).getProxy().getContextPath();
                     final int indexOfEndOfSubContextPath = contextPath.lastIndexOf('/', 1);
-                    final String subContextPath = contextPath.substring(0, indexOfEndOfSubContextPath <= 0 ? contextPath.length() : indexOfEndOfSubContextPath);
-                    return (subContextPath + '/').startsWith(newSubContextPath + '/') || (newSubContextPath + '/').startsWith(subContextPath + '/');
+                    final String subContextPath = contextPath.substring(0, indexOfEndOfSubContextPath <= 0 ?
+                            contextPath.length() : indexOfEndOfSubContextPath) + '/';
+
+                    return subContextPath.startsWith(newSubContextPath) || newSubContextPath.startsWith(subContextPath);
                 });
         if (contextPathExists) {
             throw new ApiContextPathAlreadyExistsException(newSubContextPath);
