@@ -129,6 +129,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -160,4 +161,138 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+
+            <properties>
+                <workspace>${project.build.directory}/temp</workspace>
+                <workspace.plugins>${workspace}/plugins</workspace.plugins>
+                <workspace.logs>${workspace}/logs</workspace.logs>
+                <gravitee.management.log.dir>${workspace}/logs</gravitee.management.log.dir>
+            </properties>
+
+            <build>
+                <resources>
+                    <resource>
+                        <directory>../gravitee-management-api-standalone-distribution/src/main/resources/</directory>
+                        <includes>
+                            <include>config/*</include>
+                            <include>templates/*</include>
+                        </includes>
+                        <targetPath>${workspace}</targetPath>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>2.10</version>
+                        <executions>
+                            <execution>
+                                <id>copy-plugins</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>io.gravitee.management.idp</groupId>
+                                            <artifactId>gravitee-management-api-idp-memory</artifactId>
+                                            <version>${project.version}</version>
+                                            <type>zip</type>
+                                            <overWrite>false</overWrite>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>io.gravitee.management.idp</groupId>
+                                            <artifactId>gravitee-management-api-idp-ldap</artifactId>
+                                            <version>${project.version}</version>
+                                            <type>zip</type>
+                                            <overWrite>false</overWrite>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>io.gravitee.management.idp</groupId>
+                                            <artifactId>gravitee-management-api-idp-repository</artifactId>
+                                            <version>${project.version}</version>
+                                            <type>zip</type>
+                                            <overWrite>false</overWrite>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>io.gravitee.repository</groupId>
+                                            <artifactId>gravitee-repository-mongodb</artifactId>
+                                            <version>LATEST</version>
+                                            <type>zip</type>
+                                            <overWrite>false</overWrite>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>io.gravitee.repository</groupId>
+                                            <artifactId>gravitee-repository-elasticsearch</artifactId>
+                                            <version>LATEST</version>
+                                            <type>zip</type>
+                                            <overWrite>false</overWrite>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>io.gravitee.policy</groupId>
+                                            <artifactId>gravitee-policy-apikey</artifactId>
+                                            <version>LATEST</version>
+                                            <type>zip</type>
+                                            <overWrite>false</overWrite>
+                                        </artifactItem>
+                                    </artifactItems>
+                                    <outputDirectory>${workspace.plugins}</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>init-dir</id>
+                                <phase>process-resources</phase>
+                                <configuration>
+                                    <tasks>
+                                        <mkdir dir="${workspace.logs}"/>
+                                        <mkdir dir="${workspace.plugins}"/>
+                                    </tasks>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.5.0</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <includeProjectDependencies>true</includeProjectDependencies>
+                            <mainClass>io.gravitee.management.standalone.Container</mainClass>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>gravitee.home</key>
+                                    <value>${workspace}</value>
+                                </systemProperty>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

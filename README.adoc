@@ -5,4 +5,14 @@ image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-managemen
 image:https://badges.gitter.im/Join Chat.svg["Gitter", link="https://gitter.im/gravitee-io/gravitee-io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
 endif::[]
 
-Administrative Rest API to manage the Gateway
+Gravitee.io Rest API to manage platform
+
+== Building
+
+```
+$ git clone https://github.com/gravitee-io/gravitee-management-rest-api
+$ cd gravitee-management-rest-api
+$ mvn clean compile exec:java -Pdev -pl gravitee-management-api-standalone/gravitee-management-api-standalone-container
+...
+<app starts and listens on port 8083>
+```
