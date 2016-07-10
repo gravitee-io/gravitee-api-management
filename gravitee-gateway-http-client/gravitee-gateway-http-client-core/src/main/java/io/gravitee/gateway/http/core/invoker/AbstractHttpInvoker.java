@@ -63,6 +63,10 @@ public abstract class AbstractHttpInvoker implements Invoker {
         // If not defined, use the one provided by load-balancer
         if (sEndpoint == null) {
             sEndpoint = loadBalancer.chooseEndpoint(serverRequest);
+            
+            // Set the endpoint selected by load balancer
+            executionContext.setAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT, sEndpoint);
+
             sEndpoint = (sEndpoint != null) ? rewriteURI(serverRequest, sEndpoint) : null;
         }
 
@@ -84,7 +88,6 @@ public abstract class AbstractHttpInvoker implements Invoker {
         // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the
         // initial request
         serverRequest.metrics().setEndpoint(uri);
-
         if (endpoint.getQuery() != null)
             uri += '?' + endpoint.getQuery();
 
