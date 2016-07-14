@@ -58,6 +58,11 @@ public class RuleDeserializer extends StdScalarDeserializer<Rule> {
                         rule.getMethods().addAll(Arrays.asList(methods));
                     }
                     break;
+                case "description":
+                    if (subNode != null) {
+                        rule.setDescription(subNode.asText());
+                    }
+                    break;
                 default:
                     // We are in the case of a policy
                     Policy policy = new Policy();

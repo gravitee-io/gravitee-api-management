@@ -30,6 +30,8 @@ public class Rule {
 
     private Policy policy;
 
+    private String description;
+
     public List<HttpMethod> getMethods() {
         return methods;
     }
@@ -44,5 +46,13 @@ public class Rule {
 
     public void setPolicy(Policy policy) {
         this.policy = policy;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
