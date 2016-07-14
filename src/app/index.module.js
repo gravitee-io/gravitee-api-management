@@ -44,6 +44,7 @@ import DialogAddMemberApiController from './api/admin/members/addMemberDialog.co
 import DialogApiController from './api/dialog/apiDialog.controller';
 import DialogApiKeyExpirationController from './api/admin/apikeys/apikey-expiration.dialog.controller';
 import DialogEndpointController from './api/admin/general/addEndpointDialog.controller';
+import DialogEditPolicyController from './api/admin/policies/dialog/policyDialog.controller';
 import UserService from './user/user.service';
 import UserController from './user/user.controller';
 import NotificationService from './components/notification/notification.service';
@@ -131,6 +132,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('DialogSubscribeApiController', DialogSubscribeApiController)
   .controller('DialogAddMemberController', DialogAddMemberController)
   .controller('DialogApiDefinitionController', DialogApiDefinitionController)
+  .controller('DialogEditPolicyController', DialogEditPolicyController)
   .controller('PageController', PageController)
   .controller('LoginController', LoginController)
   .controller('InstancesController', InstancesController)

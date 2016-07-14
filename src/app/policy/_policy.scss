@@ -24,6 +24,10 @@
   cursor: pointer;
 }
 
+.gravitee-policy-card .md-subhead{
+  font-size: 14px;
+}
+
 .gravitee-policy-draggable {
   md-card md-card-content {
     padding: 8px;
@@ -47,6 +51,19 @@
 .gravitee-policy-card-selected {
   background-color: #EEE;
   border: 1px solid #999;
+}
+
+.gravitee-policy-card-description {
+  color: rgba(0,0,0,0.54);
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 11px;
+  text-align: left;
+}
+
+.gravitee-policy-card-method {
+  padding-top: 5px;
+  border-top: 1px solid rgba(117, 117, 117, 0.31);
 }
 
 .gravitee-policy-method-badge-filter {

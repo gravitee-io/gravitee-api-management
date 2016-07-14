@@ -82,21 +82,25 @@
               <v-pane-content>
                 <div ng-class="apiPoliciesCtrl.getDropzoneClass(path)">
                 <md-card ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath[path]"
-                         ng-click="apiPoliciesCtrl.editPolicy($index, path)"
+                         ng-click="apiPoliciesCtrl.editPolicy($index, path, $event)"
                          ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
                          class="gravitee-card gravitee-policy-card"
                          ng-class="apiPoliciesCtrl.getApiPolicyClass(policy)"
                          layout="row" layout-align="space-between start">
-                  <md-card-content layout="column" layout-align="start start">
+                  <md-card-content layout="column" layout-align="start start" layout-fill>
                     <span class="md-subhead">{{policy.name}}</span>
-                    <div layout="row" layout-align="start center">
-                      <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-GET-selected" ng-if="policy.methods.length === apiPoliciesCtrl.httpMethods.length">ALL</span>
-                      <div ng-if="policy.methods.length != apiPoliciesCtrl.httpMethods.length">
-                        <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-{{method}}-selected" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
+                    <span class="gravitee-policy-card-description">{{policy.description}}</span>
+                    <div ng-class="{'gravitee-policy-card-method': policy.description}" layout="row" layout-align="start center" layout-fill>
+                      <div ng-switch="policy.methods.length === apiPoliciesCtrl.httpMethods.length">
+                        <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-GET-selected" ng-switch-when="true">ALL</span>
+                        <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-{{method}}-selected" ng-switch-when="false" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
                       </div>
                     </div>
                   </md-card-content>
-                  <ng-md-icon icon="delete" ng-if='"api-key" !== policy.policyId' class="gravitee-card-close" ng-click="apiPoliciesCtrl.removePolicy($index, path, $event)"></ng-md-icon>
+                  <div layout="column">
+                    <ng-md-icon icon="delete" style="fill: #757575" size="18px" ng-if='"api-key" !== policy.policyId' class="gravitee-card-close" ng-click="apiPoliciesCtrl.removePolicy($index, path, $event)"></ng-md-icon>
+                    <ng-md-icon icon="mode_edit" style="fill: #757575" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.editPolicyDescription($index, path, $event)"></ng-md-icon>
+                  </div>
                 </md-card>
               </div>
                 <span ng-if="apiPoliciesCtrl.initDragularDropZone(path)"></span>

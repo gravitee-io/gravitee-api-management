@@ -71,7 +71,7 @@ class ApiPoliciesController {
       _.forEach(policies, (policy) => {
 
         _.forEach(policy, (value, property) => {
-          if (property !== "methods" && property !== "$$hashKey") {
+          if (property !== "methods" && property !== "description" && property !== "$$hashKey") {
             policy.policyId = property;
             policy.name = this.policiesMap[policy.policyId].name;
             policy.type = this.policiesMap[policy.policyId].type;
@@ -171,7 +171,8 @@ class ApiPoliciesController {
     return ( (source === draggable || source === target) && el.id !== "api-key");
   }
 
-  editPolicy(index, path) {
+  editPolicy(index, path, ev) {
+    ev.stopPropagation();
     this.selectedApiPolicy = this.apiPoliciesByPath[path][index];
     this.$scope.policyJsonSchema = this.selectedApiPolicy.schema;
     if (Object.keys(this.$scope.policyJsonSchema).length == 0) {
@@ -241,6 +242,25 @@ class ApiPoliciesController {
       });
   }
 
+  editPolicyDescription(index, path, ev) {
+    ev.stopPropagation();
+    this.selectedApiPolicy = null;
+
+    const policy = this.apiPoliciesByPath[path][index];
+    const that = this;
+
+    this.$mdDialog.show({
+      controller: 'DialogEditPolicyController',
+      controllerAs: 'editPolicyDialogCtrl',
+      templateUrl: 'app/api/admin/policies/dialog/policy.dialog.html',
+      locals: {
+        policy: policy
+      }
+    }).then(function () {
+      that.savePaths();
+    });
+  }
+
   savePaths() {
     this.$scope.$parent.apiCtrl.api.paths = _.cloneDeep(this.apiPoliciesByPath);
     _.forEach(this.$scope.$parent.apiCtrl.api.paths, (policies, path) => {
@@ -248,7 +268,7 @@ class ApiPoliciesController {
         delete this.$scope.$parent.apiCtrl.api.paths[path][idx].policyId;
         delete this.$scope.$parent.apiCtrl.api.paths[path][idx].name;
         delete this.$scope.$parent.apiCtrl.api.paths[path][idx].type;
-        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].description;
+      //  delete this.$scope.$parent.apiCtrl.api.paths[path][idx].description;
         delete this.$scope.$parent.apiCtrl.api.paths[path][idx].version;
         delete this.$scope.$parent.apiCtrl.api.paths[path][idx].schema;
       });
