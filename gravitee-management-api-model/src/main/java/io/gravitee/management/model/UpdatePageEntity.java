@@ -34,6 +34,8 @@ public class UpdatePageEntity {
 
 	private boolean published;
 
+	private PageSourceEntity source;
+
 	public String getName() {
 		return name;
 	}
@@ -72,5 +74,13 @@ public class UpdatePageEntity {
 
 	public void setPublished(boolean published) {
 		this.published = published;
+	}
+
+	public PageSourceEntity getSource() {
+		return source;
+	}
+
+	public void setSource(PageSourceEntity source) {
+		this.source = source;
 	}
 }

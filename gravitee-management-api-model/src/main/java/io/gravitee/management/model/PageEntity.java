@@ -41,6 +41,8 @@ public class PageEntity {
 
 	private String contentType;
 
+	private PageSourceEntity source;
+
 	public String getId() {
 		return id;
 	}
@@ -111,6 +113,14 @@ public class PageEntity {
 
 	public void setContentType(String contentType) {
 		this.contentType = contentType;
+	}
+
+	public PageSourceEntity getSource() {
+		return source;
+	}
+
+	public void setSource(PageSourceEntity source) {
+		this.source = source;
 	}
 
 	public boolean equals(Object o) {

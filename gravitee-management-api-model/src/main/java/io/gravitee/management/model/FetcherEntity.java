@@ -15,26 +15,46 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class PageListItem {
+public class FetcherEntity {
 
+    /**
+     * The fetcher identifier
+     */
     private String id;
 
+    /**
+     * The fetcher name
+     */
     private String name;
 
-    private PageType type;
+    /**
+     * The fetcher description
+     */
+    private String description;
 
-    private int order;
+    /**
+     * The fetcher version
+     */
+    private String version;
 
-    private String lastContributor;
+    @JsonProperty("plugin")
+    private PluginEntity plugin;
 
-    private boolean published;
+    public String getDescription() {
+        return description;
+    }
 
-    private PageSourceEntity source;
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public String getId() {
         return id;
@@ -42,14 +62,6 @@ public class PageListItem {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getLastContributor() {
-        return lastContributor;
-    }
-
-    public void setLastContributor(String lastContributor) {
-        this.lastContributor = lastContributor;
     }
 
     public String getName() {
@@ -60,43 +72,27 @@ public class PageListItem {
         this.name = name;
     }
 
-    public int getOrder() {
-        return order;
+    public PluginEntity getPlugin() {
+        return plugin;
     }
 
-    public void setOrder(int order) {
-        this.order = order;
+    public void setPlugin(PluginEntity plugin) {
+        this.plugin = plugin;
     }
 
-    public PageType getType() {
-        return type;
+    public String getVersion() {
+        return version;
     }
 
-    public void setType(PageType type) {
-        this.type = type;
-    }
-
-    public boolean isPublished() {
-        return published;
-    }
-
-    public void setPublished(boolean published) {
-        this.published = published;
-    }
-
-    public PageSourceEntity getSource() {
-        return source;
-    }
-
-    public void setSource(PageSourceEntity source) {
-        this.source = source;
+    public void setVersion(String version) {
+        this.version = version;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PageListItem that = (PageListItem) o;
+        FetcherEntity that = (FetcherEntity) o;
         return Objects.equals(id, that.id);
     }
 

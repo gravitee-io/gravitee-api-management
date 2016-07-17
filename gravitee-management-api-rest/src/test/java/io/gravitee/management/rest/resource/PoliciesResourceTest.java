@@ -16,15 +16,9 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.model.PolicyEntity;
-import io.gravitee.management.model.PolicyListItem;
 import org.junit.Test;
-import org.mockito.Mockito;
 
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
 import java.util.Collections;

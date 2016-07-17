@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.management.fetcher.spring.FetcherConfigurationConfiguration;
+import io.gravitee.plugin.fetcher.spring.FetcherPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -28,12 +30,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Configuration
 @ComponentScan("io.gravitee.management.service")
 @EnableTransactionManagement
-@Import({PolicyPluginConfiguration.class, ResourcePluginConfiguration.class})
+@Import({PolicyPluginConfiguration.class, ResourcePluginConfiguration.class, FetcherPluginConfiguration.class, FetcherConfigurationConfiguration.class})
 public class ServiceConfiguration {
 
 	@Bean

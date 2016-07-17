@@ -200,6 +200,7 @@
                                 </goals>
                                 <configuration>
                                     <artifactItems>
+                                        <!-- IDP -->
                                         <artifactItem>
                                             <groupId>io.gravitee.management.idp</groupId>
                                             <artifactId>gravitee-management-api-idp-memory</artifactId>
@@ -221,6 +222,7 @@
                                             <type>zip</type>
                                             <overWrite>false</overWrite>
                                         </artifactItem>
+                                        <!-- REPOSITORIES -->
                                         <artifactItem>
                                             <groupId>io.gravitee.repository</groupId>
                                             <artifactId>gravitee-repository-mongodb</artifactId>
@@ -235,9 +237,18 @@
                                             <type>zip</type>
                                             <overWrite>false</overWrite>
                                         </artifactItem>
+                                        <!-- POLICIES -->
                                         <artifactItem>
                                             <groupId>io.gravitee.policy</groupId>
                                             <artifactId>gravitee-policy-apikey</artifactId>
+                                            <version>LATEST</version>
+                                            <type>zip</type>
+                                            <overWrite>false</overWrite>
+                                        </artifactItem>
+                                        <!-- FETCHERS -->
+                                        <artifactItem>
+                                            <groupId>io.gravitee.fetcher</groupId>
+                                            <artifactId>gravitee-fetcher-http</artifactId>
                                             <version>LATEST</version>
                                             <type>zip</type>
                                             <overWrite>false</overWrite>

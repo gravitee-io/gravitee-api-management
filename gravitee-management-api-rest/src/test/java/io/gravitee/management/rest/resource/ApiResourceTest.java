@@ -43,7 +43,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     private static final String API_NAME = "my-api";
 
     protected String contextPath() {
-        return "/apis/";
+        return "apis/"+API_NAME;
     }
 
     @Test
@@ -54,7 +54,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         doReturn(mockApi).when(apiService).findById(API_NAME);
         doNothing().when(permissionService).hasPermission(PRINCIPAL, API_NAME, PermissionType.VIEW_API);
 
-        final Response response = target(API_NAME).request().get();
+        final Response response = target().request().get();
 
         assertEquals(OK_200, response.getStatus());
 

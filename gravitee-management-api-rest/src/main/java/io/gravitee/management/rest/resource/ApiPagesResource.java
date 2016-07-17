@@ -42,7 +42,7 @@ import io.gravitee.management.model.UpdatePageEntity;
 import io.gravitee.management.model.Visibility;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
-import io.gravitee.repository.management.model.MembershipType;
+import io.gravitee.management.model.MembershipType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

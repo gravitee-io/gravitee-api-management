@@ -36,10 +36,8 @@
     <properties>
         <gravitee-definition.version>0.14.0</gravitee-definition.version>
         <gravitee-common.version>0.10.0</gravitee-common.version>
-        <gravitee-plugin-core.version>0.12.0</gravitee-plugin-core.version>
-        <gravitee-plugin-policy.version>0.12.0</gravitee-plugin-policy.version>
-        <gravitee-plugin-resource.version>0.12.0</gravitee-plugin-resource.version>
-        <gravitee-repository.version>0.13.0</gravitee-repository.version>
+        <gravitee-plugin.version>0.13.0-SNAPSHOT</gravitee-plugin.version>
+        <gravitee-repository.version>0.14.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-repository-elasticsearch.version>0.9.0</gravitee-repository-elasticsearch.version>
         <gravitee-repository-mongodb.version>0.11.0</gravitee-repository-mongodb.version>
         <gravitee-repository-couchbase.version>0.1.0-SNAPSHOT</gravitee-repository-couchbase.version>
@@ -69,6 +67,7 @@
         <module>gravitee-management-api-security</module>
         <module>gravitee-management-api-idp</module>
         <module>gravitee-management-api-repository</module>
+        <module>gravitee-management-api-fetcher</module>
     </modules>
 
     <dependencyManagement>
@@ -97,17 +96,22 @@
             <dependency>
                 <groupId>io.gravitee.plugin</groupId>
                 <artifactId>gravitee-plugin-core</artifactId>
-                <version>${gravitee-plugin-core.version}</version>
+                <version>${gravitee-plugin.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.gravitee.plugin</groupId>
                 <artifactId>gravitee-plugin-policy</artifactId>
-                <version>${gravitee-plugin-policy.version}</version>
+                <version>${gravitee-plugin.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.gravitee.plugin</groupId>
                 <artifactId>gravitee-plugin-resource</artifactId>
-                <version>${gravitee-plugin-resource.version}</version>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-fetcher</artifactId>
+                <version>${gravitee-plugin.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.gravitee.gateway</groupId>
@@ -161,6 +165,22 @@
                 <artifactId>spring-webmvc</artifactId>
                 <version>${spring.version}</version>
             </dependency>
+            <!-- Logging -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -172,7 +192,6 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
     </dependencies>
 </project>

@@ -47,6 +47,11 @@
 			<artifactId>gravitee-management-api-idp-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.gravitee.management</groupId>
+			<artifactId>gravitee-management-api-fetcher</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!-- Gravitee Dependencies -->
 		<dependency>
@@ -67,6 +72,11 @@
 		<dependency>
 			<groupId>io.gravitee.plugin</groupId>
 			<artifactId>gravitee-plugin-resource</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.plugin</groupId>
+			<artifactId>gravitee-plugin-fetcher</artifactId>
 		</dependency>
 
 		<!-- Spring dependencies -->

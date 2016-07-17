@@ -15,22 +15,36 @@
  */
 package io.gravitee.management.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.fetcher.api.Fetcher;
+import io.gravitee.fetcher.api.FetcherConfiguration;
+import io.gravitee.fetcher.api.FetcherException;
+import io.gravitee.management.fetcher.FetcherConfigurationFactory;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.service.FetcherService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.plugin.fetcher.FetcherPlugin;
+import io.gravitee.plugin.fetcher.FetcherPluginManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -52,6 +66,15 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Autowired
 	private PageRepository pageRepository;
+
+	@Autowired
+	private FetcherService fetcherService;
+
+	@Autowired
+	private FetcherPluginManager fetcherPluginManager;
+
+	@Autowired
+	private FetcherConfigurationFactory fetcherConfigurationFactory;
 
 	@Override
 	public List<PageListItem> findByApi(String apiId) {
@@ -106,6 +129,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			Page page = convert(newPageEntity);
 
+			if (page.getSource() != null) {
+				String fetchedContent = this.getContentFromFetcher(page.getSource());
+				if (fetchedContent != null && !fetchedContent.isEmpty()) {
+					page.setContent(fetchedContent);
+				}
+			}
+
 			page.setId(id);
 			page.setApi(apiId);
 
@@ -115,7 +145,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			Page createdPage = pageRepository.create(page);
 			return convert(createdPage);
-		} catch (TechnicalException ex) {
+		} catch (TechnicalException | FetcherException ex) {
 			LOGGER.error("An error occurs while trying to create {}", newPageEntity, ex);
 			throw new TechnicalManagementException("An error occurs while trying create " + newPageEntity, ex);
 		}
@@ -133,6 +163,17 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			Page pageToUpdate = optPageToUpdate.get();
 			Page page = convert(updatePageEntity);
+
+			if (page.getSource() != null) {
+				try {
+					String fetchedContent = this.getContentFromFetcher(page.getSource());
+                    if (fetchedContent != null && !fetchedContent.isEmpty()) {
+                    	page.setContent(fetchedContent);
+					}
+				} catch (FetcherException e) {
+					throw onUpdateFail(pageId, e);
+				}
+			}
 
 			page.setId(pageId);
 			page.setUpdatedAt(new Date());
@@ -152,6 +193,33 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			}
 		} catch (TechnicalException ex) {
             throw onUpdateFail(pageId, ex);
+		}
+	}
+
+	private String getContentFromFetcher(PageSource ps) throws FetcherException {
+		if (ps.getConfiguration().isEmpty()) {
+			return null;
+		}
+		try {
+			FetcherPlugin fetcherPlugin = fetcherPluginManager.get(ps.getType());
+			ClassLoader fetcherCL = fetcherPlugin.fetcher().getClassLoader();
+			Class<? extends FetcherConfiguration> fetcherConfigurationClass = (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(fetcherPlugin.configuration().getName());
+			Class<? extends Fetcher> fetcherClass = (Class<? extends Fetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
+			FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(fetcherConfigurationClass, ps.getConfiguration());
+			Fetcher fetcher = fetcherClass.getConstructor(fetcherConfigurationClass).newInstance(fetcherConfigurationInstance);
+
+			StringBuilder sb = new StringBuilder();
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(fetcher.fetch()))) {
+				String line;
+				while ((line = br.readLine()) != null) {
+					sb.append(line);
+					sb.append("\n");
+				}
+			}
+			return sb.toString();
+		} catch (Exception e) {
+		    LOGGER.error(e.getMessage(), e);
+            throw new FetcherException(e.getMessage(), e);
 		}
 	}
 
@@ -184,10 +252,15 @@ public class PageServiceImpl extends TransactionalService implements PageService
             });
 	}
 
-    private TechnicalManagementException onUpdateFail(String pageId, TechnicalException ex) {
-        LOGGER.error("An error occurs while trying to update page {}", pageId, ex);
-        return new TechnicalManagementException("An error occurs while trying to update page " + pageId, ex);
-    }
+	private TechnicalManagementException onUpdateFail(String pageId, TechnicalException ex) {
+		LOGGER.error("An error occurs while trying to update page {}", pageId, ex);
+		return new TechnicalManagementException("An error occurs while trying to update page " + pageId, ex);
+	}
+
+	private TechnicalManagementException onUpdateFail(String pageId, FetcherException ex) {
+		LOGGER.error("An error occurs while trying to update page {}", pageId, ex);
+		return new TechnicalManagementException("An error occurs while trying to update page " + pageId, ex);
+	}
 
     @Override
 	public void delete(String pageName) {
@@ -221,6 +294,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		pageItem.setOrder(page.getOrder());
 		pageItem.setLastContributor(page.getLastContributor());
 		pageItem.setPublished(page.isPublished());
+		pageItem.setSource(convert(page.getSource()));
 
 		return pageItem;
 	}
@@ -236,6 +310,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setContent(newPageEntity.getContent());
 		page.setLastContributor(newPageEntity.getLastContributor());
 		page.setOrder(newPageEntity.getOrder());
+		page.setSource(convert(newPageEntity.getSource()));
+
 		return page;
 	}
 
@@ -260,6 +336,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		pageEntity.setLastModificationDate(page.getUpdatedAt());
 		pageEntity.setOrder(page.getOrder());
 		pageEntity.setPublished(page.isPublished());
+
+		if (page.getSource() != null) {
+			pageEntity.setSource(convert(page.getSource()));
+		}
 		return pageEntity;
 	}
 
@@ -271,8 +351,32 @@ public class PageServiceImpl extends TransactionalService implements PageService
         page.setLastContributor(updatePageEntity.getLastContributor());
 		page.setOrder(updatePageEntity.getOrder());
 		page.setPublished(updatePageEntity.isPublished());
-
+		page.setSource(convert(updatePageEntity.getSource()));
 		return page;
+	}
+
+	private static PageSource convert(PageSourceEntity pageSourceEntity) {
+		PageSource source = null;
+		if (pageSourceEntity != null && pageSourceEntity.getType() != null && pageSourceEntity.getConfiguration() != null) {
+			source = new PageSource();
+			source.setType(pageSourceEntity.getType());
+			source.setConfiguration(pageSourceEntity.getConfiguration());
+		}
+		return source;
+	}
+
+	private static PageSourceEntity convert(PageSource pageSource) {
+		PageSourceEntity entity = null;
+		if (pageSource != null) {
+			entity = new PageSourceEntity();
+			entity.setType(pageSource.getType());
+			try {
+				entity.setConfiguration((new ObjectMapper()).readTree(pageSource.getConfiguration()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return entity;
 	}
 
 	private static final Gson gson = new Gson();

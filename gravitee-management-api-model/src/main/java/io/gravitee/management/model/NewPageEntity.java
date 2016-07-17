@@ -34,6 +34,8 @@ public class NewPageEntity {
 	
 	private String lastContributor;
 
+	private PageSourceEntity source;
+
 	public String getName() {
 		return name;
 	}
@@ -72,6 +74,14 @@ public class NewPageEntity {
 
 	public void setLastContributor(String lastContributor) {
 		this.lastContributor = lastContributor;
+	}
+
+	public PageSourceEntity getSource() {
+		return source;
+	}
+
+	public void setSource(PageSourceEntity source) {
+		this.source = source;
 	}
 
 	@Override
