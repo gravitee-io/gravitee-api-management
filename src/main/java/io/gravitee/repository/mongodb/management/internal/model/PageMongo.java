@@ -43,6 +43,8 @@ public class PageMongo extends Auditable {
 
 	private boolean published;
 
+	private PageSourceMongo source;
+
 	public String getId() {
 		return id;
 	}
@@ -113,6 +115,14 @@ public class PageMongo extends Auditable {
 
 	public void setPublished(boolean published) {
 		this.published = published;
+	}
+
+	public PageSourceMongo getSource() {
+		return source;
+	}
+
+	public void setSource(PageSourceMongo source) {
+		this.source = source;
 	}
 
 	@Override

@@ -18,7 +18,9 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
+import io.gravitee.repository.mongodb.management.internal.model.PageSourceMongo;
 import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
@@ -102,6 +104,11 @@ public class MongoPageRepository implements PageRepository {
 			pageMongo.setUpdatedAt(page.getUpdatedAt());
 			pageMongo.setOrder(page.getOrder());
 			pageMongo.setPublished(page.isPublished());
+			if(page.getSource() != null) {
+				pageMongo.setSource(convert(page.getSource()));
+			} else {
+				pageMongo.setSource(null);
+			}
 			
 			PageMongo pageMongoUpdated = internalPageRepo.save(pageMongo);
 			return mapper.map(pageMongoUpdated, Page.class);
@@ -131,5 +138,12 @@ public class MongoPageRepository implements PageRepository {
 			logger.error("An error occured when searching max order page for api name [{}]", apiId, e);
 			throw new TechnicalException("An error occured when searching max order page for api name");
 		}
+	}
+
+	private PageSourceMongo convert(PageSource pageSource) {
+		PageSourceMongo pageSourceMongo = new PageSourceMongo();
+		pageSourceMongo.setType(pageSource.getType());
+		pageSourceMongo.setConfiguration(pageSource.getConfiguration());
+		return pageSourceMongo;
 	}
 }
