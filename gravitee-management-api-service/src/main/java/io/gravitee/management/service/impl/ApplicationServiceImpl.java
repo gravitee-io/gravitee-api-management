@@ -16,11 +16,11 @@
 package io.gravitee.management.service.impl;
 
 import com.google.common.collect.ImmutableMap;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.EmailService;
-import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
@@ -53,9 +53,6 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
     @Autowired
     private ApiKeyRepository apiKeyRepository;
-
-    @Autowired
-    private IdGenerator idGenerator;
 
     @Autowired
     private UserService userService;
@@ -136,7 +133,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Create {} for user {}", newApplicationEntity, username);
 
-            String id = idGenerator.generate(newApplicationEntity.getName());
+            String id = UUID.toString(UUID.random());
 
             Optional<Application> checkApplication = applicationRepository.findById(id);
             if (checkApplication.isPresent()) {
@@ -363,11 +360,4 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         return member;
     }
 
-    public IdGenerator getIdGenerator() {
-        return idGenerator;
-    }
-
-    public void setIdGenerator(IdGenerator idGenerator) {
-        this.idGenerator = idGenerator;
-    }
 }

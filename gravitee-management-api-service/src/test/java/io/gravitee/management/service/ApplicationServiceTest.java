@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.Optional;
 
+import io.gravitee.common.utils.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,8 +64,6 @@ public class ApplicationServiceTest {
     private ApiKeyRepository apiKeyRepository;
 
     @Mock
-    private IdGenerator idGenerator;
-    @Mock
     private NewApplicationEntity newApplication;
     @Mock
     private UpdateApplicationEntity existingApplication;
@@ -96,12 +95,10 @@ public class ApplicationServiceTest {
     @Test
     public void shouldCreateForUser() throws TechnicalException {
         when(application.getName()).thenReturn(APPLICATION_NAME);
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
+        when(applicationRepository.findById(anyString())).thenReturn(Optional.empty());
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
-
-        when(idGenerator.generate(APPLICATION_NAME)).thenReturn(APPLICATION_ID);
 
         final ApplicationEntity applicationEntity = applicationService.create(newApplication, USER_NAME);
 
@@ -111,22 +108,18 @@ public class ApplicationServiceTest {
 
     @Test(expected = ApplicationAlreadyExistsException.class)
     public void shouldNotCreateForUserBecauseExists() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(applicationRepository.findById(anyString())).thenReturn(Optional.of(application));
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
-
-        when(idGenerator.generate(APPLICATION_NAME)).thenReturn(APPLICATION_ID);
 
         applicationService.create(newApplication, USER_NAME);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateForUserBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_ID)).thenThrow(TechnicalException.class);
+        when(applicationRepository.findById(anyString())).thenThrow(TechnicalException.class);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
-
-        when(idGenerator.generate(APPLICATION_NAME)).thenReturn(APPLICATION_ID);
 
         applicationService.create(newApplication, USER_NAME);
     }

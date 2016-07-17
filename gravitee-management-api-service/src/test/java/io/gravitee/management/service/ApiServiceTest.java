@@ -42,6 +42,7 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -71,8 +72,6 @@ public class ApiServiceTest {
     private ObjectMapper objectMapper = new GraviteeMapper();
 
     @Mock
-    private IdGenerator idGenerator;
-    @Mock
     private NewApiEntity newApi;
     @Mock
     private UpdateApiEntity existingApi;
@@ -87,7 +86,7 @@ public class ApiServiceTest {
         when(api.getName()).thenReturn(API_NAME);
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(api.getLifecycleState()).thenReturn(LifecycleState.STARTED);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
         when(newApi.getName()).thenReturn(API_NAME);
 
@@ -97,8 +96,6 @@ public class ApiServiceTest {
         when(newApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn("/context");
 
-        when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
-
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 
         assertNotNull(apiEntity);
@@ -107,13 +104,11 @@ public class ApiServiceTest {
 
     @Test(expected = ApiAlreadyExistsException.class)
     public void shouldNotCreateForUserBecauseExists() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.findById(anyString())).thenReturn(Optional.of(api));
         when(newApi.getName()).thenReturn(API_NAME);
 
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
-
-        when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
 
         apiService.create(newApi, USER_NAME);
     }
@@ -169,7 +164,7 @@ public class ApiServiceTest {
     }
 
     private void testCreationWithContextPath(String existingContextPath, String contextPathToCreate) throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
         when(newApi.getName()).thenReturn(API_NAME);
         when(newApi.getVersion()).thenReturn("v1");
@@ -183,20 +178,16 @@ public class ApiServiceTest {
         when(newApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn(contextPathToCreate);
 
-        when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
-
         apiService.create(newApi, USER_NAME);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateForUserBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
+        when(apiRepository.findById(anyString())).thenThrow(TechnicalException.class);
         when(newApi.getName()).thenReturn(API_NAME);
 
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
-
-        when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
 
         apiService.create(newApi, USER_NAME);
     }
@@ -431,7 +422,7 @@ public class ApiServiceTest {
         when(api.getId()).thenReturn(API_ID);
         when(api.getName()).thenReturn(API_NAME);
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
         when(newApi.getName()).thenReturn(API_NAME);
         when(newApi.getVersion()).thenReturn("v1");
@@ -439,8 +430,6 @@ public class ApiServiceTest {
         final Proxy proxy = mock(Proxy.class);
         when(newApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn("/context");
-
-        when(idGenerator.generate(API_NAME)).thenReturn(API_ID);
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 

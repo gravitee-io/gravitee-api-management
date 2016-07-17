@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -59,16 +60,13 @@ import io.gravitee.repository.management.model.Page;
 public class PageServiceTest {
 
     private static final String API_ID = "myAPI";
-    private static final String PAGE_ID = "my-page";
+    private static final String PAGE_ID = "ba01aef0-e3da-4499-81ae-f0e3daa4995a";
 
     @InjectMocks
     private PageServiceImpl pageService = new PageServiceImpl();
 
     @Mock
     private PageRepository pageRepository;
-
-    @Mock
-    private IdGenerator idGenerator;
 
     @Mock
     private NewPageEntity newPage;
@@ -159,8 +157,7 @@ public class PageServiceTest {
         when(page1.getOrder()).thenReturn(1);
         when(page1.getContent()).thenReturn(content);
 
-        when(idGenerator.generate(name)).thenReturn(PAGE_ID);
-        when(pageRepository.findById(API_ID + '_' + PAGE_ID)).thenReturn(Optional.empty());
+        when(pageRepository.findById(anyString())).thenReturn(Optional.empty());
         when(pageRepository.create(any())).thenReturn(page1);
 
         when(newPage.getName()).thenReturn(name);
@@ -174,7 +171,7 @@ public class PageServiceTest {
         verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
             public boolean matches(Object argument) {
                 final Page pageToCreate = (Page) argument;
-                return (API_ID + '_' + PAGE_ID).equals(pageToCreate.getId()) &&
+                return pageToCreate.getId().split("-").length == 5 &&
                     API_ID.equals(pageToCreate.getApi()) &&
                     name.equals(pageToCreate.getName()) &&
                     contrib.equals(pageToCreate.getLastContributor()) &&
@@ -186,7 +183,7 @@ public class PageServiceTest {
             }
         }));
         assertNotNull(createdPage);
-        assertEquals(PAGE_ID, createdPage.getId());
+        assertEquals(5, createdPage.getId().split("-").length);
         assertEquals(1, createdPage.getOrder());
         assertEquals(content, createdPage.getContent());
         assertEquals(contrib, createdPage.getLastContributor());
@@ -197,8 +194,7 @@ public class PageServiceTest {
     public void shouldNotCreateBecauseExists() throws TechnicalException {
         final String name = "PAGE_NAME";
         when(newPage.getName()).thenReturn(name);
-        when(idGenerator.generate(name)).thenReturn(PAGE_ID);
-        when(pageRepository.findById(API_ID + '_' + PAGE_ID)).thenReturn(Optional.of(new Page()));
+        when(pageRepository.findById(anyString())).thenReturn(Optional.of(new Page()));
 
         pageService.create(API_ID, newPage);
 
@@ -210,8 +206,7 @@ public class PageServiceTest {
         final String name = "PAGE_NAME";
         when(newPage.getName()).thenReturn(name);
 
-        when(idGenerator.generate(name)).thenReturn(PAGE_ID);
-        when(pageRepository.findById(API_ID + '_' + PAGE_ID)).thenReturn(Optional.empty());
+        when(pageRepository.findById(anyString())).thenReturn(Optional.empty());
         when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
 
         pageService.create(API_ID, newPage);

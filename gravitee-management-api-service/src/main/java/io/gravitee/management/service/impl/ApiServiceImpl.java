@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
@@ -66,9 +67,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private IdGenerator idGenerator;
-
-    @Autowired
     private EventService eventService;
 
     @Autowired
@@ -88,7 +86,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             LOGGER.debug("Create {} for user {}", newApiEntity, username);
 
-            String id = idGenerator.generate(newApiEntity.getName());
+            String id = UUID.toString(UUID.random());
             Optional<Api> checkApi = apiRepository.findById(id);
             if (checkApi.isPresent()) {
                 throw new ApiAlreadyExistsException(id);

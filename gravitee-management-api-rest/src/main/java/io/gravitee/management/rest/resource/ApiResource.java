@@ -21,7 +21,6 @@ import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.rest.resource.LifecycleActionParam.LifecycleAction;
 import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -55,9 +54,6 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private PermissionService permissionService;
-
-    @Inject
-    private IdGenerator idGenerator;
 
     @PathParam("api")
     private String api;
@@ -226,8 +222,7 @@ public class ApiResource extends AbstractResource {
         final ApiEntity apiEntity = get();
         return Response
                 .ok(apiService.convertAsJsonForExport(api))
-                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s.json",
-                        idGenerator.generate(apiEntity.getName())))
+                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s.json", apiEntity.getId()))
                 .build();
     }
 

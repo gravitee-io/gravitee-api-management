@@ -17,8 +17,8 @@ package io.gravitee.management.service.impl;
 
 import com.google.gson.Gson;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
-import io.gravitee.management.service.IdGenerator;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
@@ -42,6 +42,8 @@ import static java.util.Collections.emptyList;
 
 /**
  * @author Titouan COMPIEGNE
+ * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
+ * @author GraviteeSource Team
  */
 @Component
 public class PageServiceImpl extends TransactionalService implements PageService {
@@ -50,9 +52,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Autowired
 	private PageRepository pageRepository;
-
-	@Autowired
-	private IdGenerator idGenerator;
 
 	@Override
 	public List<PageListItem> findByApi(String apiId) {
@@ -99,7 +98,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		try {
 			LOGGER.debug("Create page {} for API {}", newPageEntity, apiId);
 
-			String id = apiId + '_' + idGenerator.generate(newPageEntity.getName());
+			String id = UUID.toString(UUID.random());
 			Optional<Page> checkPage = pageRepository.findById(id);
 			if (checkPage.isPresent()) {
 				throw new PageAlreadyExistsException(id);
@@ -107,7 +106,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			Page page = convert(newPageEntity);
 
-			page.setId(apiId + '_' + idGenerator.generate(page.getName()));
+			page.setId(id);
 			page.setApi(apiId);
 
 			// Set date fields
@@ -287,11 +286,4 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 	}
 
-	public IdGenerator getIdGenerator() {
-		return idGenerator;
-	}
-
-	public void setIdGenerator(IdGenerator idGenerator) {
-		this.idGenerator = idGenerator;
-	}
 }
