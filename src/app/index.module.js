@@ -51,7 +51,6 @@ import NotificationService from './components/notification/notification.service'
 import DocumentationDirective from './api/admin/documentation/apiDocumentation.directive';
 import DocumentationController from './api/admin/documentation/apiDocumentation.controller';
 import DocumentationService from './api/admin/documentation/apiDocumentation.service';
-import DialogDocumentationController from './api/admin/documentation/dialog/apiDocumentationDialog.controller';
 import ApplicationsController from './application/applications.controller';
 import ApplicationController from './application/details/applications.controller';
 import ApplicationGeneralController from './application/details/general/applicationGeneral.controller';
@@ -65,6 +64,7 @@ import SideNavDirective from './components/sidenav/sidenav.directive';
 import PageController from './api/admin/documentation/page/apiPage.controller';
 import PolicyService from './policy/policy.service';
 import ResourceService from './resource/resource.service';
+import FetcherService from './fetcher/fetcher.service';
 import PageDirective from './components/documentation/page.directive';
 import LoginController from './login/login.controller';
 import RoleDirective from './components/role/role.directive';
@@ -118,7 +118,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('DialogAddPropertyController', DialogAddPropertyController)
   .controller('DialogApiController', DialogApiController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
-  .controller('DialogDocumentationController', DialogDocumentationController)
   .controller('DialogApiKeyExpirationController', DialogApiKeyExpirationController)
   .controller('DialogEndpointController', DialogEndpointController)
   .controller('UserController', UserController)
@@ -147,6 +146,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .service('PolicyService', PolicyService)
   .service('UserService', UserService)
   .service('ResourceService', ResourceService)
+  .service('FetcherService', FetcherService)
   .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())

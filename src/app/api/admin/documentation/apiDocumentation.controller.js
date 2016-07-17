@@ -63,22 +63,16 @@ class DocumentationController {
     return this.DocumentationService.list(this.$scope.$parent.apiCtrl.api.id).then(response => {
       this.pages = response.data;
       return {pages: this.pages};
+    }).then( response => {
+      if(response.pages && response.pages.length > 0) {
+        this.$state.go("apis.admin.documentation.page", {pageId: response.pages[0].id});
+      }
+      return response;
     });
   }
 
-  showNewPageDialog() {
-    var that = this;
-    this.$mdDialog.show({
-      controller: 'DialogDocumentationController',
-      controllerAs: 'dialogDocumentationCtrl',
-      templateUrl: 'app/api/admin/documentation/dialog/apiDocumentation.dialog.html',
-      apiId: this.$scope.$parent.apiCtrl.api.id
-    }).then(function (response) {
-      if (response) {
-        that.$state.go('apis.admin.documentation.page', {pageId: response.data.id});
-        that.list();
-      }
-    });
+  showNewPageDialog(pageType) {
+    this.$state.go('apis.admin.documentation.new', {type: pageType});
   }
 }
 

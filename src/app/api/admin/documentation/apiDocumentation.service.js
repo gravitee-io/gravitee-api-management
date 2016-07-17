@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- class DocumentationService {
+class DocumentationService {
 
   constructor($http, Constants) {
     'ngInject';
@@ -23,17 +23,17 @@
     };
   }
 
-   list(apiId) {
-     return this.$http.get(this.documentationURL(apiId));
-   }
+  list(apiId) {
+    return this.$http.get(this.documentationURL(apiId));
+  }
 
-   get(apiId, pageId) {
-     return this.$http.get(this.documentationURL(apiId) + pageId);
-   }
+  get(apiId, pageId) {
+    return this.$http.get(this.documentationURL(apiId) + pageId);
+  }
 
-   getContentUrl(apiId, pageId) {
-     return this.documentationURL(apiId) + pageId + '/content';
-   }
+  getContentUrl(apiId, pageId) {
+    return this.documentationURL(apiId) + pageId + '/content';
+  }
 
   createPage(apiId, newPage) {
     return this.$http.post(this.documentationURL(apiId), newPage);
@@ -50,7 +50,8 @@
         description: editPage.description,
         order: editPage.order,
         published: editPage.published,
-        content: editPage.content || ''
+        content: editPage.content || '',
+        source: editPage.source
       }
     );
   }

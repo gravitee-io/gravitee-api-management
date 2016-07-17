@@ -19,13 +19,11 @@
   <md-list ng-if="listPagesDisplayed" layout="column" class="inset pages" flex="20">
     <md-item ng-repeat="page in documentationCtrl.pages">
         <md-item-content layout="row" layout-align="start center" ui-sref="apis.admin.documentation.page({pageId: page.id})">
-          <md-button class="gravitee-api-page-menu-item" ng-click="documentationCtrl.selectPage(p)"
+          <md-button class="gravitee-api-page-menu-item"
                      ng-class="{'selected' : page.id === documentationCtrl.$state.params.pageId }">
             <div class="inset">
-              <img ng-if="'MARKDOWN' === page.type" src="app/images/logo_md.png" width="32px" />
-              <img ng-if="'SWAGGER' === page.type" src="app/images/logo_swagger.png" width="32px" />
-              <img ng-if="'RAML' === page.type" src="app/images/logo_raml.png" width="32px" />
-              <span ng-style="page.published?'':{'font-style': 'italic'}">{{page.name}}</span>
+              <md-icon md-svg-src="app/images/logo_{{page.type | lowercase}}.svg"></md-icon>
+              <span ng-style="page.published?'':{'font-style': 'italic', 'color': 'grey'}">{{page.name}}</span>
             </div>
           </md-button>
         </md-item-content>
@@ -33,6 +31,19 @@
   </md-list>
   <div flex ui-view></div>
 </div>
-<md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="documentationCtrl.showNewPageDialog()">
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
+
+<md-fab-speed-dial gravitee-roles-allowed="ADMIN, API_PUBLISHER" md-direction="left" md-open="false" class="md-scale md-fab-bottom-right">
+  <md-fab-trigger>
+    <md-button aria-label="menu" class="md-fab md-success">
+      <md-tooltip md-direction="top" md-visible="false">New page</md-tooltip>
+      <ng-md-icon icon="add"></ng-md-icon>
+    </md-button>
+  </md-fab-trigger>
+
+  <md-fab-actions>
+    <md-button ng-repeat="type in ['MARKDOWN', 'SWAGGER', 'RAML']" class="md-fab md-raised md-mini"  ng-click="documentationCtrl.showNewPageDialog(type)">
+      <md-tooltip md-direction="top">{{type}}</md-tooltip>
+      <md-icon md-svg-src="app/images/logo_{{type | lowercase}}.svg"></md-icon>
+    </md-button>
+  </md-fab-actions>
+</md-fab-speed-dial>

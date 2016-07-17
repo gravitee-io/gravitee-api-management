@@ -196,6 +196,12 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         icon: 'insert_chart'
       }
     })
+    .state('apis.admin.documentation.new', {
+      url: '/new?type',
+      templateUrl: 'app/api/admin/documentation/page/apiPage.html',
+      controller: 'PageController',
+      controllerAs: 'pageCtrl'
+    })
     .state('apis.admin.documentation.page', {
       url: '/:pageId',
       templateUrl: 'app/api/admin/documentation/page/apiPage.html',
