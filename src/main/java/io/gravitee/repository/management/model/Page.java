@@ -40,6 +40,7 @@ public class Page {
 
 	private boolean published;
 
+	private PageSource source;
 	/**
 	 * The api ID.
 	 */
@@ -129,6 +130,14 @@ public class Page {
 		this.published = published;
 	}
 
+	public PageSource getSource() {
+		return source;
+	}
+
+	public void setSource(PageSource source) {
+		this.source = source;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -152,6 +161,7 @@ public class Page {
 				", order=" + order +
 				", published=" + published +
 				", api='" + api + '\'' +
+				", source=" + source +
 				", createdAt=" + createdAt +
 				", updatedAt=" + updatedAt +
 				'}';
