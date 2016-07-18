@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 class ApplicationController {
-  constructor(resolvedApplication, $state, $scope, $rootScope) {
+  constructor(resolvedApplication, $state, $scope, $rootScope, UserService) {
 		'ngInject';
 		this.application = resolvedApplication.data;
-    
+
     $rootScope.currentResource = this.application.name;
 
 		this.$state = $state;
 		this.$scope = $scope;
+    this.UserService = UserService;
 		this.selectTab();
 	}
 
 	isOwner() {
-    return this.application.permission && (this.application.permission === 'owner' || this.application.permission === 'primary_owner');
+    if (this.UserService.isUserInRoles('ADMIN')) {
+      return true;
+    } else {
+      return this.application.permission && (this.application.permission === 'owner' || this.application.permission === 'primary_owner');
+    }
   }
 
 	selectTab() {
