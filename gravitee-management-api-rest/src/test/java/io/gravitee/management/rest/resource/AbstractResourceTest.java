@@ -52,6 +52,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected FetcherService fetcherService;
 
+    @Autowired
+    protected SwaggerService swaggerService;
+
     @Configuration
     static class ContextConfiguration {
 
@@ -83,6 +86,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public FetcherService fetcherService() {
             return mock(FetcherService.class);
+        }
+
+        @Bean
+        public SwaggerService swaggerService() {
+            return mock(SwaggerService.class);
         }
     }
 }
