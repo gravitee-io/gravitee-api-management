@@ -131,6 +131,20 @@ class ApisController {
       }
     });
   }
+
+  showImportSwaggerDialog() {
+    var _that = this;
+    this.$mdDialog.show({
+      controller: 'DialogApiSwaggerImportController',
+      controllerAs: 'dialogApiSwaggerImportCtrl',
+      templateUrl: 'app/api/admin/creation/swagger/importSwagger.dialog.html',
+      apiId: ''
+    }).then(function (api) {
+      if (api) {
+        _that.$state.go('apis.new', {api: api});
+      }
+    });
+  }
 }
 
 export default ApisController;

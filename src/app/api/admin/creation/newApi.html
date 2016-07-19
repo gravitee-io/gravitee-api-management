@@ -1,0 +1,134 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<section>
+
+  <md-stepper-card-content class="md-no-padding">
+    <md-steppers md-dynamic-height md-disable-tabs-behavior="true" md-stretch-steppers="always"
+                 md-selected="newApiCtrl.vm.selectedStep" md-busy-text="'Processing...'"
+                 md-busy="newApiCtrl.vm.showBusyText">
+      <md-step label="General" md-complete="newApiCtrl.vm.stepData[0].data.completed"
+               ng-disabled="newApiCtrl.vm.stepProgress < 1">
+        <md-step-body>
+          <form name="apiGeneralForm" ng-submit="newApiCtrl.submitCurrentStep(newApiCtrl.vm.stepData[0].data)">
+            <md-content layout-padding>
+              <div layout-gt-sm="row">
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Name *</label>
+                  <input ng-model="newApiCtrl.api.name" type="text" required name="name" minlength="4"
+                         md-maxlength="50">
+                  <div class="hint" ng-if="apiGeneralForm.name.$valid || apiGeneralForm.name.$pristine">API Name</div>
+                  <div ng-messages="apiGeneralForm.name.$error">
+                    <div ng-message="required">API Name is required.</div>
+                    <div ng-message="minlength">The name has to be more than 4 characters long.</div>
+                    <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
+                  </div>
+                </md-input-container>
+
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Version *</label>
+                  <input ng-model="newApiCtrl.api.version" type="text" md-maxlength="32" required name="version">
+                  <div class="hint" ng-if="apiGeneralForm.version.$valid || apiGeneralForm.version.$pristine">API
+                    Version (ex: 1.0)
+                  </div>
+                  <div ng-messages="apiGeneralForm.version.$error">
+                    <div ng-message="required">API Version is required.</div>
+                    <div ng-message="md-maxlength">The version has to be less than 32 characters long.</div>
+                  </div>
+                </md-input-container>
+              </div>
+            </md-content>
+
+            <md-content layout-padding>
+              <div layout-gt-sm="row">
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Description *</label>
+                  <input ng-model="newApiCtrl.api.description" type="text" required name="description">
+                  <div class="hint" ng-if="apiGeneralForm.description.$valid || apiGeneralForm.description.$pristine">
+                    Provide a description of your API, what it does, ...
+                  </div>
+                  <div ng-messages="apiGeneralForm.description.$error">
+                    <div ng-message="required">API Description is required.</div>
+                  </div>
+                </md-input-container>
+              </div>
+            </md-content>
+
+            <md-step-actions layout="row">
+              <div flex layout="row" layout-align="end top">
+                <md-button type="submit" ng-disabled="apiGeneralForm.$invalid" class="md-primary md-raised">NEXT
+                </md-button>
+              </div>
+            </md-step-actions>
+          </form>
+        </md-step-body>
+      </md-step>
+      <md-step label="Gateway" md-complete="newApiCtrl.vm.stepData[1].data.completed"
+               ng-disabled="newApiCtrl.vm.stepProgress < 2">
+        <md-step-body>
+          <form name="apiGatewayForm">
+            <md-content layout-padding>
+              <div layout-gt-sm="column">
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Context-path *</label>
+                  <input ng-model="newApiCtrl.api.contextPath" type="text" minlength="3"
+                         ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" required name="contextPath">
+                  <div class="hint" ng-if="apiGatewayForm.contextPath.$valid || apiGatewayForm.contextPath.$pristine">
+                    Path where API is exposed, must start with a '/'
+                  </div>
+                  <div ng-messages="apiGatewayForm.contextPath.$error">
+                    <div ng-message="required">Context path is required.</div>
+                    <div ng-message="minlength">Context path has to be more than 3 characters long.</div>
+                    <div ng-message="pattern">Context path is not valid (must start with a '/')</div>
+                  </div>
+                </md-input-container>
+              </div>
+            </md-content>
+
+            <md-content layout-padding>
+              <div layout-gt-sm="column">
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Backend *</label>
+                  <input ng-model="newApiCtrl.api.endpoint" type="url" required name="endpoint">
+                  <div class="hint" ng-if="apiGatewayForm.endpoint.$valid || apiGatewayForm.endpoint.$pristine">Target
+                    backend when a request is received for above context-path
+                  </div>
+                  <div ng-messages="apiGatewayForm.endpoint.$error">
+                    <div ng-message="required">Endpoint is required.</div>
+                    <div ng-message="url">Endpoint is not a valid URL.</div>
+                  </div>
+                </md-input-container>
+              </div>
+            </md-content>
+          </form>
+
+          <md-step-actions layout="row">
+            <div flex>
+              <md-button ng-click="newApiCtrl.moveToPreviousStep()">PREVIOUS</md-button>
+            </div>
+            <div flex layout="row" layout-align="end top">
+              <md-button ng-disabled="newApiCtrl.vm.showBusyText || apiGatewayForm.$invalid"
+                         ng-click="newApiCtrl.submitCurrentStep(newApiCtrl.vm.stepData[1].data)"
+                         class="md-primary md-raised">CREATE
+              </md-button>
+            </div>
+          </md-step-actions>
+        </md-step-body>
+      </md-step>
+    </md-steppers>
+  </md-stepper-card-content>
+</section>

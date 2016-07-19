@@ -40,17 +40,23 @@
   </md-fab-trigger>
 
   <md-fab-actions>
-    <md-button class="md-fab md-success md-mini" ng-click="apisCtrl.showApiModal()">
+    <md-button class="md-fab md-success md-mini" ng-href="#/apis/new">
       <md-tooltip md-direction="top">
-        New API
+        Create a new API
       </md-tooltip>
-      <ng-md-icon icon="assignment"></ng-md-icon>
+      <ng-md-icon icon="fibre_new"></ng-md-icon>
     </md-button>
     <md-button class="md-fab md-success md-mini" ng-click="apisCtrl.showImportDialog()">
       <md-tooltip md-direction="top">
-        From definition file
+        Import API definition
       </md-tooltip>
       <ng-md-icon icon="file_download"></ng-md-icon>
+    </md-button>
+    <md-button class="md-fab md-success md-mini" ng-click="apisCtrl.showImportSwaggerDialog()">
+      <md-tooltip md-direction="top">
+        Import Swagger descriptor
+      </md-tooltip>
+      <md-icon md-svg-src="app/images/logo_swagger.svg" aria-label="Swagger"></md-icon>
     </md-button>
   </md-fab-actions>
 </md-fab-speed-dial>

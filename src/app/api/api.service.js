@@ -78,6 +78,10 @@ class ApiService {
     return this.$http.post(this.apisURL + (apiId?apiId + '/':'') + 'import', apiDefinition);
   }
 
+  importSwagger(swaggerDescriptor) {
+    return this.$http.post(this.apisURL + 'import/swagger', swaggerDescriptor);
+  }
+
   export(apiId) {
     return this.$http.get(this.apisURL + apiId + '/export');
   }

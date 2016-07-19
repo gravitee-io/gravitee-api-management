@@ -37,6 +37,15 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       url: '/apis',
       templateUrl: 'app/api/apis.html'
     })
+    .state('apis.new', {
+      url: '/new',
+      templateUrl: 'app/api/admin/creation/newApi.html',
+      controller: 'NewApiController',
+      controllerAs: 'newApiCtrl',
+      params: {
+        api: null
+      }
+    })
     .state('apis.list', {
       abstract: true,
       url: '/',

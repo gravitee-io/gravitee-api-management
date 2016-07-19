@@ -34,7 +34,8 @@
     "pie-chart": "n3-charts.pie-chart#^1.0.0",
     "d3": "3.1.10",
     "tc-angular-chartjs": "^2.0.0",
-    "angular-schema-form-ui-codemirror": "^0.2.2"
+    "angular-schema-form-ui-codemirror": "^0.2.2",
+    "md-steppers": "^0.3.3"
   },
   "resolutions": {
     "angular-material": "^1.0.0",

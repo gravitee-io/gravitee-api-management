@@ -1,4 +1,4 @@
-﻿/*
+﻿﻿/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,8 @@ import ApiPoliciesController from './api/admin/policies/policies.controller';
 import AddPoliciesPathController from './api/admin/policies/addPoliciesPath.controller';
 import ApiHealthCheckController from './api/admin/healthcheck/healthcheck.controller';
 import ApiResourcesController from './api/admin/resources/resources.controller';
+import NewApiController from './api/admin/creation/newApi.controller';
+import DialogApiSwaggerImportController from './api/admin/creation/swagger/importSwaggerDialog.controller';
 import DialogAssertionInformationController from './api/admin/healthcheck/healthcheck-assertion-dialog.controller';
 import ApiPropertiesController from './api/admin/properties/properties.controller';
 import ApiKeysController from './api/admin/apikeys/apikeys.controller';
@@ -79,7 +81,7 @@ import ImageDirective from './components/image/image.directive';
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
     'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
-    'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'tc.chartjs'])
+    'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'tc.chartjs', 'md-steppers'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -114,6 +116,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('ApiEventsController', ApiEventsController)
   .controller('ApiHistoryController', ApiHistoryController)
   .controller('ApiResourcesController', ApiResourcesController)
+  .controller('NewApiController', NewApiController)
+  .controller('DialogApiSwaggerImportController', DialogApiSwaggerImportController)
   .controller('DialogAddPropertyController', DialogAddPropertyController)
   .controller('DialogApiController', DialogApiController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
