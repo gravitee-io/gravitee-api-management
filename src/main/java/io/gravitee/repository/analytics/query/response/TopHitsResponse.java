@@ -13,43 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query.response.histogram;
+package io.gravitee.repository.analytics.query.response;
 
 import java.util.Map;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class Data {
+public class TopHitsResponse implements Response {
 
-    private final long timestamp;
+    private String name;
 
-    private final long count;
+    private Map<String, Long> values;
 
-    private final Map<String, Long> data;
-
-    public Data(long timestamp, long count) {
-        this.timestamp = timestamp;
-        this.count = count;
-        this.data = null;
+    public String getName() {
+        return name;
     }
 
-    public Data(long timestamp, Map<String, Long> data) {
-        this.timestamp = timestamp;
-        this.count = 0;
-        this.data = data;
-
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public long timestamp() {
-        return timestamp;
+    public Map<String, Long> getValues() {
+        return values;
     }
 
-    public long count() {
-        return count;
-    }
-
-    public Map<String, Long> data() {
-        return data;
+    public void setValues(Map<String, Long> values) {
+        this.values = values;
     }
 }

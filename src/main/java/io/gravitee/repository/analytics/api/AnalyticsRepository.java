@@ -18,7 +18,12 @@ package io.gravitee.repository.analytics.api;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.HealthResponse;
+import io.gravitee.repository.analytics.query.response.HitsResponse;
 import io.gravitee.repository.analytics.query.response.Response;
+import io.gravitee.repository.analytics.query.response.TopHitsResponse;
+import io.gravitee.repository.analytics.query.response.histogram.HistogramResponse;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -28,4 +33,11 @@ public interface AnalyticsRepository {
    <T extends Response> T query(Query<T> query) throws AnalyticsException;
 
    HealthResponse query(String api, long interval, long from, long to) throws AnalyticsException;
+
+   HitsResponse query(String query, String key, long from, long to) throws AnalyticsException;
+
+   TopHitsResponse query(String query, String key, String field, long from, long to, int size) throws AnalyticsException;
+
+   HistogramResponse query(String query, String key, String field, List<String> aggTypes, long from, long to, long interval) throws AnalyticsException;
+
 }

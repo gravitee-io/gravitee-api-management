@@ -13,40 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query;
+package io.gravitee.repository.analytics.query.response;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class HitsByApiQuery extends TimeRangedQuery {
+public class HitsResponse implements Response {
 
-    private String api;
-    private Type type = Type.HITS;
+    private String name;
 
-    void api(String api) {
-        this.api = api;
+    private long hits;
+
+    public String getName() {
+        return name;
     }
 
-    public String api() {
-        return this.api;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    void type(Type type) {
-        this.type = type;
+    public long getHits() {
+        return hits;
     }
 
-    public Type type() {
-        return this.type;
-    }
-
-    public enum Type {
-        HITS,
-        HITS_BY_LATENCY,
-        HITS_BY_APIKEY,
-        HITS_BY_STATUS,
-        HITS_BY_PAYLOAD_SIZE,
-        HITS_BY_APPLICATION,
-        TOP_HITS_BY_APPLICATION,
-        TOP_HITS_BY_STATUS
+    public void setHits(long hits) {
+        this.hits = hits;
     }
 }
