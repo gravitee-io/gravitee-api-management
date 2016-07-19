@@ -28,6 +28,7 @@ import io.gravitee.management.rest.mapper.ObjectMapperResolver;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
+import org.glassfish.jersey.test.TestProperties;
 import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +78,9 @@ public abstract class JerseySpringTest {
             @Override
             protected Application configure()
             {
+                // Find first available port.
+                forceSet(TestProperties.CONTAINER_PORT, "0");
+
                 ResourceConfig application = new GraviteeApplication();
 
                 application.property("contextConfig", context);

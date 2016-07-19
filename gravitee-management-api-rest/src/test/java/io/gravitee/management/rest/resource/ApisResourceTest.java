@@ -37,18 +37,36 @@ public class ApisResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void testPostApi_nullApi() {
+    public void shouldNotCreateApi_noContent() {
         final Response response = target().request().post(null);
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
-    public void testPostApi_newApiWithoutPath() {
+    public void shouldNotCreateApi_withoutPath() {
         final NewApiEntity apiEntity = new NewApiEntity();
         apiEntity.setName("My beautiful api");
         apiEntity.setVersion("v1");
         apiEntity.setDescription("my description");
 
+        ApiEntity returnedApi = new ApiEntity();
+        returnedApi.setId("my-beautiful-api");
+        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
+                Mockito.eq(USER_NAME));
+
+        final Response response = target().request().post(Entity.json(apiEntity));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldCreateApi() {
+        final NewApiEntity apiEntity = new NewApiEntity();
+        apiEntity.setName("My beautiful api");
+        apiEntity.setVersion("v1");
+        apiEntity.setDescription("my description");
+        apiEntity.setContextPath("/myapi");
+        apiEntity.setEndpoint("http://localhost:9099/");
+        
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
         doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
