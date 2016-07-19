@@ -254,10 +254,13 @@ class ApiPoliciesController {
       controllerAs: 'editPolicyDialogCtrl',
       templateUrl: 'app/api/admin/policies/dialog/policy.dialog.html',
       locals: {
-        policy: policy
+        description: policy.description
       }
-    }).then(function () {
+    }).then(function (description) {
+      policy.description = description;
       that.savePaths();
+    }, function() {
+      // You cancelled the dialog
     });
   }
 

@@ -16,14 +16,14 @@
 function DialogEditPolicyController($scope, $mdDialog, ApiService, NotificationService, locals) {
   'ngInject';
 
-  $scope.policy = locals.policy;
+  $scope.description = locals.description;
 
   this.hide = function () {
-    $mdDialog.hide();
+    $mdDialog.cancel();
   };
 
   this.save = function () {
-    $mdDialog.hide($scope.policy);
+    $mdDialog.hide($scope.description);
   };
 }
 
