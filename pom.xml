@@ -39,6 +39,7 @@
         <gravitee-plugin.version>0.13.0-SNAPSHOT</gravitee-plugin.version>
         <gravitee-repository.version>0.14.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-gateway-api.version>0.13.0</gravitee-gateway-api.version>
+        <gravitee-fetcher-api.version>0.1.0-SNAPSHOT</gravitee-fetcher-api.version>
 
         <apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
         <jackson.version>2.7.3</jackson.version>
@@ -113,6 +114,11 @@
                 <groupId>io.gravitee.gateway</groupId>
                 <artifactId>gravitee-gateway-api</artifactId>
                 <version>${gravitee-gateway-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.fetcher</groupId>
+                <artifactId>gravitee-fetcher-api</artifactId>
+                <version>${gravitee-fetcher-api.version}</version>
             </dependency>
 
             <!-- Spring -->

@@ -66,7 +66,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         apiEntity.setDescription("my description");
         apiEntity.setContextPath("/myapi");
         apiEntity.setEndpoint("http://localhost:9099/");
-        
+
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
         doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
