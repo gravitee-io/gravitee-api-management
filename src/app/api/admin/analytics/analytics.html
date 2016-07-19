@@ -53,7 +53,8 @@
     </md-card>
     <md-card flex="30">
       <md-card-content ng-if="analyticsCtrl.indicatorChartData.datasets[0].data[0] >= 0">
-        <canvas tc-chartjs chart-type="doughnut" chart-data="analyticsCtrl.indicatorChartData" height="145"></canvas>
+        <canvas tc-chartjs chart-type="doughnut" chart-options="analyticsCtrl.indicatorChartOptions"
+                chart-data="analyticsCtrl.indicatorChartData" height="145"></canvas>
         <div class="gravitee-analytics-total">{{analyticsCtrl.total}} hits</div>
       </md-card-content>
     </md-card>
@@ -63,7 +64,8 @@
     <md-card-content>
       <label ng-bind="report.title"></label>
       <div ng-if="chartConfig[report.id].datasets.length === 0">No data</div>
-      <canvas ng-if="chartConfig[report.id].datasets.length > 0" tc-chartjs chart-options="options"
+      <canvas ng-if="chartConfig[report.id].datasets.length > 0" tc-chartjs
+              chart-options="report.stacked? optionsStacked:options"
               chart-data="chartConfig[report.id]" chart-type="{{report.type}}" height="40"></canvas>
     </md-card-content>
   </md-card>

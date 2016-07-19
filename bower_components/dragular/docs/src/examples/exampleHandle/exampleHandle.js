@@ -4,7 +4,7 @@ var HandleCtrl = function ($element, dragularService) {
   dragularService.cleanEnviroment();
 	dragularService($element.children(), {
     moves: function(el, container, handle) {
-      return handle.className === 'handle';
+      return handle.classList.contains('handle');
     }
   });
 };

@@ -13,8 +13,6 @@
     "jquery": "~2.2.0",
     "bootstrap-sass": "3.3.6",
     "angular-material-data-table": "^0.10.9",
-    "highcharts": "~4.2.1",
-    "highcharts-ng": "~0.0.11",
     "lodash": "~4.0.1",
     "api-console": "~2.0.4",
     "angular-material-icons": "~0.7.0",
@@ -32,9 +30,8 @@
     "ng-file-upload": "^12.0.4",
     "js-yaml": "^3.5.5",
     "pie-chart": "n3-charts.pie-chart#^1.0.0",
-    "d3": "3.1.10",
-    "tc-angular-chartjs": "^2.0.0",
     "angular-schema-form-ui-codemirror": "^0.2.2",
+    "tc-angular-chartjs": "^2.0.0",
     "md-steppers": "^0.3.3"
   },
   "resolutions": {

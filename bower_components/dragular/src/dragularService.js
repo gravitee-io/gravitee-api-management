@@ -110,7 +110,8 @@ var dragularService = function ($rootScope, $compile) {
         boundingBox: false, // lock movement inside this element boundaries
         mirrorContainer: doc.body, // element for appending mirror
         ignoreInputTextSelection: true, // text selection in inputs wont be considered as drag
-        compileItemOnDrop: false
+        compileItemOnDrop: false,
+        onInit: false // function callback called after dragular initialisation and providing drake as first argument
       },
       drake = {
         containers: shared.containers,
@@ -129,6 +130,10 @@ var dragularService = function ($rootScope, $compile) {
     extendOptions();
     processOptionsObject();
     registerEvents();
+    
+    if(o.onInit){
+       o.onInit(drake); 
+    }
 
     return drake;
 

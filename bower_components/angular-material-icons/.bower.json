@@ -1,6 +1,6 @@
 {
   "name": "angular-material-icons",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "authors": [
     "Urmil Parikh <urmil@klarsys.com>"
   ],
@@ -34,11 +34,11 @@
     "test",
     "tests"
   ],
-  "_release": "0.7.0",
+  "_release": "0.7.1",
   "_resolution": {
     "type": "version",
-    "tag": "v0.7.0",
-    "commit": "8ff4a9af800d904ac52df18d2a76368e86285c49"
+    "tag": "v0.7.1",
+    "commit": "ccca7a83c11971e30042bdf560749fcc4378b2c3"
   },
   "_source": "https://github.com/klarsys/angular-material-icons.git",
   "_target": "~0.7.0",

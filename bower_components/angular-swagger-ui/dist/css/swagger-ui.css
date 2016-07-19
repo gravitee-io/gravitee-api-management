@@ -1,5 +1,5 @@
 /*
- * Orange angular-swagger-ui - v0.3.1
+ * Orange angular-swagger-ui - v0.3.2
  *
  * (C) 2015 Orange, all right reserved
  * MIT Licensed
@@ -162,21 +162,27 @@
 .swagger-ui .operation .content pre.model .pad {
   margin-left: 1em;
 }
+.swagger-ui .operation .content .headers .model-schema pre,
 .swagger-ui .operation .content .parameters .model-schema pre {
   cursor: pointer;
 }
+.swagger-ui .operation .content .headers .model-schema pre:hover,
 .swagger-ui .operation .content .parameters .model-schema pre:hover {
   background-color: #ffd;
 }
+.swagger-ui .operation .content .headers .name,
 .swagger-ui .operation .content .parameters .name {
   width: 12%;
 }
+.swagger-ui .operation .content .headers .value,
 .swagger-ui .operation .content .parameters .value {
   width: 30%;
 }
+.swagger-ui .operation .content .headers .desc,
 .swagger-ui .operation .content .parameters .desc {
   width: 20%;
 }
+.swagger-ui .operation .content .headers .type,
 .swagger-ui .operation .content .parameters .type {
   width: 12%;
 }
@@ -286,4 +292,45 @@
 .swagger-ui .bold,
 .swagger-ui .bold label {
   font-weight: bold !important;
+}
+[dir='rtl'] .swagger-ui th {
+  text-align: right;
+}
+[dir='rtl'] .swagger-ui .pull-left {
+  float: right !important;
+}
+[dir='rtl'] .swagger-ui .pull-right {
+  float: left !important;
+}
+[dir='rtl'] .swagger-ui .list-unstyled,
+[dir='rtl'] .swagger-ui .list-inline {
+  padding-right: 0;
+  padding-left: initial;
+}
+[dir='rtl'] .swagger-ui .endpoint-actions li {
+  border-left: 1px solid #ddd;
+  border-right: 0;
+}
+[dir='rtl'] .swagger-ui .endpoint-actions li:last-child {
+  border-left: 0;
+}
+[dir='rtl'] .swagger-ui .operation .description {
+  margin: 2px 0 0 10px;
+}
+[dir='rtl'] .swagger-ui .operation .content-type label {
+  margin-left: 5px;
+  margin-right: 0;
+}
+[dir='rtl'] .swagger-ui .operation ul.schema li {
+  margin: 0 0 5px 5px;
+  padding: 2px 0 2px 5px;
+  border-right: 0;
+  border-left: 1px solid #ddd;
+}
+[dir='rtl'] .swagger-ui .operation ul.schema li:last-child {
+  border-left: 0;
+}
+[dir='rtl'] .swagger-ui .operation pre.model .pad {
+  margin-left: 0;
+  margin-right: 1em;
 }

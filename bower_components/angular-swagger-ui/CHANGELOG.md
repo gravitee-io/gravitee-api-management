@@ -1,4 +1,12 @@
-### 0.3.1 (2016-03-??)
+### 0.3.2 (2016-06-30)
+
+ * Fix Swagger model generation (float properties not displayed in samples)
+ * i18n add Japanese (#44)
+ * Display response headers
+ * Fix response references (#50)
+ * Fix right-to-left display (#53)
+
+### 0.3.1 (2016-03-21)
 
  * Make Swagger specification URL absolute when passed to Swagger validator (#43)
  * YAML support

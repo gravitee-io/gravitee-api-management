@@ -4,7 +4,7 @@ var dragularDirective = require('./dragularDirective');
 var dragularService = require('./dragularService');
 
 /**
- * Dragular 4.1.0 by Luckylooke https://github.com/luckylooke/dragular
+ * Dragular 4.2.0 by Luckylooke https://github.com/luckylooke/dragular
  * Angular version of dragula https://github.com/bevacqua/dragula
  */
 module.exports = 'dragularModule';

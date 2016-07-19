@@ -1,6 +1,6 @@
 {
   "name": "dragular",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Angular drag and drop based on dragula",
   "keywords": [
     "drag",
@@ -37,7 +37,7 @@
   },
   "homepage": "http://luckylooke.github.io/dragular/",
   "dependencies": {
-    "angular": "~1.4.0"
+    "angular": "^1.4.0"
   },
   "devDependencies": {
     "browser-sync": "^2.8.0",

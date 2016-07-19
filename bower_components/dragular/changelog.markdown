@@ -1,7 +1,11 @@
 # X.X.X planned - not implemented
-- **[Braking change!]** rename 'shared' property to 'state'
 - **[Braking change!]** rename 'dragulardrag' event to 'dragulardragstart'
 - new event 'dragulardrag' emited each iteration while dragging
+
+# 4.2.0 Bad Moms
+- UMD compatible #79
+- options.onInit, on init callback function, closes #65
+- Fixed examples #83 (Filtered model in nested ng-repeat)
 
 # 4.1.0 Dora
 - IE bug fixes #68

@@ -57,6 +57,8 @@ pointHoverBackgroundColor | `Color or Array<Color>` | Point background color whe
 pointHoverBorderColor | `Color or Array<Color>` | Point border color when hovered
 pointHoverBorderWidth | `Number or Array<Number>` | Border width of point when hovered
 pointStyle | `String, Array<String>, Image, Array<Image>` | The style of point. Options are 'circle', 'triangle', 'rect', 'rectRot', 'cross', 'crossRot', 'star', 'line', and 'dash'. If the option is an image, that image is drawn on the canvas using `drawImage`. 
+showLine | `Boolean` | If false, the line is not drawn for this dataset
+spanGaps | `Boolean` | If true, lines will be drawn between points with no or null data
 
 An example data object using these attributes is shown below.
 ```javascript
@@ -83,6 +85,7 @@ var data = {
 			pointRadius: 1,
 			pointHitRadius: 10,
 			data: [65, 59, 80, 81, 56, 55, 40],
+			spanGaps: false,
 		}
 	]
 };
@@ -93,9 +96,11 @@ The data for line charts is broken up into an array of datasets. Each dataset ha
 
 The label key on each dataset is optional, and can be used when generating a scale for the chart.
 
+When `spanGaps` is set to true, the gaps between points in sparse datasets are filled in. By default, it is off.
+
 ### Data Points
 
-The data passed to the chart can be passed in two formats. The most common method is to pass the data array as an array of numbers. In this case, the `data.labels` array must be specified and must contain a label for each point.
+The data passed to the chart can be passed in two formats. The most common method is to pass the data array as an array of numbers. In this case, the `data.labels` array must be specified and must contain a label for each point or, in the case of labels to be displayed over multiple lines an array of labels (one for each line) i.e `[["June","2015"], "July"]`.
 
 The alternate is used for sparse datasets. Data is specified using an object containing `x` and `y` properties. This is used for scatter charts as documented below.
 

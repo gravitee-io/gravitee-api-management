@@ -126,7 +126,7 @@
                 </tr>
                 </thead>
                 <tbody md-body>
-                <tr md-row md-select="endpoint" md-select-id="{{endpoint.target}}" md-auto-select ng-repeat="endpoint in generalCtrl.api.proxy.endpoints | orderBy: weight">
+                <tr md-row md-select="endpoint" md-auto-select ng-repeat="endpoint in generalCtrl.api.proxy.endpoints | orderBy: weight">
                   <td md-cell ng-click="generalCtrl.editEndpoint($event, endpoint)" ng-class="{'md-placeholder': !endpoint.target}">{{endpoint.target}}</td>
                   <td md-cell hide-gt-xs show-gt-sm ng-click="generalCtrl.editWeight($event, endpoint)" ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
                   <td md-cell>

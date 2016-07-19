@@ -134,18 +134,18 @@ Define a custom template to be used by SwaggerUI
 #### Input type and input
 ##### Render a Swagger specification from JSON object
 ```html
-<div swagger-ui inputType="json" input="yourJsonObject"></div>
+<div swagger-ui input-type="json" input="yourJsonObject"></div>
 ```
 
 ##### Render a Swagger specification from YAML string
 Make sure to use module `swagger-yaml-parser`, see [Enable YAML](#enable-yaml)
 ```html
-<div swagger-ui inputType="yaml" input="yourYamlString"></div>
+<div swagger-ui input-type="yaml" input="yourYamlString"></div>
 ```
 
 ##### Render a Swagger specification from URL (same behavior as using "url" parameter)
 ```html
-<div swagger-ui inputType="url" input="yourURL"></div>
+<div swagger-ui input-type="url" input="yourURL"></div>
 ```
 
 ## i18n

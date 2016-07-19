@@ -23,7 +23,6 @@ class ApiAnalyticsController {
     this.api = resolvedApi.data;
     this.$q = $q;
 
-
     this.$scope.filteredApplications = [];
 
     // md table paging set up
@@ -36,8 +35,18 @@ class ApiAnalyticsController {
     } else if ($state.params.timeframe) {
       this.setTimeframe($state.params.timeframe);
     } else {
-      this.updateTimeframe('3d');
+      this.setTimeframe('3d');
     }
+
+    this.indicatorChartOptions = {
+      tooltips: {
+        callbacks: {
+          label: function (tooltipItem, data) {
+            return data.labels[tooltipItem.index];
+          }
+        }
+      }
+    };
 
     $scope.options = {
       elements: {
@@ -50,7 +59,7 @@ class ApiAnalyticsController {
           display: false
         }],
         yAxes: [{
-          stacked: true
+          stacked: false
         }]
       },
       tooltips: {
@@ -58,6 +67,8 @@ class ApiAnalyticsController {
       }
     };
 
+    $scope.optionsStacked = _.cloneDeep($scope.options);
+    $scope.optionsStacked.scales.yAxes[0].stacked = true;
 
     //from https://material.google.com/style/color.html#color-color-palette
     //shade 500 & 900
@@ -110,7 +121,7 @@ class ApiAnalyticsController {
 
   updateTimeframe(timeframeId) {
     if (timeframeId) {
-      this.$state.go(this.$state.current, {timestamp: '', timeframe: timeframeId});
+      this.$state.go(this.$state.current, {timestamp: '', timeframe: timeframeId}, {reload: true});
     }
   }
 
@@ -378,6 +389,7 @@ class ApiAnalyticsController {
         {
           id: 'response-status',
           type: 'line',
+          stacked: true,
           title: 'Response Status',
           labelPrefix: 'HTTP Status',
           requests: [
@@ -392,6 +404,7 @@ class ApiAnalyticsController {
         }, {
           id: 'response-times',
           type: 'line',
+          stacked: false,
           title: 'Response Times',
           requests: [
             {
@@ -414,6 +427,7 @@ class ApiAnalyticsController {
         }, {
           id: 'applications',
           type: 'line',
+          stacked: true,
           title: 'Hits by applications',
           labelPrefix: '',
           requests: [

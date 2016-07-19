@@ -72,6 +72,7 @@ maintainAspectRatio | Boolean | true | Maintain the original canvas aspect ratio
 events | Array[String] | `["mousemove", "mouseout", "click", "touchstart", "touchmove", "touchend"]` | Events that the chart should listen to for tooltips and hovering
 onClick | Function | null | Called if the event is of type 'mouseup' or 'click'. Called in the context of the chart and passed an array of active elements
 legendCallback | Function | ` function (chart) { }` | Function to generate a legend. Receives the chart object to generate a legend from. Default implementation returns an HTML string.
+onResize | Function | null | Called when a resize occurs. Gets passed two arguemnts: the chart instance and the new size.
 
 ### Title Configuration
 
@@ -188,13 +189,14 @@ var chartInstance = new Chart(ctx, {
 
 ### Tooltip Configuration
 
-The title configuration is passed into the `options.tooltips` namespace. The global options for the chart tooltips is defined in `Chart.defaults.global.title`.
+The title configuration is passed into the `options.tooltips` namespace. The global options for the chart tooltips is defined in `Chart.defaults.global.tooltips`.
 
 Name | Type | Default | Description
 --- | --- | --- | ---
 enabled | Boolean | true | Are tooltips 
 custom | Function | null | See [section](#chart-configuration-custom-tooltips) below
 mode | String | 'single' | Sets which elements appear in the tooltip. Acceptable options are `'single'` or `'label'`. `single` highlights the closest element. `label` highlights elements in all datasets at the same `X` value.
+itemSort | Function | undefined | Allows sorting of [tooltip items](#chart-configuration-tooltip-item-interface). Must implement a function that can be passed to [Array.prototype.sort](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort)
 backgroundColor | Color | 'rgba(0,0,0,0.8)' | Background color of the tooltip
 titleFontFamily | String | "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif" | Font family for tooltip title inherited from global font family
 titleFontSize | Number | 12 | Font size for tooltip title inherited from global font size
@@ -234,6 +236,7 @@ afterTitle | `Array[tooltipItem], data` | Text to render after the title
 beforeBody | `Array[tooltipItem], data` | Text to render before the body section
 beforeLabel | `tooltipItem, data` | Text to render before an individual label
 label | `tooltipItem, data` | Text to render for an individual item in the tooltip
+labelColor | `tooltipItem, chartInstace` | Returns the colors to render for the tooltip item. Return as an object containing two parameters: `borderColor` and `backgroundColor`.
 afterLabel | `tooltipItem, data` | Text to render after an individual label
 afterBody | `Array[tooltipItem], data` | Text to render after the body section
 beforeFooter | `Array[tooltipItem], data` | Text to render before the footer section

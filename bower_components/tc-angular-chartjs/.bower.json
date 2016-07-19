@@ -44,6 +44,5 @@
   },
   "_source": "https://github.com/carlcraig/tc-angular-chartjs.git",
   "_target": "^2.0.0",
-  "_originalSource": "tc-angular-chartjs",
-  "_direct": true
+  "_originalSource": "tc-angular-chartjs"
 }

@@ -43,6 +43,10 @@ var dragular = function (dragularService) {
         options.nameSpace = iAttrs.dragularNameSpace.split(' ');
       }
 
+      if(iAttrs.dragularOnInit){
+        options.onInit = $scope.$eval(iAttrs.dragularOnInit);
+      }
+
       drake = dragularService(iElm[0], options);
     }
   };

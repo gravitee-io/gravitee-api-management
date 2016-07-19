@@ -106,10 +106,10 @@ module.exports = function(Chart) {
 		linkScales: helpers.noop,
 
 		update: function update(reset) {
-			var _this = this;
-			var chart = _this.chart;
+			var me = this;
+			var chart = me.chart;
 			var chartArea = chart.chartArea;
-			var meta = this.getMeta();
+			var meta = me.getMeta();
 			var opts = chart.options;
 			var arcOpts = opts.elements.arc;
 			var minSize = Math.min(chartArea.right - chartArea.left, chartArea.bottom - chartArea.top);
@@ -117,21 +117,21 @@ module.exports = function(Chart) {
 			chart.innerRadius = Math.max(opts.cutoutPercentage ? (chart.outerRadius / 100) * (opts.cutoutPercentage) : 1, 0);
 			chart.radiusLength = (chart.outerRadius - chart.innerRadius) / chart.getVisibleDatasetCount();
 
-			_this.outerRadius = chart.outerRadius - (chart.radiusLength * _this.index);
-			_this.innerRadius = _this.outerRadius - chart.radiusLength;
+			me.outerRadius = chart.outerRadius - (chart.radiusLength * me.index);
+			me.innerRadius = me.outerRadius - chart.radiusLength;
 
-			meta.count = _this.countVisibleElements();
+			meta.count = me.countVisibleElements();
 
 			helpers.each(meta.data, function(arc, index) {
-				_this.updateElement(arc, index, reset);
+				me.updateElement(arc, index, reset);
 			});
 		},
 
 		updateElement: function(arc, index, reset) {
-			var _this = this;
-			var chart = _this.chart;
+			var me = this;
+			var chart = me.chart;
 			var chartArea = chart.chartArea;
-			var dataset = _this.getDataset();
+			var dataset = me.getDataset();
 			var opts = chart.options;
 			var animationOpts = opts.animation;
 			var arcOpts = opts.elements.arc;
@@ -140,61 +140,47 @@ module.exports = function(Chart) {
 			var getValueAtIndexOrDefault = helpers.getValueAtIndexOrDefault;
 			var labels = chart.data.labels;
 
-			var circumference = _this.calculateCircumference(dataset.data[index]);
+			var circumference = me.calculateCircumference(dataset.data[index]);
 			var centerX = (chartArea.left + chartArea.right) / 2;
 			var centerY = (chartArea.top + chartArea.bottom) / 2;
 
 			// If there is NaN data before us, we need to calculate the starting angle correctly.
 			// We could be way more efficient here, but its unlikely that the polar area chart will have a lot of data
 			var visibleCount = 0;
-			var meta = _this.getMeta();
+			var meta = me.getMeta();
 			for (var i = 0; i < index; ++i) {
 				if (!isNaN(dataset.data[i]) && !meta.data[i].hidden) {
 					++visibleCount;
 				}
 			}
 
-			var distance = arc.hidden? 0 : scale.getDistanceFromCenterForValue(dataset.data[index]);
-			var startAngle = (-0.5 * Math.PI) + (circumference * visibleCount);
-			var endAngle = startAngle + (arc.hidden? 0 : circumference);
+			var negHalfPI = -0.5 * Math.PI;
+			var distance = arc.hidden ? 0 : scale.getDistanceFromCenterForValue(dataset.data[index]);
+			var startAngle = (negHalfPI) + (circumference * visibleCount);
+			var endAngle = startAngle + (arc.hidden ? 0 : circumference);
 
-			var resetModel = {
-				x: centerX,
-				y: centerY,
-				innerRadius: 0,
-				outerRadius: animationOpts.animateScale ? 0 : scale.getDistanceFromCenterForValue(dataset.data[index]),
-				startAngle: animationOpts.animateRotate ? Math.PI * -0.5 : startAngle,
-				endAngle: animationOpts.animateRotate ? Math.PI * -0.5 : endAngle,
-
-				backgroundColor: custom.backgroundColor ? custom.backgroundColor : getValueAtIndexOrDefault(dataset.backgroundColor, index, arcOpts.backgroundColor),
-				borderWidth: custom.borderWidth ? custom.borderWidth : getValueAtIndexOrDefault(dataset.borderWidth, index, arcOpts.borderWidth),
-				borderColor: custom.borderColor ? custom.borderColor : getValueAtIndexOrDefault(dataset.borderColor, index, arcOpts.borderColor),
-
-				label: getValueAtIndexOrDefault(labels, index, labels[index])
-			};
+			var resetRadius = animationOpts.animateScale ? 0 : scale.getDistanceFromCenterForValue(dataset.data[index]);
 
 			helpers.extend(arc, {
 				// Utility
-				_datasetIndex: _this.index,
+				_datasetIndex: me.index,
 				_index: index,
 				_scale: scale,
 
 				// Desired view properties
-				_model: reset ? resetModel : {
+				_model: {
 					x: centerX,
 					y: centerY,
 					innerRadius: 0,
-					outerRadius: distance,
-					startAngle: startAngle,
-					endAngle: endAngle,
-
-					backgroundColor: custom.backgroundColor ? custom.backgroundColor : getValueAtIndexOrDefault(dataset.backgroundColor, index, arcOpts.backgroundColor),
-					borderWidth: custom.borderWidth ? custom.borderWidth : getValueAtIndexOrDefault(dataset.borderWidth, index, arcOpts.borderWidth),
-					borderColor: custom.borderColor ? custom.borderColor : getValueAtIndexOrDefault(dataset.borderColor, index, arcOpts.borderColor),
-
+					outerRadius: reset ? resetRadius : distance,
+					startAngle: reset && animationOpts.animateRotate ? negHalfPI : startAngle,
+					endAngle: reset && animationOpts.animateRotate ? negHalfPI : endAngle,
 					label: getValueAtIndexOrDefault(labels, index, labels[index])
 				}
 			});
+
+			// Apply border and fill style
+			me.removeHoverStyle(arc);
 
 			arc.pivot();
 		},

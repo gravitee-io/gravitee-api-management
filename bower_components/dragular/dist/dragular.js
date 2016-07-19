@@ -1,4 +1,14 @@
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else {
+		var a = factory();
+		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
+	}
+})(this, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 
@@ -50,7 +60,7 @@
 	var dragularService = __webpack_require__(2);
 
 	/**
-	 * Dragular 4.1.0 by Luckylooke https://github.com/luckylooke/dragular
+	 * Dragular 4.2.0 by Luckylooke https://github.com/luckylooke/dragular
 	 * Angular version of dragula https://github.com/bevacqua/dragula
 	 */
 	module.exports = 'dragularModule';
@@ -108,6 +118,10 @@
 
 	      if(iAttrs.dragularNameSpace){
 	        options.nameSpace = iAttrs.dragularNameSpace.split(' ');
+	      }
+
+	      if(iAttrs.dragularOnInit){
+	        options.onInit = $scope.$eval(iAttrs.dragularOnInit);
 	      }
 
 	      drake = dragularService(iElm[0], options);
@@ -236,7 +250,8 @@
 	        boundingBox: false, // lock movement inside this element boundaries
 	        mirrorContainer: doc.body, // element for appending mirror
 	        ignoreInputTextSelection: true, // text selection in inputs wont be considered as drag
-	        compileItemOnDrop: false
+	        compileItemOnDrop: false,
+	        onInit: false // function callback called after dragular initialisation and providing drake as first argument
 	      },
 	      drake = {
 	        containers: shared.containers,
@@ -255,6 +270,10 @@
 	    extendOptions();
 	    processOptionsObject();
 	    registerEvents();
+	    
+	    if(o.onInit){
+	       o.onInit(drake); 
+	    }
 
 	    return drake;
 
@@ -1305,4 +1324,6 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }
-/******/ ]);
+/******/ ])
+});
+;

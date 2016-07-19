@@ -1,6 +1,6 @@
 {
   "name": "dragular",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Angular drag and drop library based on dragula, but full featured. For light-weight angular wrap of dragula look for angular-dragula",
   "main": [
     "dist/dragular.min.js",

@@ -5,7 +5,7 @@
     <title swagger-translate="appTitle"></title>
     <meta name="viewport" content="width=device-width">
     <link rel="icon" href="favicon.ico">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/swagger-ui.min.css">
     <link rel="stylesheet" href="css/demo.css">
 </head>
@@ -28,8 +28,8 @@
         <div swagger-ui url="swaggerUrl" loading="isLoading" api-explorer="true" trusted-sources="true" error-handler="myErrorHandler" permalinks="true"></div>
     </div>
     <!-- dependencies -->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.1/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.1/angular-sanitize.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-sanitize.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.5.4/js-yaml.min.js"></script>
     <!-- angular-swagger-ui -->
     <script src="scripts/swagger-ui.min.js"></script>
@@ -50,7 +50,8 @@
                         loading: 'loading...',
                         error: 'Failed to generate Swagger-UI: {{code}} {{message}}',
                         french: 'french',
-                        english: 'english'
+                        english: 'english',
+                        japanese: 'japanese'
                     })
                     .addTranslations('fr', {
                         appTitle: 'Exemple angular-swagger-ui',
@@ -58,7 +59,8 @@
                         loading: 'Chargement ...',
                         error: 'Impossible de générer Swagger-UI: {{code}} {{message}}',
                         french: 'français',
-                        english: 'anglais'
+                        english: 'anglais',
+                        japanese: 'japanese'
                     });
             })
             .controller('MyCtrl', function($scope, swaggerTranslator) {

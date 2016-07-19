@@ -10,7 +10,7 @@ Browser support includes every sane browser and **IE7+**. <sub>_(Granted you pol
 
 I am working on huge angular project and I am using several drag&drop libraries in it, one for UI, one for lists, etc.. I want to use one full-featured drag&drop library for whole project. As I could not find any suitable, I decided to create one. I have choosen great library [dragula](http://github.com/bevacqua/dragula) by [Nicolas Bevacqua](http://github.com/bevacqua) as my starting point, make it more angular and started to put features in it! If you wish light-weight angular version of dragula, there is [official angular version of dragula](http://github.com/bevacqua/angular-dragula).
 
-<b>Actual version 4.1.0 is based on dragula 3.6.3 and tested with angular 1.4.9.</b>
+<b>Actual version 4.2.0 is based on dragula 3.6.3 and tested with angular 1.5.5.</b>
 
 # Differences of dragular (against dragula)
 
@@ -160,6 +160,9 @@ For better readability of views.
 ```html
 <div dragular-name-space="oranges"></div>
 ```
+### dragular-on-init atribute
+
+Same as options.onInit see bellow.
 
 ## Options
 
@@ -364,6 +367,10 @@ myEventNames = {
 ### `options.compileItemOnDrop`
 
 In case your draggable items are customized by other directives/attributes, you can use this flag to run compilation of droped item after drop. It is not supposed to be used with containers items rendered by ng-repeat. In such case you are supposed to add directives/attributes to item template and use logic in controller to enable/disable them.
+
+### `options.onInit`
+
+You can provide function callback called after dragular initialisation with drake as first argument.
 
 
 ## `Events`

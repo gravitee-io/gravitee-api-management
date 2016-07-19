@@ -32,12 +32,12 @@
     "index*",
     "package.json"
   ],
-  "version": "3.6.0",
-  "_release": "3.6.0",
+  "version": "3.6.1",
+  "_release": "3.6.1",
   "_resolution": {
     "type": "version",
-    "tag": "3.6.0",
-    "commit": "87e4cdc21deec3dda9b811366fb3a3af16c08f0d"
+    "tag": "3.6.1",
+    "commit": "c76b837cacc69de6b86a0781db31a9bb7a193875"
   },
   "_source": "https://github.com/nodeca/js-yaml.git",
   "_target": "^3.5.5",

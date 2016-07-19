@@ -103,8 +103,8 @@ angular.module('schemaForm').factory('sfSelect', ['sfPath', function(sfPath) {
       return obj;
     }
 
-    if (typeof valueToSet !== 'undefined' && (
-      typeof obj[parts[0]] === 'undefined' || obj[parts[0]] === null)) {
+    if (typeof valueToSet !== 'undefined' &&
+        typeof obj[parts[0]] === 'undefined') {
        // We need to look ahead to check if array is appropriate
       obj[parts[0]] = parts.length > 2 && numRe.test(parts[1]) ? [] : {};
     }
@@ -135,10 +135,6 @@ angular.module('schemaForm').factory('sfSelect', ['sfPath', function(sfPath) {
         //Just get nex value.
         value = value[parts[i]];
       }
-    }
-
-    if (value === null) {
-      value = undefined;
     }
     return value;
   };

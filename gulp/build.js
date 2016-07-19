@@ -100,28 +100,6 @@ gulp.task('other', function () {
     .pipe(gulp.dest(path.join(conf.paths.dist, '/')));
 });
 
-gulp.task('ramldep', function () {
-  var fileFilter = $.filter(function (file) {
-    return file.stat.isFile();
-  });
-  return gulp.src([
-    path.join(conf.paths.src, '/assets/api-console/**/*.{css,js}')
-  ])
-    .pipe(fileFilter)
-    .pipe(gulp.dest(path.join(conf.paths.dist, '/assets/api-console')));
-});
-
-gulp.task('jquery', function () {
-  var fileFilter = $.filter(function (file) {
-    return file.stat.isFile();
-  });
-  return gulp.src([
-      path.join('bower_components/jquery/dist/jquery.min.js')
-    ])
-    .pipe(fileFilter)
-    .pipe(gulp.dest(path.join(conf.paths.dist, 'bower_components/jquery/dist')));
-});
-
 gulp.task('constants', function () {
   var fileFilter = $.filter(function (file) {
     return file.stat.isFile();
@@ -138,6 +116,6 @@ gulp.task('clean', function (done) {
 });
 
 gulp.task('build', ['clean'],  function (cb) {
-  gulp.start(['html', 'fonts', 'other', 'ramldep', 'jquery', 'constants'], cb)
+  gulp.start(['html', 'fonts', 'other', 'constants'], cb)
 });
 
