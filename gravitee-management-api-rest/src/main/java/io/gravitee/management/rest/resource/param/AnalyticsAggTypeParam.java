@@ -15,36 +15,30 @@
  */
 package io.gravitee.management.rest.resource.param;
 
-import javax.ws.rs.WebApplicationException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.AnalyticsType> {
+public class AnalyticsAggTypeParam {
 
-    public enum AnalyticsType {
-        HITS,
-        HITS_BY,
-        HITS_BY_STATUS,
-        HITS_BY_LATENCY,
-        GLOBAL_HITS,
-        TOP_HITS
-    }
+    private static final String SEPARATOR = ",";
+    private List<String> aggTypes;
 
-    public AnalyticsTypeParam(String param) throws WebApplicationException {
-        super(param);
-    }
+    public AnalyticsAggTypeParam(String param) {
+        aggTypes = new ArrayList<>();
 
-    @Override
-    protected AnalyticsType parse(String param) throws Throwable {
-        try {
-            if (param != null) {
-                return AnalyticsType.valueOf(param.toUpperCase());
+        if (param != null) {
+            String[] params = param.replaceAll("\\s","").split(SEPARATOR);
+            for (String _param : params) {
+                aggTypes.add(_param);
             }
-        } catch (IllegalArgumentException iae) {
         }
-
-        return AnalyticsType.HITS;
     }
 
+    public List<String> getAggTypes() {
+        return aggTypes;
+    }
 }

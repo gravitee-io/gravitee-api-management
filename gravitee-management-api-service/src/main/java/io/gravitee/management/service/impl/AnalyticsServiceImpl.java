@@ -15,13 +15,13 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.model.analytics.Bucket;
-import io.gravitee.management.model.analytics.HealthAnalytics;
-import io.gravitee.management.model.analytics.HistogramAnalytics;
+import io.gravitee.management.model.analytics.*;
 import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.*;
 import io.gravitee.repository.analytics.query.response.HealthResponse;
+import io.gravitee.repository.analytics.query.response.HitsResponse;
+import io.gravitee.repository.analytics.query.response.TopHitsResponse;
 import io.gravitee.repository.analytics.query.response.histogram.Data;
 import io.gravitee.repository.analytics.query.response.histogram.HistogramResponse;
 import org.slf4j.Logger;
@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Component
 public class AnalyticsServiceImpl implements AnalyticsService {
@@ -47,28 +49,33 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private AnalyticsRepository analyticsRepository;
 
     @Override
-    public HistogramAnalytics apiHits(String apiId, long from, long to, long interval) {
-        return apiHits(HitsByApiQuery.Type.HITS, apiId, from, to, interval);
+    public HistogramAnalytics apiHitsBy(String query, String key, String field, List<String> aggTypes, long from, long to, long interval) {
+        try {
+            return convert(analyticsRepository.query(query, key, field, aggTypes, from, to, interval), from, interval);
+        } catch (Exception ex) {
+            logger.error("An unexpected error occurs while searching for api hits by {}.", field, ex);
+            return null;
+        }
     }
 
     @Override
-    public HistogramAnalytics apiHitsByStatus(String apiId, long from, long to, long interval) {
-        return apiHits(HitsByApiQuery.Type.HITS_BY_STATUS, apiId, from, to, interval);
+    public HitsAnalytics apiGlobalHits(String query, String key, long from, long to) {
+        try {
+            return convert(analyticsRepository.query(query, key, from, to));
+        } catch (Exception ex) {
+            logger.error("An unexpected error occurs while searching for api global hits.", ex);
+            return null;
+        }
     }
 
     @Override
-    public HistogramAnalytics apiHitsByLatency(String apiId, long from, long to, long interval) {
-        return apiHits(HitsByApiQuery.Type.HITS_BY_LATENCY, apiId, from, to, interval);
-    }
-
-    @Override
-    public HistogramAnalytics apiHitsByApiKey(String apiId, long from, long to, long interval) {
-        return apiHits(HitsByApiQuery.Type.HITS_BY_APIKEY, apiId, from, to, interval);
-    }
-
-    @Override
-    public HistogramAnalytics apiHitsByPayloadSize(String apiId, long from, long to, long interval) {
-        return apiHits(HitsByApiQuery.Type.HITS_BY_PAYLOAD_SIZE, apiId, from, to, interval);
+    public TopHitsAnalytics apiTopHits(String query, String key, String field, long from, long to, int size) {
+        try {
+            return convert(analyticsRepository.query(query, key, field, from, to, size));
+        } catch (Exception ex) {
+            logger.error("An unexpected error occurs while searching for api top hits.", ex);
+            return null;
+        }
     }
 
     @Override
@@ -104,23 +111,6 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         try {
             return runHistoricalQuery(QueryBuilders.query()
                     .hitsByApiKey(apiKey)
-                    .period(DateRangeBuilder.between(from, to))
-                    .interval(IntervalBuilder.interval(interval))
-                    .type(type)
-                    .build(), from, interval);
-
-        } catch (Exception ex) {
-            logger.error("An unexpected error occurs while searching for analytics data.", ex);
-            return null;
-        }
-    }
-
-    private HistogramAnalytics apiHits(HitsByApiQuery.Type type, String apiId, long from, long to, long interval) {
-        logger.debug("Run analytics query {} for API '{}'", type, apiId);
-
-        try {
-            return runHistoricalQuery(QueryBuilders.query()
-                    .hitsByApi(apiId)
                     .period(DateRangeBuilder.between(from, to))
                     .interval(IntervalBuilder.interval(interval))
                     .type(type)
@@ -180,5 +170,21 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         healthAnalytics.setBuckets(response.buckets());
 
         return healthAnalytics;
+    }
+
+    private HitsAnalytics convert(HitsResponse hitsResponse) {
+        HitsAnalytics hitsAnalytics = new HitsAnalytics();
+        hitsAnalytics.setName(hitsResponse.getName());
+        hitsAnalytics.setHits(hitsResponse.getHits());
+
+        return  hitsAnalytics;
+    }
+
+    private TopHitsAnalytics convert(TopHitsResponse topHitsResponse) {
+        TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
+        topHitsAnalytics.setName(topHitsResponse.getName());
+        topHitsAnalytics.setValues(topHitsResponse.getValues());
+
+        return  topHitsAnalytics;
     }
 }

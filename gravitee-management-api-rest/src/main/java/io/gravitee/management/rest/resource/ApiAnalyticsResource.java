@@ -17,7 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.analytics.HistogramAnalytics;
+import io.gravitee.management.model.analytics.Analytics;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.management.service.ApiService;
@@ -57,43 +57,34 @@ public class ApiAnalyticsResource extends AbstractResource {
 
         analyticsParam.validate();
 
-        HistogramAnalytics analytics = null;
+        Analytics analytics = null;
 
         switch(analyticsParam.getTypeParam().getValue()) {
-            case HITS:
-                analytics = analyticsService.apiHits(
-                        api.getId(),
+            case HITS_BY:
+                analytics = analyticsService.apiHitsBy(
+                        analyticsParam.getQuery(),
+                        analyticsParam.getKey(),
+                        analyticsParam.getField(),
+                        analyticsParam.getAggType(),
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getInterval());
                 break;
-            case HITS_BY_LATENCY:
-                analytics = analyticsService.apiHitsByLatency(
-                        api.getId(),
+            case GLOBAL_HITS:
+                analytics = analyticsService.apiGlobalHits(
+                        analyticsParam.getQuery(),
+                        analyticsParam.getKey(),
                         analyticsParam.getFrom(),
-                        analyticsParam.getTo(),
-                        analyticsParam.getInterval());
+                        analyticsParam.getTo());
                 break;
-            case HITS_BY_STATUS:
-                analytics = analyticsService.apiHitsByStatus(
-                        api.getId(),
+            case TOP_HITS:
+                analytics = analyticsService.apiTopHits(
+                        analyticsParam.getQuery(),
+                        analyticsParam.getKey(),
+                        analyticsParam.getField(),
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
-                        analyticsParam.getInterval());
-                break;
-            case HITS_BY_APIKEY:
-                analytics = analyticsService.apiHitsByApiKey(
-                        api.getId(),
-                        analyticsParam.getFrom(),
-                        analyticsParam.getTo(),
-                        analyticsParam.getInterval());
-                break;
-            case HITS_BY_PAYLOAD_SIZE:
-                analytics = analyticsService.apiHitsByPayloadSize(
-                        api.getId(),
-                        analyticsParam.getFrom(),
-                        analyticsParam.getTo(),
-                        analyticsParam.getInterval());
+                        analyticsParam.getSize());
                 break;
         }
 

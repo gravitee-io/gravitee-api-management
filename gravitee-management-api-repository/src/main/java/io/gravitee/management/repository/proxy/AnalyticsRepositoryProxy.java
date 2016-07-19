@@ -19,8 +19,13 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.HealthResponse;
+import io.gravitee.repository.analytics.query.response.HitsResponse;
 import io.gravitee.repository.analytics.query.response.Response;
+import io.gravitee.repository.analytics.query.response.TopHitsResponse;
+import io.gravitee.repository.analytics.query.response.histogram.HistogramResponse;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -37,5 +42,20 @@ public class AnalyticsRepositoryProxy extends AbstractProxy<AnalyticsRepository>
     @Override
     public HealthResponse query(String s, long l, long l1, long l2) throws AnalyticsException {
         return target.query(s, l, l1, l2);
+    }
+
+    @Override
+    public HitsResponse query(String s, String s1, long l, long l1) throws AnalyticsException {
+        return target.query(s, s1, l, l1);
+    }
+
+    @Override
+    public TopHitsResponse query(String s, String s1, String s2, long l, long l1, int i) throws AnalyticsException {
+        return target.query(s, s1, s2, l, l1, i);
+    }
+
+    @Override
+    public HistogramResponse query(String s, String s1, String s2, List<String> s3, long l, long l1, long l2) throws AnalyticsException {
+        return target.query(s, s1, s2, s3, l, l1, l2);
     }
 }

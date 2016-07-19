@@ -15,32 +15,9 @@
  */
 package io.gravitee.management.model.analytics;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class HistogramAnalytics implements Analytics {
-
-    private List<Long> timestamps = new ArrayList<>();
-    private List<Bucket> values = new ArrayList<>();
-
-    public List<Bucket> getValues() {
-        return values;
-    }
-
-    public void setValues(List<Bucket> values) {
-        this.values = values;
-    }
-
-    public List<Long> getTimestamps() {
-        return timestamps;
-    }
-
-    public void setTimestamps(List<Long> timestamps) {
-        this.timestamps = timestamps;
-    }
+public interface Analytics {
 }

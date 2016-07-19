@@ -15,32 +15,31 @@
  */
 package io.gravitee.management.model.analytics;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class HistogramAnalytics implements Analytics {
+public class TopHitsAnalytics implements Analytics {
 
-    private List<Long> timestamps = new ArrayList<>();
-    private List<Bucket> values = new ArrayList<>();
+    private String name;
 
-    public List<Bucket> getValues() {
+    private Map<String, Long> values;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Map<String, Long> getValues() {
         return values;
     }
 
-    public void setValues(List<Bucket> values) {
+    public void setValues(Map<String, Long> values) {
         this.values = values;
-    }
-
-    public List<Long> getTimestamps() {
-        return timestamps;
-    }
-
-    public void setTimestamps(List<Long> timestamps) {
-        this.timestamps = timestamps;
     }
 }

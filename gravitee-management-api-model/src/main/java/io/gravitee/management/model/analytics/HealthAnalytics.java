@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class HealthAnalytics {
+public class HealthAnalytics implements Analytics {
 
     private long [] timestamps;
 

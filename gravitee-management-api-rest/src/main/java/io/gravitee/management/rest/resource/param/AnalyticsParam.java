@@ -19,6 +19,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -33,6 +34,22 @@ public class AnalyticsParam {
 
     @QueryParam("interval")
     private long interval;
+
+    @QueryParam("query")
+    private String query;
+
+    @QueryParam("key")
+    private String key;
+
+    @QueryParam("field")
+    private String field;
+
+    @QueryParam("size")
+    private int size;
+
+    @QueryParam("aggType")
+    @DefaultValue("terms")
+    private AnalyticsAggTypeParam aggType;
 
     @QueryParam("type")
     @DefaultValue("HITS")
@@ -60,6 +77,46 @@ public class AnalyticsParam {
 
     public void setTo(long to) {
         this.to = to;
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getField() {
+        return field;
+    }
+
+    public void setField(String field) {
+        this.field = field;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public List<String> getAggType() {
+        return aggType.getAggTypes();
+    }
+
+    public void setAggType(AnalyticsAggTypeParam aggType) {
+        this.aggType = aggType;
     }
 
     public AnalyticsTypeParam getTypeParam() {
