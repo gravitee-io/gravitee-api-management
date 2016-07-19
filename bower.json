@@ -1,6 +1,6 @@
 {
   "name": "gravitee-management-webui",
-  "version": "0.16.0",
+  "version": "0.15.0",
   "description": "Gravitee IO - API Management - Admin - Web Console",
   "dependencies": {
     "angular-ui-router": "~0.2.15",
@@ -12,7 +12,7 @@
     "angular-cookies": "~1.4.9",
     "jquery": "~2.2.0",
     "bootstrap-sass": "3.3.6",
-    "angular-material-data-table": "~0.9.9",
+    "angular-material-data-table": "^0.10.9",
     "highcharts": "~4.2.1",
     "highcharts-ng": "~0.0.11",
     "lodash": "~4.0.1",
@@ -33,7 +33,7 @@
     "js-yaml": "^3.5.5",
     "pie-chart": "n3-charts.pie-chart#^1.0.0",
     "d3": "3.1.10",
-    "angular-schema-form-ui-codemirror": "^0.2.2"
+    "tc-angular-chartjs": "^2.0.0"
   },
   "resolutions": {
     "angular-material": "^1.0.0",
@@ -67,29 +67,6 @@
     "pie-chart": {
       "main": [
         "./dist/pie-chart.js"
-      ]
-    },
-    "codemirror": {
-      "main": [
-        "./lib/codemirror.js",
-        "./lib/codemirror.css",
-        "./mode/xml/xml.js",
-        "./addon/edit/closetag.js",
-        "./addon/fold/xml-fold.js",
-        "./mode/javascript/javascript.js",
-        "./mode/groovy/groovy.js",
-        "./addon/search/search.js",
-        "./addon/search/searchcursor.js",
-        "./addon/search/jump-to-line.js",
-        "./addon/dialog/dialog.js",
-        "./addon/dialog/dialog.css",
-        "./addon/lint/lint.js",
-        "./addon/lint/lint.css",
-        "./addon/lint/json-lint.js",
-        "./addon/lint/yaml-lint.js",
-        "./addon/display/placeholder.js"
-
-
       ]
     }
   }

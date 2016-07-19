@@ -44,8 +44,6 @@ class UserService {
 	}
 
 	isUserInRoles(roles) {
-    roles = (Array.isArray(roles)) ? roles : [roles];
-    
 	  if (!this.$rootScope.graviteeUser) {
 	    return false;
 	  }

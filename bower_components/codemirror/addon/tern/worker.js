@@ -1,8 +1,3 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: http://codemirror.net/LICENSE
-
-// declare global: tern, server
-
 var server;
 
 this.onmessage = function(e) {

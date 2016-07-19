@@ -43,25 +43,11 @@ class ApiAdminController {
         value: 'WEIGHTED_RANDOM'
       }];
 
-    this.$scope.proxies = [
-      {
-        name: 'HTTP CONNECT proxy',
-        value: 'HTTP'
-      }, {
-        name: 'SOCKS4/4a tcp proxy',
-        value: 'SOCKS4'
-      }, {
-        name: 'SOCKS5 tcp proxy',
-        value: 'SOCKS5'
-      }];
-
     this.initState();
   }
 
   initState() {
     this.$scope.apiEnabled = (this.$scope.$parent.apiCtrl.api.state === 'started');
-
-    // Failover
     this.failoverEnabled = (this.api.proxy.failover !== undefined);
     if (!this.failoverEnabled) {
       // Set default values
@@ -71,15 +57,6 @@ class ApiAdminController {
         cases: ['TIMEOUT']
       }
     }
-
-    // HTTP proxy
-    if (this.api.proxy.http.http_proxy === undefined) {
-      this.api.proxy.http.http_proxy = {
-        enabled: false,
-        type: 'HTTP'
-      }
-    }
-
     var self = this;
     this.$scope.$on("apiChangeSucceed", function () {
       self.initialApi = _.cloneDeep(self.$scope.$parent.apiCtrl.api);

@@ -62,8 +62,7 @@ class ApiHealthCheckController {
       ];
     }
     if (this.healthcheck.expectation.assertions === undefined) {
-      // Set default expectation if empty
-      this.healthcheck.expectation.assertions = ['#response.status == 200'];
+      this.healthcheck.expectation.assertions = [];
     }
   }
 

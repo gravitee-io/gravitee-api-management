@@ -154,7 +154,7 @@
   right: auto;
   bottom: -5px;
   /* Copy styles from ng-messages */
-  font-size: 11px;
+  font-size: 12px;
   line-height: 14px;
   transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
   /* Set our own color */
@@ -218,42 +218,4 @@
   box-shadow: 5px 5px 50px #343434;
   height: 100px;
   margin-right: 20px;
-}
-
-
-.md-subheader .md-subheader-inner {
-  border-bottom: 1px solid #d8d8d8;
-  border-top: 1px solid #d8d8d8;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.md-subheader .md-subheader-inner md-checkbox {
-  margin-bottom: 0px;
-}
-
-span.proxy-activated {
-  font-size: 11px;
-  font-weight: normal;
-  color: #00AA00;
-}
-
-span.proxy-deactivated {
-  font-size: 11px;
-  font-weight: normal;
-  color: grey;
-}
-
-.md-subheader .md-subheader-inner .hints {
-  /* Position the hint */
-  left: 2px;
-  right: auto;
-  bottom: -5px;
-  /* Copy styles from ng-messages */
-  line-height: 14px;
-  font-size: 11px;
-  font-weight: normal;
-  transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
-  /* Set our own color */
-  color: darkslategrey;
 }

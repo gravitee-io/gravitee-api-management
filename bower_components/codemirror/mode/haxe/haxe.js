@@ -1,16 +1,3 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: http://codemirror.net/LICENSE
-
-(function(mod) {
-  if (typeof exports == "object" && typeof module == "object") // CommonJS
-    mod(require("../../lib/codemirror"));
-  else if (typeof define == "function" && define.amd) // AMD
-    define(["../../lib/codemirror"], mod);
-  else // Plain browser env
-    mod(CodeMirror);
-})(function(CodeMirror) {
-"use strict";
-
 CodeMirror.defineMode("haxe", function(config, parserConfig) {
   var indentUnit = config.indentUnit;
 
@@ -29,7 +16,7 @@ CodeMirror.defineMode("haxe", function(config, parserConfig) {
       "function": kw("function"), "catch": kw("catch"), "untyped": kw("untyped"), "callback": kw("cb"),
       "for": kw("for"), "switch": kw("switch"), "case": kw("case"), "default": kw("default"),
       "in": operator, "never": kw("property_access"), "trace":kw("trace"),
-    "class": type, "abstract":type, "enum":type, "interface":type, "typedef":type, "extends":type, "implements":type, "dynamic":type,
+    "class": type, "enum":type, "interface":type, "typedef":type, "extends":type, "implements":type, "dynamic":type,
       "true": atom, "false": atom, "null": atom
     };
   }();
@@ -248,12 +235,11 @@ CodeMirror.defineMode("haxe", function(config, parserConfig) {
   poplex.lex = true;
 
   function expect(wanted) {
-    function f(type) {
+    return function(type) {
       if (type == wanted) return cont();
       else if (wanted == ";") return pass();
-      else return cont(f);
+      else return cont(arguments.callee);
     };
-    return f;
   }
 
   function statement(type) {
@@ -311,7 +297,7 @@ CodeMirror.defineMode("haxe", function(config, parserConfig) {
   function metadef(type) {
     if(type == ":") return cont(metadef);
     if(type == "variable") return cont(metadef);
-    if(type == "(") return cont(pushlex(")"), commasep(metaargs, ")"), poplex, statement);
+    if(type == "(") return cont(pushlex(")"), comasep(metaargs, ")"), poplex, statement);
   }
   function metaargs(type) {
     if(type == "variable") return cont();
@@ -319,13 +305,12 @@ CodeMirror.defineMode("haxe", function(config, parserConfig) {
 
   function importdef (type, value) {
   if(type == "variable" && /[A-Z]/.test(value.charAt(0))) { registerimport(value); return cont(); }
-  else if(type == "variable" || type == "property" || type == "." || value == "*") return cont(importdef);
+  else if(type == "variable" || type == "property" || type == ".") return cont(importdef);
   }
 
   function typedef (type, value)
   {
   if(type == "variable" && /[A-Z]/.test(value.charAt(0))) { registerimport(value); return cont(); }
-  else if (type == "type" && /[A-Z]/.test(value.charAt(0))) { return cont(); }
   }
 
   function maybelabel(type) {
@@ -437,82 +422,8 @@ CodeMirror.defineMode("haxe", function(config, parserConfig) {
       else return lexical.indented + (closing ? 0 : indentUnit);
     },
 
-    electricChars: "{}",
-    blockCommentStart: "/*",
-    blockCommentEnd: "*/",
-    lineComment: "//"
+    electricChars: "{}"
   };
 });
 
 CodeMirror.defineMIME("text/x-haxe", "haxe");
-
-CodeMirror.defineMode("hxml", function () {
-
-  return {
-    startState: function () {
-      return {
-        define: false,
-        inString: false
-      };
-    },
-    token: function (stream, state) {
-      var ch = stream.peek();
-      var sol = stream.sol();
-
-      ///* comments */
-      if (ch == "#") {
-        stream.skipToEnd();
-        return "comment";
-      }
-      if (sol && ch == "-") {
-        var style = "variable-2";
-
-        stream.eat(/-/);
-
-        if (stream.peek() == "-") {
-          stream.eat(/-/);
-          style = "keyword a";
-        }
-
-        if (stream.peek() == "D") {
-          stream.eat(/[D]/);
-          style = "keyword c";
-          state.define = true;
-        }
-
-        stream.eatWhile(/[A-Z]/i);
-        return style;
-      }
-
-      var ch = stream.peek();
-
-      if (state.inString == false && ch == "'") {
-        state.inString = true;
-        ch = stream.next();
-      }
-
-      if (state.inString == true) {
-        if (stream.skipTo("'")) {
-
-        } else {
-          stream.skipToEnd();
-        }
-
-        if (stream.peek() == "'") {
-          stream.next();
-          state.inString = false;
-        }
-
-        return "string";
-      }
-
-      stream.next();
-      return null;
-    },
-    lineComment: "#"
-  };
-});
-
-CodeMirror.defineMIME("text/x-hxml", "hxml");
-
-});

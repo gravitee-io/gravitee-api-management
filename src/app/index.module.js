@@ -19,7 +19,6 @@ import interceptorConfig from './index.interceptor';
 import delegatorConfig from './index.delegator';
 import runBlock from './index.run';
 
-import ChartDirective from './components/chart/chart.directive';
 import FormDirective from './components/form/form.directive';
 import AutofocusDirective from './components/autofocus/autofocus.directive';
 import ApiService from './api/api.service';
@@ -28,7 +27,7 @@ import ApiPortalController from './api/portal/apiPortal.controller';
 import ApiPortalPageController from './api/portal/apiPage.controller';
 import ApiGeneralController from './api/admin/general/apiGeneral.controller';
 import ApiAdminController from './api/admin/apiAdmin.controller';
-import ApiAnalyticsController from './api/admin/analytics.controller';
+import ApiAnalyticsController from './api/admin/analytics/analytics.controller';
 import ApiMembersController from './api/admin/members.controller';
 import ApiPoliciesController from './api/admin/policies/policies.controller';
 import AddPoliciesPathController from './api/admin/policies/addPoliciesPath.controller';
@@ -80,7 +79,7 @@ import ImageDirective from './components/image/image.directive';
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'highcharts-ng', 'ngCookies', 'dragularModule', 'readMore',
     'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
-    'ab-base64',  'ngFileUpload', 'n3-pie-chart'])
+    'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'tc.chartjs'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -147,7 +146,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .service('UserService', UserService)
   .service('ResourceService', ResourceService)
   .service('FetcherService', FetcherService)
-  .directive('chart', () => new ChartDirective())
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
   .directive('graviteePage', () => new PageDirective())

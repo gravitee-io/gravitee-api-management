@@ -40,7 +40,7 @@
         <h4>{{currentResource}}</h4>
       </md-list-item>
       <md-list-item ng-repeat="menuItem in subMenuItems">
-        <a ui-sref="{{menuItem.name}}" ui-sref-opts="{reload: true}" ui-sref-active="sidenav-active" title="{{menuItem.menu.label}}">
+        <a ui-sref="{{menuItem.name}}" ui-sref-active="sidenav-active" title="{{menuItem.menu.label}}">
           <ng-md-icon icon="{{menuItem.menu.icon}}"></ng-md-icon>
           <span ng-if="!reducedMode">{{menuItem.menu.label}}</span>
         </a>

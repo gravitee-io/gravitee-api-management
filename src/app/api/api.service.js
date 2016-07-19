@@ -85,20 +85,36 @@ class ApiService {
   /*
    * Analytics
    */
-  apiHits(api, interval, from, to) {
+  apiHits(api, from, to, interval) {
     return this.$http.get(this.apisURL + api + '/analytics?type=hits&interval=' + interval + '&from=' + from + '&to=' + to);
   }
 
-  apiHitsByStatus(api, interval, from, to) {
+  apiHitsByStatus(api, from, to, interval) {
     return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_status&interval=' + interval + '&from=' + from + '&to=' + to);
   }
 
-  apiHitsByLatency(api, interval, from, to) {
+  apiHitsByLatency(api, from, to, interval) {
     return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_latency&interval=' + interval + '&from=' + from + '&to=' + to);
   }
 
-  apiHitsByPayloadSize(api, interval, from, to) {
+  apiHitsByPayloadSize(api, from, to, interval) {
     return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_payload_size&interval=' + interval + '&from=' + from + '&to=' + to);
+  }
+
+  apiHitsByApplication(api, from, to, interval) {
+    return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_application&interval=' + interval + '&from=' + from + '&to=' + to);
+  }
+
+  apiHitsBy(api, key, query, field, aggType, from, to, interval) {
+    return this.$http.get(this.apisURL + api + '/analytics?type=hits_by&key=' + key + '&query=' + query + '&field=' + field + '&aggType=' + aggType + '&interval=' + interval + '&from=' + from + '&to=' + to);
+  }
+
+  apiGlobalHits(api, from, to, interval, key, query) {
+    return this.$http.get(this.apisURL + api + '/analytics?type=global_hits&key=' + key + '&query=' + query + '&interval=' + interval + '&from=' + from + '&to=' + to)
+  }
+
+  apiTopHits(api, from, to, interval, key, query, field, size) {
+    return this.$http.get(this.apisURL + api + '/analytics?type=top_hits&key=' + key + '&query=' + query + '&field=' + field + '&interval=' + interval + '&from=' + from + '&to=' + to + '&size=' + size)
   }
 
   /*

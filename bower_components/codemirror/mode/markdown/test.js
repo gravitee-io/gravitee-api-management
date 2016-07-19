@@ -1,60 +1,6 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: http://codemirror.net/LICENSE
-
 (function() {
   var mode = CodeMirror.getMode({tabSize: 4}, "markdown");
   function MT(name) { test.mode(name, mode, Array.prototype.slice.call(arguments, 1)); }
-  var modeHighlightFormatting = CodeMirror.getMode({tabSize: 4}, {name: "markdown", highlightFormatting: true});
-  function FT(name) { test.mode(name, modeHighlightFormatting, Array.prototype.slice.call(arguments, 1)); }
-
-  FT("formatting_emAsterisk",
-     "[em&formatting&formatting-em *][em foo][em&formatting&formatting-em *]");
-
-  FT("formatting_emUnderscore",
-     "[em&formatting&formatting-em _][em foo][em&formatting&formatting-em _]");
-
-  FT("formatting_strongAsterisk",
-     "[strong&formatting&formatting-strong **][strong foo][strong&formatting&formatting-strong **]");
-
-  FT("formatting_strongUnderscore",
-     "[strong&formatting&formatting-strong __][strong foo][strong&formatting&formatting-strong __]");
-
-  FT("formatting_codeBackticks",
-     "[comment&formatting&formatting-code `][comment foo][comment&formatting&formatting-code `]");
-
-  FT("formatting_doubleBackticks",
-     "[comment&formatting&formatting-code ``][comment foo ` bar][comment&formatting&formatting-code ``]");
-
-  FT("formatting_atxHeader",
-     "[header&header-1&formatting&formatting-header&formatting-header-1 #][header&header-1  foo # bar ][header&header-1&formatting&formatting-header&formatting-header-1 #]");
-
-  FT("formatting_setextHeader",
-     "foo",
-     "[header&header-1&formatting&formatting-header&formatting-header-1 =]");
-
-  FT("formatting_blockquote",
-     "[quote&quote-1&formatting&formatting-quote&formatting-quote-1 > ][quote&quote-1 foo]");
-
-  FT("formatting_list",
-     "[variable-2&formatting&formatting-list&formatting-list-ul - ][variable-2 foo]");
-  FT("formatting_list",
-     "[variable-2&formatting&formatting-list&formatting-list-ol 1. ][variable-2 foo]");
-
-  FT("formatting_link",
-     "[link&formatting&formatting-link [][link foo][link&formatting&formatting-link ]]][string&formatting&formatting-link-string (][string http://example.com/][string&formatting&formatting-link-string )]");
-
-  FT("formatting_linkReference",
-     "[link&formatting&formatting-link [][link foo][link&formatting&formatting-link ]]][string&formatting&formatting-link-string [][string bar][string&formatting&formatting-link-string ]]]",
-     "[link&formatting&formatting-link [][link bar][link&formatting&formatting-link ]]:] [string http://example.com/]");
-
-  FT("formatting_linkWeb",
-     "[link&formatting&formatting-link <][link http://example.com/][link&formatting&formatting-link >]");
-
-  FT("formatting_linkEmail",
-     "[link&formatting&formatting-link <][link user@example.com][link&formatting&formatting-link >]");
-
-  FT("formatting_escape",
-     "[formatting-escape \\*]");
 
   MT("plainText",
      "foo");
@@ -91,14 +37,6 @@
      "    [comment bar]",
      "        [comment hello]",
      "    [comment world]");
-
-  // Code blocks should end even after extra indented lines
-  MT("codeBlocksWithTrailingIndentedLine",
-     "    [comment foo]",
-     "        [comment bar]",
-     "    [comment baz]",
-     "    ",
-     "hello");
 
   // Code blocks using 1 tab (regardless of CodeMirror.indentWithTabs value)
   MT("codeBlocksUsing1Tab",
@@ -149,31 +87,27 @@
   // http://daringfireball.net/projects/markdown/syntax#header
 
   MT("atxH1",
-     "[header&header-1 # foo]");
+     "[header # foo]");
 
   MT("atxH2",
-     "[header&header-2 ## foo]");
+     "[header ## foo]");
 
   MT("atxH3",
-     "[header&header-3 ### foo]");
+     "[header ### foo]");
 
   MT("atxH4",
-     "[header&header-4 #### foo]");
+     "[header #### foo]");
 
   MT("atxH5",
-     "[header&header-5 ##### foo]");
+     "[header ##### foo]");
 
   MT("atxH6",
-     "[header&header-6 ###### foo]");
+     "[header ###### foo]");
 
   // H6 - 7x '#' should still be H6, per Dingus
   // http://daringfireball.net/projects/markdown/dingus
   MT("atxH6NotH7",
-     "[header&header-6 ####### foo]");
-
-  // Inline styles should be parsed inside headers
-  MT("atxH1inline",
-     "[header&header-1 # foo ][header&header-1&em *bar*]");
+     "[header ####### foo]");
 
   // Setext headers - H1, H2
   // Per documentation, "Any number of underlining =’s or -’s will work."
@@ -185,69 +119,69 @@
   // Check if single underlining = works
   MT("setextH1",
      "foo",
-     "[header&header-1 =]");
+     "[header =]");
 
   // Check if 3+ ='s work
   MT("setextH1",
      "foo",
-     "[header&header-1 ===]");
+     "[header ===]");
 
   // Check if single underlining - works
   MT("setextH2",
      "foo",
-     "[header&header-2 -]");
+     "[header -]");
 
   // Check if 3+ -'s work
   MT("setextH2",
      "foo",
-     "[header&header-2 ---]");
+     "[header ---]");
 
   // Single-line blockquote with trailing space
   MT("blockquoteSpace",
-     "[quote&quote-1 > foo]");
+     "[atom > foo]");
 
   // Single-line blockquote
   MT("blockquoteNoSpace",
-     "[quote&quote-1 >foo]");
+     "[atom >foo]");
 
   // No blank line before blockquote
   MT("blockquoteNoBlankLine",
      "foo",
-     "[quote&quote-1 > bar]");
+     "[atom > bar]");
 
   // Nested blockquote
   MT("blockquoteSpace",
-     "[quote&quote-1 > foo]",
-     "[quote&quote-1 >][quote&quote-2 > foo]",
-     "[quote&quote-1 >][quote&quote-2 >][quote&quote-3 > foo]");
+     "[atom > foo]",
+     "[number > > foo]",
+     "[atom > > > foo]");
 
   // Single-line blockquote followed by normal paragraph
   MT("blockquoteThenParagraph",
-     "[quote&quote-1 >foo]",
+     "[atom >foo]",
      "",
      "bar");
 
   // Multi-line blockquote (lazy mode)
   MT("multiBlockquoteLazy",
-     "[quote&quote-1 >foo]",
-     "[quote&quote-1 bar]");
+     "[atom >foo]",
+     "[atom bar]");
 
   // Multi-line blockquote followed by normal paragraph (lazy mode)
   MT("multiBlockquoteLazyThenParagraph",
-     "[quote&quote-1 >foo]",
-     "[quote&quote-1 bar]",
+     "[atom >foo]",
+     "[atom bar]",
      "",
      "hello");
 
   // Multi-line blockquote (non-lazy mode)
   MT("multiBlockquote",
-     "[quote&quote-1 >foo]",
-     "[quote&quote-1 >bar]");
+     "[atom >foo]",
+     "[atom >bar]");
 
   // Multi-line blockquote followed by normal paragraph (non-lazy mode)
   MT("multiBlockquoteThenParagraph",
-     "[quote&quote-1 >foo]",
-     "[quote&quote-1 >bar]",
+     "[atom >foo]",
+     "[atom >bar]",
      "",
      "hello");
 
@@ -286,11 +220,6 @@
      "foo",
      "1. bar",
      "2. hello");
-
-  // List after header
-  MT("listAfterHeader",
-     "[header&header-1 # foo]",
-     "[variable-2 - bar]");
 
   // Formatting in lists (*)
   MT("listAsteriskFormatting",
@@ -377,7 +306,7 @@
      "",
      "[variable-2 * bar]",
      "",
-     "    [variable-2&quote&quote-1 > hello]");
+     "    [variable-2&atom > hello]");
 
   // Code block
   MT("blockquoteCode",
@@ -435,7 +364,7 @@
      "",
      "    [variable-3 + bar]",
      "",
-     "        [quote&quote-1&variable-3 > hello]");
+     "        [atom&variable-3 > hello]");
 
   MT("listCode",
      "[variable-2 * foo]",
@@ -648,10 +577,6 @@
   MT("emEscapedBySpaceOut",
      "foo _ bar[em _hello_]world");
 
-  MT("emEscapedByNewline",
-     "foo",
-     "_ bar[em _hello_]world");
-
   // Unclosed emphasis characters
   // Instead of simply marking as EM / STRONG, it would be nice to have an
   // incomplete flag for EM and STRONG, that is styled slightly different.
@@ -718,10 +643,6 @@
   MT("doubleEscapeHash",
      "\\\\# foo");
 
-  MT("escapeNewline",
-     "\\",
-     "[em *foo*]");
-
 
   // Tests to make sure GFM-specific things aren't getting through
 
@@ -732,23 +653,4 @@
      "[comment ```]",
      "foo",
      "[comment ```]");
-
-  // Tests that require XML mode
-
-  MT("xmlMode",
-     "[tag&bracket <][tag div][tag&bracket >]",
-     "*foo*",
-     "[tag&bracket <][tag http://github.com][tag&bracket />]",
-     "[tag&bracket </][tag div][tag&bracket >]",
-     "[link <http://github.com/>]");
-
-  MT("xmlModeWithMarkdownInside",
-     "[tag&bracket <][tag div] [attribute markdown]=[string 1][tag&bracket >]",
-     "[em *foo*]",
-     "[link <http://github.com/>]",
-     "[tag </div>]",
-     "[link <http://github.com/>]",
-     "[tag&bracket <][tag div][tag&bracket >]",
-     "[tag&bracket </][tag div][tag&bracket >]");
-
 })();

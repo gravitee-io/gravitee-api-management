@@ -1,6 +1,3 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: http://codemirror.net/LICENSE
-
 // Glue code between CodeMirror and Tern.
 //
 // Create a CodeMirror.TernServer to wrap an actual Tern server,
@@ -17,7 +14,7 @@
 //   indicate that a file is not available.
 // * fileFilter: A function(value, docName, doc) that will be applied
 //   to documents before passing them on to Tern.
-// * switchToDoc: A function(name, doc) that should, when providing a
+// * switchToDoc: A function(name) that should, when providing a
 //   multi-file view, switch the view or focus to the named file.
 // * showError: A function(editor, message) that can be used to
 //   override the way errors are displayed.
@@ -27,9 +24,6 @@
 //   no tip should be shown. By default the docstring is shown.
 // * typeTip: Like completionTip, but for the tooltips shown for type
 //   queries.
-// * responseFilter: A function(doc, query, request, error, data) that
-//   will be applied to the Tern responses before treating them
-//
 //
 // It is possible to run the Tern server in a web worker by specifying
 // these additional options:
@@ -43,16 +37,8 @@
 //   load. Or, if you minified those into a single script and included
 //   them in the workerScript, simply leave this undefined.
 
-(function(mod) {
-  if (typeof exports == "object" && typeof module == "object") // CommonJS
-    mod(require("../../lib/codemirror"));
-  else if (typeof define == "function" && define.amd) // AMD
-    define(["../../lib/codemirror"], mod);
-  else // Plain browser env
-    mod(CodeMirror);
-})(function(CodeMirror) {
+(function() {
   "use strict";
-  // declare global: tern
 
   CodeMirror.TernServer = function(options) {
     var self = this;
@@ -75,9 +61,6 @@
     this.cachedArgHints = null;
     this.activeArgHints = null;
     this.jumpStack = [];
-
-    this.getHint = function(cm, c) { return hint(self, cm, c); };
-    this.getHint.async = true;
   };
 
   CodeMirror.TernServer.prototype = {
@@ -88,27 +71,28 @@
       return this.docs[name] = data;
     },
 
-    delDoc: function(id) {
-      var found = resolveDoc(this, id);
+    delDoc: function(name) {
+      var found = this.docs[name];
       if (!found) return;
       CodeMirror.off(found.doc, "change", this.trackChange);
-      delete this.docs[found.name];
-      this.server.delFile(found.name);
+      delete this.docs[name];
+      this.server.delFile(name);
     },
 
-    hideDoc: function(id) {
+    hideDoc: function(name) {
       closeArgHints(this);
-      var found = resolveDoc(this, id);
+      var found = this.docs[name];
       if (found && found.changed) sendDoc(this, found);
     },
 
     complete: function(cm) {
-      cm.showHint({hint: this.getHint});
+      var self = this;
+      CodeMirror.showHint(cm, function(cm, c) { return hint(self, cm, c); }, {async: true});
     },
 
-    showType: function(cm, pos, c) { showContextInfo(this, cm, pos, "type", c); },
+    getHint: function(cm, c) { return hint(this, cm, c); },
 
-    showDocs: function(cm, pos, c) { showContextInfo(this, cm, pos, "documentation", c); },
+    showType: function(cm) { showType(this, cm); },
 
     updateArgHints: function(cm) { updateArgHints(this, cm); },
 
@@ -118,25 +102,8 @@
 
     rename: function(cm) { rename(this, cm); },
 
-    selectName: function(cm) { selectName(this, cm); },
-
-    request: function (cm, query, c, pos) {
-      var self = this;
-      var doc = findDoc(this, cm.getDoc());
-      var request = buildRequest(this, doc, query, pos);
-
-      this.server.request(request, function (error, data) {
-        if (!error && self.options.responseFilter)
-          data = self.options.responseFilter(doc, query, request, error, data);
-        c(error, data);
-      });
-    },
-
-    destroy: function () {
-      if (this.worker) {
-        this.worker.terminate();
-        this.worker = null;
-      }
+    request: function(cm, query, c) {
+      this.server.request(buildRequest(this, findDoc(this, cm.getDoc()), query), c);
     }
   };
 
@@ -166,12 +133,6 @@
     return ts.addDoc(name, doc);
   }
 
-  function resolveDoc(ts, id) {
-    if (typeof id == "string") return ts.docs[id];
-    if (id instanceof CodeMirror) id = id.getDoc();
-    if (id instanceof CodeMirror.Doc) return findDoc(ts, id);
-  }
-
   function trackChange(ts, doc, change) {
     var data = findDoc(ts, doc);
 
@@ -194,7 +155,7 @@
 
   function sendDoc(ts, doc) {
     ts.server.request({files: [{type: "full", name: doc.name, text: docValue(ts, doc)}]}, function(error) {
-      if (error) window.console.error(error);
+      if (error) console.error(error);
       else doc.changed = null;
     });
   }
@@ -248,8 +209,8 @@
 
   // Type queries
 
-  function showContextInfo(ts, cm, pos, queryName, c) {
-    ts.request(cm, queryName, function(error, data) {
+  function showType(ts, cm) {
+    ts.request(cm, "type", function(error, data) {
       if (error) return showError(ts, cm, error);
       if (ts.options.typeTip) {
         var tip = ts.options.typeTip(data);
@@ -259,14 +220,11 @@
           tip.appendChild(document.createTextNode(" — " + data.doc));
         if (data.url) {
           tip.appendChild(document.createTextNode(" "));
-          var child = tip.appendChild(elt("a", null, "[docs]"));
-          child.href = data.url;
-          child.target = "_blank";
+          tip.appendChild(elt("a", null, "[docs]")).href = data.url;
         }
       }
       tempTooltip(cm, tip);
-      if (c) c();
-    }, pos);
+    });
   }
 
   // Maintaining argument hints
@@ -275,30 +233,18 @@
     closeArgHints(ts);
 
     if (cm.somethingSelected()) return;
-    var state = cm.getTokenAt(cm.getCursor()).state;
-    var inner = CodeMirror.innerMode(cm.getMode(), state);
-    if (inner.mode.name != "javascript") return;
-    var lex = inner.state.lexical;
+    var lex = cm.getTokenAt(cm.getCursor()).state.lexical;
     if (lex.info != "call") return;
 
-    var ch, argPos = lex.pos || 0, tabSize = cm.getOption("tabSize");
-    for (var line = cm.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
-      var str = cm.getLine(line), extra = 0;
-      for (var pos = 0;;) {
-        var tab = str.indexOf("\t", pos);
-        if (tab == -1) break;
-        extra += tabSize - (tab + extra) % tabSize - 1;
-        pos = tab + 1;
-      }
-      ch = lex.column - extra;
-      if (str.charAt(ch) == "(") {found = true; break;}
-    }
+    var ch = lex.column, pos = lex.pos || 0;
+    for (var line = cm.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line)
+      if (cm.getLine(line).charAt(ch) == "(") {found = true; break;}
     if (!found) return;
 
     var start = Pos(line, ch);
     var cache = ts.cachedArgHints;
     if (cache && cache.doc == cm.getDoc() && cmpPos(start, cache.start) == 0)
-      return showArgHints(ts, cm, argPos);
+      return showArgHints(ts, cm, pos);
 
     ts.request(cm, {type: "type", preferFunction: true, end: start}, function(error, data) {
       if (error || !data.type || !(/^fn\(/).test(data.type)) return;
@@ -309,7 +255,7 @@
         guess: data.guess,
         doc: cm.getDoc()
       };
-      showArgHints(ts, cm, argPos);
+      showArgHints(ts, cm, pos);
     });
   }
 
@@ -402,10 +348,10 @@
   }
 
   function moveTo(ts, curDoc, doc, start, end) {
-    doc.doc.setSelection(start, end);
+    doc.doc.setSelection(end, start);
     if (curDoc != doc && ts.options.switchToDoc) {
       closeArgHints(ts);
-      ts.options.switchToDoc(doc.name, doc.doc);
+      ts.options.switchToDoc(doc.name);
     }
   }
 
@@ -443,36 +389,19 @@
   function atInterestingExpression(cm) {
     var pos = cm.getCursor("end"), tok = cm.getTokenAt(pos);
     if (tok.start < pos.ch && (tok.type == "comment" || tok.type == "string")) return false;
-    return /[\w)\]]/.test(cm.getLine(pos.line).slice(Math.max(pos.ch - 1, 0), pos.ch + 1));
+    return /\w/.test(cm.getLine(pos.line).slice(Math.max(pos.ch - 1, 0), pos.ch + 1));
   }
 
   // Variable renaming
 
   function rename(ts, cm) {
     var token = cm.getTokenAt(cm.getCursor());
-    if (!/\w/.test(token.string)) return showError(ts, cm, "Not at a variable");
+    if (!/\w/.test(token.string)) showError(ts, cm, "Not at a variable");
     dialog(cm, "New name for " + token.string, function(newName) {
       ts.request(cm, {type: "rename", newName: newName, fullDocs: true}, function(error, data) {
         if (error) return showError(ts, cm, error);
         applyChanges(ts, data.changes);
       });
-    });
-  }
-
-  function selectName(ts, cm) {
-    var name = findDoc(ts, cm.doc).name;
-    ts.request(cm, {type: "refs"}, function(error, data) {
-      if (error) return showError(ts, cm, error);
-      var ranges = [], cur = 0;
-      for (var i = 0; i < data.refs.length; i++) {
-        var ref = data.refs[i];
-        if (ref.file == name) {
-          ranges.push({anchor: ref.start, head: ref.end});
-          if (cmpPos(cur, ref.start) >= 0 && cmpPos(cur, ref.end) <= 0)
-            cur = ranges.length - 1;
-        }
-      }
-      cm.setSelections(ranges, cur);
     });
   }
 
@@ -486,7 +415,7 @@
     for (var file in perFile) {
       var known = ts.docs[file], chs = perFile[file];;
       if (!known) continue;
-      chs.sort(function(a, b) { return cmpPos(b.start, a.start); });
+      chs.sort(function(a, b) { return cmpPos(b, a); });
       var origin = "*rename" + (++nextChangeOrig);
       for (var i = 0; i < chs.length; ++i) {
         var ch = chs[i];
@@ -497,13 +426,13 @@
 
   // Generic request-building helper
 
-  function buildRequest(ts, doc, query, pos) {
+  function buildRequest(ts, doc, query) {
     var files = [], offsetLines = 0, allowFragments = !query.fullDocs;
     if (!allowFragments) delete query.fullDocs;
     if (typeof query == "string") query = {type: query};
     query.lineCharPositions = true;
     if (query.end == null) {
-      query.end = pos || doc.doc.getCursor("end");
+      query.end = doc.doc.getCursor("end");
       if (doc.doc.somethingSelected())
         query.start = doc.doc.getCursor("start");
     }
@@ -568,7 +497,7 @@
 
   // Generic utilities
 
-  var cmpPos = CodeMirror.cmpPos;
+  function cmpPos(a, b) { return a.line - b.line || a.ch - b.ch; }
 
   function elt(tagname, cls /*, ... elts*/) {
     var e = document.createElement(tagname);
@@ -591,33 +520,15 @@
   // Tooltips
 
   function tempTooltip(cm, content) {
-    if (cm.state.ternTooltip) remove(cm.state.ternTooltip);
     var where = cm.cursorCoords();
-    var tip = cm.state.ternTooltip = makeTooltip(where.right + 1, where.bottom, content);
-    function maybeClear() {
-      old = true;
-      if (!mouseOnTip) clear();
-    }
+    var tip = makeTooltip(where.right + 1, where.bottom, content);
     function clear() {
-      cm.state.ternTooltip = null;
       if (!tip.parentNode) return;
       cm.off("cursorActivity", clear);
-      cm.off('blur', clear);
-      cm.off('scroll', clear);
       fadeOut(tip);
     }
-    var mouseOnTip = false, old = false;
-    CodeMirror.on(tip, "mousemove", function() { mouseOnTip = true; });
-    CodeMirror.on(tip, "mouseout", function(e) {
-      if (!CodeMirror.contains(tip, e.relatedTarget || e.toElement)) {
-        if (old) clear();
-        else mouseOnTip = false;
-      }
-    });
-    setTimeout(maybeClear, 1700);
+    setTimeout(clear, 1700);
     cm.on("cursorActivity", clear);
-    cm.on('blur', clear);
-    cm.on('scroll', clear);
   }
 
   function makeTooltip(x, y, content) {
@@ -658,7 +569,7 @@
   // Worker wrapper
 
   function WorkerServer(ts) {
-    var worker = ts.worker = new Worker(ts.options.workerScript);
+    var worker = new Worker(ts.options.workerScript);
     worker.postMessage({type: "init",
                         defs: ts.options.defs,
                         plugins: ts.options.plugins,
@@ -675,11 +586,11 @@
     worker.onmessage = function(e) {
       var data = e.data;
       if (data.type == "getFile") {
-        getFile(ts, data.name, function(err, text) {
+        getFile(ts, name, function(err, text) {
           send({type: "getFile", err: String(err), text: text, id: data.id});
         });
       } else if (data.type == "debug") {
-        window.console.log(data.message);
+        console.log(data.message);
       } else if (data.id && pending[data.id]) {
         pending[data.id](data.err, data.body);
         delete pending[data.id];
@@ -694,4 +605,4 @@
     this.delFile = function(name) { send({type: "del", name: name}); };
     this.request = function(body, c) { send({type: "req", body: body}, c); };
   }
-});
+})();

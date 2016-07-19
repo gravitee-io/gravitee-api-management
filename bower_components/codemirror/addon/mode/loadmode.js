@@ -1,14 +1,4 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: http://codemirror.net/LICENSE
-
-(function(mod) {
-  if (typeof exports == "object" && typeof module == "object") // CommonJS
-    mod(require("../../lib/codemirror"), "cjs");
-  else if (typeof define == "function" && define.amd) // AMD
-    define(["../../lib/codemirror"], function(CM) { mod(CM, "amd"); });
-  else // Plain browser env
-    mod(CodeMirror, "plain");
-})(function(CodeMirror, env) {
+(function() {
   if (!CodeMirror.modeURL) CodeMirror.modeURL = "../mode/%N/%N.js";
 
   var loading = {};
@@ -35,24 +25,21 @@
     if (CodeMirror.modes.hasOwnProperty(mode)) return ensureDeps(mode, cont);
     if (loading.hasOwnProperty(mode)) return loading[mode].push(cont);
 
-    var file = CodeMirror.modeURL.replace(/%N/g, mode);
-    if (env == "plain") {
-      var script = document.createElement("script");
-      script.src = file;
-      var others = document.getElementsByTagName("script")[0];
-      var list = loading[mode] = [cont];
-      CodeMirror.on(script, "load", function() {
+    var script = document.createElement("script");
+    script.src = CodeMirror.modeURL.replace(/%N/g, mode);
+    var others = document.getElementsByTagName("script")[0];
+    others.parentNode.insertBefore(script, others);
+    var list = loading[mode] = [cont];
+    var count = 0, poll = setInterval(function() {
+      if (++count > 100) return clearInterval(poll);
+      if (CodeMirror.modes.hasOwnProperty(mode)) {
+        clearInterval(poll);
+        loading[mode] = null;
         ensureDeps(mode, function() {
           for (var i = 0; i < list.length; ++i) list[i]();
         });
-      });
-      others.parentNode.insertBefore(script, others);
-    } else if (env == "cjs") {
-      require(file);
-      cont();
-    } else if (env == "amd") {
-      requirejs([file], cont);
-    }
+      }
+    }, 200);
   };
 
   CodeMirror.autoLoadMode = function(instance, mode) {
@@ -61,4 +48,4 @@
         instance.setOption("mode", instance.getOption("mode"));
       });
   };
-});
+}());
