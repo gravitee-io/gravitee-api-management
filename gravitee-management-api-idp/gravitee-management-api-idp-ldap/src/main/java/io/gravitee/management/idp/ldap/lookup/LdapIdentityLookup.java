@@ -18,14 +18,18 @@ package io.gravitee.management.idp.ldap.lookup;
 import io.gravitee.management.idp.api.identity.IdentityLookup;
 import io.gravitee.management.idp.api.identity.User;
 import io.gravitee.management.idp.ldap.lookup.spring.LdapIdentityLookupConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.filter.AndFilter;
 import org.springframework.ldap.filter.EqualsFilter;
 import org.springframework.ldap.filter.WhitespaceWildcardsFilter;
 
+import javax.annotation.PostConstruct;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
@@ -38,8 +42,28 @@ import java.util.Collection;
 @Import(LdapIdentityLookupConfiguration.class)
 public class LdapIdentityLookup implements IdentityLookup<String> {
 
+    private final Logger LOGGER = LoggerFactory.getLogger(LdapIdentityLookup.class);
+
     @Autowired
     private LdapTemplate ldapTemplate;
+
+    @Autowired
+    private Environment environment;
+
+    private String identifierAttribute = "uid";
+
+    @PostConstruct
+    public void initialize() {
+        String searchFilter = environment.getProperty("user-search-filter");
+        LOGGER.debug("Looking for a LDAP user's identifier using search filter [{}]", searchFilter);
+
+        if (searchFilter != null) {
+            // Search filter can be uid={0} or mail={0}
+            identifierAttribute = searchFilter.split("=")[0];
+        }
+
+        LOGGER.info("User identifier is based on the [{}] attribute", identifierAttribute);
+    }
 
     @Override
     public Collection<User> search(String query) {
@@ -56,7 +80,7 @@ public class LdapIdentityLookup implements IdentityLookup<String> {
 
     private class UserAttributesMapper implements AttributesMapper<User> {
         public User mapFromAttributes(Attributes attrs) throws NamingException {
-            LdapUser user = new LdapUser(attributeValue(attrs, "uid"));
+            LdapUser user = new LdapUser(attributeValue(attrs, identifierAttribute));
             user.setFirstname(attributeValue(attrs, "givenname"));
             user.setLastname(attributeValue(attrs, "cn"));
             user.setEmail(attributeValue(attrs, "mail"));
