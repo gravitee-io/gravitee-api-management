@@ -15,20 +15,17 @@
  */
 package io.gravitee.management.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doReturn;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.NewApiEntity;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.NewApiEntity;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import io.gravitee.common.http.HttpStatusCode;
-import org.mockito.Mockito;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doReturn;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -51,7 +48,6 @@ public class ApisResourceTest extends AbstractResourceTest {
         apiEntity.setName("My beautiful api");
         apiEntity.setVersion("v1");
         apiEntity.setDescription("my description");
-        apiEntity.setProxy(new Proxy());
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");

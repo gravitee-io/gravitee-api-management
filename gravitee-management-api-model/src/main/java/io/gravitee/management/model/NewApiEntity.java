@@ -15,10 +15,8 @@
  */
 package io.gravitee.management.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Proxy;
-
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -35,8 +33,12 @@ public class NewApiEntity {
     private String description;
 
     @NotNull
-    @JsonProperty(value = "proxy", required = true)
-    private Proxy proxy;
+    private String contextPath;
+
+    @NotNull
+    private String endpoint;
+
+    private List<String> paths;
 
     public String getName() {
         return name;
@@ -62,20 +64,38 @@ public class NewApiEntity {
         this.description = description;
     }
 
-    public Proxy getProxy() {
-        return proxy;
+    public String getContextPath() {
+        return contextPath;
     }
 
-    public void setProxy(Proxy proxy) {
-        this.proxy = proxy;
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
+    }
+
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public List<String> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(List<String> paths) {
+        this.paths = paths;
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Api{");
-        sb.append("name='").append(name).append('\'');
-        sb.append(", version='").append(version).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return "NewApiEntity{" +
+                "name='" + name + '\'' +
+                ", version='" + version + '\'' +
+                ", description='" + description + '\'' +
+                ", contextPath='" + contextPath + '\'' +
+                ", endpoint='" + endpoint + '\'' +
+                '}';
     }
 }

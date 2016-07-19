@@ -92,9 +92,7 @@ public class ApiServiceTest {
 
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
-        final Proxy proxy = mock(Proxy.class);
-        when(newApi.getProxy()).thenReturn(proxy);
-        when(proxy.getContextPath()).thenReturn("/context");
+        when(newApi.getContextPath()).thenReturn("/context");
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 
@@ -174,9 +172,7 @@ public class ApiServiceTest {
         when(api.getId()).thenReturn(API_ID);
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 
-        final Proxy proxy = mock(Proxy.class);
-        when(newApi.getProxy()).thenReturn(proxy);
-        when(proxy.getContextPath()).thenReturn(contextPathToCreate);
+        when(newApi.getContextPath()).thenReturn(contextPathToCreate);
 
         apiService.create(newApi, USER_NAME);
     }
@@ -427,9 +423,7 @@ public class ApiServiceTest {
         when(newApi.getName()).thenReturn(API_NAME);
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
-        final Proxy proxy = mock(Proxy.class);
-        when(newApi.getProxy()).thenReturn(proxy);
-        when(proxy.getContextPath()).thenReturn("/context");
+        when(newApi.getContextPath()).thenReturn("/context");
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 

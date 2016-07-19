@@ -21,9 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.*;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.service.*;
@@ -33,6 +31,7 @@ import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.management.model.Visibility;
@@ -83,8 +82,43 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
+        UpdateApiEntity apiEntity = new UpdateApiEntity();
+
+        apiEntity.setName(newApiEntity.getName());
+        apiEntity.setDescription(newApiEntity.getDescription());
+        apiEntity.setVersion(newApiEntity.getVersion());
+
+        Proxy proxy = new Proxy();
+        proxy.setContextPath(newApiEntity.getContextPath());
+        proxy.setEndpoints(Collections.singletonList(new Endpoint(newApiEntity.getEndpoint())));
+        apiEntity.setProxy(proxy);
+
+        List<String> declaredPaths = (newApiEntity.getPaths() != null) ? newApiEntity.getPaths() : new ArrayList<>();
+        if (! declaredPaths.contains("/")) {
+            declaredPaths.add(0, "/");
+        }
+
+        // Initialize with a default path and provided paths
+        Map<String, Path> paths = declaredPaths.stream().map(sPath -> {
+            Path path = new Path();
+            path.setPath(sPath);
+            Rule apiKeyRule = new Rule();
+            Policy apiKeyPolicy = new Policy();
+            apiKeyPolicy.setName("api-key");
+            apiKeyPolicy.setConfiguration("{}");
+            apiKeyRule.setPolicy(apiKeyPolicy);
+            path.getRules().add(apiKeyRule);
+            return path;
+        }).collect(Collectors.toMap(Path::getPath, path -> path));
+
+        apiEntity.setPaths(paths);
+
+        return create0(apiEntity, username);
+    }
+
+    private ApiEntity create0(UpdateApiEntity api, String username) throws ApiAlreadyExistsException {
         try {
-            LOGGER.debug("Create {} for user {}", newApiEntity, username);
+            LOGGER.debug("Create {} for user {}", api, username);
 
             String id = UUID.toString(UUID.random());
             Optional<Api> checkApi = apiRepository.findById(id);
@@ -93,22 +127,22 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             }
 
             // Format context-path and check if context path is unique
-            checkContextPath(newApiEntity.getProxy().getContextPath());
+            checkContextPath(api.getProxy().getContextPath());
 
-            Api api = convert(id, newApiEntity);
+            Api repoApi = convert(id, api);
 
-            if (api != null) {
-                api.setId(id);
+            if (repoApi != null) {
+                repoApi.setId(id);
 
                 // Set date fields
-                api.setCreatedAt(new Date());
-                api.setUpdatedAt(api.getCreatedAt());
+                repoApi.setCreatedAt(new Date());
+                repoApi.setUpdatedAt(repoApi.getCreatedAt());
 
                 // Be sure that lifecycle is set to STOPPED by default and visibility is private
-                api.setLifecycleState(LifecycleState.STOPPED);
-                api.setVisibility(Visibility.PRIVATE);
+                repoApi.setLifecycleState(LifecycleState.STOPPED);
+                repoApi.setVisibility(Visibility.PRIVATE);
 
-                Api createdApi = apiRepository.create(api);
+                Api createdApi = apiRepository.create(repoApi);
 
                 // Add the primary owner of the newly created API
                 apiRepository.saveMember(createdApi.getId(), username, MembershipType.PRIMARY_OWNER);
@@ -119,8 +153,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 throw new TechnicalManagementException("Unable to create API " + id);
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {} for user {}", newApiEntity, username, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + newApiEntity + " for user " + username, ex);
+            LOGGER.error("An error occurs while trying to create {} for user {}", api, username, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + username, ex);
         }
     }
 
@@ -534,15 +568,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public ApiEntity createWithDefinition(String apiDefinition, String username) {
         try {
             final UpdateApiEntity importedApi = objectMapper.readValue(apiDefinition, UpdateApiEntity.class);
-
-            final NewApiEntity newApiEntity = new NewApiEntity();
-            newApiEntity.setName(importedApi.getName());
-            newApiEntity.setVersion(importedApi.getVersion());
-            newApiEntity.setDescription(importedApi.getDescription());
-            newApiEntity.setProxy(importedApi.getProxy());
-
-            final ApiEntity apiEntity = create(newApiEntity, username);
-            return update(apiEntity.getId(), importedApi);
+            return create0(importedApi, username);
         } catch (final IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
         }
@@ -656,43 +682,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         return apiEntity;
-    }
-
-    private Api convert(String apiId, NewApiEntity newApiEntity) {
-        Api api = new Api();
-
-        api.setName(newApiEntity.getName().trim());
-        api.setVersion(newApiEntity.getVersion().trim());
-        api.setDescription(newApiEntity.getDescription().trim());
-
-        try {
-            io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
-            apiDefinition.setId(apiId);
-            apiDefinition.setName(newApiEntity.getName());
-            apiDefinition.setVersion(newApiEntity.getVersion());
-            apiDefinition.setProxy(newApiEntity.getProxy());
-
-            // Initialize with a default /* path
-            Map<String, Path> paths = new HashMap<>();
-            Path rootPath = new Path();
-            Rule apiKeyRule = new Rule();
-            Policy apiKeyPolicy = new Policy();
-            apiKeyPolicy.setName("api-key");
-            apiKeyPolicy.setConfiguration("{}");
-            apiKeyRule.setPolicy(apiKeyPolicy);
-            rootPath.getRules().add(apiKeyRule);
-            paths.put("/", rootPath);
-
-            apiDefinition.setPaths(paths);
-
-            String definition = objectMapper.writeValueAsString(apiDefinition);
-            api.setDefinition(definition);
-            return api;
-        } catch (JsonProcessingException jse) {
-            LOGGER.error("Unexpected error while generating API definition", jse);
-        }
-
-        return null;
     }
 
     private Api convert(String apiId, UpdateApiEntity updateApiEntity) {

@@ -22,6 +22,7 @@ import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 
@@ -60,6 +61,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private ApplicationService applicationService;
+
+    @Inject
+    private SwaggerService swaggerService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -105,6 +109,14 @@ public class ApisResource extends AbstractResource {
     @Path("import")
     public Response importDefinition(String apiDefinition) {
         return Response.ok(apiService.createWithDefinition(apiDefinition, getAuthenticatedUsername())).build();
+    }
+
+    @POST
+    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("import/swagger")
+    public NewApiEntity importSwagger(String swaggerDescriptor) {
+        return swaggerService.prepare(swaggerDescriptor);
     }
 
     @Path("{api}")
