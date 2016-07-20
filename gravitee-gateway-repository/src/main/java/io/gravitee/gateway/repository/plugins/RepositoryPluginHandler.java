@@ -59,7 +59,7 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        // The gateway need 2 repositories :
+        // The gateway need 3 repositories :
         // 1_ Management
         lookForRepositoryType(Scope.MANAGEMENT);
         // 2_ Rate limit
@@ -79,30 +79,39 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
             ClassLoader classloader = pluginClassLoaderFactory.getOrCreateClassLoader(plugin, this.getClass().getClassLoader());
 
             final Class<?> repositoryClass = classloader.loadClass(plugin.clazz());
-            LOGGER.info("Register a new repository: {} [{}]", plugin.id(), plugin.clazz());
+            LOGGER.info("Register a new repository plugin: {} [{}]", plugin.id(), plugin.clazz());
 
             Assert.isAssignable(Repository.class, repositoryClass);
 
             Repository repository = createInstance((Class<Repository>) repositoryClass);
             for(Scope scope : repository.scopes()) {
                 if (! repositories.containsKey(scope)) {
-                    // Not yet loaded, let's mount the repository in application context
-                    try {
-                        ApplicationContext repoApplicationContext = pluginContextFactory.create(
-                                new AnnotationBasedPluginContextConfigurer(plugin) {
-                                    @Override
-                                    public Set<Class<?>> configurations() {
-                                        return Collections.singleton(repository.configuration(scope));
-                                    }
-                                });
+                    String requiredRepositoryType = repositoryTypeByScope.get(scope);
 
-                        registerRepositoryDefinitions(repository, repoApplicationContext);
-                        repositories.put(scope, repository);
-                    } catch (Exception iae) {
-                        LOGGER.error("Unexpected error while creating context for repository instance", iae);
-                        pluginContextFactory.remove(plugin);
+                    // Load only repository plugin for a given scope (provided in the configuration)
+                    if (repository.type().equalsIgnoreCase(requiredRepositoryType)) {
+                        LOGGER.info("Repository [{}] loaded by {}", scope, repository.type());
+
+                        // Not yet loaded, let's mount the repository in application context
+                        try {
+                            ApplicationContext repoApplicationContext = pluginContextFactory.create(
+                                    new AnnotationBasedPluginContextConfigurer(plugin) {
+                                        @Override
+                                        public Set<Class<?>> configurations() {
+                                            return Collections.singleton(repository.configuration(scope));
+                                        }
+                                    });
+
+                            registerRepositoryDefinitions(repository, repoApplicationContext);
+                            repositories.put(scope, repository);
+                        } catch (Exception iae) {
+                            LOGGER.error("Unexpected error while creating context for repository instance", iae);
+                            pluginContextFactory.remove(plugin);
+                        }
+                    } else {
+                        LOGGER.debug("Scoped repository [{}] must be loaded by {}. Skipping registration",
+                                scope, requiredRepositoryType);
                     }
-
                 } else {
                     LOGGER.warn("Repository scope {} already loaded by {}", scope,
                             repositories.get(scope));
