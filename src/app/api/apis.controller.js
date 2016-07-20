@@ -110,12 +110,9 @@ class ApisController {
 	createInitAPI() {
 		if (!this.$rootScope.graviteeUser) {
 			this.$rootScope.$broadcast("authenticationRequired");
-		} else if (this.$state.includes("apis.list")) {
-			this.showApiModal();
 		} else {
-		  this.$scope.$broadcast("showApiModal");
-			this.$state.go('apis.list.thumb');
-		}
+      this.$state.go("apis.new");
+    }
 	}
 
   showImportDialog() {

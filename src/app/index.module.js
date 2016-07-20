@@ -42,7 +42,6 @@ import ApiEventsController from './api/admin/events/apiEvents.controller';
 import ApiHistoryController from './api/admin/history/apiHistory.controller';
 import DialogAddPropertyController from './api/admin/properties/add-property.dialog.controller';
 import DialogAddMemberApiController from './api/admin/members/addMemberDialog.controller';
-import DialogApiController from './api/dialog/apiDialog.controller';
 import DialogApiKeyExpirationController from './api/admin/apikeys/apikey-expiration.dialog.controller';
 import DialogEndpointController from './api/admin/general/addEndpointDialog.controller';
 import DialogEditPolicyController from './api/admin/policies/dialog/policyDialog.controller';
@@ -119,7 +118,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('NewApiController', NewApiController)
   .controller('DialogApiSwaggerImportController', DialogApiSwaggerImportController)
   .controller('DialogAddPropertyController', DialogAddPropertyController)
-  .controller('DialogApiController', DialogApiController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
   .controller('DialogApiKeyExpirationController', DialogApiKeyExpirationController)
   .controller('DialogEndpointController', DialogEndpointController)
