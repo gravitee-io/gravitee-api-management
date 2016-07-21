@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository;
+package io.gravitee.repository.exceptions;
 
-/**
- * @author David BRASSELY (brasseld at gmail.com)
- */
-public enum Scope {
+public class CacheException extends RuntimeException {
+	private static final long serialVersionUID = -3627948199835710035L;
 
-    MANAGEMENT("management"),
-    RATE_LIMIT("ratelimit"),
-    ANALYTICS("analytics"),
-	CACHE("cache"), 
-	KEY_VALUE("keyvalue");
+	public CacheException() {
+		super();
+	}
 
-    String name;
+	public CacheException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 
-    Scope(String name) {
-        this.name = name;
-    }
+	public CacheException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public String getName() {
-        return this.name;
-    }
+	public CacheException(String message) {
+		super(message);
+	}
+
+	public CacheException(Throwable cause) {
+		super(cause);
+	}
 }

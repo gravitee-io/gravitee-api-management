@@ -21,11 +21,44 @@ package io.gravitee.repository.cache.model;
  */
 public interface Element {
 
-    Object key();
+	static Element from(final Object key, final Object value) {
+		return new Element() {
+			@Override
+			public Object key() {
+				return key;
+			}
 
-    Object value();
+			@Override
+			public Object value() {
+				return value;
+			}
+		};
+	}
 
-    default int timeToLive() {
-        return 0;
-    }
+	static Element from(final Object key, final Object value, final int timeToLive) {
+		return new Element() {
+			@Override
+			public Object key() {
+				return key;
+			}
+
+			@Override
+			public Object value() {
+				return value;
+			}
+
+			@Override
+			public int timeToLive() {
+				return timeToLive;
+			}
+		};
+	}
+
+	Object key();
+
+	Object value();
+
+	default int timeToLive() {
+		return 0;
+	}
 }

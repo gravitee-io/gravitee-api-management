@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository;
+package io.gravitee.repository.exceptions;
 
-/**
- * @author David BRASSELY (brasseld at gmail.com)
- */
-public enum Scope {
+public class KeyValueException extends RuntimeException{
+	private static final long serialVersionUID = -2516662042502191870L;
 
-    MANAGEMENT("management"),
-    RATE_LIMIT("ratelimit"),
-    ANALYTICS("analytics"),
-	CACHE("cache"), 
-	KEY_VALUE("keyvalue");
+	public KeyValueException() {
+		super();
+	}
 
-    String name;
+	public KeyValueException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 
-    Scope(String name) {
-        this.name = name;
-    }
+	public KeyValueException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public String getName() {
-        return this.name;
-    }
+	public KeyValueException(String message) {
+		super(message);
+	}
+
+	public KeyValueException(Throwable cause) {
+		super(cause);
+	}
 }
