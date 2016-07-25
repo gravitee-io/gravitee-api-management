@@ -31,6 +31,7 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.format.datetime.DateFormatter;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
@@ -52,7 +53,10 @@ import static org.springframework.util.StringUtils.capitalize;
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(
+        loader = AnnotationConfigContextLoader.class,
+        initializers = {PropertySourceRepositoryInitializer.class})
+@ActiveProfiles("test")
 public abstract class AbstractRepositoryTest {
 
     private static final String MODEL_PACKAGE = "io.gravitee.repository.management.model.";
