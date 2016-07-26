@@ -103,9 +103,8 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
             } else {
                 LOGGER.info("Authorization schema not found");
             }
-        } else {
-            LOGGER.info("Authorization cookie not found");
         }
+
         chain.doFilter(request, response);
     }
 
