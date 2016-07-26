@@ -89,7 +89,6 @@ public class NewPageEntity {
         final StringBuilder sb = new StringBuilder("Page{");
         sb.append("name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
-        sb.append(", content='").append(content).append('\'');
         sb.append(", order='").append(order).append('\'');
         sb.append(", lastContributor='").append(lastContributor).append('\'');
         sb.append('}');
