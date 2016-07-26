@@ -58,11 +58,9 @@ public interface ApiService {
     
     ApiEntity rollback(String apiId, UpdateApiEntity api);
 
-    String convertAsJsonForExport(String apiId);
+    String exportAsJson(String apiId);
 
-    ApiEntity updateWithDefinition(ApiEntity apiEntity, String apiDefinition);
-
-    ApiEntity createWithDefinition(String apiDefinition, String username);
+    ApiEntity createOrUpdateWithDefinition(ApiEntity apiEntity, String apiDefinition, String username);
 
     ImageEntity getPicture(String apiId);
 }

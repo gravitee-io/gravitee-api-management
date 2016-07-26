@@ -18,10 +18,13 @@ package io.gravitee.management.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
+import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.mixin.ApiMixin;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
@@ -41,12 +44,15 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -73,12 +79,21 @@ public class ApiServiceTest {
 
     @Mock
     private NewApiEntity newApi;
+
     @Mock
     private UpdateApiEntity existingApi;
+
     @Mock
     private Api api;
+
     @Mock
     private EventService eventService;
+
+    @Mock
+    private PageService pageService;
+
+    @Mock
+    private UserService userService;
 
     @Test
     public void shouldCreateForUser() throws TechnicalException {
@@ -456,5 +471,198 @@ public class ApiServiceTest {
         event.setProperties(properties);
 
         return event;
+    }
+
+    @Test
+    public void shouldUpdateImportApiWithMembersAndPages() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+members+pages.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.update(any())).thenReturn(api);
+        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+
+        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
+
+        verify(pageService, times(2)).create(eq(API_ID), any(NewPageEntity.class));
+        verify(apiRepository, times(1)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
+        verify(apiRepository, times(1)).saveMember(API_ID, "user", MembershipType.OWNER);
+        verify(apiRepository, times(1)).update(any());
+        verify(apiRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldUpdateImportApiWithMembers() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+members.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.update(any())).thenReturn(api);
+        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+
+        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
+
+        verify(pageService, never()).create(eq(API_ID), any(NewPageEntity.class));
+        verify(apiRepository, times(1)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
+        verify(apiRepository, times(1)).saveMember(API_ID, "user", MembershipType.OWNER);
+        verify(apiRepository, times(1)).update(any());
+        verify(apiRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldUpdateImportApiWithPages() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+pages.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.update(any())).thenReturn(api);
+        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+
+        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
+
+        verify(pageService, times(2)).create(eq(API_ID), any(NewPageEntity.class));
+        verify(apiRepository, never()).saveMember(eq(API_ID), any(), any());
+        verify(apiRepository, times(1)).update(any());
+        verify(apiRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldUpdateImportApiWithOnlyDefinition() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.update(any())).thenReturn(api);
+        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+
+        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
+
+        verify(pageService, never()).create(eq(API_ID), any(NewPageEntity.class));
+        verify(apiRepository, never()).saveMember(eq(API_ID), any(), any());
+        verify(apiRepository, times(1)).update(any());
+        verify(apiRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldConvertAsJsonForExport() throws TechnicalException, IOException {
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setDescription("Gravitee.io");
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        PageEntity page = new PageEntity();
+        page.setName("My Title");
+        page.setOrder(1);
+        page.setType(PageType.MARKDOWN.toString());
+        page.setContent("Read the doc");
+        when(pageService.findByApi(API_ID)).thenReturn(Collections.singletonList(new PageListItem()));
+        when(pageService.findById(any())).thenReturn(page);
+        Membership membership = new Membership();
+        membership.setUser(new User());
+        membership.getUser().setUsername("johndoe");
+        membership.setMembershipType(MembershipType.PRIMARY_OWNER);
+        when(apiRepository.getMembers(API_ID, null)).thenReturn(Collections.singleton(membership));
+
+        String jsonForExport = apiService.exportAsJson(API_ID);
+
+        URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExport.json");
+        String expectedJson = Resources.toString(url, Charsets.UTF_8);
+
+        assertThat(jsonForExport).isNotNull();
+        assertThat(jsonForExport).isEqualTo(expectedJson);
+    }
+
+    @Test
+    public void shouldCreateImportApiWithMembersAndPages() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+members+pages.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+
+        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+
+        verify(pageService, times(2)).create(eq(API_ID), any(NewPageEntity.class));
+        verify(apiRepository, times(2)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
+        verify(apiRepository, times(1)).saveMember(API_ID, "user", MembershipType.OWNER);
+        verify(apiRepository, never()).update(any());
+        verify(apiRepository, times(1)).create(any());
+    }
+
+    @Test
+    public void shouldCreateImportApiWithMembers() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+members.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+
+        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+
+        verify(pageService, never()).create(eq(API_ID), any(NewPageEntity.class));
+        verify(apiRepository, times(2)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
+        verify(apiRepository, times(1)).saveMember(API_ID, "user", MembershipType.OWNER);
+        verify(apiRepository, never()).update(any());
+        verify(apiRepository, times(1)).create(any());
+    }
+
+    @Test
+    public void shouldCreateImportApiWithPages() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+pages.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+
+        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+
+        verify(pageService, times(2)).create(eq(API_ID), any(NewPageEntity.class));
+        verify(apiRepository, times(1)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
+        verify(apiRepository, never()).update(any());
+        verify(apiRepository, times(1)).create(any());
+
+    }
+
+    @Test
+    public void shouldCreateImportApiWithOnlyDefinition() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+
+        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+
+        verify(pageService, never()).create(eq(API_ID), any(NewPageEntity.class));
+        verify(apiRepository, times(1)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
+        verify(apiRepository, never()).update(any());
+        verify(apiRepository, times(1)).create(any());
     }
 }

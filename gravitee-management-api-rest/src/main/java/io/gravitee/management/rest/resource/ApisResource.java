@@ -108,7 +108,7 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
     public Response importDefinition(String apiDefinition) {
-        return Response.ok(apiService.createWithDefinition(apiDefinition, getAuthenticatedUsername())).build();
+        return Response.ok(apiService.createOrUpdateWithDefinition(null, apiDefinition, getAuthenticatedUsername())).build();
     }
 
     @POST

@@ -16,8 +16,10 @@
 package io.gravitee.management.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.UUID;
@@ -73,6 +75,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private PageService pageService;
 
     @Autowired
     private ApiSynchronizationProcessor apiSynchronizationProcessor;
@@ -547,7 +552,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public String convertAsJsonForExport(final String apiId) {
+    public String exportAsJson(final String apiId) {
         final ApiEntity apiEntity = findById(apiId);
 
         apiEntity.setId(null);
@@ -556,8 +561,30 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setDeployedAt(null);
         apiEntity.setPrimaryOwner(null);
         apiEntity.setState(null);
+
+        Set<MemberEntity> members = this.getMembers(apiId, null);
+        if (members != null) {
+            members.forEach(m -> {
+                m.setCreatedAt(null);
+                m.setUpdatedAt(null);
+            });
+        }
+        List<PageListItem> pageListItems = pageService.findByApi(apiId);
+        List<PageEntity> pages = null;
+        if (pageListItems != null) {
+            pages = new ArrayList<>(pageListItems.size());
+            List<PageEntity> finalPages = pages;
+            pageListItems.forEach(f -> {
+                PageEntity pageEntity = pageService.findById(f.getId());
+                pageEntity.setId(null);
+                finalPages.add(pageEntity);
+            } );
+        }
         try {
-            return objectMapper.writeValueAsString(apiEntity);
+            ObjectNode apiJsonNode = objectMapper.valueToTree(apiEntity);
+            apiJsonNode.putPOJO("members", members==null ? Collections.emptyList() : members);
+            apiJsonNode.putPOJO("pages", pages==null ? Collections.emptyList() : pages);
+            return objectMapper.writeValueAsString(apiJsonNode);
         } catch (final Exception e) {
             LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
         }
@@ -565,10 +592,45 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public ApiEntity createWithDefinition(String apiDefinition, String username) {
+    public ApiEntity createOrUpdateWithDefinition(final ApiEntity apiEntity, String apiDefinition, String username) {
         try {
-            final UpdateApiEntity importedApi = objectMapper.readValue(apiDefinition, UpdateApiEntity.class);
-            return create0(importedApi, username);
+            ApiEntity createdOrUpdatedApiEntity = null;
+            //create
+            if(apiEntity == null || apiEntity.getId() == null) {
+
+                final UpdateApiEntity importedApi = objectMapper
+                        // because definition could contains other values than the api itself (pages, members)
+                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                        .readValue(apiDefinition, UpdateApiEntity.class);
+                createdOrUpdatedApiEntity = create0(importedApi, username);
+            }
+            // update
+            else {
+
+                final UpdateApiEntity importedApi = objectMapper
+                        // because definition could contains other values than the api itself (pages, members)
+                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                        .readValue(apiDefinition, UpdateApiEntity.class);
+                createdOrUpdatedApiEntity = update(apiEntity.getId(), importedApi);
+            }
+
+            final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
+            // Members
+            final JsonNode membersDefinition = jsonNode.path("members");
+            if (membersDefinition != null && membersDefinition.isArray()) {
+                for (final JsonNode memberNode : membersDefinition) {
+                    MemberEntity memberEntity = objectMapper.readValue(memberNode.toString(), MemberEntity.class);
+                    addOrUpdateMember(createdOrUpdatedApiEntity.getId(), memberEntity.getUser(), memberEntity.getType());
+                }
+            }
+            //Pages
+            final JsonNode pagesDefinition = jsonNode.path("pages");
+            if (pagesDefinition != null && pagesDefinition.isArray()) {
+                for (final JsonNode pageNode : pagesDefinition) {
+                    pageService.create(createdOrUpdatedApiEntity.getId(), objectMapper.readValue(pageNode.toString(), NewPageEntity.class));
+                }
+            }
+            return createdOrUpdatedApiEntity;
         } catch (final IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
         }
@@ -595,17 +657,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         return imageEntity;
-    }
-
-    @Override
-    public ApiEntity updateWithDefinition(ApiEntity apiEntity, String apiDefinition) {
-        try {
-            final UpdateApiEntity importedApi = objectMapper.readValue(apiDefinition, UpdateApiEntity.class);
-            return update(apiEntity.getId(), importedApi);
-        } catch (final IOException e) {
-            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
-        }
-        return null;
     }
 
     private void updateLifecycle(String apiId, LifecycleState lifecycleState, String username) throws TechnicalException {

@@ -211,7 +211,7 @@ public class ApiResource extends AbstractResource {
     @Path("import")
     public Response importDefinition(String apiDefinition) {
         final ApiEntity apiEntity = get();
-        return Response.ok(apiService.updateWithDefinition(apiEntity, apiDefinition)).build();
+        return Response.ok(apiService.createOrUpdateWithDefinition(apiEntity, apiDefinition, getAuthenticatedUsername())).build();
     }
 
     @GET
@@ -221,7 +221,7 @@ public class ApiResource extends AbstractResource {
     public Response exportDefinition() {
         final ApiEntity apiEntity = get();
         return Response
-                .ok(apiService.convertAsJsonForExport(api))
+                .ok(apiService.exportAsJson(api))
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s.json", apiEntity.getId()))
                 .build();
     }
