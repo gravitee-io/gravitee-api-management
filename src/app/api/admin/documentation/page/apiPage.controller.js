@@ -97,18 +97,22 @@ class PageController {
     if(this.createMode) {
       this.DocumentationService.createPage(this.$state.params.apiId, this.page)
         .then(function (page) {
+          that.onPageUpdate();
           that.$state.go(that.$state.current, that.$state.params, {reload: true});
         })
         .catch(function (error) {
           that.$scope.error = error;
+          that.NotificationService.error(error);
       });
     } else {
       this.DocumentationService.editPage(this.$state.params.apiId, this.page.id, this.page)
         .then(function () {
+          that.onPageUpdate();
           that.$state.go(that.$state.current, that.$state.params, {reload: true});
         })
         .catch(function (error) {
           that.$scope.error = error;
+          that.NotificationService.error(error);
         });
     }
   }
@@ -170,6 +174,14 @@ class PageController {
       that.$scope.$parent.documentationCtrl.list();
       that.NotificationService.show('Page ' + editPage.name + ' has been ' + (editPage.published ? '':'un') + 'published with success');
     });
+  }
+
+  hasNoTitle() {
+    return _.isNil(this.page) || _.isNil(this.page.name) || _.isEmpty(this.page.name);
+  }
+
+  onPageUpdate() {
+    this.NotificationService.show('Page \'' + this.page.name + '\' saved');
   }
 }
 

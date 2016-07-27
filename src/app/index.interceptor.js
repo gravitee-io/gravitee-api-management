@@ -42,9 +42,9 @@ function interceptorConfig($httpProvider) {
           }
         } else {
           if (error.status === 500) {
-            errorMessage = 'Unexpected error';
+            errorMessage = error.data ? error.data.message : 'Unexpected error';
           } else if (error.status === 503) {
-            errorMessage = 'Server unavailable';
+            errorMessage = error.data ? error.data.message : 'Server unavailable';
           }
         }
         if (!sessionExpired) {

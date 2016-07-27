@@ -28,7 +28,13 @@ class NotificationService {
     };
 
     this.error = function (error, message) {
-      this.show(message || (error.data ? error.data.message : error), true);
+      this.show(message || (
+        error.data ?
+          Array.isArray(error.data) ?
+            error.data[0].message
+            : error.data.message
+          : error
+        ), true);
     };
   }
 }

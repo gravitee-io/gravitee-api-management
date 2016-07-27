@@ -84,10 +84,10 @@
       </div>
     </md-card-content>
     <div class="md-actions gravitee-api-save-button" layout="row" layout-align="end center">
-      <md-button class="md-raised" type="submit" ng-click="pageCtrl.upsert()" ng-disabled="formApi.$invalid || formApi.$pristine">
+      <md-button class="md-raised" type="submit" ng-click="pageCtrl.upsert()" ng-disabled="pageCtrl.hasNoTitle()">
         Save
       </md-button>
-      <md-button class="md-raised md-primary" type="button" ng-click="pageCtrl.reset()" ng-disabled="formApi.$invalid || formApi.$pristine">
+      <md-button class="md-raised md-primary" type="button" ng-click="pageCtrl.reset()">
         Cancel
       </md-button>
     </div>
@@ -121,7 +121,7 @@
     <div layout="column">
       <form name="PageConfigFetcherForm" sf-schema="fetcherJsonSchema" sf-form="pageCtrl.fetcherJsonSchemaForm" sf-model="pageCtrl.page.source.configuration"></form>
     </div>
-    <md-button class="md-raised" type="submit" ng-click="pageCtrl.upsert()">
+    <md-button ng-disabled="pageCtrl.hasNoTitle()" class="md-raised" type="submit" ng-click="pageCtrl.upsert()">
       Save
     </md-button>
   </md-content>
