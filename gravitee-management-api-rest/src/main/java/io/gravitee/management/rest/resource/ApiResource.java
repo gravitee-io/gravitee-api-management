@@ -222,7 +222,7 @@ public class ApiResource extends AbstractResource {
         final ApiEntity apiEntity = get();
         return Response
                 .ok(apiService.exportAsJson(api))
-                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s.json", apiEntity.getId()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s",getExportFilename(apiEntity)))
                 .build();
     }
 
@@ -293,5 +293,15 @@ public class ApiResource extends AbstractResource {
             default:
                 break;
         }
+    }
+
+    private String getExportFilename(ApiEntity apiEntity) {
+        return format("%s-%s.json", apiEntity.getName(), apiEntity.getVersion())
+                .trim()
+                .toLowerCase()
+                .replaceAll(" +", " ")
+                .replaceAll(" ", "-")
+                .replaceAll("[^\\w\\s\\.]","-")
+                .replaceAll("-+", "-");
     }
 }
