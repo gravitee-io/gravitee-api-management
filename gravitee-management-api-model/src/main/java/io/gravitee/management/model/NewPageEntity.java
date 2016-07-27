@@ -16,6 +16,7 @@
 package io.gravitee.management.model;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Titouan COMPIEGNE
@@ -23,9 +24,9 @@ import javax.validation.constraints.NotNull;
 public class NewPageEntity {
 
 	@NotNull
+	@Size(min = 1)
 	private String name;
 	
-	@NotNull
 	private String type;
 	
 	private String content;
