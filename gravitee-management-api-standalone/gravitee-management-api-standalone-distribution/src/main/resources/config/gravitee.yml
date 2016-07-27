@@ -189,3 +189,7 @@ jwt:
   #cookie-domain: .gravitee.io
   # Allows to define if cookie secure only (default false)
   #cookie-secure: true
+
+swagger:
+  # Default scheme used when creating an API from a Swagger descriptor if there is no scheme specified.
+  scheme: https

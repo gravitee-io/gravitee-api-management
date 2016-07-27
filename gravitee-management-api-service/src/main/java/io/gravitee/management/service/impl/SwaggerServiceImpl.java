@@ -17,15 +17,12 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.service.SwaggerService;
-import io.swagger.models.Path;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +32,9 @@ import java.util.stream.Collectors;
 @Component
 public class SwaggerServiceImpl implements SwaggerService {
 
+    @Value("${swagger.scheme:https}")
+    private String defaultScheme;
+
     public NewApiEntity prepare(String descriptor) {
         Swagger swagger = new SwaggerParser().parse(descriptor);
 
@@ -43,7 +43,11 @@ public class SwaggerServiceImpl implements SwaggerService {
         apiEntity.setName(swagger.getInfo().getTitle());
         apiEntity.setDescription(swagger.getInfo().getDescription());
         apiEntity.setVersion(swagger.getInfo().getVersion());
-        apiEntity.setEndpoint(swagger.getSchemes().iterator().next().toValue() + "://" + swagger.getHost() + swagger.getBasePath());
+
+        String scheme = (swagger.getSchemes().isEmpty()) ? defaultScheme :
+                swagger.getSchemes().iterator().next().toValue();
+
+        apiEntity.setEndpoint(scheme + "://" + swagger.getHost() + swagger.getBasePath());
         apiEntity.setPaths(new ArrayList<>(
                 swagger.getPaths().keySet()
                         .stream()
