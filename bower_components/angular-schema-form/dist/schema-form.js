@@ -103,8 +103,8 @@ angular.module('schemaForm').factory('sfSelect', ['sfPath', function(sfPath) {
       return obj;
     }
 
-    if (typeof valueToSet !== 'undefined' &&
-        typeof obj[parts[0]] === 'undefined') {
+    if (typeof valueToSet !== 'undefined' && (
+      typeof obj[parts[0]] === 'undefined' || obj[parts[0]] === null)) {
        // We need to look ahead to check if array is appropriate
       obj[parts[0]] = parts.length > 2 && numRe.test(parts[1]) ? [] : {};
     }
@@ -136,6 +136,11 @@ angular.module('schemaForm').factory('sfSelect', ['sfPath', function(sfPath) {
         value = value[parts[i]];
       }
     }
+
+    if (value === null) {
+      value = undefined;
+    }
+
     return value;
   };
 }]);
@@ -1461,7 +1466,6 @@ angular.module('schemaForm').provider('schemaForm',
         if (obj.type === 'checkbox' && angular.isUndefined(obj.schema['default'])) {
           obj.schema['default'] = false;
         }
-        
         // Special case: template type with tempplateUrl that's needs to be loaded before rendering
         // TODO: this is not a clean solution. Maybe something cleaner can be made when $ref support
         // is introduced since we need to go async then anyway
