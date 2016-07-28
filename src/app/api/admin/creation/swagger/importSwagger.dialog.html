@@ -15,34 +15,57 @@
     limitations under the License.
 
 -->
-<md-dialog style="min-width:35%;">
-  <form name="formImportSwagger" ng-submit="dialogApiSwaggerImportCtrl.import()" novalidate role="form">
-  <md-toolbar>
-    <div class="md-toolbar-tools">
-      <h2>Create a new API</h2>
-      <span flex></span>
-      <md-button type="button" class="md-icon-button" ng-click="dialogApiSwaggerImportCtrl.hide()">
-        X
-      </md-button>
-    </div>
-  </md-toolbar>
-  <md-dialog-content style="max-width:800px;max-height:810px; ">
-    <div layout="row">
-      <div flex layout="row" layout-align="center center">
-        <md-button>
-          Import a Swagger descriptor to create an API
-          <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" required />
+<md-dialog style="min-width:40%;">
+  <form name="formImportSwagger" ng-submit="dialogApiSwaggerImportCtrl.import()" novalidate role="form" ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Create a new API</h2>
+        <span flex></span>
+        <md-button type="button" class="md-icon-button" ng-click="dialogApiSwaggerImportCtrl.hide()">
+          X
         </md-button>
       </div>
-    </div>
-  </md-dialog-content>
-  <div class="md-actions" layout="row">
-    <md-button type="button" md-no-ink class="md-primary" ng-click="dialogApiSwaggerImportCtrl.hide()" style="margin-right:20px;">
-      Close
-    </md-button>
-    <md-button class="md-raised" type="submit" ng-disabled="formImportSwagger.$invalid">
-     Import Swagger
-    </md-button>
-  </div>
+    </md-toolbar>
+    <md-dialog-content>
+      <div class="md-dialog-content">
+      <h5>Import Swagger descriptor</h5>
+        <hr />
+      <div layout="row">
+        <div flex>
+          <p style="margin-bottom: 0;margin-top: 15px;">Select the way to get the descriptor</p>
+        </div>
+        <div flex layout="column" layout-align="center center">
+          <md-radio-group ng-model="swagger.type" layout="row" class="md-primary" ng-change="dialogApiSwaggerImportCtrl.onTypeChange();">
+            <md-radio-button value="INLINE">Inline (from local file-system)</md-radio-button>
+            <md-radio-button value="URL">URL</md-radio-button>
+          </md-radio-group>
+        </div>
+      </div>
+      <div layout="row" ng-if="swagger.type == 'INLINE'" layout-align="center center">
+        <div flex layout="row" layout-align="center center">
+          <md-input-container class="md-block" flex-gt-sm>
+            <input type="file" filecontent="swagger.payload" filename="swagger.name" aria-label="Swagger descriptor content"/>
+            <input type="hidden" ng-model="swagger.payload" ng-required="swagger.type == 'INLINE'" />
+          </md-input-container>
+        </div>
+      </div>
+      <div layout="row" ng-if="swagger.type == 'URL'" layout-align="center center">
+        <div flex layout="row" layout-align="center center">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>URL *</label>
+            <input ng-model="swagger.url" type="url" ng-required="swagger.type == 'URL'" name="url">
+          </md-input-container>
+        </div>
+      </div>
+      </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+      <md-button type="button" md-no-ink class="md-primary" ng-click="dialogApiSwaggerImportCtrl.hide()" style="margin-right:20px;">
+        Close
+      </md-button>
+      <md-button class="md-raised" type="submit" ng-disabled="formImportSwagger.$invalid">
+        Import Swagger
+      </md-button>
+    </md-dialog-actions>
   </form>
 </md-dialog>

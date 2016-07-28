@@ -16,14 +16,30 @@
 function DialogApiSwaggerImportController($scope, $mdDialog, ApiService, apiId) {
   'ngInject';
 
-  $scope.pageContentFile = {content: '', name : ''};
+  $scope.swagger = {
+    version: 'VERSION_2_0',
+    type: 'INLINE',
+    name: ''
+  };
+
+  this.onTypeChange = function() {
+    delete $scope.swagger.payload;
+    delete $scope.swagger.url;
+  };
 
   this.hide = function() {
     $mdDialog.hide();
   };
 
   this.import = function() {
-    ApiService.importSwagger($scope.pageContentFile.content).then(function (response) {
+    delete $scope.swagger.name;
+    if ($scope.swagger.type == 'INLINE') {
+      delete $scope.swagger.url;
+    } else {
+      $scope.swagger.payload = $scope.swagger.url;
+      delete $scope.swagger.url;
+    }
+    ApiService.importSwagger($scope.swagger).then(function (response) {
       $mdDialog.hide(response.data);
     });
   };
