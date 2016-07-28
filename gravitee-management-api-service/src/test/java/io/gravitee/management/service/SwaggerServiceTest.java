@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.service.impl.SwaggerServiceImpl;
 import org.junit.Assert;
@@ -45,8 +46,10 @@ public class SwaggerServiceTest {
     @Test
     public void shouldPrepareAPIFromSwagger_json() throws IOException {
         URL url =  Resources.getResource("io/gravitee/management/service/swagger-petstore.json");
-        String swagger = Resources.toString(url, Charsets.UTF_8);
-        NewApiEntity api = swaggerService.prepare(swagger);
+        String descriptor = Resources.toString(url, Charsets.UTF_8);
+        ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        swaggerDescriptor.setPayload(descriptor);
+        NewApiEntity api = swaggerService.prepare(swaggerDescriptor);
 
         Assert.assertEquals("1.0.0", api.getVersion());
         Assert.assertEquals("Swagger Petstore (Simple)", api.getName());
@@ -58,8 +61,10 @@ public class SwaggerServiceTest {
     @Test
     public void shouldPrepareAPIFromSwagger_yaml() throws IOException {
         URL url =  Resources.getResource("io/gravitee/management/service/swagger-petstore.yaml");
-        String swagger = Resources.toString(url, Charsets.UTF_8);
-        NewApiEntity api = swaggerService.prepare(swagger);
+        String descriptor = Resources.toString(url, Charsets.UTF_8);
+        ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        swaggerDescriptor.setPayload(descriptor);
+        NewApiEntity api = swaggerService.prepare(swaggerDescriptor);
 
         Assert.assertEquals("1.0.0", api.getVersion());
         Assert.assertEquals("Swagger Petstore (Simple)", api.getName());

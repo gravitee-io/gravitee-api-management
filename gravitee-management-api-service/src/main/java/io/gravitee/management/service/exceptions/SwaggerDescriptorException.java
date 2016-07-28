@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
-import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface SwaggerService {
+public class SwaggerDescriptorException extends AbstractManagementException {
 
-    /**
-     * Prepare an API from a Swagger descriptor. This method does not create an API but
-     * extract data from Swagger to prepare an API to create.
-     *
-     * @param swaggerDescriptor Swagger descriptor
-     * @return The API from the Swagger descriptor
-     */
-    NewApiEntity prepare(ImportSwaggerDescriptorEntity swaggerDescriptor);
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Swagger descriptor: bad format";
+    }
 }

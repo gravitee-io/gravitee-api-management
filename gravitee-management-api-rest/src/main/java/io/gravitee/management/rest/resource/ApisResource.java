@@ -20,6 +20,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
 import io.gravitee.management.rest.annotation.Role;
 import io.gravitee.management.rest.annotation.RoleType;
+import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.SwaggerService;
@@ -115,7 +116,7 @@ public class ApisResource extends AbstractResource {
     @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import/swagger")
-    public NewApiEntity importSwagger(String swaggerDescriptor) {
+    public NewApiEntity importSwagger(@Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
         return swaggerService.prepare(swaggerDescriptor);
     }
 
