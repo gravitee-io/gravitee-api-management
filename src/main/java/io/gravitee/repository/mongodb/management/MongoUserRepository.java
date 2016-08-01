@@ -86,6 +86,7 @@ public class MongoUserRepository implements UserRepository {
 
 		// Update, but don't change invariant other creation information
 		userMongo.setPicture(user.getPicture());
+		userMongo.setLastConnectionAt(user.getLastConnectionAt());
 
 		UserMongo userUpdated = internalUserRepo.save(userMongo);
 		return mapper.map(userUpdated, User.class);

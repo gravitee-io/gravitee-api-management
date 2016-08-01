@@ -19,6 +19,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,6 +41,9 @@ public class UserMongo extends Auditable {
     private String lastname;
     private List<String> roles;
     private String picture;
+    private String source;
+    private String sourceId;
+    private Date lastConnectionAt;
 
     public String getName() {
         return name;
@@ -95,6 +99,30 @@ public class UserMongo extends Auditable {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public Date getLastConnectionAt() {
+        return lastConnectionAt;
+    }
+
+    public void setLastConnectionAt(Date lastConnectionAt) {
+        this.lastConnectionAt = lastConnectionAt;
     }
 
     @Override

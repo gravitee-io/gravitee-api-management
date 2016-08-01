@@ -172,7 +172,9 @@ public class MongoApplicationRepository implements ApplicationRepository {
 		user.setLastname(userMongo.getLastname());
 		user.setPassword(userMongo.getPassword());
 		user.setUpdatedAt(userMongo.getUpdatedAt());
-		user.setRoles(new HashSet<>(userMongo.getRoles()));
+		if (userMongo.getRoles() != null) {
+			user.setRoles(new HashSet<>(userMongo.getRoles()));
+		}
 		return user;
 	}
 
