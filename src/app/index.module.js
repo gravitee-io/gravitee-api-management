@@ -36,6 +36,8 @@ import ApiResourcesController from './api/admin/resources/resources.controller';
 import NewApiController from './api/admin/creation/newApi.controller';
 import DialogApiSwaggerImportController from './api/admin/creation/swagger/importSwaggerDialog.controller';
 import DialogAssertionInformationController from './api/admin/healthcheck/healthcheck-assertion-dialog.controller';
+import DialogApiPermissionsHelpController from './api/admin/members/api-permissions-dialog.controller';
+import DialogApplicationPermissionsHelpController from './application/details/members/application-permissions-dialog.controller';
 import ApiPropertiesController from './api/admin/properties/properties.controller';
 import ApiKeysController from './api/admin/apikeys/apikeys.controller';
 import ApiEventsController from './api/admin/events/apiEvents.controller';
@@ -110,6 +112,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('ApiGeneralController', ApiGeneralController)
   .controller('ApiHealthCheckController', ApiHealthCheckController)
   .controller('DialogAssertionInformationController', DialogAssertionInformationController)
+  .controller('DialogApiPermissionsHelpController', DialogApiPermissionsHelpController)
+  .controller('DialogApplicationPermissionsHelpController', DialogApplicationPermissionsHelpController)
   .controller('ApiPropertiesController', ApiPropertiesController)
   .controller('ApiKeysController', ApiKeysController)
   .controller('ApiEventsController', ApiEventsController)

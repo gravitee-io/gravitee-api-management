@@ -36,14 +36,13 @@
 				      md-items="item in searchUser(searchText)"
 				      md-item-text="item.lastname"
 				      md-min-length="1"
-				      placeholder="Search users ..." 
+				      placeholder="Search users ..."
 							md-autofocus="true"
 							md-menu-class="autocomplete-custom-template">
-        		
+
 						<md-item-template>
           		<span>
-								{{item.id}}
-          		  <span ng-show="item.lastname">( {{item.lastname}} )</span>
+								{{item.firstname}} {{item.lastname}} [{{item.id}}]
           		</span>
         		</md-item-template>
 				    <md-not-found>
@@ -54,13 +53,12 @@
 				<div ng-show="usersFound.length > 0">
 					<span ng-repeat="user in usersFound">
 						<md-checkbox
-							value="{{user.id}}" 
-							aria-label="{{user.id}}" 
+							value="{{user.id}}"
+							aria-label="{{user.id}}"
 							ng-click="selectMember(user)"
 							ng-checked="isUserSelected(user)">
 				      <span>
-								{{user.id}}
-          		  <span ng-show="user.lastname">( {{user.lastname}} )</span>
+								{{user.firstname}} {{user.lastname}} [{{user.id}}]
           		</span>
 				    </md-checkbox>
 					</span>

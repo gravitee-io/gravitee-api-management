@@ -52,7 +52,7 @@
           <td md-cell>{{apikey.expire_on | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           <td md-cell>
             <md-tooltip md-direction="left">Revoke this API Key</md-tooltip>
-            <ng-md-icon ng-show="!apikey.revoked" icon="not_interested" ng-click="applicationAPIKeysCtrl.revoke(apikey.key)"></ng-md-icon>
+            <ng-md-icon ng-show="!apikey.revoked" ng-if="applicationCtrl.isOwner()" icon="not_interested" ng-click="applicationAPIKeysCtrl.revoke(apikey.key)"></ng-md-icon>
           </td>
         </tr>
         <tr md-row></tr>

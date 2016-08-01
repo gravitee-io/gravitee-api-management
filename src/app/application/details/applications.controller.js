@@ -27,11 +27,7 @@ class ApplicationController {
 	}
 
 	isOwner() {
-    if (this.UserService.isUserInRoles('ADMIN')) {
-      return true;
-    } else {
-      return this.application.permission && (this.application.permission === 'owner' || this.application.permission === 'primary_owner');
-    }
+    return this.application.permission && (this.application.permission === 'owner' || this.application.permission === 'primary_owner');
   }
 
 	selectTab() {

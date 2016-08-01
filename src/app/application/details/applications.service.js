@@ -34,7 +34,7 @@ class ApplicationService {
 	}
 
 	addOrUpdateMember(applicationId, member) {
-		return this.$http.post(this.applicationsURL + applicationId + '/members?user=' + member.user + '&type=' + member.type);
+		return this.$http.post(this.applicationsURL + applicationId + '/members?user=' + member.username + '&type=' + member.type);
 	}
 
 	deleteMember(applicationId, memberUsername) {

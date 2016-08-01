@@ -78,7 +78,7 @@ function DialogAddMemberApiController($scope, $mdDialog, api, apiMembers, ApiSer
 		for (var i = 0; i < $scope.usersSelected.length; i++) {
 			var username = $scope.usersSelected[i];
 			var member = {
-				"user" : username,
+				"username" : username,
 				"type" : "USER"
 			};
       ApiService.addOrUpdateMember($scope.api.id, member).then(function() {

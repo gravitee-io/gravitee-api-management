@@ -31,15 +31,15 @@ class ApiMembersController {
 
   updateMember(member) {
     this.ApiService.addOrUpdateMember(this.api.id, member).then(() => {
-      this.NotificationService.show('Member ' + member.user + " has been updated with role " + member.type);
+      this.NotificationService.show('Member ' + member.username + " has been updated with role " + member.type);
     });
   }
 
   deleteMember(member) {
     var index = this.members.indexOf(member);
-    this.ApiService.deleteMember(this.api.id, member.user).then(() => {
+    this.ApiService.deleteMember(this.api.id, member.username).then(() => {
       this.members.splice(index, 1);
-      this.NotificationService.show("Member " + member.user + " has been removed");
+      this.NotificationService.show("Member " + member.username + " has been removed");
     });
   }
 
@@ -65,6 +65,16 @@ class ApiMembersController {
       }
     }, function() {
       // You cancelled the dialog
+    });
+  }
+
+  showPermissionsInformation(ev) {
+    this.$mdDialog.show({
+      controller: 'DialogApiPermissionsHelpController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/api/admin/members/permissions.dialog.html',
+      parent: angular.element(document.body),
+      clickOutsideToClose:true
     });
   }
 

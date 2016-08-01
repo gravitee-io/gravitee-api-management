@@ -15,40 +15,58 @@
     limitations under the License.
 
 -->
-<div layout-padding>
-  <md-table-container ng-show="applicationMembersCtrl.members.length > 1">
-    <table md-table>
-      <thead md-head md-order="order">
-      <tr md-row>
-        <th md-column order-by="user">Member</th>
-        <th md-column order-by="type">Role</th>
-        <th md-column></th>
-      </tr>
-      </thead>
-      <tbody md-body>
-        <tr md-row ng-repeat="member in applicationMembersCtrl.members | filter: { type: '!primary_owner' } | orderBy: order">
-          <td md-cell ng-switch="member.type">
-            <span ng-switch-when="primary_owner"><b>{{member.user}}</b></span>
-			      <span ng-switch-default>{{member.user}}</span>
-          </td>
-          <td md-cell ng-show="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != graviteeUser.username">
-            <md-select ng-model="member.type" placeholder="Other" ng-change="applicationMembersCtrl.updateMember(member)">
-              <md-option ng-value="type" ng-repeat="type in applicationMembersCtrl.membershipTypes">{{type}}</md-option>
-            </md-select>
-		      </td>
-          <td md-cell ng-hide="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != graviteeUser.username">
-            <span>{{member.type}}</span>
-	        </td>
-	        <td md-cell>
-		        <div ng-if="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.user != graviteeUser.username">
-              <ng-md-icon ng-click="applicationMembersCtrl.showDeleteMemberConfirm($event, member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
-			      </div>
-          </td>
-        </tr>
-	    </tbody>
-	  </table>
-  </md-table-container>
-</div>
+<section layout="column" flex>
+  <md-content flex layout-padding>
+    <div layout="column">
+      <h4>Members
+        <md-button class="md-icon-button" aria-label="Members Info" ng-click="applicationMembersCtrl.showPermissionsInformation()">
+          <ng-md-icon icon="info" style="fill: #b1bdc5;"></ng-md-icon>
+        </md-button>
+      </h4>
+      <span flex></span>
+      <md-content style="background: none">
+        <md-table-container ng-show="applicationMembersCtrl.members.length > 1">
+          <table md-table>
+            <thead md-head md-order="order">
+            <tr md-row>
+              <th md-column order-by="username">Member</th>
+              <th md-column></th>
+              <th md-column order-by="type">Role</th>
+              <th md-column></th>
+            </tr>
+            </thead>
+            <tbody md-body>
+            <tr md-row ng-repeat="member in applicationMembersCtrl.members | orderBy: order">
+              <td md-cell ng-switch="member.type">
+            <span ng-switch-when="primary_owner">
+              <b>{{member.firstname}} {{member.lastname}} [{{member.username}}]</b>
+            </span>
+                <span ng-switch-default>{{member.firstname}} {{member.lastname}} [{{member.username}}]</span>
+              </td>
+              <td md-cell>
+                {{member.email}}
+              </td>
+              <td md-cell ng-show="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.username != graviteeUser.username">
+                <md-select ng-model="member.type" placeholder="Other" ng-change="applicationMembersCtrl.updateMember(member)">
+                  <md-option ng-value="type" ng-repeat="type in applicationMembersCtrl.membershipTypes">{{type}}</md-option>
+                </md-select>
+              </td>
+              <td md-cell ng-hide="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.username != graviteeUser.username">
+                <span>{{member.type}}</span>
+              </td>
+              <td md-cell>
+                <div ng-if="member.type != 'primary_owner' && applicationCtrl.isOwner() && member.username != graviteeUser.username">
+                  <ng-md-icon ng-click="applicationMembersCtrl.showDeleteMemberConfirm($event, member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+      </md-content>
+    </div>
+  </md-content>
+</section>
 
 <md-button ng-if="applicationCtrl.isOwner()" class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="applicationMembersCtrl.showAddMemberModal($event)">
   <ng-md-icon icon="add"></ng-md-icon>

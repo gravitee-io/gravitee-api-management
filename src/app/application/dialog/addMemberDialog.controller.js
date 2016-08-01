@@ -78,7 +78,7 @@ function DialogAddMemberController($scope, $mdDialog, application, applicationMe
 		for (var i = 0; i < $scope.usersSelected.length; i++) {
 			var username = $scope.usersSelected[i];
 			var member = {
-				"user" : username,
+				"username" : username,
 				"type" : "USER"
 			};
 			ApplicationService.addOrUpdateMember($scope.application.id, member).then(function() {

@@ -136,7 +136,7 @@ class ApiService {
   }
 
   addOrUpdateMember(api, member) {
-    return this.$http.post(this.apisURL + api + '/members?user=' + member.user + '&type=' + member.type);
+    return this.$http.post(this.apisURL + api + '/members?user=' + member.username + '&type=' + member.type);
   }
 
   deleteMember(api, memberUsername) {

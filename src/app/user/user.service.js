@@ -55,7 +55,7 @@ class UserService {
 	  var rolesAllowed = false, that = this;
 	  _.forEach(roles, function(role) {
 	    _.forEach(that.$rootScope.graviteeUser.authorities, function(authority) {
-	      if (authority.authority === role) {
+        if (authority.authority === role) {
 	        rolesAllowed = true;
 	        return;
 	      }
