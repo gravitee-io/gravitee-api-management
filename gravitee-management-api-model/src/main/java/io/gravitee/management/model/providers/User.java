@@ -30,7 +30,9 @@ public class User {
 
     private String email;
 
-    private String provider;
+    private String source;
+
+    private String sourceId;
 
     public String getEmail() {
         return email;
@@ -64,19 +66,28 @@ public class User {
         this.lastname = lastname;
     }
 
-    public String getProvider() {
-        return provider;
+    public String getSource() {
+        return source;
     }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("User{");
         sb.append("id='").append(id).append('\'');
-        sb.append(", provider='").append(provider).append('\'');
+        sb.append(", source='").append(source).append('\'');
+        sb.append(", external_reference='").append(sourceId).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -87,12 +98,12 @@ public class User {
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
         return Objects.equals(id, user.id) &&
-                Objects.equals(provider, user.provider);
+                Objects.equals(source, user.source);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, provider);
+        return Objects.hash(id, source);
     }
 }
 

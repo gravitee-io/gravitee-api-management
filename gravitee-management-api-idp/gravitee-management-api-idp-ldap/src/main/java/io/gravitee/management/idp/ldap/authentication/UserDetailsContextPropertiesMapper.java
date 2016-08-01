@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.idp.ldap.authentication;
 
+import io.gravitee.management.idp.ldap.LdapIdentityProvider;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,8 +60,17 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 		} catch (Exception e){
 			LOGGER.error("Failed to load mapped authorities", e);
 		}
-		return new io.gravitee.management.idp.api.authentication.UserDetails(username, "", mappedAuthorities,
-				ctx.getStringAttribute("mail"), ctx.getStringAttribute("givenName"), ctx.getStringAttribute("sn"));
+
+		io.gravitee.management.idp.api.authentication.UserDetails userDetails =
+				new io.gravitee.management.idp.api.authentication.UserDetails(username, "", mappedAuthorities);
+
+		userDetails.setFirstname(ctx.getStringAttribute("sn"));
+		userDetails.setLastname(ctx.getStringAttribute("givenName"));
+		userDetails.setEmail(ctx.getStringAttribute("mail"));
+		userDetails.setSource(LdapIdentityProvider.PROVIDER_TYPE);
+		userDetails.setSourceId(ctx.getNameInNamespace());
+
+		return userDetails;
 	}
 
 	@Override

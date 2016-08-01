@@ -15,8 +15,13 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.management.rest.filter.ApiPermissionFilter;
+import io.gravitee.management.rest.filter.ApplicationPermissionFilter;
+import io.gravitee.management.rest.filter.SecurityContextFilter;
 import io.gravitee.management.rest.provider.*;
+import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.message.filtering.SelectableEntityFilteringFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
@@ -45,6 +50,9 @@ public class GraviteeApplication extends ResourceConfig {
         register(NotFoundExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
 
+        register(SecurityContextFilter.class);
+        register(ApiPermissionFilter.class);
+        register(ApplicationPermissionFilter.class);
         register(CorsResponseFilter.class);
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);

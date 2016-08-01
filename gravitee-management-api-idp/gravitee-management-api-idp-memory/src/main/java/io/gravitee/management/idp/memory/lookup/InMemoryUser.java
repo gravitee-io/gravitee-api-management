@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.idp.ldap.lookup;
+package io.gravitee.management.idp.memory.lookup;
 
 import io.gravitee.management.idp.api.identity.User;
-import io.gravitee.management.idp.ldap.LdapIdentityProvider;
+import io.gravitee.management.idp.memory.InMemoryIdentityProvider;
 
 import java.util.Map;
 
@@ -24,19 +24,19 @@ import java.util.Map;
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public class LdapUser implements User<String> {
+public class InMemoryUser implements User<String> {
 
     private final String username;
-    private String firstname, lastname, email, dn;
+    private String firstname, lastname, email;
     private Map<String, Object> properties;
 
-    LdapUser(String username) {
+    InMemoryUser(String username) {
         this.username = username;
     }
 
     @Override
     public String getInternalId() {
-        return dn;
+        return username;
     }
 
     @Override
@@ -71,14 +71,6 @@ public class LdapUser implements User<String> {
         this.lastname = lastname;
     }
 
-    public String getDn() {
-        return dn;
-    }
-
-    public void setDn(String dn) {
-        this.dn = dn;
-    }
-
     @Override
     public Map<String, Object> getProperties() {
         return properties;
@@ -90,6 +82,6 @@ public class LdapUser implements User<String> {
 
     @Override
     public String getSource() {
-        return LdapIdentityProvider.PROVIDER_TYPE;
+        return InMemoryIdentityProvider.PROVIDER_TYPE;
     }
 }

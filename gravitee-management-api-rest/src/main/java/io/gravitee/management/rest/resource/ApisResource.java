@@ -18,8 +18,6 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
-import io.gravitee.management.rest.annotation.Role;
-import io.gravitee.management.rest.annotation.RoleType;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
@@ -105,7 +103,6 @@ public class ApisResource extends AbstractResource {
     }
 
     @POST
-    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
     public Response importDefinition(String apiDefinition) {
@@ -113,7 +110,6 @@ public class ApisResource extends AbstractResource {
     }
 
     @POST
-    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import/swagger")
     public NewApiEntity importSwagger(@Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
@@ -156,7 +152,7 @@ public class ApisResource extends AbstractResource {
         Collection<MemberEntity> members = apiService.getMembers(api.getId(), MembershipType.PRIMARY_OWNER);
         if (! members.isEmpty()) {
             MemberEntity primaryOwner = members.iterator().next();
-            UserEntity user = userService.findByName(primaryOwner.getUser());
+            UserEntity user = userService.findByName(primaryOwner.getUsername());
 
             PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
             owner.setUsername(user.getUsername());
@@ -168,13 +164,17 @@ public class ApisResource extends AbstractResource {
 
         // Add permission for current user (if authenticated)
         if(isAuthenticated()) {
-            MemberEntity member = apiService.getMember(apiItem.getId(), getAuthenticatedUsername());
-            if (member != null) {
-                apiItem.setPermission(member.getType());
+            if (isAdmin()) {
+                apiItem.setPermission(MembershipType.PRIMARY_OWNER);
             } else {
-                if (apiItem.getVisibility() == Visibility.PUBLIC) {
-                    // If API is public, all users have the user permission
-                    apiItem.setPermission(MembershipType.USER);
+                MemberEntity member = apiService.getMember(apiItem.getId(), getAuthenticatedUsername());
+                if (member != null) {
+                    apiItem.setPermission(member.getType());
+                } else {
+                    if (apiItem.getVisibility() == Visibility.PUBLIC) {
+                        // If API is public, all users have the user permission
+                        apiItem.setPermission(MembershipType.USER);
+                    }
                 }
             }
         }

@@ -15,31 +15,21 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.model.permissions.ApplicationPermission;
 import io.gravitee.management.rest.resource.param.MembershipTypeParam;
+import io.gravitee.management.rest.security.ApplicationPermissionsRequired;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.UserService;
-import io.gravitee.management.service.exceptions.UserNotFoundException;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import io.gravitee.common.http.MediaType;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-
-import org.apache.commons.lang.StringUtils;
+import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -57,56 +47,31 @@ public class ApplicationMembersResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<MemberEntity> members() {
-        // Check that the application exists
-        applicationService.findById(application);
-
+    @ApplicationPermissionsRequired(ApplicationPermission.READ)
+    public List<MemberEntity> members() {
         return applicationService.getMembers(application, null).stream()
-                .sorted((o1, o2) -> o1.getUser().compareTo(o2.getUser()))
-                .collect(Collectors.toSet());
+                .sorted((o1, o2) -> o1.getUsername().compareTo(o2.getUsername()))
+                .collect(Collectors.toList());
     }
 
     @POST
+    @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_MEMBERS)
     public Response create(
             @NotNull @QueryParam("user") String username,
             @NotNull @QueryParam("type") MembershipTypeParam membershipType) {
-        // Check that the application exists
-        applicationService.findById(application);
-
         if (membershipType.getValue() == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        try {
-            userService.findByName(username);
-        } catch (UserNotFoundException unfe) {
-        	// Create user with only user name data
-        	// The others information will be updated during its first connection
-        	NewUserEntity user = new NewUserEntity();
-        	user.setUsername(username);
-        	user.setPassword(StringUtils.EMPTY);
-        	user.setRoles(new HashSet<String>(Arrays.asList(new String[]{"ROLE_USER"})));
-        	userService.create(user);
-        }
-
         applicationService.addOrUpdateMember(application, username, membershipType.getValue());
-
         return Response.created(URI.create("/applications/" + application + "/members/" + username)).build();
     }
 
     @DELETE
+    @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_MEMBERS)
     public Response delete(@NotNull @QueryParam("user") String username) {
-        // Check that the application exists
-        applicationService.findById(application);
-
-        try {
-            userService.findByName(username);
-        } catch (UserNotFoundException unfe) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
-        }
-
+        userService.findByName(username);
         applicationService.deleteMember(application, username);
-
         return Response.ok().build();
     }
 }

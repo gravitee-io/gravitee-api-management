@@ -26,12 +26,12 @@ import java.util.Map;
  */
 public class RepositoryUser implements User<String> {
 
-    private final String id;
+    private final String username;
     private String firstname, lastname, email;
     private Map<String, Object> properties;
 
-    RepositoryUser(String id) {
-        this.id = id;
+    RepositoryUser(String username) {
+        this.username = username;
     }
 
     @Override
@@ -53,8 +53,13 @@ public class RepositoryUser implements User<String> {
     }
 
     @Override
-    public String getId() {
-        return id;
+    public String getInternalId() {
+        return username;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
     }
 
     @Override

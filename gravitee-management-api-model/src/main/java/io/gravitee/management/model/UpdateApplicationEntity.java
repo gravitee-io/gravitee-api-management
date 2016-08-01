@@ -28,7 +28,6 @@ public class UpdateApplicationEntity {
     @NotNull
     private String description;
 
-    @NotNull
     private String type;
 
     public String getName() {

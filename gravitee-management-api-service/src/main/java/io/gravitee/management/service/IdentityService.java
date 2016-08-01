@@ -25,4 +25,6 @@ import java.util.Collection;
 public interface IdentityService {
 
     Collection<User> search(String query);
+
+    User findOne(String id);
 }

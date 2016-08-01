@@ -19,6 +19,7 @@ import io.gravitee.management.idp.api.IdentityProvider;
 import io.gravitee.management.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.management.idp.api.identity.IdentityLookup;
 import io.gravitee.management.idp.memory.authentication.InMemoryAuthentificationProvider;
+import io.gravitee.management.idp.memory.lookup.InMemoryIdentityLookup;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -26,7 +27,7 @@ import io.gravitee.management.idp.memory.authentication.InMemoryAuthentification
  */
 public class InMemoryIdentityProvider implements IdentityProvider {
 
-    private final static String PROVIDER_TYPE = "memory";
+    public final static String PROVIDER_TYPE = "memory";
 
     @Override
     public String type() {
@@ -40,7 +41,7 @@ public class InMemoryIdentityProvider implements IdentityProvider {
 
     @Override
     public Class<? extends IdentityLookup> identityLookup() {
-        return null;
+        return InMemoryIdentityLookup.class;
     }
 
 }

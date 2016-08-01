@@ -18,6 +18,8 @@ package io.gravitee.management.service.impl;
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.service.IdentityService;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.EmailService;
@@ -59,6 +61,9 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private IdentityService identityService;
 
     @Override
     public ApplicationEntity findById(String applicationId) {
@@ -228,7 +233,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
             members.addAll(
                     membersRepo.stream()
-                            .map(member -> convert(member))
+                            .map(this::convert)
                             .collect(Collectors.toSet())
             );
 
@@ -262,7 +267,28 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Add a new member for applicationId {}", applicationId);
 
-            final UserEntity user = userService.findByName(username);
+            UserEntity user;
+
+            try {
+                user = userService.findByName(username);
+            } catch (UserNotFoundException unfe) {
+                // User does not exist so we are looking into defined providers
+                io.gravitee.management.model.providers.User providerUser = identityService.findOne(username);
+                if (providerUser != null) {
+                    // Information will be updated after the first connection of the user
+                    NewExternalUserEntity newUser = new NewExternalUserEntity();
+                    newUser.setUsername(username);
+                    newUser.setFirstname(providerUser.getFirstname());
+                    newUser.setLastname(providerUser.getLastname());
+                    newUser.setEmail(providerUser.getEmail());
+                    newUser.setSource(providerUser.getSource());
+                    newUser.setSourceId(providerUser.getSourceId());
+
+                    user = userService.create(newUser);
+                } else {
+                    throw new UserNotFoundException(username);
+                }
+            }
 
             applicationRepository.saveMember(applicationId, username,
                     MembershipType.valueOf(membershipType.toString()));
@@ -352,10 +378,13 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     private MemberEntity convert(Membership membership) {
         MemberEntity member = new MemberEntity();
 
-        member.setUser(membership.getUser().getUsername());
+        member.setUsername(membership.getUser().getUsername());
         member.setCreatedAt(membership.getCreatedAt());
         member.setUpdatedAt(membership.getUpdatedAt());
         member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));
+        member.setFirstname(membership.getUser().getFirstname());
+        member.setLastname(membership.getUser().getLastname());
+        member.setEmail(membership.getUser().getEmail());
 
         return member;
     }

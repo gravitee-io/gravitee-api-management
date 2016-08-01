@@ -15,26 +15,20 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.management.model.permissions.ApplicationPermission;
 import io.gravitee.management.rest.enhancer.ApplicationEnhancer;
+import io.gravitee.management.rest.security.ApplicationPermissionsRequired;
 import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.PermissionService;
-import io.gravitee.management.service.PermissionType;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import io.gravitee.common.http.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -49,9 +43,6 @@ public class ApplicationResource extends AbstractResource {
     private ApplicationService applicationService;
 
     @Inject
-    private PermissionService permissionService;
-
-    @Inject
     private ApplicationEnhancer applicationEnhancer;
 
     @PathParam("application")
@@ -59,31 +50,26 @@ public class ApplicationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApplicationPermissionsRequired(ApplicationPermission.READ)
     public ApplicationEntity get() {
         ApplicationEntity applicationEntity = applicationService.findById(application);
-
-        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
-
-        return applicationEnhancer.enhance(getAuthenticatedUsername()).apply(applicationEntity);
+        return applicationEnhancer.enhance(securityContext).apply(applicationEntity);
     }
     
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_API)
     public ApplicationEntity update(@Valid @NotNull final UpdateApplicationEntity updatedApplication) {
-        applicationService.findById(this.application);
-
-        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.EDIT_APPLICATION);
-
-        return applicationEnhancer.enhance(getAuthenticatedUsername()).apply(
+        return applicationEnhancer.enhance(securityContext).apply(
                 applicationService.update(application, updatedApplication)
         );
     }
 
     @DELETE
+    @ApplicationPermissionsRequired(ApplicationPermission.DELETE)
     public Response delete() {
-        ApplicationEntity applicationEntity = applicationService.findById(application);
-        applicationService.delete(applicationEntity.getId());
+        applicationService.delete(application);
 
         return Response.noContent().build();
     }

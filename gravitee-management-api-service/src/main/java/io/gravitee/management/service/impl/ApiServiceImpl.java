@@ -80,6 +80,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private PageService pageService;
 
     @Autowired
+    private IdentityService identityService;
+
+    @Autowired
     private ApiSynchronizationProcessor apiSynchronizationProcessor;
 
     @Value("${configuration.default-icon:${gravitee.home}/config/default-icon.png}")
@@ -382,15 +385,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Collection<Membership> membersRepo = apiRepository.getMembers(apiId,
                     (membershipType == null) ? null : MembershipType.valueOf(membershipType.toString()));
 
-            final Set<MemberEntity> members = new HashSet<>(membersRepo.size());
-
-            members.addAll(
-                    membersRepo.stream()
-                            .map(member -> convert(member))
-                            .collect(Collectors.toSet())
-            );
-
-            return members;
+            return membersRepo.stream()
+                            .map(this::convert)
+                            .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get members for API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to get members for API " + apiId, ex);
@@ -420,10 +417,30 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             LOGGER.debug("Add or update a new member for API {}", api);
 
-            final UserEntity user = userService.findByName(username);
+            UserEntity user;
 
-            apiRepository.saveMember(api, username,
-                    MembershipType.valueOf(membershipType.toString()));
+            try {
+                user = userService.findByName(username);
+            } catch (UserNotFoundException unfe) {
+                // User does not exist so we are looking into defined providers
+                io.gravitee.management.model.providers.User providerUser = identityService.findOne(username);
+                if (providerUser != null) {
+                    // Information will be updated after the first connection of the user
+                    NewExternalUserEntity newUser = new NewExternalUserEntity();
+                    newUser.setUsername(username);
+                    newUser.setFirstname(providerUser.getFirstname());
+                    newUser.setLastname(providerUser.getLastname());
+                    newUser.setEmail(providerUser.getEmail());
+                    newUser.setSource(providerUser.getSource());
+                    newUser.setSourceId(providerUser.getSourceId());
+
+                    user = userService.create(newUser);
+                } else {
+                    throw new UserNotFoundException(username);
+                }
+            }
+
+            apiRepository.saveMember(api, username, MembershipType.valueOf(membershipType.toString()));
 
             if (user.getEmail() != null && !user.getEmail().isEmpty()) {
                 emailService.sendEmailNotification(new EmailNotificationBuilder()
@@ -445,6 +462,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             LOGGER.debug("Delete member {} for API {}", username, api);
 
+            userService.findByName(username);
             apiRepository.deleteMember(api, username);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete member {} for API {}", username, api, ex);
@@ -620,7 +638,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             if (membersDefinition != null && membersDefinition.isArray()) {
                 for (final JsonNode memberNode : membersDefinition) {
                     MemberEntity memberEntity = objectMapper.readValue(memberNode.toString(), MemberEntity.class);
-                    addOrUpdateMember(createdOrUpdatedApiEntity.getId(), memberEntity.getUser(), memberEntity.getType());
+                    addOrUpdateMember(createdOrUpdatedApiEntity.getId(), memberEntity.getUsername(), memberEntity.getType());
                 }
             }
             //Pages
@@ -773,10 +791,13 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private MemberEntity convert(Membership membership) {
         MemberEntity member = new MemberEntity();
 
-        member.setUser(membership.getUser().getUsername());
+        member.setUsername(membership.getUser().getUsername());
         member.setCreatedAt(membership.getCreatedAt());
         member.setUpdatedAt(membership.getUpdatedAt());
         member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));
+        member.setFirstname(membership.getUser().getFirstname());
+        member.setLastname(membership.getUser().getLastname());
+        member.setEmail(membership.getUser().getEmail());
 
         return member;
     }

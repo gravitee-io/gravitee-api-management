@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.annotation;
-
-import java.lang.annotation.*;
+package io.gravitee.management.model.permissions;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-@Target({ ElementType.METHOD, ElementType.TYPE })
-@Retention(RetentionPolicy.SOURCE)
-@Documented
-public @interface Role {
+public enum Role {
 
-    RoleType [] value();
+    USER,
+    API_CONSUMER,
+    API_PUBLISHER,
+    ADMIN;
 }

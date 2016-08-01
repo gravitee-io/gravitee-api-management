@@ -68,7 +68,25 @@ public class UserEntity {
     @JsonProperty("updated_at")
     private Date updatedAt;
 
+    /**
+     * The user picture
+     */
     private String picture;
+
+    /**
+     * The source when user is coming from an external system (LDAP, ...)
+     */
+    private String source;
+
+    /**
+     * The user reference in the external source
+     */
+    private String sourceId;
+
+    /**
+     * The user last connection date
+     */
+    private Date lastConnectionAt;
     
     public String getFirstname() {
   		return firstname;
@@ -142,6 +160,30 @@ public class UserEntity {
         this.picture = picture;
     }
 
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public Date getLastConnectionAt() {
+        return lastConnectionAt;
+    }
+
+    public void setLastConnectionAt(Date lastConnectionAt) {
+        this.lastConnectionAt = lastConnectionAt;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -158,11 +200,12 @@ public class UserEntity {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("UserEntity{");
-        sb.append("firstname='").append(firstname).append('\'');
+        sb.append("username='").append(firstname).append('\'');
+        sb.append(", source='").append(source).append('\'');
+        sb.append(", external_reference='").append(sourceId).append('\'');
+        sb.append(", firstname='").append(firstname).append('\'');
         sb.append(", lastname='").append(lastname).append('\'');
-        sb.append(", email='").append(email).append('\'');
-        sb.append(", username='").append(username).append('\'');
-        sb.append(", roles='").append(roles).append('\'');
+        sb.append(", mail='").append(email).append('\'');
         sb.append('}');
         return sb.toString();
     }

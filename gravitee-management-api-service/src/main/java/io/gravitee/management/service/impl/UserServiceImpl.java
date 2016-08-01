@@ -15,9 +15,11 @@
  */
 package io.gravitee.management.service.impl;
 
+import io.gravitee.management.model.NewExternalUserEntity;
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.permissions.Role;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
@@ -28,10 +30,15 @@ import io.gravitee.repository.management.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -46,6 +53,31 @@ public class UserServiceImpl extends TransactionalService implements UserService
 
     @Autowired
     private UserRepository userRepository;
+
+    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @Override
+    public UserEntity connect(String username) {
+        try {
+            LOGGER.debug("Connection of {}", username);
+            Optional<User> checkUser = userRepository.findByUsername(username);
+            if (!checkUser.isPresent()) {
+                throw new UserNotFoundException(username);
+            }
+
+            User user = checkUser.get();
+
+            // Set date fields
+            user.setLastConnectionAt(new Date());
+            user.setUpdatedAt(user.getLastConnectionAt());
+
+            User updatedUser = userRepository.update(user);
+            return convert(updatedUser);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to connect {}", username, ex);
+            throw new TechnicalManagementException("An error occurs while trying to connect " + username, ex);
+        }
+    }
 
     @Override
     public UserEntity findByName(String username) {
@@ -68,7 +100,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
     @Override
     public UserEntity create(NewUserEntity newUserEntity) {
         try {
-            LOGGER.debug("Create {}", newUserEntity);
+            LOGGER.debug("Create an internal user {}", newUserEntity);
             Optional<User> checkUser = userRepository.findByUsername(newUserEntity.getUsername());
             if (checkUser.isPresent()) {
                 throw new UsernameAlreadyExistsException(newUserEntity.getUsername());
@@ -76,15 +108,51 @@ public class UserServiceImpl extends TransactionalService implements UserService
 
             User user = convert(newUserEntity);
 
+            // Encrypt password if internal user
+            if (user.getPassword() != null) {
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
+            }
+
             // Set date fields
             user.setCreatedAt(new Date());
             user.setUpdatedAt(user.getCreatedAt());
+            user.setSource("gravitee");
+            user.setSourceId(user.getUsername());
+
+            // Set default role
+            user.setRoles(Collections.singleton(Role.API_CONSUMER.name()));
 
             User createdUser = userRepository.create(user);
             return convert(createdUser);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {}", newUserEntity, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + newUserEntity, ex);
+            LOGGER.error("An error occurs while trying to create an internal user {}", newUserEntity, ex);
+            throw new TechnicalManagementException("An error occurs while trying to create an internal user" + newUserEntity, ex);
+        }
+    }
+
+    @Override
+    public UserEntity create(NewExternalUserEntity newExternalUserEntity) {
+        try {
+            LOGGER.debug("Create an external user {}", newExternalUserEntity);
+            Optional<User> checkUser = userRepository.findByUsername(newExternalUserEntity.getUsername());
+            if (checkUser.isPresent()) {
+                throw new UsernameAlreadyExistsException(newExternalUserEntity.getUsername());
+            }
+
+            User user = convert(newExternalUserEntity);
+
+            // Set date fields
+            user.setCreatedAt(new Date());
+            user.setUpdatedAt(user.getCreatedAt());
+
+            // Set default role
+            user.setRoles(Collections.singleton(Role.API_CONSUMER.name()));
+
+            User createdUser = userRepository.create(user);
+            return convert(createdUser);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to create an external user {}", newExternalUserEntity, ex);
+            throw new TechnicalManagementException("An error occurs while trying to create an external user" + newExternalUserEntity, ex);
         }
     }
 
@@ -99,7 +167,10 @@ public class UserServiceImpl extends TransactionalService implements UserService
 
             User user = checkUser.get();
 
-            user.setUpdatedAt(user.getCreatedAt());
+            // Set date fields
+            user.setUpdatedAt(new Date());
+
+            // Set variant fields
             user.setPicture(updateUserEntity.getPicture());
 
             User updatedUser = userRepository.update(user);
@@ -107,6 +178,20 @@ public class UserServiceImpl extends TransactionalService implements UserService
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update {}", updateUserEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying update " + updateUserEntity, ex);
+        }
+    }
+
+    @Override
+    public Set<UserEntity> findAll() {
+        try {
+            LOGGER.debug("Find all users");
+
+            Set<User> users = userRepository.findAll();
+
+            return users.stream().map(UserServiceImpl::convert).collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find all users", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all users", ex);
         }
     }
 
@@ -121,7 +206,23 @@ public class UserServiceImpl extends TransactionalService implements UserService
         user.setFirstname(newUserEntity.getFirstname());
         user.setLastname(newUserEntity.getLastname());
         user.setPassword(newUserEntity.getPassword());
-        user.setRoles(newUserEntity.getRoles());
+
+        return user;
+    }
+
+    private static User convert(NewExternalUserEntity newExternalUserEntity) {
+        if (newExternalUserEntity == null) {
+            return null;
+        }
+        User user = new User();
+
+        user.setUsername(newExternalUserEntity.getUsername());
+        user.setEmail(newExternalUserEntity.getEmail());
+        user.setFirstname(newExternalUserEntity.getFirstname());
+        user.setLastname(newExternalUserEntity.getLastname());
+        user.setSource(newExternalUserEntity.getSource());
+        user.setSourceId(newExternalUserEntity.getSourceId());
+
         return user;
     }
 
@@ -131,6 +232,8 @@ public class UserServiceImpl extends TransactionalService implements UserService
         }
         UserEntity userEntity = new UserEntity();
 
+        userEntity.setSource(user.getSource());
+        userEntity.setSourceId(user.getSourceId());
         userEntity.setUsername(user.getUsername());
         userEntity.setEmail(user.getEmail());
         userEntity.setFirstname(user.getFirstname());
@@ -139,6 +242,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
         userEntity.setRoles(user.getRoles());
         userEntity.setCreatedAt(user.getCreatedAt());
         userEntity.setUpdatedAt(user.getUpdatedAt());
+        userEntity.setLastConnectionAt(user.getLastConnectionAt());
         userEntity.setPicture(user.getPicture());
 
         return userEntity;

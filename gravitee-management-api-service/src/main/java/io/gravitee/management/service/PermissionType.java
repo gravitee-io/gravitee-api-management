@@ -20,12 +20,26 @@ package io.gravitee.management.service;
  */
 public enum PermissionType {
 
-    VIEW_API,
-    EDIT_API,
+    VIEW_API(Scope.API),
+    EDIT_API(Scope.API),
+    DELETE_API(Scope.API),
 
-    VIEW_APPLICATION,
-    EDIT_APPLICATION,
+    VIEW_APPLICATION(Scope.APPLICATION),
+    EDIT_APPLICATION(Scope.APPLICATION),
+    DELETE_APPLICATION(Scope.APPLICATION);
 
-    VIEW_TEAM,
-    EDIT_TEAM
+    private Scope scope;
+
+    PermissionType(Scope scope) {
+        this.scope = scope;
+    }
+
+    public Scope scope() {
+        return this.scope;
+    }
+
+    public enum Scope {
+        API,
+        APPLICATION
+    }
 }

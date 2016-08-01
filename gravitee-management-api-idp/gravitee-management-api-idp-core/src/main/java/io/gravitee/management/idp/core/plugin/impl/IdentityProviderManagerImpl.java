@@ -26,6 +26,7 @@ import io.gravitee.plugin.core.api.PluginContextFactory;
 import io.gravitee.plugin.core.internal.AnnotationBasedPluginContextConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
@@ -137,6 +138,10 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
             });
 
             idpApplicationContext.getAutowireCapableBeanFactory().autowireBean(identityObj);
+
+            if (identityObj instanceof InitializingBean) {
+                ((InitializingBean) identityObj).afterPropertiesSet();
+            }
 
             return identityObj;
         } catch (Exception ex) {

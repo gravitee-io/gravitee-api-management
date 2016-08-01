@@ -15,18 +15,27 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.management.model.NewExternalUserEntity;
 import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.model.UserEntity;
+
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public interface UserService {
 
+    UserEntity connect(String username);
+
     UserEntity findByName(String username);
 
     UserEntity create(NewUserEntity newUserEntity);
 
+    UserEntity create(NewExternalUserEntity newExternalUserEntity);
+
     UserEntity update(UpdateUserEntity updateUserEntity);
+
+    Set<UserEntity> findAll();
 }

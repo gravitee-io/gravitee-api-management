@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import java.security.Principal;
+package io.gravitee.management.model.permissions;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public interface PermissionService {
+public enum ApiPermission {
 
-    void hasPermission(Principal principal, String item, PermissionType permissionType);
+    READ,
+    MANAGE_API,
+    DELETE,
+    MANAGE_LIFECYCLE,
+    MANAGE_MEMBERS,
+    MANAGE_PAGES,
+    MANAGE_API_KEYS,
+    ANALYTICS
 }

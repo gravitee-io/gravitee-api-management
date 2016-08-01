@@ -16,6 +16,7 @@
 package io.gravitee.management.idp.memory.authentication;
 
 import io.gravitee.management.idp.api.authentication.AuthenticationProvider;
+import io.gravitee.management.idp.memory.InMemoryIdentityProvider;
 import io.gravitee.management.idp.memory.authentication.spring.InMemoryAuthenticationProviderConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +100,12 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
     @Override
     protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        return new io.gravitee.management.idp.api.authentication.UserDetails(userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
+        io.gravitee.management.idp.api.authentication.UserDetails grUserDetails =
+                new io.gravitee.management.idp.api.authentication.UserDetails(userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
+
+        grUserDetails.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
+        grUserDetails.setSourceId(username);
+
+        return grUserDetails;
     }
 }

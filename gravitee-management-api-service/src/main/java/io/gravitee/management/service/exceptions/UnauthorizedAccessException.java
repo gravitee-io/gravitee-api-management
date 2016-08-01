@@ -29,6 +29,6 @@ public class UnauthorizedAccessException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "You must be logged in to access this resource";
+        return "You must be authenticated to access this resource";
     }
 }

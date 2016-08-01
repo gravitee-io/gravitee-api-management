@@ -17,9 +17,11 @@ package io.gravitee.management.idp.repository.lookup;
 
 import io.gravitee.management.idp.api.identity.IdentityLookup;
 import io.gravitee.management.idp.api.identity.User;
+import io.gravitee.management.idp.repository.RepositoryIdentityProvider;
 import io.gravitee.management.idp.repository.lookup.spring.RepositoryIdentityLookupConfiguration;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,7 @@ import org.springframework.context.annotation.Import;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -58,7 +61,12 @@ public class RepositoryIdentityLookup implements IdentityLookup<String> {
     @Override
     public Collection<User> search(String query) {
         try {
-            return userRepository.findAll().stream().map(this::convert).collect(Collectors.toSet());
+            return userRepository.findAll().stream().filter(user -> RepositoryIdentityProvider.PROVIDER_TYPE.equals(user.getSource())).filter(
+                    user -> (user.getUsername() != null && StringUtils.containsIgnoreCase(user.getUsername(), query)) ||
+                            (user.getFirstname() != null && StringUtils.containsIgnoreCase(user.getFirstname(), query)) ||
+                            (user.getLastname() != null && StringUtils.containsIgnoreCase(user.getLastname(), query)) ||
+                            (user.getEmail() != null && StringUtils.containsIgnoreCase(user.getEmail(), query))
+            ).map(this::convert).collect(Collectors.toSet());
         } catch (TechnicalException te) {
             LOGGER.error("Unexpected error while searching for users in repository", te);
             return null;

@@ -88,8 +88,10 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
                             .collect(Collectors.toList());
 
                     final UserDetails userDetails = new UserDetails(getStringValue(verify.get(JWTClaims.SUBJECT)), "",
-                            authorities, getStringValue(verify.get(JWTClaims.EMAIL)), getStringValue(verify.get(JWTClaims.FIRSTNAME)),
-                            getStringValue(verify.get(JWTClaims.LASTNAME)));
+                            authorities);
+                    userDetails.setEmail((String) verify.get(JWTClaims.EMAIL));
+                    userDetails.setFirstname((String) verify.get(JWTClaims.FIRSTNAME));
+                    userDetails.setLastname((String) verify.get(JWTClaims.LASTNAME));
 
                     SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
                 } catch (Exception e) {

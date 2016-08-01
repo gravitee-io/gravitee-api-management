@@ -15,13 +15,9 @@
  */
 package io.gravitee.management.rest.resource;
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
-import java.util.function.Predicate;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -29,7 +25,7 @@ import java.util.function.Predicate;
 public abstract class AbstractResource {
 
     @Context
-    private SecurityContext securityContext;
+    protected SecurityContext securityContext;
 
     protected String getAuthenticatedUsername() {
         return securityContext.getUserPrincipal().getName();
@@ -48,11 +44,6 @@ public abstract class AbstractResource {
     }
 
     protected boolean isUserInRole(String role) {
-        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream().anyMatch(new Predicate<GrantedAuthority>() {
-            @Override
-            public boolean test(GrantedAuthority grantedAuthority) {
-                return grantedAuthority.getAuthority().equalsIgnoreCase(role);
-            }
-        });
+        return securityContext.isUserInRole(role);
     }
 }

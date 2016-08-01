@@ -27,6 +27,14 @@ public class ErrorEntity {
     @JsonProperty("http_status")
     private int httpCode;
 
+    public ErrorEntity() {
+    }
+
+    public ErrorEntity(String message, int status) {
+        this.message = message;
+        this.httpCode = status;
+    }
+
     public int getHttpCode() {
         return httpCode;
     }

@@ -41,7 +41,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.util.ClassUtils;
 
 import javax.servlet.Filter;
 import java.util.*;
@@ -162,17 +161,29 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .authorizeRequests()
                     .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
                     .antMatchers(HttpMethod.GET, "/user/**").permitAll()
+
                     // API requests
                     .antMatchers(HttpMethod.GET, "/apis/**").permitAll()
-                    .antMatchers(HttpMethod.POST, "/apis/**").hasAnyAuthority("ADMIN", "API_PUBLISHER")
-                    .antMatchers(HttpMethod.PUT, "/apis/**").hasAnyAuthority("ADMIN", "API_PUBLISHER")
-                    .antMatchers(HttpMethod.DELETE, "/apis/**").hasAnyAuthority("ADMIN", "API_PUBLISHER")
+                    .antMatchers(HttpMethod.POST, "/apis").hasAnyAuthority("ADMIN", "API_PUBLISHER")
+                    .antMatchers(HttpMethod.POST, "/apis/**").authenticated()
+                    .antMatchers(HttpMethod.PUT, "/apis/**").authenticated()
+                    .antMatchers(HttpMethod.DELETE, "/apis/**").authenticated()
+
                     // Application requests
-                    .antMatchers(HttpMethod.POST, "/applications/**").hasAnyAuthority("ADMIN", "API_CONSUMER")
-                    .antMatchers(HttpMethod.PUT, "/applications/**").hasAnyAuthority("ADMIN", "API_CONSUMER")
-                    .antMatchers(HttpMethod.DELETE, "/applications/**").hasAnyAuthority("ADMIN", "API_CONSUMER")
+                    .antMatchers(HttpMethod.POST, "/applications").hasAnyAuthority("ADMIN", "API_CONSUMER")
+                    .antMatchers(HttpMethod.POST, "/applications/**").authenticated()
+                    .antMatchers(HttpMethod.PUT, "/applications/**").authenticated()
+                    .antMatchers(HttpMethod.DELETE, "/applications/**").authenticated()
+
                     // Instance requests
                     .antMatchers(HttpMethod.GET, "/instances/**").hasAuthority("ADMIN")
+
+                    // User management
+                    .antMatchers(HttpMethod.POST, "/users").permitAll()
+                    .antMatchers(HttpMethod.GET, "/users").hasAnyAuthority("ADMIN")
+                    .antMatchers(HttpMethod.GET, "/users/**").authenticated()
+                    .antMatchers(HttpMethod.PUT, "/users/**").hasAnyAuthority("ADMIN")
+                    .antMatchers(HttpMethod.DELETE, "/users/**").hasAnyAuthority("ADMIN")
                     .anyRequest().authenticated()
             .and()
                 .csrf()

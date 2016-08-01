@@ -29,17 +29,11 @@ public class UserDetails extends User {
     private String email;
     private String firstname;
     private String lastname;
+    private String source;
+    private String sourceId;
 
     public UserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
-    }
-
-    public UserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities,
-                       String email, String firstname, String lastname) {
-        this(username, password, authorities);
-        this.email = email;
-        this.firstname = firstname;
-        this.lastname = lastname;
     }
 
     public String getEmail() {
@@ -66,12 +60,30 @@ public class UserDetails extends User {
         this.lastname = lastname;
     }
 
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
+    }
+
     @Override
     public String toString() {
         return super.toString() +
                 ", email='" + email + '\'' +
                 ", firstname='" + firstname + '\'' +
                 ", lastname='" + lastname + '\'' +
+                ", source='" + lastname + '\'' +
+                ", external_reference='" + lastname + '\'' +
                 "}";
     }
 }

@@ -44,9 +44,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected PolicyService policyService;
 
     @Autowired
-    protected PermissionService permissionService;
-
-    @Autowired
     protected UserService userService;
 
     @Autowired
@@ -66,11 +63,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ApplicationService applicationService() {
             return mock(ApplicationService.class);
-        }
-
-        @Bean
-        public PermissionService permissionService() {
-            return mock(PermissionService.class);
         }
 
         @Bean

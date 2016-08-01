@@ -13,27 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.idp.api.identity;
-
-import java.util.Map;
+package io.gravitee.management.model.permissions;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface User<T> {
+public enum ApplicationPermission {
 
-    T getInternalId();
-
-    T getUsername();
-
-    String getFirstname();
-
-    String getLastname();
-
-    String getEmail();
-
-    String getSource();
-
-    Map<String, Object> getProperties();
+    READ,
+    MANAGE_API,
+    DELETE,
+    MANAGE_MEMBERS,
+    MANAGE_API_KEYS,
+    ANALYTICS
 }

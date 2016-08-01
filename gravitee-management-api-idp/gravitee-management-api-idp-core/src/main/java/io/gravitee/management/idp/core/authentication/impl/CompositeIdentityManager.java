@@ -38,7 +38,7 @@ public class CompositeIdentityManager implements IdentityManager {
         for (IdentityLookup identityLookup : identityLookups) {
             User user = identityLookup.retrieve(id);
             if (user != null) {
-                break;
+                return user;
             }
         }
 

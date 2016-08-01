@@ -40,6 +40,8 @@ import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.UpdatePageEntity;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.model.MembershipType;
@@ -61,23 +63,23 @@ public class ApiPagesResource extends AbstractResource {
     @GET
     @Path("/{page}")
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiPermissionsRequired(ApiPermission.READ)
     public PageEntity get(@PathParam("page") String page) {
-        // Check that the API exists
-        apiService.findById(api);
         return pageService.findById(page);
     }
 
     @GET
     @Path("/{page}/content")
+    @ApiPermissionsRequired(ApiPermission.READ)
     public Response getContent(@PathParam("page") String page) {
-        PageEntity pageEntity = get(page);
+        PageEntity pageEntity = pageService.findById(page);
         return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiPermissionsRequired(ApiPermission.READ)
     public List<PageListItem> pages() {
-        // Check that the API exists
         final ApiEntity apiEntity = apiService.findById(api);
 
         final List<PageListItem> pages = pageService.findByApi(api);
@@ -105,10 +107,8 @@ public class ApiPagesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
     public Response create(@Valid @NotNull NewPageEntity newPageEntity) {
-        // Check that the API exists
-        apiService.findById(api);
-
         int order = pageService.findMaxPageOrderByApi(api) + 1;
         newPageEntity.setOrder(order);
         newPageEntity.setLastContributor(getAuthenticatedUsername());
@@ -127,9 +127,8 @@ public class ApiPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{page}")
+    @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
     public PageEntity update(@PathParam("page") String page, @Valid @NotNull UpdatePageEntity updatePageEntity) {
-        // Check that the API exists
-        apiService.findById(api);
         pageService.findById(page);
 
         updatePageEntity.setLastContributor(getAuthenticatedUsername());
@@ -138,9 +137,8 @@ public class ApiPagesResource extends AbstractResource {
 
     @DELETE
     @Path("/{page}")
+    @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
     public void deletePage(@PathParam("page") String page) {
-        // Check that the API exists
-        apiService.findById(api);
         pageService.findById(page);
 
         pageService.delete(page);

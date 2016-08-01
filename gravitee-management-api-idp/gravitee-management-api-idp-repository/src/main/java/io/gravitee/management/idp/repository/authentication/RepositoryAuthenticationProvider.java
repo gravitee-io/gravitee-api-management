@@ -16,6 +16,7 @@
 package io.gravitee.management.idp.repository.authentication;
 
 import io.gravitee.management.idp.api.authentication.AuthenticationProvider;
+import io.gravitee.management.idp.repository.RepositoryIdentityProvider;
 import io.gravitee.management.idp.repository.authentication.spring.RepositoryAuthenticationProviderConfiguration;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.UserService;
@@ -24,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,10 +32,8 @@ import org.springframework.security.authentication.dao.AbstractUserDetailsAuthen
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -57,9 +55,6 @@ public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthent
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
-	@Autowired
-	private Environment environment;
-
 	@Override
 	protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
 		if (authentication.getCredentials() == null) {
@@ -79,17 +74,17 @@ public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthent
 	protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
 		try {
 			UserEntity user = userService.findByName(username);
-			return mapUserEntityToUserDetails(user);
+			if (RepositoryIdentityProvider.PROVIDER_TYPE.equals(user.getSource())) {
+				return mapUserEntityToUserDetails(user);
+			} else {
+				throw new UserNotFoundException(username);
+			}
 		} catch (UserNotFoundException notFound) {
-			throw new UsernameNotFoundException("User '" + username + "' not found", notFound);
+			throw new UsernameNotFoundException(String.format("User '%s' not found", username), notFound);
 		} catch (Exception repositoryProblem) {
 			LOGGER.error("Failed to retrieveUser : {}", username, repositoryProblem);
 			throw new InternalAuthenticationServiceException(repositoryProblem.getMessage(), repositoryProblem);
 		}
-	}
-
-	public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-		this.passwordEncoder = passwordEncoder;
 	}
 
 	private UserDetails mapUserEntityToUserDetails(UserEntity userEntity) {
@@ -100,19 +95,21 @@ public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthent
 					userEntity.getRoles().stream().collect(Collectors.joining(","))
 			);
 		}
-		return new User(userEntity.getUsername(), "unknown", authorities);
+
+		io.gravitee.management.idp.api.authentication.UserDetails userDetails = new io.gravitee.management.idp.api.authentication.UserDetails(
+				userEntity.getUsername(), userEntity.getPassword(), authorities);
+
+		userDetails.setFirstname(userEntity.getFirstname());
+		userDetails.setLastname(userEntity.getLastname());
+		userDetails.setEmail(userEntity.getEmail());
+		userDetails.setSource(RepositoryIdentityProvider.PROVIDER_TYPE);
+		userDetails.setSourceId(userEntity.getUsername());
+
+		return userDetails;
 	}
 
 	@Override
-	public org.springframework.security.authentication.AuthenticationProvider
-		configure() throws Exception {
-
-		if (environment.getProperty("password-encoding", boolean.class, false)) {
-			setPasswordEncoder(passwordEncoder);
-		} else {
-			setPasswordEncoder(NoOpPasswordEncoder.getInstance());
-		}
-
+	public org.springframework.security.authentication.AuthenticationProvider configure() throws Exception {
 		return this;
 	}
 }

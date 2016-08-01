@@ -15,17 +15,13 @@
  */
 package io.gravitee.management.security.listener;
 
-import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.idp.api.authentication.UserDetails;
+import io.gravitee.management.model.NewExternalUserEntity;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -37,17 +33,22 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
 
     @Override
     public void onApplicationEvent(AuthenticationSuccessEvent event) {
-        final Authentication authentication = event.getAuthentication();
+        final UserDetails details = (UserDetails) event.getAuthentication().getPrincipal();
+
         try {
-            userService.findByName(authentication.getName());
+            userService.findByName(details.getUsername());
         } catch (UserNotFoundException unfe) {
-            final NewUserEntity newUser = new NewUserEntity();
-            newUser.setUsername(authentication.getName());
-            final Set<String> roles = authentication.getAuthorities().stream().map(
-                    GrantedAuthority::getAuthority
-            ).collect(Collectors.toSet());
-            newUser.setRoles(roles);
+            final NewExternalUserEntity newUser = new NewExternalUserEntity();
+            newUser.setUsername(details.getUsername());
+            newUser.setSource(details.getSource());
+            newUser.setSourceId(details.getSourceId());
+            newUser.setFirstname(details.getFirstname());
+            newUser.setLastname(details.getLastname());
+            newUser.setEmail(details.getEmail());
             userService.create(newUser);
+
         }
+
+        userService.connect(details.getUsername());
     }
 }

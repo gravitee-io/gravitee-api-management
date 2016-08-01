@@ -3,7 +3,7 @@
   "paths" : { },
   "resources" : [ ],
   "members" : [ {
-    "user" : "johndoe",
+    "username" : "johndoe",
     "type" : "PRIMARY_OWNER"
   } ],
   "pages" : [ {

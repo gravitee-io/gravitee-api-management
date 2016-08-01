@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.idp.api.identity;
+package io.gravitee.management.idp.memory.lookup.spring;
 
-import java.util.Map;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+import java.util.Collections;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface User<T> {
+@Configuration
+public class InMemoryLookupConfiguration {
 
-    T getInternalId();
-
-    T getUsername();
-
-    String getFirstname();
-
-    String getLastname();
-
-    String getEmail();
-
-    String getSource();
-
-    Map<String, Object> getProperties();
+	@Bean
+	public InMemoryUserDetailsManager userDetailsService() {
+		return new InMemoryUserDetailsManager(Collections.emptyList());
+	}
 }

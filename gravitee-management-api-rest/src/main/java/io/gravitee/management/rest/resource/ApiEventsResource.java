@@ -24,13 +24,16 @@ import javax.ws.rs.*;
 import io.gravitee.common.http.MediaType;
 
 import io.gravitee.management.model.EventEntity;
+import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.resource.param.EventTypeListParam;
+import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.EventService;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
  * @author GraviteeSource Team
  */
+@ApiPermissionsRequired(ApiPermission.MANAGE_LIFECYCLE)
 public class ApiEventsResource extends AbstractResource {
 
     @PathParam("api")
@@ -42,13 +45,10 @@ public class ApiEventsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<EventEntity> events(@DefaultValue("all") @QueryParam("type") EventTypeListParam eventTypeListParam) {
-        
-        List<EventEntity> events = eventService.findByApi(api).stream()
+        return eventService.findByApi(api).stream()
                 .filter(event -> eventTypeListParam.getEventTypes().contains(event.getType()))
                 .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
                 .collect(Collectors.toList());
-
-        return events;
     }
 
 }

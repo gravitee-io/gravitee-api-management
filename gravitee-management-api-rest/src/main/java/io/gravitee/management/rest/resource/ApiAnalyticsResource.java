@@ -16,13 +16,11 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.analytics.Analytics;
+import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
+import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.AnalyticsService;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.PermissionService;
-import io.gravitee.management.service.PermissionType;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -34,16 +32,11 @@ import javax.ws.rs.core.Response;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@ApiPermissionsRequired(ApiPermission.ANALYTICS)
 public class ApiAnalyticsResource extends AbstractResource {
 
     @PathParam("api")
     private String api;
-
-    @Inject
-    private ApiService apiService;
-
-    @Inject
-    private PermissionService permissionService;
 
     @Inject
     private AnalyticsService analyticsService;
@@ -51,10 +44,6 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response hits(@BeanParam AnalyticsParam analyticsParam) {
-        ApiEntity api = apiService.findById(this.api);
-
-        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
-
         analyticsParam.validate();
 
         Analytics analytics = null;

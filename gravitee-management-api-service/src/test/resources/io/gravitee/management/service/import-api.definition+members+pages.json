@@ -96,11 +96,11 @@
   ],
   "members": [
     {
-      "user": "admin",
+      "username": "admin",
       "type": "PRIMARY_OWNER"
     },
     {
-      "user": "user",
+      "username": "user",
       "type": "OWNER"
     }
   ],

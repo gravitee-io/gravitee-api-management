@@ -38,13 +38,20 @@ public class IdentityServiceImpl implements IdentityService {
         return identityManager.search(query).stream().map(this::convert).collect(Collectors.toSet());
     }
 
+    @Override
+    public User findOne(String id) {
+        io.gravitee.management.idp.api.identity.User user = identityManager.retrieve(id);
+        return (user != null) ? convert(user) : null;
+    }
+
     private User convert(io.gravitee.management.idp.api.identity.User identity) {
         User user = new User();
         user.setEmail(identity.getEmail());
         user.setFirstname(identity.getFirstname());
         user.setLastname(identity.getLastname());
-        user.setId((String) identity.getId());
-        user.setProvider(identity.getSource());
+        user.setId((String) identity.getUsername());
+        user.setSource(identity.getSource());
+        user.setSourceId((String) identity.getInternalId());
         return user;
     }
 }

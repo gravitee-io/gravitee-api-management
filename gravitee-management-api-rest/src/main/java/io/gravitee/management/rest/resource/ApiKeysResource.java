@@ -15,10 +15,14 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApiKeyEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.KeysByApplicationEntity;
-import io.gravitee.management.service.*;
+import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.service.ApiKeyService;
+import io.gravitee.management.service.ApplicationService;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -26,7 +30,6 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import io.gravitee.common.http.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +38,7 @@ import java.util.Map;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@ApiPermissionsRequired(ApiPermission.MANAGE_API_KEYS)
 public class ApiKeysResource extends AbstractResource {
 
     @Context
@@ -44,24 +48,14 @@ public class ApiKeysResource extends AbstractResource {
     private String api;
 
     @Inject
-    private ApiService apiService;
-
-    @Inject
     private ApplicationService applicationService;
 
     @Inject
     private ApiKeyService apiKeyService;
 
-    @Inject
-    private PermissionService permissionService;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Map<String, KeysByApplicationEntity> keys() {
-        apiService.findById(this.api);
-
-        permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);
-
         Map<String, List<ApiKeyEntity>> keys = apiKeyService.findByApi(api);
         Map<String, KeysByApplicationEntity> keysByApplication = new HashMap<>(keys.size());
 
@@ -82,10 +76,6 @@ public class ApiKeysResource extends AbstractResource {
     @Path("{key}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response revoke(@PathParam("key") String apiKey) {
-        apiService.findById(this.api);
-
-        permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);
-
         apiKeyService.revoke(apiKey);
 
         return Response
@@ -98,10 +88,6 @@ public class ApiKeysResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ApiKeyEntity update(@PathParam("key") String apiKey, @Valid @NotNull ApiKeyEntity apiKeyEntity) {
-        apiService.findById(this.api);
-
-        permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);
-
         return apiKeyService.update(apiKey, apiKeyEntity);
     }
 

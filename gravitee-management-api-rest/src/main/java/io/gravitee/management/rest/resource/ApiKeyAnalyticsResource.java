@@ -15,13 +15,14 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApiKeyEntity;
 import io.gravitee.management.model.analytics.HistogramAnalytics;
+import io.gravitee.management.model.permissions.ApplicationPermission;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
+import io.gravitee.management.rest.security.ApplicationPermissionsRequired;
 import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.management.service.ApiKeyService;
-import io.gravitee.management.service.PermissionService;
-import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.NoValidApiKeyException;
 
@@ -30,13 +31,13 @@ import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import io.gravitee.common.http.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Optional;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@ApplicationPermissionsRequired(ApplicationPermission.MANAGE_API_KEYS)
 public class ApiKeyAnalyticsResource extends AbstractResource {
 
     @PathParam("application")
@@ -49,16 +50,11 @@ public class ApiKeyAnalyticsResource extends AbstractResource {
     private ApiKeyService apiKeyService;
 
     @Inject
-    private PermissionService permissionService;
-
-    @Inject
     private AnalyticsService analyticsService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response hits(@BeanParam AnalyticsParam analyticsParam) throws ApiNotFoundException {
-        permissionService.hasPermission(getAuthenticatedUser(), application, PermissionType.VIEW_APPLICATION);
-
         Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrent(application, null);
 
         if (! apiKeyEntity.isPresent()) {

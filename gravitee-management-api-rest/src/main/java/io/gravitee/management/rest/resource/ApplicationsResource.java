@@ -59,7 +59,7 @@ public class ApplicationsResource extends AbstractResource {
             applications = applicationService.findByUser(getAuthenticatedUsername());
         }
 
-        applications.forEach(api -> api = applicationEnhancer.enhance(getAuthenticatedUsername()).apply(api));
+        applications.forEach(api -> api = applicationEnhancer.enhance(securityContext).apply(api));
 
         return applications.stream()
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
@@ -78,7 +78,7 @@ public class ApplicationsResource extends AbstractResource {
     public Response create(@Valid @NotNull final NewApplicationEntity application) {
         ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUsername());
         if (newApplication != null) {
-            newApplication = applicationEnhancer.enhance(getAuthenticatedUsername()).apply(newApplication);
+            newApplication = applicationEnhancer.enhance(securityContext).apply(newApplication);
             return Response
                     .created(URI.create("/applications/" + newApplication.getId()))
                     .entity(newApplication)

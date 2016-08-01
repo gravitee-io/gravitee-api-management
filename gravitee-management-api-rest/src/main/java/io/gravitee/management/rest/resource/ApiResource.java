@@ -17,12 +17,10 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
-import io.gravitee.management.rest.annotation.Role;
-import io.gravitee.management.rest.annotation.RoleType;
+import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.resource.LifecycleActionParam.LifecycleAction;
+import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.PermissionService;
-import io.gravitee.management.service.PermissionType;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 
 import javax.inject.Inject;
@@ -52,16 +50,13 @@ public class ApiResource extends AbstractResource {
     @Inject
     private ApiService apiService;
 
-    @Inject
-    private PermissionService permissionService;
-
     @PathParam("api")
     private String api;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiPermissionsRequired(ApiPermission.READ)
     public ApiEntity get() throws ApiNotFoundException {
-        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.VIEW_API);
         ApiEntity api = apiService.findById(this.api);
 
         final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
@@ -79,6 +74,7 @@ public class ApiResource extends AbstractResource {
 
     @GET
     @Path("picture")
+    @ApiPermissionsRequired(ApiPermission.READ)
     public Response picture(@Context Request request) throws ApiNotFoundException {
         apiService.findById(this.api);
 
@@ -113,11 +109,9 @@ public class ApiResource extends AbstractResource {
     }
 
     @POST
-    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
+    @ApiPermissionsRequired(ApiPermission.MANAGE_LIFECYCLE)
     public Response doLifecycleAction(@QueryParam("action") LifecycleActionParam action) {
         ApiEntity api = apiService.findById(this.api);
-
-        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
 
         switch (action.getAction()) {
             case START:
@@ -138,10 +132,8 @@ public class ApiResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
+    @ApiPermissionsRequired(ApiPermission.MANAGE_API)
     public ApiEntity update(@Valid @NotNull final UpdateApiEntity api) {
-        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
-
         final ApiEntity updatedApi = apiService.update(this.api, api);
         setPermission(updatedApi);
 
@@ -149,23 +141,18 @@ public class ApiResource extends AbstractResource {
     }
 
     @DELETE
-    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
+    @ApiPermissionsRequired(ApiPermission.DELETE)
     public Response delete() {
-
-        permissionService.hasPermission(getAuthenticatedUser(), api, PermissionType.EDIT_API);
-
         apiService.delete(api);
 
         return Response.noContent().build();
     }
 
     @POST
-    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     @Produces(MediaType.APPLICATION_JSON)
     @Path("deploy")
+    @ApiPermissionsRequired(ApiPermission.MANAGE_LIFECYCLE)
     public Response deployAPI() {
-        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
-
         try {
             ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUsername(), EventType.PUBLISH_API);
             return Response.status(Status.OK).entity(apiEntity).build();
@@ -175,12 +162,10 @@ public class ApiResource extends AbstractResource {
     }
 
     @GET
-    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     @Produces(MediaType.APPLICATION_JSON)
     @Path("state")
+    @ApiPermissionsRequired(ApiPermission.MANAGE_LIFECYCLE)
     public io.gravitee.management.rest.model.ApiEntity isAPISynchronized() {
-        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
-
         io.gravitee.management.rest.model.ApiEntity apiEntity = new io.gravitee.management.rest.model.ApiEntity();
 
         apiEntity.setApiId(this.api);
@@ -190,13 +175,11 @@ public class ApiResource extends AbstractResource {
     }
 
     @POST
-    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     @Consumes
     @Produces(MediaType.APPLICATION_JSON)
     @Path("rollback")
+    @ApiPermissionsRequired(ApiPermission.MANAGE_LIFECYCLE)
     public Response rollback(@Valid @NotNull final UpdateApiEntity api) {
-        permissionService.hasPermission(getAuthenticatedUser(), this.api, PermissionType.EDIT_API);
-
         try {
             ApiEntity apiEntity = apiService.rollback(this.api, api);
             return Response.status(Status.OK).entity(apiEntity).build();
@@ -206,18 +189,18 @@ public class ApiResource extends AbstractResource {
     }
 
     @POST
-    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
+    @ApiPermissionsRequired(ApiPermission.MANAGE_API)
     public Response importDefinition(String apiDefinition) {
         final ApiEntity apiEntity = get();
         return Response.ok(apiService.createOrUpdateWithDefinition(apiEntity, apiDefinition, getAuthenticatedUsername())).build();
     }
 
     @GET
-    @Role({RoleType.OWNER, RoleType.TEAM_OWNER})
     @Produces(MediaType.APPLICATION_JSON)
     @Path("export")
+    @ApiPermissionsRequired(ApiPermission.MANAGE_API)
     public Response exportDefinition() {
         final ApiEntity apiEntity = get();
         return Response
@@ -257,7 +240,9 @@ public class ApiResource extends AbstractResource {
     }
 
     private void setPermission(ApiEntity api) {
-        if (isAuthenticated()) {
+        if (isAdmin()) {
+            api.setPermission(MembershipType.PRIMARY_OWNER);
+        } else if (isAuthenticated()) {
             MemberEntity member = apiService.getMember(api.getId(), getAuthenticatedUsername());
             if (member != null) {
                 api.setPermission(member.getType());

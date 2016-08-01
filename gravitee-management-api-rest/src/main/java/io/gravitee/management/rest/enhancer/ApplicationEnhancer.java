@@ -15,22 +15,17 @@
  */
 package io.gravitee.management.rest.enhancer;
 
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.MembershipType;
-import io.gravitee.management.model.PrimaryOwnerEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.UserService;
-
-import java.util.Collection;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-
-import org.springframework.stereotype.Component;
+import javax.ws.rs.core.SecurityContext;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -47,14 +42,14 @@ public class ApplicationEnhancer {
     @Inject
     private UserService userService;
 
-    public Function<ApplicationEntity, ApplicationEntity> enhance(String currentUser) {
+    public Function<ApplicationEntity, ApplicationEntity> enhance(SecurityContext securityContext) {
         return application -> {
             // Add primary owner
             Collection<MemberEntity> members = applicationService.getMembers(application.getId(), null);
-            Collection<MemberEntity> primaryOwnerMembers = members.stream().filter(m -> MembershipType.PRIMARY_OWNER.equals(m.getType())).collect(Collectors.toSet());
-            if (! primaryOwnerMembers.isEmpty()) {
-                MemberEntity primaryOwner = primaryOwnerMembers.iterator().next();
-                UserEntity user = userService.findByName(primaryOwner.getUser());
+            Optional<MemberEntity> primaryOwnerOpt = members.stream().filter(m -> MembershipType.PRIMARY_OWNER.equals(m.getType())).findFirst();
+            if (primaryOwnerOpt.isPresent()) {
+                MemberEntity primaryOwner = primaryOwnerOpt.get();
+                UserEntity user = userService.findByName(primaryOwner.getUsername());
 
                 PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
                 owner.setUsername(user.getUsername());
@@ -68,8 +63,11 @@ public class ApplicationEnhancer {
             application.setMembersSize(members.size());
 
             // Add permission for current user (if authenticated)
-            if(currentUser != null) {
-                MemberEntity member = applicationService.getMember(application.getId(), currentUser);
+            if (securityContext.isUserInRole("ADMIN")) {
+                application.setPermission(MembershipType.PRIMARY_OWNER);
+            } else if(securityContext.getUserPrincipal() != null) {
+                MemberEntity member = applicationService.getMember(
+                        application.getId(), securityContext.getUserPrincipal().getName());
                 if (member != null) {
                     application.setPermission(member.getType());
                 }

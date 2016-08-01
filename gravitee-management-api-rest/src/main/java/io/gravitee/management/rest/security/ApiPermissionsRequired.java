@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.idp.api.identity;
+package io.gravitee.management.rest.security;
 
-import java.util.Map;
+import io.gravitee.management.model.permissions.ApiPermission;
+
+import javax.ws.rs.NameBinding;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface User<T> {
+@NameBinding
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ApiPermissionsRequired {
 
-    T getInternalId();
-
-    T getUsername();
-
-    String getFirstname();
-
-    String getLastname();
-
-    String getEmail();
-
-    String getSource();
-
-    Map<String, Object> getProperties();
+    ApiPermission value() default ApiPermission.READ;
 }
