@@ -30,6 +30,16 @@ public class User {
 	private String username;
 
 	/**
+	 * The source when user is coming from an external system (LDAP, ...)
+	 */
+	private String source;
+
+	/**
+	 * The user reference in the external source
+	 */
+	private String sourceId;
+
+	/**
 	 * The user password
 	 */
 	private String password;
@@ -63,6 +73,11 @@ public class User {
 	 * The user last updated date
 	 */
 	private Date updatedAt;
+
+	/**
+	 * The user last connection date
+	 */
+	private Date lastConnectionAt;
 
 	/**
 	 * The user picture
@@ -141,6 +156,30 @@ public class User {
 		this.picture = picture;
 	}
 
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public String getSourceId() {
+		return sourceId;
+	}
+
+	public void setSourceId(String sourceId) {
+		this.sourceId = sourceId;
+	}
+
+	public Date getLastConnectionAt() {
+		return lastConnectionAt;
+	}
+
+	public void setLastConnectionAt(Date lastConnectionAt) {
+		this.lastConnectionAt = lastConnectionAt;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -157,10 +196,12 @@ public class User {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("User{");
-		sb.append("firstname='").append(firstname).append('\'');
+		sb.append("username='").append(firstname).append('\'');
+		sb.append(", source='").append(source).append('\'');
+		sb.append(", external_reference='").append(sourceId).append('\'');
+		sb.append(", firstname='").append(firstname).append('\'');
 		sb.append(", lastname='").append(lastname).append('\'');
 		sb.append(", mail='").append(email).append('\'');
-		sb.append(", username='").append(username).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}
