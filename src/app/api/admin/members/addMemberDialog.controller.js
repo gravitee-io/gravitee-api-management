@@ -31,19 +31,10 @@ function DialogAddMemberApiController($scope, $mdDialog, api, apiMembers, ApiSer
 		if (query) {
 			return UserService.search(query).then(function(response) {
 				var membersFound = response.data;
-				var filterMembers = [];
-				for(var i = 0; i < membersFound.length; i++) {
-					var found = false;
-					for (var j = 0; j < $scope.apiMembers.length; j++) {
-						if (membersFound[i].id === $scope.apiMembers[j].user) {
-							found = true;
-							break;
-						}
-					}
-					if (!found) {
-						filterMembers.push(membersFound[i]);
-					}
-				}
+        var filterMembers = _.filter(membersFound, function(member) {
+          return _.findIndex($scope.apiMembers,
+                              function(apiMember) { return apiMember.username === member.id;}) == -1;
+        });
 				return filterMembers;
 			});
 		}

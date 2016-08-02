@@ -30,21 +30,12 @@ function DialogAddMemberController($scope, $mdDialog, application, applicationMe
 	$scope.searchUser = function (query) {
 		if (query) {
 			return UserService.search(query).then(function(response) {
-				var membersFound = response.data;
-				var filterMembers = [];
-				for(var i = 0; i < membersFound.length; i++) {
-					var found = false;
-					for (var j = 0; j < $scope.applicationMembers.length; j++) {
-						if (membersFound[i].id === $scope.applicationMembers[j].user) {
-							found = true;
-							break;
-						}
-					}
-					if (!found) {
-						filterMembers.push(membersFound[i]);
-					}
-				}
-				return filterMembers;
+        var membersFound = response.data;
+        var filterMembers = _.filter(membersFound, function(member) {
+          return _.findIndex($scope.applicationMembers,
+                              function(applicationMember) { return applicationMember.username === member.id;}) == -1;
+        });
+        return filterMembers;
 			});
 		}
 	};
