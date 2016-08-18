@@ -39,6 +39,7 @@ public class ResponseTimeHandler implements BiConsumer<Response, Throwable> {
             long proxyResponseTimeInMs = System.currentTimeMillis() - serverRequest.metrics().timestamp().toEpochMilli();
 
             serverRequest.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
+            serverRequest.metrics().setProxyLatencyMs(proxyResponseTimeInMs - serverRequest.metrics().getApiResponseTimeMs());
             serverRequest.metrics().setResponseContentLength(response.headers().contentLength());
             serverRequest.metrics().setResponseContentType(response.headers().contentType());
             serverRequest.metrics().setResponseHttpStatus(response.status());
