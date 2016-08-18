@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.repository.proxy;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
@@ -22,6 +23,7 @@ import io.gravitee.repository.management.model.EventType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -60,5 +62,10 @@ public class EventRepositoryProxy extends AbstractProxy<EventRepository> impleme
     @Override
     public Event update(Event event) throws TechnicalException {
         return target.update(event);
+    }
+
+    @Override
+    public Page<Event> search(Map<String, Object> map, long l, long l1, int i, int i1) {
+        return target.search(map, l, l1, i, i1);
     }
 }

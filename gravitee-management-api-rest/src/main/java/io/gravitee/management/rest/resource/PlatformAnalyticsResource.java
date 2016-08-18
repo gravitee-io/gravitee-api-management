@@ -15,28 +15,23 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.analytics.Analytics;
-import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.AnalyticsService;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
-@ApiPermissionsRequired(ApiPermission.ANALYTICS)
-public class ApiAnalyticsResource extends AbstractResource {
-
-    @PathParam("api")
-    private String api;
+public class PlatformAnalyticsResource {
 
     @Inject
     private AnalyticsService analyticsService;
@@ -44,6 +39,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response hits(@BeanParam AnalyticsParam analyticsParam) {
+
         analyticsParam.validate();
 
         Analytics analytics = null;
@@ -71,6 +67,7 @@ public class ApiAnalyticsResource extends AbstractResource {
                         analyticsParam.getQuery(),
                         analyticsParam.getKey(),
                         analyticsParam.getField(),
+                        analyticsParam.getOrder(),
                         analyticsParam.getFrom(),
                         analyticsParam.getTo(),
                         analyticsParam.getSize());

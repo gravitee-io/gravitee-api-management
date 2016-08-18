@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.NewEventEntity;
@@ -43,4 +44,6 @@ public interface EventService {
     Set<EventEntity> findByUser(String username);
 
     Set<EventEntity> findByOrigin(String origin);
+
+    Page<EventEntity> search(Map<String, Object> values, long from, long to, int page, int size);
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.management.model.analytics.HealthAnalytics;
 import io.gravitee.management.model.analytics.HistogramAnalytics;
 import io.gravitee.management.model.analytics.HitsAnalytics;
@@ -24,16 +25,18 @@ import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface AnalyticsService {
 
-    HistogramAnalytics apiHitsBy(String query, String key, String field, List<String> aggTypes, long from, long to, long interval);
+    HistogramAnalytics hitsBy(String query, String key, String field, List<String> aggTypes, long from, long to, long interval);
 
-    HitsAnalytics apiGlobalHits(String query, String key, long from, long to);
+    HitsAnalytics globalHits(String query, String key, long from, long to);
 
-    TopHitsAnalytics apiTopHits(String query, String key, String field, long from, long to, int size);
+    TopHitsAnalytics topHits(String query, String key, String field, long from, long to, int size);
+
+    TopHitsAnalytics topHits(String query, String key, String field, Order order, long from, long to, int size);
 
     HistogramAnalytics apiKeyHits(String apiKey, long from, long to, long interval);
 

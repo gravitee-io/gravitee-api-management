@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.rest.resource.param;
 
+import io.gravitee.common.data.domain.Order;
+
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
@@ -54,6 +56,17 @@ public class AnalyticsParam {
     @QueryParam("type")
     @DefaultValue("HITS")
     private AnalyticsTypeParam type;
+
+    @QueryParam("orderField")
+    private String orderField;
+
+    @QueryParam("orderDirection")
+    @DefaultValue("asc")
+    private DirectionParam orderDirection;
+
+    @QueryParam("orderMode")
+    @DefaultValue("avg")
+    private OrderModeParam orderMode;
 
     public long getFrom() {
         return from;
@@ -125,6 +138,36 @@ public class AnalyticsParam {
 
     public void setTypeParam(AnalyticsTypeParam type) {
         this.type = type;
+    }
+
+    public String getOrderField() {
+        return orderField;
+    }
+
+    public void setOrderField(String orderField) {
+        this.orderField = orderField;
+    }
+
+    public DirectionParam getOrderDirection() {
+        return orderDirection;
+    }
+
+    public void setOrderDirection(DirectionParam orderDirection) {
+        this.orderDirection = orderDirection;
+    }
+
+    public OrderModeParam getOrderMode() {
+        return orderMode;
+    }
+
+    public Order getOrder() {
+        if (getOrderField() != null && getOrderDirection() != null && getOrderMode() != null) {
+            return new Order(getOrderField(),
+                    Order.Direction.valueOf(getOrderDirection().getValue().toString()),
+                    Order.Mode.valueOf(getOrderMode().getValue().toString()));
+        } else {
+            return null;
+        }
     }
 
     public void validate() throws WebApplicationException {

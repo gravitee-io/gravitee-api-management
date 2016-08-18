@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.repository.proxy;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.Query;
@@ -50,8 +51,8 @@ public class AnalyticsRepositoryProxy extends AbstractProxy<AnalyticsRepository>
     }
 
     @Override
-    public TopHitsResponse query(String s, String s1, String s2, long l, long l1, int i) throws AnalyticsException {
-        return target.query(s, s1, s2, l, l1, i);
+    public TopHitsResponse query(String s, String s1, String s2, Order o, long l, long l1, int i) throws AnalyticsException {
+        return target.query(s, s1, s2, o, l, l1, i);
     }
 
     @Override

@@ -178,6 +178,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     // Instance requests
                     .antMatchers(HttpMethod.GET, "/instances/**").hasAuthority("ADMIN")
 
+                    // Platform requests
+                    .antMatchers(HttpMethod.GET, "/platform/**").hasAuthority("ADMIN")
+
                     // User management
                     .antMatchers(HttpMethod.POST, "/users").permitAll()
                     .antMatchers(HttpMethod.GET, "/users").hasAnyAuthority("ADMIN")

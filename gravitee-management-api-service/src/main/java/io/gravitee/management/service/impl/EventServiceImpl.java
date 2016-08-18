@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.impl;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.NewEventEntity;
@@ -24,21 +25,15 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE
@@ -141,6 +136,16 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         Set<Event> events = eventRepository.findByProperty(Event.EventProperties.ORIGIN.getValue(), origin);
 
         return convert(events);
+    }
+
+    @Override
+    public Page<EventEntity> search(Map<String, Object> values, long from, long to, int page, int size) {
+        Page<Event> pageEvent = eventRepository.search(values, from, to, page, size);
+
+        List<EventEntity> content = pageEvent.getContent().stream().map(this::convert).collect(Collectors.toList());
+        Page<EventEntity> pageEventEntity = new Page<>(content, page, size, pageEvent.getTotalElements());
+
+        return pageEventEntity;
     }
 
     private List<io.gravitee.repository.management.model.EventType> convert(List<EventType> eventTypes) {

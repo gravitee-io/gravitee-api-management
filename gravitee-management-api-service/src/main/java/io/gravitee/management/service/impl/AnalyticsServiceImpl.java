@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.impl;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.management.model.analytics.*;
 import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
@@ -49,7 +50,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private AnalyticsRepository analyticsRepository;
 
     @Override
-    public HistogramAnalytics apiHitsBy(String query, String key, String field, List<String> aggTypes, long from, long to, long interval) {
+    public HistogramAnalytics hitsBy(String query, String key, String field, List<String> aggTypes, long from, long to, long interval) {
         try {
             return convert(analyticsRepository.query(query, key, field, aggTypes, from, to, interval), from, interval);
         } catch (Exception ex) {
@@ -59,7 +60,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public HitsAnalytics apiGlobalHits(String query, String key, long from, long to) {
+    public HitsAnalytics globalHits(String query, String key, long from, long to) {
         try {
             return convert(analyticsRepository.query(query, key, from, to));
         } catch (Exception ex) {
@@ -69,14 +70,25 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public TopHitsAnalytics apiTopHits(String query, String key, String field, long from, long to, int size) {
+    public TopHitsAnalytics topHits(String query, String key, String field, long from, long to, int size) {
         try {
-            return convert(analyticsRepository.query(query, key, field, from, to, size));
+            return convert(analyticsRepository.query(query, key, field, (Order) null, from, to, size));
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while searching for api top hits.", ex);
             return null;
         }
     }
+
+    @Override
+    public TopHitsAnalytics topHits(String query, String key, String field, Order order, long from, long to, int size) {
+        try {
+            return convert(analyticsRepository.query(query, key, field, order, from, to, size));
+        } catch (Exception ex) {
+            logger.error("An unexpected error occurs while searching for api top hits.", ex);
+            return null;
+        }
+    }
+
 
     @Override
     public HistogramAnalytics apiKeyHits(String apiKey, long from, long to, long interval) {
