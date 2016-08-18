@@ -1,0 +1,45 @@
+md-chips.events-md-chips {
+  &:first-child {
+    margin-right: 10px;
+  }
+  > .md-chips {
+    font-size: 12px !important;
+    padding: 0 0 3px 1px;
+  }
+}
+
+md-list-item.eventType {
+  float:left;
+  background: rgb(224,224,224);
+  border-radius: 16px;
+  min-height: 32px;
+  line-height: 32px;
+  margin: 8px 8px 0 0;
+  cursor: pointer;
+
+  & > a {
+    text-decoration: none;
+    color:rgb(66,66,66);
+  }
+
+  &.eventTypeSelected {
+    background: #337ab7;
+
+    & > a {
+      color: white;
+    }
+  }
+}
+
+.dashboard-timeframe-active {
+  background: #337ab7;
+  color: white;
+  &:hover {
+    opacity: 0.5;
+  }
+}
+
+.md-button.dashboard-timeframe:not([disabled]):hover {
+  background-color: #337ab7;
+  color: white;
+}

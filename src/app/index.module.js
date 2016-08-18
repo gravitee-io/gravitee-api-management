@@ -78,6 +78,10 @@ import InstanceController from './instances/details/instance.controller';
 import InstanceEnvironmentController from './instances/details/environment/instanceEnvironment.controller';
 import InstanceMonitoringController from './instances/details/monitoring/instanceMonitoring.controller';
 import ImageDirective from './components/image/image.directive';
+import EventsService from './platform/events/events.service';
+import AnalyticsService from './platform/analytics/analytics.service';
+import DashboardController from './platform/dashboard/dashboard.controller';
+import DashboardModelDirective from './platform/dashboard/dashboardModel.directive'
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
     'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -143,6 +147,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('InstanceController', InstanceController)
   .controller('InstanceEnvironmentController', InstanceEnvironmentController)
   .controller('InstanceMonitoringController', InstanceMonitoringController)
+  .controller('DashboardController', DashboardController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
@@ -152,6 +157,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .service('UserService', UserService)
   .service('ResourceService', ResourceService)
   .service('FetcherService', FetcherService)
+  .service('EventsService', EventsService)
+  .service('AnalyticsService', AnalyticsService)
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
   .directive('graviteePage', () => new PageDirective())
@@ -160,6 +167,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .directive('graviteeRolesAllowed', () => new RoleDirective())
   .directive('graviteeDiff', () => new DiffDirective())
   .directive('graviteeImage', () => new ImageDirective())
+  .directive('graviteeDashboardModel', () => new DashboardModelDirective())
   .filter('apiKeyFilter', function () {
     return function (keys) {
       return keys;

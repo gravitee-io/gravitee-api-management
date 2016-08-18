@@ -400,6 +400,18 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         }
       }
     })
+    .state('platform', {
+      url: '/platform?timeframe&from&to',
+      templateUrl: 'app/platform/dashboard/dashboard.html',
+      controller: 'DashboardController',
+      controllerAs: 'dashboardCtrl',
+      menu: {
+        label: 'Dashboard',
+        icon: 'show_chart',
+        firstLevel: true
+      },
+      roles: ['ADMIN']
+    })
     .state('user', {
       url: '/user',
       templateUrl: 'app/user/user.html',
