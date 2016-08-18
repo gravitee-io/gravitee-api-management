@@ -15,12 +15,12 @@
  */
 package io.gravitee.repository.config;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.model.*;
 import org.springframework.context.annotation.Bean;
 
-import java.util.Arrays;
-import java.util.Set;
+import java.util.*;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Optional.empty;
@@ -122,6 +122,20 @@ public class MockTestRepositoryConfiguration {
         final Event event1 = mock(Event.class);
         final Event event2 = mock(Event.class);
         final Event event3 = mock(Event.class);
+        final Event event4 = mock(Event.class);
+        final Event event5 = mock(Event.class);
+        final Event event6 = mock(Event.class);
+        final Page<Event> pageEvent = mock(Page.class);
+        final Page<Event> pageEvent2 = mock(Page.class);
+        final Page<Event> pageEvent3 = mock(Page.class);
+        final Page<Event> pageEvent4 = mock(Page.class);
+        final Page<Event> pageEvent5 = mock(Page.class);
+
+        Map<String, String> eventProperties = new HashMap<>();
+        eventProperties.put("api_id", "api-1");
+
+        Map<String, String> eventProperties2 = new HashMap<>();
+        eventProperties.put("api_id", "api-4");
 
         when(eventRepository.findByProperty(Event.EventProperties.API_ID.getValue(), "api-1"))
                 .thenReturn(newSet(event1, event2));
@@ -129,10 +143,25 @@ public class MockTestRepositoryConfiguration {
         when(event1.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(event1.getType()).thenReturn(EventType.PUBLISH_API);
         when(event1.getPayload()).thenReturn("{}");
+        when(event1.getProperties()).thenReturn(eventProperties);
         when(event2.getId()).thenReturn("event2");
+        when(event2.getType()).thenReturn(EventType.UNPUBLISH_API);
         when(event2.getCreatedAt()).thenReturn(parse("12/02/2016"));
+        when(event2.getProperties()).thenReturn(eventProperties);
         when(event3.getId()).thenReturn("event3");
+        when(event3.getType()).thenReturn(EventType.PUBLISH_API);
         when(event3.getCreatedAt()).thenReturn(parse("13/02/2016"));
+        when(event4.getId()).thenReturn("event4");
+        when(event4.getType()).thenReturn(EventType.STOP_API);
+        when(event4.getCreatedAt()).thenReturn(parse("14/02/2016"));
+        when(event4.getProperties()).thenReturn(eventProperties2);
+        when(event5.getId()).thenReturn("event5");
+        when(event5.getType()).thenReturn(EventType.START_API);
+        when(event5.getCreatedAt()).thenReturn(parse("15/02/2016"));
+        when(event6.getId()).thenReturn("event6");
+        when(event6.getType()).thenReturn(EventType.START_API);
+        when(event6.getCreatedAt()).thenReturn(parse("16/02/2016"));
+
 
         when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API)))
                 .thenReturn(newSet(event1, event2, event3));
@@ -140,6 +169,37 @@ public class MockTestRepositoryConfiguration {
         when(eventRepository.findById("event1")).thenReturn(of(event1));
 
         when(eventRepository.create(any(Event.class))).thenReturn(event1);
+
+        Map<String, Object> values = new HashMap<>();
+        values.put("type", EventType.START_API.toString());
+        when(pageEvent.getTotalElements()).thenReturn(2l);
+        when(pageEvent.getContent()).thenReturn(Arrays.asList(event5, event6));
+        when(eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10)).thenReturn(pageEvent);
+
+        values = new HashMap<>();
+        values.put("type", Arrays.asList(EventType.START_API.toString(), EventType.STOP_API.toString()));
+        when(pageEvent2.getTotalElements()).thenReturn(3l);
+        when(pageEvent2.getContent()).thenReturn(Arrays.asList(event4, event5, event6));
+        when(eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10)).thenReturn(pageEvent2);
+
+        values = new HashMap<>();
+        values.put("properties.api_id", "api-1");
+        when(pageEvent3.getTotalElements()).thenReturn(2l);
+        when(pageEvent3.getContent()).thenReturn(Arrays.asList(event1, event2));
+        when(eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10)).thenReturn(pageEvent3);
+
+        values = new HashMap<>();
+        values.put("type", EventType.START_API.toString());
+        when(pageEvent4.getTotalElements()).thenReturn(0l);
+        when(pageEvent4.getContent()).thenReturn(Collections.emptyList());
+        when(eventRepository.search(values, 1420070400000l, 1422748800000l, 0, 10)).thenReturn(pageEvent4);
+
+        values = new HashMap<>();
+        values.put("type", Arrays.asList(EventType.START_API.toString(), EventType.STOP_API.toString()));
+        values.put("properties.api_id", "api-3");
+        when(pageEvent5.getTotalElements()).thenReturn(1l);
+        when(pageEvent5.getContent()).thenReturn(Arrays.asList(event4));
+        when(eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10)).thenReturn(pageEvent5);
 
         return eventRepository;
     }

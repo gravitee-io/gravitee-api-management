@@ -15,15 +15,13 @@
  */
 package io.gravitee.repository;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -73,5 +71,59 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
         Optional<Event> event = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).findFirst();
         assertTrue(event.isPresent());
         assertTrue("event1".equals(event.get().getId()));
+    }
+
+    @Test
+    public void searchNoResults() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("type", EventType.START_API.toString());
+
+        Page<Event> eventPage = eventRepository.search(values, 1420070400000l, 1422748800000l, 0, 10);
+        assertTrue(0l == eventPage.getTotalElements());
+    }
+
+    @Test
+    public void searchBySingleEventType() throws Exception {
+        Map<String, Object> values = new HashMap<>();
+        values.put("type", EventType.START_API.toString());
+
+        Page<Event> eventPage = eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10);
+        assertTrue(2l == eventPage.getTotalElements());
+        Optional<Event> event = eventPage.getContent().stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).findFirst();
+        assertTrue("event5".equals(event.get().getId()));
+    }
+
+    @Test
+    public void searchByMultipleEventType() throws Exception {
+        Map<String, Object> values = new HashMap<>();
+        values.put("type", Arrays.asList(EventType.START_API.toString(), EventType.STOP_API.toString()));
+
+        Page<Event> eventPage = eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10);
+        assertTrue(3l == eventPage.getTotalElements());
+        Optional<Event> event = eventPage.getContent().stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).findFirst();
+        assertTrue("event4".equals(event.get().getId()));
+    }
+
+    @Test
+    public void searchByAPIId() throws Exception {
+        Map<String, Object> values = new HashMap<>();
+        values.put("properties.api_id", "api-1");
+
+        Page<Event> eventPage = eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10);
+        assertTrue(2l == eventPage.getTotalElements());
+        Optional<Event> event = eventPage.getContent().stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).findFirst();
+        assertTrue("event1".equals(event.get().getId()));
+    }
+
+    @Test
+    public void searchByMixProperties() throws Exception {
+        Map<String, Object> values = new HashMap<>();
+        values.put("type", Arrays.asList(EventType.START_API.toString(), EventType.STOP_API.toString()));
+        values.put("properties.api_id", "api-3");
+
+        Page<Event> eventPage = eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10);
+        assertTrue(1l == eventPage.getTotalElements());
+        Optional<Event> event = eventPage.getContent().stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).findFirst();
+        assertTrue("event4".equals(event.get().getId()));
     }
 }
