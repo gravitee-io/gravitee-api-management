@@ -15,12 +15,14 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.mongodb.management.internal.event.EventMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,9 @@ public class MongoEventRepository implements EventRepository {
 
     @Autowired
     private EventMongoRepository internalEventRepo;
+
+    @Autowired
+    private GraviteeMapper mapper;
 
     @Override
     public Optional<Event> findById(String id) throws TechnicalException {
@@ -115,6 +120,15 @@ public class MongoEventRepository implements EventRepository {
         Collection<EventMongo> eventsMongo = internalEventRepo.findByProperty(key, value);
 
         return mapEvents(eventsMongo);
+    }
+
+    public Page<Event> search(Map<String, Object> values, long from, long to, int page, int size) {
+        Page<EventMongo> eventsMongo = internalEventRepo.search(values, from, to, page, size);
+
+        List<Event> content = mapper.collection2list(eventsMongo.getContent(), EventMongo.class, Event.class);
+        Page<Event> eventsPage = new Page(content, page, size, eventsMongo.getTotalElements());
+
+        return eventsPage;
     }
 
     private Set<Event> mapEvents(Collection<EventMongo> events) {

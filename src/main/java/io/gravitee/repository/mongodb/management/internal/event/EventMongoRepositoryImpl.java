@@ -15,15 +15,19 @@
  */
 package io.gravitee.repository.mongodb.management.internal.event;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
-
-import java.util.Collection;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Titouan COMPIEGNE
@@ -51,5 +55,35 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
 
         return events;
+    }
+
+    @Override
+    public Page<EventMongo> search(Map<String, Object> values, long from, long to, int page, int size) {
+        Query query = new Query();
+
+        // set criteria query
+        values.forEach((k, v) -> {
+            if (v instanceof Collection) {
+                query.addCriteria(Criteria.where(k).in((Collection) v));
+            } else {
+                query.addCriteria(Criteria.where(k).is(v));
+            }
+        });
+
+        // set range query
+        query.addCriteria(Criteria.where("updatedAt").gte(new Date(from)).lt(new Date(to)));
+
+        // set sort by updated at
+        query.with(new Sort(Sort.Direction.DESC, "updatedAt"));
+
+        // set pageable
+        query.with(new PageRequest(page, size));
+
+        List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
+        long total = mongoTemplate.count(query, EventMongo.class);
+
+        Page<EventMongo> eventsPage = new Page<>(events, page, size, total);
+
+        return eventsPage;
     }
 }

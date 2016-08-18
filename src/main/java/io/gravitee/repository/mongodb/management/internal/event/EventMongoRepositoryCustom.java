@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.event;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author Titouan COMPIEGNE
@@ -27,4 +29,6 @@ public interface EventMongoRepositoryCustom {
     Collection<EventMongo> findByType(Collection<String> types);
 
     Collection<EventMongo> findByProperty(String key, String value);
+
+    Page<EventMongo> search(Map<String, Object> values, long from, long to, int page, int size);
 }
