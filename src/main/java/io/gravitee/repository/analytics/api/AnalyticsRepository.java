@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.analytics.api;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.HealthResponse;
@@ -36,7 +37,7 @@ public interface AnalyticsRepository {
 
    HitsResponse query(String query, String key, long from, long to) throws AnalyticsException;
 
-   TopHitsResponse query(String query, String key, String field, long from, long to, int size) throws AnalyticsException;
+   TopHitsResponse query(String query, String key, String field, Order order, long from, long to, int size) throws AnalyticsException;
 
    HistogramResponse query(String query, String key, String field, List<String> aggTypes, long from, long to, long interval) throws AnalyticsException;
 

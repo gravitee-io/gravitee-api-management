@@ -15,19 +15,24 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface EventRepository extends CrudRepository<Event, String> {
 
     Set<Event> findByType(List<EventType> eventTypes);
 
     Set<Event> findByProperty(String key, String value);
+
+    Page<Event> search(Map<String, Object> values, long from, long to, int page, int size);
 
 }
