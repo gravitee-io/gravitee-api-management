@@ -144,7 +144,7 @@
               </tbody>
             </table>
           </md-table-container>
-          <md-table-pagination md-limit="dashboardCtrl.query.limit" md-limit-options="[10, 25, 50, 75, 100]" md-page="dashboardCtrl.query.page" md-total="{{dashboardCtrl.events.count}}" md-on-limit="dashboardCtrl.getEvents" md-on-paginate="dashboardCtrl.getEvents" md-page-select></md-table-pagination>
+          <md-table-pagination md-limit="dashboardCtrl.query.limit" md-limit-options="[10, 25, 50, 75, 100]" md-page="dashboardCtrl.query.page" md-total="{{dashboardCtrl.events.totalElements}}" md-on-limit="dashboardCtrl.getEvents" md-on-paginate="dashboardCtrl.getEvents" md-page-select></md-table-pagination>
         </div>
         <div ng-if="eventsFetchData" layout="column" layout-align="center center" flex><md-progress-circular md-mode="indeterminate"></md-progress-circular></div>
         <div ng-if="!eventsFetchData && dashboardCtrl.events.content.length == 0" layout="column" layout-align="center center" flex>
