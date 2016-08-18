@@ -171,6 +171,10 @@ public class FileReporter extends AbstractService implements Reporter {
 
 		// Append total response time
 		buf.append(metrics.getProxyResponseTimeMs());
+		buf.append(' ');
+
+		// Append proxy latency
+		buf.append(metrics.getProxyLatencyMs());
 		
 		buf.append(System.lineSeparator());
 

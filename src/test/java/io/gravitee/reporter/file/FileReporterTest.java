@@ -68,6 +68,7 @@ public class FileReporterTest {
 				reportable.setApiKey("kjfhgdjfghdkjhgkdjhgjkdhfghdkghdhdkjfgh");
 				reportable.setApiResponseTimeMs(346);
 				reportable.setProxyResponseTimeMs(123);
+				reportable.setProxyLatencyMs(223);
 				reportable.setRequestContentLength(12345);
 				reportable.setRequestHttpMethod(HttpMethod.POST);
 				reportable.setRequestLocalAddress("12.12.12.12");
@@ -79,8 +80,8 @@ public class FileReporterTest {
 				reporter.report(reportable);
 			}
 			
-			String[] expected = {/*[2016-02-29T17:23:06.099+0100]*/" (12.12.12.12) 123.123.123.123 myincredibleapi kjfhgdjfghdkjhgkdjhgjkdhfghdkghdhdkjfgh POST /dfhgkdlfjgklfgjflkd/yeah 200 12345 123",
-								 /*[2015-11-22T08:56:56.199+0100]*/" (12.12.12.12) 123.123.123.123 myincredibleapi kjfhgdjfghdkjhgkdjhgjkdhfghdkghdhdkjfgh POST /dfhgkdlfjgklfgjflkd/yeah 200 12345 123"};
+			String[] expected = {/*[2016-02-29T17:23:06.099+0100]*/" (12.12.12.12) 123.123.123.123 myincredibleapi kjfhgdjfghdkjhgkdjhgjkdhfghdkghdhdkjfgh POST /dfhgkdlfjgklfgjflkd/yeah 200 12345 123 223",
+								 /*[2015-11-22T08:56:56.199+0100]*/" (12.12.12.12) 123.123.123.123 myincredibleapi kjfhgdjfghdkjhgkdjhgjkdhfghdkghdhdkjfgh POST /dfhgkdlfjgklfgjflkd/yeah 200 12345 123 223"};
 
 			List<String> logContent = Files.readAllLines(Paths.get(logFile.getAbsolutePath()), StandardCharsets.UTF_8);
 			Assert.assertEquals(expected.length, logContent.size());
