@@ -113,10 +113,10 @@
 
   <div>
     <md-card flex>
-      <div layout="row" style="padding-bottom: 10px; margin: 0px 15px 0 15px; border-bottom: 1px solid #efefef;">
-        <span style="margin-top: 15px;"><strong>API Events</strong></span>
-        <div flex />
-        <md-list style="margin: -10px 0;">
+      <div layout="row" class="dashboard-events-header">
+        <span><strong>API Events</strong></span>
+        <div flex></div>
+        <md-list>
           <md-list-item class="eventType" ng-class="{eventTypeSelected: selection}" ng-repeat="eventType in dashboardCtrl.eventTypes">
             <a href="javascript:void(0);" ng-click="selection= !selection; dashboardCtrl.selectEvent(eventType)">
               <span><strong>{{eventType}}</strong></span>
