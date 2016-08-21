@@ -41,20 +41,22 @@
       text-align: center;
     }
     .api-box-icon {
-      img {
-        max-height: 80px;
-        min-height: 80px;
-        height: 80px;
-      }
-    }
-    .api-box-icon-default {
-      max-height: 80px;
       min-height: 80px;
-      height: 80px;
-      background-image: url('../app/images/GRAVITEE_LOGOsstxtclair-05.png');
-      background-size: auto 100%;
-      background-position: center center;
-      background-repeat: no-repeat;
+      max-height: 80px;
+      img {
+        display: block;
+        max-width: 150px;
+        max-height: 80px;
+        width: auto;
+        height: auto;
+      }
+      &.default {
+        height: 80px;
+        background-image: url('../app/images/GRAVITEE_LOGOsstxtclair-05.png');
+        background-size: auto 100%;
+        background-position: center center;
+        background-repeat: no-repeat;
+      }
     }
     .api-box-name-version {
       font-size: 14px;
