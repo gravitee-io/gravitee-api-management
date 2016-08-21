@@ -59,6 +59,7 @@
                 <configuration>
                     <bowerInstallArgs>install --no-color --allow-root</bowerInstallArgs>
                     <buildTool>gulp</buildTool>
+                    <gruntBuildArgs>buildNoReg</gruntBuildArgs>
                     <yeomanProjectDirectory>${project.basedir}</yeomanProjectDirectory>
                 </configuration>
                 <executions>

@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * This file uses the Page Object pattern to define the main page for tests
- * https://docs.google.com/presentation/d/1B6manhG0zEXkC-H-tPo2vwU06JhL8w9-XCF9oehXzAQ
- */
-
 'use strict';
 
-var MainPage = function() {
-  this.jumbEl = element(by.css('.jumbotron'));
-  this.h1El = this.jumbEl.element(by.css('h1'));
-  this.imgEl = this.jumbEl.element(by.css('img'));
-  this.thumbnailEls = element(by.css('body')).all(by.repeater('awesomeThing in main.awesomeThings'));
+var PolicyPage = function() {
+  this.rateLimitPolicy = element(by.css('.gravitee-policy-dropzone md-card'));
+  this.rateLimitPolicyAddButton = element(by.css('bootstrap-decorator:nth-child(2) div div button'));
+  this.rateLimitPolicyConfigurationBlocks = element.all(by.css('ol li'));
 };
 
-module.exports = new MainPage();
+module.exports = new PolicyPage();

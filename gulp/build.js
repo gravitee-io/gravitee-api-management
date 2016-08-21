@@ -111,11 +111,6 @@ gulp.task('constants', function () {
     .pipe(gulp.dest(conf.paths.dist));
 });
 
-gulp.task('clean', function (done) {
-  $.del([path.join(conf.paths.dist, '/'), path.join(conf.paths.tmp, '/')], done);
-});
+gulp.task('build', ['html', 'fonts', 'other', 'constants']);
 
-gulp.task('build', ['clean'],  function (cb) {
-  gulp.start(['html', 'fonts', 'other', 'constants'], cb)
-});
-
+gulp.task('buildNoReg', ['protractor:dist']);

@@ -15,22 +15,21 @@
  */
 'use strict';
 
-describe('The main view', function () {
+describe('The policy view', function () {
   var page;
 
+  browser.addMockModule('httpBackendMockModule', require('../../mocked-backend').httpBackendMock);
+
   beforeEach(function () {
-    browser.get('/index.html');
-    page = require('./main.po');
+    browser.get('#/apis/swapi/settings/policies');
+    page = require('./policy.po');
   });
 
-  it('should include jumbotron with correct data', function() {
-    expect(page.h1El.getText()).toBe('\'Allo, \'Allo!');
-    expect(page.imgEl.getAttribute('src')).toMatch(/assets\/images\/yeoman.png$/);
-    expect(page.imgEl.getAttribute('alt')).toBe('I\'m Yeoman');
+  it('should add a policy configuration item on click on add button', function () {
+    expect(page.rateLimitPolicyConfigurationBlocks.count()).toEqual(0);
+    page.rateLimitPolicy.click();
+    expect(page.rateLimitPolicyConfigurationBlocks.count()).toEqual(1);
+    page.rateLimitPolicyAddButton.click();
+    expect(page.rateLimitPolicyConfigurationBlocks.count()).toEqual(2);
   });
-
-  it('should list more than 5 awesome things', function () {
-    expect(page.thumbnailEls.count()).toBeGreaterThan(5);
-  });
-
 });

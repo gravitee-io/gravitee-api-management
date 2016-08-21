@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 /* global setInterval:false, clearInterval:false, screen:false */
-function runBlock($rootScope, $window, $http, $cookieStore, $mdSidenav, UserService) {
+function runBlock($rootScope, $window, $http, $mdSidenav, UserService) {
   'ngInject';
-  var graviteeAuthenticationKey = 'Authorization';
 
   function configureScreenSize(user) {
     if (screen.width < 500) {

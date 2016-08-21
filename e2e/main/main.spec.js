@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 'use strict';
-angular.module('gvConstants', []).constant('Constants', {
-  // if the management REST API is on a different domain, put something like: http://demo.gravitee.io/management/
-  "baseURL": '/management/',
-  "version": "0.19.0-SNAPSHOT"
+
+describe('The main view', function () {
+  var page;
+
+  browser.addMockModule('httpBackendMockModule', require('../mocked-backend').httpBackendMock);
+
+  beforeEach(function () {
+    browser.get('/');
+    page = require('./main.po');
+  });
+
+  it('should include home page title', function () {
+    expect(page.h3El.getText()).toContain('Gravitee.io Portal version');
+  });
 });

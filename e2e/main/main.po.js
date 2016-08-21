@@ -13,9 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * This file uses the Page Object pattern to define the main page for tests
+ * https://docs.google.com/presentation/d/1B6manhG0zEXkC-H-tPo2vwU06JhL8w9-XCF9oehXzAQ
+ */
+
 'use strict';
-angular.module('gvConstants', []).constant('Constants', {
-  // if the management REST API is on a different domain, put something like: http://demo.gravitee.io/management/
-  "baseURL": '/management/',
-  "version": "0.19.0-SNAPSHOT"
-});
+
+var MainPage = function() {
+  this.h3El = element(by.css('h3'));
+};
+
+module.exports = new MainPage();
