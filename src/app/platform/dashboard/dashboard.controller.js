@@ -24,6 +24,7 @@ class DashboardController {
     this.$scope = $scope;
     this.$state = $state;
     this.$timeout = $timeout;
+    this.eventLabels = {};
     this.eventTypes = [];
     this.selectedAPIs = [];
     this.selectedApplications = [];
@@ -34,6 +35,7 @@ class DashboardController {
     this.cache = {};
 
     // init events
+    this.initEventLabels();
     this.initEventTypes();
     this.initPagination();
     this.getEvents = this.getEvents.bind(this);
@@ -139,6 +141,17 @@ class DashboardController {
     };
   }
 
+  initEventLabels() {
+    this.eventLabels["start_api"] = "Start";
+    this.eventLabels["stop_api"] = "Stop";
+    this.eventLabels["publish_api"] = "Deploy";
+    this.eventLabels["unpublish_api"] = "Undeploy";
+  }
+
+  getEventLabel(label) {
+    return this.eventLabels[label];
+  }
+
   initEventTypes() {
     this.eventTypes = ['START_API', 'STOP_API', 'PUBLISH_API', 'UNPUBLISH_API'];
   }
@@ -194,7 +207,10 @@ class DashboardController {
   updateRangeDate() {
     var from = moment(this.beginDate).unix() * 1000;
     var to = moment(this.endDate).unix() * 1000;
-    this.$state.go(this.$state.current, {timeframe: '', from: from, to: to}, {reload: true});
+    this.$state.transitionTo(this.$state.current, {timeframe: '', from: from, to: to}, { notify: false });
+    this.setRangeDate(from, to);
+    this.updateCharts();
+    this.searchEvents();
   }
 
   setRangeDate(from, to) {
@@ -210,7 +226,10 @@ class DashboardController {
 
   updateTimeframe(timeframeId) {
     if (timeframeId) {
-      this.$state.go(this.$state.current, {timeframe: timeframeId, from: '', to: ''}, {reload: true});
+      this.$state.transitionTo(this.$state.current, {timeframe: timeframeId, from: '', to: ''}, { notify: false });
+      this.setTimeframe(timeframeId);
+      this.updateCharts();
+      this.searchEvents();
     }
   }
 
@@ -239,6 +258,18 @@ class DashboardController {
     return {
       tops: [
         {
+          title: 'Top APIs',
+          titleKey: 'API',
+          titleValue: 'Hits',
+          subhead: 'Order by API calls',
+          request: this.AnalyticsService.topHits,
+          key: "top-apis",
+          query: "*:*",
+          field: "api",
+          size: 10000,
+          style: "big"
+        },
+        {
           title: 'Top applications',
           titleKey: 'Application',
           titleValue: 'Hits',
@@ -247,7 +278,8 @@ class DashboardController {
           key: "top-apps",
           query: "*:*",
           field: "application",
-          size: 10000
+          size: 10000,
+          style: "big"
         },
         {
           title: 'Top failed APIs',
@@ -258,7 +290,8 @@ class DashboardController {
           key: "top-failed-apis",
           query: "status:[500 TO 599]",
           field: "api",
-          size: 10000
+          size: 10000,
+          style: "small"
         },
         {
           title: 'Top slow APIs',
@@ -272,7 +305,8 @@ class DashboardController {
           orderField: "response-time",
           orderDirection: "desc",
           orderType: "avg",
-          size: 10000
+          size: 10000,
+          style: "small"
         },
         {
           title: 'Top overhead APIs',
@@ -286,7 +320,8 @@ class DashboardController {
           orderField: "proxy-latency",
           orderDirection: "desc",
           orderType: "avg",
-          size: 10000
+          size: 10000,
+          style: "small"
         }
       ],
       timeframes: [

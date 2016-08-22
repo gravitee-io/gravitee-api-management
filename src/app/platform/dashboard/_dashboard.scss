@@ -55,3 +55,19 @@ md-list-item.eventType {
     margin: -10px 0;
   }
 }
+
+.dashboard-analytics-card {
+  & > md-card-header {
+    padding-bottom: 0px;
+    span.md-title {
+        font-size: 12px;
+    }
+    span.md-subhead {
+        font-size: 11px;
+    }
+  }
+
+  & > md-card-content {
+    padding-bottom: 0px;
+  }
+}
