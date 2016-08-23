@@ -45,19 +45,6 @@ class ApiPoliciesController {
       this.initDragular();
       this.pathsToCompare = this.generatePathsToCompare();
     });
-
-    const that = this;
-    this.$scope.$on('dragulardrop', function(/*event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex*/) {
-/*      console.log('event', event);
-      console.log('element',element);
-      console.log('dropzoneElt',dropzoneElt);
-      console.log('draggableElt',draggableElt);
-      console.log('draggableObjList',draggableObjList);
-      console.log('draggableIndex',draggableIndex);
-      console.log('dropzoneObjList',dropzoneObjList);
-      console.log('dropzoneIndex',dropzoneIndex);*/
-      that.savePaths();
-    });
   }
 
   generatePathsToCompare() {
@@ -157,9 +144,6 @@ class ApiPoliciesController {
             schema
           };
           policy[originalPolicy.id] = {};
-          _.forEach(schema.properties, (value, property) => {
-            policy[originalPolicy.id][property] = null;
-          });
           return {policy};
         });
       });

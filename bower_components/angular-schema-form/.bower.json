@@ -52,17 +52,18 @@
     "angular-mocks": ">= 1.2",
     "tx-tinymce": ">= 0.0.5",
     "angular-ui-sortable": ">=0.12.11",
-    "bootstrap-vertical-tabs": "~1.2.0"
+    "bootstrap-vertical-tabs": "~1.2.0",
+    "angular-schema-form-bootstrap": "~0.1.1"
   },
   "homepage": "https://github.com/Textalk/angular-schema-form",
-  "version": "0.8.12",
-  "_release": "0.8.12",
+  "version": "0.8.13",
+  "_release": "0.8.13",
   "_resolution": {
     "type": "version",
-    "tag": "0.8.12",
-    "commit": "7f298221bb72b9fbef25e4d7e23d48a336f57948"
+    "tag": "0.8.13",
+    "commit": "767c7f3771b328f2fbc1f1462c96665fbf43c879"
   },
   "_source": "https://github.com/Textalk/angular-schema-form.git",
-  "_target": "0.8.12",
+  "_target": "~0.8.13",
   "_originalSource": "angular-schema-form"
 }

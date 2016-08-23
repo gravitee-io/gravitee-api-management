@@ -20,7 +20,7 @@
     "Read-More-Directive": "git@github.com:andoulla/Read-More-Directive.git",
     "moment": "momentjs#~2.11.1",
     "dragular": "^4.1.0",
-    "angular-schema-form": "0.8.12",
+    "angular-schema-form": "~0.8.13",
     "ngclipboard": "~1.1.0",
     "angular-ui-validate": "~1.2.2",
     "angular-messages": "~1.4.9",
