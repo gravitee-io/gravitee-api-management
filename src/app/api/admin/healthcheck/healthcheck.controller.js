@@ -36,6 +36,90 @@ class ApiHealthCheckController {
 
     this.setTimeframe('1h');
 
+    $scope.options = {
+      elements: {
+        point: {
+          radius: 5
+        }
+      },
+      scales: {
+        xAxes: [{
+          display: true,
+          stacked: true
+        }],
+        yAxes: [{
+          stacked: true
+        }]
+      },
+      tooltips: {
+        mode: 'label'
+      },
+
+      // Sets the chart to be responsive
+      responsive: true,
+
+      //Boolean - Whether the scale should start at zero, or an order of magnitude down from the lowest value
+      scaleBeginAtZero : true,
+
+      //Boolean - Whether grid lines are shown across the chart
+      scaleShowGridLines : true,
+
+      //String - Colour of the grid lines
+      scaleGridLineColor : "rgba(0,0,0,.05)",
+
+      //Number - Width of the grid lines
+      scaleGridLineWidth : 1,
+
+      //Boolean - If there is a stroke on each bar
+      barShowStroke : true,
+
+      //Number - Pixel width of the bar stroke
+      barStrokeWidth : 2,
+
+      //Number - Spacing between each of the X value sets
+      barValueSpacing : 5,
+
+      //Number - Spacing between data sets within X values
+      barDatasetSpacing : 1,
+
+      //String - A legend template
+      legendTemplate : '<ul class="tc-chart-js-legend"><% for (var i=0; i<datasets.length; i++){%><li><span style="background-color:<%=datasets[i].fillColor%>"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>'
+    };
+
+    // Chart.js Options
+    $scope.doughnutOptions = {
+      // Sets the chart to be responsive
+      responsive: true,
+
+      //Boolean - Whether we should show a stroke on each segment
+      segmentShowStroke : true,
+
+      //String - The colour of each segment stroke
+      segmentStrokeColor : '#fff',
+
+      //Number - The width of each segment stroke
+      segmentStrokeWidth : 2,
+
+      //Number - The percentage of the chart that we cut out of the middle
+      percentageInnerCutout : 50, // This is 0 for Pie charts
+
+      //Number - Amount of animation steps
+      animationSteps : 100,
+
+      //String - Animation easing effect
+      animationEasing : 'easeOutBounce',
+
+      //Boolean - Whether we animate the rotation of the Doughnut
+      animateRotate : true,
+
+      //Boolean - Whether we animate scaling the Doughnut from the centre
+      animateScale : false,
+    };
+
+    $scope.doughnut = {};
+
+    $scope.data = [];
+
     this.initState();
     this.updateChart();
   }
@@ -169,60 +253,82 @@ class ApiHealthCheckController {
       _this.$scope.analytics.range.interval,
       _this.$scope.analytics.range.from,
       _this.$scope.analytics.range.to).then(response => {
-      this.$scope.chartConfig = {
-        type: 'area',
-        credits: {
-          enabled: false
-        },
-        title: {
-          text: 'Status'
-        },
-        subtitle: {
-          text: ''
-        },
-        xAxis: {
-          type: 'datetime',
-          categories: response.data.timestamps,
-          labels: {
-            formatter: function () {
-              return moment(this.value).format("YYYY-MM-DD HH:mm:ss");
-            }
-          },
-          tickmarkPlacement: 'on',
-          title: {
-            enabled: false
-          }
-        },
-        yAxis: {title: {text: '% Health'}},
-        tooltip: {
-          pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.percentage:.1f}%</b><br/>',
-          shared: true
-        },
-        plotOptions: {
-          area: {
-            stacking: 'percent',
-            lineColor: '#ffffff',
-            lineWidth: 1,
-            marker: {
-              lineWidth: 1,
-              lineColor: '#ffffff'
-            }
-          }
-        },
-        series: []
-      };
 
-      this.hasData = !(_.isEmpty(response.data.buckets));
+      _this.$scope.hasData = !(_.isEmpty(response.data.buckets));
+        _this.$scope.data = {
+          labels: _.map(response.data.timestamps, function (timestamp) {
+            return moment(timestamp).format("YYYY-MM-DD HH:mm:ss");
+          }),
+          datasets: []
+        };
 
-      // Push data for hits by status
-      for (var property in response.data.buckets) {
-        this.$scope.chartConfig.series.push({
-          type: 'area',
-          name: property,
-          data: response.data.buckets[property]
-        });
-      }
-    });
+        var okCounter = 0;
+        if (response.data.buckets.true) {
+          _this.$scope.data.datasets.push({
+            data: response.data.buckets.true,
+            label: "OK",
+            backgroundColor: '#a5d6a7',
+            borderColor: '#66bb6a',
+            pointBackgroundColor: 'rgba(220,220,220,0.2)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#66bb6a',
+            pointHoverBorderColor: 'rgba(220,220,220,1)',
+            fillColor: 'rgba(151,187,205,0.2)',
+            strokeColor: 'rgba(151,187,205,1)',
+            pointColor: 'rgba(151,187,205,1)',
+            pointStrokeColor: '#fff',
+            pointHighlightFill: '#fff',
+            pointHighlightStroke: 'rgba(151,187,205,1)'
+          });
+
+          _.forEach(response.data.buckets.true, function (value) {
+            okCounter += value;
+          });
+
+        }
+
+        var koCounter = 0;
+        if (response.data.buckets.false) {
+          _this.$scope.data.datasets.push({
+            data: response.data.buckets.false,
+            label: "KO",
+            backgroundColor: '#ef9a9a',
+            borderColor: '#ef5350',
+            pointBackgroundColor: 'rgba(220,220,220,1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#ef5350',
+            pointHoverBorderColor: 'rgba(220,220,220,1)',
+            fillColor: 'rgba(220,220,220,0.2)',
+            strokeColor: 'rgba(220,220,220,1)',
+            pointColor: 'rgba(220,220,220,1)',
+            pointStrokeColor: '#fff',
+            pointHighlightFill: '#fff',
+            pointHighlightStroke: 'rgba(220,220,220,1)'
+          });
+
+          _.forEach(response.data.buckets.false, function (value) {
+            koCounter += value;
+          });
+        }
+
+        _this.$scope.doughnut = {
+          datasets: [{
+            label: "Healthcheck repartition",
+            data: [
+              koCounter,
+              okCounter
+            ],
+            backgroundColor: [
+              "#ef9a9a",
+              "#a5d6a7"
+            ]
+          }],
+          labels: [
+            "KO",
+            "OK"
+          ]
+        }
+      });
   }
 
   analytics() {

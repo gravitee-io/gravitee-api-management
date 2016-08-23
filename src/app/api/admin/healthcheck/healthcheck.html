@@ -16,8 +16,7 @@
 
 -->
 
-<div layout="column">
-  <section layout="row" flex>
+
     <md-content flex layout-padding>
       <div layout="row">
         <h4>Health-check
@@ -70,17 +69,32 @@
         of <code>{{analytics.range.interval}}</code> ms ({{analytics.timeframe.title | lowercase}}).
       </div>
 
-      <div layout="row" layout-fill layout-align="top center">
-        <md-content flex="70">
-          <md-card-content ng-if="healthCheckCtrl.hasData">
-            <chart config="chartConfig"></chart>
-          </md-card-content>
+      <div layout="row" ng-if="hasData">
+          <md-card flex="70">
+            <md-card-content>
+              <canvas
+                      tc-chartjs-bar
+                      chart-data="data"
+                      chart-options="options"
+                      height="145"></canvas>
+            </md-card-content>
+          </md-card>
 
-          <md-card-content ng-if="!healthCheckCtrl.hasData">
-            <b>No data in the specified interval !</b>
-          </md-card-content>
-        </md-content>
+          <md-card flex="30">
+            <md-card-content>
+              <canvas
+                      tc-chartjs-doughnut
+                      chart-data="doughnut"
+                      chart-options="doughnutOptions"
+                      height="145"></canvas>
+            </md-card-content>
+          </md-card>
       </div>
+
+      <div layout="row" ng-if="!hasData">
+         <span ><b>No data in the specified interval !</b></span>
+      </div>
+
       <div flex></div>
     </md-content>
 
@@ -214,5 +228,3 @@
         </form>
       </md-content>
     </md-sidenav>
-  </section>
-</div>
