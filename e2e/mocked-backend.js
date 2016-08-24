@@ -134,7 +134,7 @@ exports.httpBackendMock = function() {
         "paths" : {
           "/" : [ {
             "methods" : [ "GET", "POST", "PUT", "DELETE", "HEAD", "PATCH", "OPTIONS", "TRACE", "CONNECT" ],
-            "rate-limit" : {"async":null,"rateLimits":null}
+            "rate-limit" : {"async":null,"rateLimits": []}
           } ]
         },
         "deployed_at" : 1466586262857,
