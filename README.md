@@ -1,4 +1,4 @@
-[![Build Status](http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-repository-mongodb)](http://build.gravitee.io/jenkins/view/Tous/job/gravitee-repository-mongodb/)
+[![Build Status](https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-repository-mongodb/master)](https://ci.gravitee.io/job/gravitee-io/job/gravitee-repository-mongodb/job/master/)
 
 # Gravitee Mongo Repository
 
