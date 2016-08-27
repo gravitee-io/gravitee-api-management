@@ -1,4 +1,4 @@
-[![Build Status](http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-repository-test)](http://build.gravitee.io/jenkins/view/Tous/job/gravitee-repository-test/)
+[![Build Status](https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-repository-test/master)](https://ci.gravitee.io/job/gravitee-io/job/gravitee-repository-test/job/master)
 
 # Gravitee Test Repository
 
