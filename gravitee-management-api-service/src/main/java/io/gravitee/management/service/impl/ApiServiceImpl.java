@@ -570,7 +570,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public String exportAsJson(final String apiId) {
+    public String exportAsJson(final String apiId, io.gravitee.management.model.MembershipType membershipType) {
         final ApiEntity apiEntity = findById(apiId);
 
         apiEntity.setId(null);
@@ -579,6 +579,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setDeployedAt(null);
         apiEntity.setPrimaryOwner(null);
         apiEntity.setState(null);
+        apiEntity.setPermission(membershipType);
 
         Set<MemberEntity> members = this.getMembers(apiId, null);
         if (members != null) {
@@ -600,6 +601,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
         try {
             ObjectNode apiJsonNode = objectMapper.valueToTree(apiEntity);
+            apiJsonNode.remove("permission");
             apiJsonNode.putPOJO("members", members==null ? Collections.emptyList() : members);
             apiJsonNode.putPOJO("pages", pages==null ? Collections.emptyList() : pages);
             return objectMapper.writeValueAsString(apiJsonNode);

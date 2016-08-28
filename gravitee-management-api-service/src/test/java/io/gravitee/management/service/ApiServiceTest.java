@@ -18,6 +18,8 @@ package io.gravitee.management.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -31,12 +33,14 @@ import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsExce
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
+import io.gravitee.management.service.jackson.filter.ApiMembershipTypeFilter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.management.model.Visibility;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -94,6 +98,12 @@ public class ApiServiceTest {
 
     @Mock
     private UserService userService;
+
+    @Before
+    public void setUp() {
+        PropertyFilter apiMembershipTypeFilter = new ApiMembershipTypeFilter();
+        objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+    }
 
     @Test
     public void shouldCreateForUser() throws TechnicalException {
@@ -574,7 +584,7 @@ public class ApiServiceTest {
         membership.setMembershipType(MembershipType.PRIMARY_OWNER);
         when(apiRepository.getMembers(API_ID, null)).thenReturn(Collections.singleton(membership));
 
-        String jsonForExport = apiService.exportAsJson(API_ID);
+        String jsonForExport = apiService.exportAsJson(API_ID, io.gravitee.management.model.MembershipType.PRIMARY_OWNER);
 
         URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExport.json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);

@@ -20,12 +20,16 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.management.service.jackson.filter.ApiMembershipTypeFilter;
 
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
+import java.util.Collections;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -36,6 +40,9 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
 
     public ObjectMapperResolver() {
         mapper = new GraviteeMapper();
+
+        // register filter provider
+        registerFilterProvider();
 
         SimpleModule module = new SimpleModule();
         module.setDeserializerModifier(new BeanDeserializerModifier() {
@@ -65,5 +72,10 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
     @Override
     public ObjectMapper getContext(Class<?> type) {
         return mapper;
+    }
+
+    private void registerFilterProvider() {
+        PropertyFilter apiMembershipTypeFilter = new ApiMembershipTypeFilter();
+        mapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
     }
 }

@@ -58,7 +58,7 @@ public interface ApiService {
     
     ApiEntity rollback(String apiId, UpdateApiEntity api);
 
-    String exportAsJson(String apiId);
+    String exportAsJson(String apiId, MembershipType membershipType);
 
     ApiEntity createOrUpdateWithDefinition(ApiEntity apiEntity, String apiDefinition, String username);
 

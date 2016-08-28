@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Path;
@@ -28,6 +29,7 @@ import java.util.*;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@JsonFilter("apiMembershipTypeFilter")
 public class ApiEntity {
 
     private String id;
@@ -37,10 +39,12 @@ public class ApiEntity {
 
     @NotNull
     @DeploymentRequired
+    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     @JsonProperty(value = "proxy", required = true)
     private Proxy proxy;
 
     @DeploymentRequired
+    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
     
@@ -62,16 +66,19 @@ public class ApiEntity {
     private PrimaryOwnerEntity primaryOwner;
 
     @DeploymentRequired
+    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     @JsonProperty(value = "properties")
     private Map<String, String> properties;
 
     private MembershipType permission;
 
     @DeploymentRequired
+    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     @JsonProperty(value = "services")
     private Services services;
 
     @DeploymentRequired
+    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     private Set<String> tags;
     
     private String picture;
@@ -80,6 +87,7 @@ public class ApiEntity {
     private String pictureUrl;
 
     @DeploymentRequired
+    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     @JsonProperty(value = "resources")
     private List<Resource> resources = new ArrayList<>();
 

@@ -203,8 +203,10 @@ public class ApiResource extends AbstractResource {
     @ApiPermissionsRequired(ApiPermission.MANAGE_API)
     public Response exportDefinition() {
         final ApiEntity apiEntity = get();
+        setPermission(apiEntity);
+
         return Response
-                .ok(apiService.exportAsJson(api))
+                .ok(apiService.exportAsJson(api, apiEntity.getPermission()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s",getExportFilename(apiEntity)))
                 .build();
     }

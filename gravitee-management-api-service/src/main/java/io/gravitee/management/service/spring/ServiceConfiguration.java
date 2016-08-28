@@ -16,10 +16,13 @@
 package io.gravitee.management.service.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.fetcher.spring.FetcherConfigurationConfiguration;
+import io.gravitee.management.service.jackson.filter.ApiMembershipTypeFilter;
 import io.gravitee.plugin.fetcher.spring.FetcherPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
@@ -28,6 +31,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import java.util.Collections;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,6 +51,9 @@ public class ServiceConfiguration {
 
 	@Bean
 	public ObjectMapper objectMapper() {
-		return new GraviteeMapper();
+		ObjectMapper objectMapper = new GraviteeMapper();
+		PropertyFilter apiMembershipTypeFilter = new ApiMembershipTypeFilter();
+		objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+		return objectMapper;
 	}
 }
