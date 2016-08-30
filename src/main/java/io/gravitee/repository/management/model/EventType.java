@@ -16,8 +16,8 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum EventType {

@@ -17,10 +17,11 @@ package io.gravitee.repository.management.model;
 
 /**
  * Api lifecycle states
- * 
- * @author David BRASSELY (brasseld at gmail.com)
+ *
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public enum LifecycleState {
 
-    STARTED, STOPPED;
+    STARTED, STOPPED
 }

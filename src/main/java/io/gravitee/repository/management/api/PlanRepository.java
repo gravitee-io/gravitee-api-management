@@ -13,44 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query.response.histogram;
+package io.gravitee.repository.management.api;
 
-import java.util.Map;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.Plan;
+
+import java.util.Set;
 
 /**
+ * Plan repository API.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Data {
+public interface PlanRepository extends CrudRepository<Plan, String> {
 
-    private final long timestamp;
-
-    private final long count;
-
-    private final Map<String, Long> data;
-
-    public Data(long timestamp, long count) {
-        this.timestamp = timestamp;
-        this.count = count;
-        this.data = null;
-    }
-
-    public Data(long timestamp, Map<String, Long> data) {
-        this.timestamp = timestamp;
-        this.count = 0;
-        this.data = data;
-
-    }
-
-    public long timestamp() {
-        return timestamp;
-    }
-
-    public long count() {
-        return count;
-    }
-
-    public Map<String, Long> data() {
-        return data;
-    }
+    /**
+     * Returns the list of plans for a given API.
+     *
+     * @param apiId API identifier.
+     *
+     * @return List of plan for the given API.
+     * @throws TechnicalException
+     */
+    Set<Plan> findByApi(String apiId) throws TechnicalException;
 }

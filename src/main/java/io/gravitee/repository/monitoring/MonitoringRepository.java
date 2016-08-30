@@ -18,7 +18,7 @@ package io.gravitee.repository.monitoring;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface MonitoringRepository {

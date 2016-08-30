@@ -19,7 +19,8 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class Event {
 

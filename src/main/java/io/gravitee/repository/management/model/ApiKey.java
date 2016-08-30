@@ -19,7 +19,8 @@ import java.util.Date;
 import java.util.Objects;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ApiKey {
 
@@ -29,34 +30,44 @@ public class ApiKey {
 	private String key;
 
 	/**
-	 * Token expiration date
+	 * The subscription for which the Api Key is generated
 	 */
-	private Date expiration;
+	private String subscription;
 
 	/**
-	 * The API key creation date
+	 * The application used to make the subscription
+	 */
+	private String application;
+
+	/**
+	 * The subscribed plan
+	 */
+	private String plan;
+
+	/**
+	 * Expiration date (end date) of the Api Key
+	 */
+	private Date expireAt;
+
+	/**
+	 * API key creation date
 	 */
 	private Date createdAt;
 
 	/**
-	 * Is the key revoked ?
+	 * API key updated date
+	 */
+	private Date updatedAt;
+
+	/**
+	 * Flag to indicate if the Api Key is revoked ?
 	 */
 	private boolean revoked;
 
 	/**
-	 * If the key was revoked, the date of revocation.
+	 * If the key is revoked, the revocation date
 	 */
-	private Date revokeAt;
-
-	/**
-	 * The API for which the key is defined.
-	 */
-	private String api;
-
-	/**
-	 * The application for which the key is defined.
-	 */
-	private String application;
+	private Date revokedAt;
 
 	public boolean isRevoked() {
 		return revoked;
@@ -74,12 +85,28 @@ public class ApiKey {
 		this.key = key;
 	}
 
-	public Date getExpiration() {
-		return expiration;
+	public String getApplication() {
+		return application;
 	}
 
-	public void setExpiration(Date expiration) {
-		this.expiration = expiration;
+	public void setApplication(String application) {
+		this.application = application;
+	}
+
+	public String getPlan() {
+		return plan;
+	}
+
+	public void setPlan(String plan) {
+		this.plan = plan;
+	}
+
+	public Date getExpireAt() {
+		return expireAt;
+	}
+
+	public void setExpireAt(Date expireAt) {
+		this.expireAt = expireAt;
 	}
 
 	public Date getCreatedAt() {
@@ -90,28 +117,28 @@ public class ApiKey {
 		this.createdAt = createdAt;
 	}
 
-	public Date getRevokeAt() {
-		return revokeAt;
+	public Date getRevokedAt() {
+		return revokedAt;
 	}
 
-	public void setRevokeAt(Date revokeAt) {
-		this.revokeAt = revokeAt;
+	public void setRevokedAt(Date revokedAt) {
+		this.revokedAt = revokedAt;
 	}
 
-	public String getApi() {
-		return api;
+	public Date getUpdatedAt() {
+		return updatedAt;
 	}
 
-	public void setApi(String api) {
-		this.api = api;
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
 	}
 
-	public String getApplication() {
-		return application;
+	public String getSubscription() {
+		return subscription;
 	}
 
-	public void setApplication(String application) {
-		this.application = application;
+	public void setSubscription(String subscription) {
+		this.subscription = subscription;
 	}
 
 	@Override

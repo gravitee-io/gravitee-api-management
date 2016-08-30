@@ -15,6 +15,10 @@
  */
 package io.gravitee.repository.exceptions;
 
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class CacheException extends RuntimeException {
 	private static final long serialVersionUID = -3627948199835710035L;
 

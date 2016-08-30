@@ -18,7 +18,7 @@ package io.gravitee.repository.management.model;
 import java.util.Objects;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class View {

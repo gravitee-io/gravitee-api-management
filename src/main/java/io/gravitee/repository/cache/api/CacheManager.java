@@ -18,7 +18,7 @@ package io.gravitee.repository.cache.api;
 import io.gravitee.repository.cache.model.Cache;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface CacheManager {

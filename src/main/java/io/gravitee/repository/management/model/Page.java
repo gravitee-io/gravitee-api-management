@@ -19,8 +19,8 @@ import java.util.Date;
 import java.util.Objects;
 
 /**
- * @author Titouan COMPIEGNE
- * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Page {
@@ -45,6 +45,7 @@ public class Page {
 	private PageSource source;
 
 	private PageConfiguration configuration;
+
 	/**
 	 * The api ID.
 	 */

@@ -16,9 +16,8 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author Ludovic Dussart (ludovic.dussart at gmail.com)
- * Managed types for page documentation
- *
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public enum PageType {
 

@@ -15,12 +15,11 @@
  */
 package io.gravitee.repository.analytics.query;
 
-import io.gravitee.repository.analytics.query.Interval;
-
 import java.time.temporal.ChronoUnit;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class IntervalBuilder {
 

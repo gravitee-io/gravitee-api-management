@@ -18,7 +18,8 @@ package io.gravitee.repository.analytics;
 import io.gravitee.repository.exceptions.RepositoryException;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class AnalyticsException extends RepositoryException {
 

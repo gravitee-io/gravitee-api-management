@@ -15,7 +15,11 @@
  */
 package io.gravitee.repository.exceptions;
 
-public class KeyValueException extends RuntimeException{
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public class KeyValueException extends RuntimeException {
 	private static final long serialVersionUID = -2516662042502191870L;
 
 	public KeyValueException() {

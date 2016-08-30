@@ -16,11 +16,18 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public enum Visibility {
 
+    /**
+     * The entity is visible to everyone.
+     */
     PUBLIC,
-    PRIVATE,
-    RESTRICTED
+
+    /**
+     * The entity is visible only from its members.
+     */
+    PRIVATE
 }

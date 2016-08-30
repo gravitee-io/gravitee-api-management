@@ -18,7 +18,8 @@ package io.gravitee.repository.analytics.query;
 import io.gravitee.repository.analytics.query.response.histogram.HistogramResponse;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public abstract class TimeRangedQuery implements Query<HistogramResponse> {
 

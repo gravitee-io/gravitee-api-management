@@ -16,15 +16,14 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiKey;
-import io.gravitee.repository.management.model.Application;
 
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface ApiKeyRepository {
 
@@ -34,16 +33,15 @@ public interface ApiKeyRepository {
 	 * @param apiKey API key
 	 * @return API Key Details
 	 */
-    Optional<ApiKey> retrieve(String apiKey) throws TechnicalException;
+    Optional<ApiKey> findById(String apiKey) throws TechnicalException;
 
 	/**
-	 * Create a new API Key for an {@link Application} and an {@link Api}
+	 * Create a new API Key
 	 *
-	 * @param applicationId Application ID
-	 * @param apiId ID of the Api to associate
+	 * @param apiKey API Key
 	 * @return Newly created API Key
 	 */
-	ApiKey create(String applicationId, String apiId, ApiKey key) throws TechnicalException;
+	ApiKey create(ApiKey apiKey) throws TechnicalException;
 
 	/**
 	 * Update an API Key
@@ -54,38 +52,16 @@ public interface ApiKeyRepository {
 	ApiKey update(ApiKey key) throws TechnicalException;
 
 	/**
-	 * Provide an history of all API Keys generated for an {@link Application} and an {@link Api}
+	 * List of {@link ApiKey} for a given {@link io.gravitee.repository.management.model.Subscription}
 	 *
-	 * @param applicationId Application ID
-	 * @param apiId ID of the Api
-	 * @return List of generated keys for an {@link Application} and an {@link Api}
-	 * @throws TechnicalException
-	 */
-	Set<ApiKey> findByApplicationAndApi(String applicationId, String apiId) throws TechnicalException;
-
-	/**
-	 * Provide Api Keys for a given application
-	 * 
-	 * @param applicationId
+	 * @param subscription
 	 * @return
-	 * @throws TechnicalException
-	 */
-	Set<ApiKey> findByApplication(String applicationId) throws TechnicalException;
-
-	/**
-	 * Provide Api Keys for a given API
-	 *
-	 * @param apiId
-	 * @return
-	 * @throws TechnicalException
-	 */
-	Set<ApiKey> findByApi(String apiId) throws TechnicalException;
-
-	/**
-	 * Delete an API Key
-	 *
-	 * @param apiKey The API Key to delete
 	 * @throws TechnicalException
      */
-	void delete(String apiKey) throws TechnicalException;
+	Set<ApiKey> findBySubscription(String subscription) throws TechnicalException;
+
+	/**
+	 * List of {@link ApiKey} for a given {@link io.gravitee.repository.management.model.Plan}
+	 */
+	Set<ApiKey> findByPlan(String plan) throws TechnicalException;
 }

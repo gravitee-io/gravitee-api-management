@@ -20,7 +20,7 @@ import io.gravitee.repository.management.model.EventType;
 import java.util.*;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EventCriteria {

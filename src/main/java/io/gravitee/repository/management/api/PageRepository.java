@@ -21,7 +21,8 @@ import io.gravitee.repository.management.model.Page;
 import java.util.Collection;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface PageRepository extends CrudRepository<Page, String> {
 

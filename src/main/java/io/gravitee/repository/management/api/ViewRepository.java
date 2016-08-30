@@ -21,7 +21,7 @@ import io.gravitee.repository.management.model.View;
 import java.util.Set;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ViewRepository extends CrudRepository<View, String>{

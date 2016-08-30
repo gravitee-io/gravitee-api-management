@@ -19,7 +19,7 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class MonitoringResponse {

@@ -16,7 +16,7 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author Nicolas GERAUD (nicolas <AT> graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PageSource {
