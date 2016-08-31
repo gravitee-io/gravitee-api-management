@@ -24,7 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class GraviteeVerticle extends AbstractVerticle {
 
@@ -48,11 +49,11 @@ public class GraviteeVerticle extends AbstractVerticle {
 
         httpServer.listen(res -> {
             if (res.succeeded()) {
-                logger.info("Vert.x HTTP Server is now listening for requests on port {}",
+                logger.info("HTTP Server is now listening for requests on port {}",
                         httpServerConfiguration.getPort());
                 startFuture.complete();
             } else {
-                logger.error("Unable to start Vert.x HTTP Server", res.cause());
+                logger.error("Unable to start HTTP Server", res.cause());
                 startFuture.fail(res.cause());
             }
         });
@@ -60,7 +61,7 @@ public class GraviteeVerticle extends AbstractVerticle {
 
     @Override
     public void stop() throws Exception {
-        logger.info("Stopping Vert.x HTTP Server...");
-        httpServer.close(voidAsyncResult -> logger.info("Vert.x HTTP Server has been correctly stopped"));
+        logger.info("Stopping HTTP Server...");
+        httpServer.close(voidAsyncResult -> logger.info("HTTP Server has been correctly stopped"));
     }
 }

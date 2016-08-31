@@ -18,17 +18,16 @@ package io.gravitee.gateway.reactor.handler;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.Reactable;
 
-import java.util.concurrent.CompletableFuture;
-
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ReactorHandler extends LifecycleComponent<ReactorHandler> {
 
-    CompletableFuture<Response> handle(Request request, Response response);
+    void handle(Request request, Response response, Handler<Response> handler);
 
     String contextPath();
 

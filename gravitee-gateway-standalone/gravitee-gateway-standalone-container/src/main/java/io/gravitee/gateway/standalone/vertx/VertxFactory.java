@@ -21,7 +21,8 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class VertxFactory implements FactoryBean<Vertx> {
 
@@ -30,8 +31,7 @@ public class VertxFactory implements FactoryBean<Vertx> {
 
     @Override
     public Vertx getObject() throws Exception {
-        VertxOptions options = new VertxOptions();//.setWorkerPoolSize(20);
-        Vertx instance = Vertx.vertx(options);
+        Vertx instance = Vertx.vertx();
         instance.registerVerticleFactory(graviteeVerticleFactory);
         return instance;
     }

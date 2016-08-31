@@ -17,30 +17,34 @@ package io.gravitee.gateway.reactor.handler.reporter;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.report.ReporterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.function.BiConsumer;
-
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ReporterHandler implements BiConsumer<Response, Throwable> {
+public class ReporterHandler implements Handler<Response> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReporterHandler.class);
 
-    private final ReporterService reporterService;
+    private final Handler<Response> next;
     private final Request serverRequest;
+    private final ReporterService reporterService;
 
-    public ReporterHandler(ReporterService reporterService, final Request serverRequest) {
+    public ReporterHandler(final ReporterService reporterService, final Request serverRequest, final Handler<Response> next) {
         this.reporterService = reporterService;
         this.serverRequest = serverRequest;
+        this.next = next;
     }
 
     @Override
-    public void accept(Response response, Throwable throwable) {
+    public void handle(Response result) {
+        // Push result to the next handler
+        next.handle(result);
+
         try {
             reporterService.report(serverRequest.metrics());
         } catch (Exception ex) {

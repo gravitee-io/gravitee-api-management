@@ -17,10 +17,12 @@ package io.gravitee.gateway.reactor;
 
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.impl.SimpleEvent;
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
@@ -33,7 +35,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.*;
 
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ReactorTest {
@@ -69,17 +70,18 @@ public class ReactorTest {
 
         when(handlerResolver.resolve(request)).thenReturn(new AbstractReactorHandler() {
             @Override
-            public CompletableFuture<Response> handle(Request request, Response response) {
+            public void handle(Request request, Response response, Handler<Response> handler) {
                 Response proxyResponse = mock(Response.class);
+                when(proxyResponse.headers()).thenReturn(new HttpHeaders());
                 when(proxyResponse.status()).thenReturn(HttpStatusCode.OK_200);
 
-                return CompletableFuture.completedFuture(proxyResponse);
+                handler.handle(proxyResponse);
             }
         });
 
         final CountDownLatch lock = new CountDownLatch(1);
-        reactor.process(request, mock(Response.class)).thenAccept(resp -> {
-            Assert.assertEquals(HttpStatusCode.OK_200, resp.status());
+        reactor.route(request, mock(Response.class), response -> {
+            Assert.assertEquals(HttpStatusCode.OK_200, response.status());
             lock.countDown();
         });
 

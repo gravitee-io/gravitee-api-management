@@ -17,8 +17,7 @@
 #  idleTimeout: 0
 #  tcpKeepAlive: true
 #  compressionSupported: false
-#  pool:
-#    workers: 100
+#  instances: 0
 #  secured: false
 #  ssl:
 #    clientAuth: false

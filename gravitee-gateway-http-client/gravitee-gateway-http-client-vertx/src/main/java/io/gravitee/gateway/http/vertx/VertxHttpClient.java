@@ -28,6 +28,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.http.core.client.AbstractHttpClient;
 import io.netty.channel.ConnectTimeoutException;
+import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.core.net.PemTrustOptions;
@@ -37,26 +38,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class VertxHttpClient extends AbstractHttpClient {
 
     private final Logger LOGGER = LoggerFactory.getLogger(VertxHttpClient.class);
 
-    private HttpClient httpClient;
-
     @Resource
     private Vertx vertx;
 
+    private final Map<Context, HttpClient> httpClients = new HashMap<>();
+
     @Override
     public ClientRequest request(String host, int port, io.gravitee.common.http.HttpMethod method, String requestURI, Request serverRequest, Handler<ClientResponse> responseHandler) {
+        HttpClient httpClient = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
+
         HttpClientRequest clientRequest = httpClient.request(
                 convert(method),
                 port,
@@ -134,7 +139,7 @@ public class VertxHttpClient extends AbstractHttpClient {
         clientResponseHandler.handle(proxyClientResponse);
     }
 
-    protected void copyRequestHeaders(Request clientRequest, HttpClientRequest httpClientRequest, String host) {
+    private void copyRequestHeaders(Request clientRequest, HttpClientRequest httpClientRequest, String host) {
         for (Map.Entry<String, List<String>> headerValues : clientRequest.headers().entrySet()) {
             String headerName = headerValues.getKey();
             String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
@@ -150,13 +155,6 @@ public class VertxHttpClient extends AbstractHttpClient {
         }
 
         httpClientRequest.putHeader(HttpHeaders.HOST, host);
-    }
-
-    @Override
-    protected void doStart() throws Exception {
-        LOGGER.info("Starting HTTP Client for API {}", api);
-
-        initialize(api.getProxy());
     }
 
     private HttpMethod convert(io.gravitee.common.http.HttpMethod httpMethod) {
@@ -185,56 +183,91 @@ public class VertxHttpClient extends AbstractHttpClient {
     }
 
     @Override
-    protected void doStop() throws Exception {
-        LOGGER.info("Close Vert.x HTTP Client for {}", api);
-        httpClient.close();
+    protected void doStart() throws Exception {
+        // Nothing to do since HTTP clients are initialized from a Vertx context
     }
 
-    private void initialize(Proxy proxyDefinition) {
-        Objects.requireNonNull(proxyDefinition, "Proxy must not be null");
+    @Override
+    protected void doStop() throws Exception {
+        LOGGER.info("Closing HTTP Client for {}", api);
 
-        LOGGER.info("Initializing Vert.x HTTP Client with {}", proxyDefinition.getHttpClient());
+        httpClients.values().stream().forEach(HttpClient::close);
+    }
 
-        HttpClientOptions options = new HttpClientOptions();
+    private Function<Context, HttpClient> createHttpClient() {
+        return context -> {
+            Proxy proxyDefinition = api.getProxy();
+            HttpClientOptions options = new HttpClientOptions();
 
-        options.setPipelining(proxyDefinition.getHttpClient().getOptions().isPipelining());
-        options.setKeepAlive(proxyDefinition.getHttpClient().getOptions().isKeepAlive());
-        options.setIdleTimeout((int) (proxyDefinition.getHttpClient().getOptions().getIdleTimeout() / 1000));
-        options.setConnectTimeout((int) proxyDefinition.getHttpClient().getOptions().getConnectTimeout());
-        options.setUsePooledBuffers(true);
-        options.setMaxPoolSize(proxyDefinition.getHttpClient().getOptions().getMaxConcurrentConnections());
-        options.setTryUseCompression(proxyDefinition.getHttpClient().getOptions().isUseCompression());
+            options.setPipelining(proxyDefinition.getHttpClient().getOptions().isPipelining());
+            options.setKeepAlive(proxyDefinition.getHttpClient().getOptions().isKeepAlive());
+            options.setIdleTimeout((int) (proxyDefinition.getHttpClient().getOptions().getIdleTimeout() / 1000));
+            options.setConnectTimeout((int) proxyDefinition.getHttpClient().getOptions().getConnectTimeout());
+            options.setUsePooledBuffers(true);
+            options.setMaxPoolSize(proxyDefinition.getHttpClient().getOptions().getMaxConcurrentConnections());
+            options.setTryUseCompression(proxyDefinition.getHttpClient().getOptions().isUseCompression());
 
-        // Configure proxy
-        HttpProxy proxy = proxyDefinition.getHttpClient().getHttpProxy();
-        if (proxy != null && proxy.isEnabled()) {
-            ProxyOptions proxyOptions = new ProxyOptions();
-            proxyOptions.setHost(proxy.getHost());
-            proxyOptions.setPort(proxy.getPort());
-            proxyOptions.setUsername(proxy.getUsername());
-            proxyOptions.setPassword(proxy.getPassword());
-            proxyOptions.setType(ProxyType.valueOf(proxy.getType().name()));
+            // Configure proxy
+            HttpProxy proxy = proxyDefinition.getHttpClient().getHttpProxy();
+            if (proxy != null && proxy.isEnabled()) {
+                ProxyOptions proxyOptions = new ProxyOptions();
+                proxyOptions.setHost(proxy.getHost());
+                proxyOptions.setPort(proxy.getPort());
+                proxyOptions.setUsername(proxy.getUsername());
+                proxyOptions.setPassword(proxy.getPassword());
+                proxyOptions.setType(ProxyType.valueOf(proxy.getType().name()));
 
-            options.setProxyOptions(proxyOptions);
-        }
-
-        // Configure SSL
-        HttpClientSslOptions sslOptions = proxyDefinition.getHttpClient().getSsl();
-        if (sslOptions != null && sslOptions.isEnabled()) {
-            options
-                    .setSsl(sslOptions.isEnabled())
-                    .setVerifyHost(sslOptions.isHostnameVerifier())
-                    .setTrustAll(sslOptions.isTrustAll());
-
-            if (sslOptions.getPem() != null && ! sslOptions.getPem().isEmpty()) {
-                options.setPemTrustOptions(
-                        new PemTrustOptions().addCertValue(
-                                io.vertx.core.buffer.Buffer.buffer(sslOptions.getPem())));
+                options.setProxyOptions(proxyOptions);
             }
+
+            // Configure SSL
+            HttpClientSslOptions sslOptions = proxyDefinition.getHttpClient().getSsl();
+            if (sslOptions != null && sslOptions.isEnabled()) {
+                options
+                        .setSsl(sslOptions.isEnabled())
+                        .setVerifyHost(sslOptions.isHostnameVerifier())
+                        .setTrustAll(sslOptions.isTrustAll());
+
+                if (sslOptions.getPem() != null && ! sslOptions.getPem().isEmpty()) {
+                    options.setPemTrustOptions(
+                            new PemTrustOptions().addCertValue(
+                                    io.vertx.core.buffer.Buffer.buffer(sslOptions.getPem())));
+                }
+            }
+
+            printHttpClientConfiguration(options);
+            return vertx.createHttpClient(options);
+        };
+    }
+
+    private void printHttpClientConfiguration(HttpClientOptions httpClientOptions) {
+        LOGGER.info("Create HTTP Client with configuration: ");
+        LOGGER.info("\tHTTP {" +
+                "ConnectTimeout='" + httpClientOptions.getConnectTimeout() + '\'' +
+                ", KeepAlive='" + httpClientOptions.isKeepAlive() + '\'' +
+                ", IdleTimeout='" + httpClientOptions.getIdleTimeout() + '\'' +
+                ", MaxChunkSize='" + httpClientOptions.getMaxChunkSize() + '\'' +
+                ", MaxPoolSize='" + httpClientOptions.getMaxPoolSize() + '\'' +
+                ", MaxWaitQueueSize='" + httpClientOptions.getMaxWaitQueueSize() + '\'' +
+                ", Pipelining='" + httpClientOptions.isPipelining() + '\'' +
+                ", PipeliningLimit='" + httpClientOptions.getPipeliningLimit() + '\'' +
+                ", TryUseCompression='" + httpClientOptions.isTryUseCompression() + '\'' +
+                '}');
+
+        if (httpClientOptions.isSsl()) {
+            LOGGER.info("\tSSL {" +
+                    "TrustAll='" + httpClientOptions.isTrustAll() + '\'' +
+                    ", VerifyHost='" + httpClientOptions.isVerifyHost() + '\'' +
+                    '}');
         }
 
-        httpClient = vertx.createHttpClient(options);
-
-        LOGGER.info("Vert.x HTTP Client created {}", httpClient);
+        if (httpClientOptions.getProxyOptions() != null) {
+            LOGGER.info("\tProxy {" +
+                    "Type='" + httpClientOptions.getProxyOptions().getType() +
+                    ", Host='" + httpClientOptions.getProxyOptions().getHost() + '\'' +
+                    ", Port='" + httpClientOptions.getProxyOptions().getPort() + '\'' +
+                    ", Username='" + httpClientOptions.getProxyOptions().getUsername() + '\'' +
+                    '}');
+        }
     }
 }

@@ -18,9 +18,14 @@ package io.gravitee.gateway.reactor.impl;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.ReactorEvent;
@@ -33,12 +38,10 @@ import io.gravitee.gateway.report.ReporterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-
-import java.util.concurrent.CompletableFuture;
+import org.springframework.core.env.Environment;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class DefaultReactor extends AbstractService implements
@@ -50,8 +53,7 @@ public class DefaultReactor extends AbstractService implements
     private EventManager eventManager;
 
     @Autowired
-    @Qualifier("notFoundHandler")
-    private ReactorHandler notFoundHandler;
+    private Environment environment;
 
     @Autowired
     private ReactorHandlerRegistry reactorHandlerRegistry;
@@ -63,22 +65,34 @@ public class DefaultReactor extends AbstractService implements
     private ReporterService reporterService;
 
     @Override
-    public CompletableFuture<Response> process(final Request serverRequest, final Response serverResponse) {
+    public void route(Request serverRequest, Response serverResponse, Handler<Response> handler) {
         LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
 
-        ReactorHandler handler = getHandler(serverRequest);
+        ReactorHandler reactorHandler = reactorHandlerResolver.resolve(serverRequest);
+        if (reactorHandler != null) {
+            // Prepare the handler chain
+            handler = new ResponseTimeHandler(serverRequest,
+                    new ReporterHandler(reporterService, serverRequest, handler));
 
-        // Prepare the handler chain
-        return handler.handle(serverRequest, serverResponse).whenCompleteAsync(
-                new ResponseTimeHandler(serverRequest).andThen(new ReporterHandler(reporterService, serverRequest)));
+            reactorHandler.handle(serverRequest, serverResponse, handler);
+        } else {
+            LOGGER.debug("No handler can be found for request {}, returning NOT_FOUND (404)", serverRequest.path());
+            sendNotFound(serverResponse, handler);
+        }
     }
 
-    private ReactorHandler getHandler(final Request serverRequest) {
-            ReactorHandler reactorHandler = reactorHandlerResolver.resolve(serverRequest);
-            reactorHandler = (reactorHandler != null) ? reactorHandler : notFoundHandler;
+    private void sendNotFound(Response serverResponse, Handler<Response> handler) {
+        // Send a NOT_FOUND HTTP status code (404)
+        serverResponse.status(HttpStatusCode.NOT_FOUND_404);
 
-            // Prepare the handler chain
-            return reactorHandler;
+        String message = environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
+        serverResponse.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(message.length()));
+        serverResponse.headers().set(HttpHeaders.CONTENT_TYPE, "text/plain");
+        serverResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+        serverResponse.write(Buffer.buffer(message));
+
+        serverResponse.end();
+        handler.handle(serverResponse);
     }
 
     @Override
