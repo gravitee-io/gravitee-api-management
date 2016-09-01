@@ -54,8 +54,22 @@
       				</md-card-content>
               <md-card-footer>
                 <div class="api-box-footer" layout="row" layout-align="end">
-                  <span><span style="top: 2px; position: relative;">{{api.applicationsSize}}</span><ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;"><md-tooltip>{{api.applicationsSize}} application(s)</md-tooltip></ng-md-icon></span>
-                  <ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}" size="20" style="fill: #cdcdcd;"><md-tooltip>{{apisCtrl.getVisibility(api)}}</md-tooltip></ng-md-icon>
+                  <span>
+                    <span style="top: 2px; position: relative;">{{api.applicationsSize}}</span>
+                    <ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;">
+                      <md-tooltip>{{api.applicationsSize}} application(s)</md-tooltip>
+                    </ng-md-icon>
+                  </span>
+                  <ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}" size="20" style="fill: #cdcdcd;">
+                    <md-tooltip>{{apisCtrl.getVisibility(api)}}</md-tooltip>
+                  </ng-md-icon>
+                  <ng-md-icon icon="person" size="20" style="fill: #cdcdcd;">
+                    <md-tooltip>
+                      <span ng-if="api.owner.firstname == null && api.owner.lastname == null">{{api.owner.username}}</span>
+                      {{api.owner.firstname}} {{api.owner.lastname}}
+                      <span ng-if="api.owner.email">({{api.owner.email}})</span>
+                    </md-tooltip>
+                  </ng-md-icon>
                 </div>
               </md-card-footer>
       			</md-card>
