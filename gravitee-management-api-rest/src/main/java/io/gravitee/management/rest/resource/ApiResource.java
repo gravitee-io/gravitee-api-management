@@ -134,6 +134,12 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiPermissionsRequired(ApiPermission.MANAGE_API)
     public ApiEntity update(@Valid @NotNull final UpdateApiEntity api) {
+        final ApiEntity currentApi = this.get();
+        // Force context-path if user is not the primary_owner or an administrator
+        if (currentApi.getPermission() != MembershipType.PRIMARY_OWNER) {
+            api.getProxy().setContextPath(currentApi.getProxy().getContextPath());
+        }
+
         final ApiEntity updatedApi = apiService.update(this.api, api);
         setPermission(updatedApi);
 
