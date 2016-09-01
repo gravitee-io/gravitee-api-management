@@ -63,6 +63,14 @@
                 <include>**/*</include>
             </includes>
         </fileSet>
+
+        <fileSet>
+            <directory>${project.build.directory}/lib</directory>
+            <outputDirectory>/lib</outputDirectory>
+            <includes>
+                <include>*.*</include>
+            </includes>
+        </fileSet>
     </fileSets>
 
     <dependencySets>
@@ -78,8 +86,10 @@
             <outputDirectory>/lib/ext</outputDirectory>
             <unpack>false</unpack>
             <excludes>
-                <exclude>io.gravitee.*:*</exclude>
+                <exclude>io.gravitee.*:*:*</exclude>
             </excludes>
+            <!-- Used to not include transitive dependencies for runtime dependency (IDP plugins) -->
+            <scope>compile</scope>
         </dependencySet>
     </dependencySets>
 </assembly>

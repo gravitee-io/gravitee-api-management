@@ -25,6 +25,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import java.lang.reflect.Field;
@@ -51,7 +52,12 @@ public class InMemoryIdentityLookup implements IdentityLookup<String>, Initializ
 
     @Override
     public User retrieve(String id) {
-        return convert(userDetailsService.loadUserByUsername(id));
+        try {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(id);
+            return convert(userDetails);
+        } catch (UsernameNotFoundException unnfe) {
+            return null;
+        }
     }
 
     @Override
@@ -88,7 +94,7 @@ public class InMemoryIdentityLookup implements IdentityLookup<String>, Initializ
         boolean accessible = fieldUser.isAccessible();
         fieldUser.setAccessible(true);
         users = (Set<String>) ((Map) fieldUser.get(userDetailsService)).keySet();
-        fieldUser.setAccessible(false);
+        fieldUser.setAccessible(accessible);
     }
 
     private User convert(UserDetails userDetails) {

@@ -127,33 +127,33 @@ security:
           roles: API_CONSUMER
     # Enable authentication using internal repository
     - type: gravitee
-    - type: ldap
+#    - type: ldap
       # This is default LDAP configuration for ApacheDS
-      context-source-username: "uid=admin,ou=system"
-      context-source-password: "secret"
-      context-source-url: "ldap://localhost:10389/c=fr,o=aec,o=corp"
-      context-source-base: "c=fr,o=aec,o=corp" # the context source base
+#      context-source-username: "uid=admin,ou=system"
+#      context-source-password: "secret"
+#      context-source-url: "ldap://localhost:10389/c=io,o=gravitee"
+#      context-source-base: "c=io,o=gravitee" # the context source base
       # The 'user-dn-patterns' value is a specific pattern used to build the user's DN, for example "uid={0},ou=people". The key "{0}" must be present and will be substituted with the username.
 #      user-dn-patterns: "uid={0},ou=people"
       # Search base for user searches. Defaults to "". Only used with user-search-filter.
-      user-search-base: "o=user accounts"
+#      user-search-base: "o=user accounts"
       # The LDAP filter used to search for users (optional). For example "(uid={0})". The substituted parameter is the user's login name.
-      user-search-filter: "mail={0}"
+#      user-search-filter: "mail={0}"
       # The search base for group membership searches. Defaults to "".
-      group-search-base: "o=gravitee,o=authorization groups"
+#      group-search-base: "o=authorization groups"
       # The LDAP filter to search for groups. Defaults to "(uniqueMember={0})". The substituted parameter is the DN of the user.
-      group-search-filter: "member={0}"
+#      group-search-filter: "member={0}"
       # Specifies the attribute name which contains the role name. Default is "cn".
-      group-role-attribute: "cn"
+#      group-role-attribute: "cn"
       # If role-mapping is equals to true (default to false)
       #   Use role-mapper to map LDAP role with internal Gravitee role (syntax { "user_ldap_role" : "user_new_added_ldap_role"})
-      role-mapping: true
-      role-mapper: {
-        GRAVITEE-CONSUMERS: API_CONSUMER,
-        GRAVITEE-PUBLISHERS: API_PUBLISHER,
-        GRAVITEE-ADMINS: ADMIN,
-        GRAVITEE-USERS: USER,
-      }
+#      role-mapping: true
+#      role-mapper: {
+#        GRAVITEE-CONSUMERS: API_CONSUMER,
+#        GRAVITEE-PUBLISHERS: API_PUBLISHER,
+#        GRAVITEE-ADMINS: ADMIN,
+#        GRAVITEE-USERS: USER,
+#      }
 
 # SMTP configuration used to send mails
 email:

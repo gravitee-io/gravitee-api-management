@@ -102,6 +102,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
             if (!found) {
                 LOGGER.error("No authentication provider found for type: {}", providerType);
+                throw new IllegalStateException("No authentication provider found for type: " + providerType);
             }
         }
     }
