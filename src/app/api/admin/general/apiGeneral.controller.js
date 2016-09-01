@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor(ApiService, NotificationService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi, base64, $state) {
+  constructor(ApiService, NotificationService, UserService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi, base64, $state) {
     'ngInject';
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
+    this.UserService = UserService;
     this.$scope = $scope;
     this.$rootScope = $rootScope;
     this.$mdEditDialog = $mdEditDialog;
@@ -79,6 +80,9 @@ class ApiAdminController {
         type: 'HTTP'
       }
     }
+
+    // Context-path editable
+    this.contextPathEditable = (this.api.permission === 'primary_owner') || this.UserService.isUserInRoles(['ADMIN']);
 
     var self = this;
     this.$scope.$on("apiChangeSucceed", function () {

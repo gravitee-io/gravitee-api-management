@@ -79,6 +79,12 @@ function DialogApiPermissionsHelpController($scope, $mdDialog) {
       "user": false,
       "owner": true,
       "primary_owner": true
+    },{
+      "action": "Change context-path",
+      "anyone": false,
+      "user": false,
+      "owner": false,
+      "primary_owner": true
     },
     {
       "action": "Delete API",
