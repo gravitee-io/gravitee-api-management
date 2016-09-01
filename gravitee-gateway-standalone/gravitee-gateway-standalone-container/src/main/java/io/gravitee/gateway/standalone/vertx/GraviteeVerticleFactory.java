@@ -17,21 +17,15 @@ package io.gravitee.gateway.standalone.vertx;
 
 import io.vertx.core.Verticle;
 import io.vertx.core.spi.VerticleFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class GraviteeVerticleFactory implements VerticleFactory, ApplicationContextAware {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(GraviteeVerticleFactory.class);
 
     static final String GRAVITEE_VERTICLE_PREFIX = "gravitee";
 
@@ -44,7 +38,6 @@ public class GraviteeVerticleFactory implements VerticleFactory, ApplicationCont
 
     @Override
     public Verticle createVerticle(String verticleName, ClassLoader classLoader) throws Exception {
-        logger.info("Creating a new instance of Gravitee Verticle");
         return applicationContext.getBean(GraviteeVerticle.class);
     }
 

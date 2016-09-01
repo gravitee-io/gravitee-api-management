@@ -18,14 +18,15 @@ package io.gravitee.gateway.reactor;
 import io.gravitee.common.service.Service;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.handler.Handler;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface Reactor extends Service {
 
-	CompletableFuture<Response> process(Request serverRequest, Response serverResponse);
+	void route(Request request, Response response, Handler<Response> handler);
 }

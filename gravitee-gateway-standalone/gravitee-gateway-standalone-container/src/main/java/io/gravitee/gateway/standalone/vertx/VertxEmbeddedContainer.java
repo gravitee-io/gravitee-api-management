@@ -18,12 +18,15 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbeddedContainer> {
 
@@ -32,6 +35,9 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
      */
     private final Logger logger = LoggerFactory.getLogger(VertxEmbeddedContainer.class);
 
+    @Value("${http.instances:0}")
+    private int instances;
+
     @Autowired
     private Vertx vertx;
 
@@ -39,9 +45,10 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
 
     @Override
     protected void doStart() throws Exception {
-        logger.info("Starting Vertx container and deploy Gravitee Verticles");
-        // TODO: Providing a simple way to configure number of Gravitee instances
-        DeploymentOptions options = new DeploymentOptions().setInstances(1);
+        instances = (instances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : instances;
+        logger.info("Starting Vertx container and deploy Gateway Verticles [{} instance(s)]", instances);
+
+        DeploymentOptions options = new DeploymentOptions().setInstances(instances);
         vertx.deployVerticle(GraviteeVerticleFactory.GRAVITEE_VERTICLE_PREFIX + ':' + GraviteeVerticle.class.getName(), options, event -> {
             deploymentId = event.result();
         });

@@ -16,8 +16,6 @@
 package io.gravitee.gateway.reactor.spring;
 
 import io.gravitee.gateway.reactor.Reactor;
-import io.gravitee.gateway.reactor.handler.NotFoundReactorHandler;
-import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
@@ -25,7 +23,6 @@ import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerResolver;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -37,11 +34,6 @@ public class ReactorConfiguration {
     @Bean
     public Reactor reactor() {
         return new DefaultReactor();
-    }
-
-    @Bean(name = "notFoundHandler")
-    public ReactorHandler errorHandler(Environment environment) {
-        return new NotFoundReactorHandler(environment);
     }
 
     @Bean

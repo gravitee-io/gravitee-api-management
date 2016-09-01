@@ -21,7 +21,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Configuration
 public class VertxConfiguration {
@@ -32,6 +33,7 @@ public class VertxConfiguration {
     }
 
     @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public VertxHttpServerFactory vertxHttpServerFactory() {
         return new VertxHttpServerFactory();
     }
