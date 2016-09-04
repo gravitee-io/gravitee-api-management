@@ -12,14 +12,14 @@
     "/*": [
       {
         "methods": ["GET", "POST"],
+        "enabled": false,
         "access-control": {
-          "enabled": false
         }
       },
       {
         "methods": ["GET", "POST"],
+        "enabled": true,
         "cors": {
-          "enabled": false
         }
       },
       {

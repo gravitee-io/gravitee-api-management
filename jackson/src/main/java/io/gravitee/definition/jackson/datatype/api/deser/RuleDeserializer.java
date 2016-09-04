@@ -63,14 +63,14 @@ public class RuleDeserializer extends StdScalarDeserializer<Rule> {
                         rule.setDescription(subNode.asText());
                     }
                     break;
+                case "enabled":
+                    if (subNode != null) {
+                        rule.setEnabled(subNode.asBoolean(true));
+                    }
+                    break;
                 default:
                     // We are in the case of a policy
                     Policy policy = new Policy();
-
-                    JsonNode enabledNode = subNode.get("enabled");
-                    if (enabledNode != null && enabledNode.isBoolean()) {
-                        policy.setEnabled(enabledNode.asBoolean());
-                    }
 
                     policy.setName(field);
                     policy.setConfiguration(subNode.toString());

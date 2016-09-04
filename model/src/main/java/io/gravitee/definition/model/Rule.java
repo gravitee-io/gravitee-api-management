@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
- * @author Gravitee.io Team
+ * @author David BRASSELY (david at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class Rule {
 
@@ -31,6 +31,8 @@ public class Rule {
     private Policy policy;
 
     private String description;
+
+    private boolean enabled = true;
 
     public List<HttpMethod> getMethods() {
         return methods;
@@ -54,5 +56,13 @@ public class Rule {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

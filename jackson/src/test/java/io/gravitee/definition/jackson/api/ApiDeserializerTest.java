@@ -143,13 +143,19 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_pathwithpolicies_disabled() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
         Map<String, Path> paths = api.getPaths();
-        List<Rule> rules= paths.get("/*").getRules();
+        List<Rule> rules = paths.get("/*").getRules();
 
-        Policy policy = rules.iterator().next().getPolicy();
+        Rule accessControlRule = rules.get(0);
+        Policy policy = accessControlRule.getPolicy();
         Assert.assertNotNull(policy);
-
         Assert.assertEquals("access-control", policy.getName());
-        Assert.assertFalse(policy.isEnabled());
+        Assert.assertFalse(accessControlRule.isEnabled());
+
+        Rule corsRule = rules.get(1);
+        policy = corsRule.getPolicy();
+        Assert.assertNotNull(policy);
+        Assert.assertEquals("cors", policy.getName());
+        Assert.assertTrue(corsRule.isEnabled());
     }
 
     @Test

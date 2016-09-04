@@ -23,8 +23,6 @@ import java.util.Objects;
  */
 public class Policy {
 
-    private boolean enabled = true;
-
     private String name;
 
     private String configuration;
@@ -43,14 +41,6 @@ public class Policy {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
     }
 
     @Override
