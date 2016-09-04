@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.MembershipType;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.resource.param.MembershipTypeParam;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
@@ -55,11 +56,28 @@ public class ApiMembersResource {
             @NotNull @QueryParam("user") String username,
             @NotNull @QueryParam("type") MembershipTypeParam membershipType) {
         if (membershipType.getValue() == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("Membership type must be set").build();
+        }
+
+        if (MembershipType.PRIMARY_OWNER.equals(membershipType.getValue())) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Illegal membership type 'PRIMARY_OWNER'").build();
         }
 
         apiService.addOrUpdateMember(api, username, membershipType.getValue());
         return Response.created(URI.create("/apis/" + api + "/members/" + username)).build();
+    }
+
+    @POST
+    @Path("transfer_ownership")
+    @ApiPermissionsRequired(ApiPermission.TRANSFER_OWNERSHIP)
+    public Response transferOwnership(@NotNull @QueryParam("user") String username) {
+        // change previous primary owner privilege
+        // TODO : API must have a single PRIMARY_OWNER, refactor getMembers() code part
+        apiService.getMembers(api, MembershipType.PRIMARY_OWNER)
+                .forEach(m -> apiService.addOrUpdateMember(api, m.getUsername(), MembershipType.OWNER));
+        // set the new primary owner
+        apiService.addOrUpdateMember(api, username, MembershipType.PRIMARY_OWNER);
+        return Response.ok().build();
     }
 
     @DELETE

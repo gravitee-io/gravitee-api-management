@@ -28,5 +28,6 @@ public enum ApiPermission {
     MANAGE_MEMBERS,
     MANAGE_PAGES,
     MANAGE_API_KEYS,
-    ANALYTICS
+    ANALYTICS,
+    TRANSFER_OWNERSHIP
 }
