@@ -45,6 +45,16 @@ class ApiPoliciesController {
       this.initDragular();
       this.pathsToCompare = this.generatePathsToCompare();
     });
+
+    const that = this;
+    this.$scope.$on('dragulardrop', function(event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
+
+      var policy = dropzoneObjList[dropzoneIndex];
+      // Automatically save if there is no json schema configuration attached to the dragged policy.
+      if (policy.schema === undefined || policy.schema === '') {
+        that.savePaths();
+      }
+    });
   }
 
   generatePathsToCompare() {
