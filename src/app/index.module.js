@@ -28,7 +28,7 @@ import ApiPortalPageController from './api/portal/apiPage.controller';
 import ApiGeneralController from './api/admin/general/apiGeneral.controller';
 import ApiAdminController from './api/admin/apiAdmin.controller';
 import ApiAnalyticsController from './api/admin/analytics/analytics.controller';
-import ApiMembersController from './api/admin/members.controller';
+import ApiMembersController from './api/admin/members/members.controller';
 import ApiPoliciesController from './api/admin/policies/policies.controller';
 import AddPoliciesPathController from './api/admin/policies/addPoliciesPath.controller';
 import ApiHealthCheckController from './api/admin/healthcheck/healthcheck.controller';
@@ -44,6 +44,7 @@ import ApiEventsController from './api/admin/events/apiEvents.controller';
 import ApiHistoryController from './api/admin/history/apiHistory.controller';
 import DialogAddPropertyController from './api/admin/properties/add-property.dialog.controller';
 import DialogAddMemberApiController from './api/admin/members/addMemberDialog.controller';
+import DialogTransferApiController from './api/admin/members/transferAPIDialog.controller';
 import DialogApiKeyExpirationController from './api/admin/apikeys/apikey-expiration.dialog.controller';
 import DialogEndpointController from './api/admin/general/addEndpointDialog.controller';
 import DialogEditPolicyController from './api/admin/policies/dialog/policyDialog.controller';
@@ -127,6 +128,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('DialogApiSwaggerImportController', DialogApiSwaggerImportController)
   .controller('DialogAddPropertyController', DialogAddPropertyController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
+  .controller('DialogTransferApiController', DialogTransferApiController)
   .controller('DialogApiKeyExpirationController', DialogApiKeyExpirationController)
   .controller('DialogEndpointController', DialogEndpointController)
   .controller('UserController', UserController)

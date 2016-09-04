@@ -172,9 +172,9 @@ function routerConfig($stateProvider, $urlRouterProvider) {
     })
     .state('apis.admin.members', {
       url: '/members',
-      templateUrl: 'app/api/admin/members.html',
+      templateUrl: 'app/api/admin/members/members.html',
       controller: 'ApiMembersController',
-      controllerAs: 'apiCtrl',
+      controllerAs: 'apiMembersCtrl',
       resolve: {
         resolvedMembers: function ($stateParams, ApiService) {
           return ApiService.getMembers($stateParams.apiId);

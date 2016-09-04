@@ -17,16 +17,19 @@
  * limitations under the License.
  */
 class ApiMembersController {
-  constructor (ApiService, resolvedApi, resolvedMembers, $state, $mdDialog, NotificationService, $scope) {
+  constructor (ApiService, resolvedApi, resolvedMembers, $state, $mdDialog, NotificationService, $scope, UserService) {
     'ngInject';
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
     this.NotificationService = NotificationService;
+    this.UserService = UserService;
     this.$scope = $scope;
     this.$state = $state;
     this.api = resolvedApi.data;
     this.members = resolvedMembers.data;
     this.membershipTypes = [ 'owner', 'user' ];
+    this.newPrimaryOwner = null;
+    this.$scope.searchText = "";
   }
 
   updateMember(member) {
@@ -45,6 +48,10 @@ class ApiMembersController {
 
 	isOwner() {
     return this.api.permission && (this.api.permission === 'owner' || this.api.permission === 'primary_owner');
+  }
+
+  isPrimaryOwner() {
+    return this.api.permission && (this.api.permission === 'primary_owner');
   }
 
   showAddMemberModal(ev) {
@@ -93,6 +100,59 @@ class ApiMembersController {
     });
   }
 
+  searchUser(query) {
+    if (query) {
+      var _this = this;
+      return this.UserService.search(query).then(function(response) {
+        var usersFound = response.data;
+        var filterUsers = _.filter(usersFound, function(user) {
+          return _.findIndex(_this.members,
+              function(apiMember) {
+                return apiMember.username === user.id && apiMember.type === 'primary_owner';
+              }) == -1;
+        });
+        return filterUsers;
+      });
+    } else {
+      var filterMembers = _.filter(this.members, function(member) { return member.type != 'primary_owner'});
+      var members = _.flatMap(filterMembers, function(member) { return { 'id' : member.username}});
+      return members;
+    }
+  }
+
+  selectedItemChange(item) {
+    if (item) {
+      this.newPrimaryOwner = item;
+    } else {
+      if (this.newPrimaryOwner != null) {
+        this.newPrimaryOwner = null;
+      }
+    }
+  };
+
+  showTransferOwnershipConfirm(ev) {
+    var _this = this;
+    this.$mdDialog.show({
+      controller: 'DialogTransferApiController',
+      templateUrl: 'app/api/admin/members/transferAPI.dialog.html',
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      clickOutsideToClose:true
+    }).then(function (transferAPI) {
+      if (transferAPI) {
+        _this.transferOwnership();
+      }
+    }, function() {
+      // You cancelled the dialog
+    });;
+  }
+
+  transferOwnership() {
+      this.ApiService.transferOwnership(this.api.id, this.newPrimaryOwner.id).then(() => {
+        this.NotificationService.show("API ownership changed !");
+        this.$state.go(this.$state.current, {}, {reload: true});
+    });
+  }
 }
 
 export default ApiMembersController;
