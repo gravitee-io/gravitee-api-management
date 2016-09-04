@@ -58,7 +58,7 @@ class ApiPoliciesController {
       _.forEach(policies, (policy) => {
 
         _.forEach(policy, (value, property) => {
-          if (property !== "methods" && property !== "description" && property !== "$$hashKey") {
+          if (property !== "methods" && property !== "enabled" && property !== "description" && property !== "$$hashKey") {
             policy.policyId = property;
             policy.name = this.policiesMap[policy.policyId].name;
             policy.type = this.policiesMap[policy.policyId].type;
@@ -141,9 +141,11 @@ class ApiPoliciesController {
             name: originalPolicy.name,
             type: originalPolicy.type,
             description: originalPolicy.description,
+            enabled: originalPolicy.enabled || true,
             schema
           };
           policy[originalPolicy.id] = {};
+
           return {policy};
         });
       });
@@ -175,7 +177,16 @@ class ApiPoliciesController {
   }
 
   getApiPolicyClass(policy) {
-    return this.selectedApiPolicy && this.selectedApiPolicy.$$hashKey === policy.$$hashKey ? "gravitee-policy-card-selected" : "";
+    const classes = [];
+    const selected = this.selectedApiPolicy && this.selectedApiPolicy.$$hashKey === policy.$$hashKey;
+    if (selected) {
+      classes.push("gravitee-policy-card-selected");
+    }
+
+    if (!selected && ! policy.enabled) {
+      classes.push("gravitee-policy-card-disabled");
+    }
+    return classes.join();
   }
 
   getDropzoneClass(path) {
@@ -246,6 +257,15 @@ class ApiPoliciesController {
     }, function() {
       // You cancelled the dialog
     });
+  }
+
+  switchPolicyEnabled(index, path, ev) {
+    ev.stopPropagation();
+    this.selectedApiPolicy = null;
+
+    const policy = this.apiPoliciesByPath[path][index];
+    policy.enabled = !policy.enabled;
+    this.savePaths();
   }
 
   savePaths() {
