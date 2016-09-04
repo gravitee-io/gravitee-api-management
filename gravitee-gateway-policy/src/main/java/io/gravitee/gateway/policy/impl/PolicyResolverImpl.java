@@ -52,7 +52,7 @@ public class PolicyResolverImpl implements PolicyResolver {
     public List<Policy> resolve(StreamType streamType, Request request, List<Rule> rules) {
         List<Policy> policies = new ArrayList<>();
 
-        rules.stream().filter(rule -> rule.getMethods().contains(request.method())).forEach(rule -> {
+        rules.stream().filter(rule -> rule.isEnabled() && rule.getMethods().contains(request.method())).forEach(rule -> {
             PolicyMetadata policyMetadata = policyManager.get(rule.getPolicy().getName());
             if (policyMetadata == null) {
                 LOGGER.error("Policy {} can't be found in registry. Unable to apply it for request {}",
