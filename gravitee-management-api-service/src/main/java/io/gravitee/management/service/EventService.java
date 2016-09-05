@@ -45,5 +45,6 @@ public interface EventService {
 
     Set<EventEntity> findByOrigin(String origin);
 
-    Page<EventEntity> search(Map<String, Object> values, long from, long to, int page, int size);
+    Page<EventEntity> search(
+            List<EventType> eventTypes, Map<String, Object> properties, long from, long to, int page, int size);
 }

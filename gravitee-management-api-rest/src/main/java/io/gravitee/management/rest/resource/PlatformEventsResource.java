@@ -20,6 +20,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.rest.resource.param.EventSearchParam;
 import io.gravitee.management.service.EventService;
+import io.gravitee.repository.management.model.Event;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -33,31 +34,28 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class PlatformEventsResource {
-
-    private static final String EVENT_TYPE = "type";
-    private static final String EVENT_API_PROPERTY = "properties.api_id";
-
+    
     @Inject
     private EventService eventService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Page<EventEntity> list(@BeanParam EventSearchParam eventSearchParam) {
-
         eventSearchParam.validate();
 
-        Map<String, Object> values = new HashMap<>();
-        values.put(EVENT_TYPE, eventSearchParam.getEventTypeListParam().getEventTypes());
+        Map<String, Object> properties = new HashMap<>();
         if (eventSearchParam.getApiIdsParam() != null &&
                 eventSearchParam.getApiIdsParam().getIds() != null &&
                 !eventSearchParam.getApiIdsParam().getIds().isEmpty()) {
-            values.put(EVENT_API_PROPERTY, eventSearchParam.getApiIdsParam().getIds());
+            properties.put(Event.EventProperties.API_ID.getValue(), eventSearchParam.getApiIdsParam().getIds());
         }
 
-        return eventService.search(values,
-                                        eventSearchParam.getFrom(),
-                                        eventSearchParam.getTo(),
-                                        eventSearchParam.getPage(),
-                                        eventSearchParam.getSize());
+        return eventService.search(
+                eventSearchParam.getEventTypeListParam().getEventTypes(),
+                properties,
+                eventSearchParam.getFrom(),
+                eventSearchParam.getTo(),
+                eventSearchParam.getPage(),
+                eventSearchParam.getSize());
     }
 }

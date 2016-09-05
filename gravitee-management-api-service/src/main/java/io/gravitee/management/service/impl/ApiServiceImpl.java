@@ -475,26 +475,29 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             ApiEntity api = findById(apiId);
 
-            Set<EventEntity> events = eventService.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
-            List<EventEntity> eventsSorted = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).collect(Collectors.toList());
-            Collections.reverse(eventsSorted);
+            Map<String, Object> properties = new HashMap<>();
+            properties.put(Event.EventProperties.API_ID.getValue(), apiId);
 
-            for (EventEntity event : eventsSorted) {
-                JsonNode node = objectMapper.readTree(event.getPayload());
+            io.gravitee.common.data.domain.Page<EventEntity> events =
+                    eventService.search(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API),
+                            properties, 0, 0, 0, 1);
+
+            if (! events.getContent().isEmpty()) {
+                // According to page size, we know that we have only one element in the list
+                EventEntity lastEvent = events.getContent().get(0);
+                JsonNode node = objectMapper.readTree(lastEvent.getPayload());
                 Api payloadEntity = objectMapper.convertValue(node, Api.class);
-                if (api.getId().equals(payloadEntity.getId())) {
-                    if (api.getUpdatedAt().compareTo(payloadEntity.getUpdatedAt()) <= 0) {
-                        return true;
-                    } else {
-                        // API is synchronized if API required deployment fields are the same as the event payload
-                        return apiSynchronizationProcessor.processCheckSynchronization(convert(payloadEntity), api);
-                    }
+                if (api.getUpdatedAt().compareTo(payloadEntity.getUpdatedAt()) <= 0) {
+                    return true;
+                } else {
+                    // API is synchronized if API required deployment fields are the same as the event payload
+                    return apiSynchronizationProcessor.processCheckSynchronization(convert(payloadEntity), api);
                 }
             }
         } catch (Exception e) {
             LOGGER.error("An error occurs while trying to check API synchronization state {}", apiId, e);
-            return false;
         }
+
         return false;
     }
 

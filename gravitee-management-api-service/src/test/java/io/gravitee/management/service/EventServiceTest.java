@@ -23,6 +23,8 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.EventServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import org.junit.Test;
@@ -115,9 +117,9 @@ public class EventServiceTest {
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        List<EventType> eventTypes = new ArrayList<EventType>();
-        eventTypes.add(EventType.PUBLISH_API);
-        when(eventRepository.findByType(eventTypes)).thenReturn(new HashSet<>(Arrays.asList(event)));
+        when(eventRepository.search(
+                new EventCriteria.Builder().types(EventType.PUBLISH_API).build()
+        )).thenReturn(Collections.singletonList(event));
 
         List<io.gravitee.management.model.EventType> _eventTypes = new ArrayList<io.gravitee.management.model.EventType>();
         _eventTypes.add(io.gravitee.management.model.EventType.PUBLISH_API);
@@ -133,7 +135,9 @@ public class EventServiceTest {
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(eventRepository.findByProperty(Event.EventProperties.API_ID.getValue(), API_ID)).thenReturn(new HashSet<>(Arrays.asList(event)));
+        when(eventRepository.search(
+                new EventCriteria.Builder().property(Event.EventProperties.API_ID.getValue(), API_ID).build()
+        )).thenReturn(Collections.singletonList(event));
 
         Set<EventEntity> eventEntities = eventService.findByApi(API_ID);
 
@@ -149,7 +153,9 @@ public class EventServiceTest {
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(eventRepository.findByProperty(Event.EventProperties.USERNAME.getValue(), EVENT_USERNAME)).thenReturn(new HashSet<>(Arrays.asList(event)));
+        when(eventRepository.search(
+                new EventCriteria.Builder().property(Event.EventProperties.USERNAME.getValue(), EVENT_USERNAME).build()
+        )).thenReturn(Collections.singletonList(event));
 
         Set<EventEntity> eventEntities = eventService.findByUser(EVENT_USERNAME);
 
@@ -165,7 +171,12 @@ public class EventServiceTest {
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(eventRepository.findByProperty(Event.EventProperties.ORIGIN.getValue(), EVENT_ORIGIN)).thenReturn(new HashSet<>(Arrays.asList(event)));
+        when(eventPage.getTotalElements()).thenReturn(1L);
+        when(eventPage.getContent()).thenReturn(Collections.singletonList(event));
+
+        when(eventRepository.search(
+                new EventCriteria.Builder().property(Event.EventProperties.ORIGIN.getValue(), EVENT_ORIGIN).build()
+        )).thenReturn(Collections.singletonList(event));
 
         Set<EventEntity> eventEntities = eventService.findByOrigin(EVENT_ORIGIN);
 
@@ -199,15 +210,21 @@ public class EventServiceTest {
 
     @Test
     public void shouldSearchNoResults() {
-        Map<String, Object> values = new HashMap<>();
-        values.put("type", EventType.START_API.toString());
-
-        when(eventPage.getTotalElements()).thenReturn(0l);
+        when(eventPage.getTotalElements()).thenReturn(0L);
         when(eventPage.getContent()).thenReturn(Collections.emptyList());
-        when(eventRepository.search(values, 1420070400000l, 1422748800000l, 0, 10)).thenReturn(eventPage);
 
-        Page<EventEntity> eventPageEntity = eventService.search(values, 1420070400000l, 1422748800000l, 0, 10);
-        assertTrue(0l == eventPageEntity.getTotalElements());
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .from(1420070400000L).to(1422748800000L)
+                        .types(EventType.START_API)
+                        .build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build()
+        )).thenReturn(eventPage);
+
+        Page<EventEntity> eventPageEntity = eventService.search(
+                Collections.singletonList(io.gravitee.management.model.EventType.START_API),
+                null, 1420070400000L, 1422748800000L, 0, 10);
+        assertTrue(0L == eventPageEntity.getTotalElements());
     }
 
     @Test
@@ -225,20 +242,27 @@ public class EventServiceTest {
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(eventPage.getTotalElements()).thenReturn(2l);
+        when(eventPage.getTotalElements()).thenReturn(2L);
         when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
-        when(eventRepository.search(values, 1420070400000l, 1422748800000l, 0, 10)).thenReturn(eventPage);
 
-        Page<EventEntity> eventPageEntity = eventService.search(values, 1420070400000l, 1422748800000l, 0, 10);
-        assertTrue(2l == eventPageEntity.getTotalElements());
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .from(1420070400000L).to(1422748800000L)
+                        .types(EventType.START_API)
+                        .build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build()
+        )).thenReturn(eventPage);
+
+        Page<EventEntity> eventPageEntity = eventService.search(
+                Collections.singletonList(io.gravitee.management.model.EventType.START_API),
+                null, 1420070400000L, 1422748800000L, 0, 10);
+
+        assertTrue(2L == eventPageEntity.getTotalElements());
         assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
     }
 
     @Test
     public void shouldSearchByMultipleEventType() throws Exception {
-        Map<String, Object> values = new HashMap<>();
-        values.put("type", Arrays.asList(EventType.START_API.toString(), EventType.STOP_API.toString()));
-
         when(event.getId()).thenReturn("event1");
         when(event.getType()).thenReturn(EventType.START_API);
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
@@ -251,17 +275,29 @@ public class EventServiceTest {
 
         when(eventPage.getTotalElements()).thenReturn(2l);
         when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
-        when(eventRepository.search(values, 1420070400000l, 1422748800000l, 0, 10)).thenReturn(eventPage);
 
-        Page<EventEntity> eventPageEntity = eventService.search(values, 1420070400000l, 1422748800000l, 0, 10);
-        assertTrue(2l == eventPageEntity.getTotalElements());
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .from(1420070400000L).to(1422748800000L)
+                        .types(EventType.START_API, EventType.STOP_API)
+                        .build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build()
+        )).thenReturn(eventPage);
+
+        Page<EventEntity> eventPageEntity = eventService.search(
+                Arrays.asList(
+                        io.gravitee.management.model.EventType.START_API,
+                        io.gravitee.management.model.EventType.STOP_API),
+                null, 1420070400000L, 1422748800000L, 0, 10);
+
+        assertTrue(2L == eventPageEntity.getTotalElements());
         assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
     }
 
     @Test
     public void shouldSearchByAPIId() throws Exception {
         Map<String, Object> values = new HashMap<>();
-        values.put("properties.api_id", "id-api");
+        values.put(Event.EventProperties.API_ID.getValue(), "id-api");
 
         when(event.getId()).thenReturn("event1");
         when(event.getType()).thenReturn(EventType.START_API);
@@ -273,20 +309,28 @@ public class EventServiceTest {
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(eventPage.getTotalElements()).thenReturn(2l);
+        when(eventPage.getTotalElements()).thenReturn(2L);
         when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
-        when(eventRepository.search(values, 1420070400000l, 1422748800000l, 0, 10)).thenReturn(eventPage);
 
-        Page<EventEntity> eventPageEntity = eventService.search(values, 1420070400000l, 1422748800000l, 0, 10);
-        assertTrue(2l == eventPageEntity.getTotalElements());
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .from(1420070400000L).to(1422748800000L)
+                        .property(Event.EventProperties.API_ID.getValue(), "id-api")
+                        .build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build()
+        )).thenReturn(eventPage);
+
+        Page<EventEntity> eventPageEntity = eventService.search(
+                null, values, 1420070400000L, 1422748800000L, 0, 10);
+
+        assertTrue(2L == eventPageEntity.getTotalElements());
         assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
     }
 
     @Test
     public void shouldSearchByMixProperties() throws Exception {
         Map<String, Object> values = new HashMap<>();
-        values.put("type", Arrays.asList(EventType.START_API.toString(), EventType.STOP_API.toString()));
-        values.put("properties.api_id", "id-api");
+        values.put(Event.EventProperties.API_ID.getValue(), "id-api");
 
         when(event.getId()).thenReturn("event1");
         when(event.getType()).thenReturn(EventType.START_API);
@@ -298,12 +342,25 @@ public class EventServiceTest {
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(eventPage.getTotalElements()).thenReturn(2l);
+        when(eventPage.getTotalElements()).thenReturn(2L);
         when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
-        when(eventRepository.search(values, 1420070400000l, 1422748800000l, 0, 10)).thenReturn(eventPage);
 
-        Page<EventEntity> eventPageEntity = eventService.search(values, 1420070400000l, 1422748800000l, 0, 10);
-        assertTrue(2l == eventPageEntity.getTotalElements());
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .from(1420070400000L).to(1422748800000L)
+                        .property(Event.EventProperties.API_ID.getValue(), "id-api")
+                        .types(EventType.START_API, EventType.STOP_API)
+                        .build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build()
+        )).thenReturn(eventPage);
+
+        Page<EventEntity> eventPageEntity = eventService.search(
+                Arrays.asList(
+                        io.gravitee.management.model.EventType.START_API,
+                        io.gravitee.management.model.EventType.STOP_API),
+                values, 1420070400000L, 1422748800000L, 0, 10);
+
+        assertTrue(2L == eventPageEntity.getTotalElements());
         assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
     }
 

@@ -24,6 +24,8 @@ import io.gravitee.management.service.exceptions.EventNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +74,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             LOGGER.debug("Create {} for server {}", newEventEntity, hostAddress);
 
             Event event = convert(newEventEntity);
+            event.setId(io.gravitee.common.utils.UUID.random().toString());
+
             // Set origin
             event.getProperties().put(Event.EventProperties.ORIGIN.getValue(), hostAddress);
             // Set date fields
@@ -112,55 +116,59 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
     @Override
     public Set<EventEntity> findByType(List<EventType> eventTypes) {
-        Set<Event> events = eventRepository.findByType(convert(eventTypes));
+        io.gravitee.repository.management.model.EventType[] eventTypesArr =  eventTypes.stream()
+                .map(eventType -> io.gravitee.repository.management.model.EventType.valueOf(eventType.toString()))
+                .toArray(io.gravitee.repository.management.model.EventType[]::new);
 
-        return convert(events);
+        return convert(eventRepository.search(new EventCriteria.Builder().types(eventTypesArr).build()));
     }
 
     @Override
     public Set<EventEntity> findByApi(String apiId) {
-        Set<Event> events = eventRepository.findByProperty(Event.EventProperties.API_ID.getValue(), apiId);
-
-        return convert(events);
+        return findByProperty(Event.EventProperties.API_ID.getValue(), apiId);
     }
 
     @Override
     public Set<EventEntity> findByUser(String username) {
-        Set<Event> events = eventRepository.findByProperty(Event.EventProperties.USERNAME.getValue(), username);
-
-        return convert(events);
+        return findByProperty(Event.EventProperties.USERNAME.getValue(), username);
     }
 
     @Override
     public Set<EventEntity> findByOrigin(String origin) {
-        Set<Event> events = eventRepository.findByProperty(Event.EventProperties.ORIGIN.getValue(), origin);
+        return findByProperty(Event.EventProperties.ORIGIN.getValue(), origin);
+    }
 
-        return convert(events);
+    private Set<EventEntity> findByProperty(String property, String value) {
+        return convert(eventRepository.search(new EventCriteria.Builder().property(property, value).build()));
     }
 
     @Override
-    public Page<EventEntity> search(Map<String, Object> values, long from, long to, int page, int size) {
-        Page<Event> pageEvent = eventRepository.search(values, from, to, page, size);
+    public Page<EventEntity> search(List<EventType> eventTypes,
+                                    Map<String, Object> properties, long from, long to, int page, int size) {
+        EventCriteria.Builder builder = new EventCriteria.Builder().from(from).to(to);
+
+        if (eventTypes != null) {
+            io.gravitee.repository.management.model.EventType[] eventTypesArr = eventTypes.stream()
+                    .map(eventType -> io.gravitee.repository.management.model.EventType.valueOf(eventType.toString()))
+                    .toArray(io.gravitee.repository.management.model.EventType[]::new);
+
+            builder.types(eventTypesArr);
+        }
+
+        if (properties != null) {
+            properties.forEach(builder::property);
+        }
+
+        Page<Event> pageEvent = eventRepository.search(
+                builder.build(),
+                new PageableBuilder().pageNumber(page).pageSize(size).build());
 
         List<EventEntity> content = pageEvent.getContent().stream().map(this::convert).collect(Collectors.toList());
-        Page<EventEntity> pageEventEntity = new Page<>(content, page, size, pageEvent.getTotalElements());
 
-        return pageEventEntity;
+        return new Page<>(content, page, size, pageEvent.getTotalElements());
     }
 
-    private List<io.gravitee.repository.management.model.EventType> convert(List<EventType> eventTypes) {
-        List<io.gravitee.repository.management.model.EventType> convertedEvents = new ArrayList<io.gravitee.repository.management.model.EventType>();
-        for (EventType eventType : eventTypes) {
-            convertedEvents.add(convert(eventType));
-        }
-        return convertedEvents;
-    }
-
-    private io.gravitee.repository.management.model.EventType convert(EventType eventType) {
-        return io.gravitee.repository.management.model.EventType.valueOf(eventType.toString());
-    }
-
-    private Set<EventEntity> convert(Set<Event> events) {
+    private Set<EventEntity> convert(List<Event> events) {
         return events.stream().map(this::convert).collect(Collectors.toSet());
     }
 

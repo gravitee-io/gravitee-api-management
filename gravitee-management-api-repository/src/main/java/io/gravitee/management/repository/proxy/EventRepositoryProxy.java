@@ -18,14 +18,13 @@ package io.gravitee.management.repository.proxy;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -33,16 +32,6 @@ import java.util.Set;
  */
 @Component
 public class EventRepositoryProxy extends AbstractProxy<EventRepository> implements EventRepository {
-
-    @Override
-    public Set<Event> findByProperty(String s, String s1) {
-        return target.findByProperty(s, s1);
-    }
-
-    @Override
-    public Set<Event> findByType(List<EventType> list) {
-        return target.findByType(list);
-    }
 
     @Override
     public Event create(Event event) throws TechnicalException {
@@ -65,7 +54,12 @@ public class EventRepositoryProxy extends AbstractProxy<EventRepository> impleme
     }
 
     @Override
-    public Page<Event> search(Map<String, Object> map, long l, long l1, int i, int i1) {
-        return target.search(map, l, l1, i, i1);
+    public Page<Event> search(EventCriteria filter, Pageable pageable) {
+        return target.search(filter, pageable);
+    }
+
+    @Override
+    public List<Event> search(EventCriteria filter) {
+        return target.search(filter);
     }
 }
