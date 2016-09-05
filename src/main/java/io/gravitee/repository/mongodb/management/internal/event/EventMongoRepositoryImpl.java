@@ -16,6 +16,8 @@
 package io.gravitee.repository.mongodb.management.internal.event;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -27,7 +29,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Titouan COMPIEGNE
@@ -38,52 +39,42 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
     private MongoTemplate mongoTemplate;
 
     @Override
-    public Collection<EventMongo> findByType(Collection<String> types) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("type").in(types));
-
-        List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
-
-        return events;
-    }
-
-    @Override
-    public Collection<EventMongo> findByProperty(String key, String value) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("properties." + key).is(value));
-
-        List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
-
-        return events;
-    }
-
-    @Override
-    public Page<EventMongo> search(Map<String, Object> values, long from, long to, int page, int size) {
+    public Page<EventMongo> search(EventCriteria filter, Pageable pageable) {
         Query query = new Query();
 
-        // set criteria query
-        values.forEach((k, v) -> {
-            if (v instanceof Collection) {
-                query.addCriteria(Criteria.where(k).in((Collection) v));
-            } else {
-                query.addCriteria(Criteria.where(k).is(v));
-            }
-        });
+        if (filter.getTypes() != null && !filter.getTypes().isEmpty()) {
+            query.addCriteria(Criteria.where("type").in(filter.getTypes()));
+        }
+
+        if (filter.getProperties() != null && !filter.getProperties().isEmpty()) {
+            // set criteria query
+            filter.getProperties().forEach((k, v) -> {
+                if (v instanceof Collection) {
+                    query.addCriteria(Criteria.where("properties." + k).in((Collection) v));
+                } else {
+                    query.addCriteria(Criteria.where("properties." + k).is(v));
+                }
+            });
+        }
 
         // set range query
-        query.addCriteria(Criteria.where("updatedAt").gte(new Date(from)).lt(new Date(to)));
+        if (filter.getFrom() != 0 && filter.getTo() != 0) {
+            query.addCriteria(Criteria.where("updatedAt").gte(new Date(filter.getFrom())).lt(new Date(filter.getTo())));
+        }
 
         // set sort by updated at
         query.with(new Sort(Sort.Direction.DESC, "updatedAt"));
 
         // set pageable
-        query.with(new PageRequest(page, size));
+        if (pageable != null) {
+            query.with(new PageRequest(pageable.pageNumber(), pageable.pageSize()));
+        }
 
         List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
         long total = mongoTemplate.count(query, EventMongo.class);
 
-        Page<EventMongo> eventsPage = new Page<>(events, page, size, total);
-
-        return eventsPage;
+        return new Page<>(
+                events, (pageable != null) ? pageable.pageNumber() : 0,
+                (pageable != null) ? pageable.pageSize() : 0, total);
     }
 }

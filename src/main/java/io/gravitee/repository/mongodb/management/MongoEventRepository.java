@@ -18,6 +18,8 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.mongodb.management.internal.event.EventMongoRepository;
@@ -28,8 +30,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE
@@ -106,33 +109,18 @@ public class MongoEventRepository implements EventRepository {
     }
 
     @Override
-    public Set<Event> findByType(List<EventType> eventTypes) {
-        List<String> types = new ArrayList<String>();
-        for (EventType eventType : eventTypes) {
-            types.add(eventType.toString());
-        }
-        Collection<EventMongo> eventsMongo = internalEventRepo.findByType(types);
-        return mapEvents(eventsMongo);
+    public Page<Event> search(EventCriteria filter, Pageable pageable) {
+        Page<EventMongo> eventsMongo = internalEventRepo.search(filter, pageable);
+
+        List<Event> content = mapper.collection2list(eventsMongo.getContent(), EventMongo.class, Event.class);
+        return new Page<>(content, eventsMongo.getPageNumber(), (int) eventsMongo.getPageElements(), eventsMongo.getTotalElements());
     }
 
     @Override
-    public Set<Event> findByProperty(String key, String value) {
-        Collection<EventMongo> eventsMongo = internalEventRepo.findByProperty(key, value);
+    public List<Event> search(EventCriteria filter) {
+        Page<EventMongo> eventsMongo = internalEventRepo.search(filter, null);
 
-        return mapEvents(eventsMongo);
-    }
-
-    public Page<Event> search(Map<String, Object> values, long from, long to, int page, int size) {
-        Page<EventMongo> eventsMongo = internalEventRepo.search(values, from, to, page, size);
-
-        List<Event> content = mapper.collection2list(eventsMongo.getContent(), EventMongo.class, Event.class);
-        Page<Event> eventsPage = new Page(content, page, size, eventsMongo.getTotalElements());
-
-        return eventsPage;
-    }
-
-    private Set<Event> mapEvents(Collection<EventMongo> events) {
-        return events.stream().map(this::mapEvent).collect(Collectors.toSet());
+        return mapper.collection2list(eventsMongo.getContent(), EventMongo.class, Event.class);
     }
 
     private EventMongo mapEvent(Event event) {
@@ -168,5 +156,4 @@ public class MongoEventRepository implements EventRepository {
 
         return event;
     }
-
 }
