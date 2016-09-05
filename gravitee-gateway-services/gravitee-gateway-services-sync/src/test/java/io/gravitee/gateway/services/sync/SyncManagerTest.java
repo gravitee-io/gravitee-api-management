@@ -15,24 +15,21 @@
  */
 package io.gravitee.gateway.services.sync;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
+import io.gravitee.repository.management.model.LifecycleState;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -40,19 +37,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
 
-import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
-import io.gravitee.repository.management.model.LifecycleState;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -94,8 +85,13 @@ public class SyncManagerTest {
         final Api mockApi = mockApi(api);
         
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-            
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(Collections.singleton(mockEvent));
+
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
@@ -112,8 +108,13 @@ public class SyncManagerTest {
 
         final Api mockApi = mockApi(api);
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(Collections.singleton(mockEvent));
+
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
         when(apiManager.get(api.getId())).thenReturn(null);
 
@@ -140,10 +141,14 @@ public class SyncManagerTest {
         final Api mockApi2 = mockApi(api2);
         
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
-        
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(Collections.singleton(mockEvent));
+
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
@@ -152,11 +157,16 @@ public class SyncManagerTest {
         apis.add(api);
         apis.add(api2);
         
-        Set<Event> events = new HashSet<Event>();
+        List<Event> events = new ArrayList<>();
         events.add(mockEvent);
         events.add(mockEvent2);
 
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(events);
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(events);
+
         when(apiRepository.findAll()).thenReturn(apis);
 
         syncManager.refresh();
@@ -187,11 +197,16 @@ public class SyncManagerTest {
         
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
-        Set<Event> events = new HashSet<Event>();
+        List<Event> events = new ArrayList<Event>();
         events.add(mockEvent);
         events.add(mockEvent2);
 
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(events);
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(events);
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
@@ -226,14 +241,18 @@ public class SyncManagerTest {
         mockApi(api2);
         
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
-        Set<Event> events = new HashSet<Event>();
+        List<Event> events = new ArrayList<Event>();
         events.add(mockEvent);
         events.add(mockEvent2);
 
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(events);
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(events);
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
@@ -261,11 +280,15 @@ public class SyncManagerTest {
         
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
-        Set<Event> events = new HashSet<Event>();
+        List<Event> events = new ArrayList<Event>();
         events.add(mockEvent);
         events.add(mockEvent2);
 
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(events);
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(events);
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
@@ -320,8 +343,13 @@ public class SyncManagerTest {
         final Api mockApi = mockApi(api, apiTags);
         
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(Collections.singleton(mockEvent));
+
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
@@ -357,7 +385,12 @@ public class SyncManagerTest {
 
         final Api mockApi = mockApi(api);
 
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(Collections.emptySet());
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.emptyList());
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
@@ -380,7 +413,12 @@ public class SyncManagerTest {
         apis.add(api);
         apis.add(api2);
 
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(Collections.singleton(mockEvent));
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
+
         when(apiRepository.findAll()).thenReturn(apis);
 
         syncManager.refresh();
@@ -410,13 +448,24 @@ public class SyncManagerTest {
         events.add(mockEvent);
         events.add(mockEvent2);
 
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(Collections.singleton(mockEvent));
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
 
         when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(Collections.singleton(mockEvent2));
+
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent2));
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
@@ -449,16 +498,26 @@ public class SyncManagerTest {
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         final Event mockEvent2 = mockEvent(api2, EventType.START_API);
         
-        Set<Event> events = new HashSet<Event>();
+        List<Event> events = new ArrayList<Event>();
         events.add(mockEvent);
         events.add(mockEvent2);
 
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(Collections.singleton(mockEvent));
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
 
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(events);
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(events);
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api2));
         when(apiManager.get(api.getId())).thenReturn(mockApi);
 
@@ -492,16 +551,26 @@ public class SyncManagerTest {
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         final Event mockEvent2 = mockEvent(api2, EventType.STOP_API);
         
-        Set<Event> events = new HashSet<Event>();
+        List<Event> events = new ArrayList<Event>();
         events.add(mockEvent);
         events.add(mockEvent2);
 
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(Collections.singleton(mockEvent));
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
 
-        when(eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))).thenReturn(events);
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(events);
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api2));
         when(apiManager.get(api.getId())).thenReturn(mockApi);
 
