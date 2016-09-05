@@ -17,13 +17,19 @@ package io.gravitee.repository;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class EventRepositoryTest extends AbstractRepositoryTest {
 
@@ -35,6 +41,7 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void createEventTest() throws Exception {
         Event event = new Event();
+        event.setId(io.gravitee.common.utils.UUID.random().toString());
         event.setType(EventType.PUBLISH_API);
         event.setPayload("{}");
         event.setParentId(null);
@@ -44,7 +51,7 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
         Event eventCreated = eventRepository.create(event);
 
         assertEquals("Invalid saved event type.", EventType.PUBLISH_API, eventCreated.getType());
-        assertEquals("Invalid saved event paylod.", "{}", eventCreated.getPayload());
+        assertEquals("Invalid saved event payload.", "{}", eventCreated.getPayload());
     }
 
     @Test
@@ -55,75 +62,116 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void findByType() throws Exception {
-        Set<Event> events = eventRepository.findByType(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API));
-        assertEquals(3, events.size());
-        Optional<Event> event = events.stream().sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt())).findFirst();
-        assertTrue(event.isPresent());
-        assertTrue("event3".equals(event.get().getId()));
-    }
-
-    @Test
-    public void findByApi() throws Exception {
-        String apiId = "api-1";
-        Set<Event> events = eventRepository.findByProperty(Event.EventProperties.API_ID.getValue(), apiId);
-        assertEquals(2, events.size());
-        Optional<Event> event = events.stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).findFirst();
-        assertTrue(event.isPresent());
-        assertTrue("event1".equals(event.get().getId()));
-    }
-
-    @Test
     public void searchNoResults() {
-        Map<String, Object> values = new HashMap<>();
-        values.put("type", EventType.START_API.toString());
+        Page<Event> eventPage = eventRepository.search(
+                new EventCriteria.Builder().from(1420070400000L).to(1422748800000L)
+                        .types(EventType.START_API).build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build());
 
-        Page<Event> eventPage = eventRepository.search(values, 1420070400000l, 1422748800000l, 0, 10);
-        assertTrue(0l == eventPage.getTotalElements());
+        assertTrue(0L == eventPage.getTotalElements());
     }
 
     @Test
     public void searchBySingleEventType() throws Exception {
-        Map<String, Object> values = new HashMap<>();
-        values.put("type", EventType.START_API.toString());
-
-        Page<Event> eventPage = eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10);
-        assertTrue(2l == eventPage.getTotalElements());
-        Optional<Event> event = eventPage.getContent().stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).findFirst();
-        assertTrue("event5".equals(event.get().getId()));
+        Page<Event> eventPage = eventRepository.search(
+                new EventCriteria.Builder().from(1451606400000L).to(1470157767000L)
+                        .types(EventType.START_API).build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build());
+        assertTrue(2L == eventPage.getTotalElements());
+        Event event = eventPage.getContent().iterator().next();
+        assertTrue("event6".equals(event.getId()));
     }
 
     @Test
     public void searchByMultipleEventType() throws Exception {
-        Map<String, Object> values = new HashMap<>();
-        values.put("type", Arrays.asList(EventType.START_API.toString(), EventType.STOP_API.toString()));
+        Page<Event> eventPage = eventRepository.search(
+                new EventCriteria.Builder().from(1451606400000L).to(1470157767000L)
+                        .types(EventType.START_API, EventType.STOP_API).build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build());
 
-        Page<Event> eventPage = eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10);
-        assertTrue(3l == eventPage.getTotalElements());
-        Optional<Event> event = eventPage.getContent().stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).findFirst();
-        assertTrue("event4".equals(event.get().getId()));
+        assertTrue(3L == eventPage.getTotalElements());
+        Event event = eventPage.getContent().iterator().next();
+        assertTrue("event6".equals(event.getId()));
     }
 
     @Test
     public void searchByAPIId() throws Exception {
-        Map<String, Object> values = new HashMap<>();
-        values.put("properties.api_id", "api-1");
+        Page<Event> eventPage = eventRepository.search(
+                new EventCriteria.Builder()
+                        .from(1451606400000L).to(1470157767000L)
+                        .property(Event.EventProperties.API_ID.getValue(), "api-1")
+                        .build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build());
 
-        Page<Event> eventPage = eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10);
-        assertTrue(2l == eventPage.getTotalElements());
-        Optional<Event> event = eventPage.getContent().stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).findFirst();
-        assertTrue("event1".equals(event.get().getId()));
+        assertTrue(2L == eventPage.getTotalElements());
+        Event event = eventPage.getContent().iterator().next();
+        assertTrue("event2".equals(event.getId()));
+    }
+
+    @Test
+    public void searchByAPI_EmptyPageable() throws Exception {
+        Page<Event> eventPage = eventRepository.search(
+                new EventCriteria.Builder()
+                        .from(1451606400000L).to(1470157767000L)
+                        .property(Event.EventProperties.API_ID.getValue(), "api-1")
+                        .build(),
+                null);
+
+        assertTrue(2L == eventPage.getTotalElements());
+        Event event = eventPage.getContent().iterator().next();
+        assertTrue("event2".equals(event.getId()));
     }
 
     @Test
     public void searchByMixProperties() throws Exception {
-        Map<String, Object> values = new HashMap<>();
-        values.put("type", Arrays.asList(EventType.START_API.toString(), EventType.STOP_API.toString()));
-        values.put("properties.api_id", "api-3");
+        Page<Event> eventPage = eventRepository.search(
+                new EventCriteria.Builder()
+                        .from(1451606400000L).to(1470157767000L)
+                        .property(Event.EventProperties.API_ID.getValue(), "api-3")
+                        .types(EventType.START_API, EventType.STOP_API)
+                        .build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build());
 
-        Page<Event> eventPage = eventRepository.search(values, 1451606400000l, 1470157767000l, 0, 10);
-        assertTrue(1l == eventPage.getTotalElements());
-        Optional<Event> event = eventPage.getContent().stream().sorted((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt())).findFirst();
-        assertTrue("event4".equals(event.get().getId()));
+        assertTrue(1L == eventPage.getTotalElements());
+        Event event = eventPage.getContent().iterator().next();
+        assertTrue("event4".equals(event.getId()));
+    }
+
+    @Test
+    public void searchByCollectionProperty() throws Exception {
+        Page<Event> eventPage = eventRepository.search(
+                new EventCriteria.Builder()
+                        .from(1451606400000L).to(1470157767000L)
+                        .property(Event.EventProperties.API_ID.getValue(), Arrays.asList("api-1", "api-3"))
+                        .build(), null);
+
+        assertTrue(3L == eventPage.getTotalElements());
+        Event event = eventPage.getContent().iterator().next();
+        assertTrue("event4".equals(event.getId()));
+    }
+
+    @Test
+    public void searchByCollectionPropertyWithoutPaging() throws Exception {
+        List<Event> events = eventRepository.search(
+                new EventCriteria.Builder()
+                        .from(1451606400000L).to(1470157767000L)
+                        .property(Event.EventProperties.API_ID.getValue(), Arrays.asList("api-1", "api-3"))
+                        .build());
+
+        assertTrue(3L == events.size());
+        Event event = events.iterator().next();
+        assertTrue("event4".equals(event.getId()));
+    }
+
+    @Test
+    public void searchByCollectionPropertyWithoutPagingAndBoundary() throws Exception {
+        List<Event> events = eventRepository.search(
+                new EventCriteria.Builder()
+                        .property(Event.EventProperties.API_ID.getValue(), Arrays.asList("api-1", "api-3"))
+                        .build());
+
+        assertTrue(3L == events.size());
+        Event event = events.iterator().next();
+        assertTrue("event4".equals(event.getId()));
     }
 }

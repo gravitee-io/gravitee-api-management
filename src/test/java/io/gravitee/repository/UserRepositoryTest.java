@@ -60,4 +60,10 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(users);
         Assert.assertEquals("Invalid user numbers in find all", 6, users.size());
     }
+
+    @Test
+    public void findUserByNameTest() throws Exception {
+        Optional<User> user = userRepository.findByUsername("user0");
+        Assert.assertTrue(user.isPresent());
+    }
 }
