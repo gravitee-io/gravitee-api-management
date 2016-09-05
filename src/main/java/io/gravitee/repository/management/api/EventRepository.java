@@ -16,23 +16,42 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
+ * Event API.
+ *
+ * @author David BRASSELY (david at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface EventRepository extends CrudRepository<Event, String> {
 
-    Set<Event> findByType(List<EventType> eventTypes);
+    /**
+     * Search for {@link Event} with {@link Pageable} feature.
+     *
+     * <p>
+     *  Note that events must be ordered by update date in DESC mode.
+     * </p>
+     *
+     * @param filter Event criteria to search for {@link Event}.
+     * @param pageable If user wants a paginable result. Can be <code>null</code>.
+     * @return
+     */
+    Page<Event> search(EventCriteria filter, Pageable pageable);
 
-    Set<Event> findByProperty(String key, String value);
-
-    Page<Event> search(Map<String, Object> values, long from, long to, int page, int size);
-
+    /**
+     * Search for {@link Event}.
+     *
+     * <p>
+     *  Note that events must be ordered by update date in DESC mode.
+     * </p>
+     * @param filter Event criteria to search for {@link Event}.
+     * @return
+     */
+    List<Event> search(EventCriteria filter);
 }
