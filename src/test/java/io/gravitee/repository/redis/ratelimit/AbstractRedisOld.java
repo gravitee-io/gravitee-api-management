@@ -13,28 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.redis.management;
+package io.gravitee.repository.redis.ratelimit;
 
-import io.gravitee.repository.redis.junit.RedisExternalResource;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-@RunWith(Suite.class)
-@Suite.SuiteClasses({
-        RedisApiKeyRepositoryTest.class,
-        RedisApiRepositoryTest.class,
-        RedisApplicationRepositoryTest.class,
-        RedisEventRepositoryTest.class
-})
-public class RedisManagementSuiteTest {
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(loader=AnnotationConfigContextLoader.class)
+public abstract class AbstractRedisOld {
 
+    @Configuration
+    @Import({RateLimitRepositoryConfiguration.class})
+    static class ContextConfiguration {
 
-    @ClassRule
-    public static RedisExternalResource redisExternalResource = new RedisExternalResource();
-    
+    }
 }

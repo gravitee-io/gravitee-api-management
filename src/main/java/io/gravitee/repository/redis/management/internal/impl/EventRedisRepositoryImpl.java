@@ -15,10 +15,18 @@
  */
 package io.gravitee.repository.redis.management.internal.impl;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.redis.management.internal.EventRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisEvent;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,40 +51,109 @@ public class EventRedisRepositoryImpl extends AbstractRedisRepository implements
     }
 
     @Override
-    public Set<RedisEvent> findByType(String eventType) {
-        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":type:" + eventType);
+    public Page<RedisEvent> search(EventCriteria filter, Pageable pageable) {
+        Set<String> filterKeys = new HashSet<>();
+        String tempDestination = "tmp-" + Math.abs(filter.hashCode());
+
+        // Implement OR clause for event type
+        if (! filter.getTypes().isEmpty()) {
+            filter.getTypes().forEach(type -> filterKeys.add(REDIS_KEY + ":type:" + type));
+            redisTemplate.opsForZSet().unionAndStore(null, filterKeys, tempDestination);
+            filterKeys.clear();
+            filterKeys.add(tempDestination);
+        }
+
+        // Add clause based on event properties
+        Set<String> internalUnionFilter = new HashSet<>();
+        filter.getProperties().forEach((propertyKey, propertyValue) -> {
+            if (propertyValue instanceof Collection) {
+                Set<String> collectionFilter = new HashSet<>(((Collection) propertyValue).size());
+                String collectionTempDestination = "tmp-" + propertyKey + ":" + propertyValue.hashCode();
+                        ((Collection) propertyValue).forEach(value ->
+                        collectionFilter.add(REDIS_KEY + ":" + propertyKey + ":" + value));
+                redisTemplate.opsForZSet().unionAndStore(null, collectionFilter, collectionTempDestination);
+                internalUnionFilter.add(collectionTempDestination);
+                filterKeys.add(collectionTempDestination);
+            } else {
+                filterKeys.add(REDIS_KEY + ":" + propertyKey + ":" + propertyValue);
+            }
+        });
+
+        // And finally add clause based on event update date
+        filterKeys.add(REDIS_KEY + ":updated_at");
+
+        redisTemplate.opsForZSet().intersectAndStore(null, filterKeys, tempDestination);
+
+        Set<Object> keys;
+
+        if (filter.getFrom() != 0 && filter.getTo() != 0) {
+            if (pageable != null) {
+                keys = redisTemplate.opsForZSet().reverseRangeByScore(
+                        tempDestination,
+                        filter.getFrom(), filter.getTo(),
+                        pageable.from(), pageable.pageSize());
+            } else {
+                keys = redisTemplate.opsForZSet().reverseRangeByScore(
+                        tempDestination,
+                        filter.getFrom(), filter.getTo());
+            }
+        } else {
+            if (pageable != null) {
+                keys = redisTemplate.opsForZSet().reverseRangeByScore(
+                        tempDestination,
+                        0, Long.MAX_VALUE,
+                        pageable.from(), pageable.pageSize());
+            } else {
+                keys = redisTemplate.opsForZSet().reverseRangeByScore(
+                        tempDestination,
+                        0, Long.MAX_VALUE);
+            }
+        }
+
+        redisTemplate.opsForZSet().removeRange(tempDestination, 0, -1);
+        internalUnionFilter.forEach(dest -> redisTemplate.opsForZSet().removeRange(dest, 0, -1));
         List<Object> eventObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
 
-        return eventObjects.stream()
-                .map(event -> convert(event, RedisEvent.class))
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Set<RedisEvent> findByProperty(String propertyKey, String propertyValue) {
-        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":" + propertyKey + ":" + propertyValue);
-        List<Object> eventObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
-
-        return eventObjects.stream()
-                .map(event -> convert(event, RedisEvent.class))
-                .collect(Collectors.toSet());
+        return new Page<>(
+                eventObjects.stream()
+                        .map(event -> convert(event, RedisEvent.class))
+                        .collect(Collectors.toList()),
+                (pageable != null) ? pageable.pageNumber() : 0,
+                (pageable != null) ? pageable.pageSize() : 0,
+                keys.size());
     }
 
     @Override
     public RedisEvent saveOrUpdate(RedisEvent event) {
-        redisTemplate.opsForHash().put(REDIS_KEY, event.getId(), event);
-        redisTemplate.opsForSet().add(REDIS_KEY + ":type:" + event.getType(), event.getId());
-        if (event.getProperties() != null) {
-            event.getProperties().forEach((key, value) ->
-                    redisTemplate.opsForSet().add(REDIS_KEY + ":" + key + ":" + value, event.getId()));
-        }
+        redisTemplate.executePipelined(new RedisCallback<Object>() {
+            @Override
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                redisTemplate.opsForHash().put(REDIS_KEY, event.getId(), event);
+                redisTemplate.opsForSet().add(REDIS_KEY + ":type:" + event.getType(), event.getId());
+                redisTemplate.opsForZSet().add(REDIS_KEY + ":updated_at", event.getId(), event.getCreatedAt());
+                if (event.getProperties() != null) {
+                    event.getProperties().forEach((key, value) ->
+                            redisTemplate.opsForSet().add(REDIS_KEY + ":" + key + ":" + value, event.getId()));
+                }
+
+                return null;
+            }
+        });
+
         return event;
     }
 
     @Override
     public void delete(String event) {
         RedisEvent redisEvent = find(event);
-        this.redisTemplate.opsForHash().delete(REDIS_KEY, event);
-        redisTemplate.opsForSet().remove(REDIS_KEY + ":type:" + redisEvent.getType(), redisEvent.getId());
+
+        redisTemplate.executePipelined( new RedisCallback<Object>() {
+            @Override
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                redisTemplate.opsForHash().delete(REDIS_KEY, event);
+                redisTemplate.opsForSet().remove(REDIS_KEY + ":type:" + redisEvent.getType(), redisEvent.getId());
+                return null;
+            }
+        });
     }
 }

@@ -17,7 +17,6 @@ package io.gravitee.repository.redis.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipType;
@@ -66,12 +65,42 @@ public class RedisApplicationRepository implements ApplicationRepository {
     @Override
     public Application create(Application application) throws TechnicalException {
         RedisApplication redisApplication = applicationRedisRepository.saveOrUpdate(convert(application));
+
+        if (application.getMembers() != null) {
+            application.getMembers().forEach(membership -> {
+                try {
+                    saveMember(application.getId(), membership.getUser().getUsername(), membership.getMembershipType());
+                } catch (TechnicalException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
         return convert(redisApplication);
     }
 
     @Override
     public Application update(Application application) throws TechnicalException {
-        RedisApplication redisApplication = applicationRedisRepository.saveOrUpdate(convert(application));
+        RedisApplication redisApplication = applicationRedisRepository.find(application.getId());
+
+        // Update, but don't change invariant other creation information
+        redisApplication.setName(application.getName());
+        redisApplication.setDescription(application.getDescription());
+        redisApplication.setUpdatedAt(application.getUpdatedAt().getTime());
+        redisApplication.setType(application.getType());
+
+        applicationRedisRepository.saveOrUpdate(redisApplication);
+
+        if (application.getMembers() != null) {
+            application.getMembers().forEach(membership -> {
+                try {
+                    saveMember(application.getId(), membership.getUser().getUsername(), membership.getMembershipType());
+                } catch (TechnicalException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
         return convert(redisApplication);
     }
 

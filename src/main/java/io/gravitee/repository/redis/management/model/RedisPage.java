@@ -33,6 +33,8 @@ public class RedisPage {
     private String api;
     private long createdAt;
     private long updatedAt;
+    private String sourceType;
+    private String sourceConfiguration;
 
     public String getApi() {
         return api;
@@ -112,6 +114,22 @@ public class RedisPage {
 
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(String sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public String getSourceConfiguration() {
+        return sourceConfiguration;
+    }
+
+    public void setSourceConfiguration(String sourceConfiguration) {
+        this.sourceConfiguration = sourceConfiguration;
     }
 
     @Override

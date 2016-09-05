@@ -62,12 +62,34 @@ public class RedisApiRepository implements ApiRepository {
     @Override
     public Api create(Api api) throws TechnicalException {
         RedisApi redisApi = apiRedisRepository.saveOrUpdate(convert(api));
+
+        if (api.getMembers() != null) {
+            api.getMembers().forEach(membership -> {
+                try {
+                    saveMember(api.getId(), membership.getUser().getUsername(), membership.getMembershipType());
+                } catch (TechnicalException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
         return convert(redisApi);
     }
 
     @Override
     public Api update(Api api) throws TechnicalException {
         RedisApi redisApi = apiRedisRepository.saveOrUpdate(convert(api));
+
+        if (api.getMembers() != null) {
+            api.getMembers().forEach(membership -> {
+                try {
+                    saveMember(api.getId(), membership.getUser().getUsername(), membership.getMembershipType());
+                } catch (TechnicalException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
         return convert(redisApi);
     }
 
@@ -88,7 +110,8 @@ public class RedisApiRepository implements ApiRepository {
                                     ))))
                     .map(RedisMembership::getOwner)
                     .distinct()
-                    .map(api -> convert(apiRedisRepository.find(api)))
+                    .map(apiId -> convert(apiRedisRepository.find(apiId)))
+                    .filter(redisApi -> visibility == null || redisApi.getVisibility() == visibility)
                     .collect(Collectors.toSet());
         } else {
             return apiRedisRepository.findByVisibility(visibility.name()).stream()

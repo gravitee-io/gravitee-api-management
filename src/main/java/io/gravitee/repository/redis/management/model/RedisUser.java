@@ -34,6 +34,10 @@ public class RedisUser {
     private long createdAt;
     private long updatedAt;
     private String picture;
+    private String source;
+    private String sourceId;
+    private long lastConnectionAt;
+
 
     public long getCreatedAt() {
         return createdAt;
@@ -105,6 +109,30 @@ public class RedisUser {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public long getLastConnectionAt() {
+        return lastConnectionAt;
+    }
+
+    public void setLastConnectionAt(long lastConnectionAt) {
+        this.lastConnectionAt = lastConnectionAt;
     }
 
     @Override

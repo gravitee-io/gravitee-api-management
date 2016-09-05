@@ -15,26 +15,30 @@
  */
 package io.gravitee.repository.redis.management;
 
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import io.gravitee.repository.config.TestRepositoryInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { ManagementRepositoryConfiguration.class })
-public abstract class AbstractRedisTest {
+public class RedisTestRepositoryInitializer implements TestRepositoryInitializer {
+
+    private final Logger logger = LoggerFactory.getLogger(RedisTestRepositoryInitializer.class);
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    @Qualifier("managementRedisTemplate")
+    protected RedisTemplate<String, Object> redisTemplate;
 
-    @Before
-    public void setUp() throws Exception {
+    public void setUp() {
+    }
+
+    public void tearDown() {
+        logger.info("Flush all data from Redis");
         redisTemplate.getConnectionFactory().getConnection().flushAll();
     }
 }

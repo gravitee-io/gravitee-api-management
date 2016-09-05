@@ -80,6 +80,12 @@ public class RedisUserRepository implements UserRepository {
         user.setCreatedAt(new Date(redisUser.getCreatedAt()));
         user.setUpdatedAt(new Date(redisUser.getUpdatedAt()));
         user.setPicture(redisUser.getPicture());
+        user.setSource(redisUser.getSource());
+        user.setSourceId(redisUser.getSourceId());
+
+        if (redisUser.getLastConnectionAt() != 0) {
+            user.setLastConnectionAt(new Date(redisUser.getLastConnectionAt()));
+        }
 
         return user;
     }
@@ -95,7 +101,12 @@ public class RedisUserRepository implements UserRepository {
         redisUser.setCreatedAt(user.getCreatedAt().getTime());
         redisUser.setUpdatedAt(user.getUpdatedAt().getTime());
         redisUser.setPicture(user.getPicture());
+        redisUser.setSource(user.getSource());
+        redisUser.setSourceId(user.getSourceId());
 
+        if (user.getLastConnectionAt() != null) {
+            redisUser.setLastConnectionAt(user.getLastConnectionAt().getTime());
+        }
         return redisUser;
     }
 }

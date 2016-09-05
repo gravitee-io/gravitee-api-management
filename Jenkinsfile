@@ -1,1 +1,1 @@
-mavenBuild()
+mavenBuild("U", "-DREDIS_HOST=$REDIS_TEST_HOST", "-DREDIS_PORT=$REDIS_TEST_PORT", "clean", "deploy")

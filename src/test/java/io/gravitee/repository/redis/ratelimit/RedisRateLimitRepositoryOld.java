@@ -29,7 +29,7 @@ import java.util.Iterator;
  * @author David BRASSELY (brasseld at gmail.com)
  * @author GraviteeSource Team
  */
-public class RedisRateLimitRepositoryTest extends AbstractRedisTest {
+public class RedisRateLimitRepositoryOld extends AbstractRedisOld {
 
     @Autowired
     private RateLimitRepository rateLimitRepository;

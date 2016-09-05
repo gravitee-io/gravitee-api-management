@@ -15,21 +15,20 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.redis.management.model.RedisEvent;
 
-import java.util.Set;
-
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface EventRedisRepository {
 
     RedisEvent find(String event);
 
-    Set<RedisEvent> findByType(String eventType);
-
-    Set<RedisEvent> findByProperty(String propertyKey, String propertyValue);
+    Page<RedisEvent> search(EventCriteria filter, Pageable pageable);
 
     RedisEvent saveOrUpdate(RedisEvent event);
 

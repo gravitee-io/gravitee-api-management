@@ -32,10 +32,13 @@
 	<name>Gravitee IO - API Management - Repository Redis</name>
 
 	<properties>
-		<jedis.version>2.8.0</jedis.version>
+		<jedis.version>2.9.0</jedis.version>
 		<jackson.version>2.5.3</jackson.version>
-		<gravitee-repository.version>0.13.0</gravitee-repository.version>
-		<spring-data-redis.version>1.6.4.RELEASE</spring-data-redis.version>
+		<gravitee-repository.version>0.16.0-SNAPSHOT</gravitee-repository.version>
+		<spring-data-redis.version>1.7.2.RELEASE</spring-data-redis.version>
+
+		<gravitee-repository-test.version>0.3.0-SNAPSHOT</gravitee-repository-test.version>
+		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
 	</properties>
 
 	<dependencies>
@@ -102,6 +105,15 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>io.gravitee.repository</groupId>
+			<artifactId>gravitee-repository-test</artifactId>
+			<version>${gravitee-repository-test.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>com.github.spullara.redis</groupId>
 			<artifactId>netty4-server</artifactId>
@@ -119,17 +131,6 @@
 		</resources>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.19.1</version>
-				<configuration>
-					<includes>
-						<include>RedisManagementSuiteTest.java</include>
-						<include>RedisRateLimitSuiteTest.java</include>
-					</includes>
-				</configuration>
-			</plugin>
-			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
@@ -145,6 +146,26 @@
 						<goals>
 							<goal>single</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>${maven-dependency-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>unpack-repository-tests</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>unpack-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeGroupIds>io.gravitee.repository</includeGroupIds>
+							<includeArtifactIds>gravitee-repository-test</includeArtifactIds>
+							<includeClassifiers>tests</includeClassifiers>
+							<outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

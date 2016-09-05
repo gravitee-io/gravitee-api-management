@@ -18,6 +18,7 @@ package io.gravitee.repository.redis.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.repository.management.model.PageType;
 import io.gravitee.repository.redis.management.internal.PageRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisPage;
@@ -91,6 +92,13 @@ public class RedisPageRepository implements PageRepository {
         page.setOrder(redisPage.getOrder());
         page.setPublished(redisPage.isPublished());
         page.setType(PageType.valueOf(redisPage.getType()));
+
+        if (redisPage.getSourceType() != null) {
+            PageSource pageSource = new PageSource();
+            pageSource.setType(redisPage.getSourceType());
+            pageSource.setConfiguration(redisPage.getSourceConfiguration());
+        }
+
         return page;
     }
 
@@ -106,6 +114,11 @@ public class RedisPageRepository implements PageRepository {
         redisPage.setOrder(page.getOrder());
         redisPage.setPublished(page.isPublished());
         redisPage.setType(page.getType().name());
+
+        if (page.getSource() != null) {
+            redisPage.setSourceType(page.getSource().getType());
+            redisPage.setSourceConfiguration(page.getSource().getConfiguration());
+        }
         return redisPage;
     }
 }

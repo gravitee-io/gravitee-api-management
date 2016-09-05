@@ -17,12 +17,14 @@ package io.gravitee.repository.redis.management.internal.impl;
 
 import io.gravitee.repository.redis.management.internal.ApiRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApi;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -67,11 +69,18 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
     @Override
     public RedisApi saveOrUpdate(RedisApi api) {
         RedisApi oldApi = find(api.getId());
-        redisTemplate.opsForHash().put(REDIS_KEY, api.getId(), api);
-        redisTemplate.opsForSet().add(REDIS_KEY + ":visibility:" + api.getVisibility(), api.getId());
-        if (oldApi != null) {
-            redisTemplate.opsForSet().remove(REDIS_KEY + ":visibility:" + oldApi.getVisibility(), api.getId());
-        }
+        redisTemplate.executePipelined(new RedisCallback<Object>() {
+            @Override
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                redisTemplate.opsForHash().put(REDIS_KEY, api.getId(), api);
+                redisTemplate.opsForSet().add(REDIS_KEY + ":visibility:" + api.getVisibility(), api.getId());
+                if (oldApi != null) {
+                    redisTemplate.opsForSet().remove(REDIS_KEY + ":visibility:" + oldApi.getVisibility(), api.getId());
+                }
+
+                return null;
+            }
+        });
         return api;
     }
 

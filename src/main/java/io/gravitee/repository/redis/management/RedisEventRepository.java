@@ -15,8 +15,11 @@
  */
 package io.gravitee.repository.redis.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.redis.management.internal.EventRedisRepository;
@@ -24,7 +27,9 @@ import io.gravitee.repository.redis.management.model.RedisEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -38,26 +43,23 @@ public class RedisEventRepository implements EventRepository {
     private EventRedisRepository eventRedisRepository;
 
     @Override
-    public Set<Event> findByType(List<EventType> eventTypes) {
-        Set<Event> events = new HashSet<>();
+    public Page<Event> search(EventCriteria filter, Pageable pageable) {
+        Page<RedisEvent> pagedEvents = eventRedisRepository.search(filter, pageable);
 
-        for(EventType eventType : eventTypes) {
-            events.addAll(
-                    eventRedisRepository.findByType(eventType.name())
-                            .stream()
-                            .map(this::convert)
-                            .collect(Collectors.toSet()));
-        }
-
-        return events;
-    }
+        return new Page<>(
+                pagedEvents.getContent().stream().map(this::convert).collect(Collectors.toList()),
+                pagedEvents.getPageNumber(), (int) pagedEvents.getTotalElements(),
+                pagedEvents.getTotalElements());
+     }
 
     @Override
-    public Set<Event> findByProperty(String key, String value) {
-        return eventRedisRepository.findByProperty(key, value)
+    public List<Event> search(EventCriteria filter) {
+        Page<RedisEvent> pagedEvents = eventRedisRepository.search(filter, null);
+
+        return pagedEvents.getContent()
                 .stream()
                 .map(this::convert)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -68,7 +70,6 @@ public class RedisEventRepository implements EventRepository {
 
     @Override
     public Event create(Event event) throws TechnicalException {
-        event.setId(UUID.randomUUID().toString());
         RedisEvent redisEvent = eventRedisRepository.saveOrUpdate(convert(event));
         return convert(redisEvent);
     }
