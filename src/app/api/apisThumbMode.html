@@ -26,8 +26,8 @@
     </md-card-header>
     <md-tabs md-selected="apisCtrl.selectedIndex" md-dynamic-height md-border-bottom>
       <md-tab label="{{view.name}}" ng-repeat="view in apisCtrl.views" ng-click="apisCtrl.goToView(view.id)">
-        <md-card-content
-          style="padding: 0px; overflow-y: auto; height: calc(100vh - {{apisCtrl.apisScrollAreaHeight}}px);">
+        <h5 ng-if="view.description" class="gravitee-view-description">{{view.description}}</h5>
+        <md-card-content style="padding: 0px; overflow-y: auto; height: calc(100vh - {{apisCtrl.apisScrollAreaHeight}}px);">
           <div layout="row" layout-wrap class="inset">
             <div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33"
                  ng-repeat="api in apisCtrl.apis | filter:searchAPIs">

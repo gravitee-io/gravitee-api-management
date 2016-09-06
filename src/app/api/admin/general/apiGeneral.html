@@ -97,7 +97,7 @@
           <label>Portal views</label>
           <md-select ng-model="generalCtrl.api.views" multiple>
             <md-option ng-repeat="view in generalCtrl.views" ng-value="view.id">
-              {{view.name}}
+              {{view.name}}<span ng-if="view.description" class="gravitee-general-view-description"> - {{view.description}}</span>
             </md-option>
           </md-select>
         </md-input-container>

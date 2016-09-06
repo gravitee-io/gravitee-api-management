@@ -110,7 +110,7 @@ class ConfigurationController {
       },
       targetEvent: event,
       validators: {
-        'md-maxlength': 60
+        'md-maxlength': 160
       }
     });
   }
