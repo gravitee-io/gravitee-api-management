@@ -91,6 +91,8 @@ analytics:
   elasticsearch:
     hosts:
       - ${ds.elastic.host}:${ds.elastic.port}
+#    index: gravitee
+#    cluster: elasticsearch
 
 # Authentication and identity sources
 # Users can have following roles (authorities):
