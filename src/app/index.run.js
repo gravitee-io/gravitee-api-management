@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 /* global setInterval:false, clearInterval:false, screen:false */
-function runBlock($rootScope, $window, $http, $mdSidenav, UserService) {
+function runBlock($rootScope, $window, $http, $mdSidenav, UserService, swaggerModules, PageSwaggerConfigurationService,
+                  PageSwaggerHttpClientService) {
   'ngInject';
 
   function configureScreenSize(user) {
@@ -69,6 +70,10 @@ function runBlock($rootScope, $window, $http, $mdSidenav, UserService) {
       $rootScope.isLoading = false;
     }
   });
+
+  //swagger-ui
+  swaggerModules.add(swaggerModules.BEFORE_PARSE, PageSwaggerConfigurationService);
+  swaggerModules.add(swaggerModules.BEFORE_EXPLORER_LOAD, PageSwaggerHttpClientService);
 
 }
 

@@ -59,6 +59,12 @@ class PageController {
   swaggerType() {
     return this.$scope.page && this.SWAGGER_PAGE === this.$scope.page.type;
   }
+
+  enableTryIt() {
+    if (this.$scope.page.type !== 'SWAGGER')
+      return false;
+    return !_.isNil(this.$scope.page.configuration) && this.$scope.page.configuration.tryIt;
+  }
 }
 
 export default PageDirective;

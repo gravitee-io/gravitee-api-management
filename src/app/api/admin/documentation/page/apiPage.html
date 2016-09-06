@@ -70,7 +70,7 @@
       <dix layout="column" flex="50">
         <div>
           <h4>Edit your page</h4>
-          <md-input-container class="md-block"ng-show="pageCtrl.editMode">
+          <md-input-container class="md-block" ng-show="pageCtrl.editMode">
             <textarea ng-model="pageCtrl.page.content" aria-label="page content" rows="20" style="overflow-y: scroll;" ng-disabled="pageCtrl.useFetcher" md-autofocus></textarea>
           </md-input-container>
         </div>
@@ -105,21 +105,34 @@
     </div>
   </md-toolbar>
   <md-content layout-padding>
-    <md-checkbox ng-model="pageCtrl.useFetcher" ng-change="pageCtrl.toggleUseFetcher()">
-      <h4>Fetch content from an external resource:</h4>
-    </md-checkbox>
-
-    <div layout="row" layout-align="space-around center">
-      <md-button ng-repeat="fetcher in pageCtrl.fetchers"
-                 ng-click="pageCtrl.configureFetcher(fetcher)"
-                 ng-disabled="!pageCtrl.useFetcher"
-                 ng-class="{'md-raised': fetcher.id === pageCtrl.page.source.type}"
-                 aria-label="fetcher">
-        <md-icon md-svg-icon="app/images/logo_{{fetcher.id | lowercase}}.svg" style="width:80px;height:40px"></md-icon>
-      </md-button>
+    <md-subheader class="md-primary" ng-if="pageCtrl.page.type=='SWAGGER'">Configure your page</md-subheader>
+    <div ng-if="pageCtrl.page.type=='SWAGGER'">
+      <md-checkbox ng-model="pageCtrl.page.configuration.tryIt">
+        Enable "Try it!" mode
+      </md-checkbox>
+      <md-input-container class="md-block">
+        <label>Base URL to try the API</label>
+        <input type="text" ng-model="pageCtrl.page.configuration.tryItURL" ng-disabled="!pageCtrl.page.configuration.tryIt">
+      </md-input-container>
     </div>
-    <div layout="column">
-      <form name="PageConfigFetcherForm" sf-schema="fetcherJsonSchema" sf-form="pageCtrl.fetcherJsonSchemaForm" sf-model="pageCtrl.page.source.configuration"></form>
+    <md-subheader class="md-primary">Configure page's source</md-subheader>
+    <div>
+      <md-checkbox ng-model="pageCtrl.useFetcher" ng-change="pageCtrl.toggleUseFetcher()">
+        Fetch content from an external resource
+      </md-checkbox>
+
+      <div layout="row" layout-align="space-around center">
+        <md-button ng-repeat="fetcher in pageCtrl.fetchers"
+                   ng-click="pageCtrl.configureFetcher(fetcher)"
+                   ng-disabled="!pageCtrl.useFetcher"
+                   ng-class="{'md-raised': fetcher.id === pageCtrl.page.source.type}"
+                   aria-label="fetcher">
+          <md-icon md-svg-icon="app/images/logo_{{fetcher.id | lowercase}}.svg" style="width:80px;height:40px"></md-icon>
+        </md-button>
+      </div>
+      <div layout="column">
+        <form name="PageConfigFetcherForm" sf-schema="fetcherJsonSchema" sf-form="pageCtrl.fetcherJsonSchemaForm" sf-model="pageCtrl.page.source.configuration"></form>
+      </div>
     </div>
     <md-button ng-disabled="pageCtrl.hasNoTitle()" class="md-raised" type="submit" ng-click="pageCtrl.upsert()">
       Save

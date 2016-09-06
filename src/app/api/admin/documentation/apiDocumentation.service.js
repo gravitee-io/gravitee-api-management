@@ -18,6 +18,7 @@ class DocumentationService {
   constructor($http, Constants) {
     'ngInject';
     this.$http = $http;
+    this.swaggerConfigurationCache = {};
     this.documentationURL = function (apiId) {
       return Constants.baseURL + 'apis/' + apiId + '/pages/';
     };
@@ -51,9 +52,20 @@ class DocumentationService {
         order: editPage.order,
         published: editPage.published,
         content: editPage.content || '',
-        source: editPage.source
+        source: editPage.source,
+        configuration: editPage.configuration
       }
     );
+  }
+
+  cachePageConfiguration(apiId, page) {
+    if (!_.isNil(page) && page.type === 'SWAGGER' && !_.isNil(page.configuration)) {
+      this.swaggerConfigurationCache[this.getContentUrl(apiId, page.id)] = page.configuration;
+    }
+  }
+
+  getPageConfigurationFromCache(pageContentUrl) {
+    return this.swaggerConfigurationCache[pageContentUrl];
   }
 }
 

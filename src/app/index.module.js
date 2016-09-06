@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,6 +82,8 @@ import ImageDirective from './components/image/image.directive';
 import EventsService from './platform/events/events.service';
 import AnalyticsService from './platform/analytics/analytics.service';
 import DashboardController from './platform/dashboard/dashboard.controller';
+import PageSwaggerConfigurationService from './components/documentation/pageSwaggerConfiguration.service'
+import PageSwaggerHttpClientService from './components/documentation/pageSwaggerHttpClient.service'
 import DashboardModelDirective from './platform/dashboard/dashboardModel.directive';
 import ConfigurationController from './configuration/configuration.controller';
 import ViewService from './view/view.service';
@@ -166,6 +168,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .service('FetcherService', FetcherService)
   .service('EventsService', EventsService)
   .service('AnalyticsService', AnalyticsService)
+  .service('PageSwaggerConfigurationService', PageSwaggerConfigurationService)
+  .service('PageSwaggerHttpClientService', PageSwaggerHttpClientService)
   .service('ViewService', ViewService)
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
