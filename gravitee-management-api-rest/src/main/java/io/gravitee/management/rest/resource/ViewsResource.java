@@ -27,8 +27,6 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
-
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
@@ -41,11 +39,7 @@ public class ViewsResource extends AbstractResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<ViewEntity> list()  {
-        if (isAuthenticated()) {
-            return viewService.findAll();
-        } else {
-            return emptyList();
-        }
+        return viewService.findAll();
     }
 
     @POST
