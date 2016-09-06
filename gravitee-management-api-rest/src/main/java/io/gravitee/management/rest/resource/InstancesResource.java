@@ -18,6 +18,8 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.InstanceListItem;
 import io.gravitee.management.service.InstanceService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Path("/instances")
+@Api(tags = {"Gateway"})
 public class InstancesResource {
 
     @Context
@@ -44,7 +47,8 @@ public class InstancesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<InstanceListItem> instances(@QueryParam("includeStopped") boolean includeStopped) {
+    @ApiOperation(value = "List gateway instances")
+    public Collection<InstanceListItem> listInstances(@QueryParam("includeStopped") boolean includeStopped) {
         return instanceService.findInstances(includeStopped)
                 .stream()
                 .collect(Collectors.toList());

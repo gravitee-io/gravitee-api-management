@@ -20,6 +20,7 @@ import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.rest.enhancer.ApplicationEnhancer;
 import io.gravitee.management.service.ApplicationService;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Path("/applications")
+@Api(tags = {"Application"})
 public class ApplicationsResource extends AbstractResource {
 
     @Context
@@ -50,7 +52,12 @@ public class ApplicationsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ApplicationEntity> list() {
+    @ApiOperation(
+            value = "List all the applications accessible to the current user")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "User's applications", response = ApplicationEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public List<ApplicationEntity> listApplications() {
         Set<ApplicationEntity> applications;
 
         if (isAdmin()) {
@@ -75,7 +82,14 @@ public class ApplicationsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(@Valid @NotNull final NewApplicationEntity application) {
+    @ApiOperation(value = "Create an application",
+            notes = "User must have API_CONSUMER or ADMIN role to create an application.")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Application successfully created", response = ApplicationEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response createApplication(
+            @ApiParam(name = "application", required = true)
+            @Valid @NotNull final NewApplicationEntity application) {
         ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUsername());
         if (newApplication != null) {
             newApplication = applicationEnhancer.enhance(securityContext).apply(newApplication);

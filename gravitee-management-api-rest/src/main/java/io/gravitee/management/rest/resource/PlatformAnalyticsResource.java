@@ -15,11 +15,11 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.common.data.domain.Order;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.analytics.Analytics;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.management.service.AnalyticsService;
+import io.swagger.annotations.Api;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Api(tags = {"Gateway"})
 public class PlatformAnalyticsResource {
 
     @Inject
@@ -38,7 +39,7 @@ public class PlatformAnalyticsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response hits(@BeanParam AnalyticsParam analyticsParam) {
+    public Response platformAnalytics(@BeanParam AnalyticsParam analyticsParam) {
 
         analyticsParam.validate();
 

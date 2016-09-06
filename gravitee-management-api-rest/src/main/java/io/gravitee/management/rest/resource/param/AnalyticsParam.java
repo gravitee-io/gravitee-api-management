@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.resource.param;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.common.data.domain.Order;
 
 import javax.ws.rs.DefaultValue;
@@ -160,6 +161,7 @@ public class AnalyticsParam {
         return orderMode;
     }
 
+    @JsonIgnore
     public Order getOrder() {
         if (getOrderField() != null && getOrderDirection() != null && getOrderMode() != null) {
             return new Order(getOrderField(),

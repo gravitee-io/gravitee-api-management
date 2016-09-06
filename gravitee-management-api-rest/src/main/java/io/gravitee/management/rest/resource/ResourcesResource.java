@@ -19,6 +19,8 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ResourceEntity;
 import io.gravitee.management.model.ResourceListItem;
 import io.gravitee.management.service.ResourceService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -37,6 +39,7 @@ import java.util.stream.Stream;
  * @author GraviteeSource Team
  */
 @Path("/resources")
+@Api(tags = {"Plugin", "Resource"})
 public class ResourcesResource {
 
     @Context
@@ -47,7 +50,8 @@ public class ResourcesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<ResourceListItem> list(@QueryParam("expand") List<String> expand) {
+    @ApiOperation(value = "List resources")
+    public Collection<ResourceListItem> listResources(@QueryParam("expand") List<String> expand) {
         Stream<ResourceListItem> stream = resourceService.findAll().stream().map(this::convert);
 
         if(expand!=null && !expand.isEmpty()) {

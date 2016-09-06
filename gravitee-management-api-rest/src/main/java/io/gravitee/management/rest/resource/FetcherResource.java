@@ -17,8 +17,8 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.FetcherEntity;
-import io.gravitee.management.model.ResourceEntity;
 import io.gravitee.management.service.FetcherService;
+import io.swagger.annotations.Api;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -32,6 +32,7 @@ import javax.ws.rs.core.Context;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Api(tags = {"Plugin", "Fetcher"})
 public class FetcherResource {
 
     @Context
@@ -40,19 +41,18 @@ public class FetcherResource {
     @Inject
     private FetcherService fetcherService;
 
-    @PathParam("fetcher")
-    private String fetcher;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public FetcherEntity get() {
+    public FetcherEntity getFetcher(
+            @PathParam("fetcher") String fetcher) {
         return fetcherService.findById(fetcher);
     }
 
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String schema() {
+    public String getFetcherSchema(
+            @PathParam("fetcher") String fetcher) {
         // Check that the fetcher exists
         fetcherService.findById(fetcher);
 

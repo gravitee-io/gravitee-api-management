@@ -22,7 +22,7 @@ package io.gravitee.management.model.permissions;
 public enum ApplicationPermission {
 
     READ,
-    MANAGE_API,
+    MANAGE_APPLICATION,
     DELETE,
     MANAGE_MEMBERS,
     MANAGE_API_KEYS,

@@ -15,36 +15,40 @@
  */
 package io.gravitee.management.rest.resource;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
-
 import io.gravitee.common.http.MediaType;
-
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.resource.param.EventTypeListParam;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.EventService;
+import io.swagger.annotations.*;
+
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
  * @author GraviteeSource Team
  */
 @ApiPermissionsRequired(ApiPermission.MANAGE_LIFECYCLE)
+@Api(tags = {"API"})
 public class ApiEventsResource extends AbstractResource {
-
-    @PathParam("api")
-    private String api;
 
     @Inject
     private EventService eventService;
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<EventEntity> events(@DefaultValue("all") @QueryParam("type") EventTypeListParam eventTypeListParam) {
+    @ApiOperation(value = "Get API's events",
+            notes = "User must have the MANAGE_LIFECYCLE permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API's events"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public List<EventEntity> events(
+            @PathParam("api") String api,
+            @ApiParam @DefaultValue("all") @QueryParam("type") EventTypeListParam eventTypeListParam) {
         return eventService.findByApi(api).stream()
                 .filter(event -> eventTypeListParam.getEventTypes().contains(event.getType()))
                 .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))

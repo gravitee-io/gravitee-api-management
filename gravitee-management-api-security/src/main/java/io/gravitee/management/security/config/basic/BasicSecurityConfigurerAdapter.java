@@ -191,6 +191,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     .antMatchers(HttpMethod.GET, "/users/**").authenticated()
                     .antMatchers(HttpMethod.PUT, "/users/**").hasAnyAuthority("ADMIN")
                     .antMatchers(HttpMethod.DELETE, "/users/**").hasAnyAuthority("ADMIN")
+
+                    // Swagger
+                    .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
+
                     .anyRequest().authenticated()
             .and()
                 .csrf()

@@ -25,6 +25,7 @@ import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.management.service.ApiKeyService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.NoValidApiKeyException;
+import io.swagger.annotations.Api;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -38,6 +39,7 @@ import java.util.Optional;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_API_KEYS)
+@Api(tags = {"Application"})
 public class ApiKeyAnalyticsResource extends AbstractResource {
 
     @PathParam("application")
@@ -54,7 +56,7 @@ public class ApiKeyAnalyticsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response hits(@BeanParam AnalyticsParam analyticsParam) throws ApiNotFoundException {
+    public Response applicationAnalytics(@BeanParam AnalyticsParam analyticsParam) throws ApiNotFoundException {
         Optional<ApiKeyEntity> apiKeyEntity = apiKeyService.getCurrent(application, null);
 
         if (! apiKeyEntity.isPresent()) {

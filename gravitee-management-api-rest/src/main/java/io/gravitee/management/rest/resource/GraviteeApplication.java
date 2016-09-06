@@ -15,15 +15,18 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.util.Version;
 import io.gravitee.management.rest.filter.ApiPermissionFilter;
 import io.gravitee.management.rest.filter.ApplicationPermissionFilter;
 import io.gravitee.management.rest.filter.SecurityContextFilter;
+import io.gravitee.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.management.rest.provider.*;
+import io.swagger.jaxrs.config.BeanConfig;
+import io.swagger.jaxrs.listing.ApiListingResource;
+import io.swagger.jaxrs.listing.SwaggerSerializers;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
-
-import io.gravitee.management.rest.mapper.ObjectMapperResolver;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -31,6 +34,12 @@ import io.gravitee.management.rest.mapper.ObjectMapperResolver;
 public class GraviteeApplication extends ResourceConfig {
 
     public GraviteeApplication() {
+
+        BeanConfig beanConfig = new BeanConfig();
+        beanConfig.setVersion(Version.RUNTIME_VERSION.MAJOR_VERSION);
+        beanConfig.setResourcePackage("io.gravitee.management.rest.resource");
+        beanConfig.setTitle("Gravitee.io - Rest API");
+        beanConfig.setScan(true);
 
         register(ApisResource.class);
         register(ApplicationsResource.class);
@@ -57,6 +66,9 @@ public class GraviteeApplication extends ResourceConfig {
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);
+
+        register(ApiListingResource.class);
+        register(SwaggerSerializers.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
     }

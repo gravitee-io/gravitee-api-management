@@ -22,6 +22,7 @@ import io.gravitee.management.rest.resource.LifecycleActionParam.LifecycleAction
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -39,6 +40,7 @@ import static java.lang.String.format;
  *
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@Api(tags = {"API"})
 public class ApiResource extends AbstractResource {
 
     @Context
@@ -50,33 +52,42 @@ public class ApiResource extends AbstractResource {
     @Inject
     private ApiService apiService;
 
-    @PathParam("api")
-    private String api;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiPermissionsRequired(ApiPermission.READ)
-    public ApiEntity get() throws ApiNotFoundException {
-        ApiEntity api = apiService.findById(this.api);
+    @ApiOperation(value = "Get the API definition",
+            notes = "User must have the READ permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public ApiEntity get(@PathParam("api") String api) throws ApiNotFoundException {
+        ApiEntity apiEntity = apiService.findById(api);
 
         final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
         final UriBuilder uriBuilder = ub.path("picture");
-        if (api.getPicture() != null) {
+        if (apiEntity.getPicture() != null) {
             // force browser to get if updated
-            uriBuilder.queryParam("hash", api.getPicture().hashCode());
+            uriBuilder.queryParam("hash", apiEntity.getPicture().hashCode());
         }
-        api.setPictureUrl(uriBuilder.build().toString());
-        api.setPicture(null);
-        setPermission(api);
+        apiEntity.setPictureUrl(uriBuilder.build().toString());
+        apiEntity.setPicture(null);
+        setPermission(apiEntity);
 
-        return api;
+        return apiEntity;
     }
 
     @GET
     @Path("picture")
     @ApiPermissionsRequired(ApiPermission.READ)
-    public Response picture(@Context Request request) throws ApiNotFoundException {
-        apiService.findById(this.api);
+    @ApiOperation(value = "Get the API's picture",
+            notes = "User must have the READ permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API's picture"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response picture(
+            @Context Request request,
+            @PathParam("api") String api) throws ApiNotFoundException {
+        apiService.findById(api);
 
         CacheControl cc = new CacheControl();
         cc.setNoTransform(true);
@@ -84,7 +95,7 @@ public class ApiResource extends AbstractResource {
         cc.setNoCache(false);
         cc.setMaxAge(86400);
 
-        ImageEntity image = apiService.getPicture(this.api);
+        ImageEntity image = apiService.getPicture(api);
 
         EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
         Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
@@ -110,17 +121,26 @@ public class ApiResource extends AbstractResource {
 
     @POST
     @ApiPermissionsRequired(ApiPermission.MANAGE_LIFECYCLE)
-    public Response doLifecycleAction(@QueryParam("action") LifecycleActionParam action) {
-        ApiEntity api = apiService.findById(this.api);
+    @ApiOperation(
+            value = "Manage the API's lifecycle",
+            notes = "User must have the MANAGE_LIFECYCLE permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "API's picture"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response doLifecycleAction(
+            @ApiParam(required = true,  allowableValues = "START, STOP")
+                @QueryParam("action") LifecycleActionParam action,
+            @PathParam("api") String api) {
+        ApiEntity apiEntity = apiService.findById(api);
 
         switch (action.getAction()) {
             case START:
-                checkAPILifeCycle(api, action.getAction());
-                apiService.start(api.getId(), getAuthenticatedUsername());
+                checkAPILifeCycle(apiEntity, action.getAction());
+                apiService.start(apiEntity.getId(), getAuthenticatedUsername());
                 break;
             case STOP:
-                checkAPILifeCycle(api, action.getAction());
-                apiService.stop(api.getId(), getAuthenticatedUsername());
+                checkAPILifeCycle(apiEntity, action.getAction());
+                apiService.stop(apiEntity.getId(), getAuthenticatedUsername());
                 break;
             default:
                 break;
@@ -133,14 +153,23 @@ public class ApiResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiPermissionsRequired(ApiPermission.MANAGE_API)
-    public ApiEntity update(@Valid @NotNull final UpdateApiEntity api) {
-        final ApiEntity currentApi = this.get();
+    @ApiOperation(
+            value = "Update the API",
+            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API successfully updated", response = ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public ApiEntity update(
+            @ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiToUpdate,
+            @PathParam("api") String api) {
+        final ApiEntity currentApi = this.get(api);
+
         // Force context-path if user is not the primary_owner or an administrator
         if (currentApi.getPermission() != MembershipType.PRIMARY_OWNER) {
-            api.getProxy().setContextPath(currentApi.getProxy().getContextPath());
+            apiToUpdate.getProxy().setContextPath(currentApi.getProxy().getContextPath());
         }
 
-        final ApiEntity updatedApi = apiService.update(this.api, api);
+        final ApiEntity updatedApi = apiService.update(api, apiToUpdate);
         setPermission(updatedApi);
 
         return updatedApi;
@@ -148,7 +177,13 @@ public class ApiResource extends AbstractResource {
 
     @DELETE
     @ApiPermissionsRequired(ApiPermission.DELETE)
-    public Response delete() {
+    @ApiOperation(
+            value = "Delete the API",
+            notes = "User must have the DELETE permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "API successfully deleted"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response delete(@PathParam("api") String api) {
         apiService.delete(api);
 
         return Response.noContent().build();
@@ -158,7 +193,13 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("deploy")
     @ApiPermissionsRequired(ApiPermission.MANAGE_LIFECYCLE)
-    public Response deployAPI() {
+    @ApiOperation(
+            value = "Deploy API to gateway instances",
+            notes = "User must have the MANAGE_LIFECYCLE permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API successfully deployed", response = ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response deployAPI(@PathParam("api") String api) {
         try {
             ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUsername(), EventType.PUBLISH_API);
             setPermission(apiEntity);
@@ -172,10 +213,16 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("state")
     @ApiPermissionsRequired(ApiPermission.MANAGE_LIFECYCLE)
-    public io.gravitee.management.rest.model.ApiEntity isAPISynchronized() {
+    @ApiOperation(
+            value = "Get the state of the API",
+            notes = "User must have the MANAGE_LIFECYCLE permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API's state", response = io.gravitee.management.rest.model.ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public io.gravitee.management.rest.model.ApiEntity isAPISynchronized(@PathParam("api") String api) {
         io.gravitee.management.rest.model.ApiEntity apiEntity = new io.gravitee.management.rest.model.ApiEntity();
 
-        apiEntity.setApiId(this.api);
+        apiEntity.setApiId(api);
         setSynchronizationState(apiEntity);
 
         return apiEntity;
@@ -186,10 +233,18 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("rollback")
     @ApiPermissionsRequired(ApiPermission.MANAGE_LIFECYCLE)
-    public Response rollback(@Valid @NotNull final UpdateApiEntity api) {
+    @ApiOperation(
+            value = "Rollback API to a previous version",
+            notes = "User must have the MANAGE_LIFECYCLE permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API successfully rollbacked", response = ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response rollback(
+            @PathParam("api") String api,
+            @ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiEntity) {
         try {
-            ApiEntity apiEntity = apiService.rollback(this.api, api);
-            return Response.status(Status.OK).entity(apiEntity).build();
+            ApiEntity rollbackedApi = apiService.rollback(api, apiEntity);
+            return Response.status(Status.OK).entity(rollbackedApi).build();
         } catch (Exception e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
@@ -199,8 +254,16 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
     @ApiPermissionsRequired(ApiPermission.MANAGE_API)
-    public Response importDefinition(String apiDefinition) {
-        final ApiEntity apiEntity = get();
+    @ApiOperation(
+            value = "Update the API with an existing API definition",
+            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API successfully updated from API definition", response = ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response updateWithDefinition(
+            @PathParam("api") String api,
+            @ApiParam(name = "definition", required = true) String apiDefinition) {
+        final ApiEntity apiEntity = get(api);
         return Response.ok(apiService.createOrUpdateWithDefinition(apiEntity, apiDefinition, getAuthenticatedUsername())).build();
     }
 
@@ -208,10 +271,14 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("export")
     @ApiPermissionsRequired(ApiPermission.MANAGE_API)
-    public Response exportDefinition() {
-        final ApiEntity apiEntity = get();
-        setPermission(apiEntity);
-
+    @ApiOperation(
+            value = "Export the API definition in JSON format",
+            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response exportDefinition(@PathParam("api") String api) {
+        final ApiEntity apiEntity = get(api);
         return Response
                 .ok(apiService.exportAsJson(api, apiEntity.getPermission()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s",getExportFilename(apiEntity)))
@@ -265,7 +332,7 @@ public class ApiResource extends AbstractResource {
     }
 
     private void setSynchronizationState(io.gravitee.management.rest.model.ApiEntity apiEntity) {
-        if (apiService.isAPISynchronized(api)) {
+        if (apiService.isAPISynchronized(apiEntity.getApiId())) {
             apiEntity.setIsSynchronized(true);
         } else {
             apiEntity.setIsSynchronized(false);

@@ -15,8 +15,11 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.PolicyEntity;
 import io.gravitee.management.service.PolicyService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -25,11 +28,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import io.gravitee.common.http.MediaType;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@Api(tags = {"Plugin", "Policy"})
 public class PolicyResource {
 
     @Context
@@ -38,19 +41,20 @@ public class PolicyResource {
     @Inject
     private PolicyService policyService;
 
-    @PathParam("policy")
-    private String policy;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyEntity get() {
+    @ApiOperation(value = "Get a policy")
+    public PolicyEntity getPolicy(
+            @PathParam("policy") String policy) {
         return policyService.findById(policy);
     }
 
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String schema() {
+    @ApiOperation(value = "Get a policy's schema")
+    public String getPolicySchema(
+            @PathParam("policy") String policy) {
         // Check that the policy exists
         policyService.findById(policy);
 

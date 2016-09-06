@@ -23,6 +23,7 @@ import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiKeyService;
 import io.gravitee.management.service.ApplicationService;
+import io.swagger.annotations.Api;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -39,13 +40,11 @@ import java.util.Map;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @ApiPermissionsRequired(ApiPermission.MANAGE_API_KEYS)
+@Api(tags = {"API"})
 public class ApiKeysResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-
-    @PathParam("api")
-    private String api;
 
     @Inject
     private ApplicationService applicationService;
@@ -55,7 +54,7 @@ public class ApiKeysResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, KeysByApplicationEntity> keys() {
+    public Map<String, KeysByApplicationEntity> listApiKeys(@PathParam("api") String api) {
         Map<String, List<ApiKeyEntity>> keys = apiKeyService.findByApi(api);
         Map<String, KeysByApplicationEntity> keysByApplication = new HashMap<>(keys.size());
 
@@ -75,7 +74,9 @@ public class ApiKeysResource extends AbstractResource {
     @DELETE
     @Path("{key}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response revoke(@PathParam("key") String apiKey) {
+    public Response revokeApiKey(
+            @PathParam("api") String api,
+            @PathParam("key") String apiKey) {
         apiKeyService.revoke(apiKey);
 
         return Response
@@ -87,12 +88,17 @@ public class ApiKeysResource extends AbstractResource {
     @Path("{key}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ApiKeyEntity update(@PathParam("key") String apiKey, @Valid @NotNull ApiKeyEntity apiKeyEntity) {
+    public ApiKeyEntity updateApiKey(
+            @PathParam("api") String api,
+            @PathParam("key") String apiKey,
+            @Valid @NotNull ApiKeyEntity apiKeyEntity) {
         return apiKeyService.update(apiKey, apiKeyEntity);
     }
 
+    /*
     @Path("{key}/analytics")
     public ApiKeyAnalyticsResource getApiKeyAnalyticsResource() {
         return resourceContext.getResource(ApiKeyAnalyticsResource.class);
     }
+    */
 }

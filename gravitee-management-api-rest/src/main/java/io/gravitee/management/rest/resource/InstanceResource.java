@@ -18,6 +18,8 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.InstanceEntity;
 import io.gravitee.management.service.InstanceService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -31,7 +33,8 @@ import javax.ws.rs.core.Context;
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public class InstanceResource extends AbstractResource {
+@Api(tags = {"Gateway"})
+public class InstanceResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -44,7 +47,8 @@ public class InstanceResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public InstanceEntity get() {
+    @ApiOperation(value = "Get a gateway instance")
+    public InstanceEntity getInstance() {
         return instanceService.findById(this.instance);
     }
 

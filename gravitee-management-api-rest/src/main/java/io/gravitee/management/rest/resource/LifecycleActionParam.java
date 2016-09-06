@@ -25,7 +25,7 @@ public class LifecycleActionParam {
         STOP
     }
 
-    private LifecycleAction action ;
+    private LifecycleAction action;
 
     public LifecycleActionParam(String input) {
         try {

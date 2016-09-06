@@ -19,6 +19,8 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.PolicyEntity;
 import io.gravitee.management.model.PolicyListItem;
 import io.gravitee.management.service.PolicyService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -39,6 +41,7 @@ import java.util.stream.Stream;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Path("/policies")
+@Api(tags = {"Plugin", "Policy"})
 public class PoliciesResource {
 
     @Context
@@ -49,7 +52,8 @@ public class PoliciesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<PolicyListItem> list(@QueryParam("expand") List<String> expand) {
+    @ApiOperation(value = "List policies")
+    public Collection<PolicyListItem> listPolicies(@QueryParam("expand") List<String> expand) {
         Stream<PolicyListItem> stream = policyService.findAll().stream().map(this::convert);
 
         if(expand!=null && !expand.isEmpty()) {

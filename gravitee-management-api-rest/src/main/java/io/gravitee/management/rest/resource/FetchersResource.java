@@ -19,6 +19,8 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.FetcherEntity;
 import io.gravitee.management.model.FetcherListItem;
 import io.gravitee.management.service.FetcherService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -37,6 +39,7 @@ import java.util.stream.Stream;
  * @author GraviteeSource Team
  */
 @Path("/fetchers")
+@Api(tags = {"Plugin", "Fetcher"})
 public class FetchersResource {
 
     @Context
@@ -47,6 +50,7 @@ public class FetchersResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List fetchers")
     public Collection<FetcherListItem> list(@QueryParam("expand") List<String> expand) {
         Stream<FetcherListItem> stream = fetcherService.findAll().stream().map(this::convert);
 

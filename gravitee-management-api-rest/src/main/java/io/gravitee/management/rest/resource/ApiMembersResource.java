@@ -22,6 +22,9 @@ import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.resource.param.MembershipTypeParam;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -35,26 +38,41 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david at graviteesource.com)
  */
 @ApiPermissionsRequired(ApiPermission.MANAGE_MEMBERS)
+@Api(tags = {"API"})
 public class ApiMembersResource {
 
     @Inject
     private ApiService apiService;
 
-    @PathParam("api")
-    private String api;
+    @Inject
+    private UserService userService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<MemberEntity> members() {
+    @ApiOperation(value = "List API members",
+            notes = "User must have the MANAGE_MEMBERS permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of API's members", response = MemberEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public List<MemberEntity> listApiMembers(@PathParam("api") String api) {
         return apiService.getMembers(api, null).stream()
                 .sorted((o1, o2) -> o1.getUsername().compareTo(o2.getUsername()))
                 .collect(Collectors.toList());
     }
 
     @POST
-    public Response save(
-            @NotNull @QueryParam("user") String username,
-            @NotNull @QueryParam("type") MembershipTypeParam membershipType) {
+    @ApiOperation(value = "Add or update an API member",
+            notes = "User must have the MANAGE_MEMBERS permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Member has been added or updated successfully"),
+            @ApiResponse(code = 400, message = "Membership parameter is not valid"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response addOrUpdateApiMember(
+            @PathParam("api") String api,
+            @ApiParam(name = "user", required = true)
+                @NotNull @QueryParam("user") String username,
+            @ApiParam(name = "type", required = true, allowableValues = "PRIMARY_OWNER,OWNER,USER")
+                @NotNull @QueryParam("type") MembershipTypeParam membershipType) {
         if (membershipType.getValue() == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Membership type must be set").build();
         }
@@ -70,7 +88,12 @@ public class ApiMembersResource {
     @POST
     @Path("transfer_ownership")
     @ApiPermissionsRequired(ApiPermission.TRANSFER_OWNERSHIP)
-    public Response transferOwnership(@NotNull @QueryParam("user") String username) {
+    @ApiOperation(value = "Transfer the ownership of the API",
+            notes = "User must have the TRANSFER_OWNERSHIP permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Ownership has been transferred successfully"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response transferOwnership(@PathParam("api") String api, @NotNull @QueryParam("user") String username) {
         // change previous primary owner privilege
         // TODO : API must have a single PRIMARY_OWNER, refactor getMembers() code part
         apiService.getMembers(api, MembershipType.PRIMARY_OWNER)
@@ -81,7 +104,21 @@ public class ApiMembersResource {
     }
 
     @DELETE
-    public Response delete(@NotNull @QueryParam("user") String username) {
+    @ApiOperation(value = "Remove an API member",
+            notes = "User must have the MANAGE_MEMBERS permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Member has been removed successfully"),
+            @ApiResponse(code = 400, message = "User does not exist"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response deleteApiMember(
+            @PathParam("api") String api,
+            @ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String username) {
+        try {
+            userService.findByName(username);
+        } catch (UserNotFoundException unfe) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
+        }
+
         apiService.deleteMember(api, username);
         return Response.ok().build();
     }

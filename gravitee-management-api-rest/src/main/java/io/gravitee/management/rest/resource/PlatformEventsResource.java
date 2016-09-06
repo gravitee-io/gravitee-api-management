@@ -21,6 +21,7 @@ import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.rest.resource.param.EventSearchParam;
 import io.gravitee.management.service.EventService;
 import io.gravitee.repository.management.model.Event;
+import io.swagger.annotations.Api;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -33,6 +34,7 @@ import java.util.Map;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Api(tags = {"Gateway"})
 public class PlatformEventsResource {
     
     @Inject
@@ -40,7 +42,7 @@ public class PlatformEventsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Page<EventEntity> list(@BeanParam EventSearchParam eventSearchParam) {
+    public Page<EventEntity> listEvents(@BeanParam EventSearchParam eventSearchParam) {
         eventSearchParam.validate();
 
         Map<String, Object> properties = new HashMap<>();

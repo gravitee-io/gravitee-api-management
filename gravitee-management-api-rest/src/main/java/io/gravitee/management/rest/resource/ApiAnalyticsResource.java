@@ -21,6 +21,8 @@ import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.AnalyticsService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -33,17 +35,18 @@ import javax.ws.rs.core.Response;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @ApiPermissionsRequired(ApiPermission.ANALYTICS)
+@Api(tags = {"API"})
 public class ApiAnalyticsResource extends AbstractResource {
-
-    @PathParam("api")
-    private String api;
 
     @Inject
     private AnalyticsService analyticsService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response hits(@BeanParam AnalyticsParam analyticsParam) {
+    @ApiOperation(value = "Get API analytics")
+    public Response hits(
+            @PathParam("api") String api,
+            @BeanParam AnalyticsParam analyticsParam) {
         analyticsParam.validate();
 
         Analytics analytics = null;

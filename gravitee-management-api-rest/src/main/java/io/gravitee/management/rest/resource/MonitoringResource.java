@@ -18,6 +18,8 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.monitoring.MonitoringData;
 import io.gravitee.management.service.MonitoringService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -28,17 +30,17 @@ import javax.ws.rs.Produces;
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  * @author GraviteeSource Team
  */
+@Api(tags = {"Gateway"})
 public class MonitoringResource extends AbstractResource {
 
     @Inject
     private MonitoringService monitoringService;
 
-    @PathParam("gatewayId")
-    private String gatewayId;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public MonitoringData monitoring() {
-        return monitoringService.findMonitoring(this.gatewayId);
+    @ApiOperation(value = "Get monitoring metrics for a gateway instance")
+    public MonitoringData instanceMonitoring(
+            @PathParam("gatewayId") String gatewayId) {
+        return monitoringService.findMonitoring(gatewayId);
     }
 }

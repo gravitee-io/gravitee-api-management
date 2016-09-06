@@ -59,7 +59,7 @@ public class PermissionHelper {
         applicationPermissionsByRole.put(MembershipType.OWNER, new ArrayList<ApplicationPermission>() {
             {
                 add(ApplicationPermission.READ);
-                add(ApplicationPermission.MANAGE_API);
+                add(ApplicationPermission.MANAGE_APPLICATION);
                 add(ApplicationPermission.ANALYTICS);
                 add(ApplicationPermission.MANAGE_API_KEYS);
                 add(ApplicationPermission.MANAGE_MEMBERS);
@@ -83,7 +83,7 @@ public class PermissionHelper {
         applicationPermissionsByRole.put(MembershipType.PRIMARY_OWNER, new ArrayList<ApplicationPermission>() {
             {
                 add(ApplicationPermission.READ);
-                add(ApplicationPermission.MANAGE_API);
+                add(ApplicationPermission.MANAGE_APPLICATION);
                 add(ApplicationPermission.ANALYTICS);
                 add(ApplicationPermission.MANAGE_API_KEYS);
                 add(ApplicationPermission.MANAGE_MEMBERS);

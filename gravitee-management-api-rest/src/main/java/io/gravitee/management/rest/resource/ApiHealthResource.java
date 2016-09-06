@@ -20,6 +20,8 @@ import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.resource.param.HealthParam;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.AnalyticsService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -32,17 +34,20 @@ import javax.ws.rs.core.Response;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @ApiPermissionsRequired(ApiPermission.ANALYTICS)
+@Api(tags = {"API"})
 public class ApiHealthResource extends AbstractResource {
-
-    @PathParam("api")
-    private String api;
 
     @Inject
     private AnalyticsService analyticsService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response hits(@BeanParam HealthParam healthParam) {
+    @ApiOperation(
+            value = "Health statistics for API"
+    )
+    public Response health(
+            @PathParam("api") String api,
+            @BeanParam HealthParam healthParam) {
         healthParam.validate();
 
         return Response.ok(analyticsService.health(

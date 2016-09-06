@@ -18,12 +18,12 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (brasseld at gmail.com)
  */
 @Path("/apis")
+@Api(tags = {"API"})
 public class ApisResource extends AbstractResource {
 
     @Context
@@ -66,7 +67,13 @@ public class ApisResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ApiListItem> list(@QueryParam("view") final String view) {
+    @ApiOperation(
+            value = "List APIs",
+            notes = "List all the APIs accessible to the current user or only public APIs for non authenticated users.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public List<ApiListItem> listApis(@QueryParam("view") final String view) {
         Set<ApiEntity> apis;
         if (isAdmin()) {
             apis = apiService.findAll();
@@ -91,7 +98,15 @@ public class ApisResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(@Valid @NotNull final NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
+    @ApiOperation(
+            value = "Create an API",
+            notes = "User must have API_PUBLISHER or ADMIN role to create an API.")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "API successfully created"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response createApi(
+            @ApiParam(name = "api", required = true)
+            @Valid @NotNull final NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
         ApiEntity newApi = apiService.create(newApiEntity, getAuthenticatedUsername());
         if (newApi != null) {
             return Response
@@ -104,16 +119,29 @@ public class ApisResource extends AbstractResource {
     }
 
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
-    public Response importDefinition(String apiDefinition) {
-        return Response.ok(apiService.createOrUpdateWithDefinition(null, apiDefinition, getAuthenticatedUsername())).build();
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Create an API by importing an API definition",
+            notes = "Create an API by importing an existing API definition in JSON format")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API successfully created"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response importDefinition(
+            @ApiParam(name = "definition", required = true) @Valid @NotNull String apiDefinition) {
+        return Response.ok(apiService.createOrUpdateWithDefinition(
+                null, apiDefinition, getAuthenticatedUsername())).build();
     }
 
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
     @Path("import/swagger")
-    public NewApiEntity importSwagger(@Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create an API definition from a Swagger descriptor")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API definition from Swagger descriptor", response = NewApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public NewApiEntity importSwagger(
+            @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
         return swaggerService.prepare(swaggerDescriptor);
     }
 

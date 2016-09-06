@@ -22,6 +22,8 @@ import io.gravitee.management.security.JWTCookieGenerator;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,7 @@ import javax.ws.rs.core.Response;
  * @author GraviteeSource Team
  */
 @Path("/user")
+@Api(tags = {"User"})
 public class UserResource extends AbstractResource {
 
     private static Logger LOG = LoggerFactory.getLogger(UserResource.class);
@@ -54,7 +57,8 @@ public class UserResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response user() {
+    @ApiOperation(value = "Get the authenticated user")
+    public Response getCurrentUser() {
         final Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetails) {
             final String username = ((UserDetails) principal).getUsername();
@@ -71,7 +75,8 @@ public class UserResource extends AbstractResource {
 
     @PUT
     @Path("/{username}")
-    public Response update(@PathParam("username") final String username, @Valid @NotNull final UpdateUserEntity user) {
+    @ApiOperation(value = "Update user")
+    public Response updateCurrentUser(@PathParam("username") final String username, @Valid @NotNull final UpdateUserEntity user) {
         if (!username.equals(getAuthenticatedUsername())) {
             throw new ForbiddenAccessException();
         }
@@ -81,18 +86,21 @@ public class UserResource extends AbstractResource {
 
     @GET
     @Path("/{username}/picture")
-    public Response getPicture(@PathParam("username") final String username) {
+    @ApiOperation(value = "Get user's picture")
+    public Response getCurrentUserPicture(@PathParam("username") final String username) {
         return Response.ok(userService.findByName(username).getPicture()).build();
     }
 
     @POST
     @Path("/login")
+    @ApiOperation(value = "Login")
     public Response login() {
         return Response.ok().build();
     }
 
     @POST
     @Path("/logout")
+    @ApiOperation(value = "Logout")
     public Response logout() {
         response.addCookie(jwtCookieGenerator.generate(null));
         return Response.ok().build();

@@ -18,6 +18,8 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ResourceEntity;
 import io.gravitee.management.service.ResourceService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -31,6 +33,7 @@ import javax.ws.rs.core.Context;
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
+@Api(tags = {"Plugin", "Resource"})
 public class ResourceResource {
 
     @Context
@@ -39,19 +42,20 @@ public class ResourceResource {
     @Inject
     private ResourceService resourceService;
 
-    @PathParam("resource")
-    private String resource;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public ResourceEntity get() {
+    @ApiOperation(value = "Get a resource")
+    public ResourceEntity getResource(
+            @PathParam("resource") String resource) {
         return resourceService.findById(resource);
     }
 
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String schema() {
+    @ApiOperation(value = "Get a resource's schema")
+    public String getResourceSchema(
+            @PathParam("resource") String resource) {
         // Check that the resource exists
         resourceService.findById(resource);
 

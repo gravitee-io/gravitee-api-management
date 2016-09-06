@@ -21,8 +21,7 @@ import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.providers.User;
 import io.gravitee.management.service.IdentityService;
 import io.gravitee.management.service.UserService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import io.swagger.annotations.Api;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -42,6 +41,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david at graviteesource.com)
  */
 @Path("/users")
+@Api(tags = {"User"})
 public class UsersResource extends AbstractResource {
 
     @Context
@@ -75,7 +75,7 @@ public class UsersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<User> list(@QueryParam("query") String query) {
+    public Collection<User> listUsers(@QueryParam("query") String query) {
         if (query != null && ! query.trim().isEmpty()) {
             return identityService.search(query);
         } else {
@@ -97,7 +97,7 @@ public class UsersResource extends AbstractResource {
     @GET
     @Path("{username}")
     @Produces(MediaType.APPLICATION_JSON)
-    public UserEntity user(@PathParam("username") String username) {
+    public UserEntity getUser(@PathParam("username") String username) {
         UserEntity user = userService.findByName(username);
 
         // Delete password for security reason
@@ -109,7 +109,7 @@ public class UsersResource extends AbstractResource {
 
     @GET
     @Path("{username}/picture")
-    public Response picture(@PathParam("username") String username, @Context Request request) {
+    public Response getUserPicture(@PathParam("username") String username, @Context Request request) {
         UserEntity user = userService.findByName(username);
 
         if (user.getPicture() == null) {
@@ -187,12 +187,4 @@ public class UsersResource extends AbstractResource {
         /** Replaces the de-serialized object. */
         private Object readResolve() { return CASE_INSENSITIVE_ORDER; }
     }
-
-    /*
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Collection<User> search(@NotNull @QueryParam("query") String query) {
-    	return identityService.search(query);
-    }
-    */
 }

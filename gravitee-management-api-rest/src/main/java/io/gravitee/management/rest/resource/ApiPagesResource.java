@@ -15,40 +15,28 @@
  */
 package io.gravitee.management.rest.resource;
 
-import java.net.URI;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import io.gravitee.common.http.MediaType;
-import javax.ws.rs.core.Response;
-
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.PageListItem;
-import io.gravitee.management.model.UpdatePageEntity;
-import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
-import io.gravitee.management.model.MembershipType;
+import io.gravitee.repository.management.model.MembershipType;
+import io.swagger.annotations.*;
+
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@Api(tags = {"API"})
 public class ApiPagesResource extends AbstractResource {
 
     @Inject
@@ -57,29 +45,46 @@ public class ApiPagesResource extends AbstractResource {
     @Inject
     private PageService pageService;
 
-    @PathParam("api")
-    private String api;
-
     @GET
     @Path("/{page}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiPermissionsRequired(ApiPermission.READ)
-    public PageEntity get(@PathParam("page") String page) {
+    @ApiOperation(value = "Get a page",
+            notes = "User must have the READ permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Page"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public PageEntity getPage(
+                @PathParam("api") String api,
+                @PathParam("page") String page) {
         return pageService.findById(page);
     }
 
     @GET
     @Path("/{page}/content")
     @ApiPermissionsRequired(ApiPermission.READ)
-    public Response getContent(@PathParam("page") String page) {
+    @ApiOperation(value = "Get the page's content",
+            notes = "User must have the READ permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Page's content"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response getPageContent(
+            @PathParam("api") String api,
+            @PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page, true);
         return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
     @ApiPermissionsRequired(ApiPermission.READ)
-    public List<PageListItem> pages() {
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List pages",
+            notes = "User must have the READ permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of pages", response = PageListItem.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public List<PageListItem> listPages(
+            @PathParam("api") String api) {
         final ApiEntity apiEntity = apiService.findById(api);
 
         final List<PageListItem> pages = pageService.findByApi(api);
@@ -108,7 +113,14 @@ public class ApiPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
-    public Response create(@Valid @NotNull NewPageEntity newPageEntity) {
+    @ApiOperation(value = "Create a page",
+            notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response createPage(
+            @PathParam("api") String api,
+            @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
         int order = pageService.findMaxPageOrderByApi(api) + 1;
         newPageEntity.setOrder(order);
         newPageEntity.setLastContributor(getAuthenticatedUsername());
@@ -124,11 +136,19 @@ public class ApiPagesResource extends AbstractResource {
     }
 
     @PUT
+    @Path("/{page}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{page}")
     @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
-    public PageEntity update(@PathParam("page") String page, @Valid @NotNull UpdatePageEntity updatePageEntity) {
+    @ApiOperation(value = "Update a page",
+            notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public PageEntity updatePage(
+            @PathParam("api") String api,
+            @PathParam("page") String page,
+            @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         pageService.findById(page);
 
         updatePageEntity.setLastContributor(getAuthenticatedUsername());
@@ -138,7 +158,14 @@ public class ApiPagesResource extends AbstractResource {
     @DELETE
     @Path("/{page}")
     @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
-    public void deletePage(@PathParam("page") String page) {
+    @ApiOperation(value = "Delete a page",
+            notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Page successfully deleted"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public void deletePage(
+            @PathParam("api") String api,
+            @PathParam("page") String page) {
         pageService.findById(page);
 
         pageService.delete(page);
