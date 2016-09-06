@@ -45,6 +45,8 @@ public class PageMongo extends Auditable {
 
 	private PageSourceMongo source;
 
+	private PageConfigurationMongo configuration;
+
 	public String getId() {
 		return id;
 	}
@@ -123,6 +125,14 @@ public class PageMongo extends Auditable {
 
 	public void setSource(PageSourceMongo source) {
 		this.source = source;
+	}
+
+	public PageConfigurationMongo getConfiguration() {
+		return configuration;
+	}
+
+	public void setConfiguration(PageConfigurationMongo configuration) {
+		this.configuration = configuration;
 	}
 
 	@Override
