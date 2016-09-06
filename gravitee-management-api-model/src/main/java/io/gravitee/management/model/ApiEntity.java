@@ -91,6 +91,8 @@ public class ApiEntity {
     @JsonProperty(value = "resources")
     private List<Resource> resources = new ArrayList<>();
 
+    private Set<String> views;
+
     public String getId() {
         return id;
     }
@@ -243,6 +245,14 @@ public class ApiEntity {
         this.resources = resources;
     }
 
+    public Set<String> getViews() {
+        return views;
+    }
+
+    public void setViews(Set<String> views) {
+        this.views = views;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -272,6 +282,7 @@ public class ApiEntity {
             ", primaryOwner=" + primaryOwner +
             ", permission=" + permission +
             ", tags=" + tags +
+            ", view=" + views +
             '}';
     }
 }

@@ -15,11 +15,11 @@
  */
 package io.gravitee.management.model;
 
-import java.util.Date;
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
+
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

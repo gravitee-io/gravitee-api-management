@@ -59,6 +59,8 @@ public class UpdateApiEntity {
     
     private String picture;
 
+    private Set<String> views;
+
     public Visibility getVisibility() {
         return visibility;
     }
@@ -145,5 +147,13 @@ public class UpdateApiEntity {
 
     public void setResources(List<Resource> resources) {
         this.resources = resources;
+    }
+
+    public Set<String> getViews() {
+        return views;
+    }
+
+    public void setViews(Set<String> views) {
+        this.views = views;
     }
 }

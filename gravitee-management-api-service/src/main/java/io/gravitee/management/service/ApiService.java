@@ -63,4 +63,6 @@ public interface ApiService {
     ApiEntity createOrUpdateWithDefinition(ApiEntity apiEntity, String apiDefinition, String username);
 
     ImageEntity getPicture(String apiId);
+
+    void deleteViewFromAPIs(String viewId);
 }

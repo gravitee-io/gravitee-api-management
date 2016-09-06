@@ -163,6 +163,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
                     .antMatchers(HttpMethod.GET, "/user/**").permitAll()
 
+                    // View requests
+                    .antMatchers(HttpMethod.GET, "/configuration/views/**").permitAll()
+
                     // API requests
                     .antMatchers(HttpMethod.GET, "/apis/**").permitAll()
                     .antMatchers(HttpMethod.POST, "/apis").hasAnyAuthority("ADMIN", "API_PUBLISHER")

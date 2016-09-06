@@ -66,7 +66,7 @@ public class ApisResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ApiListItem> list() {
+    public List<ApiListItem> list(@QueryParam("view") final String view) {
         Set<ApiEntity> apis;
         if (isAdmin()) {
             apis = apiService.findAll();
@@ -77,6 +77,7 @@ public class ApisResource extends AbstractResource {
         }
 
         return apis.stream()
+                .filter(apiEntity -> view == null || apiEntity.getViews().contains(view))
                 .map(this::convert)
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .collect(Collectors.toList());

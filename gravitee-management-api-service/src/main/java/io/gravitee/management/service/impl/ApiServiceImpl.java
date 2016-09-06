@@ -102,7 +102,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setProxy(proxy);
 
         List<String> declaredPaths = (newApiEntity.getPaths() != null) ? newApiEntity.getPaths() : new ArrayList<>();
-        if (! declaredPaths.contains("/")) {
+        if (!declaredPaths.contains("/")) {
             declaredPaths.add(0, "/");
         }
 
@@ -386,8 +386,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     (membershipType == null) ? null : MembershipType.valueOf(membershipType.toString()));
 
             return membersRepo.stream()
-                            .map(this::convert)
-                            .collect(Collectors.toSet());
+                    .map(this::convert)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get members for API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to get members for API " + apiId, ex);
@@ -600,13 +600,13 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 PageEntity pageEntity = pageService.findById(f.getId());
                 pageEntity.setId(null);
                 finalPages.add(pageEntity);
-            } );
+            });
         }
         try {
             ObjectNode apiJsonNode = objectMapper.valueToTree(apiEntity);
             apiJsonNode.remove("permission");
-            apiJsonNode.putPOJO("members", members==null ? Collections.emptyList() : members);
-            apiJsonNode.putPOJO("pages", pages==null ? Collections.emptyList() : pages);
+            apiJsonNode.putPOJO("members", members == null ? Collections.emptyList() : members);
+            apiJsonNode.putPOJO("pages", pages == null ? Collections.emptyList() : pages);
             return objectMapper.writeValueAsString(apiJsonNode);
         } catch (final Exception e) {
             LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
@@ -619,7 +619,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             ApiEntity createdOrUpdatedApiEntity = null;
             //create
-            if(apiEntity == null || apiEntity.getId() == null) {
+            if (apiEntity == null || apiEntity.getId() == null) {
 
                 final UpdateApiEntity importedApi = objectMapper
                         // because definition could contains other values than the api itself (pages, members)
@@ -682,6 +682,16 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         return imageEntity;
     }
 
+    @Override
+    public void deleteViewFromAPIs(final String viewId) {
+        findAll().forEach(api -> {
+            if (api.getViews()
+                    .removeIf(view -> view.equals(viewId))) {
+                update(api.getId(), convert(api));
+            }
+        });
+    }
+
     private void updateLifecycle(String apiId, LifecycleState lifecycleState, String username) throws TechnicalException {
         Optional<Api> optApi = apiRepository.findById(apiId);
         if (optApi.isPresent()) {
@@ -705,6 +715,25 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
+    private UpdateApiEntity convert(final ApiEntity apiEntity) {
+        final UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+
+        updateApiEntity.setDescription(apiEntity.getDescription());
+        updateApiEntity.setName(apiEntity.getName());
+        updateApiEntity.setViews(apiEntity.getViews());
+        updateApiEntity.setPaths(apiEntity.getPaths());
+        updateApiEntity.setPicture(apiEntity.getPicture());
+        updateApiEntity.setProperties(apiEntity.getProperties());
+        updateApiEntity.setProxy(apiEntity.getProxy());
+        updateApiEntity.setResources(apiEntity.getResources());
+        updateApiEntity.setServices(apiEntity.getServices());
+        updateApiEntity.setTags(apiEntity.getTags());
+        updateApiEntity.setVersion(apiEntity.getVersion());
+        updateApiEntity.setVisibility(apiEntity.getVisibility());
+
+        return updateApiEntity;
+    }
+
     private ApiEntity convert(Api api) {
         ApiEntity apiEntity = new ApiEntity();
 
@@ -724,6 +753,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
+                apiEntity.setViews(apiDefinition.getViews());
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while generating API definition", ioe);
             }
@@ -782,6 +812,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiDefinition.setResources(updateApiEntity.getResources());
             apiDefinition.setProperties(updateApiEntity.getProperties());
             apiDefinition.setTags(updateApiEntity.getTags());
+            apiDefinition.setViews(updateApiEntity.getViews());
 
             String definition = objectMapper.writeValueAsString(apiDefinition);
             api.setDefinition(definition);
