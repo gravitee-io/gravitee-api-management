@@ -252,4 +252,29 @@ public class MockTestRepositoryConfiguration {
 
         return userRepository;
     }
+
+    @Bean
+    public ViewRepository viewRepository() throws Exception {
+        final ViewRepository viewRepository = mock(ViewRepository.class);
+
+        final View view = mock(View.class);
+        when(view.getName()).thenReturn("View name");
+        when(view.getDescription()).thenReturn("Description for the new view");
+
+        final View view2 = mock(View.class);
+        when(view2.getName()).thenReturn("New product");
+
+        final Set<View> views = newSet(view, view2, mock(View.class));
+        final Set<View> viewsAfterDelete = newSet(view, view2);
+        final Set<View> viewsAfterAdd = newSet(view, view2, mock(View.class), mock(View.class));
+
+        when(viewRepository.findAll()).thenReturn(views, viewsAfterAdd, views, viewsAfterDelete, views);
+
+        when(viewRepository.create(any(View.class))).thenReturn(view);
+
+        when(viewRepository.findById("new-view")).thenReturn(of(view));
+        when(viewRepository.findById("products")).thenReturn(of(view2));
+
+        return viewRepository;
+    }
 }

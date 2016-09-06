@@ -1,0 +1,17 @@
+[
+   {
+      "id":"international",
+      "name":"International",
+      "description": "Description for international view"
+   },
+   {
+      "id":"products",
+      "name":"Products",
+      "description": "Description for products view"
+   },
+   {
+      "id":"stores",
+      "name":"Stores",
+      "description": "Description for stores view"
+   }
+]

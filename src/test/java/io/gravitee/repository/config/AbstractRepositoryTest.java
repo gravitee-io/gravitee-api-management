@@ -75,6 +75,8 @@ public abstract class AbstractRepositoryTest {
     protected ApiKeyRepository apiKeyRepository;
     @Inject
     protected EventRepository eventRepository;
+    @Inject
+    protected ViewRepository viewRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -119,6 +121,9 @@ public abstract class AbstractRepositoryTest {
         if (object instanceof ApiKey) {
             final ApiKey apiKey = (ApiKey) object;
             apiKeyRepository.create(apiKey.getApplication(), apiKey.getApi(), apiKey);
+        }
+        if (object instanceof View) {
+            viewRepository.create((View) object);
         }
     }
 
