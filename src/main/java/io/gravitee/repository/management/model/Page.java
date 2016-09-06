@@ -20,6 +20,8 @@ import java.util.Objects;
 
 /**
  * @author Titouan COMPIEGNE
+ * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
+ * @author GraviteeSource Team
  */
 public class Page {
 
@@ -41,6 +43,8 @@ public class Page {
 	private boolean published;
 
 	private PageSource source;
+
+	private PageConfiguration configuration;
 	/**
 	 * The api ID.
 	 */
@@ -138,6 +142,14 @@ public class Page {
 		this.source = source;
 	}
 
+	public PageConfiguration getConfiguration() {
+		return configuration;
+	}
+
+	public void setConfiguration(PageConfiguration configuration) {
+		this.configuration = configuration;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -162,6 +174,7 @@ public class Page {
 				", published=" + published +
 				", api='" + api + '\'' +
 				", source=" + source +
+				", configuration=" + configuration +
 				", createdAt=" + createdAt +
 				", updatedAt=" + updatedAt +
 				'}';
