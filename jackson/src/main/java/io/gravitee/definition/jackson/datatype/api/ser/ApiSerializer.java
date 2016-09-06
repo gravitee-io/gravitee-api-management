@@ -94,6 +94,18 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
             jgen.writeEndArray();
         }
 
+        if (api.getViews() != null && !api.getViews().isEmpty()) {
+            jgen.writeArrayFieldStart("views");
+            api.getViews().forEach(view -> {
+                try {
+                    jgen.writeObject(view);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            jgen.writeEndArray();
+        }
+
         jgen.writeEndObject();
     }
 }

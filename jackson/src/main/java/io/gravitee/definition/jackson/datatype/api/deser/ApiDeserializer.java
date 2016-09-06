@@ -136,6 +136,12 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
             tagsNode.elements().forEachRemaining(jsonNode -> api.getTags().add(jsonNode.asText()));
         }
 
+        JsonNode viewsNode = node.get("views");
+
+        if (viewsNode != null && viewsNode.isArray()) {
+            viewsNode.elements().forEachRemaining(jsonNode -> api.getViews().add(jsonNode.asText()));
+        }
+
         return api;
     }
 }
