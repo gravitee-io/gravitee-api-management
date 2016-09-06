@@ -72,7 +72,7 @@ public class ApiPagesResource extends AbstractResource {
     @Path("/{page}/content")
     @ApiPermissionsRequired(ApiPermission.READ)
     public Response getContent(@PathParam("page") String page) {
-        PageEntity pageEntity = pageService.findById(page);
+        PageEntity pageEntity = pageService.findById(page, true);
         return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
     }
 

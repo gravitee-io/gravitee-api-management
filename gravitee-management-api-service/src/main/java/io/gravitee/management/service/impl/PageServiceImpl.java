@@ -17,13 +17,17 @@ package io.gravitee.management.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.management.fetcher.FetcherConfigurationFactory;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.FetcherService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
@@ -40,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -48,6 +53,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -67,6 +73,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	private PageRepository pageRepository;
 
 	@Autowired
+	private ApiService apiService;
+
+	@Autowired
 	private FetcherService fetcherService;
 
 	@Autowired
@@ -74,6 +83,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Autowired
 	private FetcherConfigurationFactory fetcherConfigurationFactory;
+
+	@Autowired
+	private Configuration freemarkerConfiguration;
 
 	@Override
 	public List<PageListItem> findByApi(String apiId) {
@@ -98,13 +110,23 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Override
 	public PageEntity findById(String pageId) {
+		return findById(pageId, false);
+	}
+
+	@Override
+	public PageEntity findById(String pageId, boolean transform) {
 		try {
 			LOGGER.debug("Find page by ID: {}", pageId);
 
 			Optional<Page> page = pageRepository.findById(pageId);
 
 			if (page.isPresent()) {
-				return convert(page.get());
+				PageEntity pageEntity = convert(page.get());
+				if (transform) {
+					transformWithTemplate(pageEntity, page.get().getApi());
+				}
+
+				return pageEntity;
 			}
 
 			throw new PageNotFoundException(pageId);
@@ -112,6 +134,23 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			LOGGER.error("An error occurs while trying to find a page using its ID {}", pageId, ex);
 			throw new TechnicalManagementException(
 					"An error occurs while trying to find a page using its ID " + pageId, ex);
+		}
+	}
+
+	private void transformWithTemplate(PageEntity pageEntity, String api) {
+		try {
+			Template template = new Template(pageEntity.getId(), pageEntity.getContent(), freemarkerConfiguration);
+
+			ApiEntity apiEntity = apiService.findById(api);
+			Map<String, Object> model = new HashMap<>();
+			model.put("api", apiEntity);
+
+			final String content =
+					FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+
+			pageEntity.setContent(content);
+		} catch (IOException | TemplateException ex) {
+			LOGGER.error("An error occurs while transforming page content for {}", pageEntity.getId(), ex);
 		}
 	}
 

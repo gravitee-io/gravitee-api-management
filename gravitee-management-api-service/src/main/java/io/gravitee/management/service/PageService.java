@@ -32,6 +32,8 @@ public interface PageService {
 	List<PageListItem> findByApi(String apiId);
 	
 	PageEntity findById(String pageId);
+
+	PageEntity findById(String pageId, boolean transform);
 	
 	PageEntity create(String apiId, NewPageEntity page);
 	
