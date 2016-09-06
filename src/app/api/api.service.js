@@ -25,8 +25,8 @@ class ApiService {
     return this.$http.get(this.apisURL + name);
   }
 
-  list() {
-    return this.$http.get(this.apisURL);
+  list(view) {
+    return this.$http.get(this.apisURL + (view?'?view=' + view : ''));
   }
 
   start(name) {
@@ -49,7 +49,7 @@ class ApiService {
     return this.$http.put(this.apisURL + api.id,
       {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private,
         'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
-        'picture': api.picture, 'resources': api.resources
+        'picture': api.picture, 'resources': api.resources, 'views': api.views
       }
     );
   }

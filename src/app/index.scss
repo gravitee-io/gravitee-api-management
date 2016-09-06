@@ -113,6 +113,12 @@ md-toolbar:not(.md-hue-1),
 ng-md-icon {
   position: relative;
   top: 7px;
+
+  &[icon=delete] {
+    svg {
+      width: 100%;
+    }
+  }
 }
 
 .btn-group ng-md-icon {
@@ -173,6 +179,14 @@ gravitee-sidenav {
   position: relative;
   float: right;
   top: -35px;
+}
+
+.gravitee-placeholder {
+  opacity: 0.4;
+}
+
+.md-container {
+  display: inline-block;
 }
 
 /**

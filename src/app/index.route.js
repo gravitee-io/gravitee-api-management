@@ -17,7 +17,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
   'ngInject';
   $stateProvider
     .state('home', {
-      url: '/',
+      url: '/?:view',
       templateUrl: 'app/main/main.html',
       controller: 'ApisController',
       controllerAs: 'apisCtrl',
@@ -63,7 +63,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/api/apisTableMode.html'
     })
     .state('apis.list.thumb', {
-      url: 'thumb',
+      url: 'thumb?:view',
       templateUrl: 'app/api/apisThumbMode.html',
       menu: {
         label: 'APIs',
@@ -408,6 +408,18 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       menu: {
         label: 'Dashboard',
         icon: 'show_chart',
+        firstLevel: true
+      },
+      roles: ['ADMIN']
+    })
+    .state('configuration', {
+      url: '/configuration',
+      templateUrl: 'app/configuration/configuration.html',
+      controller: 'ConfigurationController',
+      controllerAs: 'configurationCtrl',
+      menu: {
+        label: 'Configuration',
+        icon: 'settings',
         firstLevel: true
       },
       roles: ['ADMIN']

@@ -82,7 +82,10 @@ import ImageDirective from './components/image/image.directive';
 import EventsService from './platform/events/events.service';
 import AnalyticsService from './platform/analytics/analytics.service';
 import DashboardController from './platform/dashboard/dashboard.controller';
-import DashboardModelDirective from './platform/dashboard/dashboardModel.directive'
+import DashboardModelDirective from './platform/dashboard/dashboardModel.directive';
+import ConfigurationController from './configuration/configuration.controller';
+import ViewService from './view/view.service';
+import DeleteDialogController from './configuration/delete.dialog.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -150,6 +153,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .controller('InstanceEnvironmentController', InstanceEnvironmentController)
   .controller('InstanceMonitoringController', InstanceMonitoringController)
   .controller('DashboardController', DashboardController)
+  .controller('ConfigurationController', ConfigurationController)
+  .controller('DeleteDialogController', DeleteDialogController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
@@ -161,6 +166,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
   .service('FetcherService', FetcherService)
   .service('EventsService', EventsService)
   .service('AnalyticsService', AnalyticsService)
+  .service('ViewService', ViewService)
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
   .directive('graviteePage', () => new PageDirective())

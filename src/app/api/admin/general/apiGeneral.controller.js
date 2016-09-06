@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 class ApiAdminController {
-  constructor(ApiService, NotificationService, UserService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi, base64, $state) {
+  constructor(ApiService, NotificationService, UserService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi,
+              base64, $state, ViewService) {
     'ngInject';
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
@@ -57,6 +58,12 @@ class ApiAdminController {
       }];
 
     this.initState();
+
+    // Views
+    var that = this;
+    ViewService.list().then(function(response) {
+      that.views = response.data;
+    });
   }
 
   initState() {

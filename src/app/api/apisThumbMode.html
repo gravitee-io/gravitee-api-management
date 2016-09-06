@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div ng-if="apisCtrl.apis.length > 0">
+<div ng-if="apisCtrl.apis.length > 0 || apisCtrl.$state.params.view">
   <md-card class="no-box-shadow">
     <md-card-header>
       <md-card-header-text layout="row" layout-align="center">
@@ -24,62 +24,69 @@
         </div>
       </md-card-header-text>
     </md-card-header>
-    <md-card-content style="padding: 0px; overflow-y: auto; height: calc(100vh - {{apisCtrl.apisScrollAreaHeight}}px);">
-      <div layout="row" layout-wrap class="inset">
-      	<div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33" ng-repeat="api in apisCtrl.apis | filter:searchAPIs">
-      		<a ui-sref="apis.portal({apiId: api.id})">
-      			<md-card class="api-box gravitee-card gravitee-api-card">
-              <md-card-header layout="row" layout-align="end start">
-                <md-card-avatar>
-                  <md-button class="md-icon-button" ng-if="apisCtrl.isOwner(api)"
-                           ng-click="$event.stopPropagation()" ui-sref="apis.admin.general({apiId: api.id})">
-                    <md-tooltip>Manage this API</md-tooltip>
-                    <ng-md-icon icon="settings" aria-label="{{api.id}}" size="20" style="fill: #006CAB;"></ng-md-icon>
-                  </md-button>
-                </md-card-avatar>
-              </md-card-header>
-      				<md-card-content layout="column">
-                <div class="api-box-description">
-                  <div class="api-box-icon" layout="column" layout-align="center center">
-                    <img ng-src="{{api.picture_url}}" />
-                  </div>
-                  <div class="api-box-name-version" layout-padding>
-                    {{api.name}} <small>({{api.version}})</small>
-                  </div>
-                  <div class="api-box-state">
-                    <span ng-if="api.state === 'started'" style="color: #429f46;">Started</span>
-                    <span ng-if="api.state !== 'started'" style="color: red">Stopped</span>
-                  </div>
-                </div>
-      				</md-card-content>
-              <md-card-footer>
-                <div class="api-box-footer" layout="row" layout-align="end">
-                  <span>
-                    <span style="top: 2px; position: relative;">{{api.applicationsSize}}</span>
-                    <ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;">
-                      <md-tooltip>{{api.applicationsSize}} application(s)</md-tooltip>
-                    </ng-md-icon>
-                  </span>
-                  <ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}" size="20" style="fill: #cdcdcd;">
-                    <md-tooltip>{{apisCtrl.getVisibility(api)}}</md-tooltip>
-                  </ng-md-icon>
-                  <ng-md-icon icon="person" size="20" style="fill: #cdcdcd;">
-                    <md-tooltip>
-                      <span ng-if="api.owner.firstname == null && api.owner.lastname == null">{{api.owner.username}}</span>
-                      {{api.owner.firstname}} {{api.owner.lastname}}
-                      <span ng-if="api.owner.email">({{api.owner.email}})</span>
-                    </md-tooltip>
-                  </ng-md-icon>
-                </div>
-              </md-card-footer>
-      			</md-card>
-      		</a>
-      	</div>
-      </div>
-    </md-card-content>
+    <md-tabs md-selected="apisCtrl.selectedIndex" md-dynamic-height md-border-bottom>
+      <md-tab label="{{view.name}}" ng-repeat="view in apisCtrl.views" ng-click="apisCtrl.goToView(view.id)">
+        <md-card-content
+          style="padding: 0px; overflow-y: auto; height: calc(100vh - {{apisCtrl.apisScrollAreaHeight}}px);">
+          <div layout="row" layout-wrap class="inset">
+            <div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33"
+                 ng-repeat="api in apisCtrl.apis | filter:searchAPIs">
+              <a ui-sref="apis.portal({apiId: api.id})">
+                <md-card class="api-box gravitee-card gravitee-api-card">
+                  <md-card-header layout="row" layout-align="end start">
+                    <md-card-avatar>
+                      <md-button class="md-icon-button" ng-if="apisCtrl.isOwner(api)"
+                                 ng-click="$event.stopPropagation()" ui-sref="apis.admin.general({apiId: api.id})">
+                        <md-tooltip>Manage this API</md-tooltip>
+                        <ng-md-icon icon="settings" aria-label="{{api.id}}" size="20"
+                                    style="fill: #006CAB;"></ng-md-icon>
+                      </md-button>
+                    </md-card-avatar>
+                  </md-card-header>
+                  <md-card-content layout="column">
+                    <div class="api-box-description">
+                      <div class="api-box-icon" layout="column" layout-align="center center">
+                        <img ng-src="{{api.picture_url}}"/>
+                      </div>
+                      <div class="api-box-name-version" layout-padding>
+                        {{api.name}}
+                        <small>({{api.version}})</small>
+                      </div>
+                      <div class="api-box-state">
+                        <span ng-if="api.state === 'started'" style="color: #429f46;">Started</span>
+                        <span ng-if="api.state !== 'started'" style="color: red">Stopped</span>
+                      </div>
+                    </div>
+                  </md-card-content>
+                  <md-card-footer>
+                    <div class="api-box-footer" layout="row" layout-align="end">
+                    <span>
+                      <span style="top: 2px; position: relative;">{{api.applicationsSize}}</span>
+                      <ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;">
+                        <md-tooltip>{{api.applicationsSize}} application(s)</md-tooltip>
+                      </ng-md-icon>
+                    </span>
+                      <ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}" size="20" style="fill: #cdcdcd;">
+                        <md-tooltip>{{apisCtrl.getVisibility(api)}}</md-tooltip>
+                      </ng-md-icon>
+                      <ng-md-icon icon="person" size="20" style="fill: #cdcdcd;">
+                        <md-tooltip>
+                          <span
+                            ng-if="api.owner.firstname == null && api.owner.lastname == null">{{api.owner.username}}</span>
+                          {{api.owner.firstname}} {{api.owner.lastname}}
+                          <span ng-if="api.owner.email">({{api.owner.email}})</span>
+                        </md-tooltip>
+                      </ng-md-icon>
+                    </div>
+                  </md-card-footer>
+                </md-card>
+              </a>
+            </div>
+          </div>
+        </md-card-content>
+      </md-tab>
+    </md-tabs>
   </md-card>
 </div>
 
-<div ng-if="!isLoading && apisCtrl.apis.length === 0"
-  ng-include="'app/api/apisEmptyMode.html'">
-</div>
+<div ng-if="!isLoading && apisCtrl.apis.length === 0 && !apisCtrl.$state.params.view" ng-include="'app/api/apisEmptyMode.html'"></div>

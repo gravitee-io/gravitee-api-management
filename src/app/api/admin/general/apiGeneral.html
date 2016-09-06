@@ -91,6 +91,17 @@
           <md-chips ng-model="generalCtrl.api.tags" placeholder="Enter a tag" secondary-placeholder="+Tag" ng-click="formApi.$setDirty()"></md-chips>
         </md-input-container>
       </div>
+
+      <div layout="column">
+        <md-input-container class="flex">
+          <label>Portal views</label>
+          <md-select ng-model="generalCtrl.api.views" multiple>
+            <md-option ng-repeat="view in generalCtrl.views" ng-value="view.id">
+              {{view.name}}
+            </md-option>
+          </md-select>
+        </md-input-container>
+      </div>
     </md-tab>
     <md-tab label="Gateway">
       <div layout-gt-sm="row">

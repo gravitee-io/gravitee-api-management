@@ -14,26 +14,58 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor ($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis) {
+  constructor($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis, ViewService) {
     'ngInject';
     this.$window = $window;
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
     this.$scope = $scope;
     this.$state = $state;
-		this.$rootScope = $rootScope;
-		this.graviteeUIVersion = Constants.version;
-		this.apis = resolvedApis.data;
+    this.$rootScope = $rootScope;
+    this.graviteeUIVersion = Constants.version;
+    this.resolvedApis = resolvedApis;
 
-    this.tableMode = this.$state.current.name.endsWith('table')? true : false;
+    this.tableMode = this.$state.current.name.endsWith('table') ? true : false;
     this.apisScrollAreaHeight = this.$state.current.name === 'home' ? 195 : 90;
-    this.isAPIsHome = this.$state.current.name.startsWith('apis')? true : false;
+    this.isAPIsHome = this.$state.current.name.startsWith('apis') ? true : false;
     this.init();
+    this.goToView(this.$state.params.view || 'all');
+
+    var that = this;
+
+    ViewService.list().then(function (response) {
+      that.views = response.data;
+      that.views.unshift({id: 'all', name: 'All APIs'});
+
+      if (that.views.length && that.$state.params.view) {
+        that.selectedIndex = _.findIndex(that.views, function (v) {
+          return v.id == that.$state.params.view;
+        });
+      } else {
+        that.selectedIndex = 0;
+      }
+    });
+  }
+
+  goToView(view) {
+    this.$state.go(this.$state.current, {view: view}, {notify: false});
+    this.loadApis(view);
+  }
+
+  loadApis(viewId) {
+    if (viewId && viewId !== 'all') {
+      var that = this;
+      this.ApiService.list(viewId).then(function (response) {
+        that.apis = response.data;
+      });
+    } else {
+      this.apis = this.resolvedApis.data;
+    }
   }
 
   init() {
     var self = this;
-    this.$scope.$on("showApiModal", function() {
+    this.$scope.$on("showApiModal", function () {
       self.showApiModal();
     });
   }
@@ -67,7 +99,7 @@ class ApisController {
 
   changeMode(tableMode) {
     this.tableMode = tableMode;
-    this.$state.go(tableMode? 'apis.list.table' : 'apis.list.thumb');
+    this.$state.go(tableMode ? 'apis.list.table' : 'apis.list.thumb');
   }
 
   backToPreviousState() {
@@ -103,17 +135,17 @@ class ApisController {
     return api.permission && (api.permission === 'owner' || api.permission === 'primary_owner');
   }
 
-	login() {
-		this.$rootScope.$broadcast("authenticationRequired");
-	}
+  login() {
+    this.$rootScope.$broadcast("authenticationRequired");
+  }
 
-	createInitAPI() {
-		if (!this.$rootScope.graviteeUser) {
-			this.$rootScope.$broadcast("authenticationRequired");
-		} else {
+  createInitAPI() {
+    if (!this.$rootScope.graviteeUser) {
+      this.$rootScope.$broadcast("authenticationRequired");
+    } else {
       this.$state.go("apis.new");
     }
-	}
+  }
 
   showImportDialog() {
     var that = this;
