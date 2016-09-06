@@ -35,6 +35,8 @@ public class RedisPage {
     private long updatedAt;
     private String sourceType;
     private String sourceConfiguration;
+    private boolean configurationTryIt;
+    private String configurationTryItURL;
 
     public String getApi() {
         return api;
@@ -130,6 +132,22 @@ public class RedisPage {
 
     public void setSourceConfiguration(String sourceConfiguration) {
         this.sourceConfiguration = sourceConfiguration;
+    }
+
+    public boolean isConfigurationTryIt() {
+        return configurationTryIt;
+    }
+
+    public void setConfigurationTryIt(boolean configurationTryIt) {
+        this.configurationTryIt = configurationTryIt;
+    }
+
+    public String getConfigurationTryItURL() {
+        return configurationTryItURL;
+    }
+
+    public void setConfigurationTryItURL(String configurationTryItURL) {
+        this.configurationTryItURL = configurationTryItURL;
     }
 
     @Override
