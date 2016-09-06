@@ -34,6 +34,7 @@ import io.gravitee.plugin.fetcher.FetcherPluginManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageConfiguration;
 import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +43,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -295,6 +294,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		pageItem.setLastContributor(page.getLastContributor());
 		pageItem.setPublished(page.isPublished());
 		pageItem.setSource(convert(page.getSource()));
+		pageItem.setConfiguration(convert(page.getConfiguration()));
 
 		return pageItem;
 	}
@@ -311,6 +311,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setLastContributor(newPageEntity.getLastContributor());
 		page.setOrder(newPageEntity.getOrder());
 		page.setSource(convert(newPageEntity.getSource()));
+		page.setConfiguration(convert(newPageEntity.getConfiguration()));
 
 		return page;
 	}
@@ -340,6 +341,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		if (page.getSource() != null) {
 			pageEntity.setSource(convert(page.getSource()));
 		}
+		if (page.getConfiguration() != null) {
+			pageEntity.setConfiguration(convert(page.getConfiguration()));
+		}
 		return pageEntity;
 	}
 
@@ -352,6 +356,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setOrder(updatePageEntity.getOrder());
 		page.setPublished(updatePageEntity.isPublished());
 		page.setSource(convert(updatePageEntity.getSource()));
+        page.setConfiguration(convert(updatePageEntity.getConfiguration()));
 		return page;
 	}
 
@@ -377,6 +382,26 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			}
 		}
 		return entity;
+	}
+
+	private static PageConfiguration convert(PageConfigurationEntity pageConfigurationEntity){
+		PageConfiguration configuration = null;
+		if(pageConfigurationEntity != null) {
+			configuration = new PageConfiguration();
+			configuration.setTryIt(pageConfigurationEntity.isTryIt());
+			configuration.setTryItURL(pageConfigurationEntity.getTryItURL());
+		}
+		return configuration;
+	}
+
+	private static PageConfigurationEntity convert(PageConfiguration pageConfiguration){
+		PageConfigurationEntity configurationEntity = null;
+		if(pageConfiguration != null) {
+			configurationEntity = new PageConfigurationEntity();
+			configurationEntity.setTryIt(pageConfiguration.isTryIt());
+			configurationEntity.setTryItURL(pageConfiguration.getTryItURL());
+		}
+		return configurationEntity;
 	}
 
 	private static final Gson gson = new Gson();

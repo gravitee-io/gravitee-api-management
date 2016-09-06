@@ -36,6 +36,8 @@ public class PageListItem {
 
     private PageSourceEntity source;
 
+    private PageConfigurationEntity configuration;
+
     public String getId() {
         return id;
     }
@@ -90,6 +92,14 @@ public class PageListItem {
 
     public void setSource(PageSourceEntity source) {
         this.source = source;
+    }
+
+    public PageConfigurationEntity getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(PageConfigurationEntity configuration) {
+        this.configuration = configuration;
     }
 
     @Override

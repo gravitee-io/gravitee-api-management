@@ -37,6 +37,8 @@ public class NewPageEntity {
 
 	private PageSourceEntity source;
 
+	private PageConfigurationEntity configuration;
+
 	public String getName() {
 		return name;
 	}
@@ -83,6 +85,14 @@ public class NewPageEntity {
 
 	public void setSource(PageSourceEntity source) {
 		this.source = source;
+	}
+
+	public PageConfigurationEntity getConfiguration() {
+		return configuration;
+	}
+
+	public void setConfiguration(PageConfigurationEntity configuration) {
+		this.configuration = configuration;
 	}
 
 	@Override
