@@ -40,6 +40,6 @@
     "commit": "8c14a1e3acc80a7216d31d2809348004dded012f"
   },
   "_source": "https://github.com/Orange-OpenSource/angular-swagger-ui.git",
-  "_target": "^0.3.1",
+  "_target": "^0.3.2",
   "_originalSource": "angular-swagger-ui"
 }

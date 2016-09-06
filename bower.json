@@ -8,8 +8,7 @@
     "angular": "~1.4.9",
     "angular-mocks": "~1.4.9",
     "angular-drag-and-drop-lists": "~1.3.0",
-    "angular-markdown-directive": "~0.3.1",
-    "angular-swagger-ui": "^0.3.1",
+    "angular-swagger-ui": "^0.3.2",
     "angular-cookies": "~1.4.9",
     "jquery": "~2.2.0",
     "bootstrap-sass": "3.3.6",
@@ -33,7 +32,9 @@
     "pie-chart": "n3-charts.pie-chart#^1.0.0",
     "angular-schema-form-ui-codemirror": "^0.2.2",
     "tc-angular-chartjs": "^2.0.0",
-    "md-steppers": "^0.3.3"
+    "md-steppers": "^0.3.3",
+    "ng-showdown": "^1.1.0",
+    "showdown-prettify": "^1.3.0"
   },
   "resolutions": {
     "angular-material": "^1.0.0",

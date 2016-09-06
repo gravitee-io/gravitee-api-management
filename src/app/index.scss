@@ -151,6 +151,42 @@ table[md-data-table] {
   background-color: $backgroundColor;
 }
 
+table {
+  background: #fff;
+  border: solid 1px #ddd;
+  margin-bottom: 1.25rem;
+  table-layout: auto;
+}
+
+table thead {
+  background: #F5F5F5;
+}
+
+table thead tr th, table tfoot tr th, table tfoot tr td, table tbody tr th, table tbody tr td, table tr td {
+  display: table-cell;
+  line-height: 1.125rem;
+}
+table thead tr th, table thead tr td {
+  color: #222;
+  font-weight: bold;
+  padding: 0.5rem 0.625rem 0.625rem;
+}
+table tr th, table tr td {
+  color: #222;
+  padding: 0.5625rem 0.625rem;
+  text-align: left;
+}
+
+table tr.even, table tr.alt, table tr:nth-of-type(even) {
+  background: #F9F9F9;
+}
+
+tbody {
+  display: table-row-group;
+  vertical-align: middle;
+  border-color: inherit;
+}
+
 md-toast {
   &.md-toast-success-theme .md-toast-content {
     background-color: #4ea44d;

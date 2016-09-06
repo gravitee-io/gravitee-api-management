@@ -16,7 +16,7 @@
 
 -->
 <div class="layout-padding">
-  <div ng-if="pageCtrl.markdownType()" btf-markdown="page.content">
+  <div ng-if="pageCtrl.markdownType()" markdown-to-html="page.content">
   </div>
 
   <raml-console ng-if="pageCtrl.ramlType() && page.content && enableTryIt" src="{{pageCtrl.url}}" resources-collapsed

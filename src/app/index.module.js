@@ -89,7 +89,7 @@ import ConfigurationController from './configuration/configuration.controller';
 import ViewService from './view/view.service';
 import DeleteDialogController from './configuration/delete.dialog.controller';
 
-angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford.markdown', 'swaggerUi',
+angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
   'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'tc.chartjs', 'md-steppers'])
@@ -109,6 +109,10 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'btford
 
     $mdThemingProvider.theme('toast-success');
     $mdThemingProvider.theme('toast-error');
+  })
+  .config(function ($showdownProvider) {
+    $showdownProvider.setOption('tables', true);
+    $showdownProvider.loadExtension('prettify');
   })
   .run(runBlock)
   .controller('ApisController', ApisController)
