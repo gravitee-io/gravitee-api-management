@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 class ApiPortalPageController {
-  constructor (resolvedApi, resolvedPage) {
+  constructor (resolvedApi, resolvedPage, DocumentationService) {
     'ngInject';
     this.api = resolvedApi.data;
     this.page = resolvedPage.data;
+
+    DocumentationService.cachePageConfiguration(this.api.id, this.page);
   }
 }
 

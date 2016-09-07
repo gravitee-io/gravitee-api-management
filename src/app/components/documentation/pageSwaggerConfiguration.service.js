@@ -22,6 +22,7 @@ class PageSwaggerConfigurationService {
   }
 
   execute(swaggerUrl, swaggerSpec) {
+    let deferred = this.$q.defer();
     let url = new URL(swaggerUrl);
     let swaggerConfig = this.DocumentationService.getPageConfigurationFromCache(url.pathname);
     if (!_.isNil(swaggerConfig) && swaggerConfig.tryIt) {
@@ -33,13 +34,14 @@ class PageSwaggerConfigurationService {
         if (swaggerSpec.basePath[swaggerSpec.basePath.length-1] === "/") {
           swaggerSpec.basePath = swaggerSpec.basePath.slice(0, -1)
         }
+        deferred.resolve(swaggerSpec);
       } catch (error) {
-        console.log("Error in page configuration for url: ", swaggerConfig.tryItURL)
-        console.log(error)
+        deferred.reject({message: 'Bad URL in Swagger descriptor', code: '500'});
       }
+    }else {
+      deferred.resolve(false);
     }
-    var deferred = this.$q.defer();
-    deferred.resolve(swaggerSpec);
+
     return deferred.promise;
   }
 

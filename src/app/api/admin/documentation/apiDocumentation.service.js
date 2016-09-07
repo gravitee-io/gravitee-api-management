@@ -60,7 +60,16 @@ class DocumentationService {
 
   cachePageConfiguration(apiId, page) {
     if (!_.isNil(page) && page.type === 'SWAGGER' && !_.isNil(page.configuration)) {
-      this.swaggerConfigurationCache[this.getContentUrl(apiId, page.id)] = page.configuration;
+      var contentUrl = this.getContentUrl(apiId, page.id);
+      var url;
+
+      try {
+        url = new URL(contentUrl);
+      } catch (error) {
+        url = new URL(location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '') + this.getContentUrl(apiId, page.id));
+      }
+
+      this.swaggerConfigurationCache[url.pathname] = page.configuration;
     }
   }
 
