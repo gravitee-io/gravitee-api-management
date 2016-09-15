@@ -247,7 +247,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                 .to(userEntity.getEmail())
                 .subject("Gravitee.io portal - User registration - " + userEntity.getUsername())
-                .content("userRegistration.html")
+                .template(EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION)
                 .params(ImmutableMap.of("username", userEntity.getUsername(), "token", token, "portalURL", environment.getProperty("portalURL")))
                 .build()
         );

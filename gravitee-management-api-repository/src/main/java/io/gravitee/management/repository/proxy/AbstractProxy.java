@@ -16,7 +16,7 @@
 package io.gravitee.management.repository.proxy;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class AbstractProxy<T> {

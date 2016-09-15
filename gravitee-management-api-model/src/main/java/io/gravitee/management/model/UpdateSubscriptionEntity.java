@@ -15,44 +15,60 @@
  */
 package io.gravitee.management.model;
 
-import java.util.List;
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Date;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class KeysByApplicationEntity {
+public class UpdateSubscriptionEntity {
 
-    private String name;
+    private String id;
 
-    private List<ApiKeyEntity> keys;
+    @JsonProperty("starting_at")
+    private Date startingAt;
 
-    public List<ApiKeyEntity> getKeys() {
-        return keys;
+    @JsonProperty("ending_at")
+    private Date endingAt;
+
+    public String getId() {
+        return id;
     }
 
-    public void setKeys(List<ApiKeyEntity> keys) {
-        this.keys = keys;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public Date getStartingAt() {
+        return startingAt;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setStartingAt(Date startingAt) {
+        this.startingAt = startingAt;
+    }
+
+    public Date getEndingAt() {
+        return endingAt;
+    }
+
+    public void setEndingAt(Date endingAt) {
+        this.endingAt = endingAt;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        KeysByApplicationEntity that = (KeysByApplicationEntity) o;
-        return Objects.equals(name, that.name);
+
+        UpdateSubscriptionEntity that = (UpdateSubscriptionEntity) o;
+
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return id.hashCode();
     }
 }

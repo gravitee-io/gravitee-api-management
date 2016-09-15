@@ -35,7 +35,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Path("/applications")
 @Api(tags = {"Application"})
@@ -53,7 +54,7 @@ public class ApplicationsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-            value = "List all the applications accessible to the current user")
+            value = "List all the applications accessible to authenticated user")
     @ApiResponses({
             @ApiResponse(code = 200, message = "User's applications", response = ApplicationEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})

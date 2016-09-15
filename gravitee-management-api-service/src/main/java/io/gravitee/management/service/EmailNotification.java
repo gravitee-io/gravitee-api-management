@@ -15,11 +15,13 @@
  */
 package io.gravitee.management.service;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize Elamrani (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class EmailNotification {
 
@@ -27,7 +29,7 @@ public class EmailNotification {
     private String[] to;
     private String subject;
     private String content;
-    private Map params;
+    private Map<String, Object> params = new HashMap<>();
 
     public String getFrom() {
         return from;
@@ -61,11 +63,11 @@ public class EmailNotification {
         this.content = content;
     }
 
-    public Map getParams() {
+    public Map<String, Object> getParams() {
         return params;
     }
 
-    public void setParams(Map params) {
+    public void setParams(Map<String, Object> params) {
         this.params = params;
     }
 

@@ -20,7 +20,8 @@ import io.gravitee.management.service.EmailNotification;
 import java.util.Map;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize Elamrani (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class EmailNotificationBuilder {
 
@@ -36,8 +37,8 @@ public class EmailNotificationBuilder {
         return this;
     }
 
-    public EmailNotificationBuilder content(String content) {
-        this.emailNotification.setContent(content);
+    public EmailNotificationBuilder template(EmailTemplate emailTemplate) {
+        this.emailNotification.setContent(emailTemplate.getTemplate());
         return this;
     }
 
@@ -46,12 +47,41 @@ public class EmailNotificationBuilder {
         return this;
     }
 
-    public EmailNotificationBuilder params(Map params) {
+    public EmailNotificationBuilder param(String key, Object value) {
+        this.emailNotification.getParams().put(key, value);
+        return this;
+    }
+
+    public EmailNotificationBuilder params(Map<String, Object> params) {
         this.emailNotification.setParams(params);
         return this;
     }
 
     public EmailNotification build() {
         return this.emailNotification;
+    }
+
+    public enum EmailTemplate {
+
+        REVOKE_API_KEY("apiKeyRevoked.html"),
+        EXPIRE_API_KEY("apiKeyRevoked.html"),
+        NEW_SUBSCRIPTION("apiMember.html"),
+        APPROVE_SUBSCRIPTION("apiMember.html"),
+        REJECT_SUBSCRIPTION("apiMember.html"),
+        USER_REGISTRATION("userRegistration.html"),
+        APPLICATION_MEMBER_SUBSCRIPTION("applicationMember.html"),
+        API_MEMBER_SUBSCRIPTION("apiMember.html"),
+        APPLICATION_GROUP_MEMBER_SUBSCRIPTION("applicationGroupMember.html"),
+        API_MEMBER_GROUP_SUBSCRIPTION("apiGroupMember.html");
+
+        private String template;
+
+        EmailTemplate(String template) {
+            this.template = template;
+        }
+
+        public String getTemplate() {
+            return template;
+        }
     }
 }

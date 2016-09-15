@@ -24,37 +24,30 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class ApiKeyRepositoryProxy extends AbstractProxy<ApiKeyRepository> implements ApiKeyRepository {
 
-    public ApiKey create(String s, String s1, ApiKey apiKey) throws TechnicalException {
-        return target.create(s, s1, apiKey);
+    public Optional<ApiKey> findById(String apiKey) throws TechnicalException {
+        return target.findById(apiKey);
     }
 
-    public Set<ApiKey> findByApi(String s) throws TechnicalException {
-        return target.findByApi(s);
+    public ApiKey create(ApiKey apiKey) throws TechnicalException {
+        return target.create(apiKey);
     }
 
-    public void delete(String s) throws TechnicalException {
-        target.delete(s);
+    public ApiKey update(ApiKey key) throws TechnicalException {
+        return target.update(key);
     }
 
-    public Set<ApiKey> findByApplication(String s) throws TechnicalException {
-        return target.findByApplication(s);
+    public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
+        return target.findBySubscription(subscription);
     }
 
-    public Set<ApiKey> findByApplicationAndApi(String s, String s1) throws TechnicalException {
-        return target.findByApplicationAndApi(s, s1);
-    }
-
-    public Optional<ApiKey> retrieve(String s) throws TechnicalException {
-        return target.retrieve(s);
-    }
-
-    public ApiKey update(ApiKey apiKey) throws TechnicalException {
-        return target.update(apiKey);
+    @Override
+    public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
+        return target.findByPlan(plan);
     }
 }

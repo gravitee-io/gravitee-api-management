@@ -72,7 +72,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
             }
 
             mailMessage.setTo(emailNotification.getTo());
-            mailMessage.setSubject(emailNotification.getSubject());
+            mailMessage.setSubject("[Gravitee.io] " + emailNotification.getSubject());
 
             final String html = addResourcesInMessage(mailMessage, htmlText);
 

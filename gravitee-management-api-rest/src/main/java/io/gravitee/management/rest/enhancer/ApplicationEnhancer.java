@@ -85,9 +85,6 @@ public class ApplicationEnhancer {
                     }
                 }
             }
-            
-            // Add APIs size
-            application.setApisSize(apiService.countByApplication(application.getId()));
 
             return application;
         };

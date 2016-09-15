@@ -30,16 +30,16 @@
     <artifactId>gravitee-management-api</artifactId>
     <packaging>pom</packaging>
 
-    <version>0.20.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>Gravitee IO - Management</name>
 
     <properties>
         <gravitee-definition.version>1.0.0-SNAPSHOT</gravitee-definition.version>
-        <gravitee-common.version>0.11.0</gravitee-common.version>
-        <gravitee-plugin.version>0.13.0</gravitee-plugin.version>
+        <gravitee-common.version>1.0.0-SNAPSHOT</gravitee-common.version>
+        <gravitee-plugin.version>1.0.0-SNAPSHOT</gravitee-plugin.version>
         <gravitee-repository.version>1.0.0-SNAPSHOT</gravitee-repository.version>
-        <gravitee-gateway-api.version>0.14.0</gravitee-gateway-api.version>
-        <gravitee-fetcher-api.version>0.1.0</gravitee-fetcher-api.version>
+        <gravitee-gateway-api.version>1.0.0-SNAPSHOT</gravitee-gateway-api.version>
+        <gravitee-fetcher-api.version>1.0.0-SNAPSHOT</gravitee-fetcher-api.version>
 
         <apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
         <jackson.version>2.7.3</jackson.version>
@@ -66,6 +66,7 @@
         <module>gravitee-management-api-idp</module>
         <module>gravitee-management-api-repository</module>
         <module>gravitee-management-api-fetcher</module>
+        <module>gravitee-management-api-services</module>
     </modules>
 
     <dependencyManagement>

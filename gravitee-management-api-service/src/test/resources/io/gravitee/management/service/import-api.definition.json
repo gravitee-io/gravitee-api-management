@@ -8,7 +8,8 @@
     "context_path": "/test",
     "endpoints": [
       {
-        "target": "http://google.Fr",
+        "name": "default",
+        "target": "http://google.fr",
         "weight": 1,
         "backup": false,
         "healthcheck": true

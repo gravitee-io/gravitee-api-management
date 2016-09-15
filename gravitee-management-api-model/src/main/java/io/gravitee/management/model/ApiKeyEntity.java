@@ -21,34 +21,32 @@ import java.util.Date;
 import java.util.Objects;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ApiKeyEntity {
 
     private String key;
 
-    @JsonProperty("expire_on")
-    private Date expireOn;
+    private String subscription;
+
+    private String application;
+
+    private String plan;
+
+    @JsonProperty("expire_at")
+    private Date expireAt;
 
     @JsonProperty("created_at")
     private Date createdAt;
 
+    @JsonProperty("updated_at")
+    private Date updatedAt;
+
     private boolean revoked;
 
     @JsonProperty("revoked_at")
-    private Date revokeAt;
-
-    private String api;
-
-    private String application;
-
-    public Date getExpireOn() {
-        return expireOn;
-    }
-
-    public void setExpireOn(Date expireOn) {
-        this.expireOn = expireOn;
-    }
+    private Date revokedAt;
 
     public String getKey() {
         return key;
@@ -58,28 +56,12 @@ public class ApiKeyEntity {
         this.key = key;
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
+    public String getSubscription() {
+        return subscription;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public boolean isRevoked() {
-        return revoked;
-    }
-
-    public void setRevoked(boolean revoked) {
-        this.revoked = revoked;
-    }
-
-    public String getApi() {
-        return api;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
+    public void setSubscription(String subscription) {
+        this.subscription = subscription;
     }
 
     public String getApplication() {
@@ -90,12 +72,52 @@ public class ApiKeyEntity {
         this.application = application;
     }
 
-    public Date getRevokeAt() {
-        return revokeAt;
+    public String getPlan() {
+        return plan;
     }
 
-    public void setRevokeAt(Date revokeAt) {
-        this.revokeAt = revokeAt;
+    public void setPlan(String plan) {
+        this.plan = plan;
+    }
+
+    public Date getExpireAt() {
+        return expireAt;
+    }
+
+    public void setExpireAt(Date expireAt) {
+        this.expireAt = expireAt;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isRevoked() {
+        return revoked;
+    }
+
+    public void setRevoked(boolean revoked) {
+        this.revoked = revoked;
+    }
+
+    public Date getRevokedAt() {
+        return revokedAt;
+    }
+
+    public void setRevokedAt(Date revokedAt) {
+        this.revokedAt = revokedAt;
     }
 
     @Override

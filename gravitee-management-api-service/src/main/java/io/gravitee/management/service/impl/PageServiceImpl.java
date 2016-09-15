@@ -28,7 +28,6 @@ import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.management.fetcher.FetcherConfigurationFactory;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.FetcherService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
@@ -49,10 +48,6 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -74,9 +69,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Autowired
 	private ApiService apiService;
-
-	@Autowired
-	private FetcherService fetcherService;
 
 	@Autowired
 	private FetcherPluginManager fetcherPluginManager;

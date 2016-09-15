@@ -13,28 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
+package io.gravitee.management.services;
 
-import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.service.AbstractService;
+import io.gravitee.common.service.Service;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class UserMailAlreadyExistsException extends AbstractManagementException {
+public interface ServiceManager extends Service {
 
-    private final String userMail;
-
-    public UserMailAlreadyExistsException(String userMail) {
-        this.userMail = userMail;
-    }
-
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
-    }
-
-    @Override
-    public String getMessage() {
-        return "A user with mail " + userMail + " already exists.";
-    }
+    void register(AbstractService service);
 }

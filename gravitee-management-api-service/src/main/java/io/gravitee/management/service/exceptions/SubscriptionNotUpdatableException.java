@@ -18,23 +18,24 @@ package io.gravitee.management.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class TeamAlreadyExistsException extends AbstractManagementException {
+public class SubscriptionNotUpdatableException extends AbstractManagementException {
 
-    private final String teamName;
+    private final String subscription;
 
-    public TeamAlreadyExistsException(String teamName) {
-        this.teamName = teamName;
+    public SubscriptionNotUpdatableException(String subscription) {
+        this.subscription = subscription;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Subscription [" + subscription + "] can not be updated because of its status.";
     }
 
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
-    }
-
-    @Override
-    public String getMessage() {
-        return "A team [" + teamName + "] already exists.";
     }
 }

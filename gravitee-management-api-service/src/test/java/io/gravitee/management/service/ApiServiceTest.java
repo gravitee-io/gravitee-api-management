@@ -51,13 +51,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import java.util.Arrays;
-import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -391,7 +389,7 @@ public class ApiServiceTest {
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn(contextPathToCreate);
 
-        when(apiRepository.findAll()).thenReturn(new HashSet<>(Arrays.asList(api)));
+        when(apiRepository.findAll()).thenReturn(new HashSet<>(Collections.singletonList(api)));
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 
         Membership po1 = new Membership("admin", API_ID, MembershipReferenceType.API);
@@ -412,6 +410,7 @@ public class ApiServiceTest {
         apiService.update(API_ID, existingApi);
     }
 
+    /*
     @Test
     public void shouldDelete() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
@@ -433,6 +432,7 @@ public class ApiServiceTest {
 
         apiService.delete(API_ID);
     }
+    */
 
     @Test
     public void shouldStart() throws Exception {

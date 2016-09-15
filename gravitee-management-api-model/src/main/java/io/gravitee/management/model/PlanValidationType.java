@@ -13,28 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
-
-import io.gravitee.common.http.HttpStatusCode;
+package io.gravitee.management.model;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class UnknownMemberException extends AbstractManagementException {
+public enum PlanValidationType {
+    /**
+     * Subscription is automatically validated without any human action.
+     */
+    AUTO,
 
-    private final String username;
-
-    public UnknownMemberException(String username) {
-        this.username = username;
-    }
-
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.NOT_FOUND_404;
-    }
-
-    @Override
-    public String getMessage() {
-        return "User [" + username + "] is not a member of this team.";
-    }
+    /**
+     * Subscription requires a human validation.
+     */
+    MANUAL
 }

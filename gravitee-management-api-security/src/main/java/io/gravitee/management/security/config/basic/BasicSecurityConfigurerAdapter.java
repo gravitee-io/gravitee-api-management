@@ -179,6 +179,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     .antMatchers(HttpMethod.PUT, "/applications/**").authenticated()
                     .antMatchers(HttpMethod.DELETE, "/applications/**").authenticated()
 
+                    // Subscriptions
+                    .antMatchers(HttpMethod.GET, "/subscriptions/**").authenticated()
+
                     // Instance requests
                     .antMatchers(HttpMethod.GET, "/instances/**").hasAuthority("ADMIN")
 

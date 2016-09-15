@@ -23,7 +23,6 @@ import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.swagger.annotations.*;
 
@@ -41,7 +40,8 @@ import static java.lang.String.format;
 /**
  * Defines the REST resources to manage API.
  *
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Api(tags = {"API"})
 public class ApiResource extends AbstractResource {
@@ -190,7 +190,8 @@ public class ApiResource extends AbstractResource {
             @ApiResponse(code = 204, message = "API successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response delete(@PathParam("api") String api) {
-        apiService.delete(api);
+        // TODO: replace delete with "archive" (https://github.com/gravitee-io/issues/issues/55)
+    //    apiService.delete(api);
 
         return Response.noContent().build();
     }
@@ -321,6 +322,16 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiEventsResource.class);
     }
 
+    @Path("plans")
+    public ApiPlansResource getApiPlansResource() {
+        return resourceContext.getResource(ApiPlansResource.class);
+    }
+
+    @Path("subscriptions")
+    public ApiSubscriptionsResource getApiSubscriptionsResource() {
+        return resourceContext.getResource(ApiSubscriptionsResource.class);
+    }
+
     private void setPermission(ApiEntity api) {
         if (isAdmin()) {
             api.setPermission(MembershipType.PRIMARY_OWNER);
@@ -342,7 +353,7 @@ public class ApiResource extends AbstractResource {
     }
 
     private void setSynchronizationState(io.gravitee.management.rest.model.ApiEntity apiEntity) {
-        if (apiService.isAPISynchronized(apiEntity.getApiId())) {
+        if (apiService.isSynchronized(apiEntity.getApiId())) {
             apiEntity.setIsSynchronized(true);
         } else {
             apiEntity.setIsSynchronized(false);

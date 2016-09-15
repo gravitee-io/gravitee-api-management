@@ -29,7 +29,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class GraviteeApplication extends ResourceConfig {
 
@@ -43,6 +44,7 @@ public class GraviteeApplication extends ResourceConfig {
 
         register(ApisResource.class);
         register(ApplicationsResource.class);
+        register(SubscriptionsResource.class);
         register(UsersResource.class);
         register(PoliciesResource.class);
         register(FetchersResource.class);

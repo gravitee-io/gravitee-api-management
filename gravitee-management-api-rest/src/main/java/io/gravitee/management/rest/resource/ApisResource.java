@@ -39,7 +39,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Path("/apis")
 @Api(tags = {"API"})
@@ -213,10 +214,6 @@ public class ApisResource extends AbstractResource {
                     }
                 }
             }
-        }
-        final Set<ApplicationEntity> applications = applicationService.findByApi(api.getId());
-        if (applications != null) {
-            apiItem.setApplicationsSize(applications.size());
         }
 
         return apiItem;

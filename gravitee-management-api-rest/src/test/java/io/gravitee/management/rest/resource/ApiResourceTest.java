@@ -183,6 +183,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
+    /*
     @Test
     public void shouldDeleteApi() {
         final ApiEntity mockApi = new ApiEntity();
@@ -196,6 +197,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         verify(apiService).delete(API_NAME);
     }
+    */
 
     @Test
     public void shouldNotDeleteApiBecauseNotFound() {

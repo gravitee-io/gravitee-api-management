@@ -22,7 +22,8 @@ import java.io.IOException;
 import java.io.Writer;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class NoContentOutputErrorHandler extends ErrorHandler {
 

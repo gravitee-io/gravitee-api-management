@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.management.standalone</groupId>
         <artifactId>gravitee-management-api-standalone</artifactId>
-        <version>0.20.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-management-api-standalone-container</artifactId>
@@ -44,34 +44,11 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Gravitee Repository dependencies
         <dependency>
-            <groupId>io.gravitee.repository</groupId>
-            <artifactId>gravitee-repository-mongodb</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>io.gravitee.management.services</groupId>
+            <artifactId>gravitee-management-services-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.gravitee.repository</groupId>
-            <artifactId>gravitee-repository-jdbc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.gravitee.repository</groupId>
-            <artifactId>gravitee-repository-elasticsearch</artifactId>
-        </dependency>
-         -->
 
         <dependency>
             <groupId>org.slf4j</groupId>

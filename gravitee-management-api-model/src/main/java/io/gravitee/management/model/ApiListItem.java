@@ -49,8 +49,6 @@ public class ApiListItem {
 
     private MembershipType permission;
 
-    private int applicationsSize;
-
     @JsonProperty(value = "picture_url")
     private String pictureUrl;
 
@@ -134,14 +132,6 @@ public class ApiListItem {
         this.permission = permission;
     }
 
-    public int getApplicationsSize() {
-        return applicationsSize;
-    }
-
-    public void setApplicationsSize(int applicationsSize) {
-        this.applicationsSize = applicationsSize;
-    }
-
     public String getPictureUrl() {
         return pictureUrl;
     }
@@ -176,7 +166,6 @@ public class ApiListItem {
             ", state=" + state +
             ", primaryOwner=" + primaryOwner +
             ", permission=" + permission +
-            ", applicationsSize=" + applicationsSize +
             '}';
     }
 }

@@ -16,29 +16,29 @@
 package io.gravitee.management.service.impl;
 
 import com.google.common.collect.ImmutableMap;
-import io.gravitee.common.utils.UUID;
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.MembershipType;
+import io.gravitee.management.model.NewExternalUserEntity;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
-import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.exceptions.NotAuthorizedMembershipException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.ApiKey;
-import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ConcurrentReferenceHashMap;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.emptySet;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -191,28 +191,28 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
 
     private EmailNotification buildEmailNotification(UserEntity user, MembershipReferenceType referenceType, String referenceId) {
         String subject = null;
-        String content = null;
+        EmailNotificationBuilder.EmailTemplate template = null;
         Map params = null;
 
         switch (referenceType) {
             case APPLICATION:
                 subject = "Subscription to application " + referenceId;
-                content = "applicationMember.html";
+                template = EmailNotificationBuilder.EmailTemplate.APPLICATION_MEMBER_SUBSCRIPTION;
                 params = ImmutableMap.of("application", referenceId, "username", user.getUsername());
                 break;
             case API:
                 subject = "Subscription to API " + referenceId;
-                content = "apiMember.html";
+                template = EmailNotificationBuilder.EmailTemplate.API_MEMBER_SUBSCRIPTION;
                 params = ImmutableMap.of("api", referenceId, "username", user.getUsername());
                 break;
             case APPLICATION_GROUP:
                 subject = "Subscription to application group " + referenceId;
-                content = "applicationGroupMember.html";
+                template = EmailNotificationBuilder.EmailTemplate.APPLICATION_GROUP_MEMBER_SUBSCRIPTION;
                 params = ImmutableMap.of("group", referenceId, "username", user.getUsername());
                 break;
             case API_GROUP:
                 subject = "Subscription to API group " + referenceId;
-                content = "apiGroupMember.html";
+                template = EmailNotificationBuilder.EmailTemplate.API_MEMBER_GROUP_SUBSCRIPTION;
                 params = ImmutableMap.of("group", referenceId, "username", user.getUsername());
                 break;
         }
@@ -220,7 +220,7 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
         return new EmailNotificationBuilder()
                 .to(user.getEmail())
                 .subject(subject)
-                .content(content)
+                .template(template)
                 .params(params)
                 .build();
     }

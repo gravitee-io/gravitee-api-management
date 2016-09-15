@@ -18,17 +18,24 @@ package io.gravitee.management.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class NotAuthorizedException extends AbstractManagementException {
+public class PlanAlreadySubscribedException extends AbstractManagementException {
 
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.FORBIDDEN_403;
+    private final String plan;
+
+    public PlanAlreadySubscribedException(String plan) {
+        this.plan = plan;
     }
 
     @Override
     public String getMessage() {
-        return "Not authorized";
+        return "There is already a PENDING or ACCEPTED subscription for this plan.";
+    }
+
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
     }
 }

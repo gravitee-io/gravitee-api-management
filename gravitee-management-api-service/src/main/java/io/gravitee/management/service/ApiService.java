@@ -20,7 +20,8 @@ import io.gravitee.management.model.*;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface ApiService {
 
@@ -33,20 +34,27 @@ public interface ApiService {
     Set<ApiEntity> findByGroup(String groupId);
 
     Set<ApiEntity> findByVisibility(Visibility visibility);
-    
-    int countByApplication(String applicationId);
 
     ApiEntity create(NewApiEntity api, String username);
 
     ApiEntity update(String apiId, UpdateApiEntity api);
 
-    void delete(String apiId);
+//    void delete(String apiId);
 
     void start(String apiId, String username);
 
     void stop(String apiId, String username);
 
-    boolean isAPISynchronized(String apiId);
+    /**
+     * Check if the API is "out of sync" or not. In this case, user is able to deploy it.
+     * API is in "out of sync" state if:
+     * - API definition has been updated and is different from the currently deployed API
+     * - A plan has been updated for the API
+     *
+     * @param apiId
+     * @return
+     */
+    boolean isSynchronized(String apiId);
     
     ApiEntity deploy(String apiId, String username, EventType eventType);
     

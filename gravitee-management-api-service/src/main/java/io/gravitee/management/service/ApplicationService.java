@@ -20,7 +20,8 @@ import io.gravitee.management.model.*;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface ApplicationService {
 
@@ -37,6 +38,4 @@ public interface ApplicationService {
     ApplicationEntity update(String applicationId, UpdateApplicationEntity application);
 
     void delete(String applicationId);
-
-    Set<ApplicationEntity> findByApi(String applicationId);
 }

@@ -22,17 +22,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.service.*;
-import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
+import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
+import io.gravitee.management.service.exceptions.ApiNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Visibility;
 import org.apache.commons.io.IOUtils;
@@ -62,9 +65,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private ApiRepository apiRepository;
 
     @Autowired
-    private ApiKeyRepository apiKeyRepository;
-
-    @Autowired
     private MembershipRepository membershipRepository;
 
     @Autowired
@@ -86,6 +86,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private GroupService groupService;
 
     @Autowired
+    private PlanService planService;
+
+    @Autowired
     private ApiSynchronizationProcessor apiSynchronizationProcessor;
 
     @Value("${configuration.default-icon:${gravitee.home}/config/default-icon.png}")
@@ -102,7 +105,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         Proxy proxy = new Proxy();
         proxy.setContextPath(newApiEntity.getContextPath());
-        proxy.setEndpoints(Collections.singletonList(new Endpoint(newApiEntity.getEndpoint())));
+        Endpoint defaultEdp = new Endpoint(newApiEntity.getEndpoint());
+        defaultEdp.setName("default");
+        proxy.setEndpoints(Collections.singletonList(defaultEdp));
         apiEntity.setProxy(proxy);
 
         List<String> declaredPaths = (newApiEntity.getPaths() != null) ? newApiEntity.getPaths() : new ArrayList<>();
@@ -114,12 +119,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         Map<String, Path> paths = declaredPaths.stream().map(sPath -> {
             Path path = new Path();
             path.setPath(sPath);
-            Rule apiKeyRule = new Rule();
-            Policy apiKeyPolicy = new Policy();
-            apiKeyPolicy.setName("api-key");
-            apiKeyPolicy.setConfiguration("{}");
-            apiKeyRule.setPolicy(apiKeyPolicy);
-            path.getRules().add(apiKeyRule);
             return path;
         }).collect(Collectors.toMap(Path::getPath, path -> path));
 
@@ -259,7 +258,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             LOGGER.debug("Find APIs by user {}", username);
 
             Set<Api> publicApis = apiRepository.findByVisibility(Visibility.PUBLIC);
-            Set<Api> restrictedApis = apiRepository.findByVisibility(Visibility.RESTRICTED);
             Set<Api> userApis = apiRepository.findByIds(
                     membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.API).stream()
                             .map(Membership::getReferenceId)
@@ -270,12 +268,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     .map(Membership::getReferenceId).collect(Collectors.toList());
             Set<Api> groupApis = apiRepository.findByGroups(groupIds);
 
-            final Set<ApiEntity> apis = new HashSet<>(publicApis.size() + restrictedApis.size() + userApis.size());
+            final Set<ApiEntity> apis = new HashSet<>(publicApis.size() + userApis.size());
 
             apis.addAll(convert(publicApis));
-
-            apis.addAll(convert(restrictedApis));
-
             apis.addAll(convert(userApis));
 
             apis.addAll(convert(groupApis));
@@ -295,18 +290,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find APIs for group {}", groupId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find APIs for group " + groupId, ex);
-        }
-    }
-
-    @Override
-    public int countByApplication(String applicationId) {
-        try {
-            LOGGER.debug("Find APIs by application {}", applicationId);
-            Set<ApiKey> applicationApiKeys = apiKeyRepository.findByApplication(applicationId);
-            return (int) applicationApiKeys.stream().map(ApiKey::getApi).distinct().count();
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all APIs", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
         }
     }
 
@@ -350,6 +333,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
+    /*
     @Override
     public void delete(String apiName) {
         ApiEntity api = findById(apiName);
@@ -378,6 +362,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             throw new TechnicalManagementException("An error occurs while trying to delete API " + apiName, ex);
         }
     }
+    */
 
     @Override
     public void start(String apiId, String username) {
@@ -402,8 +387,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public boolean isAPISynchronized(String apiId) {
+    public boolean isSynchronized(String apiId) {
         try {
+            // 1_ First, check the API state
             ApiEntity api = findById(apiId);
 
             Map<String, Object> properties = new HashMap<>();
@@ -416,14 +402,22 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             if (! events.getContent().isEmpty()) {
                 // According to page size, we know that we have only one element in the list
                 EventEntity lastEvent = events.getContent().get(0);
-                JsonNode node = objectMapper.readTree(lastEvent.getPayload());
-                Api payloadEntity = objectMapper.convertValue(node, Api.class);
-                if (api.getUpdatedAt().compareTo(payloadEntity.getUpdatedAt()) <= 0) {
-                    return true;
-                } else {
-                    // API is synchronized if API required deployment fields are the same as the event payload
-                    return apiSynchronizationProcessor.processCheckSynchronization(convert(payloadEntity, null), api);
+
+                //TODO: Done only for backward compatibility with 0.x. Must be removed later (1.1.x ?)
+                boolean enabled = objectMapper.getDeserializationConfig().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+                objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
+                objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, enabled);
+
+                boolean sync = apiSynchronizationProcessor.processCheckSynchronization(convert(payloadEntity), api);
+
+                // 2_ If APY definition is synchronized, check if there is any modification for API's plans
+                if (sync) {
+                    Set<PlanEntity> plans = planService.findByApi(api.getId());
+                    sync = plans.stream().filter(plan -> plan.getUpdatedAt().after(api.getUpdatedAt())).count() == 0;
                 }
+
+                return sync;
             }
         } catch (Exception e) {
             LOGGER.error("An error occurs while trying to check API synchronization state {}", apiId, e);
@@ -665,7 +659,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         updateApiEntity.setTags(apiEntity.getTags());
         updateApiEntity.setVersion(apiEntity.getVersion());
         updateApiEntity.setVisibility(apiEntity.getVisibility());
-        if (apiEntity.getGroup() != null) {
+        if (apiEntity.getGroup() != null && (
+                apiEntity.getGroup().getId() != null && !apiEntity.getGroup().getId().isEmpty())) {
             updateApiEntity.setGroup(apiEntity.getGroup().getId());
         }
 
@@ -703,6 +698,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         return apis.stream()
                 .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId()))))
                 .collect(Collectors.toSet());
+    }
+
+    private ApiEntity convert(Api api) {
+        return convert(api, null);
     }
 
     private ApiEntity convert(Api api, UserEntity primaryOwner) {
@@ -767,7 +766,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         api.setName(updateApiEntity.getName().trim());
         api.setDescription(updateApiEntity.getDescription().trim());
         api.setPicture(updateApiEntity.getPicture());
-        api.setGroup(updateApiEntity.getGroup());
+
+        if (updateApiEntity.getGroup() != null && !updateApiEntity.getGroup().isEmpty()) {
+            api.setGroup(updateApiEntity.getGroup());
+        }
 
         try {
             io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();

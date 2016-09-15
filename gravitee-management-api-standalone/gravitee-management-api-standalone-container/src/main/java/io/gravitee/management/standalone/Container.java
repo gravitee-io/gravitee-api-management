@@ -31,7 +31,8 @@ import io.gravitee.management.rest.spring.PropertiesConfiguration;
 import io.gravitee.management.standalone.spring.StandaloneConfiguration;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class Container {
 

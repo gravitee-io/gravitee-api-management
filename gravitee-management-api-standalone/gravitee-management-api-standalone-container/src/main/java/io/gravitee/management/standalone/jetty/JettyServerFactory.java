@@ -26,7 +26,8 @@ import java.lang.management.ManagementFactory;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class JettyServerFactory implements FactoryBean<Server> {
 

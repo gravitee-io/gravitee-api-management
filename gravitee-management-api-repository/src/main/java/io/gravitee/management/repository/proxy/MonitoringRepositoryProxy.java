@@ -20,7 +20,7 @@ import io.gravitee.repository.monitoring.model.MonitoringResponse;
 import org.springframework.stereotype.Component;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component

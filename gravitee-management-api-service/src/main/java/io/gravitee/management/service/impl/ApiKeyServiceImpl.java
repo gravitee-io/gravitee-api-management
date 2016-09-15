@@ -16,12 +16,11 @@
 package io.gravitee.management.service.impl;
 
 import com.google.common.collect.ImmutableMap;
-import io.gravitee.management.model.ApiKeyEntity;
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.PrimaryOwnerEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;
+import io.gravitee.management.service.exceptions.SubscriptionClosedException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -33,13 +32,14 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptySet;
-
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Component
 public class ApiKeyServiceImpl extends TransactionalService implements ApiKeyService {
@@ -53,6 +53,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     private ApiKeyRepository apiKeyRepository;
 
     @Autowired
+    private SubscriptionService subscriptionService;
+
+    @Autowired
     private ApiKeyGenerator apiKeyGenerator;
 
     @Autowired
@@ -61,40 +64,93 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Autowired
     private ApplicationService applicationService;
 
+    @Autowired
+    private ApiService apiService;
+
+    @Autowired
+    private PlanService planService;
+
     @Override
-    public ApiKeyEntity generateOrRenew(String applicationName, String apiName) {
+    public ApiKeyEntity generate(String subscription) {
         try {
-            LOGGER.debug("Generate a new key for {} - {}", applicationName, apiName);
-            ApiKey apiKey = new ApiKey();
+            LOGGER.debug("Generate an API Key for subscription {}", subscription);
 
-            apiKey.setApplication(applicationName);
-            apiKey.setApi(apiName);
-            apiKey.setCreatedAt(new Date());
-            apiKey.setKey(apiKeyGenerator.generate());
-            apiKey.setRevoked(false);
+            ApiKey apiKey = generateForSubscription(subscription);
+            apiKey = apiKeyRepository.create(apiKey);
 
-            Instant expirationInst = apiKey.getCreatedAt().toInstant().plus(Duration.ofHours(1));
+            //TODO: Send a notification to the application owner
+
+            return convert(apiKey);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to generate an API Key for {} - {}", subscription, ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurs while trying to generate an API Key for %s", subscription), ex);
+        }
+    }
+
+    @Override
+    public ApiKeyEntity renew(String subscription) {
+        try {
+            LOGGER.debug("Renew API Key for subscription {}", subscription);
+
+            ApiKey newApiKey = generateForSubscription(subscription);
+            newApiKey = apiKeyRepository.create(newApiKey);
+
+            Instant expirationInst = newApiKey.getCreatedAt().toInstant().plus(Duration.ofHours(2));
             Date expirationDate = Date.from(expirationInst);
 
             // Previously generated keys should be set as revoked
-            Set<ApiKey> oldKeys = apiKeyRepository.findByApplicationAndApi(applicationName, apiName);
+            // Get previously generated keys to set their expiration date
+            Set<ApiKey> oldKeys = apiKeyRepository.findBySubscription(subscription);
             for (ApiKey oldKey : oldKeys) {
-                setExpiration(expirationDate, oldKey);
+                if (! oldKey.equals(newApiKey)) {
+                    setExpiration(expirationDate, oldKey);
+                }
             }
 
-            apiKey = apiKeyRepository.create(applicationName, apiName, apiKey);
-            return convert(apiKey);
+            //TODO: Send a notification to the application owner
+
+            return convert(newApiKey);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to generate a key for {} - {}", applicationName, apiName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to generate a key for " + applicationName + " - " + apiName, ex);
+            LOGGER.error("An error occurs while trying to renew an API Key for {}", subscription, ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurs while trying to renew an API Key for %s", subscription), ex);
         }
+    }
+
+    /**
+     * Generate an {@link ApiKey} from a subscription.
+     *
+     * @param subscription
+     * @return An Api Key
+     */
+    private ApiKey generateForSubscription(String subscription) {
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+
+        Date now = new Date();
+        if (subscriptionEntity.getEndingAt() != null && subscriptionEntity.getEndingAt().before(now)) {
+            throw new SubscriptionClosedException(subscription);
+        }
+
+        ApiKey apiKey = new ApiKey();
+        apiKey.setSubscription(subscription);
+        apiKey.setApplication(subscriptionEntity.getApplication());
+        apiKey.setPlan(subscriptionEntity.getPlan());
+        apiKey.setCreatedAt(new Date());
+        apiKey.setUpdatedAt(apiKey.getCreatedAt());
+        apiKey.setKey(apiKeyGenerator.generate());
+
+        // By default, the API Key will expire when subscription is closed
+        apiKey.setExpireAt(subscriptionEntity.getEndingAt());
+
+        return apiKey;
     }
 
     @Override
     public void revoke(String apiKey) {
         try {
-            LOGGER.debug("Revoke key {}", apiKey);
-            Optional<ApiKey> optKey = apiKeyRepository.retrieve(apiKey);
+            LOGGER.debug("Revoke API Key {}", apiKey);
+            Optional<ApiKey> optKey = apiKeyRepository.findById(apiKey);
             if (!optKey.isPresent()) {
                 throw new ApiKeyNotFoundException();
             }
@@ -102,22 +158,30 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             ApiKey key = optKey.get();
             if (!key.isRevoked()) {
                 key.setRevoked(true);
-                key.setRevokeAt(new Date());
+                key.setRevokedAt(new Date());
 
                 apiKeyRepository.update(key);
 
-                final ApplicationEntity applicationEntity = applicationService.findById(key.getApplication());
-                final PrimaryOwnerEntity owner = applicationEntity.getPrimaryOwner();
+                final ApplicationEntity application = applicationService.findById(key.getApplication());
+                final PlanEntity plan = planService.findById(key.getPlan());
+                final ApiEntity api = apiService.findById(plan.getApis().iterator().next());
+                final PrimaryOwnerEntity owner = application.getPrimaryOwner();
 
                 if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
                     emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                             .to(owner.getEmail())
-                            .subject("An API key has been revoked on API " + key.getApi() + " for application " + key.getApplication())
-                            .content("apiKeyRevoked.html")
-                            .params(ImmutableMap.of( "owner", owner.getUsername(), "api", key.getApi(),
-                                    "application", key.getApplication(), "apiKey", key.getKey()))
+                            .subject("API key revoked for API " + api.getName())
+                            .template(EmailNotificationBuilder.EmailTemplate.REVOKE_API_KEY)
+                            .params(ImmutableMap.of(
+                                    "owner", owner,
+                                    "api", api,
+                                    "plan", plan,
+                                    "application", application,
+                                    "apiKey", key))
                             .build());
                 }
+            } else {
+                LOGGER.info("API Key {} already revoked. Skipping...", apiKey);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to revoke a key {}", apiKey, ex);
@@ -126,142 +190,105 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public Optional<ApiKeyEntity> getCurrent(String applicationName, String apiName) {
+    public Set<ApiKeyEntity> findBySubscription(String subscription) {
         try {
-            LOGGER.debug("Generate a new key for {} - {}", applicationName, apiName);
-            // Current Api Key is the key with the latest createdAt value and which is not revoked
-            final Set<ApiKey> apiKeys = apiKeyRepository.findByApplicationAndApi(applicationName, apiName);
-            if (apiKeys == null || apiKeys.isEmpty()) {
-                return Optional.empty();
+            LOGGER.debug("Find API Keys for subscription {}", subscription);
+
+            SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+            Set<ApiKey> keys = apiKeyRepository.findBySubscription(subscriptionEntity.getId());
+            return keys.stream().map(ApiKeyServiceImpl::convert).collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while finding API keys for subscription {}", subscription, ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurs while finding API keys for subscription %s", subscription), ex);
+        }
+    }
+
+    @Override
+    public ApiKeyEntity findByKey(String apiKey) {
+        try {
+            LOGGER.debug("Find an API Key by key: {}", apiKey);
+
+            Optional<ApiKey> optApiKey = apiKeyRepository.findById(apiKey);
+
+            if (optApiKey.isPresent()) {
+                return convert(optApiKey.get());
             }
-            return apiKeys.stream()
-                .filter(apiKey -> !apiKey.isRevoked())
-                .max((o1, o2) -> o1.getCreatedAt().compareTo(o2.getCreatedAt()))
-                .map(ApiKeyServiceImpl::convert);
+
+            throw new ApiKeyNotFoundException();
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while getting current API key for {} - {}", applicationName, apiName, ex);
-            throw new TechnicalManagementException("An error occurs while getting current API key for " + applicationName + " - " + apiName, ex);
+            LOGGER.error("An error occurs while trying to find an API Key by key {}", apiKey, ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurs while trying to find an API Key by key: %s", apiKey), ex);
         }
     }
 
     @Override
-    public Map<String, List<ApiKeyEntity>> findByApplication(String applicationId) {
+    public ApiKeyEntity update(ApiKeyEntity apiKeyEntity) {
         try {
-            LOGGER.debug("Find all API keys for application {}", applicationId);
-
-            Set<ApiKey> keys = apiKeyRepository.findByApplication(applicationId);
-
-            Map<String, Set<ApiKey>> keysByApi = new HashMap<>();
-            keys.forEach(apiKey -> {
-                Set<ApiKey> values = keysByApi.getOrDefault(apiKey.getApi(), new HashSet<>());
-                values.add(apiKey);
-                keysByApi.put(apiKey.getApi(), values);
-            });
-
-            Map<String, List<ApiKeyEntity>> keysByApiResult = new HashMap<>(keysByApi.size());
-
-            keysByApi.forEach((api, apiKeys) -> keysByApiResult.put(api,
-                apiKeys.stream().sorted(
-                        (key1, key2) -> key2.getCreatedAt().compareTo(
-                                key1.getCreatedAt())).map(ApiKeyServiceImpl::convert).collect(Collectors.toList())));
-
-            return keysByApiResult;
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while getting all API keys for application {}", applicationId, ex);
-            throw new TechnicalManagementException("An error occurs while getting all API keys for application " + applicationId, ex);
-        }
-    }
-
-    @Override
-    public Map<String, List<ApiKeyEntity>> findByApi(String apiId) {
-        try {
-            LOGGER.debug("Find all API keys for API {}", apiId);
-
-            Set<ApiKey> keys = apiKeyRepository.findByApi(apiId);
-
-            Map<String, Set<ApiKey>> keysByApplication = new HashMap<>();
-            keys.forEach(apiKey -> {
-                Set<ApiKey> values = keysByApplication.getOrDefault(apiKey.getApplication(), new HashSet<>());
-                values.add(apiKey);
-                keysByApplication.put(apiKey.getApplication(), values);
-            });
-
-            Map<String, List<ApiKeyEntity>> keysByApplicationResult = new HashMap<>(keysByApplication.size());
-
-            keysByApplication.forEach((api, apiKeys) -> keysByApplicationResult.put(api,
-                    apiKeys.stream().sorted(
-                            (key1, key2) -> key2.getCreatedAt().compareTo(
-                                    key1.getCreatedAt())).map(ApiKeyServiceImpl::convert).collect(Collectors.toList())));
-
-            return keysByApplicationResult;
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while getting all API keys for API {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while getting all API keys for API " + apiId, ex);
-        }
-    }
-
-    @Override
-    public ApiKeyEntity update(String apiKey, ApiKeyEntity apiKeyEntity) {
-        try {
-            LOGGER.debug("Trying to update key {}", apiKey);
-            Optional<ApiKey> optKey = apiKeyRepository.retrieve(apiKey);
+            LOGGER.debug("Update API Key {}", apiKeyEntity.getKey());
+            Optional<ApiKey> optKey = apiKeyRepository.findById(apiKeyEntity.getKey());
             if (!optKey.isPresent()) {
                 throw new ApiKeyNotFoundException();
             }
 
             ApiKey key = optKey.get();
 
-            setExpiration(apiKeyEntity.getExpireOn(), key);
+            setExpiration(apiKeyEntity.getExpireAt(), key);
+
+            return convert(key);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while updating an API Key {}", apiKeyEntity.getKey(), ex);
+            throw new TechnicalManagementException(String.format(
+                    "An error occurs while updating an API Key %s", apiKeyEntity.getKey()), ex);
+        }
+    }
+
+    @Override
+    public void delete(String apiKey) {
+        /*
+        try {
+            LOGGER.debug("Delete API Key {}", apiKey);
+            Optional<ApiKey> optKey = apiKeyRepository.de(apiKey);
+            if (!optKey.isPresent()) {
+                throw new ApiKeyNotFoundException();
+            }
+
+            ApiKey key = optKey.get();
+
+            setExpiration(apiKeyEntity.getExpireAt(), key);
 
             return convert(key);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update a key {}", apiKey, ex);
             throw new TechnicalManagementException("An error occurs while trying to update a key " + apiKey, ex);
         }
+        */
     }
 
     private void setExpiration(Date expirationDate, ApiKey key) throws TechnicalException {
-        if (!key.isRevoked() && key.getExpiration() == null) {
-            key.setExpiration(expirationDate);
+        if (!key.isRevoked() && key.getExpireAt() == null) {
+            key.setExpireAt(expirationDate);
             apiKeyRepository.update(key);
 
-            final ApplicationEntity applicationEntity = applicationService.findById(key.getApplication());
-            final PrimaryOwnerEntity owner = applicationEntity.getPrimaryOwner();
+            final ApplicationEntity application = applicationService.findById(key.getApplication());
+            final PlanEntity plan = planService.findById(key.getPlan());
+            final ApiEntity api = apiService.findById(plan.getApis().iterator().next());
+            final PrimaryOwnerEntity owner = application.getPrimaryOwner();
 
             if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
                 emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                         .to(owner.getEmail())
-                        .subject("An API key has been revoked on API " + key.getApi() + " for application " + key.getApplication())
-                        .content("apiKeyRevoked.html")
-                        .params(ImmutableMap.of( "owner", owner.getUsername(), "api", key.getApi(),
-                                "application", key.getApplication(), "apiKey", key.getKey()))
+                        .subject("API key has been updated !")
+                        .template(EmailNotificationBuilder.EmailTemplate.EXPIRE_API_KEY)
+                        .params(ImmutableMap.of(
+                                "owner", owner,
+                                "api", api,
+                                "application", application,
+                                "apiKey", key.getKey(),
+                                "plan", plan))
                         .build());
             }
-        }
-    }
-
-    @Override
-    public Set<ApiKeyEntity> findAll(String applicationName, String apiName) {
-        try {
-            LOGGER.debug("Find all API Keys for {} - {}", applicationName, apiName);
-
-            final Set<ApiKey> apiKeys = apiKeyRepository.findByApplicationAndApi(applicationName, apiName);
-
-            if (apiKeys == null || apiKeys.isEmpty()) {
-                return emptySet();
-            }
-
-            final Set<ApiKeyEntity> apiKeyEntities = new HashSet<>(apiKeys.size());
-
-            apiKeyEntities.addAll(apiKeys.stream()
-                    .map(ApiKeyServiceImpl::convert)
-                    .collect(Collectors.toSet())
-            );
-
-            return apiKeyEntities;
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all API Keys for {} - {}", applicationName, apiName);
-            throw new TechnicalManagementException("An error occurs while trying to find find all API Keys for " + applicationName + " - " + apiName, ex);
         }
     }
 
@@ -270,11 +297,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
         apiKeyEntity.setKey(apiKey.getKey());
         apiKeyEntity.setCreatedAt(apiKey.getCreatedAt());
-        apiKeyEntity.setExpireOn(apiKey.getExpiration());
+        apiKeyEntity.setExpireAt(apiKey.getExpireAt());
         apiKeyEntity.setRevoked(apiKey.isRevoked());
-        apiKeyEntity.setRevokeAt(apiKey.getRevokeAt());
-        apiKeyEntity.setApi(apiKey.getApi());
+        apiKeyEntity.setRevokedAt(apiKey.getRevokedAt());
+        apiKeyEntity.setUpdatedAt(apiKey.getUpdatedAt());
+        apiKeyEntity.setSubscription(apiKey.getSubscription());
         apiKeyEntity.setApplication(apiKey.getApplication());
+        apiKeyEntity.setPlan(apiKey.getPlan());
 
         return apiKeyEntity;
     }

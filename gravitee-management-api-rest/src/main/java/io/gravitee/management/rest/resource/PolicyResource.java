@@ -30,7 +30,8 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Api(tags = {"Plugin", "Policy"})
 public class PolicyResource {

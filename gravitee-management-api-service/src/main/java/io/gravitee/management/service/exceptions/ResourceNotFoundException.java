@@ -16,7 +16,7 @@
 package io.gravitee.management.service.exceptions;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ResourceNotFoundException extends AbstractNotFoundException {

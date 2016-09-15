@@ -20,7 +20,8 @@ import io.gravitee.management.model.PolicyEntity;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface PolicyService {
 

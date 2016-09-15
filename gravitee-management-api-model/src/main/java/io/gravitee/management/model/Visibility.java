@@ -16,11 +16,11 @@
 package io.gravitee.management.model;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public enum Visibility {
 
     PUBLIC,
-    RESTRICTED,
     PRIVATE
 }

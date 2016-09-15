@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
+package io.gravitee.management.model;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class NoValidApiKeyException extends AbstractNotFoundException {
-
-    @Override
-    public String getMessage() {
-        return "No valid API Key can be found.";
-    }
+public enum SubscriptionStatus {
+    PENDING,
+    REJECTED,
+    ACCEPTED,
+    CLOSED
 }

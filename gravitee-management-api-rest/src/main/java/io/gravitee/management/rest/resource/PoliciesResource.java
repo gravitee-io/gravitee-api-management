@@ -38,7 +38,8 @@ import java.util.stream.Stream;
 /**
  * Defines the REST resources to manage Policy.
  *
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Path("/policies")
 @Api(tags = {"Plugin", "Policy"})

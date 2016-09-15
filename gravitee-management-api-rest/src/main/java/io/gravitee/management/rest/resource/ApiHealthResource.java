@@ -31,7 +31,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @ApiPermissionsRequired(ApiPermission.ANALYTICS)
 @Api(tags = {"API"})

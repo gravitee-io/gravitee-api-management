@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee.management.standalone</groupId>
 		<artifactId>gravitee-management-api-standalone</artifactId>
-		<version>0.20.0-SNAPSHOT</version>
+		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>gravitee-management-api-standalone-distribution</artifactId>
@@ -82,6 +82,14 @@
 			<scope>runtime</scope>
 			<type>zip</type>
 		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.management.services</groupId>
+			<artifactId>gravitee-management-services-subscriptions</artifactId>
+			<version>${project.version}</version>
+			<type>zip</type>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -116,6 +124,12 @@
 								<artifactItem>
 									<groupId>io.gravitee.management.idp</groupId>
 									<artifactId>gravitee-management-api-idp-memory</artifactId>
+									<version>${project.version}</version>
+									<type>zip</type>
+								</artifactItem>
+								<artifactItem>
+									<groupId>io.gravitee.management.services</groupId>
+									<artifactId>gravitee-management-services-subscriptions</artifactId>
 									<version>${project.version}</version>
 									<type>zip</type>
 								</artifactItem>

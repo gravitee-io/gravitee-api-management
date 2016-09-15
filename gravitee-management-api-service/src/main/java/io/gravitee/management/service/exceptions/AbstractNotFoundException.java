@@ -18,7 +18,8 @@ package io.gravitee.management.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public abstract class AbstractNotFoundException extends AbstractManagementException {
 

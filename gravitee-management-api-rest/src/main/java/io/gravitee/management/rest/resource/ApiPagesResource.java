@@ -35,7 +35,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Api(tags = {"API"})
 public class ApiPagesResource extends AbstractResource {

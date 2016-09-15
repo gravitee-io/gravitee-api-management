@@ -15,10 +15,10 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Date;
 import java.util.Objects;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,9 +46,6 @@ public class ApplicationEntity {
     
     @JsonProperty("members_size")
     private int membersSize;
-    
-    @JsonProperty("apis_size")
-    private int apisSize;
 
     public String getId() {
         return id;
@@ -120,14 +117,6 @@ public class ApplicationEntity {
 
 	public void setMembersSize(int membersSize) {
 		this.membersSize = membersSize;
-	}
-
-	public int getApisSize() {
-		return apisSize;
-	}
-
-	public void setApisSize(int apisSize) {
-		this.apisSize = apisSize;
 	}
 
     public GroupEntity getGroup() {

@@ -13,33 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
+
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public enum PermissionType {
+public class SubscriptionAlreadyProcessedException extends AbstractManagementException {
 
-    VIEW_API(Scope.API),
-    EDIT_API(Scope.API),
-    DELETE_API(Scope.API),
+    private final String subscription;
 
-    VIEW_APPLICATION(Scope.APPLICATION),
-    EDIT_APPLICATION(Scope.APPLICATION),
-    DELETE_APPLICATION(Scope.APPLICATION);
-
-    private Scope scope;
-
-    PermissionType(Scope scope) {
-        this.scope = scope;
+    public SubscriptionAlreadyProcessedException(String subscription) {
+        this.subscription = subscription;
     }
 
-    public Scope scope() {
-        return this.scope;
+    @Override
+    public String getMessage() {
+        return "This subscription has already been processed.";
     }
 
-    public enum Scope {
-        API,
-        APPLICATION
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
     }
 }

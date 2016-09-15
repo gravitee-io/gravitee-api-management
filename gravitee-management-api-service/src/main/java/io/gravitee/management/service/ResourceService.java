@@ -20,7 +20,7 @@ import io.gravitee.management.model.ResourceEntity;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ResourceService {

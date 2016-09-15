@@ -15,29 +15,27 @@
  */
 package io.gravitee.management.service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
 import io.gravitee.management.model.ApiKeyEntity;
 
+import java.util.Set;
+
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface ApiKeyService {
 
-    ApiKeyEntity generateOrRenew(String applicationId, String apiId);
+    ApiKeyEntity generate(String subscription);
+
+    ApiKeyEntity renew(String subscription);
 
     void revoke(String apiKey);
 
-    Optional<ApiKeyEntity> getCurrent(String applicationId, String apiId);
+    Set<ApiKeyEntity> findBySubscription(String subscription);
 
-    Set<ApiKeyEntity> findAll(String applicationId, String apiId);
+    ApiKeyEntity findByKey(String apiKey);
 
-    Map<String, List<ApiKeyEntity>> findByApplication(String applicationId);
+    void delete(String apiKey);
 
-    Map<String, List<ApiKeyEntity>> findByApi(String apiId);
-
-    ApiKeyEntity update(String apiKey, ApiKeyEntity apiKeyEntity);
+    ApiKeyEntity update(ApiKeyEntity apiKeyEntity);
 }

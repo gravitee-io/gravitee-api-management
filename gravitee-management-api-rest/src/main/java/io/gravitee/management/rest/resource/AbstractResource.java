@@ -20,7 +20,8 @@ import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public abstract class AbstractResource {
 

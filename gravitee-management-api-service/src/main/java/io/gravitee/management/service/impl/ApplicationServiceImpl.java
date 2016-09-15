@@ -17,17 +17,16 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.permissions.Role;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.management.service.exceptions.NotAuthorizedRoleException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipReferenceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +52,6 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     private ApplicationRepository applicationRepository;
 
     @Autowired
-    private ApiKeyRepository apiKeyRepository;
-
-    @Autowired
     private UserService userService;
 
     @Autowired
@@ -63,6 +59,12 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
+
+    @Autowired
+    private ApiKeyService apiKeyService;
 
     @Override
     public ApplicationEntity findById(String applicationId) {
@@ -208,7 +210,8 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             return convert(Collections.singleton(updatedApplication)).iterator().next();
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update application {}", applicationId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to update application " + applicationId, ex);
+            throw new TechnicalManagementException(String.format(
+                    "An error occurs while trying to update application %s", applicationId), ex);
         }
     }
 
@@ -216,33 +219,24 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     public void delete(String applicationId) {
         try {
             LOGGER.debug("Delete application {}", applicationId);
-            Set<ApiKey> keys = apiKeyRepository.findByApplication(applicationId);
-            keys.forEach(apiKey -> {
-                try {
-                    apiKeyRepository.delete(apiKey.getKey());
-                } catch (TechnicalException e) {
-                    LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), e);
-                }
+            Set<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(applicationId, null);
+
+            subscriptions.forEach(subscription -> {
+                Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                apiKeys.forEach(apiKey -> {
+                    try {
+                        apiKeyService.delete(apiKey.getKey());
+                    } catch (TechnicalManagementException tme) {
+                        LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), tme);
+                    }
+                });
             });
 
             applicationRepository.delete(applicationId);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete application {}", applicationId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete application " + applicationId, ex);
-        }
-    }
-
-    @Override
-    public Set<ApplicationEntity> findByApi(String apiId) {
-        try {
-            LOGGER.debug("Find applications for api {}", apiId);
-            final Set<ApiKey> applications = apiKeyRepository.findByApi(apiId);
-            return applications.stream()
-                .map(application -> findById(application.getApplication()))
-                .collect(Collectors.toSet());
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get applications for api {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get applications for api " + apiId, ex);
+            throw new TechnicalManagementException(String.format(
+                    "An error occurs while trying to delete application %s", applicationId), ex);
         }
     }
 

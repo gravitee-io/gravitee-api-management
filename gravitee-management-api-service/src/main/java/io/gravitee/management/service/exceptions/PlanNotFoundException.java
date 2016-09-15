@@ -16,18 +16,19 @@
 package io.gravitee.management.service.exceptions;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class TeamNotFoundException extends AbstractNotFoundException {
+public class PlanNotFoundException extends AbstractNotFoundException {
 
-    private final String teamName;
+    private final String plan;
 
-    public TeamNotFoundException(String teamName) {
-        this.teamName = teamName;
+    public PlanNotFoundException(String plan) {
+        this.plan = plan;
     }
 
     @Override
     public String getMessage() {
-        return "Team [" + teamName + "] can not be found.";
+        return "Plan [" + plan + "] can not be found.";
     }
 }

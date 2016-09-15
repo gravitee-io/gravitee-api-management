@@ -36,7 +36,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Api(tags = {"Application"})
 public class ApplicationResource extends AbstractResource {
@@ -97,9 +98,9 @@ public class ApplicationResource extends AbstractResource {
         return resourceContext.getResource(ApplicationMembersResource.class);
     }
 
-    @Path("keys")
-    public ApplicationApiKeysResource getApiKeyResource() {
-        return resourceContext.getResource(ApplicationApiKeysResource.class);
+    @Path("subscriptions")
+    public ApplicationSubscriptionsResource getApplicationSubscriptionsResource() {
+        return resourceContext.getResource(ApplicationSubscriptionsResource.class);
     }
 
     @Path("analytics")
