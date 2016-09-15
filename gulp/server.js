@@ -49,8 +49,8 @@ function browserSyncInit(baseDir, browser, demo) {
    * For more details and option, https://github.com/chimurai/http-proxy-middleware/blob/v0.9.0/README.md
    */
   server.middleware = proxyMiddleware(
-    demo? 'http://demo.gravitee.io/management' : 'http://localhost:8083/management',
-    {changeOrigin: demo}
+    demo? 'https://demo.gravitee.io/management' : 'http://localhost:8083/management',
+    {changeOrigin: demo, secure: false}
   );
 
   browserSync.instance = browserSync.init({
