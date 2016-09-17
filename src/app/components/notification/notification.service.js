@@ -27,7 +27,7 @@ class NotificationService {
       );
     };
 
-    this.error = function (error, message) {
+    this.showError = function (error, message) {
       this.show(message || (
         error.data ?
           Array.isArray(error.data) ?

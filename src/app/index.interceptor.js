@@ -34,7 +34,7 @@ function interceptorConfig($httpProvider) {
             if (!sessionExpired) {
               sessionExpired = true;
               // session expired
-              notificationService.error(error, 'Session expired, redirecting to home...');
+              notificationService.showError(error, 'Session expired, redirecting to home...');
               $injector.get('$timeout')(function () {
                 $injector.get('$rootScope').$broadcast('graviteeLogout');
               }, 2000)
@@ -48,7 +48,7 @@ function interceptorConfig($httpProvider) {
           }
         }
         if (!sessionExpired) {
-          notificationService.error(error, errorMessage);
+          notificationService.showError(error, errorMessage);
         }
         return $q.reject(error);
       }
@@ -63,7 +63,7 @@ function interceptorConfig($httpProvider) {
       },
       responseError: function (error) {
         if (error && error.status <= 0) {
-          $injector.get('NotificationService').error('Server unreachable');
+          $injector.get('NotificationService').showError('Server unreachable');
         }
         return $q.reject(error);
       }

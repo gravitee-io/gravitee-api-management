@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class PageController {
-  
+
 	constructor(DocumentationService, $state, $mdDialog, $rootScope, $scope, NotificationService, FetcherService, $mdSidenav) {
     'ngInject';
     this.DocumentationService = DocumentationService;
@@ -77,7 +77,7 @@ class PageController {
     this.$scope.fetcherJsonSchema = this.emptyFetcher;
     this.page.source = {};
   }
-  
+
   configureFetcher(fetcher) {
     if (! this.page.source) {
       this.page.source = {};
@@ -103,7 +103,7 @@ class PageController {
         })
         .catch(function (error) {
           that.$scope.error = error;
-          that.NotificationService.error(error);
+          that.NotificationService.showError(error);
       });
     } else {
       this.DocumentationService.editPage(this.$state.params.apiId, this.page.id, this.page)
@@ -113,7 +113,7 @@ class PageController {
         })
         .catch(function (error) {
           that.$scope.error = error;
-          that.NotificationService.error(error);
+          that.NotificationService.showError(error);
         });
     }
   }
@@ -161,7 +161,7 @@ class PageController {
   showSettings() {
     this.$mdSidenav('page-settings').toggle();
   }
-  
+
   preview() {
     this.editMode = false;
     this.$scope.$parent.listPagesDisplayed = true;

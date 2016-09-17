@@ -70,7 +70,7 @@ class ApiResourcesController {
               schema: {}
             };
           } else {
-            this.NotificationService.error('Unexpected error while loading resource schema for ' + this.resource.type);
+            this.NotificationService.showError('Unexpected error while loading resource schema for ' + this.resource.type);
           }
         });
 
@@ -105,7 +105,7 @@ class ApiResourcesController {
           };
         } else {
           //todo manage errors
-          this.NotificationService.error('Unexpected error while loading resource schema for ' + this.resource.type);
+          this.NotificationService.showError('Unexpected error while loading resource schema for ' + this.resource.type);
         }
       });
   }
