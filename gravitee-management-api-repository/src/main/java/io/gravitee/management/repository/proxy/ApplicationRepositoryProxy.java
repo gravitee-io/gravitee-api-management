@@ -18,49 +18,23 @@ package io.gravitee.management.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipType;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationRepository> implements ApplicationRepository {
 
     @Override
-    public void deleteMember(String s, String s1) throws TechnicalException {
-        target.deleteMember(s, s1);
-    }
-
-    @Override
     public Set<Application> findAll() throws TechnicalException {
         return target.findAll();
-    }
-
-    @Override
-    public Set<Application> findByUser(String s, MembershipType membershipType) throws TechnicalException {
-        return target.findByUser(s, membershipType);
-    }
-
-    @Override
-    public Membership getMember(String s, String s1) throws TechnicalException {
-        return target.getMember(s, s1);
-    }
-
-    @Override
-    public Collection<Membership> getMembers(String s, MembershipType membershipType) throws TechnicalException {
-        return target.getMembers(s, membershipType);
-    }
-
-    @Override
-    public void saveMember(String s, String s1, MembershipType membershipType) throws TechnicalException {
-        target.saveMember(s, s1, membershipType);
     }
 
     @Override
@@ -81,5 +55,10 @@ public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationReposit
     @Override
     public Application update(Application application) throws TechnicalException {
         return target.update(application);
+    }
+
+    @Override
+    public Set<Application> findByIds(List<String> ids) throws TechnicalException {
+        return target.findByIds(ids);
     }
 }

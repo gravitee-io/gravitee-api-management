@@ -21,9 +21,14 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import io.gravitee.common.utils.UUID;
+import io.gravitee.management.model.*;
+import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipReferenceType;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,9 +37,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.NewApplicationEntity;
-import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -64,15 +66,28 @@ public class ApplicationServiceTest {
     private ApiKeyRepository apiKeyRepository;
 
     @Mock
+    private MembershipRepository membershipRepository;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
     private NewApplicationEntity newApplication;
+
     @Mock
     private UpdateApplicationEntity existingApplication;
+
     @Mock
     private Application application;
 
     @Test
     public void shouldFindByName() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        Membership po = new Membership(USER_NAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferenceAndMembershipType(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
+        when(userService.findByName(USER_NAME)).thenReturn(new UserEntity());
 
         final ApplicationEntity applicationEntity = applicationService.findById(APPLICATION_ID);
 
@@ -125,13 +140,18 @@ public class ApplicationServiceTest {
     }
 
     @Test
-    @Ignore
     public void shouldUpdate() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(application.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getDescription()).thenReturn("My description");
         when(applicationRepository.update(any())).thenReturn(application);
+        Membership po = new Membership(USER_NAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
-        final ApplicationEntity applicationEntity = applicationService.update(APPLICATION_NAME, existingApplication);
+        final ApplicationEntity applicationEntity = applicationService.update(APPLICATION_ID, existingApplication);
 
         verify(applicationRepository).update(argThat(new ArgumentMatcher<Application>() {
             public boolean matches(Object argument) {

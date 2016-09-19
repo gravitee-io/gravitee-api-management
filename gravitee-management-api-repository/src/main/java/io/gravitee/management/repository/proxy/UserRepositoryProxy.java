@@ -20,11 +20,13 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -48,5 +50,10 @@ public class UserRepositoryProxy extends AbstractProxy<UserRepository> implement
     @Override
     public Optional<User> findByUsername(String s) throws TechnicalException {
         return target.findByUsername(s);
+    }
+
+    @Override
+    public Set<User> findByUsernames(List<String> usernames) throws TechnicalException {
+        return target.findByUsernames(usernames);
     }
 }

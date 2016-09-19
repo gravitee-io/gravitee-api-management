@@ -77,7 +77,7 @@ public class UserServiceTest {
         when(user.getLastname()).thenReturn(LAST_NAME);
         when(user.getPassword()).thenReturn(PASSWORD);
         when(user.getRoles()).thenReturn(ROLES);
-        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernames(Collections.singletonList(USER_NAME))).thenReturn(Collections.singleton(user));
 
         final UserEntity userEntity = userService.findByName(USER_NAME);
 
@@ -98,7 +98,7 @@ public class UserServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByUsernameBecauseTechnicalException() throws TechnicalException {
-        when(userRepository.findByUsername(USER_NAME)).thenThrow(TechnicalException.class);
+        when(userRepository.findByUsernames(Collections.singletonList(USER_NAME))).thenThrow(TechnicalException.class);
 
         userService.findByName(USER_NAME);
     }

@@ -33,9 +33,9 @@ import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.management.model.Visibility;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -51,7 +51,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Component
 public class ApiServiceImpl extends TransactionalService implements ApiService {
@@ -63,6 +65,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private ApiKeyRepository apiKeyRepository;
+
+    @Autowired
+    private MembershipRepository membershipRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -153,9 +158,14 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 Api createdApi = apiRepository.create(repoApi);
 
                 // Add the primary owner of the newly created API
-                apiRepository.saveMember(createdApi.getId(), username, MembershipType.PRIMARY_OWNER);
+                UserEntity primaryOwner = userService.findByName(username);
+                Membership membership = new Membership(primaryOwner.getUsername(), createdApi.getId(), MembershipReferenceType.API);
+                membership.setType(MembershipType.PRIMARY_OWNER.name());
+                membership.setCreatedAt(repoApi.getCreatedAt());
+                membership.setUpdatedAt(repoApi.getCreatedAt());
+                membershipRepository.create(membership);
 
-                return convert(createdApi);
+                return convert(createdApi, primaryOwner);
             } else {
                 LOGGER.error("Unable to create API {} because of previous error.");
                 throw new TechnicalManagementException("Unable to create API " + id);
@@ -182,7 +192,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         final boolean contextPathExists = apiRepository.findAll().stream()
                 .filter(api -> !api.getId().equals(apiId))
                 .anyMatch(api -> {
-                    final String contextPath = convert(api).getProxy().getContextPath();
+                    final String contextPath = convert(api, null).getProxy().getContextPath();
                     final int indexOfEndOfSubContextPath = contextPath.lastIndexOf('/', 1);
                     final String subContextPath = contextPath.substring(0, indexOfEndOfSubContextPath <= 0 ?
                             contextPath.length() : indexOfEndOfSubContextPath) + '/';
@@ -202,7 +212,17 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Optional<Api> api = apiRepository.findById(apiId);
 
             if (api.isPresent()) {
-                return convert(api.get());
+                Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndMembershipType(
+                        MembershipReferenceType.API,
+                        api.get().getId(),
+                        MembershipType.PRIMARY_OWNER.name())
+                        .stream()
+                        .findFirst();
+                if (!primaryOwnerMembership.isPresent()) {
+                    LOGGER.error("The API {} doesn't have any primary owner.", apiId);
+                    throw new TechnicalException("The API " + apiId + " doesn't have any primary owner.");
+                }
+                return convert(api.get(), userService.findByName(primaryOwnerMembership.get().getUserId()));
             }
 
             throw new ApiNotFoundException(apiId);
@@ -216,10 +236,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public Set<ApiEntity> findByVisibility(io.gravitee.management.model.Visibility visibility) {
         try {
             LOGGER.debug("Find APIs by visibility {}", visibility);
-            Set<Api> publicApis = apiRepository.findByMember(null, null, Visibility.PUBLIC);
-
-            return publicApis.stream()
-                    .map(this::convert).collect(Collectors.toSet());
+            return convert(apiRepository.findByVisibility(Visibility.valueOf(visibility.name())));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -230,9 +247,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public Set<ApiEntity> findAll() {
         try {
             LOGGER.debug("Find all APIs");
-            return apiRepository.findAll()
-                    .stream()
-                    .map(this::convert).collect(Collectors.toSet());
+            return convert(apiRepository.findAll());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -244,26 +259,21 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             LOGGER.debug("Find APIs by user {}", username);
 
-            Set<Api> publicApis = apiRepository.findByMember(null, null, Visibility.PUBLIC);
-            Set<Api> restrictedApis = apiRepository.findByMember(null, null, Visibility.RESTRICTED);
-            Set<Api> privateApis = apiRepository.findByMember(username, null, Visibility.PRIVATE);
-
-            final Set<ApiEntity> apis = new HashSet<>(publicApis.size() + restrictedApis.size() + privateApis.size());
-
-            apis.addAll(publicApis.stream()
-                    .map(this::convert)
-                    .collect(Collectors.toSet())
+            Set<Api> publicApis = apiRepository.findByVisibility(Visibility.PUBLIC);
+            Set<Api> restrictedApis = apiRepository.findByVisibility(Visibility.RESTRICTED);
+            Set<Api> userApis = apiRepository.findByIds(
+                    membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.API).stream()
+                            .map(Membership::getReferenceId)
+                            .collect(Collectors.toList())
             );
 
-            apis.addAll(restrictedApis.stream()
-                    .map(this::convert)
-                    .collect(Collectors.toSet())
-            );
+            final Set<ApiEntity> apis = new HashSet<>(publicApis.size() + restrictedApis.size() + userApis.size());
 
-            apis.addAll(privateApis.stream()
-                    .map(this::convert)
-                    .collect(Collectors.toSet())
-            );
+            apis.addAll(convert(publicApis));
+
+            apis.addAll(convert(restrictedApis));
+
+            apis.addAll(convert(userApis));
 
             return apis;
         } catch (TechnicalException ex) {
@@ -277,7 +287,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             LOGGER.debug("Find APIs by application {}", applicationId);
             Set<ApiKey> applicationApiKeys = apiKeyRepository.findByApplication(applicationId);
-            return (int) applicationApiKeys.stream().map(apiKey -> apiKey.getApi()).distinct().count();
+            return (int) applicationApiKeys.stream().map(ApiKey::getApi).distinct().count();
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -313,7 +323,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 }
 
                 Api updatedApi = apiRepository.update(api);
-                return convert(updatedApi);
+                return convert(Collections.singleton(updatedApi)).iterator().next();
             } else {
                 LOGGER.error("Unable to update API {} because of previous error.");
                 throw new TechnicalManagementException("Unable to update API " + apiId);
@@ -343,9 +353,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 });
 
                 Set<EventEntity> events = eventService.findByApi(apiName);
-                events.forEach(event -> {
-                    eventService.delete(event.getId());
-                });
+                events.forEach(event -> eventService.delete(event.getId()));
 
                 apiRepository.delete(apiName);
             }
@@ -382,10 +390,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             LOGGER.debug("Get members for API {}", apiId);
 
-            Collection<Membership> membersRepo = apiRepository.getMembers(apiId,
-                    (membershipType == null) ? null : MembershipType.valueOf(membershipType.toString()));
+            Set<Membership> memberships = membershipRepository.findByReferenceAndMembershipType(
+                    MembershipReferenceType.API,
+                    apiId,
+                    (membershipType == null) ? null : membershipType.name());
 
-            return membersRepo.stream()
+            return memberships.stream()
                     .map(this::convert)
                     .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
@@ -399,10 +409,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             LOGGER.debug("Get membership for API {} and user {}", apiId, username);
 
-            Membership membership = apiRepository.getMember(apiId, username);
+            Optional<Membership> membership = membershipRepository.findById(username, MembershipReferenceType.API, apiId);
 
-            if (membership != null) {
-                return convert(membership);
+            if (membership.isPresent()) {
+                return convert(membership.get());
             }
 
             return null;
@@ -440,7 +450,20 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 }
             }
 
-            apiRepository.saveMember(api, username, MembershipType.valueOf(membershipType.toString()));
+            Optional<Membership> optionalMembership =
+                    membershipRepository.findById(username, MembershipReferenceType.API, api);
+            Date updateDate = new Date();
+            if (optionalMembership.isPresent()) {
+                optionalMembership.get().setType(membershipType.name());
+                optionalMembership.get().setUpdatedAt(updateDate);
+                membershipRepository.update(optionalMembership.get());
+            } else {
+                Membership membership = new Membership(username, api, MembershipReferenceType.API);
+                membership.setType(membershipType.name());
+                membership.setCreatedAt(updateDate);
+                membership.setUpdatedAt(updateDate);
+                membershipRepository.create(membership);
+            }
 
             if (user.getEmail() != null && !user.getEmail().isEmpty()) {
                 emailService.sendEmailNotification(new EmailNotificationBuilder()
@@ -463,7 +486,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             LOGGER.debug("Delete member {} for API {}", username, api);
 
             userService.findByName(username);
-            apiRepository.deleteMember(api, username);
+            membershipRepository.delete(new Membership(username, api, MembershipReferenceType.API));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete member {} for API {}", username, api, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for API " + api, ex);
@@ -491,7 +514,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     return true;
                 } else {
                     // API is synchronized if API required deployment fields are the same as the event payload
-                    return apiSynchronizationProcessor.processCheckSynchronization(convert(payloadEntity), api);
+                    return apiSynchronizationProcessor.processCheckSynchronization(convert(payloadEntity, null), api);
                 }
             }
         } catch (Exception e) {
@@ -529,7 +552,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         Optional<Api> api = apiRepository.findById(apiId);
 
         if (api.isPresent()) {
-            Map<String, String> properties = new HashMap<String, String>();
+            Map<String, String> properties = new HashMap<>();
             properties.put(Event.EventProperties.API_ID.getValue(), api.get().getId());
             properties.put(Event.EventProperties.USERNAME.getValue(), username);
             EventEntity event = eventService.create(eventType, objectMapper.writeValueAsString(api.get()), properties);
@@ -540,7 +563,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 apiValue.setUpdatedAt(event.getCreatedAt());
                 apiRepository.update(apiValue);
             }
-            return convert(api.get());
+            return convert(Collections.singleton(api.get())).iterator().next();
         } else {
             throw new ApiNotFoundException(apiId);
         }
@@ -558,11 +581,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 lastPublishedAPI.setLifecycleState(convert(eventType));
                 lastPublishedAPI.setUpdatedAt(new Date());
                 lastPublishedAPI.setDeployedAt(lastPublishedAPI.getUpdatedAt());
-                Map<String, String> properties = new HashMap<String, String>();
+                Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.API_ID.getValue(), lastPublishedAPI.getId());
                 properties.put(Event.EventProperties.USERNAME.getValue(), username);
                 eventService.create(eventType, objectMapper.writeValueAsString(lastPublishedAPI), properties);
-                return convert(lastPublishedAPI);
+                return convert(Collections.singleton(lastPublishedAPI)).iterator().next();
             } else {
                 throw new TechnicalException("No event found for API " + apiId);
             }
@@ -734,7 +757,37 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         return updateApiEntity;
     }
 
-    private ApiEntity convert(Api api) {
+    private Set<ApiEntity> convert(Set<Api> apis) throws TechnicalException {
+        //find primary owners usernames of each apis
+        Set<Membership> memberships = membershipRepository.findByReferencesAndMembershipType(
+                MembershipReferenceType.API,
+                apis.stream().map(Api::getId).collect(Collectors.toList()),
+                MembershipType.PRIMARY_OWNER.name()
+        );
+
+        int poMissing = apis.size() - memberships.size();
+        if (poMissing > 0) {
+            Optional<String> optionalApisAsString = apis.stream().map(Api::getId).reduce((a, b) -> a + " / " + b);
+            String apisAsString = "?";
+            if (optionalApisAsString.isPresent())
+                apisAsString = optionalApisAsString.get();
+            LOGGER.error("{} apis has no identified primary owners in this list {}.", poMissing , apisAsString);
+            throw new TechnicalManagementException(poMissing + " apis has no identified primary owners in this list " + apisAsString + ".");
+        }
+
+        Map<String, String> apiToUser = new HashMap<>(memberships.size());
+        memberships.forEach(membership -> apiToUser.put(membership.getReferenceId(), membership.getUserId()));
+
+        Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
+        userService.findByNames(memberships.stream().map(Membership::getUserId).collect(Collectors.toList()))
+                .forEach(userEntity -> userIdToUserEntity.put(userEntity.getUsername(), userEntity));
+
+        return apis.stream()
+                .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId()))))
+                .collect(Collectors.toSet());
+    }
+
+    private ApiEntity convert(Api api, UserEntity primaryOwner) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
@@ -770,19 +823,13 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiEntity.setVisibility(io.gravitee.management.model.Visibility.valueOf(api.getVisibility().toString()));
         }
 
-        if (api.getMembers() != null) {
-            final Optional<Membership> member = api.getMembers().stream().filter(
-                    membership -> MembershipType.PRIMARY_OWNER.equals(membership.getMembershipType())
-            ).findFirst();
-            if (member.isPresent()) {
-                final User user = member.get().getUser();
-                final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
-                primaryOwnerEntity.setUsername(user.getUsername());
-                primaryOwnerEntity.setLastname(user.getLastname());
-                primaryOwnerEntity.setFirstname(user.getFirstname());
-                primaryOwnerEntity.setEmail(user.getEmail());
-                apiEntity.setPrimaryOwner(primaryOwnerEntity);
-            }
+        if (primaryOwner != null) {
+            final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+            primaryOwnerEntity.setUsername(primaryOwner.getUsername());
+            primaryOwnerEntity.setLastname(primaryOwner.getLastname());
+            primaryOwnerEntity.setFirstname(primaryOwner.getFirstname());
+            primaryOwnerEntity.setEmail(primaryOwner.getEmail());
+            apiEntity.setPrimaryOwner(primaryOwnerEntity);
         }
 
         return apiEntity;
@@ -827,19 +874,20 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private MemberEntity convert(Membership membership) {
         MemberEntity member = new MemberEntity();
 
-        member.setUsername(membership.getUser().getUsername());
+        UserEntity userEntity = userService.findByName(membership.getUserId());
+        member.setUsername(userEntity.getUsername());
         member.setCreatedAt(membership.getCreatedAt());
         member.setUpdatedAt(membership.getUpdatedAt());
-        member.setType(io.gravitee.management.model.MembershipType.valueOf(membership.getMembershipType().toString()));
-        member.setFirstname(membership.getUser().getFirstname());
-        member.setLastname(membership.getUser().getLastname());
-        member.setEmail(membership.getUser().getEmail());
+        member.setType(MembershipType.valueOf(membership.getType()));
+        member.setFirstname(userEntity.getFirstname());
+        member.setLastname(userEntity.getLastname());
+        member.setEmail(userEntity.getEmail());
 
         return member;
     }
 
     private LifecycleState convert(EventType eventType) {
-        LifecycleState lifecycleState = null;
+        LifecycleState lifecycleState;
         switch (eventType) {
             case START_API:
                 lifecycleState = LifecycleState.STARTED;

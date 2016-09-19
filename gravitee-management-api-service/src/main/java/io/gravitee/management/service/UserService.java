@@ -20,16 +20,21 @@ import io.gravitee.management.model.NewUserEntity;
 import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.model.UserEntity;
 
+import java.util.List;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface UserService {
 
     UserEntity connect(String username);
 
     UserEntity findByName(String username);
+
+    Set<UserEntity> findByNames(List<String> usernames);
 
     UserEntity create(NewUserEntity newUserEntity);
 

@@ -37,8 +37,8 @@ import io.gravitee.management.service.jackson.filter.ApiMembershipTypeFilter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.repository.management.model.MembershipType;
 import io.gravitee.repository.management.model.Visibility;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,6 +51,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import java.util.Arrays;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -77,6 +78,9 @@ public class ApiServiceTest {
 
     @Mock
     private ApiKeyRepository apiKeyRepository;
+
+    @Mock
+    private MembershipRepository membershipRepository;
 
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
@@ -118,6 +122,7 @@ public class ApiServiceTest {
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
         when(newApi.getContextPath()).thenReturn("/context");
+        when(userService.findByName(USER_NAME)).thenReturn(new UserEntity());
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 
@@ -198,6 +203,14 @@ public class ApiServiceTest {
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 
         when(newApi.getContextPath()).thenReturn(contextPathToCreate);
+        when(userService.findByName(USER_NAME)).thenReturn(new UserEntity());
+        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(
+                MembershipReferenceType.API,
+                Collections.singletonList(API_ID),
+                MembershipType.PRIMARY_OWNER.name()))
+                .thenReturn(Collections.singleton(po));
 
         apiService.create(newApi, USER_NAME);
     }
@@ -209,6 +222,7 @@ public class ApiServiceTest {
 
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
+        when(userService.findByName(USER_NAME)).thenReturn(new UserEntity());
 
         apiService.create(newApi, USER_NAME);
     }
@@ -216,6 +230,10 @@ public class ApiServiceTest {
     @Test
     public void shouldFindById() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferenceAndMembershipType(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
         final ApiEntity apiEntity = apiService.findById(API_ID);
 
@@ -238,7 +256,16 @@ public class ApiServiceTest {
 
     @Test
     public void shouldFindByUser() throws TechnicalException {
-        when(apiRepository.findByMember(any(String.class), any(MembershipType.class), any(Visibility.class))).thenReturn(new HashSet<>(Arrays.asList(api)));
+        when(apiRepository.findByVisibility(any(Visibility.class)))
+                .thenReturn(new HashSet<>(Arrays.asList(api)));
+        Set<Membership> memberships = Collections.singleton(new Membership(USER_NAME, api.getId(), MembershipReferenceType.API));
+        when(membershipRepository.findByUserAndReferenceType(anyString(), any(MembershipReferenceType.class)))
+                .thenReturn(memberships);
+        when(apiRepository.findByIds(Arrays.asList(USER_NAME))).thenReturn(new HashSet<>(Arrays.asList(api)));
+        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
         final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME);
 
@@ -248,7 +275,11 @@ public class ApiServiceTest {
 
     @Test
     public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
-        when(apiRepository.findByMember(USER_NAME, null, null)).thenReturn(null);
+        when(apiRepository.findByVisibility(any(Visibility.class)))
+                .thenReturn(Collections.emptySet());
+        when(membershipRepository.findByUserAndReferenceType(anyString(), any(MembershipReferenceType.class)))
+                .thenReturn(Collections.emptySet());
+        when(apiRepository.findByIds(any())).thenReturn(Collections.emptySet());
 
         final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME);
 
@@ -258,7 +289,7 @@ public class ApiServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByUserBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findByMember(any(String.class), any(MembershipType.class), any(Visibility.class))).thenThrow(TechnicalException.class);
+        when(apiRepository.findByVisibility(any(Visibility.class))).thenThrow(TechnicalException.class);
 
         apiService.findByUser(USER_NAME);
     }
@@ -275,6 +306,10 @@ public class ApiServiceTest {
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn("/context");
+        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
 
@@ -356,12 +391,32 @@ public class ApiServiceTest {
         when(apiRepository.findAll()).thenReturn(new HashSet<>(Arrays.asList(api)));
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 
+        Membership po1 = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po1.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(
+                MembershipReferenceType.API,
+                Collections.singletonList(API_ID),
+                MembershipType.PRIMARY_OWNER.name()))
+                .thenReturn(Collections.singleton(po1));
+        Membership po2 = new Membership("admin", API_ID2, MembershipReferenceType.API);
+        po2.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(
+                MembershipReferenceType.API,
+                Collections.singletonList(API_ID2),
+                MembershipType.PRIMARY_OWNER.name()))
+                .thenReturn(Collections.singleton(po2));
+
         apiService.update(API_ID, existingApi);
     }
 
     @Test
     public void shouldDelete() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferenceAndMembershipType(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
+
         apiService.delete(API_ID);
 
         verify(apiRepository).delete(API_ID);
@@ -383,6 +438,11 @@ public class ApiServiceTest {
 
         final EventEntity event = mockEvent(EventType.PUBLISH_API);
         when(eventService.findByApi(API_ID)).thenReturn(Collections.singleton(event));
+        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
+
         apiService.start(API_ID, USER_NAME);
 
         verify(api).setUpdatedAt(any());
@@ -414,6 +474,11 @@ public class ApiServiceTest {
 
         final EventEntity event = mockEvent(EventType.PUBLISH_API);
         when(eventService.findByApi(API_ID)).thenReturn(Collections.singleton(event));
+        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
+
         apiService.stop(API_ID, USER_NAME);
 
         verify(api).setUpdatedAt(any());
@@ -449,6 +514,9 @@ public class ApiServiceTest {
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
         when(newApi.getContextPath()).thenReturn("/context");
+        UserEntity admin = new UserEntity();
+        admin.setUsername(USER_NAME);
+        when(userService.findByName(admin.getUsername())).thenReturn(admin);
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 
@@ -493,13 +561,29 @@ public class ApiServiceTest {
         apiEntity.setId(API_ID);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
-        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
+        owner.setType(MembershipType.OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(
+                MembershipReferenceType.API,
+                Collections.singletonList(API_ID),
+                MembershipType.PRIMARY_OWNER.name()))
+                .thenReturn(Collections.singleton(po));
+        when(membershipRepository.findById(po.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(po));
+        when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(owner));
+        UserEntity admin = new UserEntity();
+        admin.setUsername(po.getUserId());
+        UserEntity user = new UserEntity();
+        user.setUsername(owner.getUserId());
+        when(userService.findByName(admin.getUsername())).thenReturn(admin);
+        when(userService.findByName(user.getUsername())).thenReturn(user);
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
 
         verify(pageService, times(2)).create(eq(API_ID), any(NewPageEntity.class));
-        verify(apiRepository, times(1)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
-        verify(apiRepository, times(1)).saveMember(API_ID, "user", MembershipType.OWNER);
+        verify(membershipRepository, times(1)).update(po);
+        verify(membershipRepository, times(1)).update(owner);
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
     }
@@ -514,13 +598,29 @@ public class ApiServiceTest {
         apiEntity.setId(API_ID);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
-        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
+        owner.setType(MembershipType.OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(
+                MembershipReferenceType.API,
+                Collections.singletonList(API_ID),
+                MembershipType.PRIMARY_OWNER.name()))
+                .thenReturn(Collections.singleton(po));
+        when(membershipRepository.findById(po.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(po));
+        when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(owner));
+        UserEntity admin = new UserEntity();
+        admin.setUsername(po.getUserId());
+        UserEntity user = new UserEntity();
+        user.setUsername(owner.getUserId());
+        when(userService.findByName(admin.getUsername())).thenReturn(admin);
+        when(userService.findByName(user.getUsername())).thenReturn(user);
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
 
         verify(pageService, never()).create(eq(API_ID), any(NewPageEntity.class));
-        verify(apiRepository, times(1)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
-        verify(apiRepository, times(1)).saveMember(API_ID, "user", MembershipType.OWNER);
+        verify(membershipRepository, times(1)).update(po);
+        verify(membershipRepository, times(1)).update(owner);
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
     }
@@ -536,11 +636,18 @@ public class ApiServiceTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
         when(userService.findByName(anyString())).thenReturn(new UserEntity());
+        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(
+                MembershipReferenceType.API,
+                Collections.singletonList(API_ID),
+                MembershipType.PRIMARY_OWNER.name()))
+                .thenReturn(Collections.singleton(po));
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
 
         verify(pageService, times(2)).create(eq(API_ID), any(NewPageEntity.class));
-        verify(apiRepository, never()).saveMember(eq(API_ID), any(), any());
+        verify(membershipRepository, never()).create(any());
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
     }
@@ -556,11 +663,18 @@ public class ApiServiceTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
         when(userService.findByName(anyString())).thenReturn(new UserEntity());
+        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndMembershipType(
+                MembershipReferenceType.API,
+                Collections.singletonList(API_ID),
+                MembershipType.PRIMARY_OWNER.name()))
+                .thenReturn(Collections.singleton(po));
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
 
         verify(pageService, never()).create(eq(API_ID), any(NewPageEntity.class));
-        verify(apiRepository, never()).saveMember(eq(API_ID), any(), any());
+        verify(membershipRepository, never()).create(any());
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
     }
@@ -579,10 +693,15 @@ public class ApiServiceTest {
         when(pageService.findByApi(API_ID)).thenReturn(Collections.singletonList(new PageListItem()));
         when(pageService.findById(any())).thenReturn(page);
         Membership membership = new Membership();
-        membership.setUser(new User());
-        membership.getUser().setUsername("johndoe");
-        membership.setMembershipType(MembershipType.PRIMARY_OWNER);
-        when(apiRepository.getMembers(API_ID, null)).thenReturn(Collections.singleton(membership));
+        membership.setUserId("johndoe");
+        membership.setReferenceId(API_ID);
+        membership.setReferenceType(MembershipReferenceType.API);
+        membership.setType(MembershipType.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferenceAndMembershipType(eq(MembershipReferenceType.API), eq(API_ID), any()))
+                .thenReturn(Collections.singleton(membership));
+        UserEntity userEntity = new UserEntity();
+        userEntity.setUsername(membership.getUserId());
+        when(userService.findByName(membership.getUserId())).thenReturn(userEntity);
 
         String jsonForExport = apiService.exportAsJson(API_ID, io.gravitee.management.model.MembershipType.PRIMARY_OWNER);
 
@@ -604,12 +723,24 @@ public class ApiServiceTest {
         when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
         when(userService.findByName(anyString())).thenReturn(new UserEntity());
+        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
+        owner.setType(MembershipType.OWNER.name());
+        when(membershipRepository.findById(po.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(po));
+        when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.empty());
+        UserEntity admin = new UserEntity();
+        admin.setUsername(po.getUserId());
+        UserEntity user = new UserEntity();
+        user.setUsername(owner.getUserId());
+        when(userService.findByName(admin.getUsername())).thenReturn(admin);
+        when(userService.findByName(user.getUsername())).thenReturn(user);
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
         verify(pageService, times(2)).create(eq(API_ID), any(NewPageEntity.class));
-        verify(apiRepository, times(2)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
-        verify(apiRepository, times(1)).saveMember(API_ID, "user", MembershipType.OWNER);
+        verify(membershipRepository, times(1)).create(po);
+        verify(membershipRepository, times(1)).create(owner);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
     }
@@ -624,13 +755,25 @@ public class ApiServiceTest {
         apiEntity.setId(API_ID);
         when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
-        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
+        owner.setType(MembershipType.OWNER.name());
+        when(membershipRepository.findById(po.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(po));
+        when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.empty());
+        UserEntity admin = new UserEntity();
+        admin.setUsername(po.getUserId());
+        UserEntity user = new UserEntity();
+        user.setUsername(owner.getUserId());
+        when(userService.findByName(admin.getUsername())).thenReturn(admin);
+        when(userService.findByName(user.getUsername())).thenReturn(user);
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
         verify(pageService, never()).create(eq(API_ID), any(NewPageEntity.class));
-        verify(apiRepository, times(2)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
-        verify(apiRepository, times(1)).saveMember(API_ID, "user", MembershipType.OWNER);
+        verify(membershipRepository, times(1)).create(po);
+        verify(membershipRepository, times(1)).update(po);
+        verify(membershipRepository, times(1)).create(owner);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
     }
@@ -645,12 +788,23 @@ public class ApiServiceTest {
         apiEntity.setId(API_ID);
         when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
-        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
+        owner.setType(MembershipType.OWNER.name());
+        when(membershipRepository.findById(po.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(po));
+        when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.empty());
+        UserEntity admin = new UserEntity();
+        admin.setUsername(po.getUserId());
+        UserEntity user = new UserEntity();
+        user.setUsername(owner.getUserId());
+        when(userService.findByName(admin.getUsername())).thenReturn(admin);
+        when(userService.findByName(user.getUsername())).thenReturn(user);
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
         verify(pageService, times(2)).create(eq(API_ID), any(NewPageEntity.class));
-        verify(apiRepository, times(1)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
+        verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
 
@@ -666,12 +820,23 @@ public class ApiServiceTest {
         apiEntity.setId(API_ID);
         when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
-        when(userService.findByName(anyString())).thenReturn(new UserEntity());
+        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
+        owner.setType(MembershipType.OWNER.name());
+        when(membershipRepository.findById(po.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(po));
+        when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.empty());
+        UserEntity admin = new UserEntity();
+        admin.setUsername(po.getUserId());
+        UserEntity user = new UserEntity();
+        user.setUsername(owner.getUserId());
+        when(userService.findByName(admin.getUsername())).thenReturn(admin);
+        when(userService.findByName(user.getUsername())).thenReturn(user);
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
         verify(pageService, never()).create(eq(API_ID), any(NewPageEntity.class));
-        verify(apiRepository, times(1)).saveMember(API_ID, "admin", MembershipType.PRIMARY_OWNER);
+        verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
     }

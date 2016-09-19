@@ -34,14 +34,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Component
 public class UserServiceImpl extends TransactionalService implements UserService {
@@ -81,19 +80,37 @@ public class UserServiceImpl extends TransactionalService implements UserService
 
     @Override
     public UserEntity findByName(String username) {
+        LOGGER.debug("Find user by name: {}", username);
+
+        Optional<UserEntity> optionalUser = this.findByNames(Collections.singletonList(username)).stream().findFirst();
+        if (optionalUser.isPresent()) {
+            return optionalUser.get();
+        }
+        //should never happen
+        throw new UserNotFoundException(username);
+    }
+
+    @Override
+    public Set<UserEntity> findByNames(List<String> usernames) {
         try {
-            LOGGER.debug("Find user by name: {}", username);
+            LOGGER.debug("Find user by names: {}", usernames);
 
-            Optional<User> user = userRepository.findByUsername(username);
+            Set<User> users = userRepository.findByUsernames(usernames);
 
-            if (user.isPresent()) {
-                return convert(user.get());
+            if (!users.isEmpty()) {
+                return users.stream().map(UserServiceImpl::convert).collect(Collectors.toSet());
             }
 
-            throw new UserNotFoundException(username);
+            Optional<String> usernamesAsString = usernames.stream().reduce((a, b) -> a + "/" + b);
+            if(usernamesAsString.isPresent()) {
+                throw new UserNotFoundException(usernamesAsString.get());
+            } else {
+                throw new UserNotFoundException("?");
+            }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find a user using its name {}", username, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find a user using its name " + username, ex);
+            Optional<String> usernamesAsString = usernames.stream().reduce((a, b) -> a + "/" + b);
+            LOGGER.error("An error occurs while trying to find users using their names {}", usernamesAsString, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find users using their names " + usernamesAsString, ex);
         }
     }
 

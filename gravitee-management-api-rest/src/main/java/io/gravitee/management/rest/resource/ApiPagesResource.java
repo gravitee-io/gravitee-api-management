@@ -21,7 +21,6 @@ import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
-import io.gravitee.repository.management.model.MembershipType;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
