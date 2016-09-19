@@ -77,6 +77,8 @@ public abstract class AbstractRepositoryTest {
     protected EventRepository eventRepository;
     @Inject
     protected ViewRepository viewRepository;
+    @Inject
+    protected MembershipRepository membershipRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -109,21 +111,24 @@ public abstract class AbstractRepositoryTest {
         if (object instanceof Application) {
             applicationRepository.create((Application) object);
         }
-        if (object instanceof Api) {
+        else if (object instanceof Api) {
             apiRepository.create((Api) object);
         }
-        if (object instanceof User) {
+        else if (object instanceof User) {
             userRepository.create((User) object);
         }
-        if (object instanceof Event) {
+        else if (object instanceof Event) {
             eventRepository.create((Event) object);
         }
-        if (object instanceof ApiKey) {
+        else if (object instanceof ApiKey) {
             final ApiKey apiKey = (ApiKey) object;
             apiKeyRepository.create(apiKey.getApplication(), apiKey.getApi(), apiKey);
         }
-        if (object instanceof View) {
+        else if (object instanceof View) {
             viewRepository.create((View) object);
+        }
+        else if (object instanceof Membership) {
+            membershipRepository.create((Membership) object);
         }
     }
 

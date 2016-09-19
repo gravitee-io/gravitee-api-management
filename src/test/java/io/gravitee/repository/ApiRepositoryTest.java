@@ -80,20 +80,6 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void findByMemberTest() throws Exception {
-        Set<Api> apis = apiRepository.findByMember("toto", MembershipType.PRIMARY_OWNER, null);
-        Assert.assertNotNull(apis);
-        Assert.assertEquals("Invalid api result in findByMember", 2, apis.size());
-    }
-
-    @Test
-    public void findByUserTestAndPrivateApi() throws Exception {
-        Set<Api> apis = apiRepository.findByMember("toto", MembershipType.PRIMARY_OWNER, Visibility.PRIVATE);
-        Assert.assertNotNull(apis);
-        Assert.assertEquals("Invalid api result in findByMember", 1, apis.size());
-    }
-
-    @Test
     public void findAllTest() throws Exception {
         Set<Api> apis = apiRepository.findAll();
 

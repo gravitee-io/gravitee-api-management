@@ -17,7 +17,6 @@ package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.MembershipType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -118,26 +117,5 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
     public void findByIdTest() throws Exception {
         Optional<Application> optional = applicationRepository.findById("application-sample");
         Assert.assertTrue("Find application by name return no result ", optional.isPresent());
-    }
-
-    @Test
-    public void findByUserTest() throws Exception {
-        Set<Application> applications = applicationRepository.findByUser("user", null);
-        Assert.assertNotNull(applications);
-        Assert.assertEquals("Invalid application result for user", 3, applications.size());
-    }
-
-    @Test
-    public void findPrimaryOwnerMemberByUserTest() throws Exception {
-        Set<Application> applications = applicationRepository.findByUser("po", MembershipType.PRIMARY_OWNER);
-        Assert.assertNotNull(applications);
-        Assert.assertEquals("Invalid application result for primary owner", 3, applications.size());
-    }
-
-    @Test
-    public void findUserMemberByUserTest() throws Exception {
-        Set<Application> applications = applicationRepository.findByUser("po", MembershipType.USER);
-        Assert.assertNotNull(applications);
-        Assert.assertEquals("Invalid application result for user", 0, applications.size());
     }
 }

@@ -5,25 +5,7 @@
     "description": "Sample application description",
     "type": "Web",
     "createdAt": "1439022010883",
-    "updatedAt": "1439022010883",
-    "members": [
-      {
-        "user": {
-          "username": "po"
-        },
-        "createdAt": 1439022010883,
-        "updatedAt": 1439022010883,
-        "membershipType": "PRIMARY_OWNER"
-      },
-      {
-        "user": {
-          "username": "user"
-        },
-        "createdAt": 1439022010883,
-        "updatedAt": 1439022010883,
-        "membershipType": "USER"
-      }
-    ]
+    "updatedAt": "1439022010883"
   },
   {
     "id": "updated-app",
@@ -31,25 +13,7 @@
     "description": "Sample updated-app description",
     "type": "Web",
     "createdAt": "1439022010883",
-    "updatedAt": "1439022010883",
-    "members": [
-      {
-        "user": {
-          "username": "po"
-        },
-        "createdAt": 1439022010883,
-        "updatedAt": 1439022010883,
-        "membershipType": "PRIMARY_OWNER"
-      },
-      {
-        "user": {
-          "username": "user"
-        },
-        "createdAt": 1439022010883,
-        "updatedAt": 1439022010883,
-        "membershipType": "USER"
-      }
-    ]
+    "updatedAt": "1439022010883"
   },
   {
     "id": "deleted-app",
@@ -57,24 +21,6 @@
     "description": "Sample deleted-app description",
     "type": "Web",
     "createdAt": "1439022010883",
-    "updatedAt": "1439022010883",
-    "members": [
-      {
-        "user": {
-          "username": "po"
-        },
-        "createdAt": 1439022010883,
-        "updatedAt": 1439022010883,
-        "membershipType": "PRIMARY_OWNER"
-      },
-      {
-        "user": {
-          "username": "user"
-        },
-        "createdAt": 1439022010883,
-        "updatedAt": 1439022010883,
-        "membershipType": "USER"
-      }
-    ]
+    "updatedAt": "1439022010883"
   }
 ]

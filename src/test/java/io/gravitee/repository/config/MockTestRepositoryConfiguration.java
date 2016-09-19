@@ -61,8 +61,6 @@ public class MockTestRepositoryConfiguration {
         final ApiRepository apiRepository = mock(ApiRepository.class);
 
         final Api api = mock(Api.class);
-        when(apiRepository.findByMember("toto", MembershipType.PRIMARY_OWNER, Visibility.PRIVATE)).thenReturn(newSet(api));
-        when(apiRepository.findByMember("toto", MembershipType.PRIMARY_OWNER, null)).thenReturn(newSet(api, mock(Api.class)));
         when(apiRepository.findById(anyString())).thenReturn(empty());
         when(apiRepository.findById("api1")).thenReturn(of(api));
 
@@ -86,9 +84,6 @@ public class MockTestRepositoryConfiguration {
     public ApplicationRepository applicationRepository() throws Exception {
         final ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
         final Application application = mock(Application.class);
-        when(applicationRepository.findByUser("po", MembershipType.PRIMARY_OWNER))
-                .thenReturn(newSet(application, mock(Application.class), mock(Application.class)));
-        when(applicationRepository.findByUser("user", null)).thenReturn(newSet(application, mock(Application.class), mock(Application.class)));
         when(applicationRepository.findById("application-sample")).thenReturn(of(application));
 
         final Set<Application> applications = newSet(application, mock(Application.class), mock(Application.class));
@@ -242,11 +237,13 @@ public class MockTestRepositoryConfiguration {
         final UserRepository userRepository = mock(UserRepository.class);
 
         final User user = mock(User.class);
+        final User user4 = mock(User.class);
         when(userRepository.findAll()).thenReturn(newSet(user, mock(User.class), mock(User.class),
                 mock(User.class), mock(User.class), mock(User.class)));
         when(userRepository.create(any(User.class))).thenReturn(user);
         when(userRepository.findByUsername("createuser1")).thenReturn(of(user));
         when(userRepository.findByUsername("user0")).thenReturn(of(user));
+        when(userRepository.findByUsernames(Arrays.asList("user0", "user4"))).thenReturn(new HashSet<>(Arrays.asList(user,user4)));
         when(user.getUsername()).thenReturn("createuser1");
         when(user.getEmail()).thenReturn("createuser1@gravitee.io");
 
@@ -276,5 +273,35 @@ public class MockTestRepositoryConfiguration {
         when(viewRepository.findById("products")).thenReturn(of(view2));
 
         return viewRepository;
+    }
+
+    @Bean
+    public MembershipRepository membershipRepository() throws Exception {
+        final MembershipRepository repo = mock(MembershipRepository.class);
+
+        Membership m1 = mock(Membership.class);
+        when(m1.getUserId()).thenReturn("user1");
+        when(m1.getReferenceType()).thenReturn(MembershipReferenceType.API);
+        when(m1.getType()).thenReturn("OWNER");
+        when(m1.getReferenceId()).thenReturn("api1");
+        Membership m2 = new Membership("user2", "api2", MembershipReferenceType.API);
+        m2.setType("OWNER");
+        Membership m3 = new Membership("user3", "api3", MembershipReferenceType.API);
+        m3.setType("USER");
+
+        when(repo.findById("user1", MembershipReferenceType.API, "api1"))
+                .thenReturn(of(m1));
+        when(repo.findByReferenceAndMembershipType(eq(MembershipReferenceType.API), eq("api1"), any()))
+                .thenReturn(Collections.singleton(m1));
+        when(repo.findByUserAndReferenceType("user1", MembershipReferenceType.API))
+                .thenReturn(Collections.singleton(m1));
+        when(repo.findByUserAndReferenceTypeAndMembershipType("user1", MembershipReferenceType.API, "OWNER"))
+                .thenReturn(Collections.singleton(m1));
+        when(repo.findByReferencesAndMembershipType(MembershipReferenceType.API, Arrays.asList("api2", "api3"), null))
+                .thenReturn(new HashSet<>(Arrays.asList(m2, m3)));
+        when(repo.findByReferencesAndMembershipType(MembershipReferenceType.API, Arrays.asList("api2", "api3"), "OWNER"))
+                .thenReturn(new HashSet<>(Collections.singletonList(m2)));
+
+        return repo;
     }
 }

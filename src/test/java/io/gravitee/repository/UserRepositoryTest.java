@@ -20,6 +20,7 @@ import io.gravitee.repository.management.model.User;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
@@ -65,5 +66,13 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     public void findUserByNameTest() throws Exception {
         Optional<User> user = userRepository.findByUsername("user0");
         Assert.assertTrue(user.isPresent());
+    }
+
+    @Test
+    public void findUserByNamesTest() throws Exception {
+        Set<User> usernames = userRepository.findByUsernames(Arrays.asList("user0", "user4"));
+        Assert.assertNotNull(usernames);
+        Assert.assertFalse(usernames.isEmpty());
+        Assert.assertEquals(2, usernames.size());
     }
 }

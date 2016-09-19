@@ -5,25 +5,7 @@
     "description": "Sample application1 description",
     "type": "Web",
     "createdAt": "1439022010883",
-    "updatedAt": "1439022010883",
-    "members": [
-      {
-        "user": {
-          "username": "po"
-        },
-        "createdAt": 1439022010883,
-        "updatedAt": 1439022010883,
-        "membershipType": "PRIMARY_OWNER"
-      },
-      {
-        "user": {
-          "username": "user"
-        },
-        "createdAt": 1439022010883,
-        "updatedAt": 1439022010883,
-        "membershipType": "USER"
-      }
-    ]
+    "updatedAt": "1439022010883"
   },
   {
     "id": "application2",
@@ -31,24 +13,6 @@
     "description": "Sample application2 description",
     "type": "Web",
     "createdAt": "1439022010883",
-    "updatedAt": "1439022010883",
-    "members": [
-      {
-        "user": {
-          "username": "po"
-        },
-        "createdAt": 1439022010883,
-        "updatedAt": 1439022010883,
-        "membershipType": "PRIMARY_OWNER"
-      },
-      {
-        "user": {
-          "username": "user"
-        },
-        "createdAt": 1439022010883,
-        "updatedAt": 1439022010883,
-        "membershipType": "USER"
-      }
-    ]
+    "updatedAt": "1439022010883"
   }
 ]
