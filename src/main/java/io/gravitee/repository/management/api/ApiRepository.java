@@ -18,14 +18,14 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipType;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface ApiRepository extends CrudRepository<Api, String>{
 
@@ -37,19 +37,17 @@ public interface ApiRepository extends CrudRepository<Api, String>{
     Set<Api> findAll() throws TechnicalException;
 
     /**
-     * List APIs for a given user and a given membership type.
+     * List APIs for a given visibility.
      *
-     * @param username The name of the user.
-     * @param membershipType API membership type filter.
-     * @return List APIs from a user.
+     * @param visibility i.e. Public or Private
+     * @return List APIs.
      */
-    Set<Api> findByMember(String username, MembershipType membershipType, Visibility visibility) throws TechnicalException;
+    Set<Api> findByVisibility(Visibility visibility) throws TechnicalException;
 
-    void saveMember(String apiId, String username, MembershipType membershipType) throws TechnicalException;
-
-    void deleteMember(String apiId, String username) throws TechnicalException;
-
-    Collection<Membership> getMembers(String apiId, MembershipType membershipType) throws TechnicalException;
-
-    Membership getMember(String apiId, String username) throws TechnicalException;
+    /**
+     * find a list of Apis via their ids.
+     * @param ids a list of apis id
+     * @return List APIs.
+     */
+    Set<Api> findByIds(List<String> ids) throws TechnicalException;
 }

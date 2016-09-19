@@ -16,11 +16,11 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public enum MembershipType {
+public enum MembershipReferenceType {
 
-    PRIMARY_OWNER,
-    OWNER,
-    USER
+    APPLICATION,
+    API
 }

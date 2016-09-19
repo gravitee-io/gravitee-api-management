@@ -18,11 +18,13 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.*;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface ApplicationRepository extends CrudRepository<Application, String> {
 
@@ -34,18 +36,9 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
     Set<Application> findAll() throws TechnicalException;
 
     /**
-     * List all applications hold by a {@link User}.
-     *
-     * @param username The name of the user.
-     * @return All applications from a user.
+     * find a list of Applications via their ids.
+     * @param ids a list of applications id
+     * @return List Applications.
      */
-    Set<Application> findByUser(String username, MembershipType membershipType) throws TechnicalException;
-
-    void saveMember(String applicationId, String username, MembershipType membershipType) throws TechnicalException;
-
-    void deleteMember(String applicationId, String username) throws TechnicalException;
-
-    Collection<Membership> getMembers(String applicationId, MembershipType membershipType) throws TechnicalException;
-
-    Membership getMember(String applicationId, String username) throws TechnicalException;
+    Set<Application> findByIds(List<String> ids) throws TechnicalException;
 }

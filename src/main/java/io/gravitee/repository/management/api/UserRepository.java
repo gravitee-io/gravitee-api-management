@@ -18,11 +18,14 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.User;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface UserRepository {
 
@@ -49,6 +52,13 @@ public interface UserRepository {
 	 * @return Option user found
 	 */
 	Optional<User> findByUsername(String username) throws TechnicalException;
+	/**
+	 * Find a list of {@link User} by name
+	 *
+	 * @param usernames Names of the searched users
+	 * @return list of users found
+	 */
+	Set<User> findByUsernames(List<String> usernames) throws TechnicalException;
 
 	/**
 	 * Find all {@link User}s

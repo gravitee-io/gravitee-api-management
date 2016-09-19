@@ -54,8 +54,6 @@ public class Application {
      */
     private Date updatedAt;
 
-    private List<Membership> members;
-
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -104,14 +102,6 @@ public class Application {
         this.id = id;
     }
 
-    public List<Membership> getMembers() {
-        return members;
-    }
-
-    public void setMembers(List<Membership> members) {
-        this.members = members;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -134,7 +124,6 @@ public class Application {
                 ", type='" + type + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
-                ", members=" + members +
                 '}';
     }
 }

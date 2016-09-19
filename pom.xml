@@ -29,7 +29,7 @@
 
     <groupId>io.gravitee.repository</groupId>
     <artifactId>gravitee-repository</artifactId>
-    <version>0.17.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>Gravitee IO - API Management - Repository API</name>
 
     <properties>

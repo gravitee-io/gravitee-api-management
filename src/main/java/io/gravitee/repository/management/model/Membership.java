@@ -16,17 +16,36 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class Membership {
 
     /**
-     * The user name
+     * The userid
      */
-    private User user;
+    private String userId;
 
+    /**
+     * The external reference id. Depending on the reference type.
+     * It could be the api id if the referenceType is API
+     */
+    private String referenceId;
+
+    /**
+     * the reference type. API or Application for example.
+     * this helps to know the model of the referenceId
+     */
+    private MembershipReferenceType referenceType;
+
+    /**
+     * Membership type
+     */
+    private String type;
     /**
      * Creation date
      */
@@ -37,10 +56,15 @@ public class Membership {
      */
     private Date updatedAt;
 
-    /**
-     * Membership type
-     */
-    private MembershipType membershipType;
+    public Membership() {
+        super();
+    }
+
+    public Membership(String userId, String referenceId, MembershipReferenceType referenceType) {
+        this.userId = userId;
+        this.referenceId = referenceId;
+        this.referenceType = referenceType;
+    }
 
     public Date getCreatedAt() {
         return createdAt;
@@ -50,12 +74,12 @@ public class Membership {
         this.createdAt = createdAt;
     }
 
-    public MembershipType getMembershipType() {
-        return membershipType;
+    public String getType() {
+        return type;
     }
 
-    public void setMembershipType(MembershipType membershipType) {
-        this.membershipType = membershipType;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Date getUpdatedAt() {
@@ -66,11 +90,53 @@ public class Membership {
         this.updatedAt = updatedAt;
     }
 
-    public User getUser() {
-        return user;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public MembershipReferenceType getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(MembershipReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Membership m = (Membership)o;
+        return Objects.equals(userId, m.userId) &&
+                Objects.equals(referenceId, m.referenceId) &&
+                Objects.equals(referenceType, m.referenceType) &&
+                Objects.equals(type, m.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId, referenceId, referenceType, type);
+    }
+
+    public String toString() {
+        return "Membership{" +
+                "userId='" + userId + '\'' +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType='" + referenceType + '\'' +
+                ", type='" + type + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }

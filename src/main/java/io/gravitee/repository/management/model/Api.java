@@ -74,8 +74,6 @@ public class Api {
      */
     private LifecycleState lifecycleState = LifecycleState.STOPPED;
 
-    private List<Membership> members;
-    
     /**
      * The api picture
      */
@@ -161,14 +159,6 @@ public class Api {
         this.id = id;
     }
 
-    public List<Membership> getMembers() {
-        return members;
-    }
-
-    public void setMembers(List<Membership> members) {
-        this.members = members;
-    }
-
     public String getPicture() {
         return picture;
     }
@@ -202,7 +192,6 @@ public class Api {
             ", updatedAt=" + updatedAt +
             ", visibility=" + visibility +
             ", lifecycleState=" + lifecycleState +
-            ", members=" + members +
             '}';
     }
 }
