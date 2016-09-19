@@ -48,8 +48,6 @@ public class ApiMongo extends Auditable {
     
     private String visibility;
 
-    private List<MemberMongo> members = new ArrayList<>();
-    
     private Date deployedAt;
     
     private String picture;
@@ -110,14 +108,6 @@ public class ApiMongo extends Auditable {
         this.description = description;
     }
 
-    public List<MemberMongo> getMembers() {
-        return members;
-    }
-
-    public void setMembers(List<MemberMongo> members) {
-        this.members = members;
-    }
-    
     public Date getDeployedAt() {
         return deployedAt;
     }

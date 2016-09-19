@@ -20,11 +20,20 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Set;
+
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+
 @Repository
 public interface UserMongoRepository extends MongoRepository<UserMongo, String> {
 
-	@Query("{ 'username' : ?0}")
-	UserMongo findByUsername(String username);
+	@Query("{ '_id' : { $in: ?0} }")
+	Set<UserMongo> findByUsernames(List<String> usernames);
 
 }
 

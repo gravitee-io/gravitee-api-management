@@ -56,6 +56,17 @@ public class MongoUserRepository implements UserRepository {
 	}
 
 	@Override
+	public Set<User> findByUsernames(List<String> usernames) throws TechnicalException {
+		logger.debug("Find user by names user [{}]", usernames);
+
+		Set<UserMongo> usersMongo = internalUserRepo.findByUsernames(usernames);
+		Set<User> users = mapper.collection2set(usersMongo, UserMongo.class, User.class);
+
+		logger.debug("Find user by names user [{}] - Done", usernames);
+		return users;
+	}
+
+	@Override
 	public Set<User> findAll() throws TechnicalException {
 		logger.debug("Find all users");
 
@@ -91,4 +102,5 @@ public class MongoUserRepository implements UserRepository {
 		UserMongo userUpdated = internalUserRepo.save(userMongo);
 		return mapper.map(userUpdated, User.class);
 	}
+
 }

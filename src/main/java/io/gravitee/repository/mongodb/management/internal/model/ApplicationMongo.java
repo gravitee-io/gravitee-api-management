@@ -41,8 +41,6 @@ public class ApplicationMongo extends Auditable {
 
     private String type;
 
-    private List<MemberMongo> members = new ArrayList<>();
-
     public String getId() {
         return id;
     }
@@ -73,14 +71,6 @@ public class ApplicationMongo extends Auditable {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public List<MemberMongo> getMembers() {
-        return members;
-    }
-
-    public void setMembers(List<MemberMongo> members) {
-        this.members = members;
     }
 
     @Override

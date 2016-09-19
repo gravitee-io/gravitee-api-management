@@ -15,12 +15,22 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Set;
+
 @Repository
-public interface ApiMongoRepository extends MongoRepository<ApiMongo, String>, ApiMongoRepositoryCustom {
+public interface ApiMongoRepository extends MongoRepository<ApiMongo, String> {
+    @Query("{ visibility: ?0 }")
+    Set<ApiMongo> findByVisibility(String visibility);
+
+    @Query("{ _id: {$in: ?0} }")
+    Set<ApiMongo> findByIds(List<String> ids);
 
 }
 

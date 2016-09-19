@@ -20,10 +20,18 @@
 
   <mapping>
     <class-a>io.gravitee.repository.management.model.Membership</class-a>
-    <class-b>io.gravitee.repository.mongodb.management.internal.model.MemberMongo</class-b>
+    <class-b>io.gravitee.repository.mongodb.management.internal.model.MembershipMongo</class-b>
     <field>
-      <a>membershipType</a>
-      <b>type</b>
+      <a>userId</a>
+      <b>id.userId</b>
+    </field>
+    <field>
+      <a>referenceId</a>
+      <b>id.referenceId</b>
+    </field>
+    <field>
+      <a>referenceType</a>
+      <b>id.referenceType</b>
     </field>
   </mapping>
   

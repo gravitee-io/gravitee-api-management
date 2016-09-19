@@ -17,11 +17,17 @@ package io.gravitee.repository.mongodb.management.internal.application;
 
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom{
+import java.util.List;
+import java.util.Set;
 
+@Repository
+public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String> {
+
+    @Query("{ _id: {$in: ?0} }")
+    Set<ApplicationMongo> findByIds(List<String> ids);
 }
 
 

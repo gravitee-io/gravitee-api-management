@@ -29,29 +29,21 @@ import org.springframework.stereotype.Component;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipType;
-import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
-import io.gravitee.repository.mongodb.management.internal.model.MemberMongo;
-import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
-import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
- * @author Gravitee.io Team
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Component
 public class MongoApplicationRepository implements ApplicationRepository {
 
 	@Autowired
 	private ApplicationMongoRepository internalApplicationRepo;
-	
-	@Autowired
-	private UserMongoRepository internalUserRepo;
-	
+
 	@Autowired
 	private GraviteeMapper mapper;
 
@@ -89,105 +81,13 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
+	public Set<Application> findByIds(List<String> ids) throws TechnicalException {
+		return mapApplications(internalApplicationRepo.findByIds(ids));
+	}
+
+	@Override
 	public void delete(String applicationId) throws TechnicalException {
 		internalApplicationRepo.delete(applicationId);
-	}
-
-	@Override
-	public Set<Application> findByUser(String username, MembershipType membershipType) throws TechnicalException {
-		return mapApplications(internalApplicationRepo.findByUser(username, membershipType));
-	}
-
-	@Override
-	public void saveMember(String applicationId, String username, MembershipType membershipType) throws TechnicalException {
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationId);
-		UserMongo userMongo = internalUserRepo.findOne(username);
-
-		Membership membership = getMember(applicationId, username);
-		if (membership == null) {
-			MemberMongo memberMongo = new MemberMongo();
-			memberMongo.setUser(userMongo);
-			memberMongo.setType(membershipType.toString());
-			memberMongo.setCreatedAt(new Date());
-			memberMongo.setUpdatedAt(memberMongo.getCreatedAt());
-
-			applicationMongo.getMembers().add(memberMongo);
-
-			internalApplicationRepo.save(applicationMongo);
-		} else {
-			for (MemberMongo memberMongo : applicationMongo.getMembers()) {
-				if (memberMongo.getUser().getName().equalsIgnoreCase(username)) {
-					memberMongo.setType(membershipType.toString());
-					internalApplicationRepo.save(applicationMongo);
-					break;
-				}
-			}
-		}
-	}
-
-	@Override
-	public void deleteMember(String applicationId, String username) throws TechnicalException {
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationId);
-		MemberMongo memberToDelete = null;
-
-		for (MemberMongo memberMongo : applicationMongo.getMembers()) {
-			if (memberMongo.getUser().getName().equalsIgnoreCase(username)) {
-				memberToDelete = memberMongo;
-			}
-		}
-
-		if (memberToDelete != null) {
-			applicationMongo.getMembers().remove(memberToDelete);
-			internalApplicationRepo.save(applicationMongo);
-		}
-	}
-
-	@Override
-	public Collection<Membership> getMembers(String applicationId, MembershipType membershipType) throws TechnicalException {
-		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(applicationId);
-		List<MemberMongo> membersMongo = applicationMongo.getMembers();
-		Set<Membership> members = new HashSet<>(membersMongo.size());
-
-		for (MemberMongo memberMongo : membersMongo) {
-			if (membershipType == null || (
-					membershipType != null && memberMongo.getType().equalsIgnoreCase(membershipType.toString()))) {
-				Membership member = new Membership();
-				member.setUser(mapUser(memberMongo.getUser()));
-				member.setMembershipType(MembershipType.valueOf(memberMongo.getType()));
-				member.setCreatedAt(memberMongo.getCreatedAt());
-				member.setUpdatedAt(memberMongo.getUpdatedAt());
-				members.add(member);
-			}
-		}
-
-		return members;
-	}
-
-	private User mapUser(final UserMongo userMongo) {
-		final User user = new User();
-		user.setUsername(userMongo.getName());
-		user.setCreatedAt(userMongo.getCreatedAt());
-		user.setEmail(userMongo.getEmail());
-		user.setFirstname(userMongo.getFirstname());
-		user.setLastname(userMongo.getLastname());
-		user.setPassword(userMongo.getPassword());
-		user.setUpdatedAt(userMongo.getUpdatedAt());
-		if (userMongo.getRoles() != null) {
-			user.setRoles(new HashSet<>(userMongo.getRoles()));
-		}
-		return user;
-	}
-
-	@Override
-	public Membership getMember(String application, String username) throws TechnicalException {
-		Collection<Membership> members = getMembers(application, null);
-		for (Membership member : members) {
-			if (member.getUser().getUsername().equalsIgnoreCase(username)) {
-				return member;
-			}
-		}
-
-		return null;
 	}
 
 	private Set<Application> mapApplications(Collection<ApplicationMongo> applications){
