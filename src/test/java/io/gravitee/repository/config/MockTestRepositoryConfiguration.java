@@ -45,13 +45,12 @@ public class MockTestRepositoryConfiguration {
 
         final ApiKey apiKey = mock(ApiKey.class);
         when(apiKey.getKey()).thenReturn("apiKey");
-        when(apiKey.getExpiration()).thenReturn(parse("11/02/2016"));
-        when(apiKeyRepository.retrieve(anyString())).thenReturn(empty());
-        when(apiKeyRepository.retrieve("d449098d-8c31-4275-ad59-8dd707865a33")).thenReturn(of(apiKey));
-        when(apiKeyRepository.retrieve("apiKey")).thenReturn(of(apiKey));
-        when(apiKey.getApi()).thenReturn("");
-        when(apiKeyRepository.findByApplication("application1")).thenReturn(newSet(apiKey, mock(ApiKey.class)));
-        when(apiKeyRepository.findByApplicationAndApi("application1", "api1")).thenReturn(newSet(apiKey));
+        when(apiKey.getExpireAt()).thenReturn(parse("11/02/2016"));
+        when(apiKey.getSubscription()).thenReturn("subscription1");
+        when(apiKeyRepository.findById(anyString())).thenReturn(empty());
+        when(apiKeyRepository.findById("d449098d-8c31-4275-ad59-8dd707865a33")).thenReturn(of(apiKey));
+        when(apiKeyRepository.findById("apiKey")).thenReturn(of(apiKey));
+        when(apiKeyRepository.findBySubscription("subscription1")).thenReturn(newSet(apiKey, mock(ApiKey.class)));
 
         return apiKeyRepository;
     }
@@ -301,6 +300,36 @@ public class MockTestRepositoryConfiguration {
         when(groupRepository.findByType(Group.Type.APPLICATION)).thenReturn(Collections.singleton(group_application_1));
 
         return groupRepository;
+    }
+
+    @Bean
+    public PlanRepository planRepository() throws Exception {
+        final PlanRepository planRepository = mock(PlanRepository.class);
+
+        final Plan plan = mock(Plan.class);
+        when(plan.getName()).thenReturn("Plan name");
+        when(plan.getDescription()).thenReturn("Description for the new plan");
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getApis()).thenReturn(Collections.singleton("my-api"));
+        when(plan.getCreatedAt()).thenReturn(parse("11/02/2016"));
+        when(plan.getUpdatedAt()).thenReturn(parse("12/02/2016"));
+
+        final Plan plan2 = mock(Plan.class);
+        when(plan2.getId()).thenReturn("my-plan");
+        when(plan2.getName()).thenReturn("New plan");
+
+        when(planRepository.create(any(Plan.class))).thenReturn(plan);
+
+        when(planRepository.findById("new-plan")).thenReturn(of(plan));
+        when(planRepository.findById("my-plan")).thenReturn(of(plan2));
+
+        when(planRepository.findById("stores")).thenReturn(Optional.empty());
+
+        when(planRepository.findByApi("api1")).thenReturn(
+                new HashSet<>(Arrays.asList(plan, plan2)));
+
+        return planRepository;
     }
 
     @Bean

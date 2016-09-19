@@ -1,0 +1,20 @@
+[
+   {
+      "id":"my-plan",
+      "name":"Free plan",
+      "description": "Description of the free plan",
+      "apis": ["api1"]
+   },
+   {
+      "id":"products",
+      "name":"Products",
+      "description": "Description for products view",
+      "apis": ["api1"]
+   },
+   {
+      "id":"stores",
+      "name":"Stores",
+      "description": "Description for stores view",
+      "apis": ["api2"]
+   }
+]

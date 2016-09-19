@@ -24,13 +24,10 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.format.datetime.DateFormatter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -38,15 +35,11 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.Class.forName;
 import static java.util.Arrays.asList;
-import static org.mockito.Mockito.mock;
 import static org.springframework.util.StringUtils.capitalize;
 
 /**
@@ -81,6 +74,9 @@ public abstract class AbstractRepositoryTest {
     protected GroupRepository groupRepository;
 	@Inject
     protected MembershipRepository membershipRepository;
+    @Inject
+    protected PlanRepository planRepository;
+
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -124,7 +120,7 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof ApiKey) {
             final ApiKey apiKey = (ApiKey) object;
-            apiKeyRepository.create(apiKey.getApplication(), apiKey.getApi(), apiKey);
+            apiKeyRepository.create(apiKey);
         }
         else if (object instanceof View) {
             viewRepository.create((View) object);
@@ -134,6 +130,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Membership) {
             membershipRepository.create((Membership) object);
+        }
+        else if (object instanceof Plan) {
+            planRepository.create((Plan) object);
         }
     }
 

@@ -2,25 +2,22 @@
 	{
 		"key":"d449098d-8c31-4275-ad59-8dd707865a33",
 		"revoked":false,
-		"expiration": 1439022010883,
-		"application": "application1",
-		"api": "api1",
+		"expireAt": 1439022010883,
+		"subscription": "subscription1",
 		"createdAt": 1439022010883
 	},
 	{
 		"key":"d449098d-8c31-4275-ad59-8dd707865a34",
 		"revoked":false,
-		"expiration": 1439022010883,
-		"application": "application1",
-		"api": "api2",
+		"expireAt": 1439022010883,
+		"subscription": "subscription2",
 		"createdAt": 1439022010883
 	},
 	{
 		"key":"d449098d-8c31-4275-ad59-8dd707865a35",
 		"revoked":false,
-		"expiration": 1439022010883,
-		"application": "application2",
-		"api": "api1",
+		"expireAt": 1439022010883,
+		"subscription": "subscription1",
 		"createdAt": 1439022010883
 	}
 ]
