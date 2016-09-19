@@ -27,7 +27,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class MongoFactory implements FactoryBean<Mongo> {
 
@@ -48,15 +49,15 @@ public class MongoFactory implements FactoryBean<Mongo> {
         builder.writeConcern(WriteConcern.SAFE);
 
         Integer connectionsPerHost = readPropertyValue(propertyPrefix + "connectionsPerHost", Integer.class);
-        Integer connectTimeout = readPropertyValue(propertyPrefix + "connectTimeout", Integer.class, 500);
+        Integer connectTimeout = readPropertyValue(propertyPrefix + "connectTimeout", Integer.class, 1000);
         Integer maxWaitTime = readPropertyValue(propertyPrefix + "maxWaitTime", Integer.class);
-        Integer socketTimeout = readPropertyValue(propertyPrefix + "socketTimeout", Integer.class, 500);
+        Integer socketTimeout = readPropertyValue(propertyPrefix + "socketTimeout", Integer.class, 1000);
         Boolean socketKeepAlive = readPropertyValue(propertyPrefix + "socketKeepAlive", Boolean.class);
         Integer maxConnectionLifeTime = readPropertyValue(propertyPrefix + "maxConnectionLifeTime", Integer.class);
         Integer maxConnectionIdleTime = readPropertyValue(propertyPrefix + "maxConnectionIdleTime", Integer.class);
 
         // We do not want to wait for a server
-        Integer serverSelectionTimeout = readPropertyValue(propertyPrefix + "serverSelectionTimeout", Integer.class, 0);
+        Integer serverSelectionTimeout = readPropertyValue(propertyPrefix + "serverSelectionTimeout", Integer.class, 1000);
         Integer minHeartbeatFrequency = readPropertyValue(propertyPrefix + "minHeartbeatFrequency", Integer.class);
         String description = readPropertyValue(propertyPrefix + "description", String.class, "gravitee.io");
         Integer heartbeatConnectTimeout = readPropertyValue(propertyPrefix + "heartbeatConnectTimeout", Integer.class, 1000);

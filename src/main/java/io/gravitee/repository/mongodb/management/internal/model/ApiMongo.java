@@ -15,19 +15,19 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * Mongo model for Api
  * 
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Document(collection = "apis")
 public class ApiMongo extends Auditable {
@@ -139,13 +139,12 @@ public class ApiMongo extends Auditable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiMongo api = (ApiMongo) o;
-        return Objects.equals(id, api.id) &&
-                Objects.equals(version, api.version);
+        return Objects.equals(id, api.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, version);
+        return Objects.hash(name);
     }
 
     @Override

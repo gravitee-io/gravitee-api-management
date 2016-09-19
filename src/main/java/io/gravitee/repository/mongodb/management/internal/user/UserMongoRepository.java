@@ -28,7 +28,6 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @Repository
 public interface UserMongoRepository extends MongoRepository<UserMongo, String> {
 

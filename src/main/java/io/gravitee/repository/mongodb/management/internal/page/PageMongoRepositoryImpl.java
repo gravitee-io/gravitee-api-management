@@ -24,7 +24,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
 

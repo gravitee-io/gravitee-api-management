@@ -21,7 +21,8 @@ import io.gravitee.repository.mongodb.management.ManagementRepositoryConfigurati
 import io.gravitee.repository.mongodb.ratelimit.RateLimitRepositoryConfiguration;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class MongoRepository implements Repository {
 

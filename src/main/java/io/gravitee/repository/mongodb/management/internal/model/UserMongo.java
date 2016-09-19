@@ -24,9 +24,11 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Mongo objet model for user
+ * Mongo object model for user
  * 
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Document(collection="users")
 public class UserMongo extends Auditable {

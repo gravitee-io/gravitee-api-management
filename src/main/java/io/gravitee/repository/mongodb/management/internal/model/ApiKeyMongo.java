@@ -15,35 +15,68 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.Date;
 import java.util.Objects;
 
 /**
- * Mongo model for Api
- * 
+ * Mongo model for Api Key
+ *
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
+@Document(collection = "keys")
 public class ApiKeyMongo {
-  
+
 	/**
 	 * Api Key
 	 */
+	@Id
 	private String key;
 
 	/**
-	 * Is the key revoked ?
+	 * The subscription for which the Api Key is generated
 	 */
-	private boolean revoked;
-	
-	/**
-	 * Token expiration date
-	 */
-	private Date expiration;
+	private String subscription;
 
+	/**
+	 * The application used to make the subscription
+	 */
+	private String application;
+
+	/**
+	 * The subscribed plan
+	 */
+	private String plan;
+
+	/**
+	 * Expiration date (end date) of the Api Key
+	 */
+	private Date expireAt;
+
+	/**
+	 * API key creation date
+	 */
 	private Date createdAt;
 
-	private Date revokeAt;
-	
+	/**
+	 * API key updated date
+	 */
+	private Date updatedAt;
+
+	/**
+	 * Flag to indicate if the Api Key is revoked ?
+	 */
+	private boolean revoked;
+
+	/**
+	 * If the key is revoked, the revocation date
+	 */
+	private Date revokedAt;
+
 	public String getKey() {
 		return key;
 	}
@@ -52,20 +85,36 @@ public class ApiKeyMongo {
 		this.key = key;
 	}
 
-	public Date getExpiration() {
-		return expiration;
+	public String getSubscription() {
+		return subscription;
 	}
 
-	public void setExpiration(Date expiration) {
-		this.expiration = expiration;
-	}
-	
-	public boolean isRevoked() {
-		return revoked;
+	public void setSubscription(String subscription) {
+		this.subscription = subscription;
 	}
 
-	public void setRevoked(boolean revoked) {
-		this.revoked = revoked;
+	public String getApplication() {
+		return application;
+	}
+
+	public void setApplication(String application) {
+		this.application = application;
+	}
+
+	public String getPlan() {
+		return plan;
+	}
+
+	public void setPlan(String plan) {
+		this.plan = plan;
+	}
+
+	public Date getExpireAt() {
+		return expireAt;
+	}
+
+	public void setExpireAt(Date expireAt) {
+		this.expireAt = expireAt;
 	}
 
 	public Date getCreatedAt() {
@@ -76,12 +125,28 @@ public class ApiKeyMongo {
 		this.createdAt = createdAt;
 	}
 
-	public Date getRevokeAt() {
-		return revokeAt;
+	public Date getUpdatedAt() {
+		return updatedAt;
 	}
 
-	public void setRevokeAt(Date revokeAt) {
-		this.revokeAt = revokeAt;
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+	public boolean isRevoked() {
+		return revoked;
+	}
+
+	public void setRevoked(boolean revoked) {
+		this.revoked = revoked;
+	}
+
+	public Date getRevokedAt() {
+		return revokedAt;
+	}
+
+	public void setRevokedAt(Date revokedAt) {
+		this.revokedAt = revokedAt;
 	}
 
 	@Override
@@ -101,7 +166,9 @@ public class ApiKeyMongo {
     public String toString() {
         final StringBuilder sb = new StringBuilder("ApiKey{");
         sb.append("name='").append(key).append('\'');
-        sb.append(", expiration=").append(expiration );
+        sb.append(", expiration=").append(expireAt).append('\'');
+		sb.append(", revoked=").append(revoked).append('\'');
+		sb.append(", revokedAt=").append(revokedAt);
         sb.append('}');
         return sb.toString();
     }

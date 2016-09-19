@@ -21,7 +21,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Objects;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Document(collection = "views")
@@ -63,14 +63,12 @@ public class ViewMongo {
 		if (this == o) return true;
 		if (!(o instanceof ViewMongo)) return false;
 		ViewMongo viewMongo = (ViewMongo) o;
-		return Objects.equals(id, viewMongo.id) &&
-				Objects.equals(name, viewMongo.name) &&
-				Objects.equals(description, viewMongo.description);
+		return Objects.equals(id, viewMongo.id);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name, description);
+		return Objects.hash(id);
 	}
 
 	@Override

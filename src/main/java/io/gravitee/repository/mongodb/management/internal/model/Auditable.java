@@ -18,7 +18,8 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import java.util.Date;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 abstract class Auditable {
 

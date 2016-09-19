@@ -13,29 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.model;
+package io.gravitee.repository.mongodb.management.internal.plan;
+
+import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PageSourceMongo {
-    private String type;
-    private String configuration;
+@Repository
+public interface PlanMongoRepository extends MongoRepository<PlanMongo, String> {
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
-    }
+    List<PlanMongo> findByApisContaining(String api);
 }

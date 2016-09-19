@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -24,8 +23,13 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Repository
 public interface ApiMongoRepository extends MongoRepository<ApiMongo, String> {
+
     @Query("{ visibility: ?0 }")
     Set<ApiMongo> findByVisibility(String visibility);
 

@@ -16,7 +16,8 @@
 package io.gravitee.repository.mongodb.management.internal.page;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface PageMongoRepositoryCustom {
 

@@ -36,7 +36,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Component
 public class MongoPageRepository implements PageRepository {

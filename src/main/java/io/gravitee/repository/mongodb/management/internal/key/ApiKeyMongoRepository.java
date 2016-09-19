@@ -15,27 +15,22 @@
  */
 package io.gravitee.repository.mongodb.management.internal.key;
 
-import java.util.List;
-
-import io.gravitee.repository.mongodb.management.internal.model.ApiAssociationMongo;
+import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Repository
-public interface ApiKeyMongoRepository extends MongoRepository<ApiAssociationMongo, String> {
+public interface ApiKeyMongoRepository extends MongoRepository<ApiKeyMongo, String> {
 
-	@Query("{ 'application.$id' : ?0 ,  'api.$id': ?1 }")
-	List<ApiAssociationMongo> findByApplicationAndApi(String applicationId, String apiId);
+	List<ApiKeyMongo> findBySubscription(String subscription);
 
-	@Query("{ 'application.$id' : ?0 }")
-	List<ApiAssociationMongo> findByApplication(String applicationId);
-
-	@Query("{ 'key.key' : ?0 }")
-	ApiAssociationMongo retrieve(String apiKey);
-	
-	@Query("{ 'api.$id': ?0 }")
-	List<ApiAssociationMongo> findByApi(String apiId);
+	List<ApiKeyMongo> findByPlan(String plan);
 }
 
 

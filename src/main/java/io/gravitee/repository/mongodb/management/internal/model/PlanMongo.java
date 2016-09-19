@@ -17,33 +17,44 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 
 /**
- * Mongo object model for application.
- * 
- * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "applications")
-public class ApplicationMongo extends Auditable {
+@Document(collection = "plans")
+public class PlanMongo extends Auditable {
 
-	@Id
+    @Id
     private String id;
 
-    @Field("name")
     private String name;
 
     private String description;
 
+    /**
+     * The way to validate subscriptions
+     */
+    private String validation;
+
     private String type;
 
-    private String group;
+    private int order;
+
+    /**
+     * List of API used by this plan.
+     */
+    private Set<String> apis;
+
+    /**
+     * The JSON payload of all policies to apply for this plan
+     */
+    private String definition;
+
+    private List<String> characteristics;
 
     public String getId() {
         return id;
@@ -51,14 +62,6 @@ public class ApplicationMongo extends Auditable {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String getName() {
@@ -69,6 +72,22 @@ public class ApplicationMongo extends Auditable {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getValidation() {
+        return validation;
+    }
+
+    public void setValidation(String validation) {
+        this.validation = validation;
+    }
+
     public String getType() {
         return type;
     }
@@ -77,34 +96,50 @@ public class ApplicationMongo extends Auditable {
         this.type = type;
     }
 
-    public String getGroup() {
-        return group;
+    public Set<String> getApis() {
+        return apis;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setApis(Set<String> apis) {
+        this.apis = apis;
+    }
+
+    public String getDefinition() {
+        return definition;
+    }
+
+    public void setDefinition(String definition) {
+        this.definition = definition;
+    }
+
+    public List<String> getCharacteristics() {
+        return characteristics;
+    }
+
+    public void setCharacteristics(List<String> characteristics) {
+        this.characteristics = characteristics;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ApplicationMongo that = (ApplicationMongo) o;
-        return Objects.equals(id, that.id);
+
+        PlanMongo planMongo = (PlanMongo) o;
+
+        return id.equals(planMongo.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Application{");
-        sb.append("id='").append(id).append('\'');
-        sb.append("name='").append(name).append('\'');
-        sb.append(", type='").append(type).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return id.hashCode();
     }
 }

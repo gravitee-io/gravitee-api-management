@@ -21,6 +21,10 @@ import java.util.Set;
 
 import org.dozer.Mapper;
 
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public interface GraviteeMapper extends Mapper {
 
 	 <T,F> Set<T> collection2set(Collection<F> elements, Class<F> formClass, Class<T> toClass);

@@ -23,6 +23,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Repository
 public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String> {
 

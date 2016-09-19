@@ -22,7 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class MongoTestRepositoryInitializer implements TestRepositoryInitializer {
 

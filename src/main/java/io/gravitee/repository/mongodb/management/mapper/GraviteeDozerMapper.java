@@ -24,6 +24,10 @@ import java.util.Set;
 import org.dozer.DozerBeanMapper;
 import org.dozer.MappingException;
 
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class GraviteeDozerMapper extends DozerBeanMapper implements GraviteeMapper {
 
 	public GraviteeDozerMapper(){

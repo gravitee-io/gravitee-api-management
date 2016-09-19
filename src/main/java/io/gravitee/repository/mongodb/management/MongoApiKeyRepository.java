@@ -18,114 +18,67 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
-import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.ApiAssociationMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Component
 public class MongoApiKeyRepository implements ApiKeyRepository {
-
-	private final static Logger logger = LoggerFactory.getLogger(MongoApiKeyRepository.class);
 
 	@Autowired
 	private GraviteeMapper mapper;
 
 	@Autowired
 	private ApiKeyMongoRepository internalApiKeyRepo;
-	
-	@Autowired
-	private ApiMongoRepository internalApiRepo;	
-	
-	@Autowired
-	private ApplicationMongoRepository internalApplicationRepo;
 
-	private Set<ApiKey> map(Collection<ApiAssociationMongo> apiAssociationMongos){
-		if (apiAssociationMongos == null){
-			return Collections.emptySet();
-		}
-		
-		return apiAssociationMongos.stream().map(apiAssociationMongo -> {
-            ApiKey key = mapper.map(apiAssociationMongo.getKey(), ApiKey.class);
-            key.setApi(apiAssociationMongo.getApi().getId());
-			key.setApplication(apiAssociationMongo.getApplication().getId());
+	@Override
+	public ApiKey create(ApiKey apiKey) throws TechnicalException {
+		ApiKeyMongo apiKeyMongo = mapper.map(apiKey, ApiKeyMongo.class);
+		apiKeyMongo = internalApiKeyRepo.insert(apiKeyMongo);
 
-            return key;
-        }).collect(Collectors.toSet());
+		return mapper.map(apiKeyMongo, ApiKey.class);
 	}
 
 	@Override
-	public Set<ApiKey> findByApplicationAndApi(String applicationId, String apiId) throws TechnicalException {
-		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplicationAndApi(applicationId, apiId);
-		
-		return map(apiAssociationMongos);
+	public ApiKey update(ApiKey apiKey) throws TechnicalException {
+		ApiKeyMongo apiKeyMongo = mapper.map(apiKey, ApiKeyMongo.class);
+		apiKeyMongo = internalApiKeyRepo.save(apiKeyMongo);
+
+		return mapper.map(apiKeyMongo, ApiKey.class);
 	}
 
 	@Override
-	public Set<ApiKey> findByApplication(String applicationId) throws TechnicalException {
-		List<ApiAssociationMongo> apiAssociationMongos = internalApiKeyRepo.findByApplication(applicationId);
-		
-		return map(apiAssociationMongos);
-	}
-
-
-	@Override
-	public ApiKey create(String applicationId, String apiId, ApiKey key) throws TechnicalException {
-		ApiAssociationMongo apiAssociationMongo = new ApiAssociationMongo();
-		apiAssociationMongo.setApi(internalApiRepo.findOne(apiId));
-		apiAssociationMongo.setApplication(internalApplicationRepo.findOne(applicationId));
-		apiAssociationMongo.setKey(mapper.map(key, ApiKeyMongo.class));
-		
-		internalApiKeyRepo.insert(apiAssociationMongo);
-		
-		return key;
+	public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
+		return internalApiKeyRepo.findBySubscription(subscription)
+				.stream()
+				.map(apiKey -> mapper.map(apiKey, ApiKey.class))
+				.collect(Collectors.toSet());
 	}
 
 	@Override
-	public ApiKey update(ApiKey key) throws TechnicalException {
-		ApiAssociationMongo associationMongo = internalApiKeyRepo.retrieve(key.getKey());
-		associationMongo.getKey().setCreatedAt(key.getCreatedAt());
-		associationMongo.getKey().setExpiration(key.getExpiration());
-		associationMongo.getKey().setRevoked(key.isRevoked());
-		associationMongo.getKey().setRevokeAt(key.getRevokeAt());
-
-		internalApiKeyRepo.save(associationMongo);
-		
-		return key;
+	public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
+		return internalApiKeyRepo.findByPlan(plan)
+				.stream()
+				.map(apiKey -> mapper.map(apiKey, ApiKey.class))
+				.collect(Collectors.toSet());
 	}
 
 	@Override
-	public Optional<ApiKey> retrieve(String apiKey) throws TechnicalException {
-		ApiAssociationMongo apiAssociationMongo = internalApiKeyRepo.retrieve(apiKey);
+	public Optional<ApiKey> findById(String key) throws TechnicalException {
+		ApiKeyMongo apiKey = internalApiKeyRepo.findOne(key);
 
-		if(apiAssociationMongo != null) {
-			ApiKey retKey = mapper.map(apiAssociationMongo.getKey(), ApiKey.class);
-			retKey.setApi(apiAssociationMongo.getApi().getId());
-			retKey.setApplication(apiAssociationMongo.getApplication().getId());
-			return Optional.of(retKey);
-		}
-		
-		return Optional.empty();
-	}
-
-	@Override
-	public Set<ApiKey> findByApi(String apiId) {
-		Collection<ApiAssociationMongo> apiAssociationsMongo = internalApiKeyRepo.findByApi(apiId);
-		return map(apiAssociationsMongo);
-	}
-
-	@Override
-	public void delete(String apiKey) throws TechnicalException {
-		ApiAssociationMongo vApiKey = internalApiKeyRepo.retrieve(apiKey);
-		internalApiKeyRepo.delete(vApiKey);
+		return (apiKey != null) ?
+				Optional.of(mapper.map(apiKey, ApiKey.class)):
+				Optional.empty();
 	}
 }

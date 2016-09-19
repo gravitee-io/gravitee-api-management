@@ -19,7 +19,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Document(collection = "pages")
 public class PageMongo extends Auditable {
@@ -136,12 +137,26 @@ public class PageMongo extends Auditable {
 	}
 
 	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		PageMongo pageMongo = (PageMongo) o;
+
+		return id.equals(pageMongo.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return id.hashCode();
+	}
+
+	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("Page{");
 		sb.append("name='").append(name).append('\'');
 		sb.append(", type='").append(type).append('\'');
 		sb.append(", title='").append(title).append('\'');
-		sb.append(", content='").append(content).append('\'');
 		sb.append(", order='").append(order).append('\'');
 		sb.append(", lastContributor='").append(lastContributor).append('\'');
 		sb.append(", api='").append(api).append('\'');
