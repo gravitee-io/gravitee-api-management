@@ -23,7 +23,7 @@ import io.gravitee.definition.model.plugins.resources.Resource;
 import java.io.IOException;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ResourceSerializer extends StdScalarSerializer<Resource> {

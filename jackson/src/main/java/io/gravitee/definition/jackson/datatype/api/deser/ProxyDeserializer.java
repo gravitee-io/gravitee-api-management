@@ -19,7 +19,10 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.Failover;
+import io.gravitee.definition.model.LoadBalancer;
+import io.gravitee.definition.model.Proxy;
 
 import java.io.IOException;
 
@@ -63,12 +66,6 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         JsonNode stripContextNode = node.get("strip_context_path");
         if (stripContextNode != null) {
             proxy.setStripContextPath(stripContextNode.asBoolean(false));
-        }
-
-        JsonNode httpClientNode = node.get("http");
-        if (httpClientNode != null) {
-            HttpClient httpClient = httpClientNode.traverse(jp.getCodec()).readValueAs(HttpClient.class);
-            proxy.setHttpClient(httpClient);
         }
 
         JsonNode loadBalancingNode = node.get("load_balancing");

@@ -6,19 +6,17 @@
     "context_path": "/my-api",
     "endpoints": [
       {
-        "target": "http://localhost:1234"
+        "name": "default",
+        "target": "http://localhost:1234",
+        "proxy": {
+            "enabled": true,
+            "host": "proxy_host",
+            "port": 1234,
+            "principal": "username",
+            "password": "my_password"
+        }
       }
     ],
-    "strip_context_path": false,
-
-    "http": {
-      "http_proxy": {
-        "enabled": true,
-        "host": "proxy_host",
-        "port": 1234,
-        "principal": "username",
-        "password": "my_password"
-      }
-    }
+    "strip_context_path": false
   }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.jackson;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 
@@ -22,12 +23,17 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class AbstractTest {
 
     protected <T> T load(String resource, Class<T> type) throws IOException {
+        URL jsonFile = this.getClass().getResource(resource);
+        return objectMapper().readValue(jsonFile, type);
+    }
+
+    protected <T> T load(String resource, TypeReference<T> type) throws IOException {
         URL jsonFile = this.getClass().getResource(resource);
         return objectMapper().readValue(jsonFile, type);
     }

@@ -5,6 +5,7 @@
     "context_path": "/my-api",
     "endpoints": [
       {
+        "name": "default",
         "target": "http://localhost:1234"
       }
     ],

@@ -15,14 +15,13 @@
  */
 package io.gravitee.definition.jackson.plugins.resources;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ResourceDeserializerTest extends AbstractTest {

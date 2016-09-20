@@ -6,6 +6,7 @@
     "context_path": "/team",
     "endpoints": [
       {
+        "name": "default",
         "target": "http://host1:8083/myapi"
       }
     ],

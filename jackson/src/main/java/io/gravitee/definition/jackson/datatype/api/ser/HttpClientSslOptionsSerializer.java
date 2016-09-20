@@ -24,8 +24,8 @@ import io.gravitee.definition.model.HttpClientSslOptions;
 import java.io.IOException;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
- * @author Gravitee.io Team
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class HttpClientSslOptionsSerializer extends StdScalarSerializer<HttpClientSslOptions> {
 

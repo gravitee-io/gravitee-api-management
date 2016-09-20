@@ -19,8 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
- * @author Gravitee.io Team
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class Proxy {
 
@@ -37,8 +37,6 @@ public class Proxy {
     private boolean stripContextPath = false;
 
     private boolean dumpRequest = DEFAULT_DUMP_REQUEST;
-
-    private HttpClient httpClient = new HttpClient();
 
     public String getContextPath() {
         return contextPath;
@@ -62,14 +60,6 @@ public class Proxy {
 
     public void setStripContextPath(boolean stripContextPath) {
         this.stripContextPath = stripContextPath;
-    }
-
-    public HttpClient getHttpClient() {
-        return httpClient;
-    }
-
-    public void setHttpClient(HttpClient httpClient) {
-        this.httpClient = httpClient;
     }
 
     public LoadBalancer getLoadBalancer() {

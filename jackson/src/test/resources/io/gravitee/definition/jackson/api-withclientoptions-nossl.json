@@ -4,15 +4,18 @@
 
   "proxy": {
     "context_path": "/team",
-    "endpoint": "http://localhost:8083/myapi",
-    "strip_context_path": false,
-    "http": {
-      "configuration": {
-        "idleTimeout": 5000,
-        "connectTimeout": 5000,
-        "keepAlive": true
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8083/myapi",
+        "http": {
+          "idleTimeout": 5000,
+          "connectTimeout": 5000,
+          "keepAlive": true
+        }
       }
-    }
+    ],
+    "strip_context_path": false
   },
 
   "paths": {

@@ -24,7 +24,7 @@ import io.gravitee.definition.model.Service;
 import io.gravitee.definition.model.services.Services;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ServiceModule extends GraviteeModule {

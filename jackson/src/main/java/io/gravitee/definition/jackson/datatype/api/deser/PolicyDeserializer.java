@@ -24,8 +24,8 @@ import io.gravitee.definition.model.Policy;
 import java.io.IOException;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
- * @author Gravitee.io Team
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class PolicyDeserializer extends StdScalarDeserializer<Policy> {
 
@@ -39,8 +39,18 @@ public class PolicyDeserializer extends StdScalarDeserializer<Policy> {
         JsonNode node = jp.getCodec().readTree(jp);
 
         Policy policy = new Policy();
+        node.fieldNames().forEachRemaining(field -> {
+            JsonNode subNode = node.findValue(field);
+            policy.setName(field);
+            policy.setConfiguration(subNode.toString());
+
+            System.out.println(field);
+        });
+
+        /*
         policy.setName(node.get("policy").asText());
-        policy.setConfiguration(node.get("configuration").toString());
+        policy.setConfiguration(node.getget("configuration").toString());
+        */
 
         return policy;
     }

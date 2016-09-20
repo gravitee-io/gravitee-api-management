@@ -23,7 +23,7 @@ import io.gravitee.definition.model.services.healthcheck.Request;
 import java.io.IOException;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RequestSerializer extends StdScalarSerializer<Request> {

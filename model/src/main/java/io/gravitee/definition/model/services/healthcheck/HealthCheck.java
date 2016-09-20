@@ -20,7 +20,7 @@ import io.gravitee.definition.model.Service;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HealthCheck extends Service {

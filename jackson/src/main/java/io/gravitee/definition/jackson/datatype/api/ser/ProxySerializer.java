@@ -61,10 +61,6 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
             jgen.writeObjectField("failover", proxy.getFailover());
         }
 
-
-        if (proxy.getHttpClient() != null) {
-            jgen.writeObjectField("http", proxy.getHttpClient());
-        }
         jgen.writeEndObject();
     }
 }

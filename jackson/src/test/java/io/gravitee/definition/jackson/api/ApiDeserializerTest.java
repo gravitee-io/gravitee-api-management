@@ -26,7 +26,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ApiDeserializerTest extends AbstractTest {
 
@@ -34,18 +35,20 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_defaultHttpConfig() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
 
-        Assert.assertEquals("http://localhost:1234", api.getProxy().getEndpoints().iterator().next().getTarget());
-        Assert.assertNotNull(api.getProxy().getHttpClient());
-        Assert.assertFalse(api.getProxy().getHttpClient().getOptions().isUseCompression());
+        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Assert.assertEquals("http://localhost:1234", endpoint.getTarget());
+        Assert.assertNotNull(endpoint.getHttpClientOptions());
+        Assert.assertFalse(endpoint.getHttpClientOptions().isUseCompression());
     }
 
     @Test
     public void definition_overridedHttpConfig() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-overridedhttpconfig.json", Api.class);
 
-        Assert.assertEquals("http://localhost:1234", api.getProxy().getEndpoints().iterator().next().getTarget());
-        Assert.assertNotNull(api.getProxy().getHttpClient().getHttpProxy());
-        Assert.assertTrue(api.getProxy().getHttpClient().getHttpProxy().isEnabled());
+        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Assert.assertEquals("http://localhost:1234", endpoint.getTarget());
+        Assert.assertNotNull(endpoint.getHttpProxy());
+        Assert.assertTrue(endpoint.getHttpProxy().isEnabled());
     }
 
     @Test(expected = JsonMappingException.class)
@@ -259,32 +262,37 @@ public class ApiDeserializerTest extends AbstractTest {
     @Test
     public void definition_withclientoptions() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions.json", Api.class);
-        Assert.assertNotNull(api.getProxy().getHttpClient());
-        Assert.assertNotNull(api.getProxy().getHttpClient().getOptions());
-        Assert.assertNotNull(api.getProxy().getHttpClient().getSsl());
+
+        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Assert.assertNotNull(endpoint.getHttpClientOptions());
+        Assert.assertNotNull(endpoint.getHttpClientSslOptions());
     }
 
     @Test
     public void definition_withclientoptions_nossl() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nossl.json", Api.class);
-        Assert.assertNotNull(api.getProxy().getHttpClient());
-        Assert.assertNotNull(api.getProxy().getHttpClient().getOptions());
-        Assert.assertNull(api.getProxy().getHttpClient().getSsl());
+
+        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Assert.assertNotNull(endpoint.getHttpClientOptions());
+        Assert.assertNull(endpoint.getHttpClientSslOptions());
     }
 
     @Test
     public void definition_withclientoptions_nooptions() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json", Api.class);
-        Assert.assertNotNull(api.getProxy().getHttpClient());
-        Assert.assertNotNull(api.getProxy().getHttpClient().getOptions());
-        Assert.assertNull(api.getProxy().getHttpClient().getSsl());
+
+        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Assert.assertNotNull(endpoint.getHttpClientOptions());
+        Assert.assertNull(endpoint.getHttpClientSslOptions());
     }
 
     @Test
     public void definition_withclientoptions_nooptions_defaultconfiguration() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json", Api.class);
-        Assert.assertNotNull(api.getProxy().getHttpClient());
-        HttpClientOptions options = api.getProxy().getHttpClient().getOptions();
+
+        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Assert.assertNotNull(endpoint.getHttpClientOptions());
+        HttpClientOptions options = endpoint.getHttpClientOptions();
         Assert.assertNotNull(options);
         Assert.assertEquals(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT, options.getConnectTimeout());
         Assert.assertEquals(HttpClientOptions.DEFAULT_IDLE_TIMEOUT, options.getIdleTimeout());

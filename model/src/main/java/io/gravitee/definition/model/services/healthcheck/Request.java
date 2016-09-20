@@ -21,7 +21,7 @@ import io.gravitee.common.http.HttpMethod;
 import java.util.List;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Request {

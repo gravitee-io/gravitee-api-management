@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ServicesDeserializer extends StdScalarDeserializer<Services> {
@@ -71,21 +71,5 @@ public class ServicesDeserializer extends StdScalarDeserializer<Services> {
         services.set(individualServices);
 
         return services;
-
-/*
-        String serviceName = node.fieldNames().next();
-
-        Class<? extends Service> serviceClass = registeredServices.get(serviceName);
-        if (serviceClass == null) {
-            return null;
-        }
-
-        return node.elements().next().traverse(jp.getCodec()).readValueAs(new TypeReference<Service>() {
-            @Override
-            public Type getType() {
-                return serviceClass;
-            }
-        });
-*/
     }
 }

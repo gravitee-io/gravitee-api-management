@@ -23,7 +23,7 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheck;
 import java.io.IOException;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HealthCheckSerializer extends StdScalarSerializer<HealthCheck> {

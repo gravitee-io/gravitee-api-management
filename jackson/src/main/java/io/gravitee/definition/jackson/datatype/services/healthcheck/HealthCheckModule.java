@@ -27,7 +27,7 @@ import io.gravitee.definition.model.services.healthcheck.Request;
 import io.gravitee.definition.model.services.healthcheck.Expectation;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HealthCheckModule extends GraviteeModule {

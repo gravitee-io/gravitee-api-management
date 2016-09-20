@@ -29,12 +29,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ExpectationDeserializer extends StdScalarDeserializer<Expectation> {
-
-    private final Logger logger = LoggerFactory.getLogger(ExpectationDeserializer.class);
 
     public ExpectationDeserializer(Class<Expectation> vc) {
         super(vc);

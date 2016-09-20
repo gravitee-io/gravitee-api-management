@@ -21,7 +21,7 @@ import io.gravitee.definition.jackson.datatype.plugins.resource.ser.ResourceSeri
 import io.gravitee.definition.model.plugins.resources.Resource;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ResourceModule extends GraviteeModule {

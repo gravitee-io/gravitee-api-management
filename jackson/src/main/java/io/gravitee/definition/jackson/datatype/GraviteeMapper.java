@@ -24,7 +24,7 @@ import io.gravitee.definition.jackson.datatype.services.core.ServiceModule;
 import io.gravitee.definition.jackson.datatype.services.healthcheck.HealthCheckModule;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GraviteeMapper extends ObjectMapper {

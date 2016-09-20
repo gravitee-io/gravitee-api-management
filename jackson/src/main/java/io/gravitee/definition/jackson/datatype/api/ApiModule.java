@@ -21,7 +21,7 @@ import io.gravitee.definition.jackson.datatype.api.ser.*;
 import io.gravitee.definition.model.*;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiModule extends GraviteeModule {

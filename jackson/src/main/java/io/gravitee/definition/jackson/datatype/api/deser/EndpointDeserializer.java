@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClientOptions;
 import io.gravitee.definition.model.HttpClientSslOptions;
@@ -47,10 +46,10 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
 
         JsonNode nameNode = node.get("name");
         if (nameNode != null) {
-            String name = nameNode.asText(UUID.random().toString());
+            String name = nameNode.asText();
             endpoint.setName(name);
         } else {
-            endpoint.setName(UUID.random().toString());
+            throw ctxt.mappingException("Endpoint name is required");
         }
 
         JsonNode weightNode = node.get("weight");

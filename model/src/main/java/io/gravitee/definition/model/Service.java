@@ -18,7 +18,7 @@ package io.gravitee.definition.model;
 import java.util.Objects;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class Service {

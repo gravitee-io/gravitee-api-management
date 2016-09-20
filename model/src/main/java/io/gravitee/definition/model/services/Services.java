@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public final class Services {

@@ -17,7 +17,7 @@ package io.gravitee.definition.model;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Gravitee.io Team
+ * @author GraviteeSource Team
  */
 public enum HttpProxyType {
 
