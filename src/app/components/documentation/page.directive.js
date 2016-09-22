@@ -31,9 +31,10 @@ class PageDirective {
 }
 
 class PageController {
-  constructor($scope, $state, DocumentationService, Constants) {
+  constructor($scope, $rootScope, $state, DocumentationService, Constants) {
     'ngInject';
     this.$scope = $scope;
+    this.$rootScope = $rootScope;
     this.$state = $state;
     this.DocumentationService = DocumentationService;
 
@@ -63,7 +64,7 @@ class PageController {
   enableTryIt() {
     if (this.$scope.page.type !== 'SWAGGER')
       return false;
-    return !_.isNil(this.$scope.page.configuration) && this.$scope.page.configuration.tryIt;
+    return !_.isNil(this.$scope.page.configuration) && this.$scope.page.configuration.tryIt && this.$rootScope.graviteeUser;
   }
 }
 
