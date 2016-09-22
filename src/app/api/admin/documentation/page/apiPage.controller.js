@@ -103,7 +103,6 @@ class PageController {
         })
         .catch(function (error) {
           that.$scope.error = error;
-          that.NotificationService.showError(error);
       });
     } else {
       this.DocumentationService.editPage(this.$state.params.apiId, this.page.id, this.page)
@@ -113,7 +112,6 @@ class PageController {
         })
         .catch(function (error) {
           that.$scope.error = error;
-          that.NotificationService.showError(error);
         });
     }
   }

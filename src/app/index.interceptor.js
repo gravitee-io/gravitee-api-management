@@ -47,7 +47,7 @@ function interceptorConfig($httpProvider) {
             errorMessage = error.data ? error.data.message : 'Server unavailable';
           }
         }
-        if (!sessionExpired) {
+        if (!sessionExpired && error && error.status > 0) {
           notificationService.showError(error, errorMessage);
         }
         return $q.reject(error);
