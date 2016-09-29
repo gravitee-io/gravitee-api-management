@@ -758,6 +758,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     private Set<ApiEntity> convert(Set<Api> apis) throws TechnicalException {
+        if (apis == null || apis.isEmpty()) {
+            return Collections.emptySet();
+        }
         //find primary owners usernames of each apis
         Set<Membership> memberships = membershipRepository.findByReferencesAndMembershipType(
                 MembershipReferenceType.API,

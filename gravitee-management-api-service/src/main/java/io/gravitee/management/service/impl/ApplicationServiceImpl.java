@@ -335,6 +335,9 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     }
 
     private Set<ApplicationEntity> convert(Set<Application> applications) throws TechnicalException {
+        if (applications == null || applications.isEmpty()){
+            return Collections.emptySet();
+        }
         //find primary owners usernames of each applications
         Set<Membership> memberships = membershipRepository.findByReferencesAndMembershipType(
                 MembershipReferenceType.APPLICATION,
