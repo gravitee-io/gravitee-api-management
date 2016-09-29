@@ -17,6 +17,7 @@ package io.gravitee.repository.redis.management.internal;
 
 import io.gravitee.repository.redis.management.model.RedisApi;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -27,6 +28,8 @@ public interface ApiRedisRepository {
 
     RedisApi find(String api);
 
+    Set<RedisApi> find(List<String> apis);
+
     Set<RedisApi> findAll();
 
     Set<RedisApi> findByVisibility(String visibility);
@@ -34,10 +37,4 @@ public interface ApiRedisRepository {
     RedisApi saveOrUpdate(RedisApi api);
 
     void delete(String api);
-
-    void saveMember(String api, String member);
-
-    void deleteMember(String api, String member);
-
-    Set<String> getMembers(String api);
 }

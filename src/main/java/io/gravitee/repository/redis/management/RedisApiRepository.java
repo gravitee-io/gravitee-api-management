@@ -19,9 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.redis.management.internal.ApiRedisRepository;
-import io.gravitee.repository.redis.management.internal.MemberRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApi;
-import io.gravitee.repository.redis.management.model.RedisMembership;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,17 +36,25 @@ public class RedisApiRepository implements ApiRepository {
     @Autowired
     private ApiRedisRepository apiRedisRepository;
 
-    @Autowired
-    private MemberRedisRepository memberRedisRepository;
-
-    @Autowired
-    private RedisUserRepository userRepository;
-
     @Override
     public Set<Api> findAll() throws TechnicalException {
         Set<RedisApi> apis = apiRedisRepository.findAll();
 
         return apis.stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Api> findByVisibility(Visibility visibility) throws TechnicalException {
+        return apiRedisRepository.findByVisibility(visibility.name()).stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Api> findByIds(List<String> ids) throws TechnicalException {
+        return apiRedisRepository.find(ids).stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }
@@ -62,151 +68,18 @@ public class RedisApiRepository implements ApiRepository {
     @Override
     public Api create(Api api) throws TechnicalException {
         RedisApi redisApi = apiRedisRepository.saveOrUpdate(convert(api));
-
-        if (api.getMembers() != null) {
-            api.getMembers().forEach(membership -> {
-                try {
-                    saveMember(api.getId(), membership.getUser().getUsername(), membership.getMembershipType());
-                } catch (TechnicalException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
         return convert(redisApi);
     }
 
     @Override
     public Api update(Api api) throws TechnicalException {
         RedisApi redisApi = apiRedisRepository.saveOrUpdate(convert(api));
-
-        if (api.getMembers() != null) {
-            api.getMembers().forEach(membership -> {
-                try {
-                    saveMember(api.getId(), membership.getUser().getUsername(), membership.getMembershipType());
-                } catch (TechnicalException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
         return convert(redisApi);
     }
 
     @Override
     public void delete(String apiId) throws TechnicalException {
         apiRedisRepository.delete(apiId);
-    }
-
-    @Override
-    public Set<Api> findByMember(String username, MembershipType membershipType, Visibility visibility) throws TechnicalException {
-        if (username != null) {
-            Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
-
-            return memberships.stream()
-                    .filter(redisMembership ->
-                            redisMembership.getMembershipFor() == RedisMembership.MembershipFor.API &&
-                                    (membershipType == null || (membershipType.name().equals(redisMembership.getMembershipType()
-                                    ))))
-                    .map(RedisMembership::getOwner)
-                    .distinct()
-                    .map(apiId -> convert(apiRedisRepository.find(apiId)))
-                    .filter(redisApi -> visibility == null || redisApi.getVisibility() == visibility)
-                    .collect(Collectors.toSet());
-        } else {
-            return apiRedisRepository.findByVisibility(visibility.name()).stream()
-                    .map(this::convert)
-                    .collect(Collectors.toSet());
-        }
-    }
-
-    @Override
-    public void saveMember(String apiId, String username, MembershipType membershipType) throws TechnicalException {
-        // Add member into the API
-        apiRedisRepository.saveMember(apiId, username);
-
-        // Save or saveOrUpdate membership entity
-        Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
-        List<RedisMembership> membershipList = new ArrayList<>(memberships);
-
-        RedisMembership membership = new RedisMembership();
-        membership.setOwner(apiId);
-        membership.setMembershipFor(RedisMembership.MembershipFor.API);
-
-        int idx = membershipList.indexOf(membership);
-        if (idx != -1) {
-            membership = membershipList.get(idx);
-            membership.setMembershipType(membershipType.name());
-            membership.setUpdatedAt(new Date().getTime());
-        } else {
-            membership.setMembershipType(membershipType.name());
-            membership.setCreatedAt(new Date().getTime());
-            membership.setUpdatedAt(membership.getCreatedAt());
-            memberships.add(membership);
-        }
-        memberRedisRepository.save(username, memberships);
-    }
-
-    @Override
-    public void deleteMember(String apiId, String username) throws TechnicalException {
-        // Remove member from the API
-        apiRedisRepository.deleteMember(apiId, username);
-
-        Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
-
-        RedisMembership membership = new RedisMembership();
-        membership.setOwner(apiId);
-        membership.setMembershipFor(RedisMembership.MembershipFor.API);
-
-        if (memberships.contains(membership)) {
-            memberships.remove(membership);
-            memberRedisRepository.save(username, memberships);
-        }
-    }
-
-    @Override
-    public Collection<Membership> getMembers(String apiId, MembershipType membershipType) throws TechnicalException {
-        Set<String> members = apiRedisRepository.getMembers(apiId);
-        Set<Membership> memberships = new HashSet<>(members.size());
-
-        for(String member : members) {
-            Set<RedisMembership> redisMemberships = memberRedisRepository.getMemberships(member);
-
-            redisMemberships.stream()
-                    .filter(redisMembership ->
-                            (redisMembership.getMembershipFor() == RedisMembership.MembershipFor.API) &&
-                                    redisMembership.getOwner().equals(apiId))
-                    .filter(membership -> membershipType == null || membershipType.name().equalsIgnoreCase(membership.getMembershipType()))
-                    .forEach(redisMembership -> {
-                        try {
-                            User user = userRepository.findByUsername(member).get();
-                            Membership membership = convert(redisMembership);
-                            membership.setUser(user);
-                            memberships.add(membership);
-                        } catch (TechnicalException te) {}
-                    });
-        }
-
-        return memberships;
-    }
-
-    @Override
-    public Membership getMember(String apiId, String username) throws TechnicalException {
-        Set<RedisMembership> memberships = memberRedisRepository.getMemberships(username);
-
-        for(RedisMembership redisMembership : memberships) {
-            if (redisMembership.getMembershipFor() == RedisMembership.MembershipFor.API &&
-                    redisMembership.getOwner().equals(apiId)) {
-                try {
-                    User user = userRepository.findByUsername(username).get();
-                    Membership membership = convert(redisMembership);
-                    membership.setUser(user);
-                    return membership;
-                } catch (TechnicalException te) {}
-            }
-        }
-
-        return null;
     }
 
     private Api convert(RedisApi redisApi) {
@@ -253,17 +126,5 @@ public class RedisApiRepository implements ApiRepository {
         redisApi.setPicture(api.getPicture());
 
         return redisApi;
-    }
-
-    private Membership convert(RedisMembership redisMembership) {
-        Membership membership = new Membership();
-
-        //TODO: map user
-        membership.setUser(null);
-        membership.setCreatedAt(new Date(redisMembership.getCreatedAt()));
-        membership.setUpdatedAt(new Date(redisMembership.getUpdatedAt()));
-        membership.setMembershipType(MembershipType.valueOf(redisMembership.getMembershipType()));
-
-        return membership;
     }
 }

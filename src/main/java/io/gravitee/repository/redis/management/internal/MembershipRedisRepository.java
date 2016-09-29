@@ -15,17 +15,25 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
+import io.gravitee.repository.redis.management.model.RedisApi;
 import io.gravitee.repository.redis.management.model.RedisMembership;
 
+import java.util.List;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MemberRedisRepository {
+public interface MembershipRedisRepository {
 
-    Set<RedisMembership> getMemberships(String username);
+    RedisMembership findById(String userId, String referenceType, String referenceId);
 
-    void save(String username, Set<RedisMembership> memberships);
+    RedisMembership saveOrUpdate(RedisMembership membership);
+
+    void delete(RedisMembership membership);
+
+    Set<RedisMembership> findByReferences(String referenceType, List<String> referenceIds);
+
+    Set<RedisMembership> findByUserAndReferenceType(String userId, String referenceType);
 }

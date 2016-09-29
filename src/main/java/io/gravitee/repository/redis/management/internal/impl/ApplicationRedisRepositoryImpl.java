@@ -19,6 +19,8 @@ import io.gravitee.repository.redis.management.internal.ApplicationRedisReposito
 import io.gravitee.repository.redis.management.model.RedisApplication;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,6 +45,13 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
     }
 
     @Override
+    public Set<RedisApplication> find(List<String> applicationIds) {
+        return redisTemplate.opsForHash().multiGet(REDIS_KEY, Collections.unmodifiableCollection(applicationIds)).stream()
+                .map(o -> this.convert(o, RedisApplication.class))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public Set<RedisApplication> findAll() {
         Map<Object, Object> applications = redisTemplate.opsForHash().entries(REDIS_KEY);
 
@@ -63,25 +72,4 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
         redisTemplate.opsForHash().delete(REDIS_KEY, application);
     }
 
-    @Override
-    public void saveMember(String application, String member) {
-        String key = REDIS_KEY + ':' + application + ":members";
-
-        if (! redisTemplate.opsForSet().isMember(key, member)) {
-            redisTemplate.opsForSet().add(key, member);
-        }
-    }
-
-    @Override
-    public void deleteMember(String application, String member) {
-        redisTemplate.opsForSet().remove(REDIS_KEY + ':' + application + ":members", member);
-    }
-
-    @Override
-    public Set<String> getMembers(String application) {
-        return redisTemplate.opsForSet().members(REDIS_KEY + ':' + application + ":members")
-                .stream()
-                .map(obj -> (String) obj)
-                .collect(Collectors.toSet());
-    }
 }

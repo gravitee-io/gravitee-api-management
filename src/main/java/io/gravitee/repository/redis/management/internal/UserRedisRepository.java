@@ -17,6 +17,7 @@ package io.gravitee.repository.redis.management.internal;
 
 import io.gravitee.repository.redis.management.model.RedisUser;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -26,6 +27,8 @@ import java.util.Set;
 public interface UserRedisRepository {
 
     RedisUser find(String user);
+
+    Set<RedisUser> find(List<String> user);
 
     Set<RedisUser> findAll();
 

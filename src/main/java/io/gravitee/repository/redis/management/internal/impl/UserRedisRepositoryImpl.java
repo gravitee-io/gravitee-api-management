@@ -19,8 +19,7 @@ import io.gravitee.repository.redis.management.internal.UserRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisUser;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +39,14 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
         }
 
         return convert(user, RedisUser.class);
+    }
+
+    @Override
+    public Set<RedisUser> find(List<String> users) {
+        return redisTemplate.opsForHash().multiGet(REDIS_KEY, Collections.unmodifiableCollection(users)).stream()
+                .filter(Objects::nonNull)
+                .map(o -> this.convert(o, RedisUser.class))
+                .collect(Collectors.toSet());
     }
 
     @Override

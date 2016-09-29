@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,6 +55,13 @@ public class RedisUserRepository implements UserRepository {
     public Optional<User> findByUsername(String username) throws TechnicalException {
         RedisUser redisUser = userRedisRepository.find(username);
         return Optional.ofNullable(convert(redisUser));
+    }
+
+    @Override
+    public Set<User> findByUsernames(List<String> usernames) throws TechnicalException {
+        return userRedisRepository.find(usernames).stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
     }
 
     @Override

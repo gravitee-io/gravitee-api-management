@@ -17,15 +17,19 @@ package io.gravitee.repository.redis.management.internal;
 
 import io.gravitee.repository.redis.management.model.RedisApplication;
 
+import java.util.List;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ApplicationRedisRepository {
 
     RedisApplication find(String application);
+
+    Set<RedisApplication> find(List<String> applications);
 
     Set<RedisApplication> findAll();
 
@@ -33,9 +37,4 @@ public interface ApplicationRedisRepository {
 
     void delete(String application);
 
-    void saveMember(String api, String member);
-
-    void deleteMember(String api, String member);
-
-    Set<String> getMembers(String api);
 }

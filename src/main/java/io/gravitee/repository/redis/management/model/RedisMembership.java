@@ -23,22 +23,48 @@ import java.util.Objects;
  */
 public class RedisMembership {
 
-    private String owner;
+    private String userId;
+
+    private String referenceType;
+
+    private String referenceId;
+
+    private String type;
 
     private long createdAt;
 
     private long updatedAt;
 
-    private String membershipType;
-
-    private MembershipFor membershipFor;
-
-    public String getOwner() {
-        return owner;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public long getCreatedAt() {
@@ -49,14 +75,6 @@ public class RedisMembership {
         this.createdAt = createdAt;
     }
 
-    public String getMembershipType() {
-        return membershipType;
-    }
-
-    public void setMembershipType(String membershipType) {
-        this.membershipType = membershipType;
-    }
-
     public long getUpdatedAt() {
         return updatedAt;
     }
@@ -65,30 +83,18 @@ public class RedisMembership {
         this.updatedAt = updatedAt;
     }
 
-    public MembershipFor getMembershipFor() {
-        return membershipFor;
-    }
-
-    public void setMembershipFor(MembershipFor membershipFor) {
-        this.membershipFor = membershipFor;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         RedisMembership that = (RedisMembership) o;
-        return Objects.equals(owner, that.owner) &&
-                membershipFor == that.membershipFor;
+        return Objects.equals(userId, that.userId) &&
+                Objects.equals(referenceId, that.referenceId) &&
+                Objects.equals(referenceType, that.referenceType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(owner, membershipFor);
-    }
-
-    public enum MembershipFor {
-        APPLICATION,
-        API;
+        return Objects.hash(userId, referenceId, referenceType);
     }
 }

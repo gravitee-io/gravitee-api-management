@@ -22,6 +22,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +45,13 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
         }
 
         return convert(api, RedisApi.class);
+    }
+
+    @Override
+    public Set<RedisApi> find(List<String> apis) {
+        return redisTemplate.opsForHash().multiGet(REDIS_KEY, Collections.unmodifiableCollection(apis)).stream()
+                .map(o -> this.convert(o, RedisApi.class))
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -89,25 +97,4 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
         redisTemplate.opsForHash().delete(REDIS_KEY, api);
     }
 
-    @Override
-    public void saveMember(String api, String member) {
-        String key = REDIS_KEY + ':' + api + ":members";
-
-        if (! redisTemplate.opsForSet().isMember(key, member)) {
-            redisTemplate.opsForSet().add(key, member);
-        }
-    }
-
-    @Override
-    public void deleteMember(String api, String member) {
-        redisTemplate.opsForSet().remove(REDIS_KEY + ':' + api + ":members", member);
-    }
-
-    @Override
-    public Set<String> getMembers(String api) {
-        return redisTemplate.opsForSet().members(REDIS_KEY + ':' + api + ":members")
-                .stream()
-                .map(obj -> (String) obj)
-                .collect(Collectors.toSet());
-    }
 }
