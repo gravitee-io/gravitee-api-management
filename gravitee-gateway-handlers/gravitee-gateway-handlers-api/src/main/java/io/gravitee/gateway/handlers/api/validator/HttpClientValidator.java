@@ -26,7 +26,5 @@ public class HttpClientValidator implements Validator {
 
     @Override
     public void validate(Api definition) {
-        HttpClient httpClient = definition.getProxy().getHttpClient();
-        //TODO: validate it !
     }
 }

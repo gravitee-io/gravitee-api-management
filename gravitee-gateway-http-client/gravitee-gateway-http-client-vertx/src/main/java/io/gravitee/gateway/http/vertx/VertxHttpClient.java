@@ -140,8 +140,8 @@ public class VertxHttpClient extends AbstractHttpClient {
                 clientResponse.statusCode());
 
         // Copy HTTP headers
-        clientResponse.headers().forEach(header ->
-                proxyClientResponse.headers().add(header.getKey(), header.getValue()));
+        clientResponse.headers().names().forEach(headerName ->
+                proxyClientResponse.headers().put(headerName, clientResponse.headers().getAll(headerName)));
 
         // Copy body content
         clientResponse.handler(event -> proxyClientResponse.bodyHandler().handle(Buffer.buffer(event.getBytes())));
@@ -162,9 +162,7 @@ public class VertxHttpClient extends AbstractHttpClient {
                 continue;
             }
 
-            for (String headerValue : headerValues.getValue()) {
-                httpClientRequest.putHeader(headerName, headerValue);
-            }
+            httpClientRequest.putHeader(headerName, headerValues.getValue());
         }
 
         httpClientRequest.putHeader(HttpHeaders.HOST, host);
@@ -244,7 +242,13 @@ public class VertxHttpClient extends AbstractHttpClient {
     protected void doStop() throws Exception {
         LOGGER.info("Closing HTTP Client for {} [{}]", endpoint.getName(), endpoint.getTarget());
 
-        httpClients.values().stream().forEach(HttpClient::close);
+        httpClients.values().stream().forEach(httpClient -> {
+            try {
+                httpClient.close();
+            } catch (IllegalStateException ise) {
+                LOGGER.warn(ise.getMessage());
+            }
+        });
     }
 
     private Function<Context, HttpClient> createHttpClient() {

@@ -44,7 +44,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManager>
@@ -122,8 +122,8 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
         requiredPlugins.forEach(policy -> {
             final PolicyPlugin policyPlugin = ppm.get(policy.getName());
             if (policyPlugin == null) {
-                LOGGER.error("Policy [{}] can not be found in registry", policy.getName());
-                throw new IllegalStateException("Policy ["+policy.getName()+"] can not be found in registry");
+                LOGGER.error("Policy [{}] can not be found in policy registry", policy.getName());
+                throw new IllegalStateException("Policy ["+policy.getName()+"] can not be found in policy registry");
             }
 
             PluginClassLoader policyClassLoader = null;
@@ -186,7 +186,8 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
 
     @Override
     public PolicyMetadata get(String policy) {
-        return policies.get(policy).metadata;
+        RegisteredPolicy registeredPolicy = policies.get(policy);
+        return (registeredPolicy != null) ? registeredPolicy.metadata : null;
     }
 
     private static class RegisteredPolicy {

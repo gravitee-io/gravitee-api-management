@@ -34,7 +34,7 @@ public abstract class LoadBalancerSupportStrategy implements LoadBalancerStrateg
     }
 
     protected List<Endpoint> endpoints() {
-        return endpoints.stream()
+        return endpoints.parallelStream()
                 .filter(endpoint -> endpoint.getStatus() != Endpoint.Status.DOWN)
                 .collect(Collectors.toList());
     }

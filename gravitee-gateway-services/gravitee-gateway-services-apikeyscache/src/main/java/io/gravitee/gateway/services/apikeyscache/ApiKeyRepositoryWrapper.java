@@ -25,49 +25,42 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class CachedApiKeyRepository implements ApiKeyRepository {
+public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
 
+    private final ApiKeyRepository wrapped;
     private final Cache cache;
 
-    public CachedApiKeyRepository(Cache cache) {
+    public ApiKeyRepositoryWrapper(ApiKeyRepository wrapped, Cache cache) {
+        this.wrapped = wrapped;
         this.cache = cache;
     }
 
     @Override
-    public ApiKey create(String s, String s1, ApiKey apiKey) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public void delete(String s) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Set<ApiKey> findByApi(String s) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Set<ApiKey> findByApplication(String s) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Set<ApiKey> findByApplicationAndApi(String s, String s1) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Optional<ApiKey> retrieve(String apiKey) throws TechnicalException {
+    public Optional<ApiKey> findById(String apiKey) throws TechnicalException {
         Element elt = cache.get(apiKey);
         if (elt != null) {
             return Optional.of((ApiKey) elt.getObjectValue());
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public ApiKey create(ApiKey apiKey) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
+        return wrapped.findByPlan(plan);
     }
 
     @Override

@@ -21,11 +21,11 @@ import java.util.Collection;
 
 /**
  * This manager interface acts as a bridge between the source of {@link Api} (*.json files in case of
- * local registry and sync scheduler when using the sync mode) and the {@link io.gravitee.gateway.core.Reactor}.
+ * local registry and sync scheduler when using the sync mode) and the {@link io.gravitee.gateway.reactor.Reactor}.
  * This means that all actions handled by the reactor must be done by using this manager and not directly by emitting
  * internal event.
  *
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ApiManager {
@@ -43,7 +43,7 @@ public interface ApiManager {
     void update(Api api);
 
     /**
-     * Undeploy an API from the {@link io.gravitee.gateway.core.Reactor}.
+     * Undeploy an API from the {@link io.gravitee.gateway.reactor.Reactor}.
      * @param apiId The ID of the API to undeploy.
      */
     void undeploy(String apiId);

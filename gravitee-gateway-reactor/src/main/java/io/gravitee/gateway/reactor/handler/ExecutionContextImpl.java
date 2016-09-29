@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.impl;
+package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.expression.TemplateEngine;
@@ -26,7 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ExecutionContextImpl implements ExecutionContext {
 
@@ -68,5 +69,9 @@ public class ExecutionContextImpl implements ExecutionContext {
     @Override
     public TemplateEngine getTemplateEngine() {
         return spelTemplateEngine;
+    }
+
+    public Map<String, Object> getAttributes() {
+        return this.attributes;
     }
 }

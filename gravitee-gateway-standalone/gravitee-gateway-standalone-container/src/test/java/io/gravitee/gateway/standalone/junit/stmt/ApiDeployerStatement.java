@@ -23,7 +23,9 @@ import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
 import io.gravitee.gateway.standalone.Container;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
+import io.gravitee.gateway.standalone.policy.PolicyRegister;
 import io.gravitee.gateway.standalone.utils.SocketUtils;
+import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.junit.runners.model.Statement;
 
 import java.net.URI;
@@ -53,6 +55,11 @@ public class ApiDeployerStatement extends Statement {
         System.setProperty("gravitee.home", URLDecoder.decode(home.getPath(), "UTF-8"));
 
         container = new Container();
+
+        if (target instanceof PolicyRegister) {
+            ((PolicyRegister) target).registerPlugin(container.getApplicationContext().getBean(PolicyPluginManager.class));
+        }
+
         container.start();
 
         Thread.sleep(1000);

@@ -15,17 +15,14 @@
  */
 package io.gravitee.gateway.services.sync;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
@@ -46,7 +43,9 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SyncManagerTest {
@@ -56,7 +55,10 @@ public class SyncManagerTest {
 
     @Mock
     private ApiRepository apiRepository;
-    
+
+    @Mock
+    private PlanRepository planRepository;
+
     @Mock
     private EventRepository eventRepository;
 
@@ -597,10 +599,7 @@ public class SyncManagerTest {
     }
     
     private Event mockEvent(final io.gravitee.repository.management.model.Api api, EventType eventType) throws Exception {
-        final JsonNodeFactory factory = JsonNodeFactory.instance;
-        ObjectNode node = factory.objectNode();
-
-        Map<String, String> properties = new HashMap<String, String>();
+        Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.API_ID.getValue(), api.getId());
 
         Event event = new Event();
@@ -608,8 +607,7 @@ public class SyncManagerTest {
         event.setCreatedAt(new Date());
         event.setProperties(properties);
 
-        when(objectMapper.readTree(event.getPayload())).thenReturn((JsonNode) node);
-        when(objectMapper.convertValue((JsonNode) node, io.gravitee.repository.management.model.Api.class)).thenReturn(api);
+        when(objectMapper.readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class)).thenReturn(api);
 
         return event;
     }

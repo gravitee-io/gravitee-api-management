@@ -16,7 +16,14 @@
 package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.expression.TemplateContext;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.handler.el.EvaluableExecutionContext;
+import io.gravitee.gateway.reactor.handler.el.EvaluableRequest;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -24,7 +31,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.ClassUtils;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<ReactorHandler> implements ReactorHandler, ApplicationContextAware {
@@ -60,7 +67,7 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
     @Override
     protected void doStop() throws Exception {
         if (applicationContext != null) {
-            ((ConfigurableApplicationContext)applicationContext).close();
+            ((ConfigurableApplicationContext) applicationContext).close();
         }
     }
 
@@ -68,4 +75,21 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
+
+    @Override
+    public void handle(Request request, Response response, Handler<Response> handler) {
+        ExecutionContextImpl executionContext = new ExecutionContextImpl(applicationContext);
+        TemplateContext templateContext = executionContext.getTemplateEngine().getTemplateContext();
+        templateContext.setVariable("request", new EvaluableRequest(request));
+        templateContext.setVariable("context", new EvaluableExecutionContext(executionContext));
+
+        if (reactable() != null) {
+            executionContext.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, reactable().contextPath());
+        }
+
+        doHandle(request, response, handler, executionContext);
+    }
+
+    protected abstract void doHandle(Request request, Response response, Handler<Response> handler,
+                                     ExecutionContext executionContext);
 }

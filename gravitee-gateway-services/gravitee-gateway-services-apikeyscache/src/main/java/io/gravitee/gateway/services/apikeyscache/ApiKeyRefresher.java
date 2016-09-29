@@ -18,13 +18,20 @@ package io.gravitee.gateway.services.apikeyscache;
 import io.gravitee.definition.model.Api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.Plan;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ApiKeyRefresher implements Runnable {
 
@@ -36,21 +43,29 @@ public class ApiKeyRefresher implements Runnable {
 
     private final Api api;
 
+    private Set<Plan> plans;
+
     public ApiKeyRefresher(final Api api) {
         this.api = api;
     }
 
     @Override
     public void run() {
-        try {
-            LOGGER.debug("Refresh API keys for API {}", api);
+        LOGGER.debug("Refresh API keys for API {}", api);
 
-            apiKeyRepository.findByApi(api.getId())
-                    .parallelStream()
-                    .forEach(apiKey -> cache.put(new Element(apiKey.getKey(), apiKey)));
-        } catch (TechnicalException e) {
-            LOGGER.warn("Not able to refresh API keys from repository: {}", e.getMessage());
-        }
+        plans.stream()
+                .flatMap(new Function<Plan, Stream<ApiKey>>() {
+                    @Override
+                    public Stream<ApiKey> apply(Plan plan) {
+                        try {
+                            return apiKeyRepository.findByPlan(plan.getId()).stream();
+                        } catch (TechnicalException e) {
+                            LOGGER.warn("Not able to refresh API keys from repository: {}", e.getMessage());
+                            return Stream.empty();
+                        }
+                    }
+                })
+                .forEach(apiKey -> cache.put(new Element(apiKey.getKey(), apiKey)));
     }
 
     public void setApiKeyRepository(ApiKeyRepository apiKeyRepository) {
@@ -59,5 +74,9 @@ public class ApiKeyRefresher implements Runnable {
 
     public void setCache(Cache cache) {
         this.cache = cache;
+    }
+
+    public void setPlans(Set<Plan> plans) {
+        this.plans = plans;
     }
 }

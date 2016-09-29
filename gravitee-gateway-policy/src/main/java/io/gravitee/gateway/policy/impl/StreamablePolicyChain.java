@@ -27,10 +27,10 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class StreamablePolicyChain extends AbstractPolicyChain {
+public abstract class StreamablePolicyChain extends PolicyChain {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ResponsePolicyChain.class);
 
@@ -54,28 +54,30 @@ public abstract class StreamablePolicyChain extends AbstractPolicyChain {
     private void prepareStreamablePolicyChain(final Request request, final Response response) {
         ReadWriteStream<Buffer> previousPolicyStreamer = null;
         for (Policy policy : policies) {
-            try {
-                // Run OnXXXContent to get ReadWriteStream object
-                ReadWriteStream streamer = stream(policy, request, response, executionContext);
-                if (streamer != null) {
-                //    final ReadWriteStream streamer = result;
+            if (policy.isStreamable()) {
+                try {
+                    // Run OnXXXContent to get ReadWriteStream object
+                    ReadWriteStream streamer = stream(policy, request, response, executionContext);
+                    if (streamer != null) {
+                        //    final ReadWriteStream streamer = result;
 
-                    // An handler was never assigned to start the chain, so let's do it
-                    if (streamablePolicyHandlerChain == null) {
-                        streamablePolicyHandlerChain = streamer;
+                        // An handler was never assigned to start the chain, so let's do it
+                        if (streamablePolicyHandlerChain == null) {
+                            streamablePolicyHandlerChain = streamer;
+                        }
+
+                        // Chain policy stream using the previous one
+                        if (previousPolicyStreamer != null) {
+                            previousPolicyStreamer.bodyHandler(streamer::write);
+                            previousPolicyStreamer.endHandler(result1 -> streamer.end());
+                        }
+
+                        // Previous stream is now the current policy stream
+                        previousPolicyStreamer = streamer;
                     }
-
-                    // Chain policy stream using the previous one
-                    if (previousPolicyStreamer != null) {
-                        previousPolicyStreamer.bodyHandler(streamer::write);
-                        previousPolicyStreamer.endHandler(result1 -> streamer.end());
-                    }
-
-                    // Previous stream is now the current policy stream
-                    previousPolicyStreamer = streamer;
+                } catch (Exception ex) {
+                    LOGGER.error("Unexpected error while running onXXXXContent for policy {}", policy, ex);
                 }
-            } catch (Exception ex) {
-                LOGGER.error("Unexpected error while running onXXXXContent for policy {}", policy, ex);
             }
         }
 
