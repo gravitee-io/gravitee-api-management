@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Spy;
 
-import io.gravitee.gateway.policy.impl.AbstractPolicyChain;
+import io.gravitee.gateway.policy.impl.PolicyChain;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
 
@@ -54,10 +54,10 @@ public class GlobalPolicyChainTest {
     public void doNext_multiplePolicyOrder() throws Exception {
         List<Policy> policies = policies2();
 
-        AbstractPolicyChain requestChain = RequestPolicyChain.create(policies, mock(ExecutionContext.class));
+        PolicyChain requestChain = RequestPolicyChain.create(policies, mock(ExecutionContext.class));
         requestChain.setResultHandler(result -> {});
 
-        AbstractPolicyChain responseChain = ResponsePolicyChain.create(policies, mock(ExecutionContext.class));
+        PolicyChain responseChain = ResponsePolicyChain.create(policies, mock(ExecutionContext.class));
         responseChain.setResultHandler(result -> {});
 
         InOrder requestOrder = inOrder(policy, policy2);

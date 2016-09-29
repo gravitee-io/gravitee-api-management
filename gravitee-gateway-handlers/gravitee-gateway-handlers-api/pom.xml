@@ -51,15 +51,15 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-el</artifactId>
+            <groupId>io.gravitee.gateway.http</groupId>
+            <artifactId>gravitee-gateway-http-client-vertx</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.http</groupId>
-            <artifactId>gravitee-gateway-http-client-vertx</artifactId>
-            <version>${project.version}</version>
+            <groupId>io.gravitee.repository</groupId>
+            <artifactId>gravitee-repository</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

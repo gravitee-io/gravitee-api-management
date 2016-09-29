@@ -15,13 +15,16 @@
  */
 package io.gravitee.gateway.services.sync;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.Path;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
@@ -37,7 +40,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class SyncManager {
 
@@ -47,7 +52,10 @@ public class SyncManager {
 
     @Autowired
     private ApiRepository apiRepository;
-    
+
+    @Autowired
+    private PlanRepository planRepository;
+
     @Autowired
     private EventRepository eventRepository;
 
@@ -56,11 +64,6 @@ public class SyncManager {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    /**
-     * Timestamp of the last sync.
-     */
-    private long lastSyncAt;
 
     @Value("${tags:}")
     private String propertyTags;
@@ -108,8 +111,6 @@ public class SyncManager {
                         Api newApi = apisMap.get(api);
                         apiManager.deploy(newApi);
                     });
-
-            lastSyncAt = System.currentTimeMillis();
         } catch (TechnicalException te) {
             logger.error("Unable to sync instance", te);
         }
@@ -151,15 +152,14 @@ public class SyncManager {
                             EventType.START_API,
                             EventType.STOP_API).build());
 
-
         if (events != null && ! events.isEmpty()) {
             try {
                 for (io.gravitee.repository.management.model.Api api : apis) {
                     for (Event _event : events) {
                         if (api.getId().equals(_event.getProperties().get(Event.EventProperties.API_ID.getValue()))) {
                             if (!EventType.UNPUBLISH_API.equals(_event.getType())) {
-                                JsonNode node = objectMapper.readTree(_event.getPayload());
-                                io.gravitee.repository.management.model.Api payloadApi = objectMapper.convertValue(node, io.gravitee.repository.management.model.Api.class);
+                                io.gravitee.repository.management.model.Api payloadApi = objectMapper.readValue(
+                                        _event.getPayload(), io.gravitee.repository.management.model.Api.class);
                                 deployedApis.add(convert(payloadApi));
                             }
                             break;
@@ -186,6 +186,15 @@ public class SyncManager {
                 api.setEnabled(remoteApi.getLifecycleState() == LifecycleState.STARTED);
                 api.setDeployedAt(remoteApi.getUpdatedAt());
 
+                try {
+                    api.setPlans(planRepository.findByApi(api.getId())
+                            .stream()
+                            .map(this::convert)
+                            .collect(Collectors.toList()));
+                } catch (TechnicalException te) {
+                    logger.error("Unexpected error while adding plan to the API: {} [{}]", remoteApi.getName(),
+                            remoteApi.getId(), te);
+                }
                 return api;
             }
         } catch (IOException ioe) {
@@ -193,6 +202,26 @@ public class SyncManager {
         }
 
         return null;
+    }
+
+    private Plan convert(io.gravitee.repository.management.model.Plan repoPlan) {
+        Plan plan = new Plan();
+
+        plan.setId(repoPlan.getId());
+        plan.setName(repoPlan.getName());
+
+        try {
+            if (repoPlan.getDefinition() != null && ! repoPlan.getDefinition().trim().isEmpty()) {
+                HashMap<String, Path> paths = objectMapper.readValue(repoPlan.getDefinition(),
+                        new TypeReference<HashMap<String, Path>>() {});
+
+                plan.setPaths(paths);
+            }
+        } catch (IOException ioe) {
+            logger.error("Unexpected error while converting plan: {}", plan, ioe);
+        }
+
+        return plan;
     }
 
     public void setApiRepository(ApiRepository apiRepository) {

@@ -21,7 +21,6 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,20 +32,21 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public abstract class AbstractPolicyChain extends BufferedReadWriteStream implements PolicyChain {
+public abstract class PolicyChain extends BufferedReadWriteStream implements io.gravitee.policy.api.PolicyChain {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
-    private static final PolicyResult SUCCESS_POLICY_CHAIN = new SuccessPolicyResult();
+    protected static final PolicyResult SUCCESS_POLICY_CHAIN = new SuccessPolicyResult();
 
     protected Handler<PolicyResult> resultHandler;
     protected final List<Policy> policies;
     protected final Iterator<Policy> iterator;
     protected final ExecutionContext executionContext;
 
-    protected AbstractPolicyChain(List<Policy> policies, final ExecutionContext executionContext) {
+    protected PolicyChain(List<Policy> policies, final ExecutionContext executionContext) {
         Objects.requireNonNull(policies, "Policies must not be null");
         Objects.requireNonNull(executionContext, "ExecutionContext must not be null");
 

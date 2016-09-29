@@ -31,7 +31,7 @@ public class HttpClientValidatorTest {
     //    httpClientDefinition.setUseProxy(true);
 
         Proxy proxyDefinition = new Proxy();
-        proxyDefinition.setHttpClient(httpClientDefinition);
+//        proxyDefinition.setHttpClient(httpClientDefinition);
         Api definition = new Api();
         definition.setProxy(proxyDefinition);
 

@@ -6,6 +6,7 @@
     "context_path": "/unreachable",
     "endpoints": [
       {
+        "name": "default",
         "target": "http://10.255.255.255:8080/team",
         "http": {
           "connectTimeout": 3000

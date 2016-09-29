@@ -13,38 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.el;
+package io.gravitee.gateway.http.core.loadbalancer;
 
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.gateway.api.Request;
+import io.gravitee.definition.model.Endpoint;
 
-import java.util.Map;
+import java.util.Collections;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EvaluableRequest {
+public class SingleEndpointLoadBalancerStrategy extends LoadBalancerSupportStrategy {
 
-    private final Request request;
+    private final Endpoint endpoint;
 
-    public EvaluableRequest(Request request) {
-        this.request = request;
+    public SingleEndpointLoadBalancerStrategy(Endpoint endpoint) {
+        super(Collections.singletonList(endpoint));
+        this.endpoint = endpoint;
     }
 
-    public String getId() {
-        return request.id();
-    }
-
-    public HttpHeaders getHeaders() {
-        return request.headers();
-    }
-
-    public Map<String, String> getParams() {
-        return request.parameters();
-    }
-
-    public String[] getPaths() {
-        return request.path().split("/");
+    @Override
+    protected Endpoint nextEndpoint() {
+        return (endpoint.getStatus() != Endpoint.Status.DOWN) ? endpoint : null;
     }
 }

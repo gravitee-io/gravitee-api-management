@@ -17,9 +17,10 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.definition.Plan;
+import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.validator.ValidationException;
 import io.gravitee.gateway.handlers.api.validator.Validator;
-import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiManagerImpl implements ApiManager {
@@ -50,6 +51,10 @@ public class ApiManagerImpl implements ApiManager {
     public void deploy(Api api) {
         MDC.put("api", api.getId());
         logger.info("Deployment of {}", api);
+        logger.info("Deploying {} plan(s) for API {}:", api.getPlans().size(), api.getId());
+        for(Plan plan: api.getPlans()) {
+            logger.info("\t- {}", plan.getName());
+        }
 
         try {
             validator.validate(api);

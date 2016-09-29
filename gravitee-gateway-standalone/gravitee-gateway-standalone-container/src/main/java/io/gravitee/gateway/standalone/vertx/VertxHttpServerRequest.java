@@ -23,6 +23,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.reporter.api.http.RequestMetrics;
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.net.SocketAddress;
 
@@ -85,8 +86,9 @@ class VertxHttpServerRequest implements Request {
     @Override
     public HttpHeaders headers() {
         if (headers == null) {
-            headers = new HttpHeaders(httpServerRequest.headers().size());
-            for(Map.Entry<String, String> header : httpServerRequest.headers()) {
+            MultiMap vertxHeaders = httpServerRequest.headers();
+            headers = new HttpHeaders(vertxHeaders.size());
+            for(Map.Entry<String, String> header : vertxHeaders) {
                 headers.add(header.getKey(), header.getValue());
             }
         }

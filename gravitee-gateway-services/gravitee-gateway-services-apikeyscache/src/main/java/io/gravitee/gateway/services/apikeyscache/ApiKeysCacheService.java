@@ -22,7 +22,10 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Plan;
 import net.sf.ehcache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +36,12 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ApiKeysCacheService extends AbstractService implements EventListener<ReactorEvent, Reactable> {
 
@@ -62,6 +67,9 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     private ApiKeyRepository apiKeyRepository;
 
+    @Autowired
+    private PlanRepository planRepository;
+
     private ExecutorService executorService;
 
     private final Map<Api, ScheduledFuture> scheduledTasks = new HashMap<>();
@@ -82,9 +90,9 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
             beanFactory.destroySingleton(oldBeanName);
 
-            LOGGER.debug("Register API key repository implementation {}", CachedApiKeyRepository.class.getName());
+            LOGGER.debug("Register API key repository implementation {}", ApiKeyRepositoryWrapper.class.getName());
             beanFactory.registerSingleton(ApiKeyRepository.class.getName(),
-                    new CachedApiKeyRepository(cache));
+                    new ApiKeyRepositoryWrapper(this.apiKeyRepository, cache));
 
             eventManager.subscribeForEvents(this, ReactorEvent.class);
 
@@ -138,15 +146,21 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     private void startRefresher(Api api) {
         if (api.isEnabled()) {
-            ApiKeyRefresher refresher = new ApiKeyRefresher(api);
-            refresher.setCache(cache);
-            refresher.setApiKeyRepository(apiKeyRepository);
+            try {
+                Set<Plan> plans = planRepository.findByApi(api.getId());
+                ApiKeyRefresher refresher = new ApiKeyRefresher(api);
+                refresher.setCache(cache);
+                refresher.setApiKeyRepository(apiKeyRepository);
+                refresher.setPlans(plans);
 
-            LOGGER.info("Add a task to refresh keys each {} {} ", delay, unit.name());
-            ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
-                    refresher, 0, delay, unit);
+                LOGGER.info("Add a task to refresh keys each {} {} ", delay, unit.name());
+                ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
+                        refresher, 0, delay, unit);
 
-            scheduledTasks.put(api, scheduledFuture);
+                scheduledTasks.put(api, scheduledFuture);
+            } catch (TechnicalException te) {
+                LOGGER.error("Unable to retrieve plans for API {} to refresh api-keys", api.getId(), te);
+            }
         }
     }
 

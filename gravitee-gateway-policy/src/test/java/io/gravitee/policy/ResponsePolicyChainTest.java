@@ -23,9 +23,8 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.impl.AbstractPolicyChain;
+import io.gravitee.gateway.policy.impl.PolicyChain;
 import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
-import io.gravitee.policy.api.PolicyChain;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,14 +65,14 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void buildPolicyChain_withEmptyPolicies() {
-        PolicyChain chain = ResponsePolicyChain.create(new ArrayList<>(), mock(ExecutionContext.class));
+        io.gravitee.policy.api.PolicyChain chain = ResponsePolicyChain.create(new ArrayList<>(), mock(ExecutionContext.class));
 
         Assert.assertNotNull(chain);
     }
 
     @Test
     public void doNext_emptyPolicies() throws Exception {
-        AbstractPolicyChain chain = ResponsePolicyChain.create(Collections.emptyList(), mock(ExecutionContext.class));
+        PolicyChain chain = ResponsePolicyChain.create(Collections.emptyList(), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 
@@ -83,7 +82,7 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_singlePolicy() throws Exception {
-        AbstractPolicyChain chain = ResponsePolicyChain.create(
+        PolicyChain chain = ResponsePolicyChain.create(
                 Collections.singletonList(policy), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
@@ -95,7 +94,7 @@ public class ResponsePolicyChainTest {
     @Test
     public void doNext_multiplePolicy() throws Exception {
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        AbstractPolicyChain chain = ResponsePolicyChain.create(
+        PolicyChain chain = ResponsePolicyChain.create(
                 Arrays.asList(policy, policy2), executionContext);
         chain.setResultHandler(result -> {});
 
@@ -107,7 +106,7 @@ public class ResponsePolicyChainTest {
 
     @Test
     public void doNext_multiplePolicyOrder() throws Exception {
-        AbstractPolicyChain chain = ResponsePolicyChain.create(
+        PolicyChain chain = ResponsePolicyChain.create(
                 Arrays.asList(policy, policy2), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
 
@@ -122,7 +121,7 @@ public class ResponsePolicyChainTest {
     @Test
     public void doNext_multiplePolicy_throwError() throws Exception {
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        AbstractPolicyChain chain = ResponsePolicyChain.create(
+        PolicyChain chain = ResponsePolicyChain.create(
                 Arrays.asList(policy2, policy3), executionContext);
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
@@ -142,7 +141,7 @@ public class ResponsePolicyChainTest {
                 any(Request.class), any(Response.class), eq(executionContext)
         )).thenReturn(stream);
 
-        AbstractPolicyChain chain = ResponsePolicyChain.create(
+        PolicyChain chain = ResponsePolicyChain.create(
                 Collections.singletonList(policy4), executionContext);
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
@@ -171,7 +170,7 @@ public class ResponsePolicyChainTest {
 
         InOrder inOrder = inOrder(streamPolicy4, streamPolicy5);
 
-        AbstractPolicyChain chain = ResponsePolicyChain.create(
+        PolicyChain chain = ResponsePolicyChain.create(
                 Arrays.asList(policy4, policy5), executionContext);
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
@@ -204,7 +203,7 @@ public class ResponsePolicyChainTest {
 
         InOrder inOrder = inOrder(streamPolicy4, streamPolicy5);
 
-        AbstractPolicyChain chain = ResponsePolicyChain.create(
+        PolicyChain chain = ResponsePolicyChain.create(
                 Arrays.asList(policy4, policy5), executionContext);
         chain.setResultHandler(result -> {});
         chain.bodyHandler(mock(Handler.class));

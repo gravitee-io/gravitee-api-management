@@ -23,11 +23,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class DefaultReactorHandlerResolver implements ReactorHandlerResolver {
@@ -41,17 +40,15 @@ public class DefaultReactorHandlerResolver implements ReactorHandlerResolver {
     public ReactorHandler resolve(Request request) {
         StringBuilder path = new StringBuilder(request.path());
 
-        if (path.lastIndexOf("/") < path.length() - 1) {
+        if (path.charAt(path.length() - 1) != '/') {
             path.append('/');
         }
 
-        Set<ReactorHandler> mapHandlers = handlerRegistry.getReactorHandlers().stream().filter(
-                handler -> path.toString().startsWith(handler.contextPath())).collect(Collectors.toSet());
+        Optional<ReactorHandler> handlers = handlerRegistry.getReactorHandlers().stream().filter(
+                handler -> path.toString().startsWith(handler.contextPath())).findFirst();
 
-        LOGGER.debug("Found {} handlers for path {}", mapHandlers.size(), path);
-
-        if (!mapHandlers.isEmpty()) {
-            ReactorHandler handler = mapHandlers.iterator().next();
+        if (handlers.isPresent()) {
+            ReactorHandler handler = handlers.get();
             LOGGER.debug("Returning the first handler matching path {} : {}", path, handler);
             return handler;
         }

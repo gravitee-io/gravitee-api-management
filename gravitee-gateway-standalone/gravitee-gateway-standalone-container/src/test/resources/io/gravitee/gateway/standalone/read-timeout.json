@@ -6,6 +6,7 @@
     "context_path": "/team",
     "endpoints": [
       {
+        "name": "default",
         "target": "http://localhost:8080/team",
         "http": {
           "readTimeout": 2000

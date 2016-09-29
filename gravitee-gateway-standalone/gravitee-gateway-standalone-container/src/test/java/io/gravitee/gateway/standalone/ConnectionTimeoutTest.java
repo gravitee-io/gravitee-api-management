@@ -24,10 +24,10 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor(
@@ -44,6 +44,7 @@ public class ConnectionTimeoutTest extends AbstractGatewayTest {
         Response response = request.execute();
         HttpResponse returnResponse = response.returnResponse();
 
-        assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, returnResponse.getStatusLine().getStatusCode());
+        assertTrue(returnResponse.getStatusLine().getStatusCode() == HttpStatus.SC_GATEWAY_TIMEOUT
+                    || returnResponse.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_GATEWAY);
     }
 }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.report.impl;
 
-import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.Reportable;
@@ -27,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ReporterServiceImpl extends AbstractService implements ReporterService {
@@ -43,9 +42,7 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
 
     @Override
     public void report(Reportable reportable) {
-        if (lifecycleState() == Lifecycle.State.STARTED) {
-            doReport(reportable);
-        }
+        doReport(reportable);
     }
 
     @Override
@@ -83,9 +80,10 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
     }
 
     protected void doReport(Reportable reportable) {
-        reporters
-                .stream()
-                .filter(reporter -> reporter.canHandle(reportable))
-                .forEach(reporter -> reporter.report(reportable));
+        for (Reporter reporter : reporters) {
+            if (reporter.canHandle(reportable)) {
+                reporter.report(reportable);
+            }
+        }
     }
 }

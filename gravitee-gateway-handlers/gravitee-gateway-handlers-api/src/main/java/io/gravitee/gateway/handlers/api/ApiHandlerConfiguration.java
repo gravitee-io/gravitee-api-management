@@ -15,16 +15,16 @@
  */
 package io.gravitee.gateway.handlers.api;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.handlers.api.http.client.spring.HttpClientConfiguration;
-import io.gravitee.gateway.handlers.api.impl.PathResolverImpl;
+import io.gravitee.gateway.handlers.api.path.PathResolver;
+import io.gravitee.gateway.handlers.api.path.impl.ApiPathResolverImpl;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManager;
-import io.gravitee.gateway.policy.PolicyResolver;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.DefaultPolicyManager;
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
-import io.gravitee.gateway.policy.impl.PolicyResolverImpl;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
@@ -43,8 +43,8 @@ import org.springframework.context.annotation.Import;
 public class ApiHandlerConfiguration {
 
     @Bean
-    public PathResolver pathResolver() {
-        return new PathResolverImpl();
+    public PathResolver pathResolver(Api api) {
+        return new ApiPathResolverImpl(api);
     }
 
     @Bean
@@ -55,11 +55,6 @@ public class ApiHandlerConfiguration {
     @Bean
     public PolicyFactory policyFactory() {
         return new PolicyFactoryImpl();
-    }
-
-    @Bean
-    public PolicyResolver policyResolver() {
-        return new PolicyResolverImpl();
     }
 
     @Bean

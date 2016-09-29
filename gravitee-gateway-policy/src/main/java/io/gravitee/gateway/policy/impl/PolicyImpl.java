@@ -28,11 +28,10 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class PolicyImpl implements Policy {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(PolicyImpl.class);
 
     private final Object policyInst;
     private PolicyMetadata policyMetadata;
@@ -77,8 +76,6 @@ public class PolicyImpl implements Policy {
 
     private Object invoke(Method invokedMethod, Object ... args) throws Exception {
         if (invokedMethod != null) {
-            LOGGER.debug("Calling {} method on policy {}", invokedMethod.getName(), policyInst.getClass().getName());
-
             Class<?>[] parametersType = invokedMethod.getParameterTypes();
             Object[] parameters = new Object[parametersType.length];
 

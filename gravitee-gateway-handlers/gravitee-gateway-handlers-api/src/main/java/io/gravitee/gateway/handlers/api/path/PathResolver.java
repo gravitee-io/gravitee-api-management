@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api;
-
-import io.gravitee.definition.model.Path;
-import io.gravitee.gateway.api.Request;
+package io.gravitee.gateway.handlers.api.path;
 
 /**
  * This resolver is used to determine the configured {@link Path} from
@@ -24,16 +21,16 @@ import io.gravitee.gateway.api.Request;
  * {@link Request}. By getting this path, the gateway will be able to determine
  * the {@link io.gravitee.definition.model.Rule} to apply for policy chains (request and response).
  *
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface PathResolver {
 
     /**
-     * The "configured" path of the provided {@link Request}.
+     * The "resolved" path.
      *
-     * @param request The current request.
-     * @return The "configured" path for current request / call.
+     * @param path The request path.
+     * @return The "resolved" path for current request.
      */
-    Path resolve(Request request);
+    Path resolve(String path);
 }

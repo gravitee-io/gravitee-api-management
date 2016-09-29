@@ -6,10 +6,12 @@
     "context_path": "/echo",
     "endpoints": [
       {
+        "name": "endpoint_0",
         "target": "http://localhost:8080/echo",
         "weight": 3
       },
       {
+        "name": "endpoint_1",
         "target": "http://localhost:8080/echo",
         "weight": 7
       }

@@ -20,6 +20,7 @@ import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
@@ -70,7 +71,7 @@ public class ReactorTest {
 
         when(handlerResolver.resolve(request)).thenReturn(new AbstractReactorHandler() {
             @Override
-            public void handle(Request request, Response response, Handler<Response> handler) {
+            protected void doHandle(Request request, Response response, Handler<Response> handler, ExecutionContext executionContext) {
                 Response proxyResponse = mock(Response.class);
                 when(proxyResponse.headers()).thenReturn(new HttpHeaders());
                 when(proxyResponse.status()).thenReturn(HttpStatusCode.OK_200);

@@ -36,7 +36,7 @@ import static org.junit.Assert.assertEquals;
         contextPath = "/team"
 )
 public class SimpleGatewayTest extends AbstractGatewayTest {
-
+    
     @Test
     public void call_get_started_api() throws Exception {
         Request request = Request.Get("http://localhost:8082/test/my_team");

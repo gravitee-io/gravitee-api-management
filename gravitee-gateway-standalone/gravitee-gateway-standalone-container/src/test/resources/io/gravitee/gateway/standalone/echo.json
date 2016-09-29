@@ -6,6 +6,7 @@
     "context_path": "/echo",
     "endpoints": [
       {
+        "name": "default",
         "target": "http://localhost:8080/echo"
       }
     ],

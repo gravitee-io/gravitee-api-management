@@ -32,7 +32,8 @@ import java.util.Set;
 import static org.reflections.ReflectionUtils.*;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class PolicyFactoryImpl implements PolicyFactory {
 
@@ -63,7 +64,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
 
         if (constr != null) {
             try {
-                if (constr.getParameterCount() > 0) {
+                if (constr.getParameterCount() > 0 && injectables != null) {
                     policyInst = constr.newInstance(injectables.get(policyMetadata.configuration()));
                 } else {
                     policyInst = constr.newInstance();
@@ -73,7 +74,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
             }
         }
 
-        if (policyInst != null) {
+        if (policyInst != null && injectables != null) {
             Set<Field> fields = lookingForInjectableFields(policyMetadata.policy());
             if (fields != null) {
                 for (Field field : fields) {

@@ -6,6 +6,7 @@
     "context_path": "/unreachable",
     "endpoints": [
       {
+        "name": "default",
         "target": "http://localhost:3456/team"
       }
     ],

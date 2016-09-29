@@ -17,9 +17,8 @@ package io.gravitee.policy;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.impl.AbstractPolicyChain;
+import io.gravitee.gateway.policy.impl.PolicyChain;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
-import io.gravitee.policy.api.PolicyChain;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,14 +58,14 @@ public class RequestPolicyChainTest {
 
     @Test
     public void buildPolicyChain_withEmptyPolicies() {
-        PolicyChain chain = RequestPolicyChain.create(new ArrayList<>(), mock(ExecutionContext.class));
+        io.gravitee.policy.api.PolicyChain chain = RequestPolicyChain.create(new ArrayList<>(), mock(ExecutionContext.class));
 
         Assert.assertNotNull(chain);
     }
 
     @Test
     public void doNext_emptyPolicies() throws Exception {
-        AbstractPolicyChain chain = RequestPolicyChain.create(new ArrayList<>(), mock(ExecutionContext.class));
+        PolicyChain chain = RequestPolicyChain.create(new ArrayList<>(), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
 
         chain.doNext(null, null);
@@ -77,7 +76,7 @@ public class RequestPolicyChainTest {
 
     @Test
     public void doNext_singlePolicy() throws Exception {
-        AbstractPolicyChain chain = RequestPolicyChain.create(policies(), mock(ExecutionContext.class));
+        PolicyChain chain = RequestPolicyChain.create(policies(), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
 
         chain.doNext(null, null);
@@ -89,7 +88,7 @@ public class RequestPolicyChainTest {
     @Test
     public void doNext_multiplePolicy() throws Exception {
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        AbstractPolicyChain chain = RequestPolicyChain.create(policies2(), executionContext);
+        PolicyChain chain = RequestPolicyChain.create(policies2(), executionContext);
         chain.setResultHandler(result -> {});
 
         chain.doNext(null, null);
@@ -100,7 +99,7 @@ public class RequestPolicyChainTest {
 
     @Test
     public void doNext_multiplePolicyOrder() throws Exception {
-        AbstractPolicyChain chain = RequestPolicyChain.create(policies2(), mock(ExecutionContext.class));
+        PolicyChain chain = RequestPolicyChain.create(policies2(), mock(ExecutionContext.class));
         chain.setResultHandler(result -> {});
 
         InOrder inOrder = inOrder(policy, policy2);
@@ -114,7 +113,7 @@ public class RequestPolicyChainTest {
     @Test
     public void doNext_multiplePolicy_throwError() throws Exception {
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        AbstractPolicyChain chain = RequestPolicyChain.create(policies3(), executionContext);
+        PolicyChain chain = RequestPolicyChain.create(policies3(), executionContext);
         chain.setResultHandler(result -> {});
         chain.doNext(null, null);
 

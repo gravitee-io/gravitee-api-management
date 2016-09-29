@@ -27,7 +27,9 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ScheduledSyncService extends AbstractService implements Runnable {
 

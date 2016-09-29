@@ -17,19 +17,28 @@ package io.gravitee.gateway.standalone;
 
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
-import org.junit.ClassRule;
+import io.gravitee.gateway.standalone.policy.PolicyBuilder;
+import io.gravitee.gateway.standalone.policy.PolicyRegister;
+import io.gravitee.gateway.standalone.policy.apikey.DummyApiKeyPolicy;
+import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractGatewayTest {
+public abstract class AbstractGatewayTest implements PolicyRegister {
 
     @Rule
     public final TestRule chain = RuleChain
             .outerRule(new ApiPublisher())
             .around(new ApiDeployer(this));
+
+    public void registerPlugin(PolicyPluginManager policyPluginManager) {
+        PolicyPlugin apiKey = PolicyBuilder.register("api-key", DummyApiKeyPolicy.class);
+        policyPluginManager.register(apiKey);
+    }
 }
