@@ -35,7 +35,8 @@ public class TeamServlet extends HttpServlet {
         String query = req.getQueryString();
 
         if (query != null && !query.isEmpty()) {
-            resp.getOutputStream().print(query);
+            resp.setHeader("Content-Type", "text/plain; charset=UTF-8");
+            resp.getOutputStream().print(req.getParameter("q"));
         } else {
             resp.getOutputStream().print("hello");
         }
