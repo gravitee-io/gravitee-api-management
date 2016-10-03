@@ -18,12 +18,11 @@ package io.gravitee.gateway.http.vertx;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
-import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.ClientResponse;
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.http.core.client.AbstractHttpClient;
@@ -36,8 +35,10 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -46,7 +47,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class VertxHttpClient extends AbstractHttpClient {
@@ -56,25 +57,37 @@ public class VertxHttpClient extends AbstractHttpClient {
     @Resource
     private Vertx vertx;
 
+    private final Endpoint endpoint;
+
+    private HttpClientOptions httpClientOptions;
+
+    @Autowired
+    public VertxHttpClient(Endpoint endpoint) {
+        this.endpoint = endpoint;
+    }
+
     private final Map<Context, HttpClient> httpClients = new HashMap<>();
 
     @Override
-    public ClientRequest request(String host, int port, io.gravitee.common.http.HttpMethod method, String requestURI, Request serverRequest, Handler<ClientResponse> responseHandler) {
+    public ClientRequest request(io.gravitee.common.http.HttpMethod method, URI uri, HttpHeaders headers, Handler<ClientResponse> responseHandler) {
         HttpClient httpClient = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
+
+        final int port = uri.getPort() != -1 ? uri.getPort() :
+                (uri.getScheme().equals("https") ? 443 : 80);
 
         HttpClientRequest clientRequest = httpClient.request(
                 convert(method),
                 port,
-                host,
-                requestURI,
+                uri.getHost(),
+                uri.toString(),
                 clientResponse -> handleClientResponse(clientResponse, responseHandler));
 
-        clientRequest.setTimeout(api.getProxy().getHttpClient().getOptions().getReadTimeout());
+        clientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
 
         VertxClientRequest invokerRequest = new VertxClientRequest(clientRequest);
 
         clientRequest.exceptionHandler(event -> {
-            LOGGER.error("{} server proxying failed: {}", serverRequest.id(), event.getMessage());
+            LOGGER.error("Server proxying failed: {}", event.getMessage());
 
             if (invokerRequest.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
                 invokerRequest.connectTimeoutHandler().handle(event);
@@ -104,12 +117,12 @@ public class VertxHttpClient extends AbstractHttpClient {
         });
 
         // Copy headers to final API
-        copyRequestHeaders(serverRequest, clientRequest, host);
+        copyRequestHeaders(headers, clientRequest, uri.getHost());
 
         // Check chunk flag on the request if there are some content to push and if transfer_encoding is set
         // with chunk value
-        if (hasContent(serverRequest)) {
-            String transferEncoding = serverRequest.headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
+        if (hasContent(headers)) {
+            String transferEncoding = headers.getFirst(HttpHeaders.TRANSFER_ENCODING);
             if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding)) {
                 clientRequest.setChunked(true);
             }
@@ -139,8 +152,8 @@ public class VertxHttpClient extends AbstractHttpClient {
         clientResponseHandler.handle(proxyClientResponse);
     }
 
-    private void copyRequestHeaders(Request clientRequest, HttpClientRequest httpClientRequest, String host) {
-        for (Map.Entry<String, List<String>> headerValues : clientRequest.headers().entrySet()) {
+    private void copyRequestHeaders(HttpHeaders headers, HttpClientRequest httpClientRequest, String host) {
+        for (Map.Entry<String, List<String>> headerValues : headers.entrySet()) {
             String headerName = headerValues.getKey();
             String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
 
@@ -184,60 +197,58 @@ public class VertxHttpClient extends AbstractHttpClient {
 
     @Override
     protected void doStart() throws Exception {
-        // Nothing to do since HTTP clients are initialized from a Vertx context
+        // TODO: Prepare HttpClientOptions according to the endpoint to improve performance when creating a new
+        // instance of the Vertx client
+        httpClientOptions = new HttpClientOptions();
+
+        httpClientOptions.setPipelining(endpoint.getHttpClientOptions().isPipelining());
+        httpClientOptions.setKeepAlive(endpoint.getHttpClientOptions().isKeepAlive());
+        httpClientOptions.setIdleTimeout((int) (endpoint.getHttpClientOptions().getIdleTimeout() / 1000));
+        httpClientOptions.setConnectTimeout((int) endpoint.getHttpClientOptions().getConnectTimeout());
+        httpClientOptions.setUsePooledBuffers(true);
+        httpClientOptions.setMaxPoolSize(endpoint.getHttpClientOptions().getMaxConcurrentConnections());
+        httpClientOptions.setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
+
+        // Configure proxy
+        HttpProxy proxy = endpoint.getHttpProxy();
+        if (proxy != null && proxy.isEnabled()) {
+            ProxyOptions proxyOptions = new ProxyOptions();
+            proxyOptions.setHost(proxy.getHost());
+            proxyOptions.setPort(proxy.getPort());
+            proxyOptions.setUsername(proxy.getUsername());
+            proxyOptions.setPassword(proxy.getPassword());
+            proxyOptions.setType(ProxyType.valueOf(proxy.getType().name()));
+
+            httpClientOptions.setProxyOptions(proxyOptions);
+        }
+
+        // Configure SSL
+        HttpClientSslOptions sslOptions = endpoint.getHttpClientSslOptions();
+        if (sslOptions != null && sslOptions.isEnabled()) {
+            httpClientOptions
+                    .setSsl(sslOptions.isEnabled())
+                    .setVerifyHost(sslOptions.isHostnameVerifier())
+                    .setTrustAll(sslOptions.isTrustAll());
+
+            if (sslOptions.getPem() != null && ! sslOptions.getPem().isEmpty()) {
+                httpClientOptions.setPemTrustOptions(
+                        new PemTrustOptions().addCertValue(
+                                io.vertx.core.buffer.Buffer.buffer(sslOptions.getPem())));
+            }
+        }
+
+        printHttpClientConfiguration(httpClientOptions);
     }
 
     @Override
     protected void doStop() throws Exception {
-        LOGGER.info("Closing HTTP Client for {}", api);
+        LOGGER.info("Closing HTTP Client for {} [{}]", endpoint.getName(), endpoint.getTarget());
 
         httpClients.values().stream().forEach(HttpClient::close);
     }
 
     private Function<Context, HttpClient> createHttpClient() {
-        return context -> {
-            Proxy proxyDefinition = api.getProxy();
-            HttpClientOptions options = new HttpClientOptions();
-
-            options.setPipelining(proxyDefinition.getHttpClient().getOptions().isPipelining());
-            options.setKeepAlive(proxyDefinition.getHttpClient().getOptions().isKeepAlive());
-            options.setIdleTimeout((int) (proxyDefinition.getHttpClient().getOptions().getIdleTimeout() / 1000));
-            options.setConnectTimeout((int) proxyDefinition.getHttpClient().getOptions().getConnectTimeout());
-            options.setUsePooledBuffers(true);
-            options.setMaxPoolSize(proxyDefinition.getHttpClient().getOptions().getMaxConcurrentConnections());
-            options.setTryUseCompression(proxyDefinition.getHttpClient().getOptions().isUseCompression());
-
-            // Configure proxy
-            HttpProxy proxy = proxyDefinition.getHttpClient().getHttpProxy();
-            if (proxy != null && proxy.isEnabled()) {
-                ProxyOptions proxyOptions = new ProxyOptions();
-                proxyOptions.setHost(proxy.getHost());
-                proxyOptions.setPort(proxy.getPort());
-                proxyOptions.setUsername(proxy.getUsername());
-                proxyOptions.setPassword(proxy.getPassword());
-                proxyOptions.setType(ProxyType.valueOf(proxy.getType().name()));
-
-                options.setProxyOptions(proxyOptions);
-            }
-
-            // Configure SSL
-            HttpClientSslOptions sslOptions = proxyDefinition.getHttpClient().getSsl();
-            if (sslOptions != null && sslOptions.isEnabled()) {
-                options
-                        .setSsl(sslOptions.isEnabled())
-                        .setVerifyHost(sslOptions.isHostnameVerifier())
-                        .setTrustAll(sslOptions.isTrustAll());
-
-                if (sslOptions.getPem() != null && ! sslOptions.getPem().isEmpty()) {
-                    options.setPemTrustOptions(
-                            new PemTrustOptions().addCertValue(
-                                    io.vertx.core.buffer.Buffer.buffer(sslOptions.getPem())));
-                }
-            }
-
-            printHttpClientConfiguration(options);
-            return vertx.createHttpClient(options);
-        };
+        return context -> vertx.createHttpClient(httpClientOptions);
     }
 
     private void printHttpClientConfiguration(HttpClientOptions httpClientOptions) {

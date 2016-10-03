@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.core.endpoint.parser;
+package io.gravitee.gateway.http.core.endpoint;
 
-import org.springframework.expression.ParserContext;
+import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.gateway.api.Connector;
+import io.gravitee.gateway.api.endpoint.EndpointManager;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class TemplateParserContext implements ParserContext {
+public interface EndpointLifecycleManager<T extends Connector> extends EndpointManager<T>, LifecycleComponent<EndpointLifecycleManager> {
 
-    public String getExpressionPrefix() {
-        return "{";
-    }
-
-    public String getExpressionSuffix() {
-        return "}";
-    }
-
-    public boolean isTemplate() {
-        return true;
-    }
 }

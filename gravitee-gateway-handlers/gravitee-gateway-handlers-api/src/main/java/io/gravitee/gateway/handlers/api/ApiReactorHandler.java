@@ -26,10 +26,10 @@ import io.gravitee.definition.model.Path;
 import io.gravitee.gateway.api.*;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.el.EvaluableRequest;
 import io.gravitee.gateway.handlers.api.impl.ExecutionContextImpl;
+import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.PolicyResolver;
@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiReactorHandler extends AbstractReactorHandler implements InitializingBean {
@@ -71,6 +71,9 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
     private String contextPath;
 
+    @Autowired
+    private EndpointLifecycleManager endpointLifecycleManager;
+
     @Override
     public void handle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
         try {
@@ -88,6 +91,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
             // Prepare execution context
             ExecutionContext executionContext = createExecutionContext();
             executionContext.getTemplateEngine().getTemplateContext().setVariable("request", new EvaluableRequest(serverRequest));
+            executionContext.getTemplateEngine().getTemplateContext().setVariable("endpoints", endpointLifecycleManager.targetByEndpoint());
             executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.getProperties());
             executionContext.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, reactable().contextPath());
             executionContext.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, path.getPath());
@@ -248,9 +252,9 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
         // Start resources before
         applicationContext.getBean(ResourceLifecycleManager.class).start();
-
         applicationContext.getBean(PolicyManager.class).start();
-        applicationContext.getBean(HttpClient.class).start();
+        endpointLifecycleManager.start();
+
         long endTime = System.currentTimeMillis(); // Get the end Time
         LOGGER.info("API handler started in {} ms and now ready to accept requests on {}/*",
                 (endTime - startTime), api.getProxy().getContextPath());
@@ -259,9 +263,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     @Override
     protected void doStop() throws Exception {
         LOGGER.info("API handler is now stopping, closing context...");
+
         applicationContext.getBean(PolicyManager.class).stop();
-        applicationContext.getBean(HttpClient.class).stop();
         applicationContext.getBean(ResourceLifecycleManager.class).stop();
+        endpointLifecycleManager.stop();
 
         super.doStop();
         LOGGER.info("API handler is now stopped", api);

@@ -15,10 +15,13 @@
  */
 package io.gravitee.gateway.http.vertx.spring;
 
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.http.vertx.VertxHttpClient;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -28,7 +31,8 @@ import org.springframework.context.annotation.Configuration;
 public class VertxHttpClientConfiguration {
 
     @Bean
-    public HttpClient httpClient() {
-        return new VertxHttpClient();
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public HttpClient httpClient(Endpoint endpoint) {
+        return new VertxHttpClient(endpoint);
     }
 }

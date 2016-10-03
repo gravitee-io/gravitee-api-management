@@ -16,7 +16,6 @@
 package io.gravitee.gateway.http.core.loadbalancer;
 
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.api.Request;
 
 import java.util.List;
 import java.util.Random;
@@ -35,17 +34,17 @@ public class RandomLoadBalancerStrategy extends LoadBalancerSupportStrategy {
     }
 
     @Override
-    public synchronized String chooseEndpoint(Request request) {
+    public synchronized Endpoint nextEndpoint() {
         int size = endpoints().size();
         if (size == 0) {
             return null;
         } else if (size == 1) {
             // There is only 1
-            return endpoints().get(0).getTarget();
+            return endpoints().get(0);
         }
 
         index = RANDOM.nextInt(size);
-        return endpoints().get(index).getTarget();
+        return endpoints().get(index);
     }
 
     @Override

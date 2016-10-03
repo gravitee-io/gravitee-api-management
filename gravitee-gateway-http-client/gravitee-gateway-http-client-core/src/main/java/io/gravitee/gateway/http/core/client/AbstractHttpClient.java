@@ -18,17 +18,14 @@ package io.gravitee.gateway.http.core.client;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.client.HttpClient;
 
-import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class AbstractHttpClient extends AbstractLifecycleComponent<HttpClient> implements HttpClient {
@@ -37,6 +34,7 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
 
     static {
         Set<String> hopHeaders = new HashSet<>();
+
         // Standard HTTP headers
         hopHeaders.add(HttpHeaders.CONNECTION);
         hopHeaders.add(HttpHeaders.KEEP_ALIVE);
@@ -54,12 +52,9 @@ public abstract class AbstractHttpClient extends AbstractLifecycleComponent<Http
         HOP_HEADERS = Collections.unmodifiableSet(hopHeaders);
     }
 
-    @Resource
-    protected Api api;
-
-    protected boolean hasContent(Request request) {
-        return request.headers().contentLength() > 0 ||
-                request.headers().contentType() != null ||
-                request.headers().getFirst(HttpHeaders.TRANSFER_ENCODING) != null;
+    protected boolean hasContent(HttpHeaders headers) {
+        return headers.contentLength() > 0 ||
+                headers.contentType() != null ||
+                headers.getFirst(HttpHeaders.TRANSFER_ENCODING) != null;
     }
 }
