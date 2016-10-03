@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -88,8 +89,8 @@ public abstract class AbstractHttpInvoker implements Invoker {
         // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the
         // initial request
         serverRequest.metrics().setEndpoint(uri);
-        if (endpoint.getQuery() != null)
-            uri += '?' + endpoint.getQuery();
+        if (endpoint.getRawQuery() != null)
+            uri += '?' + endpoint.getRawQuery();
 
         final int port = endpoint.getPort() != -1 ? endpoint.getPort() :
                 (endpoint.getScheme().equals("https") ? 443 : 80);
@@ -144,18 +145,18 @@ public abstract class AbstractHttpInvoker implements Invoker {
             for (Map.Entry<String, String> queryParam : request.parameters().entrySet()) {
                 query.append(queryParam.getKey());
                 if (queryParam.getValue() != null && !queryParam.getValue().isEmpty()) {
-                    query.append('=').append(queryParam.getValue());
+                    try {
+                        query.append('=').append(URLEncoder.encode(queryParam.getValue(), StandardCharsets.UTF_8.name()));
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 query.append('&');
             }
 
             // Removing latest & separator and encode query parameters
-            try {
-                requestURI.append(URLEncoder.encode(query.deleteCharAt(query.length() - 1).toString(), "UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            requestURI.append(query.deleteCharAt(query.length() - 1).toString());
         }
 
         return URI.create(requestURI.toString());

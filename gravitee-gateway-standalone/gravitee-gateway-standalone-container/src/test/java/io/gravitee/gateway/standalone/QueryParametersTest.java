@@ -23,10 +23,15 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.client.utils.URIUtils;
 import org.junit.Test;
+import sun.security.action.GetPropertyAction;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.security.AccessController;
 
 import static org.junit.Assert.assertEquals;
 
@@ -43,9 +48,12 @@ public class QueryParametersTest extends AbstractGatewayTest {
 
     @Test
     public void call_get_query_params() throws Exception {
-        String query = "query=true";
-        Request request = Request.Get("http://localhost:8082/test/my_team?" + query);
-        Response response = request.execute();
+        String query = "true";
+        URI target = new URIBuilder("http://localhost:8082/test/my_team")
+                .addParameter("q", "true")
+                .build();
+
+        Response response = Request.Get(target).execute();
 
         HttpResponse returnResponse = response.returnResponse();
         assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
@@ -56,9 +64,13 @@ public class QueryParametersTest extends AbstractGatewayTest {
 
     @Test
     public void call_get_query_params_emptyvalue() throws Exception {
-        String query = "query";
-        Request request = Request.Get("http://localhost:8082/test/my_team?" + query);
-        Response response = request.execute();
+        String query = "";
+
+        URI target = new URIBuilder("http://localhost:8082/test/my_team")
+                .addParameter("q", null)
+                .build();
+
+        Response response = Request.Get(target).execute();
 
         HttpResponse returnResponse = response.returnResponse();
         assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
@@ -69,11 +81,29 @@ public class QueryParametersTest extends AbstractGatewayTest {
 
     @Test
     public void call_get_query_params_spaces() throws Exception {
-        String query = "q=myparam:test+AND+myotherparam:12";
-        String encodedQuery = URLEncoder.encode(query, "UTF-8");
+        String query = "myparam:test+AND+myotherparam:12";
+        URI target = new URIBuilder("http://localhost:8082/test/my_team")
+                .addParameter("q", query)
+                .build();
 
-        Request request = Request.Get("http://localhost:8082/test/my_team?" + encodedQuery);
-        Response response = request.execute();
+        Response response = Request.Get(target).execute();
+
+        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        assertEquals(query, responseContent);
+    }
+
+    @Test
+    public void call_get_query_accent() throws Exception {
+        String query = "poupée";
+
+        URI target = new URIBuilder("http://localhost:8082/test/my_team")
+                .addParameter("q", query)
+                .build();
+
+        Response response = Request.Get(target).execute();
 
         HttpResponse returnResponse = response.returnResponse();
         assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
