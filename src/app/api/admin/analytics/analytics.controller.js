@@ -117,13 +117,17 @@ class ApiAnalyticsController {
 
   updateDate(date) {
     if (date) {
-      this.$state.go(this.$state.current, {timestamp: date.getTime() / 1000, timeframe: ''});
+      this.$state.transitionTo(this.$state.current, {apiId: this.api.id, timestamp: date.getTime() / 1000, timeframe: ''}, { notify: false });
+      this.setTimestamp(date.getTime() / 1000);
+      this.updateCharts();
     }
   }
 
   updateTimeframe(timeframeId) {
     if (timeframeId) {
-      this.$state.go(this.$state.current, {timestamp: '', timeframe: timeframeId}, {reload: true});
+      this.$state.transitionTo(this.$state.current, {apiId: this.api.id, timestamp: '', timeframe: timeframeId}, { notify: false });
+      this.setTimeframe(timeframeId);
+      this.updateCharts();
     }
   }
 
