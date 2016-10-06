@@ -25,7 +25,7 @@ class PageSwaggerConfigurationService {
     let deferred = this.$q.defer();
     let url = new URL(swaggerUrl);
     let swaggerConfig = this.DocumentationService.getPageConfigurationFromCache(url.pathname);
-    if (!_.isNil(swaggerConfig) && swaggerConfig.tryIt) {
+    if (!_.isNil(swaggerConfig) && swaggerConfig.tryIt && swaggerConfig.tryItURL) {
       try {
         let apiUrl = new URL(swaggerConfig.tryItURL);
         swaggerSpec.host = apiUrl.host;
