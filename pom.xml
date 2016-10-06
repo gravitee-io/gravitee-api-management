@@ -29,7 +29,7 @@
 
     <groupId>io.gravitee.gateway</groupId>
     <artifactId>gravitee-gateway</artifactId>
-    <version>0.20.0-SNAPSHOT</version>
+    <version>0.19.2</version>
     <packaging>pom</packaging>
     <name>Gravitee IO - Gateway</name>
 
@@ -147,7 +147,7 @@
     </dependencies>
 
     <properties>
-        <gravitee-definition.version>0.17.0-SNAPSHOT</gravitee-definition.version>
+        <gravitee-definition.version>0.17.0</gravitee-definition.version>
         <gravitee-common.version>0.11.0</gravitee-common.version>
         <gravitee-repository.version>0.16.0</gravitee-repository.version>
         <gravitee-plugin-core.version>0.13.0</gravitee-plugin-core.version>
