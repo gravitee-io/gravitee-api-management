@@ -23,33 +23,36 @@ function interceptorConfig($httpProvider) {
   var interceptorUnauthorized = function ($q, $injector) {
     return {
       responseError: function (error) {
-        var unauthorizedError = !error || error.status === 401;
-        var errorMessage = '';
+        if(!error.config.tryItMode) {
+          var unauthorizedError = !error || error.status === 401;
+          var errorMessage = '';
 
-        var notificationService = $injector.get('NotificationService');
-        if (unauthorizedError) {
-          if (error.config.headers['Authorization']) {
-            errorMessage = 'Wrong user or password';
+          var notificationService = $injector.get('NotificationService');
+          if (unauthorizedError) {
+            if (error.config.headers['Authorization']) {
+              errorMessage = 'Wrong user or password';
+            } else {
+              if (!sessionExpired) {
+                sessionExpired = true;
+                // session expired
+                notificationService.showError(error, 'Session expired, redirecting to home...');
+                $injector.get('$timeout')(function () {
+                  $injector.get('$rootScope').$broadcast('graviteeLogout');
+                }, 2000)
+              }
+            }
           } else {
-            if (!sessionExpired) {
-              sessionExpired = true;
-              // session expired
-              notificationService.showError(error, 'Session expired, redirecting to home...');
-              $injector.get('$timeout')(function () {
-                $injector.get('$rootScope').$broadcast('graviteeLogout');
-              }, 2000)
+            if (error.status === 500) {
+              errorMessage = error.data ? error.data.message : 'Unexpected error';
+            } else if (error.status === 503) {
+              errorMessage = error.data ? error.data.message : 'Server unavailable';
             }
           }
-        } else {
-          if (error.status === 500) {
-            errorMessage = error.data ? error.data.message : 'Unexpected error';
-          } else if (error.status === 503) {
-            errorMessage = error.data ? error.data.message : 'Server unavailable';
+          if (!sessionExpired && error && error.status > 0) {
+            notificationService.showError(error, errorMessage);
           }
         }
-        if (!sessionExpired && error && error.status > 0) {
-          notificationService.showError(error, errorMessage);
-        }
+
         return $q.reject(error);
       }
     };
@@ -62,8 +65,12 @@ function interceptorConfig($httpProvider) {
         return config;
       },
       responseError: function (error) {
-        if (error && error.status <= 0) {
-          $injector.get('NotificationService').showError('Server unreachable');
+        if(!error.config.tryItMode) {
+          if (error && error.status <= 0) {
+            $injector.get('NotificationService').showError('Server unreachable');
+          }
+        } else {
+          $injector.get('NotificationService').showError('Unable to call the remote service.');
         }
         return $q.reject(error);
       }

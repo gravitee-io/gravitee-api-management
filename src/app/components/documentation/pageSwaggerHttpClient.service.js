@@ -23,6 +23,7 @@ class PageSwaggerHttpClientService {
   execute(options) {
     options.withCredentials = false;
     options.headers['X-Requested-With'] = undefined;
+    options.tryItMode = true;
     var deferred = this.$q.defer();
     deferred.resolve(true);
     return deferred.promise;
