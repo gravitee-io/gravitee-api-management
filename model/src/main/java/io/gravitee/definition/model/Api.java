@@ -131,13 +131,12 @@ public class Api {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Api api = (Api) o;
-        return Objects.equals(id, api.id) &&
-                Objects.equals(version, api.version);
+        return Objects.equals(id, api.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, version);
+        return Objects.hash(id);
     }
 
     public String toString() {
