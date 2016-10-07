@@ -18,23 +18,23 @@
 <div layout="column" layout-align="end-start" layout-padding class="gravitee-application-header" flex>
   <div class="gravitee-api-header-content inset">
     <div layout="row" layout-align="start center">
-    
+      <div class="gravitee-application-header-image" layout="column" layout-align="center center"></div>
       <div flex="70">
-        <h3>{{applicationCtrl.application.name}} 
-          <small style="color:white;">( {{applicationCtrl.application.type}} )</small>
-        </h3>
+        <h4>{{applicationCtrl.application.name}}
+          <small style="color:grey;">( {{applicationCtrl.application.type}} )</small>
+        </h4>
         <md-content flex class="gravitee-api-header-description">
           <div class="gravitee-api-header-read-more" read-more ng-model="applicationCtrl.application.description" words="false" length="150"></div>
         </md-content>
       </div>
-        
+
       <div flex="30" style="text-align: right">
         <p style="padding: 0; margin: 0;">
-          <span>{{applicationCtrl.application.owner.username}}</span>
+          <span>{{applicationCtrl.application.owner.username}}<md-tooltip md-direction="left">Owner</md-tooltip></span>
           <span><ng-md-icon icon="person"></ng-md-icon></span>
         </p>
         <p style="padding: 0; margin: 0;">
-          <span>{{applicationCtrl.application.created_at | date}}</span>
+          <span>{{applicationCtrl.application.created_at | humanDateFilter}}<md-tooltip md-direction="left">Created at</md-tooltip></span>
           <span><ng-md-icon icon="timer"></ng-md-icon></span>
         </p>
       </div>

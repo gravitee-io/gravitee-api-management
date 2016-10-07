@@ -190,6 +190,15 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .directive('graviteeDashboardModel', () => new DashboardModelDirective())
   .directive('graviteeAnalyticsApiModel', () => new AnalyticsAPIModelDirective())
   .directive('graviteeAnalyticsApplicationModel', () => new AnalyticsApplicationModelDirective())
+  .filter('humanDateFilter', function () {
+    return function(input) {
+      if (!moment().subtract(1, 'weeks').isAfter(input)) {
+        return moment(input).fromNow();
+      } else {
+        return moment(input).format('D MMM. YYYY');
+      }
+    }
+  })
   .filter('apiKeyFilter', function () {
     return function (keys) {
       return keys;

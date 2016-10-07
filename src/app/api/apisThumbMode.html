@@ -47,7 +47,9 @@
               <md-card-content layout="column">
                 <div class="api-box-description">
                   <div class="api-box-icon" layout="column" layout-align="center center">
-                    <img ng-src="{{api.picture_url}}"/>
+                    <div class="api-box-icon-figure">
+                      <img ng-src="{{api.picture_url}}"/>
+                    </div>
                   </div>
                   <div class="api-box-name-version" layout-padding>
                     {{api.name}}

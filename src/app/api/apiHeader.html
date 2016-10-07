@@ -18,16 +18,15 @@
 <div layout="column" layout-align="end-start" layout-padding class="gravitee-api-header" flex>
 	<div class="gravitee-api-header-content inset">
 		<div ng-switch="apiCtrl.api.visibility" layout="row" layout-align="start center">
-      <img class="gravitee-api-header-image" src="{{apiCtrl.api.picture || apiCtrl.api.picture_url}}">
-
+      <div class="gravitee-api-header-image" ng-style="{'background-image':'url({{apiCtrl.api.picture || apiCtrl.api.picture_url}})'}" layout="column" layout-align="center center"></div>
 			<div flex="70">
-				<h3>{{apiCtrl.api.name}}
-					<small style="color:white;">( {{apiCtrl.api.version}} )
+				<h4>{{apiCtrl.api.name}}
+					<small>( {{apiCtrl.api.version}} )
 						<span ng-switch-when="public" flex="10"><ng-md-icon icon="public"></ng-md-icon><md-tooltip md-direction="right">public</md-tooltip></span>
 						<span ng-switch-when="private" flex="10"><ng-md-icon icon="lock"></ng-md-icon><md-tooltip md-direction="right">private</md-tooltip></span>
 						<span ng-switch-when="restricted" flex="10"><ng-md-icon icon="vpn_lock"></ng-md-icon><md-tooltip md-direction="right">restricted</md-tooltip></span>
 					</small>
-				</h3>
+				</h4>
 				<md-content flex class="gravitee-api-header-description">
 					<div class="gravitee-api-header-read-more" read-more ng-model="apiCtrl.api.description" words="false" length="150"></div>
 		  	</md-content>
@@ -35,17 +34,17 @@
 
 			<div flex="30" style="text-align: right">
 				<p style="padding: 0; margin: 0;">
-					<span>{{apiCtrl.api.owner.username}}</span>
+					<span>{{apiCtrl.api.owner.username}}<md-tooltip md-direction="left">Owner</md-tooltip></span>
 					<span><ng-md-icon icon="person"></ng-md-icon></span>
 				</p>
 				<p style="padding: 0; margin: 0;">
-					<span>{{apiCtrl.api.created_at | date}}</span>
+					<span>{{apiCtrl.api.created_at | humanDateFilter}}<md-tooltip md-direction="left">Created at</md-tooltip></span>
 					<span><ng-md-icon icon="timer"></ng-md-icon></span>
 				</p>
-                <p ng-if="apiCtrl.api.deployed_at" style="padding: 0; margin: 0;">
-                  <span>{{apiCtrl.api.deployed_at | date}}<md-tooltip md-direction="left">Last deployment date</md-tooltip></span>
-                  <span><ng-md-icon icon="send"></ng-md-icon></span>
-                </p>
+        <p ng-if="apiCtrl.api.deployed_at" style="padding: 0; margin: 0;">
+          <span>{{apiCtrl.api.deployed_at | humanDateFilter}}<md-tooltip md-direction="left">Last deployment</md-tooltip></span>
+          <span><ng-md-icon icon="send"></ng-md-icon></span>
+        </p>
 			</div>
 		</div>
 	</div>

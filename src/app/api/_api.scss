@@ -79,18 +79,18 @@
 
 .gravitee-api-header {
   height: $graviteeHeader;
-  background: url('../app/images/api-header-background.png') center center no-repeat;
-  background-size: cover;
+  background: #fff;
+  border-bottom: 1px solid #f1f1f1;
 }
 
 .gravitee-api-header-content {
-  color: white;
+  color: grey;
   padding-left: 20px;
   width: 100%;
 }
 
 .gravitee-api-header-content ng-md-icon {
-  fill: white;
+  fill: grey;
 }
 
 .gravitee-api-header-description {
@@ -99,7 +99,19 @@
 
 .gravitee-api-header-read-more {
 	height: 40px;
-	color: white;
+	color: grey;
+}
+
+.gravitee-api-header-image {
+  background: #ffffff no-repeat center center;
+  background-size: contain;
+  margin-right: 20px;
+  min-width:110px;
+  max-width: 110px;
+  min-height: 110px;
+  max-height: 110px;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(25,25,34,0.12);
 }
 
 .gravitee-api-documentation-empty {
@@ -213,13 +225,6 @@
     margin-left: 50px;
   }
 }
-
-.gravitee-api-header-image {
-  box-shadow: 5px 5px 50px #343434;
-  height: 100px;
-  margin-right: 20px;
-}
-
 
 .md-subheader .md-subheader-inner {
   border-bottom: 1px solid #d8d8d8;

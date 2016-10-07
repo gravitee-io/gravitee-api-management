@@ -41,8 +41,10 @@
       text-align: center;
     }
     .api-box-icon {
-      min-height: 80px;
-      max-height: 80px;
+      height: 80px;
+      &.api-box-icon-figure {
+        width: 150px;
+      }
       img {
         display: block;
         max-width: 150px;
@@ -51,11 +53,8 @@
         height: auto;
       }
       &.default {
-        height: 80px;
-        background-image: url('../app/images/GRAVITEE_LOGOsstxtclair-05.png');
+        background: url('../app/images/GRAVITEE_LOGOsstxtclair-05.png') no-repeat center center;
         background-size: auto 100%;
-        background-position: center center;
-        background-repeat: no-repeat;
       }
     }
     .api-box-name-version {
