@@ -90,6 +90,7 @@ import ConfigurationController from './configuration/configuration.controller';
 import ViewService from './view/view.service';
 import DeleteDialogController from './configuration/delete.dialog.controller';
 import AnalyticsAPIModelDirective from './application/details/analytics/analyticsAPIModel.directive';
+import AnalyticsApplicationModelDirective from './api/admin/analytics/analyticsApplicationModel.directive';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -188,6 +189,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .directive('graviteeImage', () => new ImageDirective())
   .directive('graviteeDashboardModel', () => new DashboardModelDirective())
   .directive('graviteeAnalyticsApiModel', () => new AnalyticsAPIModelDirective())
+  .directive('graviteeAnalyticsApplicationModel', () => new AnalyticsApplicationModelDirective())
   .filter('apiKeyFilter', function () {
     return function (keys) {
       return keys;

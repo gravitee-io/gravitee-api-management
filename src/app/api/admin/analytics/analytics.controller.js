@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 class ApiAnalyticsController {
-  constructor(ApiService, resolvedApi, $q, $scope, $state) {
+  constructor(ApiService, ApplicationService, resolvedApi, $q, $scope, $state) {
     'ngInject';
     this.ApiService = ApiService;
+    this.ApplicationService = ApplicationService;
     this.$scope = $scope;
     this.$scope.Object = Object;
     this.$state = $state;
     this.api = resolvedApi.data;
     this.$q = $q;
+    this.cache = {};
 
     this.$scope.filteredApplications = [];
 
@@ -161,6 +163,84 @@ class ApiAnalyticsController {
     });
   }
 
+  getApplication(id) {
+    var deferred = this.$q.defer();
+    var _this = this;
+    if(this.cache[id]) {
+      deferred.resolve(this.cache[id]);
+    } else {
+      this.ApplicationService.get(id).then(response => {
+        _this.cache[id] = response.data;
+        deferred.resolve(this.cache[id]);
+    });
+    }
+    return deferred.promise;
+  }
+
+  fetchApplicationAnalytics(report, response) {
+    // get APIs data
+    var promises = [];
+    for (var i = 0; i < response[0].data.values[0].buckets.length; i++) {
+      promises.push(this.getApplication(response[0].data.values[0].buckets[i].name));
+    }
+    var _this = this;
+    this.$q.all(promises).then(function(value) {
+      _this.pushHitsByData(report, response)
+      _this.pushTopHitsData();
+    }, function(reason) {
+    });
+  }
+
+  pushHitsByData(report, response) {
+    for (var i = 0; i < response[0].data.values[0].buckets.length; i++) {
+      var lineColor = report.id === 'response-status' ? this.getColorByStatus(response[0].data.values[0].buckets[i].name) : this.colorByBucket[i % this.colorByBucket.length];
+      var bgColor = report.id === 'response-status' ? this.getBgColorByStatus(response[0].data.values[0].buckets[i].name) : this.bgColorByBucket[i % this.bgColorByBucket.length];
+      var label = report.requests[0].label ? report.requests[0].label : (report.label || report.labelPrefix + ' ' + response[0].data.values[0].buckets[i].name);
+      if (report.id === 'applications') {
+        var application = this.cache[response[0].data.values[0].buckets[i].name];
+        label = application.name;
+      }
+
+      this.$scope.chartConfig[report.id].datasets.push({
+        label: label,
+        data: response[0].data.values[0].buckets[i].data,
+        backgroundColor: bgColor,
+        borderColor: lineColor,
+        pointBackgroundColor: 'rgba(220,220,220,0.2)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: lineColor,
+        pointHoverBorderColor: 'rgba(220,220,220,1)'
+      });
+    }
+  }
+
+  pushTopHitsData() {
+    var _this = this;
+    _.forEach(this.analyticsData.tops, function (top) {
+      if (top.key === 'top-apps') {
+        var request = top.request.call(_this.ApiService, _this.api.id,
+          _this.analyticsData.range.from,
+          _this.analyticsData.range.to,
+          _this.analyticsData.range.interval,
+          top.key,
+          top.query,
+          top.field,
+          top.size);
+
+        request.then(response => {
+          if (Object.keys(response.data.values).length) {
+          top.results = _.map(response.data.values, function (value, key) {
+            return {topApp: key, topHits: value};
+          });
+          _this.$scope.paging[top.key] = 1;
+          } else {
+            delete top.results;
+          }
+        });
+      }
+    });
+  }
+
   updateCharts() {
     var _this = this;
 
@@ -208,19 +288,10 @@ class ApiAnalyticsController {
 
         // Push data for hits by 'something'
         if (response[0] && response[0].data.values && response[0].data.values[0]) {
-          for (var i = 0; i < response[0].data.values[0].buckets.length; i++) {
-            var lineColor = report.id === 'response-status' ? _this.getColorByStatus(response[0].data.values[0].buckets[i].name) : _this.colorByBucket[i % _this.colorByBucket.length];
-            var bgColor = report.id === 'response-status' ? _this.getBgColorByStatus(response[0].data.values[0].buckets[i].name) : _this.bgColorByBucket[i % _this.bgColorByBucket.length];
-            _this.$scope.chartConfig[report.id].datasets.push({
-              label: report.requests[0].label ? report.requests[0].label : (report.label || report.labelPrefix + ' ' + response[0].data.values[0].buckets[i].name),
-              data: response[0].data.values[0].buckets[i].data,
-              backgroundColor: bgColor,
-              borderColor: lineColor,
-              pointBackgroundColor: 'rgba(220,220,220,0.2)',
-              pointBorderColor: '#fff',
-              pointHoverBackgroundColor: lineColor,
-              pointHoverBorderColor: 'rgba(220,220,220,1)'
-            });
+          if (report.id === 'applications') {
+            _this.fetchApplicationAnalytics(report, response);
+          } else {
+            _this.pushHitsByData(report, response);
           }
         }
       });
@@ -265,31 +336,6 @@ class ApiAnalyticsController {
           }
         });
       });
-    });
-
-    // tops
-    _.forEach(this.analyticsData.tops, function (top) {
-      if (top.key === 'top-apps' && !top.results) {
-        var request = top.request.call(_this.ApiService, _this.api.id,
-          _this.analyticsData.range.from,
-          _this.analyticsData.range.to,
-          _this.analyticsData.range.interval,
-          top.key,
-          top.query,
-          top.field,
-          top.size);
-
-        request.then(response => {
-          if (Object.keys(response.data.values).length) {
-            top.results = _.map(response.data.values, function (value, key) {
-              return {topApp: key, topHits: value};
-            });
-            _this.$scope.paging[top.key] = 1;
-          } else {
-            delete top.results;
-          }
-        });
-      }
     });
   }
 
