@@ -101,4 +101,9 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationApiKeysResource getApiKeyResource() {
         return resourceContext.getResource(ApplicationApiKeysResource.class);
     }
+
+    @Path("analytics")
+    public ApplicationAnalyticsResource getApplicationAnalyticsResource() {
+        return resourceContext.getResource(ApplicationAnalyticsResource.class);
+    }
 }
