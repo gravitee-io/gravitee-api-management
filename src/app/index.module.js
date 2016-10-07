@@ -86,9 +86,9 @@ import DashboardController from './platform/dashboard/dashboard.controller';
 import PageSwaggerConfigurationService from './components/documentation/pageSwaggerConfiguration.service'
 import PageSwaggerHttpClientService from './components/documentation/pageSwaggerHttpClient.service'
 import DashboardModelDirective from './platform/dashboard/dashboardModel.directive';
-import ConfigurationController from './configuration/configuration.controller';
+import ViewsController from './configuration/admin/views/views.controller';
 import ViewService from './view/view.service';
-import DeleteDialogController from './configuration/delete.dialog.controller';
+import DeleteViewDialogController from './configuration/admin/views/deleteview.dialog.controller';
 import AnalyticsAPIModelDirective from './application/details/analytics/analyticsAPIModel.directive';
 import AnalyticsApplicationModelDirective from './api/admin/analytics/analyticsApplicationModel.directive';
 
@@ -163,8 +163,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('InstanceEnvironmentController', InstanceEnvironmentController)
   .controller('InstanceMonitoringController', InstanceMonitoringController)
   .controller('DashboardController', DashboardController)
-  .controller('ConfigurationController', ConfigurationController)
-  .controller('DeleteDialogController', DeleteDialogController)
+  .controller('ViewsController', ViewsController)
+  .controller('DeleteViewDialogController', DeleteViewDialogController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)

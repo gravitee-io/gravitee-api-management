@@ -37,19 +37,19 @@
               </tr>
             </thead>
             <tbody md-body>
-            <tr md-row ng-repeat="view in configurationCtrl.views | orderBy: order">
-              <td md-cell ng-click="configurationCtrl.editName($event, view)"
+            <tr md-row ng-repeat="view in viewsCtrl.views | orderBy: order">
+              <td md-cell ng-click="viewsCtrl.editName($event, view)"
                   ng-class="{'gravitee-placeholder': !view.name}">
                 {{view.name || 'Add a name'}}
               </td>
-              <td md-cell ng-click="configurationCtrl.editDescription($event, view)"
+              <td md-cell ng-click="viewsCtrl.editDescription($event, view)"
                   ng-class="{'gravitee-placeholder': !view.description}">
                 {{view.description || 'Add a description'}}
               </td>
-              <td><ng-md-icon icon="delete" ng-click="configurationCtrl.deleteView(view)"></ng-md-icon></td>
+              <td><ng-md-icon icon="delete" ng-click="viewsCtrl.deleteView(view)"></ng-md-icon></td>
             </tr>
             <tr md-row>
-              <td md-cell ng-click="configurationCtrl.newView($event)" class="gravitee-placeholder">
+              <td md-cell ng-click="viewsCtrl.newView($event)" class="gravitee-placeholder">
                 New view
               </td>
               <td md-cell></td>
@@ -58,10 +58,10 @@
           </table>
         </md-table-container>
         <md-card-actions layout="row" layout-align="end center">
-          <md-button ng-click="configurationCtrl.saveViews()"
-                     ng-disabled="!configurationCtrl.viewsToCreate.length && !configurationCtrl.viewsToUpdate.length">Save</md-button>
-          <md-button ng-click="configurationCtrl.reset()"
-                     ng-disabled="!configurationCtrl.viewsToCreate.length && !configurationCtrl.viewsToUpdate.length">Reset
+          <md-button ng-click="viewsCtrl.saveViews()"
+                     ng-disabled="!viewsCtrl.viewsToCreate.length && !viewsCtrl.viewsToUpdate.length">Save</md-button>
+          <md-button ng-click="viewsCtrl.reset()"
+                     ng-disabled="!viewsCtrl.viewsToCreate.length && !viewsCtrl.viewsToUpdate.length">Reset
           </md-button>
         </md-card-actions>
       </md-card-content>

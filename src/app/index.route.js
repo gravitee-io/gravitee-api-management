@@ -434,14 +434,33 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       roles: ['ADMIN']
     })
     .state('configuration', {
-      url: '/configuration',
-      templateUrl: 'app/configuration/configuration.html',
-      controller: 'ConfigurationController',
-      controllerAs: 'configurationCtrl',
+      abstract: true,
+      template: '<div ui-view></div>',
+      url: '/configuration'
+    })
+    .state('configuration.admin', {
+      url: '/admin',
+      controller: function ($state) {
+        if ('configuration.admin' === $state.current.name) {
+          $state.go('configuration.admin.views');
+        }
+      },
+      template: '<div ui-view></div>',
       menu: {
         label: 'Configuration',
         icon: 'settings',
         firstLevel: true
+      },
+      roles: ['ADMIN']
+    })
+    .state('configuration.admin.views', {
+      url: '/views',
+      templateUrl: 'app/configuration/admin/views/views.html',
+      controller: 'ViewsController',
+      controllerAs: 'viewsCtrl',
+      menu: {
+        label: 'Views',
+        icon: 'view_module'
       },
       roles: ['ADMIN']
     })

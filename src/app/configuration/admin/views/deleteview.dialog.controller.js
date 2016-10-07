@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DeleteDialogController($scope, $mdDialog, view) {
+function DeleteViewDialogController($scope, $mdDialog, view) {
   'ngInject';
 
   $scope.view = view.name;
@@ -30,4 +30,4 @@ function DeleteDialogController($scope, $mdDialog, view) {
   };
 }
 
-export default DeleteDialogController;
+export default DeleteViewDialogController;
