@@ -341,6 +341,16 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         icon: 'group'
       }
     })
+    .state('applications.portal.analytics', {
+      url: '/analytics?timeframe&timestamp',
+      templateUrl: 'app/application/details/analytics/analytics.html',
+      controller: 'ApplicationAnalyticsController',
+      controllerAs: 'analyticsCtrl',
+      menu: {
+        label: 'Analytics',
+        icon: 'insert_chart'
+      }
+    })
     .state('instances', {
       abstract: true,
       url: '/instances',

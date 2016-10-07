@@ -59,6 +59,7 @@ import ApplicationController from './application/details/applications.controller
 import ApplicationGeneralController from './application/details/general/applicationGeneral.controller';
 import ApplicationMembersController from './application/details/members/applicationMembers.controller';
 import ApplicationAPIKeysController from './application/details/apikeys/applicationAPIKeys.controller';
+import ApplicationAnalyticsController from './application/details/analytics/analytics.controller';
 import DialogApplicationController from './application/dialog/applicationDialog.controller';
 import DialogSubscribeApiController from './application/dialog/subscribeApiDialog.controller';
 import DialogAddMemberController from './application/dialog/addMemberDialog.controller';
@@ -88,6 +89,7 @@ import DashboardModelDirective from './platform/dashboard/dashboardModel.directi
 import ConfigurationController from './configuration/configuration.controller';
 import ViewService from './view/view.service';
 import DeleteDialogController from './configuration/delete.dialog.controller';
+import AnalyticsAPIModelDirective from './application/details/analytics/analyticsAPIModel.directive';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -147,6 +149,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('ApplicationGeneralController', ApplicationGeneralController)
   .controller('ApplicationMembersController', ApplicationMembersController)
   .controller('ApplicationAPIKeysController', ApplicationAPIKeysController)
+  .controller('ApplicationAnalyticsController', ApplicationAnalyticsController)
   .controller('DialogApplicationController', DialogApplicationController)
   .controller('DialogSubscribeApiController', DialogSubscribeApiController)
   .controller('DialogAddMemberController', DialogAddMemberController)
@@ -184,6 +187,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .directive('graviteeDiff', () => new DiffDirective())
   .directive('graviteeImage', () => new ImageDirective())
   .directive('graviteeDashboardModel', () => new DashboardModelDirective())
+  .directive('graviteeAnalyticsApiModel', () => new AnalyticsAPIModelDirective())
   .filter('apiKeyFilter', function () {
     return function (keys) {
       return keys;
