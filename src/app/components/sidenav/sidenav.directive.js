@@ -28,13 +28,17 @@ class SideNavDirective {
 }
 
 class SideNavController {
-  constructor($rootScope, $mdSidenav, $mdDialog, $scope, $state, UserService) {
+  constructor($rootScope, $mdSidenav, $mdDialog, $scope, $state, UserService, Constants) {
     'ngInject';
     this.$rootScope = $rootScope;
     this.$mdSidenav = $mdSidenav;
     this.$mdDialog = $mdDialog;
     this.UserService = UserService;
     this.$state = $state;
+    this.$scope = $scope;
+
+    $rootScope.devMode = Constants.devMode;
+    $rootScope.portalTitle = Constants.portalTitle;
 
     var _that = this;
 
@@ -42,10 +46,10 @@ class SideNavController {
       return !state.abstract && state.menu;
     });
 
-    _that.loadMenuItems($scope, UserService);
+    _that.loadMenuItems();
 
     $rootScope.$on('userLoginSuccessful', function () {
-      _that.loadMenuItems($scope, UserService);
+      _that.loadMenuItems();
     });
 
     $scope.$on('$stateChangeStart', function (event, toState, toParams, fromState) {
@@ -56,7 +60,8 @@ class SideNavController {
       }
     });
 
-    $scope.$on('$stateChangeSuccess', function (event, toState) {
+    $scope.$on('$stateChangeSuccess', function (event, toState, toParams, fromState) {
+      _that.checkRedirectForDevMode(toState, fromState, event);
       $scope.subMenuItems = _.filter(_that.routeMenuItems, function (routeMenuItem) {
         var routeMenuItemSplitted = routeMenuItem.name.split('.'), toStateSplitted = toState.name.split('.');
         return !routeMenuItem.menu.firstLevel &&
@@ -69,9 +74,25 @@ class SideNavController {
     });
   }
 
-  loadMenuItems($scope, UserService) {
-    $scope.menuItems = _.filter(this.routeMenuItems, function (routeMenuItem) {
-      return routeMenuItem.menu.firstLevel && (!routeMenuItem.roles || UserService.isUserInRoles(routeMenuItem.roles));
+  checkRedirectForDevMode(targetState, redirectionState, event) {
+    // if dev mode, check if the target state is authorized
+    if (this.$rootScope.devMode && !targetState.devMode) {
+      if (event) {
+        event.preventDefault();
+      }
+      this.$state.go(redirectionState ? redirectionState.name : 'home');
+    }
+  }
+
+  loadMenuItems() {
+    var that = this;
+    that.$scope.menuItems = _.filter(this.routeMenuItems, function (routeMenuItem) {
+      var isMenuItem = routeMenuItem.menu.firstLevel && (!routeMenuItem.roles || that.UserService.isUserInRoles(routeMenuItem.roles));
+      if (that.$rootScope.devMode) {
+        return isMenuItem && routeMenuItem.devMode;
+      } else {
+        return isMenuItem;
+      }
     });
   }
 
@@ -91,7 +112,7 @@ class SideNavController {
   }
 
   goToUserPage() {
-    this.$state.go(this.$rootScope.graviteeUser?'user':'home');
+    this.$state.go(this.$rootScope.graviteeUser ? 'user' : 'home');
   }
 }
 

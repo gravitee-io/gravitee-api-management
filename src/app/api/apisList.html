@@ -31,7 +31,7 @@
 </div>
 <div ui-view></div>
 
-<md-fab-speed-dial gravitee-roles-allowed="ADMIN, API_PUBLISHER" md-direction="left" md-open="false" class="md-scale md-fab-bottom-right">
+<md-fab-speed-dial ng-if="!devMode" gravitee-roles-allowed="ADMIN, API_PUBLISHER" md-direction="left" md-open="false" class="md-scale md-fab-bottom-right">
   <md-fab-trigger>
     <md-button aria-label="menu" class="md-fab md-success">
       <md-tooltip md-direction="top" md-visible="false">Create</md-tooltip>

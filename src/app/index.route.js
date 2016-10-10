@@ -30,7 +30,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         label: 'Home',
         icon: 'home',
         firstLevel: true
-      }
+      },
+      devMode: true
     })
     .state('apis', {
       abstract: true,
@@ -60,7 +61,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
     })
     .state('apis.list.table', {
       url: 'table',
-      templateUrl: 'app/api/apisTableMode.html'
+      templateUrl: 'app/api/apisTableMode.html',
+      devMode: true
     })
     .state('apis.list.thumb', {
       url: 'thumb?:view',
@@ -69,7 +71,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         label: 'APIs',
         icon: 'dashboard',
         firstLevel: true
-      }
+      },
+      devMode: true
     })
     .state('apis.portal', {
       url: '/:apiId',
@@ -87,7 +90,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       menu: {
         label: 'Documentation',
         icon: 'insert_drive_file'
-      }
+      },
+      devMode: true
     })
     .state('apis.portal.page', {
       url: '/pages/:pageId',
@@ -98,7 +102,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         resolvedPage: function ($stateParams, DocumentationService) {
           return DocumentationService.get($stateParams.apiId, $stateParams.pageId);
         }
-      }
+      },
+      devMode: true
     })
     .state('apis.admin', {
       abstract: true,
@@ -278,7 +283,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
     })
     .state('applications.list.table', {
       url: 'table',
-      templateUrl: 'app/application/applicationsTableMode.html'
+      templateUrl: 'app/application/applicationsTableMode.html',
+      devMode: true
     })
     .state('applications.list.thumb', {
       url: 'thumb',
@@ -287,7 +293,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         label: 'Applications',
         icon: 'list',
         firstLevel: true
-      }
+      },
+      devMode: true
     })
     .state('applications.portal', {
       abstract: true,
@@ -309,7 +316,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       menu: {
         label: 'Global settings',
         icon: 'blur_on'
-      }
+      },
+      devMode: true
     })
     .state('applications.portal.apikeys', {
       url: '/apikeys',
@@ -324,7 +332,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       menu: {
         label: 'Api keys',
         icon: 'vpn_key'
-      }
+      },
+      devMode: true
     })
     .state('applications.portal.members', {
       url: '/members',
@@ -339,7 +348,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       menu: {
         label: 'Members',
         icon: 'group'
-      }
+      },
+      devMode: true
     })
     .state('applications.portal.analytics', {
       url: '/analytics?timeframe&timestamp',
@@ -349,7 +359,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       menu: {
         label: 'Analytics',
         icon: 'insert_chart'
-      }
+      },
+      devMode: true
     })
     .state('instances', {
       abstract: true,

@@ -36,7 +36,7 @@
             <md-card class="api-box gravitee-card gravitee-api-card">
               <md-card-header layout="row" layout-align="end start">
                 <md-card-avatar>
-                  <md-button class="md-icon-button" ng-if="apisCtrl.isOwner(api)"
+                  <md-button class="md-icon-button" ng-if="apisCtrl.isOwner(api) && !devMode"
                              ng-click="$event.stopPropagation()" ui-sref="apis.admin.general({apiId: api.id})">
                     <md-tooltip>Manage this API</md-tooltip>
                     <ng-md-icon icon="settings" aria-label="{{api.id}}" size="20"
