@@ -19,6 +19,10 @@ import io.gravitee.repository.config.TestRepositoryInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Configuration
 public class RedisTestRepositoryConfiguration extends ManagementRepositoryConfiguration {
 

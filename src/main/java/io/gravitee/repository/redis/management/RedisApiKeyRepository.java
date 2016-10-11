@@ -19,8 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.redis.management.internal.ApiKeyRedisRepository;
-import io.gravitee.repository.redis.management.internal.ApiRedisRepository;
-import io.gravitee.repository.redis.management.internal.ApplicationRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApiKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,7 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -40,20 +38,14 @@ public class RedisApiKeyRepository implements ApiKeyRepository {
     @Autowired
     private ApiKeyRedisRepository apiKeyRedisRepository;
 
-    @Autowired
-    private ApplicationRedisRepository applicationRedisRepository;
-
-    @Autowired
-    private ApiRedisRepository apiRedisRepository;
-
     @Override
-    public Optional<ApiKey> retrieve(String apiKey) throws TechnicalException {
+    public Optional<ApiKey> findById(String apiKey) throws TechnicalException {
         return Optional.ofNullable(convert(apiKeyRedisRepository.find(apiKey)));
     }
 
     @Override
-    public ApiKey create(String applicationId, String apiId, ApiKey key) throws TechnicalException {
-        RedisApiKey redisApiKey = apiKeyRedisRepository.saveOrUpdate(convert(key));
+    public ApiKey create(ApiKey apiKey) throws TechnicalException {
+        RedisApiKey redisApiKey = apiKeyRedisRepository.saveOrUpdate(convert(apiKey));
         return convert(redisApiKey);
     }
 
@@ -64,34 +56,19 @@ public class RedisApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
-    public Set<ApiKey> findByApplicationAndApi(String applicationId, String apiId) throws TechnicalException {
-        Set<ApiKey> apiKeysByApp = findByApplication(applicationId);
-        Set<ApiKey> apiKeysByApi = findByApi(apiId);
-
-        apiKeysByApp.retainAll(apiKeysByApi);
-
-        return apiKeysByApp;
-    }
-
-    @Override
-    public Set<ApiKey> findByApplication(String applicationId) throws TechnicalException {
-        return apiKeyRedisRepository.findByApplication(applicationId)
+    public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
+        return apiKeyRedisRepository.findBySubscription(subscription)
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public Set<ApiKey> findByApi(String apiId) throws TechnicalException {
-        return apiKeyRedisRepository.findByApi(apiId)
+    public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
+        return apiKeyRedisRepository.findByPlan(plan)
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
-    }
-
-    @Override
-    public void delete(String apiKey) throws TechnicalException {
-        apiKeyRedisRepository.delete(apiKey);
     }
 
     private ApiKey convert(RedisApiKey redisApiKey) {
@@ -102,14 +79,20 @@ public class RedisApiKeyRepository implements ApiKeyRepository {
         ApiKey apiKey = new ApiKey();
 
         apiKey.setKey(redisApiKey.getKey());
-        apiKey.setApi(redisApiKey.getApi());
         apiKey.setApplication(redisApiKey.getApplication());
-        apiKey.setCreatedAt(new Date(redisApiKey.getCreatedAt()));
-        if (redisApiKey.getExpiration() != 0) {
-            apiKey.setExpiration(new Date(redisApiKey.getExpiration()));
+        apiKey.setSubscription(redisApiKey.getSubscription());
+        apiKey.setPlan(redisApiKey.getPlan());
+        if (redisApiKey.getCreatedAt() != 0) {
+            apiKey.setCreatedAt(new Date(redisApiKey.getCreatedAt()));
+        }
+        if (redisApiKey.getUpdatedAt() != 0) {
+            apiKey.setUpdatedAt(new Date(redisApiKey.getUpdatedAt()));
+        }
+        if (redisApiKey.getExpireAt() != 0) {
+            apiKey.setExpireAt(new Date(redisApiKey.getExpireAt()));
         }
         if (redisApiKey.getRevokeAt() != 0) {
-            apiKey.setRevokeAt(new Date(redisApiKey.getRevokeAt()));
+            apiKey.setRevokedAt(new Date(redisApiKey.getRevokeAt()));
         }
         apiKey.setRevoked(redisApiKey.isRevoked());
 
@@ -120,16 +103,23 @@ public class RedisApiKeyRepository implements ApiKeyRepository {
         RedisApiKey redisApiKey = new RedisApiKey();
 
         redisApiKey.setKey(apiKey.getKey());
-        redisApiKey.setApi(apiKey.getApi());
         redisApiKey.setApplication(apiKey.getApplication());
-        redisApiKey.setCreatedAt(apiKey.getCreatedAt().getTime());
-        if (apiKey.getExpiration() != null) {
-            redisApiKey.setExpiration(apiKey.getExpiration().getTime());
+        redisApiKey.setSubscription(apiKey.getSubscription());
+        redisApiKey.setPlan(apiKey.getPlan());
+
+        if (apiKey.getCreatedAt() != null) {
+            redisApiKey.setCreatedAt(apiKey.getCreatedAt().getTime());
         }
-        if (apiKey.getRevokeAt() != null) {
-            redisApiKey.setRevokeAt(apiKey.getRevokeAt().getTime());
+        if (apiKey.getUpdatedAt() != null) {
+            redisApiKey.setUpdatedAt(apiKey.getUpdatedAt().getTime());
         }
-        redisApiKey.setRevoked(apiKey.isRevoked());
+        if (apiKey.getExpireAt() != null) {
+            redisApiKey.setExpireAt(apiKey.getExpireAt().getTime());
+        }
+        if (apiKey.getRevokedAt() != null) {
+            redisApiKey.setRevokeAt(apiKey.getRevokedAt().getTime());
+        }
+        redisApiKey.setRevoked(redisApiKey.isRevoked());
 
         return redisApiKey;
     }

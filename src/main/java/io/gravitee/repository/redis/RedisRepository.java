@@ -22,7 +22,7 @@ import io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnection;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RedisRepository implements Repository {

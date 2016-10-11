@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
-import io.gravitee.repository.redis.management.model.RedisApi;
 import io.gravitee.repository.redis.management.model.RedisMembership;
 
 import java.util.List;

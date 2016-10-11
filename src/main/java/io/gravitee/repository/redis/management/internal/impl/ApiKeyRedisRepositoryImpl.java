@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -45,8 +45,8 @@ public class ApiKeyRedisRepositoryImpl extends AbstractRedisRepository implement
     @Override
     public RedisApiKey saveOrUpdate(RedisApiKey apiKey) {
         redisTemplate.opsForHash().put(REDIS_KEY, apiKey.getKey(), apiKey);
-        redisTemplate.opsForSet().add(REDIS_KEY + ":api:" + apiKey.getApi(), apiKey.getKey());
-        redisTemplate.opsForSet().add(REDIS_KEY + ":application:" + apiKey.getApplication(), apiKey.getKey());
+        redisTemplate.opsForSet().add(REDIS_KEY + ":plan:" + apiKey.getPlan(), apiKey.getKey());
+        redisTemplate.opsForSet().add(REDIS_KEY + ":subscription:" + apiKey.getSubscription(), apiKey.getKey());
         return apiKey;
     }
 
@@ -54,13 +54,13 @@ public class ApiKeyRedisRepositoryImpl extends AbstractRedisRepository implement
     public void delete(String apiKey) {
         RedisApiKey redisApiKey = find(apiKey);
         redisTemplate.opsForHash().delete(REDIS_KEY, apiKey);
-        redisTemplate.opsForSet().remove(REDIS_KEY + ":api:" + redisApiKey.getApi(), apiKey);
-        redisTemplate.opsForSet().remove(REDIS_KEY + ":application:" + redisApiKey.getApplication(), apiKey);
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":plan:" + redisApiKey.getPlan(), apiKey);
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":subscription:" + redisApiKey.getSubscription(), apiKey);
     }
 
     @Override
-    public Set<RedisApiKey> findByApplication(String application) {
-        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":application:" + application);
+    public Set<RedisApiKey> findBySubscription(String application) {
+        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":subscription:" + application);
         List<Object> apiKeyObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
 
         return apiKeyObjects.stream()
@@ -69,8 +69,8 @@ public class ApiKeyRedisRepositoryImpl extends AbstractRedisRepository implement
     }
 
     @Override
-    public Set<RedisApiKey> findByApi(String api) {
-        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":api:" + api);
+    public Set<RedisApiKey> findByPlan(String plan) {
+        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":plan:" + plan);
         List<Object> apiKeyObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
 
         return apiKeyObjects.stream()

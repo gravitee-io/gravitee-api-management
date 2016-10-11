@@ -18,25 +18,35 @@ package io.gravitee.repository.redis.management.model;
 import java.util.Objects;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RedisApiKey {
 
     private String key;
-    private long expiration;
+    private String subscription;
+    private String application;
+    private String plan;
+    private long expireAt;
     private long createdAt;
+    private long updatedAt;
     private boolean revoked;
     private long revokeAt;
-    private String api;
-    private String application;
 
-    public String getApi() {
-        return api;
+    public String getKey() {
+        return key;
     }
 
-    public void setApi(String api) {
-        this.api = api;
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getSubscription() {
+        return subscription;
+    }
+
+    public void setSubscription(String subscription) {
+        this.subscription = subscription;
     }
 
     public String getApplication() {
@@ -47,6 +57,22 @@ public class RedisApiKey {
         this.application = application;
     }
 
+    public String getPlan() {
+        return plan;
+    }
+
+    public void setPlan(String plan) {
+        this.plan = plan;
+    }
+
+    public long getExpireAt() {
+        return expireAt;
+    }
+
+    public void setExpireAt(long expireAt) {
+        this.expireAt = expireAt;
+    }
+
     public long getCreatedAt() {
         return createdAt;
     }
@@ -55,28 +81,12 @@ public class RedisApiKey {
         this.createdAt = createdAt;
     }
 
-    public long getExpiration() {
-        return expiration;
+    public long getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setExpiration(long expiration) {
-        this.expiration = expiration;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public long getRevokeAt() {
-        return revokeAt;
-    }
-
-    public void setRevokeAt(long revokeAt) {
-        this.revokeAt = revokeAt;
+    public void setUpdatedAt(long updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public boolean isRevoked() {
@@ -85,6 +95,14 @@ public class RedisApiKey {
 
     public void setRevoked(boolean revoked) {
         this.revoked = revoked;
+    }
+
+    public long getRevokeAt() {
+        return revokeAt;
+    }
+
+    public void setRevokeAt(long revokeAt) {
+        this.revokeAt = revokeAt;
     }
 
     @Override

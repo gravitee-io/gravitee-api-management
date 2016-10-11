@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.redis.management.internal.impl;
 
-import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.redis.management.internal.MembershipRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisMembership;
 import org.springframework.dao.DataAccessException;

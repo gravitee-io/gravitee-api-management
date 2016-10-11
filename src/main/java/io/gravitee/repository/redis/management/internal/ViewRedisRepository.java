@@ -20,7 +20,7 @@ import io.gravitee.repository.redis.management.model.RedisView;
 import java.util.Set;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ViewRedisRepository {

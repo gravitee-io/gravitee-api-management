@@ -20,7 +20,7 @@ import io.gravitee.repository.redis.management.model.RedisApiKey;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ApiKeyRedisRepository {
@@ -31,7 +31,7 @@ public interface ApiKeyRedisRepository {
 
     void delete(String apiKey);
 
-    Set<RedisApiKey> findByApplication(String application);
+    Set<RedisApiKey> findBySubscription(String subscription);
 
-    Set<RedisApiKey> findByApi(String api);
+    Set<RedisApiKey> findByPlan(String plan);
 }
