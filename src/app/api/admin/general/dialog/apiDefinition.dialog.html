@@ -28,11 +28,9 @@
   </md-toolbar>
   <md-dialog-content style="max-width:800px;max-height:810px; ">
     <div layout="row">
-      <div flex layout="row" layout-align="center center">
-        <md-button>
-          Import APIs definition from file
-          <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" />
-        </md-button>
+      <div flex layout="column" layout-align="center center" class="gravitee-api-definition-dialog">
+        <span>Import APIs definition from file</span>
+        <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" />
       </div>
     </div>
   </md-dialog-content>

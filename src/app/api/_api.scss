@@ -272,3 +272,13 @@ span.proxy-deactivated {
 .gravitee-general-view-description {
   font-size: 12px;
 }
+
+.gravitee-api-definition-dialog {
+  span {
+    text-transform: uppercase;
+    line-height: 48px;
+  }
+  input[type="file"]{
+    cursor: pointer;
+  }
+}
