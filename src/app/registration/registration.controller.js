@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
-angular.module('gvConstants', []).constant('Constants', {
-  // if the management REST API is on a different domain, put something like: http://demo.gravitee.io/management/
-  'baseURL': '/management/',
-  'version': '0.19.2',
-  'portalTitle': 'Gravitee.io portal',
-  'devMode': false,
-  'userCreationEnabled': true
-});
+class RegistrationController {
+  constructor(UserService, $scope, NotificationService) {
+    'ngInject';
+
+    $scope.register = function () {
+      UserService.register($scope.user).then(function () {
+        $scope.formRegistration.$setPristine();
+        NotificationService.show('Thank you for registering, you will receive an e-mail confirmation in a fewer minutes');
+      });
+    }
+  }
+}
+
+export default RegistrationController;

@@ -459,7 +459,8 @@ function routerConfig($stateProvider, $urlRouterProvider) {
     })
     .state('configuration.admin', {
       url: '/admin',
-      controller: function ($state) {
+      controller: function ($state, $rootScope) {
+        $rootScope.currentResource = 'CONFIGURATION';
         if ('configuration.admin' === $state.current.name) {
           $state.go('configuration.admin.views');
         }
@@ -494,6 +495,18 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       templateUrl: 'app/login/login.html',
       controller: 'LoginController',
       controllerAs: 'loginCtrl'
+    })
+    .state('registration', {
+      url: '/registration',
+      templateUrl: 'app/registration/registration.html',
+      controller: 'RegistrationController',
+      controllerAs: 'registrationCtrl'
+    })
+    .state('confirm', {
+      url: '/registration/confirm/:token',
+      templateUrl: 'app/registration/confirm/confirm.html',
+      controller: 'ConfirmController',
+      controllerAs: 'confirmCtrl'
     });
 
   $urlRouterProvider.otherwise('/');

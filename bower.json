@@ -33,7 +33,8 @@
     "tc-angular-chartjs": "^2.0.0",
     "md-steppers": "^0.3.3",
     "ng-showdown": "^1.1.0",
-    "showdown-prettify": "^1.3.0"
+    "showdown-prettify": "^1.3.0",
+    "angular-jwt": "^0.1.5"
   },
   "resolutions": {
     "angular-material": "^1.0.0",

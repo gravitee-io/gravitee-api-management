@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function LoginController($scope, $mdDialog, $window, UserService, $rootScope, $state) {
+function LoginController($scope, $mdDialog, $window, UserService, $rootScope, $state, Constants) {
   'ngInject';
+
+  $scope.userCreationEnabled = Constants.userCreationEnabled;
 
   $scope.goToHome = function (forceReload) {
     if (forceReload) {

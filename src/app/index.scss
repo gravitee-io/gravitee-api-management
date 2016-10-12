@@ -241,6 +241,44 @@ gravitee-sidenav {
   display: inline-block;
 }
 
+.gravitee-no-sidenav-container {
+  background: #333;
+  padding-top: 100px;
+}
+
+.gravitee-no-sidenav-content {
+  background-color: #fafafa;
+  border-radius: 7px;
+  width: 400px;
+  margin: 40px auto 10px;
+  overflow: hidden;
+  padding: 10px 30px 30px;
+  position: relative;
+
+  & md-input-container {
+    margin-top: 0px;
+  }
+}
+
+.gravitee-no-sidenav-header {
+   padding-bottom: 30px;
+   text-align: center;
+
+   & a {
+     margin: 10px auto;
+
+     & img {
+       height: 100px;
+     }
+   }
+
+   & label {
+     font-size: 28px;
+     font-weight: 400;
+     margin: 0 auto;
+   }
+ }
+
 /**
  *  Do not remove this comments bellow. It's the markers used by gulp-inject to inject
  *  all your sass files automatically

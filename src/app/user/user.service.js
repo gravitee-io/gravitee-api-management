@@ -19,6 +19,7 @@ class UserService {
     'ngInject';
     this.$http = $http;
     this.$rootScope = $rootScope;
+    this.baseURL = Constants.baseURL;
     this.usersURL = Constants.baseURL + 'users/';
     this.userURL = Constants.baseURL + 'user/';
   }
@@ -36,7 +37,11 @@ class UserService {
   }
 
   create(user) {
-    return this.$http.post(this.usersURL, user);
+    return this.$http.post(this.baseURL + 'users', user);
+  }
+
+  register(user) {
+    return this.$http.post(this.usersURL + 'register', user);
   }
 
 	search(query) {

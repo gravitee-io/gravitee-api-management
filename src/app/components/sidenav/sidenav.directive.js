@@ -40,6 +40,8 @@ class SideNavController {
     $rootScope.devMode = Constants.devMode;
     $rootScope.portalTitle = Constants.portalTitle;
 
+    $scope.userCreationEnabled = Constants.userCreationEnabled;
+
     var _that = this;
 
     this.routeMenuItems = _.filter($state.get(), function (state) {
@@ -54,14 +56,14 @@ class SideNavController {
 
     $scope.$on('$stateChangeStart', function (event, toState, toParams, fromState) {
       // init current resource name to delegate its initialization to specific modules
-      if (fromState.name.substring(0, _.lastIndexOf(fromState.name, '.')) !==
-        toState.name.substring(0, _.lastIndexOf(toState.name, '.'))) {
+      if (!_.startsWith(toState.name.substring(0, _.lastIndexOf(toState.name, '.')),
+        fromState.name.substring(0, _.lastIndexOf(fromState.name, '.')))) {
         delete $scope.currentResource;
       }
     });
 
     $scope.$on('$stateChangeSuccess', function (event, toState, toParams, fromState) {
-      _that.checkRedirectForDevMode(toState, fromState, event);
+      _that.checkRedirectIfNotAllowed(toState, fromState, event);
       $scope.subMenuItems = _.filter(_that.routeMenuItems, function (routeMenuItem) {
         var routeMenuItemSplitted = routeMenuItem.name.split('.'), toStateSplitted = toState.name.split('.');
         return !routeMenuItem.menu.firstLevel &&
@@ -74,13 +76,15 @@ class SideNavController {
     });
   }
 
-  checkRedirectForDevMode(targetState, redirectionState, event) {
+  checkRedirectIfNotAllowed(targetState, redirectionState, event) {
     // if dev mode, check if the target state is authorized
-    if (this.$rootScope.devMode && !targetState.devMode) {
+    var notEligibleForDevMode = this.$rootScope.devMode && !targetState.devMode;
+    var notEligibleForUserCreation = !this.$scope.userCreationEnabled && (this.$state.is('registration') || this.$state.is('confirm'));
+    if (notEligibleForDevMode || notEligibleForUserCreation) {
       if (event) {
         event.preventDefault();
       }
-      this.$state.go(redirectionState ? redirectionState.name : 'home');
+      this.$state.go(redirectionState && redirectionState.name ? redirectionState.name : 'home');
     }
   }
 
@@ -108,7 +112,7 @@ class SideNavController {
   }
 
   isDisplayed() {
-    return 'login' !== this.$state.current.name;
+    return !(this.$state.is('login') || this.$state.is('registration') || this.$state.is('confirm'));
   }
 
   goToUserPage() {

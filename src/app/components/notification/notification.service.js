@@ -32,7 +32,7 @@ class NotificationService {
         error.data ?
           Array.isArray(error.data) ?
             error.data[0].message
-            : error.data.message
+            : (error.data.message || error.data)
           : error
         ), true);
     };

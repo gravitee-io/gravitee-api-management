@@ -91,11 +91,13 @@ import ViewService from './view/view.service';
 import DeleteViewDialogController from './configuration/admin/views/deleteview.dialog.controller';
 import AnalyticsAPIModelDirective from './application/details/analytics/analyticsAPIModel.directive';
 import AnalyticsApplicationModelDirective from './api/admin/analytics/analyticsApplicationModel.directive';
+import RegistrationController from './registration/registration.controller';
+import ConfirmController from './registration/confirm/confirm.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
-  'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'tc.chartjs', 'md-steppers'])
+  'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'tc.chartjs', 'md-steppers', 'angular-jwt'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -165,6 +167,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('DashboardController', DashboardController)
   .controller('ViewsController', ViewsController)
   .controller('DeleteViewDialogController', DeleteViewDialogController)
+  .controller('RegistrationController', RegistrationController)
+  .controller('ConfirmController', ConfirmController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
