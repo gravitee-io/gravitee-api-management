@@ -96,6 +96,8 @@ public class MongoUserRepository implements UserRepository {
 		final UserMongo userMongo = internalUserRepo.findOne(user.getUsername());
 
 		// Update, but don't change invariant other creation information
+		userMongo.setUpdatedAt(user.getUpdatedAt());
+		userMongo.setPassword(user.getPassword());
 		userMongo.setPicture(user.getPicture());
 		userMongo.setLastConnectionAt(user.getLastConnectionAt());
 
