@@ -121,6 +121,13 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       }
     })
     .state('apis.admin.general', {
+      abtract: true,
+      url: '',
+      templateUrl: 'app/api/admin/general/api.html',
+      controller: 'ApiGeneralController',
+      controllerAs: 'generalCtrl'
+    })
+    .state('apis.admin.general.main', {
       url: '/general',
       templateUrl: 'app/api/admin/general/apiGeneral.html',
       controller: 'ApiGeneralController',
@@ -129,6 +136,18 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         label: 'Global settings',
         icon: 'blur_on'
       }
+    })
+    .state('apis.admin.general.gateway', {
+      url: '/gateway',
+      templateUrl: 'app/api/admin/general/apiGateway.html',
+      controller: 'ApiGeneralController',
+      controllerAs: 'generalCtrl'
+    })
+    .state('apis.admin.endpoint', {
+      url: '/endpoint/:endpointName',
+      templateUrl: 'app/api/admin/endpoint/endpointConfiguration.html',
+      controller: 'ApiEndpointController',
+      controllerAs: 'endpointCtrl'
     })
     .state('apis.admin.apikeys', {
       url: '/apikeys',

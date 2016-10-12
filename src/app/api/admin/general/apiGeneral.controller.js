@@ -45,18 +45,6 @@ class ApiAdminController {
         value: 'WEIGHTED_RANDOM'
       }];
 
-    this.$scope.proxies = [
-      {
-        name: 'HTTP CONNECT proxy',
-        value: 'HTTP'
-      }, {
-        name: 'SOCKS4/4a tcp proxy',
-        value: 'SOCKS4'
-      }, {
-        name: 'SOCKS5 tcp proxy',
-        value: 'SOCKS5'
-      }];
-
     this.initState();
 
     // Views
@@ -71,14 +59,6 @@ class ApiAdminController {
 
     // Failover
     this.failoverEnabled = (this.api.proxy.failover !== undefined);
-    if (!this.failoverEnabled) {
-      // Set default values
-      this.api.proxy.failover = {
-        maxAttempts: 1,
-        retryTimeout: 0,
-        cases: ['TIMEOUT']
-      }
-    }
 
     // HTTP proxy
     if (this.api.proxy.http.http_proxy === undefined) {
@@ -127,35 +107,6 @@ class ApiAdminController {
       });
   }
 
-  editEndpoint(event, endpoint) {
-    event.stopPropagation(); // in case autoselect is enabled
-    var _that = this;
-
-    var editDialog = {
-      modelValue: endpoint.target,
-      placeholder: 'Target URL',
-      save: function (input) {
-        endpoint.target = input.$modelValue;
-        _that.$scope.formApi.$setDirty();
-      },
-      targetEvent: event,
-      title: 'Endpoint target URL',
-      type: 'url',
-      validators: {
-        'ng-required': 'true'
-      }
-    };
-
-    var promise = this.$mdEditDialog.large(editDialog);
-    promise.then(function (ctrl) {
-      var input = ctrl.getInput();
-
-      input.$viewChangeListeners.push(function () {
-        input.$setValidity('test', input.$modelValue !== 'test');
-      });
-    });
-  }
-
   editWeight(event, endpoint) {
     event.stopPropagation(); // in case autoselect is enabled
     var _that = this;
@@ -187,34 +138,30 @@ class ApiAdminController {
     });
   }
 
-  addEndpoint(event) {
-    var _that = this;
-    this.$mdDialog.show({
-      clickOutsideToClose: true,
-      controller: 'DialogEndpointController',
-      controllerAs: 'ctrl',
-      focusOnOpen: false,
-      targetEvent: event,
-      templateUrl: 'app/api/admin/general/add-endpoint-dialog.html',
-    }).then(function (endpoint) {
-      if (endpoint) {
-        _that.api.proxy.endpoints.push(endpoint);
-        _that.$scope.formApi.$setDirty();
-      }
-    });
-  }
-
   removeEndpoints() {
     var _that = this;
-    _(this.$scope.selected).forEach(function (endpoint) {
-      _(_that.api.proxy.endpoints).forEach(function (endpoint2, index, object) {
-        if (endpoint2 !== undefined && endpoint2.target === endpoint.target) {
-          object.splice(index, 1);
-        }
-      });
+    var alert = this.$mdDialog.confirm({
+      title: 'Warning',
+      content: 'Are you sure you want to delete endpoint(s) ?',
+      ok: 'OK',
+      cancel: 'Cancel'
     });
 
-    this.$scope.formApi.$setDirty();
+    var that = this;
+
+    this.$mdDialog
+      .show(alert)
+      .then(function () {
+        _(_that.$scope.selected).forEach(function (endpoint) {
+          _(_that.api.proxy.endpoints).forEach(function (endpoint2, index, object) {
+            if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
+              object.splice(index, 1);
+            }
+          });
+        });
+
+        that.update(that.api);
+      });
   }
 
   reset() {

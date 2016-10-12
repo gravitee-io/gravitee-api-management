@@ -121,9 +121,25 @@ ng-md-icon {
   }
 }
 
+table {
+  ng-md-icon {
+    position: relative;
+    top: 0px;
+  }
+  code {
+    position: relative;
+    top: -6px;
+  }
+}
+
 .btn-group ng-md-icon {
   position: relative;
   top: 3px;
+}
+
+md-radio-button ng-md-icon {
+  position: relative;
+  top: 2px;
 }
 
 .gravitee-card:hover {

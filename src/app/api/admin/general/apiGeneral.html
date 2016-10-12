@@ -16,390 +16,69 @@
 
 -->
 <form name="formApi" ng-submit="generalCtrl.update(generalCtrl.api)" novalidate>
-  <div style="position:relative;">
-    <md-menu class="gravitee-api-menu-action">
-      <md-button aria-label="API actions" class="md-icon-button" ng-click="$mdOpenMenu($event)">
-        <ng-md-icon md-menu-origin="" icon="more_vert"></ng-md-icon>
-      </md-button>
-      <md-menu-content width="2">
-        <md-menu-item>
-          <md-button aria-label="Export definition" ng-click="generalCtrl.export(generalCtrl.api.id)">
-            <ng-md-icon icon="file_upload"></ng-md-icon>
-            Export
-          </md-button>
-        </md-menu-item>
-        <md-menu-item>
-          <md-button aria-label="Import definition" ng-click="generalCtrl.showImportDialog()">
-            <ng-md-icon icon="file_download"></ng-md-icon>
-            Import
-          </md-button>
-        </md-menu-item>
-      </md-menu-content>
-    </md-menu>
+  <div layout="column" layout-wrap layout-gt-sm="row">
+    <md-input-container flex="30">
+      <label>Name *</label>
+      <input ng-model="generalCtrl.api.name" type="text" required>
+    </md-input-container>
+    <md-input-container flex="30">
+      <label>Version *</label>
+      <input ng-model="generalCtrl.api.version" type="text" required>
+    </md-input-container>
+
+    <div layout="column" flex="20">
+      <md-input-container>
+        <md-radio-group ng-model="generalCtrl.api.visibility">
+          <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public">
+            <md-tooltip md-direction="bottom">Public: API is visible by all</md-tooltip>
+            <ng-md-icon icon="public"></ng-md-icon>
+          </md-radio-button>
+          <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private">
+            <md-tooltip md-direction="bottom">Private: API is visible only by its members</md-tooltip>
+            <ng-md-icon icon="lock"></ng-md-icon>
+          </md-radio-button>
+          <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted">
+            <md-tooltip md-direction="bottom">Restricted: API is visible by all but can be used only by its members</md-tooltip>
+            <ng-md-icon icon="vpn_lock"></ng-md-icon>
+          </md-radio-button>
+        </md-radio-group>
+      </md-input-container>
+    </div>
+    <md-switch ng-model="apiEnabled" ng-disabled="generalCtrl.api.deployed_at == null"
+               ng-change="generalCtrl.changeLifecycle(generalCtrl.api.id)" flex="20" no-dirty-check>
+      Started
+    </md-switch>
   </div>
-  <md-tabs class="gravitee-api-general-tabs" md-dynamic-height md-border-bottom>
-    <md-tab label="General">
-      <div layout="column" layout-wrap layout-gt-sm="row">
-        <md-input-container flex="30">
-          <label>Name *</label>
-          <input ng-model="generalCtrl.api.name" type="text" required>
-        </md-input-container>
-        <md-input-container flex="30">
-          <label>Version *</label>
-          <input ng-model="generalCtrl.api.version" type="text" required>
-        </md-input-container>
 
-        <div layout="column" flex="20">
-          <md-input-container>
-            <md-radio-group ng-model="generalCtrl.api.visibility">
-              <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public">
-                <md-tooltip md-direction="bottom">Public: API is visible by all</md-tooltip>
-                <ng-md-icon icon="public"></ng-md-icon>
-              </md-radio-button>
-              <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private">
-                <md-tooltip md-direction="bottom">Private: API is visible only by its members</md-tooltip>
-                <ng-md-icon icon="lock"></ng-md-icon>
-              </md-radio-button>
-              <md-radio-button class="gravitee-api-visibility" value="restricted" aria-label="Restricted">
-                <md-tooltip md-direction="bottom">Restricted: API is visible by all but can be used only by its members</md-tooltip>
-                <ng-md-icon icon="vpn_lock"></ng-md-icon>
-              </md-radio-button>
-            </md-radio-group>
-          </md-input-container>
-        </div>
-        <md-switch ng-model="apiEnabled" ng-disabled="generalCtrl.api.deployed_at == null"
-                   ng-change="generalCtrl.changeLifecycle(generalCtrl.api.id)" flex="20" no-dirty-check>
-          Started
-        </md-switch>
-      </div>
+  <div layout="" layout-sm="column">
+    <md-input-container class="flex">
+      <label>Description *</label>
+      <textarea ng-model="generalCtrl.api.description" required></textarea>
+    </md-input-container>
+  </div>
 
-      <div layout="" layout-sm="column">
-        <md-input-container class="flex">
-          <label>Description *</label>
-          <textarea ng-model="generalCtrl.api.description" required></textarea>
-        </md-input-container>
-      </div>
+  <div layout="column" class="gravitee-api-picture-container">
+    <label>Picture</label>
+    <gravitee-image image="generalCtrl.api.picture" image-form="formApi" image-url="generalCtrl.api.picture_url"></gravitee-image>
+  </div>
 
-      <div layout="column" class="gravitee-api-picture-container">
-        <label>Picture</label>
-        <gravitee-image image="generalCtrl.api.picture" image-form="formApi" image-url="generalCtrl.api.picture_url"></gravitee-image>
-      </div>
+  <div layout="" layout-sm="column">
+    <md-input-container class="flex">
+      <label>Deployment tags</label>
+      <md-chips ng-model="generalCtrl.api.tags" placeholder="Enter a tag" secondary-placeholder="+Tag" ng-click="formApi.$setDirty()"></md-chips>
+    </md-input-container>
+  </div>
 
-      <div layout="" layout-sm="column">
-        <md-input-container class="flex">
-          <label>Deployment tags</label>
-          <md-chips ng-model="generalCtrl.api.tags" placeholder="Enter a tag" secondary-placeholder="+Tag" ng-click="formApi.$setDirty()"></md-chips>
-        </md-input-container>
-      </div>
-
-      <div layout="column">
-        <md-input-container class="flex">
-          <label>Portal views</label>
-          <md-select ng-model="generalCtrl.api.views" multiple>
-            <md-option ng-repeat="view in generalCtrl.views" ng-value="view.id">
-              {{view.name}}<span ng-if="view.description" class="gravitee-general-view-description"> - {{view.description}}</span>
-            </md-option>
-          </md-select>
-        </md-input-container>
-      </div>
-    </md-tab>
-    <md-tab label="Gateway">
-      <div layout-gt-sm="row">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Gateway context path *</label>
-          <input ng-model="generalCtrl.api.proxy.context_path" type="text"
-                 ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" ng-disabled="!generalCtrl.contextPathEditable"
-                 required>
-        </md-input-container>
-      </div>
-
-      <v-accordion id="gateway-accordion" class="vAccordion--default" multiple>
-        <v-pane expanded>
-          <v-pane-header>
-            <legend><ng-md-icon icon="filter_tilt_shift"></ng-md-icon> Endpoints</legend>
-          </v-pane-header>
-          <v-pane-content>
-            <md-subheader class="md-primary" style="background-color: #fafafa">Servers</md-subheader>
-            <md-table-container>
-              <table md-table  md-row-select="true" ng-model="selected">
-                <thead md-head md-order="order">
-                <tr md-row>
-                  <th md-column md-order-by="target"><span>Target</span></th>
-                  <th md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
-                  <th md-column md-order-by="backup" hide-gt-xs show-gt-sm><span>Backup</span></th>
-                  <th md-column md-order-by="healthcheck" hide-gt-xs show-gt-sm><span>Health-check</span></th>
-                  <th md-column>
-                    <md-button class="md-icon-button" aria-label="Add endpoint" ng-click="generalCtrl.addEndpoint($event)">
-                      <ng-md-icon icon="add"></ng-md-icon>
-                    </md-button>
-                    <md-button class="md-icon-button" aria-label="Remove endpoint" ng-click="generalCtrl.removeEndpoints($event)" ng-show="selected.length">
-                      <ng-md-icon icon="delete"></ng-md-icon>
-                    </md-button>
-                  </th>
-                </tr>
-                </thead>
-                <tbody md-body>
-                <tr md-row md-select="endpoint" md-auto-select ng-repeat="endpoint in generalCtrl.api.proxy.endpoints | orderBy: weight">
-                  <td md-cell ng-click="generalCtrl.editEndpoint($event, endpoint)" ng-class="{'md-placeholder': !endpoint.target}">{{endpoint.target}}</td>
-                  <td md-cell hide-gt-xs show-gt-sm ng-click="generalCtrl.editWeight($event, endpoint)" ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
-                  <td md-cell>
-                    <md-checkbox
-                      ng-model="endpoint.backup"
-                      aria-label="Backup endpoint"
-                      class="md-align-top-left" flex>
-                    </md-checkbox>
-                  </td>
-                  <td md-cell>
-                    <md-checkbox
-                      ng-model="endpoint.healthcheck"
-                      aria-label="Health-check enable"
-                      class="md-align-top-left" flex>
-                    </md-checkbox>
-                  </td>
-                  <td md-cell></td>
-                </tr>
-                </tbody>
-              </table>
-            </md-table-container>
-
-            <br />
-
-            <md-subheader class="md-primary" style="background-color: #fafafa">Load balancing</md-subheader>
-            <div layout="column" layout-wrap layout-gt-sm="row">
-              <div flex-xs flex="50">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Algorithm</label>
-                  <md-select ng-model="generalCtrl.api.proxy.load_balancing.type">
-                    <md-option ng-repeat="lb in lbs" value="{{lb.value}}">
-                      {{lb.name}}
-                    </md-option>
-                  </md-select>
-                </md-input-container>
-              </div>
-            </div>
-
-            <br />
-
-            <md-subheader class="md-primary" style="background-color: #fafafa">
-              <md-checkbox
-                ng-model="generalCtrl.failoverEnabled"
-                aria-label="Enable failover" flex>
-                <div ng-switch on="generalCtrl.failoverEnabled">
-                  Fail-over
-                  <span class="proxy-activated" ng-switch-when="true">(active)</span>
-                  <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
-                  <span class="proxy-deactivated" ng-switch-default>(not active)</span>
-                </div>
-                <div class="hints">When gateway receives a connect timeout from backend servers, it redirects traffic to the next server until "max attempts" or "timeout" have been reached.</div>
-              </md-checkbox>
-            </md-subheader>
-            <div layout="column" layout-wrap layout-gt-sm="row">
-              <div flex-xs flex="50">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Max attempts *</label>
-                  <input ng-model="generalCtrl.api.proxy.failover.maxAttempts" type="number" ng-required="generalCtrl.failoverEnabled" min="0" ng-disabled="!generalCtrl.failoverEnabled">
-                  <div class="hint">Limits the number of possible tries for passing a request to the next server. <br/>The 0 value turns off this limitation.</div>
-                </md-input-container>
-              </div>
-              <div flex-xs flex="50">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Timeout (ms) *</label>
-                  <input ng-model="generalCtrl.api.proxy.failover.retryTimeout" type="number" min="0" ng-required="generalCtrl.failoverEnabled" ng-disabled="!generalCtrl.failoverEnabled">
-                  <div class="hint">Limits the time allowed to pass a request to the next server. <br/>The 0 value turns off this limitation.</div>
-                </md-input-container>
-              </div>
-            </div>
-          </v-pane-content>
-        </v-pane>
-
-        <v-pane expanded>
-          <v-pane-header>
-            <legend><ng-md-icon icon="leak_add"></ng-md-icon> HTTP Configuration</legend>
-          </v-pane-header>
-          <v-pane-content>
-            <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
-            <div layout="column" layout-wrap layout-gt-sm="row">
-              <div flex-xs flex="50">
-                <md-input-container flex-xs flex="50">
-                  <label>Connect timeout (ms)*</label>
-                  <input ng-model="generalCtrl.api.proxy.http.configuration.connectTimeout" type="number" required min="0">
-                </md-input-container>
-              </div>
-              <div flex-xs flex="50">
-                <md-input-container flex-xs flex="50">
-                  <label>Read timeout (ms)*</label>
-                  <input ng-model="generalCtrl.api.proxy.http.configuration.readTimeout" type="number" required min="0">
-                </md-input-container>
-              </div>
-              <div flex-xs flex="50">
-                <md-input-container flex-xs flex="50">
-                  <label>Idle timeout (ms)*</label>
-                  <input ng-model="generalCtrl.api.proxy.http.configuration.idleTimeout" type="number" required min="0">
-                </md-input-container>
-              </div>
-              <div flex-xs flex="50">
-                <md-input-container flex-xs flex="50">
-                  <label>Max concurrent connections *</label>
-                  <input ng-model="generalCtrl.api.proxy.http.configuration.maxConcurrentConnections" type="number" required min="10">
-                </md-input-container>
-              </div>
-            </div>
-            <div layout="column" layout-wrap layout-gt-sm="row">
-              <div flex-xs flex="50">
-                <div layout-xs="column" flex-xs="50">
-                  <md-checkbox
-                    ng-model="generalCtrl.api.proxy.http.configuration.keepAlive"
-                    aria-label="Enable keep-alive"
-                    class="md-align-top-left" flex>
-                    Enable keep-alive<br/>
-                        <span class="ipsum">
-                          Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
-                        </span>
-                  </md-checkbox>
-                </div>
-                <div layout-xs="column" flex-xs="50">
-                  <md-checkbox
-                    ng-model="generalCtrl.api.proxy.http.configuration.dumpRequest"
-                    aria-label="Dump HTTP Client request"
-                    class="md-warn md-align-top-left" flex>
-                    Dump HTTP request<br/>
-                        <span class="ipsum">
-                          Use this with caution for development purpose. Print HTTP client request content in gateway logs.
-                        </span>
-                  </md-checkbox>
-                </div>
-                <div layout-xs="column" flex-xs="50">
-                  <md-checkbox
-                    ng-model="generalCtrl.api.proxy.http.configuration.pipelining"
-                    aria-label="HTTP pipe-lining"
-                    class="md-align-top-left" flex>
-                    HTTP pipe-lining<br/>
-                        <span class="ipsum">
-                          When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.
-                        </span>
-                  </md-checkbox>
-                </div>
-                <div layout-xs="column" flex-xs="50">
-                  <md-checkbox
-                    ng-model="generalCtrl.api.proxy.http.configuration.useCompression"
-                    aria-label="Enables compression"
-                    class="md-align-top-left" flex>
-                    Enables compression (gzip, deflate)<br/>
-                        <span class="ipsum">
-                          The gateway can let the remote http server know that it supports compression, and will be able to handle compressed response bodies.
-                        </span>
-                  </md-checkbox>
-                </div>
-              </div>
-            </div>
-
-            <br />
-
-            <md-subheader class="md-primary" style="background-color: #fafafa">
-              <md-checkbox
-                ng-model="generalCtrl.api.proxy.http.http_proxy.enabled"
-                aria-label="Enable proxy" flex>
-                <div ng-switch on="generalCtrl.api.proxy.http.http_proxy.enabled">
-                  Proxy
-                  <span class="proxy-activated" ng-switch-when="true">(active)</span>
-                  <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
-                  <span class="proxy-deactivated" ng-switch-default>(not active)</span>
-                </div>
-                <div class="hints">Use proxy for client connections</div>
-              </md-checkbox>
-            </md-subheader>
-            <div layout="column" layout-wrap layout-gt-sm="row">
-              <div flex-xs flex="50">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Proxy type</label>
-                  <md-select ng-model="generalCtrl.api.proxy.http.http_proxy.type" ng-required="generalCtrl.api.proxy.http.http_proxy.enabled" ng-disabled="!generalCtrl.api.proxy.http.http_proxy.enabled">
-                    <md-option ng-repeat="proxy in proxies" value="{{proxy.value}}">
-                      {{proxy.name}}
-                    </md-option>
-                  </md-select>
-                  <div class="hint">Type of the TCP proxy server</div>
-                </md-input-container>
-              </div>
-            </div>
-            <div layout="column" layout-wrap layout-gt-sm="row">
-              <div flex-xs flex="50">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Host *</label>
-                  <input ng-model="generalCtrl.api.proxy.http.http_proxy.host" type="string" ng-required="generalCtrl.api.proxy.http.http_proxy.enabled" ng-disabled="!generalCtrl.api.proxy.http.http_proxy.enabled">
-                  <div class="hint">Proxy host to connect to</div>
-                </md-input-container>
-              </div>
-              <div flex-xs flex="50">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Port *</label>
-                  <input ng-model="generalCtrl.api.proxy.http.http_proxy.port" type="number" min="0" max="65536" ng-required="generalCtrl.api.proxy.http.http_proxy.enabled" ng-disabled="!generalCtrl.api.proxy.http.http_proxy.enabled">
-                  <div class="hint">Proxy port to connect to</div>
-                </md-input-container>
-              </div>
-              <div flex-xs flex="50">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Username</label>
-                  <input ng-model="generalCtrl.api.proxy.http.http_proxy.username" type="string" ng-disabled="!generalCtrl.api.proxy.http.http_proxy.enabled">
-                  <div class="hint">Optional proxy username</div>
-                </md-input-container>
-              </div>
-              <div flex-xs flex="50">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Password</label>
-                  <input ng-model="generalCtrl.api.proxy.http.http_proxy.password" type="password" ng-disabled="!generalCtrl.api.proxy.http.http_proxy.enabled">
-                  <div class="hint">Optional proxy password</div>
-                </md-input-container>
-              </div>
-            </div>
-
-          </v-pane-content>
-        </v-pane>
-
-        <v-pane expanded>
-          <v-pane-header>
-            <legend><ng-md-icon icon="security"></ng-md-icon> SSL Configuration</legend>
-          </v-pane-header>
-          <v-pane-content>
-            <div layout="column" layout-wrap layout-gt-sm="row">
-              <div flex-xs flex="50">
-                <div layout-xs="column" flex-xs="100">
-                  <md-checkbox
-                    ng-model="generalCtrl.api.proxy.http.ssl.enabled"
-                    aria-label="Enable SSL"
-                    class="md-align-top-left" flex>
-                    Enable client SSL<br/>
-                  <span class="ipsum">
-                    Use a client certificate if server requires it.
-                  </span>
-                  </md-checkbox>
-                </div>
-              </div>
-              <div flex-xs flex="50">
-                <div layout-xs="column" flex-xs="100">
-                  <md-checkbox
-                    ng-model="generalCtrl.api.proxy.http.ssl.trustAll"
-                    aria-label="Enable trust all"
-                    class="md-warn md-align-top-left" flex>
-                    Enable trust all<br/>
-                <span class="ipsum">
-                  Use this with caution (if over Internet). The gateway will trust all server certificates. The connection will still be
-                  encrypted but this mode is vulnerable to 'man in the middle' attacks.
-                </span>
-                  </md-checkbox>
-                </div>
-              </div>
-              <div flex-xs flex="50">
-                <md-input-container flex="50">
-                  <label>PEM certificate</label>
-                  <textarea ng-model="generalCtrl.api.proxy.http.ssl.pem"></textarea>
-                </md-input-container>
-              </div>
-            </div>
-          </v-pane-content>
-        </v-pane>
-      </v-accordion>
-    </md-tab>
-  </md-tabs>
+  <div layout="column">
+    <md-input-container class="flex">
+      <label>Portal views</label>
+      <md-select ng-model="generalCtrl.api.views" multiple>
+        <md-option ng-repeat="view in generalCtrl.views" ng-value="view.id">
+          {{view.name}}<span ng-if="view.description" class="gravitee-general-view-description"> - {{view.description}}</span>
+        </md-option>
+      </md-select>
+    </md-input-container>
+  </div>
 
   <div class="md-actions gravitee-api-save-button" layout="row">
     <md-button class="md-raised" type="submit" ng-disabled="formApi.$invalid || formApi.$pristine">

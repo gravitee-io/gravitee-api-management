@@ -30,6 +30,7 @@ import ApiAdminController from './api/admin/apiAdmin.controller';
 import ApiAnalyticsController from './api/admin/analytics/analytics.controller';
 import ApiMembersController from './api/admin/members/members.controller';
 import ApiPoliciesController from './api/admin/policies/policies.controller';
+import ApiEndpointController from './api/admin/endpoint/endpointConfiguration.controller';
 import AddPoliciesPathController from './api/admin/policies/addPoliciesPath.controller';
 import ApiHealthCheckController from './api/admin/healthcheck/healthcheck.controller';
 import ApiResourcesController from './api/admin/resources/resources.controller';
@@ -46,7 +47,6 @@ import DialogAddPropertyController from './api/admin/properties/add-property.dia
 import DialogAddMemberApiController from './api/admin/members/addMemberDialog.controller';
 import DialogTransferApiController from './api/admin/members/transferAPIDialog.controller';
 import DialogApiKeyExpirationController from './api/admin/apikeys/apikey-expiration.dialog.controller';
-import DialogEndpointController from './api/admin/general/addEndpointDialog.controller';
 import DialogEditPolicyController from './api/admin/policies/dialog/policyDialog.controller';
 import UserService from './user/user.service';
 import UserController from './user/user.controller';
@@ -94,7 +94,7 @@ import AnalyticsApplicationModelDirective from './api/admin/analytics/analyticsA
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
-  'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
+  'ngMessages', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
   'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'tc.chartjs', 'md-steppers'])
   .config(config)
   .config(routerConfig)
@@ -128,6 +128,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('ApiPortalPageController', ApiPortalPageController)
   .controller('ApiGeneralController', ApiGeneralController)
   .controller('ApiHealthCheckController', ApiHealthCheckController)
+  .controller('ApiEndpointController', ApiEndpointController)
   .controller('DialogAssertionInformationController', DialogAssertionInformationController)
   .controller('DialogApiPermissionsHelpController', DialogApiPermissionsHelpController)
   .controller('DialogApplicationPermissionsHelpController', DialogApplicationPermissionsHelpController)
@@ -142,7 +143,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
   .controller('DialogTransferApiController', DialogTransferApiController)
   .controller('DialogApiKeyExpirationController', DialogApiKeyExpirationController)
-  .controller('DialogEndpointController', DialogEndpointController)
   .controller('UserController', UserController)
   .controller('DocumentationController', DocumentationController)
   .controller('ApplicationsController', ApplicationsController)

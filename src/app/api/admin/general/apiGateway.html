@@ -1,0 +1,159 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form name="formApi" ng-submit="generalCtrl.update(generalCtrl.api)" novalidate>
+  <div layout-gt-sm="row">
+    <md-input-container class="md-block" flex-gt-sm>
+      <label>Gateway context path *</label>
+      <input ng-model="generalCtrl.api.proxy.context_path" type="text"
+             ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" ng-disabled="!generalCtrl.contextPathEditable"
+             required>
+    </md-input-container>
+  </div>
+
+  <md-subheader class="md-primary" style="background-color: #fafafa">Endpoints</md-subheader>
+  <md-table-container>
+    <table md-table  md-row-select="true" ng-model="selected">
+      <thead md-head md-order="order">
+      <tr md-row>
+        <th md-column md-order-by="name"><span>Name</span></th>
+        <th md-column md-order-by="target"><span>Target</span></th>
+        <th md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
+        <th md-column md-order-by="backup" hide-gt-xs show-gt-sm><span>Backup</span></th>
+        <th md-column md-order-by="healthcheck" hide-gt-xs show-gt-sm><span>Health-check</span></th>
+        <th md-column>
+          <md-button class="md-icon-button" aria-label="Add endpoint" ui-sref="apis.admin.endpoint({endpointName: endpoint.name})">
+            <ng-md-icon icon="add" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+            <md-tooltip md-direction="left">Add new endpoint</md-tooltip>
+          </md-button>
+
+          <md-button class="md-icon-button" aria-label="Remove endpoint" ng-click="generalCtrl.removeEndpoints($event)" ng-disabled="selected.length == 0">
+            <ng-md-icon icon="delete" style="fill: rgba(0, 0, 0, 0.54);" ng-show="selected.length > 0"></ng-md-icon>
+            <ng-md-icon icon="delete" style="fill: rgba(142, 158, 170, 0.54);" ng-show="selected.length == 0"></ng-md-icon>
+            <md-tooltip md-direction="left">Delete endpoint</md-tooltip>
+          </md-button>
+        </th>
+      </tr>
+      </thead>
+      <tbody md-body>
+      <tr md-row md-select="endpoint" md-auto-select="false" ng-repeat="endpoint in generalCtrl.api.proxy.endpoints">
+        <td md-cell>{{endpoint.name}}</td>
+        <td md-cell>{{endpoint.target}}</td>
+        <td md-cell hide-gt-xs show-gt-sm ng-click="generalCtrl.editWeight($event, endpoint)" ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
+        <td md-cell hide-gt-xs show-gt-sm>
+          <ng-md-icon ng-show="endpoint.backup" icon="done" style="fill: #107F20"></ng-md-icon>
+          <ng-md-icon ng-show="!endpoint.backup" icon="clear" style="fill: #BE2628"></ng-md-icon>
+        </td>
+        <td md-cell hide-gt-xs show-gt-sm>
+          <ng-md-icon ng-show="endpoint.healthcheck" icon="done" style="fill: #107F20"></ng-md-icon>
+          <ng-md-icon ng-show="!endpoint.healthcheck" icon="clear" style="fill: #BE2628"></ng-md-icon>
+        </td>
+        <td md-cell>
+          <md-button class="md-icon-button" aria-label="Edit endpoint" ui-sref="apis.admin.endpoint({endpointName: endpoint.name})">
+            <ng-md-icon icon="settings" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+            <md-tooltip md-direction="left">Edit endpoint</md-tooltip>
+          </md-button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </md-table-container>
+
+  <br />
+
+  <md-subheader class="md-primary" style="background-color: #fafafa">Load balancing</md-subheader>
+  <div layout="column" layout-wrap layout-gt-sm="row">
+    <div flex-xs flex="50">
+      <md-input-container class="md-block" flex-gt-sm>
+        <label>Algorithm</label>
+        <md-select ng-model="generalCtrl.api.proxy.load_balancing.type">
+          <md-option ng-repeat="lb in lbs" value="{{lb.value}}">
+            {{lb.name}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+    </div>
+  </div>
+
+  <br />
+
+  <md-subheader class="md-primary" style="background-color: #fafafa">
+    <md-checkbox
+      ng-model="generalCtrl.failoverEnabled"
+      aria-label="Enable failover" flex>
+      <div ng-switch on="generalCtrl.failoverEnabled">
+        Fail-over
+        <span class="proxy-activated" ng-switch-when="true">(active)</span>
+        <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
+        <span class="proxy-deactivated" ng-switch-default>(not active)</span>
+      </div>
+      <div class="hints">When gateway receives a connect timeout from backend servers, it redirects traffic to the next server until "max attempts" or "timeout" have been reached.</div>
+    </md-checkbox>
+  </md-subheader>
+  <div layout="column" layout-wrap layout-gt-sm="row">
+    <div flex-xs flex="50">
+      <md-input-container class="md-block" flex-gt-sm>
+        <label>Max attempts *</label>
+        <input ng-model="generalCtrl.api.proxy.failover.maxAttempts" type="number" ng-required="generalCtrl.failoverEnabled" min="0" ng-disabled="!generalCtrl.failoverEnabled">
+        <div class="hint">Limits the number of possible tries for passing a request to the next server. <br/>The 0 value turns off this limitation.</div>
+      </md-input-container>
+    </div>
+    <div flex-xs flex="50">
+      <md-input-container class="md-block" flex-gt-sm>
+        <label>Timeout (ms) *</label>
+        <input ng-model="generalCtrl.api.proxy.failover.retryTimeout" type="number" min="0" ng-required="generalCtrl.failoverEnabled" ng-disabled="!generalCtrl.failoverEnabled">
+        <div class="hint">Limits the time allowed to pass a request to the next server. <br/>The 0 value turns off this limitation.</div>
+      </md-input-container>
+    </div>
+  </div>
+
+  <section>
+    <md-subheader class="md-primary" style="background-color: #fafafa">
+      <span>Profiling</span>
+      <div class="hints">Use profiling with caution and only for development purpose since it can have impact on API performance.</div>
+    </md-subheader>
+    <div layout="column" layout-wrap layout-gt-sm="row">
+      <div flex-xs flex="50">
+        <div layout-xs="column" flex-xs="50">
+          <md-checkbox
+            ng-model="generalCtrl.api.proxy.dumpRequest"
+            aria-label="Dump HTTP Client request"
+            class="md-warn md-align-top-left" flex>
+            Dump HTTP requests<br/>
+                        <span class="ipsum">
+                          Print HTTP client requests in gateway logs.
+                        </span>
+          </md-checkbox>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <br />
+
+  <div class="md-actions gravitee-api-save-button" layout="row">
+    <md-button class="md-raised" type="submit" ng-disabled="formApi.$invalid || formApi.$pristine">
+      Save
+    </md-button>
+    <md-button class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="formApi.$invalid || formApi.$pristine">
+      Reset
+    </md-button>
+    <md-button class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(generalCtrl.api.id)" ng-disabled="generalCtrl.api.state === 'started'">
+      Delete
+    </md-button>
+  </div>
+</form>

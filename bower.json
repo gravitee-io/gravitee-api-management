@@ -23,7 +23,6 @@
     "ngclipboard": "~1.1.0",
     "angular-ui-validate": "~1.2.2",
     "angular-messages": "~1.4.9",
-    "v-accordion": "~1.4.1",
     "angular-timeline": "~1.6.2",
     "jsdiff": "~2.2.1",
     "angular-utf8-base64": "~0.0.5",
