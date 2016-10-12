@@ -16,12 +16,11 @@
 package io.gravitee.gateway.http.core.loadbalancer;
 
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.api.Request;
 
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class WeightedRoundRobinLoadBalancerStrategy extends WeightedLoadBalancerStrategy {
@@ -33,7 +32,7 @@ public class WeightedRoundRobinLoadBalancerStrategy extends WeightedLoadBalancer
     }
 
     @Override
-    public synchronized String chooseEndpoint(Request request) {
+    public synchronized Endpoint nextEndpoint() {
         List<Endpoint> endpoints = endpoints();
         if (endpoints.isEmpty()) {
             return null;
@@ -60,7 +59,7 @@ public class WeightedRoundRobinLoadBalancerStrategy extends WeightedLoadBalancer
 
         lastIndex = counter;
 
-        return endpoints.get(counter++).getTarget();
+        return endpoints.get(counter++);
     }
 
     @Override

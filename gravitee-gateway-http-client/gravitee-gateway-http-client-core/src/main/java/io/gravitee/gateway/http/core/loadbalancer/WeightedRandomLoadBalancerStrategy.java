@@ -16,13 +16,12 @@
 package io.gravitee.gateway.http.core.loadbalancer;
 
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.api.Request;
 
 import java.util.List;
 import java.util.Random;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class WeightedRandomLoadBalancerStrategy extends WeightedLoadBalancerStrategy {
@@ -42,7 +41,7 @@ public class WeightedRandomLoadBalancerStrategy extends WeightedLoadBalancerStra
     }
 
     @Override
-    public synchronized String chooseEndpoint(Request request) {
+    public synchronized Endpoint nextEndpoint() {
         List<Endpoint> endpoints = endpoints();
         if (endpoints.isEmpty()) {
             return null;
@@ -50,7 +49,7 @@ public class WeightedRandomLoadBalancerStrategy extends WeightedLoadBalancerStra
 
         int index = selectProcessIndex();
         lastIndex = index;
-        return endpoints.get(index).getTarget();
+        return endpoints.get(index);
     }
 
     private int selectProcessIndex() {

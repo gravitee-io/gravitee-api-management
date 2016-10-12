@@ -25,26 +25,29 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.http.core.invoker.AbstractHttpInvoker;
+import io.gravitee.gateway.api.http.client.HttpClient;
+import io.gravitee.gateway.http.core.invoker.DefaultHttpInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
+
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FailoverHttpInvoker extends AbstractHttpInvoker {
+public class FailoverHttpInvoker extends DefaultHttpInvoker {
 
     private final Logger LOGGER = LoggerFactory.getLogger(FailoverHttpInvoker.class);
 
     private final static String ATTEMPTS_COUNTER_ATTRIBUTE = "gravitee.attribute.failover.attempts";
 
     @Override
-    protected ClientRequest invoke0(String host, int port, HttpMethod method, String requestUri, Request serverRequest,
+    protected ClientRequest invoke0(HttpClient httpClient, HttpMethod method, URI uri, Request serverRequest,
                                     ExecutionContext executionContext, Handler<ClientResponse> response) {
-        return httpClient.request(host, port, method, requestUri, serverRequest,
-                response::handle).connectTimeoutHandler(result -> {
-            LOGGER.warn("Connection timeout from {}:{}", host, port);
+        return httpClient.request(method, uri, serverRequest.headers(),
+                response).connectTimeoutHandler(result -> {
+            LOGGER.warn("Connection timeout from {}:{}", uri.getHost(), uri.getPort());
             int attempts = getAttempts(executionContext);
             int maxAttempts = getFailover().getMaxAttempts();
 
@@ -75,10 +78,10 @@ public class FailoverHttpInvoker extends AbstractHttpInvoker {
     }
 
     @Override
-    protected String nextEndpoint(ExecutionContext executionContext, Request serverRequest) {
+    protected String nextEndpoint(ExecutionContext executionContext) {
         // Use this is to iterate over each defined endpoint
         // How to maintain a list of already attempted endpoints ?
-        return super.nextEndpoint(executionContext, serverRequest);
+        return loadBalancer.next();
     }
 
     private Failover getFailover() {

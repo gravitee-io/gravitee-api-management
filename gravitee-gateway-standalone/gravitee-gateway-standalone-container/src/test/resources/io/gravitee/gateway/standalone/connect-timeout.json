@@ -6,14 +6,16 @@
     "context_path": "/unreachable",
     "endpoints": [
       {
-        "target": "http://10.255.255.255:8080/team"
+        "target": "http://10.255.255.255:8080/team",
+        "http": {
+          "connectTimeout": 3000
+        }
       }
     ],
     "strip_context_path": false,
     "http": {
       "configuration": {
-        "dumpRequest": true,
-        "connectTimeout": 3000
+        "dumpRequest": true
       }
     }
   },

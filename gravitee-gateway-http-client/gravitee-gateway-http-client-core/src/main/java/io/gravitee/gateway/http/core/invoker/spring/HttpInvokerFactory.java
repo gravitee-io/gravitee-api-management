@@ -15,22 +15,18 @@
  */
 package io.gravitee.gateway.http.core.invoker.spring;
 
+import io.gravitee.common.spring.factory.AbstractAutowiringFactoryBean;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.Invoker;
-import io.gravitee.common.spring.factory.AbstractAutowiringFactoryBean;
 import io.gravitee.gateway.http.core.invoker.DefaultHttpInvoker;
 import io.gravitee.gateway.http.core.invoker.failover.FailoverHttpInvoker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HttpInvokerFactory extends AbstractAutowiringFactoryBean<Invoker> {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(HttpInvokerFactory.class);
 
     @Autowired
     private Api api;

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.standalone.junit.stmt;
 
+import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -23,7 +24,6 @@ import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
 import io.gravitee.gateway.standalone.Container;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.utils.SocketUtils;
-import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import java.net.URI;
@@ -91,11 +91,16 @@ public class ApiDeployerStatement extends Statement {
                     URI target = URI.create(edpt.getTarget());
                     URI newTarget = new URI(target.getScheme(), target.getUserInfo(), target.getHost(), port, target.getPath(), target.getQuery(), target.getFragment());
                     edpt.setTarget(newTarget.toString());
+                    edpt.setName(UUID.random().toString());
                 } else {
                     // Use the first defined endpoint as reference
-                    URI target = URI.create(endpoints.get(0).getTarget());
+                    Endpoint first = endpoints.get(0);
+                    URI target = URI.create(first.getTarget());
                     URI newTarget = new URI(target.getScheme(), target.getUserInfo(), target.getHost(), port, target.getPath(), target.getQuery(), target.getFragment());
-                    api.getProxy().getEndpoints().add(new Endpoint(newTarget.toString()));
+                    Endpoint edpt = new Endpoint(newTarget.toString());
+                    edpt.setName(UUID.random().toString());
+                    edpt.setHttpClientOptions(first.getHttpClientOptions());
+                    api.getProxy().getEndpoints().add(edpt);
                 }
             }
         }

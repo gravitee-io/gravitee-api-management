@@ -13,37 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.core.loadbalancer;
+package io.gravitee.gateway.http.core.endpoint;
 
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.api.http.loadbalancer.LoadBalancerStrategy;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import io.gravitee.gateway.api.http.client.HttpClient;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class LoadBalancerSupportStrategy implements LoadBalancerStrategy {
+public class HttpEndpoint implements io.gravitee.gateway.api.endpoint.Endpoint<HttpClient> {
 
-    private final List<Endpoint> endpoints;
+    private final Endpoint endpoint;
+    private final HttpClient httpClient;
 
-    protected LoadBalancerSupportStrategy(final List<Endpoint> endpoints) {
-        this.endpoints = endpoints;
+    public HttpEndpoint(final Endpoint endpoint, final HttpClient httpClient) {
+        this.endpoint = endpoint;
+        this.httpClient = httpClient;
     }
 
-    protected List<Endpoint> endpoints() {
-        return endpoints.stream()
-                .filter(endpoint -> endpoint.getStatus() != Endpoint.Status.DOWN)
-                .collect(Collectors.toList());
+    public Endpoint getEndpoint() {
+        return endpoint;
+    }
+
+    public HttpClient getHttpClient() {
+        return httpClient;
     }
 
     @Override
-    public String next() {
-        Endpoint endpoint = nextEndpoint();
-        return (endpoint != null) ? endpoint.getName() : null;
+    public String name() {
+        return endpoint.getName();
     }
 
-    protected abstract Endpoint nextEndpoint();
+    @Override
+    public String target() {
+        return endpoint.getTarget();
+    }
+
+    @Override
+    public HttpClient connector() {
+        return httpClient;
+    }
 }

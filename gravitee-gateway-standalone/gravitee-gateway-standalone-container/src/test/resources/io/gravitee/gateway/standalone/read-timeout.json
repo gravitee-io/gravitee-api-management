@@ -6,14 +6,16 @@
     "context_path": "/team",
     "endpoints": [
       {
-        "target": "http://localhost:8080/team"
+        "target": "http://localhost:8080/team",
+        "http": {
+          "readTimeout": 2000
+        }
       }
     ],
     "strip_context_path": false,
     "http": {
       "configuration": {
-        "dumpRequest": true,
-        "readTimeout": 2000
+        "dumpRequest": true
       }
     }
   },
