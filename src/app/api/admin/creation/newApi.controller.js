@@ -57,27 +57,23 @@ class NewApiController {
   }
 
   submitCurrentStep(stepData) {
-    var deferred = this.$q.defer();
     this.vm.showBusyText = true;
 
     if (!stepData.completed) {
       var _this = this;
 
       if (this.vm.selectedStep != 1) {
-        this.$timeout(function () {
-          _this.vm.showBusyText = false;
-          deferred.resolve({ status: 200, statusText: 'success', data: {} });
-          //move to next step when success
-          stepData.completed = true;
-          _this.enableNextStep();
-        }, 1000)
+        _this.vm.showBusyText = false;
+        //move to next step when success
+        stepData.completed = true;
+        _this.enableNextStep();
       } else {
         this.ApiService.create(this.api).then(function (api) {
           _this.vm.showBusyText = false;
           _this.NotificationService.show('API created');
           _this.$window.location.href = '#/apis/' + api.data.id + '/settings/general';
         }).catch(function (error) {
-          _this.NotificationService.show('Error while creating API', true);
+          _this.vm.showBusyText = false;
         });
       }
     } else {
