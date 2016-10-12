@@ -13,17 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.security.config;
+package io.gravitee.management.model;
+
+import javax.validation.constraints.NotNull;
 
 /**
- * @author Azize Elamrani (azize at gravitee.io)
+ * @author Azize Elamrani (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface JWTClaims {
-    String ISSUER = "iss";
-    String SUBJECT = "sub";
-    String PERMISSIONS = "permissions";
-    String EMAIL = "email";
-    String FIRSTNAME = "firstname";
-    String LASTNAME = "lastname";
+public class RegisterUserEntity {
+
+    @NotNull
+	private String token;
+	
+    @NotNull
+    private String password;
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

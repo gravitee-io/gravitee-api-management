@@ -110,7 +110,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 final PrimaryOwnerEntity owner = applicationEntity.getPrimaryOwner();
 
                 if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
-                    emailService.sendEmailNotification(new EmailNotificationBuilder()
+                    emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                             .to(owner.getEmail())
                             .subject("An API key has been revoked on API " + key.getApi() + " for application " + key.getApplication())
                             .content("apiKeyRevoked.html")
@@ -229,7 +229,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             final PrimaryOwnerEntity owner = applicationEntity.getPrimaryOwner();
 
             if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
-                emailService.sendEmailNotification(new EmailNotificationBuilder()
+                emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                         .to(owner.getEmail())
                         .subject("An API key has been revoked on API " + key.getApi() + " for application " + key.getApplication())
                         .content("apiKeyRevoked.html")

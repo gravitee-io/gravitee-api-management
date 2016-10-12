@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.model.NewExternalUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.permissions.Role;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -31,7 +31,6 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Collections;
 import java.util.Date;
@@ -63,7 +62,7 @@ public class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private NewUserEntity newUser;
+    private NewExternalUserEntity newUser;
     @Mock
     private User user;
     @Mock
@@ -109,7 +108,6 @@ public class UserServiceTest {
         when(newUser.getEmail()).thenReturn(EMAIL);
         when(newUser.getFirstname()).thenReturn(FIRST_NAME);
         when(newUser.getLastname()).thenReturn(LAST_NAME);
-        when(newUser.getPassword()).thenReturn(PASSWORD);
 
         when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.empty());
 
@@ -132,7 +130,6 @@ public class UserServiceTest {
                     EMAIL.equals(userToCreate.getEmail()) &&
                     FIRST_NAME.equals(userToCreate.getFirstname()) &&
                     LAST_NAME.equals(userToCreate.getLastname()) &&
-                    new BCryptPasswordEncoder().matches(PASSWORD, userToCreate.getPassword()) &&
                     Collections.singleton(Role.API_CONSUMER.name()).equals(userToCreate.getRoles()) &&
                     userToCreate.getCreatedAt() != null &&
                     userToCreate.getUpdatedAt() != null &&
@@ -163,7 +160,6 @@ public class UserServiceTest {
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateBecauseTechnicalException() throws TechnicalException {
         when(newUser.getUsername()).thenReturn(USER_NAME);
-        when(newUser.getPassword()).thenReturn(PASSWORD);
         when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.empty());
         when(userRepository.create(any(User.class))).thenThrow(TechnicalException.class);
 

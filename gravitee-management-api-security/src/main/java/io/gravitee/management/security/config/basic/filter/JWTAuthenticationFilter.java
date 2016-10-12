@@ -20,7 +20,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.security.JWTCookieGenerator;
-import io.gravitee.management.security.config.JWTClaims;
+import io.gravitee.management.service.common.JWTHelper.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -83,15 +83,15 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
                 try {
                     final Map<String, Object> verify = jwtVerifier.verify(stringToken);
 
-                    final List<SimpleGrantedAuthority> authorities = ((List<Map>) verify.get(JWTClaims.PERMISSIONS)).stream()
+                    final List<SimpleGrantedAuthority> authorities = ((List<Map>) verify.get(Claims.PERMISSIONS)).stream()
                             .map(map -> new SimpleGrantedAuthority(map.get("authority").toString()))
                             .collect(Collectors.toList());
 
-                    final UserDetails userDetails = new UserDetails(getStringValue(verify.get(JWTClaims.SUBJECT)), "",
+                    final UserDetails userDetails = new UserDetails(getStringValue(verify.get(Claims.SUBJECT)), "",
                             authorities);
-                    userDetails.setEmail((String) verify.get(JWTClaims.EMAIL));
-                    userDetails.setFirstname((String) verify.get(JWTClaims.FIRSTNAME));
-                    userDetails.setLastname((String) verify.get(JWTClaims.LASTNAME));
+                    userDetails.setEmail((String) verify.get(Claims.EMAIL));
+                    userDetails.setFirstname((String) verify.get(Claims.FIRSTNAME));
+                    userDetails.setLastname((String) verify.get(Claims.LASTNAME));
 
                     SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
                 } catch (Exception e) {

@@ -13,14 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.common;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize Elamrani (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public interface EmailService {
+public interface JWTHelper {
 
-    void sendEmailNotification(EmailNotification emailNotification);
+    interface Claims {
+        String ISSUER = "iss";
+        String SUBJECT = "sub";
+        String PERMISSIONS = "permissions";
+        String EMAIL = "email";
+        String FIRSTNAME = "firstname";
+        String LASTNAME = "lastname";
+    }
 
-    void sendAsyncEmailNotification(EmailNotification emailNotification);
+    interface DefaultValues {
+        int DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER = 86400;
+        int DEFAULT_JWT_EXPIRE_AFTER = 604800;
+        String DEFAULT_JWT_ISSUER = "gravitee-management-auth";
+    }
 }

@@ -16,7 +16,8 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.model.NewExternalUserEntity;
+import io.gravitee.management.model.RegisterUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.providers.User;
 import io.gravitee.management.service.IdentityService;
@@ -29,7 +30,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
 import java.io.ByteArrayOutputStream;
-import java.net.URI;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Comparator;
@@ -38,7 +38,9 @@ import java.util.stream.Collectors;
 /**
  * Defines the REST resources to manage Users.
  *
- * @author David BRASSELY (david at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize Elamrani (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Path("/users")
 @Api(tags = {"User"})
@@ -52,20 +54,35 @@ public class UsersResource extends AbstractResource {
 
     @Inject
     private IdentityService identityService;
-    
+
     /**
-     * Create a new user.
-     * @param newUserEntity
-     * @return
+     * Register a new user.
+     * Generate a token and send it in an email to allow a user to create an account.
      */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createUser(@Valid NewUserEntity newUserEntity) {
-    	UserEntity newUser = userService.create(newUserEntity);
+    @Path("/register")
+    public Response registerUser(@Valid NewExternalUserEntity newExternalUserEntity) {
+        UserEntity newUser = userService.register(newExternalUserEntity);
         if (newUser != null) {
             return Response
-                    .created(URI.create("/users/" + newUser.getUsername()))
+                    .ok()
+                    .entity(newUser)
+                    .build();
+        }
+
+        return Response.serverError().build();
+    }
+    
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createUser(@Valid RegisterUserEntity registerUserEntity) {
+        UserEntity newUser = userService.create(registerUserEntity);
+        if (newUser != null) {
+            return Response
+                    .ok()
                     .entity(newUser)
                     .build();
         }

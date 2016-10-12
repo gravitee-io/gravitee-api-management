@@ -466,7 +466,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             }
 
             if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                emailService.sendEmailNotification(new EmailNotificationBuilder()
+                emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                         .to(user.getEmail())
                         .subject("Subscription to API " + api)
                         .content("apiMember.html")

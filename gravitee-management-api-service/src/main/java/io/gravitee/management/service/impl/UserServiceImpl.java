@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,21 +15,26 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.model.NewExternalUserEntity;
-import io.gravitee.management.model.NewUserEntity;
-import io.gravitee.management.model.UpdateUserEntity;
-import io.gravitee.management.model.UserEntity;
+import com.auth0.jwt.JWTSigner;
+import com.auth0.jwt.JWTVerifier;
+import com.google.common.collect.ImmutableMap;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.permissions.Role;
+import io.gravitee.management.service.EmailService;
 import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.builder.EmailNotificationBuilder;
+import io.gravitee.management.service.common.JWTHelper.Claims;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -37,21 +42,28 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize Elamrani (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class UserServiceImpl extends TransactionalService implements UserService {
 
-    /**
-     * Logger.
-     */
     private final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ConfigurableEnvironment environment;
+
+    @Autowired
+    private EmailService emailService;
 
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -102,7 +114,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
             }
 
             Optional<String> usernamesAsString = usernames.stream().reduce((a, b) -> a + "/" + b);
-            if(usernamesAsString.isPresent()) {
+            if (usernamesAsString.isPresent()) {
                 throw new UserNotFoundException(usernamesAsString.get());
             } else {
                 throw new UserNotFoundException("?");
@@ -114,12 +126,38 @@ public class UserServiceImpl extends TransactionalService implements UserService
         }
     }
 
+    private void checkUserRegistrationEnabled() {
+        if (!environment.getProperty("user.creation.enabled", Boolean.class, false)) {
+            throw new IllegalStateException("The user registration is disabled");
+        }
+    }
+
+    /**
+     * Allows to complete the creation of a user which is pre-created.
+     * @param registerUserEntity a valid token and a password
+     * @return the user
+     */
     @Override
-    public UserEntity create(NewUserEntity newUserEntity) {
+    public UserEntity create(final RegisterUserEntity registerUserEntity) {
+        checkUserRegistrationEnabled();
         try {
+            final String jwtSecret = environment.getProperty("jwt.secret");
+            if (jwtSecret == null || jwtSecret.isEmpty()) {
+                throw new IllegalStateException("JWT secret is mandatory");
+            }
+
+            final Map<String, Object> claims = new JWTVerifier(jwtSecret).verify(registerUserEntity.getToken());
+
+            final NewUserEntity newUserEntity = new NewUserEntity();
+            newUserEntity.setUsername(claims.get(Claims.SUBJECT).toString());
+            newUserEntity.setEmail(claims.get(Claims.EMAIL).toString());
+            newUserEntity.setFirstname(claims.get(Claims.FIRSTNAME).toString());
+            newUserEntity.setLastname(claims.get(Claims.LASTNAME).toString());
+            newUserEntity.setPassword(registerUserEntity.getPassword());
+
             LOGGER.debug("Create an internal user {}", newUserEntity);
             Optional<User> checkUser = userRepository.findByUsername(newUserEntity.getUsername());
-            if (checkUser.isPresent()) {
+            if (checkUser.isPresent() && StringUtils.isNotBlank(checkUser.get().getPassword())) {
                 throw new UsernameAlreadyExistsException(newUserEntity.getUsername());
             }
 
@@ -131,22 +169,20 @@ public class UserServiceImpl extends TransactionalService implements UserService
             }
 
             // Set date fields
-            user.setCreatedAt(new Date());
-            user.setUpdatedAt(user.getCreatedAt());
-            user.setSource("gravitee");
-            user.setSourceId(user.getUsername());
+            user.setUpdatedAt(new Date());
 
-            // Set default role
-            user.setRoles(Collections.singleton(Role.API_CONSUMER.name()));
-
-            User createdUser = userRepository.create(user);
-            return convert(createdUser);
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create an internal user {}", newUserEntity, ex);
-            throw new TechnicalManagementException("An error occurs while trying to create an internal user" + newUserEntity, ex);
+            return convert(userRepository.update(user));
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while trying to create an internal user with the token {}", registerUserEntity.getToken(), ex);
+            throw new TechnicalManagementException(ex.getMessage(), ex);
         }
     }
 
+    /**
+     * Allows to pre-create a user.
+     * @param newExternalUserEntity
+     * @return
+     */
     @Override
     public UserEntity create(NewExternalUserEntity newExternalUserEntity) {
         try {
@@ -171,6 +207,52 @@ public class UserServiceImpl extends TransactionalService implements UserService
             LOGGER.error("An error occurs while trying to create an external user {}", newExternalUserEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create an external user" + newExternalUserEntity, ex);
         }
+    }
+
+    /**
+     * Allows to pre-create a user and send an email notification to finalize its creation.
+     */
+    @Override
+    public UserEntity register(final NewExternalUserEntity newExternalUserEntity) {
+        checkUserRegistrationEnabled();
+
+        newExternalUserEntity.setUsername(newExternalUserEntity.getEmail());
+        newExternalUserEntity.setSource("gravitee");
+        newExternalUserEntity.setSourceId(newExternalUserEntity.getUsername());
+
+        final UserEntity userEntity = create(newExternalUserEntity);
+
+        // generate a JWT to store user's information and for security purpose
+        final Map<String, Object> claims = new HashMap<>();
+        claims.put(Claims.ISSUER, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER));
+
+        claims.put(Claims.SUBJECT, userEntity.getUsername());
+        claims.put(Claims.EMAIL, userEntity.getEmail());
+        claims.put(Claims.FIRSTNAME, userEntity.getFirstname());
+        claims.put(Claims.LASTNAME, userEntity.getLastname());
+
+        final JWTSigner.Options options = new JWTSigner.Options();
+        options.setExpirySeconds(environment.getProperty("user.creation.token.expire-after",
+                Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER));
+        options.setIssuedAt(true);
+        options.setJwtId(true);
+
+        // send a confirm email with the token
+        final String jwtSecret = environment.getProperty("jwt.secret");
+        if (jwtSecret == null || jwtSecret.isEmpty()) {
+            throw new IllegalStateException("JWT secret is mandatory");
+        }
+        final String token = new JWTSigner(jwtSecret).sign(claims, options);
+
+        emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
+                .to(userEntity.getEmail())
+                .subject("Gravitee.io portal - User registration - " + userEntity.getUsername())
+                .content("userRegistration.html")
+                .params(ImmutableMap.of("username", userEntity.getUsername(), "token", token, "portalURL", environment.getProperty("portalURL")))
+                .build()
+        );
+
+        return userEntity;
     }
 
     @Override

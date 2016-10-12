@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import io.gravitee.management.service.EmailNotification;
 import io.gravitee.management.service.EmailService;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -59,7 +60,6 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     @Value("${templates.path:${gravitee.home}/templates}")
     private String templatesPath;
 
-    @Async
     public void sendEmailNotification(final EmailNotification emailNotification) {
         try {
             final Template template = freemarkerConfiguration.getTemplate(emailNotification.getContent());
@@ -80,9 +80,15 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                     emailNotification.getTo(), emailNotification.getSubject(), html);
 
             mailSender.send(mailMessage.getMimeMessage());
-        } catch (final Exception ioe) {
-            LOGGER.error("Error while sending email notification", ioe);
+        } catch (final Exception ex) {
+            LOGGER.error("Error while sending email notification", ex);
+            throw new TechnicalManagementException("Error while sending email notification", ex);
         }
+    }
+
+    @Async
+    public void sendAsyncEmailNotification(final EmailNotification emailNotification) {
+        sendEmailNotification(emailNotification);
     }
 
     private String addResourcesInMessage(final MimeMessageHelper mailMessage, final String htmlText) throws Exception {

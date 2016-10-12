@@ -308,7 +308,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             }
 
             if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                emailService.sendEmailNotification(new EmailNotificationBuilder()
+                emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                         .to(user.getEmail())
                         .subject("Subscription to application " + applicationId)
                         .content("applicationMember.html")

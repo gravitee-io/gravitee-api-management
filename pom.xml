@@ -51,7 +51,7 @@
         <validation-api.version>1.1.0.Final</validation-api.version>
         <mail.version>1.4.7</mail.version>
         <freemarker.version>2.3.22</freemarker.version>
-        <java-jwt.version>2.1.0</java-jwt.version>
+        <java-jwt.version>2.2.1</java-jwt.version>
         <guava.version>18.0</guava.version>
         <assertj-core.version>3.5.1</assertj-core.version>
     </properties>
@@ -203,6 +203,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>${java-jwt.version}</version>
         </dependency>
     </dependencies>
 </project>

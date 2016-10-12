@@ -16,7 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.NewExternalUserEntity;
-import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.model.RegisterUserEntity;
 import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.model.UserEntity;
 
@@ -26,6 +26,7 @@ import java.util.Set;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize Elamrani (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface UserService {
@@ -36,11 +37,13 @@ public interface UserService {
 
     Set<UserEntity> findByNames(List<String> usernames);
 
-    UserEntity create(NewUserEntity newUserEntity);
+    UserEntity create(RegisterUserEntity registerUserEntity);
 
     UserEntity create(NewExternalUserEntity newExternalUserEntity);
 
     UserEntity update(UpdateUserEntity updateUserEntity);
 
     Set<UserEntity> findAll();
+
+    UserEntity register(NewExternalUserEntity newExternalUserEntity);
 }

@@ -45,6 +45,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import javax.servlet.Filter;
 import java.util.*;
 
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
@@ -56,9 +59,6 @@ import java.util.*;
 public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
-
-    private static final int DEFAULT_JWT_EXPIRE_AFTER = 604800;
-    private static final String DEFAULT_JWT_ISSUER = "gravitee-management-auth";
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -187,6 +187,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                     // User management
                     .antMatchers(HttpMethod.POST, "/users").permitAll()
+                    .antMatchers(HttpMethod.POST, "/users/register").permitAll()
                     .antMatchers(HttpMethod.GET, "/users").hasAnyAuthority("ADMIN")
                     .antMatchers(HttpMethod.GET, "/users/**").authenticated()
                     .antMatchers(HttpMethod.PUT, "/users/**").hasAnyAuthority("ADMIN")

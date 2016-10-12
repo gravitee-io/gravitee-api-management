@@ -19,7 +19,7 @@ import com.auth0.jwt.JWTSigner;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.security.JWTCookieGenerator;
-import io.gravitee.management.security.config.JWTClaims;
+import io.gravitee.management.service.common.JWTHelper.Claims;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
@@ -74,14 +74,14 @@ public class AuthenticationSuccessFilter extends GenericFilterBean {
         if (authentication != null && !optionalStringToken.isPresent()) {
             // JWT signer
             final Map<String, Object> claims = new HashMap<>();
-            claims.put(JWTClaims.ISSUER, jwtIssuer);
+            claims.put(Claims.ISSUER, jwtIssuer);
 
             final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            claims.put(JWTClaims.PERMISSIONS, userDetails.getAuthorities());
-            claims.put(JWTClaims.SUBJECT, userDetails.getUsername());
-            claims.put(JWTClaims.EMAIL, userDetails.getEmail());
-            claims.put(JWTClaims.FIRSTNAME, userDetails.getFirstname());
-            claims.put(JWTClaims.LASTNAME, userDetails.getLastname());
+            claims.put(Claims.PERMISSIONS, userDetails.getAuthorities());
+            claims.put(Claims.SUBJECT, userDetails.getUsername());
+            claims.put(Claims.EMAIL, userDetails.getEmail());
+            claims.put(Claims.FIRSTNAME, userDetails.getFirstname());
+            claims.put(Claims.LASTNAME, userDetails.getLastname());
 
             final JWTSigner.Options options = new JWTSigner.Options();
             options.setExpirySeconds(jwtExpireAfter);
