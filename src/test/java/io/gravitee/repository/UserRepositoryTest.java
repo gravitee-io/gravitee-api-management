@@ -55,6 +55,27 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldUpdate() throws Exception {
+        Optional<User> optional = userRepository.findByUsername("user0");
+        Assert.assertTrue("userRepository to update not found", optional.isPresent());
+
+        final User user = optional.get();
+        user.setPassword("New pwd");
+
+        int nbUsersBeforeUpdate = userRepository.findAll().size();
+        userRepository.update(user);
+        int nbUsersAfterUpdate = userRepository.findAll().size();
+
+        Assert.assertEquals(nbUsersBeforeUpdate, nbUsersAfterUpdate);
+
+        Optional<User> optionalUpdated = userRepository.findByUsername("user0");
+        Assert.assertTrue("User to update not found", optionalUpdated.isPresent());
+
+        final User userUpdated = optionalUpdated.get();
+        Assert.assertEquals("Invalid saved user password.", "New pwd", userUpdated.getPassword());
+    }
+
+    @Test
     public void findAllTest() throws Exception {
         Set<User> users = userRepository.findAll();
 

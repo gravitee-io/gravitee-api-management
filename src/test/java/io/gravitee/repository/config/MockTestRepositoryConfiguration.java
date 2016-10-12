@@ -237,6 +237,7 @@ public class MockTestRepositoryConfiguration {
         final UserRepository userRepository = mock(UserRepository.class);
 
         final User user = mock(User.class);
+        when(user.getPassword()).thenReturn("New pwd");
         final User user4 = mock(User.class);
         when(userRepository.findAll()).thenReturn(newSet(user, mock(User.class), mock(User.class),
                 mock(User.class), mock(User.class), mock(User.class)));
