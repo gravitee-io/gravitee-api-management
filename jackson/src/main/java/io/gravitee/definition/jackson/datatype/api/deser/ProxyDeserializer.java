@@ -24,8 +24,8 @@ import io.gravitee.definition.model.*;
 import java.io.IOException;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
- * @author Gravitee.io Team
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
 
@@ -47,27 +47,17 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             throw ctxt.mappingException("[api] API must have a valid context path");
         }
 
-        final JsonNode nodeEndpoint = node.get("endpoint");
         final JsonNode nodeEndpoints = node.get("endpoints");
 
-        if (nodeEndpoint != null) {
-            // This is just for backward compatibility with version < 0.6
-            // Must be deleted for major release
-            Endpoint singleEndpoint = new Endpoint();
-            singleEndpoint.setTarget(nodeEndpoint.asText());
-            singleEndpoint.setWeight(Endpoint.DEFAULT_WEIGHT);
-            proxy.getEndpoints().add(singleEndpoint);
-        } else {
-            if (nodeEndpoints != null && nodeEndpoints.isArray()) {
-                nodeEndpoints.elements().forEachRemaining(jsonNode -> {
-                    try {
-                        Endpoint endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(Endpoint.class);
-                        proxy.getEndpoints().add(endpoint);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
+        if (nodeEndpoints != null && nodeEndpoints.isArray()) {
+            nodeEndpoints.elements().forEachRemaining(jsonNode -> {
+                try {
+                    Endpoint endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(Endpoint.class);
+                    proxy.getEndpoints().add(endpoint);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
 
         JsonNode stripContextNode = node.get("strip_context_path");
@@ -91,6 +81,14 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         if (failoverNode != null) {
             Failover failover = failoverNode.traverse(jp.getCodec()).readValueAs(Failover.class);
             proxy.setFailover(failover);
+        }
+
+        JsonNode dumpRequestNode = node.get("dumpRequest");
+        if (dumpRequestNode != null) {
+            boolean dumpRequest = dumpRequestNode.asBoolean(Proxy.DEFAULT_DUMP_REQUEST);
+            proxy.setDumpRequest(dumpRequest);
+        } else {
+            proxy.setDumpRequest(Proxy.DEFAULT_DUMP_REQUEST);
         }
 
         return proxy;

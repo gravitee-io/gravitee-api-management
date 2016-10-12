@@ -4,7 +4,11 @@
 
   "proxy": {
     "context_path": "/my-api",
-    "endpoint": "http://localhost:1234",
+    "endpoints": [
+      {
+        "target": "http://localhost:1234"
+      }
+    ],
     "strip_context_path": false,
 
     "http": {

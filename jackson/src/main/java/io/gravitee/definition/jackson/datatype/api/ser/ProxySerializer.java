@@ -25,8 +25,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
- * @author Gravitee.io Team
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ProxySerializer extends StdScalarSerializer<Proxy> {
 
@@ -38,6 +38,8 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
     public void serialize(Proxy proxy, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("context_path", proxy.getContextPath());
+        jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
+        jgen.writeBooleanField("dumpRequest", proxy.isDumpRequest());
 
         final List<Endpoint> endpoints = proxy.getEndpoints();
 
@@ -59,7 +61,6 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
             jgen.writeObjectField("failover", proxy.getFailover());
         }
 
-        jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
 
         if (proxy.getHttpClient() != null) {
             jgen.writeObjectField("http", proxy.getHttpClient());

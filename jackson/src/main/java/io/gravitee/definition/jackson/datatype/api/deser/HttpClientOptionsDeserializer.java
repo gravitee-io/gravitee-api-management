@@ -23,8 +23,8 @@ import io.gravitee.definition.model.HttpClientOptions;
 import java.io.IOException;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
- * @author Gravitee.io Team
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer<HttpClientOptions> {
 
@@ -69,14 +69,6 @@ public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer
             httpClientOptions.setKeepAlive(keepAlive);
         } else {
             httpClientOptions.setKeepAlive(HttpClientOptions.DEFAULT_KEEP_ALIVE);
-        }
-
-        JsonNode dumpRequestNode = node.get("dumpRequest");
-        if (dumpRequestNode != null) {
-            boolean dumpRequest = dumpRequestNode.asBoolean(HttpClientOptions.DEFAULT_DUMP_REQUEST);
-            httpClientOptions.setDumpRequest(dumpRequest);
-        } else {
-            httpClientOptions.setDumpRequest(HttpClientOptions.DEFAULT_DUMP_REQUEST);
         }
 
         JsonNode pipeliningNode = node.get("pipelining");

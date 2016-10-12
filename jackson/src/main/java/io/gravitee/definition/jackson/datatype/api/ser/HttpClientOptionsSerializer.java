@@ -23,8 +23,8 @@ import io.gravitee.definition.model.HttpClientOptions;
 import java.io.IOException;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
- * @author Gravitee.io Team
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class HttpClientOptionsSerializer extends StdScalarSerializer<HttpClientOptions> {
 
@@ -38,7 +38,6 @@ public class HttpClientOptionsSerializer extends StdScalarSerializer<HttpClientO
         jgen.writeNumberField("connectTimeout", httpClientOptions.getConnectTimeout());
         jgen.writeNumberField("idleTimeout", httpClientOptions.getIdleTimeout());
         jgen.writeBooleanField("keepAlive", httpClientOptions.isKeepAlive());
-        jgen.writeBooleanField("dumpRequest", httpClientOptions.isDumpRequest());
         jgen.writeNumberField("readTimeout", httpClientOptions.getReadTimeout());
         jgen.writeBooleanField("pipelining", httpClientOptions.isPipelining());
         jgen.writeNumberField("maxConcurrentConnections", httpClientOptions.getMaxConcurrentConnections());

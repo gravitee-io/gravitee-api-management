@@ -24,6 +24,8 @@ import java.util.List;
  */
 public class Proxy {
 
+    public static boolean DEFAULT_DUMP_REQUEST = false;
+
     private String contextPath;
 
     private List<Endpoint> endpoints = new ArrayList<>();
@@ -33,6 +35,8 @@ public class Proxy {
     private Failover failover;
 
     private boolean stripContextPath = false;
+
+    private boolean dumpRequest = DEFAULT_DUMP_REQUEST;
 
     private HttpClient httpClient = new HttpClient();
 
@@ -86,5 +90,13 @@ public class Proxy {
 
     public void setFailover(Failover failover) {
         this.failover = failover;
+    }
+
+    public boolean isDumpRequest() {
+        return dumpRequest;
+    }
+
+    public void setDumpRequest(boolean dumpRequest) {
+        this.dumpRequest = dumpRequest;
     }
 }

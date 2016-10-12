@@ -19,12 +19,16 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.HttpClientSslOptions;
+import io.gravitee.definition.model.HttpProxy;
 
 import java.io.IOException;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
@@ -40,6 +44,14 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
 
         Endpoint endpoint = new Endpoint();
         endpoint.setTarget(node.get("target").asText());
+
+        JsonNode nameNode = node.get("name");
+        if (nameNode != null) {
+            String name = nameNode.asText(UUID.random().toString());
+            endpoint.setName(name);
+        } else {
+            endpoint.setName(UUID.random().toString());
+        }
 
         JsonNode weightNode = node.get("weight");
         if (weightNode != null) {
@@ -63,6 +75,26 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
             endpoint.setHealthcheck(healthcheck);
         } else {
             endpoint.setHealthcheck(true);
+        }
+
+        JsonNode httpProxyNode = node.get("proxy");
+        if (httpProxyNode != null) {
+            HttpProxy httpProxy = httpProxyNode.traverse(jp.getCodec()).readValueAs(HttpProxy.class);
+            endpoint.setHttpProxy(httpProxy);
+        }
+
+        JsonNode httpClientOptionsNode = node.get("http");
+        if (httpClientOptionsNode != null) {
+            HttpClientOptions httpClientOptions = httpClientOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientOptions.class);
+            endpoint.setHttpClientOptions(httpClientOptions);
+        } else {
+            endpoint.setHttpClientOptions(new HttpClientOptions());
+        }
+
+        JsonNode httpClientSslOptionsNode = node.get("ssl");
+        if (httpClientSslOptionsNode != null) {
+            HttpClientSslOptions httpClientSslOptions = httpClientSslOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientSslOptions.class);
+            endpoint.setHttpClientSslOptions(httpClientSslOptions);
         }
 
         return endpoint;

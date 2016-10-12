@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.HttpClientOptions;
 
 import java.io.IOException;
 
@@ -35,10 +36,25 @@ public class EndpointSerializer extends StdScalarSerializer<Endpoint> {
     @Override
     public void serialize(Endpoint endpoint, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
+        jgen.writeStringField("name", endpoint.getName());
         jgen.writeStringField("target", endpoint.getTarget());
         jgen.writeNumberField("weight", endpoint.getWeight());
         jgen.writeBooleanField("backup", endpoint.isBackup());
         jgen.writeBooleanField("healthcheck", endpoint.isHealthcheck());
+
+
+        HttpClientOptions options =
+                (endpoint.getHttpClientOptions() != null) ? endpoint.getHttpClientOptions() : new HttpClientOptions();
+        jgen.writeObjectField("http", options);
+
+        if (endpoint.getHttpProxy() != null) {
+            jgen.writeObjectField("proxy", endpoint.getHttpProxy());
+        }
+
+        if (endpoint.getHttpClientSslOptions() != null) {
+            jgen.writeObjectField("ssl", endpoint.getHttpClientSslOptions());
+        }
+
         jgen.writeEndObject();
     }
 }

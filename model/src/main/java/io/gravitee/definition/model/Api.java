@@ -21,7 +21,7 @@ import io.gravitee.definition.model.services.Services;
 import java.util.*;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Api {

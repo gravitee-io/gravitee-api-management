@@ -26,7 +26,6 @@ public class HttpClientOptions {
     public static long DEFAULT_READ_TIMEOUT = 10000;
     public static int DEFAULT_MAX_CONCURRENT_CONNECTIONS = 100;
     public static boolean DEFAULT_KEEP_ALIVE = true;
-    public static boolean DEFAULT_DUMP_REQUEST = false;
     public static boolean DEFAULT_PIPELINING = false;
     public static boolean DEFAULT_USE_COMPRESSION = false;
 
@@ -35,8 +34,6 @@ public class HttpClientOptions {
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
     private boolean keepAlive = DEFAULT_KEEP_ALIVE;
-
-    private boolean dumpRequest = DEFAULT_DUMP_REQUEST;
 
     private long readTimeout = DEFAULT_READ_TIMEOUT;
 
@@ -68,14 +65,6 @@ public class HttpClientOptions {
 
     public void setKeepAlive(boolean keepAlive) {
         this.keepAlive = keepAlive;
-    }
-
-    public boolean isDumpRequest() {
-        return dumpRequest;
-    }
-
-    public void setDumpRequest(boolean dumpRequest) {
-        this.dumpRequest = dumpRequest;
     }
 
     public long getReadTimeout() {

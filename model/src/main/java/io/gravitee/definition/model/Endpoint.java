@@ -23,6 +23,8 @@ public class Endpoint {
 
     public static int DEFAULT_WEIGHT = 1;
 
+    private String name;
+
     private String target;
 
     private int weight = DEFAULT_WEIGHT;
@@ -33,6 +35,12 @@ public class Endpoint {
 
     private Status status = Status.UP;
 
+    private HttpProxy httpProxy;
+
+    private HttpClientOptions httpClientOptions;
+
+    private HttpClientSslOptions httpClientSslOptions;
+
     public Endpoint(String target) {
         this();
         this.target = target;
@@ -40,6 +48,14 @@ public class Endpoint {
 
     public Endpoint() {
         this.weight = DEFAULT_WEIGHT;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getTarget() {
@@ -82,6 +98,30 @@ public class Endpoint {
         this.status = status;
     }
 
+    public HttpProxy getHttpProxy() {
+        return httpProxy;
+    }
+
+    public void setHttpProxy(HttpProxy httpProxy) {
+        this.httpProxy = httpProxy;
+    }
+
+    public HttpClientOptions getHttpClientOptions() {
+        return httpClientOptions;
+    }
+
+    public void setHttpClientOptions(HttpClientOptions httpClientOptions) {
+        this.httpClientOptions = httpClientOptions;
+    }
+
+    public HttpClientSslOptions getHttpClientSslOptions() {
+        return httpClientSslOptions;
+    }
+
+    public void setHttpClientSslOptions(HttpClientSslOptions httpClientSslOptions) {
+        this.httpClientSslOptions = httpClientSslOptions;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -89,13 +129,12 @@ public class Endpoint {
 
         Endpoint endpoint = (Endpoint) o;
 
-        return target != null ? target.equals(endpoint.target) : endpoint.target == null;
-
+        return name.equals(endpoint.name);
     }
 
     @Override
     public int hashCode() {
-        return target != null ? target.hashCode() : 0;
+        return name.hashCode();
     }
 
     public enum Status {
