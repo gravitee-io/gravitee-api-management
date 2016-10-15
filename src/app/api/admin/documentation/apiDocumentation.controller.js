@@ -65,7 +65,11 @@ class DocumentationController {
       return {pages: this.pages};
     }).then( response => {
       if(response.pages && response.pages.length > 0) {
-        this.$state.go("apis.admin.documentation.page", {pageId: response.pages[0].id});
+        if (this.$state.params.pageId != undefined) {
+          this.$state.go("apis.admin.documentation.page", {pageId: this.$state.params.pageId});
+        } else {
+          this.$state.go("apis.admin.documentation.page", {pageId: response.pages[0].id});
+        }
       }
       return response;
     });

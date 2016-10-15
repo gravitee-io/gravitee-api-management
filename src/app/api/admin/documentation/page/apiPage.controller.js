@@ -99,7 +99,7 @@ class PageController {
       this.DocumentationService.createPage(this.$state.params.apiId, this.page)
         .then(function (page) {
           that.onPageUpdate();
-          that.$state.go(that.$state.current, that.$state.params, {reload: true});
+          that.$state.go('apis.admin.documentation.page', {apiId: that.$state.params.apiId,pageId: page.data.id}, {reload: true});
         })
         .catch(function (error) {
           that.$scope.error = error;
