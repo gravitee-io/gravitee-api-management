@@ -1,6 +1,6 @@
 {
   "name": "gravitee-management-webui",
-  "version": "0.19.2",
+  "version": "1.0.0-SNAPSHOT",
   "description": "Gravitee IO - API Management - Admin - Web Console",
   "dependencies": {},
   "scripts": {

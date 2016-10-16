@@ -75,6 +75,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       devMode: true
     })
     .state('apis.portal', {
+      abstract: true,
       url: '/:apiId',
       templateUrl: 'app/api/portal/apiPortal.html',
       controller: 'ApiPortalController',
@@ -82,7 +83,15 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       resolve: {
         resolvedApi: function ($stateParams, ApiService) {
           return ApiService.get($stateParams.apiId);
-        },
+        }
+      }
+    })
+    .state('apis.portal.pages', {
+      url: '/pages',
+      templateUrl: 'app/api/portal/documentation/apiPages.html',
+      controller: 'ApiPortalPagesController',
+      controllerAs: 'apiPortalPagesCtrl',
+      resolve: {
         resolvedPages: function ($stateParams, DocumentationService) {
           return DocumentationService.list($stateParams.apiId);
         }
@@ -93,9 +102,9 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       },
       devMode: true
     })
-    .state('apis.portal.page', {
-      url: '/pages/:pageId',
-      templateUrl: 'app/api/portal/apiPage.html',
+    .state('apis.portal.pages.page', {
+      url: '/:pageId',
+      templateUrl: 'app/api/portal/documentation/apiPage.html',
       controller: 'ApiPortalPageController',
       controllerAs: 'apiPortalPageCtrl',
       resolve: {
@@ -104,6 +113,21 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         }
       },
       devMode: true
+    })
+    .state('apis.portal.plans', {
+      url: '/plans',
+      templateUrl: 'app/api/portal/plan/apiPlans.html',
+      controller: 'ApiPortalPlanController',
+      controllerAs: 'apiPortalPlanCtrl',
+      resolve: {
+        resolvedPlans: function ($stateParams, ApiService) {
+          return ApiService.listPlans($stateParams.apiId);
+        }
+      },
+      menu: {
+        label: 'Plans',
+        icon: 'view_week'
+      }
     })
     .state('apis.admin', {
       abstract: true,
@@ -149,18 +173,33 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       controller: 'ApiEndpointController',
       controllerAs: 'endpointCtrl'
     })
-    .state('apis.admin.apikeys', {
-      url: '/apikeys',
-      templateUrl: 'app/api/admin/apikeys/apikeys.html',
-      controller: 'ApiKeysController',
-      controllerAs: 'apiKeysCtrl',
+    .state('apis.admin.plans', {
+      url: '/plans',
+      templateUrl: 'app/api/admin/plans/apiPlans.html',
+      controller: 'ApiPlansController',
+      controllerAs: 'apiPlansCtrl',
       resolve: {
-        resolvedApiKeys: function ($stateParams, ApiService) {
-          return ApiService.getApiKeys($stateParams.apiId);
+        resolvedPlans: function ($stateParams, ApiService) {
+          return ApiService.getApiPlans($stateParams.apiId);
         }
       },
       menu: {
-        label: 'Api keys',
+        label: 'Plans',
+        icon: 'view_week'
+      }
+    })
+    .state('apis.admin.subscriptions', {
+      url: '/subscriptions',
+      templateUrl: 'app/api/admin/subscriptions/subscriptions.html',
+      controller: 'SubscriptionsController',
+      controllerAs: 'subscriptionsCtrl',
+      resolve: {
+        resolvedSubscriptions: function ($stateParams, ApiService) {
+          return ApiService.getSubscriptions($stateParams.apiId);
+        }
+      },
+      menu: {
+        label: 'Subscriptions',
         icon: 'vpn_key'
       }
     })
@@ -286,7 +325,12 @@ function routerConfig($stateProvider, $urlRouterProvider) {
     .state('applications', {
       abstract: true,
       url: '/applications',
-      templateUrl: 'app/application/applications.html',
+      templateUrl: 'app/application/applications.html'
+    })
+    .state('applications.list', {
+      abstract: true,
+      url: '/',
+      templateUrl: 'app/application/applicationsList.html',
       controller: 'ApplicationsController',
       controllerAs: 'applicationsCtrl',
       resolve: {
@@ -294,11 +338,6 @@ function routerConfig($stateProvider, $urlRouterProvider) {
           return ApplicationService.list();
         }
       }
-    })
-    .state('applications.list', {
-      abstract: true,
-      url: '/',
-      templateUrl: 'app/application/applicationsList.html'
     })
     .state('applications.list.table', {
       url: 'table',
@@ -338,18 +377,18 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       },
       devMode: true
     })
-    .state('applications.portal.apikeys', {
-      url: '/apikeys',
-      templateUrl: 'app/application/details/apikeys/applicationAPIKeys.html',
-      controller: 'ApplicationAPIKeysController',
-      controllerAs: 'applicationAPIKeysCtrl',
+    .state('applications.portal.subscriptions', {
+      url: '/subscriptions',
+      templateUrl: 'app/application/details/subscriptions/applicationSubscriptions.html',
+      controller: 'ApplicationSubscriptionsController',
+      controllerAs: 'applicationSubscriptionsCtrl',
       resolve: {
-        resolvedAPIKeys: function ($stateParams, ApplicationService) {
-          return ApplicationService.getAPIKeys($stateParams.applicationId);
+        resolvedSubscriptions: function ($stateParams, ApplicationService) {
+          return ApplicationService.listSubscriptions($stateParams.applicationId);
         }
       },
       menu: {
-        label: 'Api keys',
+        label: 'Subscriptions',
         icon: 'vpn_key'
       },
       devMode: true

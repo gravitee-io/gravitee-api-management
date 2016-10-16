@@ -1,0 +1,23 @@
+.gravitee-fixed-button {
+  background-color: silver !important;
+  bottom: 0;
+  position: fixed;
+  margin: 0;
+  width: 97%;
+  z-index: 1;
+}
+
+.gravitee-api-plans-container {
+  height: calc(100% - 64px);
+  overflow: scroll;
+}
+
+.gravitee-api-plans-remove-button {
+  float: right;
+  z-index: 1;
+}
+
+.gravitee-api-plans-add-button {
+  margin-bottom: 40px;
+}
+

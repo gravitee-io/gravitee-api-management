@@ -24,7 +24,9 @@ import AutofocusDirective from './components/autofocus/autofocus.directive';
 import ApiService from './api/api.service';
 import ApisController from './api/apis.controller';
 import ApiPortalController from './api/portal/apiPortal.controller';
-import ApiPortalPageController from './api/portal/apiPage.controller';
+import ApiPortalPagesController from './api/portal/documentation/apiPages.controller';
+import ApiPortalPageController from './api/portal/documentation/apiPage.controller';
+import ApiPortalPlanController from './api/portal/plan/apiPlan.controller';
 import ApiGeneralController from './api/admin/general/apiGeneral.controller';
 import ApiAdminController from './api/admin/apiAdmin.controller';
 import ApiAnalyticsController from './api/admin/analytics/analytics.controller';
@@ -40,13 +42,13 @@ import DialogAssertionInformationController from './api/admin/healthcheck/health
 import DialogApiPermissionsHelpController from './api/admin/members/api-permissions-dialog.controller';
 import DialogApplicationPermissionsHelpController from './application/details/members/application-permissions-dialog.controller';
 import ApiPropertiesController from './api/admin/properties/properties.controller';
-import ApiKeysController from './api/admin/apikeys/apikeys.controller';
+import SubscriptionsController from './api/admin/subscriptions/subscriptions.controller';
 import ApiEventsController from './api/admin/events/apiEvents.controller';
 import ApiHistoryController from './api/admin/history/apiHistory.controller';
 import DialogAddPropertyController from './api/admin/properties/add-property.dialog.controller';
 import DialogAddMemberApiController from './api/admin/members/addMemberDialog.controller';
 import DialogTransferApiController from './api/admin/members/transferAPIDialog.controller';
-import DialogApiKeyExpirationController from './api/admin/apikeys/apikey-expiration.dialog.controller';
+import DialogApiKeyExpirationController from './api/admin/subscriptions/apikey.expiration.dialog.controller';
 import DialogEditPolicyController from './api/admin/policies/dialog/policyDialog.controller';
 import UserService from './user/user.service';
 import UserController from './user/user.controller';
@@ -58,7 +60,7 @@ import ApplicationsController from './application/applications.controller';
 import ApplicationController from './application/details/applications.controller';
 import ApplicationGeneralController from './application/details/general/applicationGeneral.controller';
 import ApplicationMembersController from './application/details/members/applicationMembers.controller';
-import ApplicationAPIKeysController from './application/details/apikeys/applicationAPIKeys.controller';
+import ApplicationSubscriptionsController from './application/details/subscriptions/applicationSubscriptions.controller';
 import ApplicationAnalyticsController from './application/details/analytics/analytics.controller';
 import DialogApplicationController from './application/dialog/applicationDialog.controller';
 import DialogSubscribeApiController from './application/dialog/subscribeApiDialog.controller';
@@ -97,11 +99,16 @@ import DialogAddGroupController from './configuration/admin/groups/dialog/add-gr
 import DialogAddGroupMemberController from './configuration/admin/groups/dialog/addMemberDialog.controller';
 import RegistrationController from './registration/registration.controller';
 import ConfirmController from './registration/confirm/confirm.controller';
+import DialogSubscribePlanController from './api/portal/plan/subscribePlanDialog.controller';
+import SubscriptionService from './subscription/subscription.service';
+import ApiPlansController from './api/admin/plans/apiPlans.controller';
+import DialogSubscriptionRejectController from './api/admin/subscriptions/subscription.reject.dialog.controller';
+import DialogSubscriptionAcceptController from './api/admin/subscriptions/subscription.accept.dialog.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
-  'ngMessages', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
-  'ab-base64', 'ngFileUpload', 'n3-pie-chart', 'tc.chartjs', 'md-steppers', 'angular-jwt'])
+  'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
+  'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'tc.chartjs', 'md-steppers', 'ui.tree', 'angular-jwt'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -131,6 +138,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('AddPoliciesPathController', AddPoliciesPathController)
   .controller('ApiMembersController', ApiMembersController)
   .controller('ApiPortalController', ApiPortalController)
+  .controller('ApiPortalPagesController', ApiPortalPagesController)
   .controller('ApiPortalPageController', ApiPortalPageController)
   .controller('ApiGeneralController', ApiGeneralController)
   .controller('ApiHealthCheckController', ApiHealthCheckController)
@@ -139,7 +147,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('DialogApiPermissionsHelpController', DialogApiPermissionsHelpController)
   .controller('DialogApplicationPermissionsHelpController', DialogApplicationPermissionsHelpController)
   .controller('ApiPropertiesController', ApiPropertiesController)
-  .controller('ApiKeysController', ApiKeysController)
+  .controller('SubscriptionsController', SubscriptionsController)
   .controller('ApiEventsController', ApiEventsController)
   .controller('ApiHistoryController', ApiHistoryController)
   .controller('ApiResourcesController', ApiResourcesController)
@@ -155,7 +163,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('ApplicationController', ApplicationController)
   .controller('ApplicationGeneralController', ApplicationGeneralController)
   .controller('ApplicationMembersController', ApplicationMembersController)
-  .controller('ApplicationAPIKeysController', ApplicationAPIKeysController)
+  .controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController)
   .controller('ApplicationAnalyticsController', ApplicationAnalyticsController)
   .controller('DialogApplicationController', DialogApplicationController)
   .controller('DialogSubscribeApiController', DialogSubscribeApiController)
@@ -176,6 +184,11 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('DialogAddGroupMemberController', DialogAddGroupMemberController)
   .controller('RegistrationController', RegistrationController)
   .controller('ConfirmController', ConfirmController)
+  .controller('ApiPortalPlanController', ApiPortalPlanController)
+  .controller('DialogSubscribePlanController', DialogSubscribePlanController)
+  .controller('ApiPlansController', ApiPlansController)
+  .controller('DialogSubscriptionRejectController', DialogSubscriptionRejectController)
+  .controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
@@ -191,6 +204,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .service('PageSwaggerHttpClientService', PageSwaggerHttpClientService)
   .service('ViewService', ViewService)
   .service('GroupService', GroupService)
+  .service('SubscriptionService', SubscriptionService)
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
   .directive('graviteePage', () => new PageDirective())

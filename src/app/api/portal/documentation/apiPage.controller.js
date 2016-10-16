@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ApiPortalController {
-  constructor (resolvedApi, $rootScope) {
+class ApiPortalPageController {
+  constructor (resolvedApi, resolvedPage, DocumentationService) {
     'ngInject';
-    this.api = resolvedApi.data;
+    if (resolvedPage) {
+      this.api = resolvedApi.data;
+      this.page = resolvedPage.data;
 
-    $rootScope.currentResource = this.api.name;
+      DocumentationService.cachePageConfiguration(this.api.id, this.page);
+    }
   }
 }
 
-export default ApiPortalController;
+export default ApiPortalPageController;

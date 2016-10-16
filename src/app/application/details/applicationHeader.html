@@ -21,7 +21,7 @@
       <div class="gravitee-application-header-image" layout="column" layout-align="center center"></div>
       <div flex="70">
         <h4>{{applicationCtrl.application.name}}
-          <small style="color:grey;">( {{applicationCtrl.application.type}} )</small>
+          <small ng-if="applicationCtrl.application.type" style="color:grey;">( {{applicationCtrl.application.type}} )</small>
         </h4>
         <md-content flex class="gravitee-api-header-description">
           <div class="gravitee-api-header-read-more" read-more ng-model="applicationCtrl.application.description" words="false" length="150"></div>

@@ -89,6 +89,10 @@ a, tr[ui-sref], .gravitee-link {
   cursor: pointer;
 }
 
+.gravitee-no-link {
+  cursor: inherit !important;
+}
+
 md-switch {
   display: inline-flex;
 }
@@ -152,11 +156,6 @@ md-radio-button ng-md-icon {
 
 header {
   display: flex;
-}
-
-.gravitee-clipboard .ng-hide:not(.ng-hide-animate) {
-  visibility: collapse;
-  display: inherit;
 }
 
 body {
@@ -278,6 +277,10 @@ gravitee-sidenav {
      margin: 0 auto;
    }
  }
+
+md-sidenav, md-backdrop {
+  position: fixed;
+}
 
 /**
  *  Do not remove this comments bellow. It's the markers used by gulp-inject to inject

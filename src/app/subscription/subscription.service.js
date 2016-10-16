@@ -13,13 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ApiPortalController {
-  constructor (resolvedApi, $rootScope) {
-    'ngInject';
-    this.api = resolvedApi.data;
+class SubscriptionService {
 
-    $rootScope.currentResource = this.api.name;
+  constructor($http, Constants) {
+    'ngInject';
+    this.$http = $http;
+    this.subscriptionsURL = Constants.baseURL + 'subscriptions/';
+  }
+
+  list(plan, application) {
+    let url = this.subscriptionsURL;
+    if (plan) {
+      url += '?plan=' + plan;
+    }
+    if (application) {
+      url += (plan ? '&' : '?') + 'application=' + application;
+    }
+    return this.$http.get(url);
   }
 }
 
-export default ApiPortalController;
+export default SubscriptionService;

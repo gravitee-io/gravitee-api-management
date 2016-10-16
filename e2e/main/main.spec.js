@@ -26,6 +26,6 @@ describe('The main view', function () {
   });
 
   it('should include home page title', function () {
-    expect(page.h3El.getText()).toContain('Gravitee.io Portal version');
+    expect(page.h3El.getText()).toContain('{{portalTitle}} version {{apisCtrl.graviteeUIVersion}}');
   });
 });

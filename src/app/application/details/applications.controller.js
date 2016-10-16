@@ -33,7 +33,7 @@ class ApplicationController {
 	selectTab() {
 	  if (this.$state.current.name.endsWith('general')) {
       this.$scope.selectedTab = 0;
-    } else if (this.$state.current.name.endsWith('apikeys')) {
+    } else if (this.$state.current.name.endsWith('subscriptions')) {
       this.$scope.selectedTab = 1;
     } else if (this.$state.current.name.endsWith('members')) {
       this.$scope.selectedTab = 2;

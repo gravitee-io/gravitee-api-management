@@ -96,6 +96,10 @@ class UserService {
   save(user) {
     return this.$http.put(this.userURL + this.$rootScope.graviteeUser.username + '/', {username: user.username, picture: user.picture});
   }
+
+  listPlanSubscription() {
+    return this.$http.get(this.userURL + 'subscriptions');
+  }
 }
 
 export default UserService;

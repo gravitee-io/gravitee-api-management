@@ -1,0 +1,121 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div ng-if="subscriptionsCtrl.subscriptionsByApplication">
+  <span class="md-headline" style="padding: 24px 16px 16px;">Subscriptions</span>
+
+  <span class="btn-group pull-right">
+    <button class="btn btn-default" ng-class="{'active': subscriptionsCtrl.selectedStatus.indexOf(statusFilter) !== -1}"
+            ng-click="subscriptionsCtrl.changeFilter(statusFilter)" type="button"
+            ng-repeat="statusFilter in subscriptionsCtrl.statusFilters" style="text-transform: capitalize;">
+      {{statusFilter}}
+    </button>
+  </span>
+
+  <div layout-padding ui-tree data-empty-placeholder-enabled="false"
+       ng-repeat="(application, subscriptions) in subscriptionsCtrl.subscriptionsByApplication">
+    <div ui-tree-nodes ng-model="data">
+      <h5>Application <b>{{application}}</b></h5>
+      <table md-table>
+        <thead md-head>
+        <tr md-row>
+          <th md-column>Plan</th>
+          <th md-column>Subscription Date</th>
+          <th md-column>Process Date</th>
+          <th md-column>Start Date</th>
+          <th md-column>End Date</th>
+          <th md-column>Status</th>
+          <th md-column width="10%">
+            <md-checkbox md-no-ink aria-label="Show all API keys" ng-model="showRevokedKeys" class="md-primary">
+              Show revoked
+            </md-checkbox>
+          </th>
+        </tr>
+        </thead>
+        <tbody md-body ui-tree-node ng-repeat="subscription in subscriptions">
+        <tr md-row style="font-weight: bold"
+            ng-class="{'gravitee-no-link': 'accepted' !== subscription.status}"
+            ng-click="subscriptionsCtrl.toggleSubscription(this, subscription)">
+          <td md-cell style="line-height: 30px;">
+            <a style="text-decoration: none" ng-show="'accepted' === subscription.status">
+              <ng-md-icon style="top: 7px;" icon="{{collapsed? 'expand_less' : 'expand_more'}}"></ng-md-icon>
+            </a>
+            {{subscription.plan.name}}
+          </td>
+          <td md-cell>{{subscription.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+          <td md-cell>{{subscription.processed_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+          <td md-cell>{{subscription.starting_at || '-' | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+          <td md-cell>{{subscription.ending_at || '-' | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+          <td md-cell style="text-transform: capitalize;">
+            <md-tooltip ng-if="subscription.reason" md-direction="left">{{subscription.reason}}</md-tooltip>
+            {{subscription.status}}
+          </td>
+          <td md-cell>
+            <div ng-if="'pending' === subscription.status">
+              <span>
+                <md-tooltip md-direction="left">Accept subscription</md-tooltip>
+                <ng-md-icon icon="done" style="top: 0;fill: green"
+                            ng-click="subscriptionsCtrl.process(subscription, true)"></ng-md-icon>
+              </span>
+              <span>
+                <md-tooltip md-direction="left">Refuse subscription</md-tooltip>
+                <ng-md-icon icon="block" style="top: 0;fill: red"
+                            ng-click="subscriptionsCtrl.process(subscription, false)"></ng-md-icon>
+              </span>
+            </div>
+            <div ng-if="'accepted' === subscription.status">
+              <span>
+                <md-tooltip ng-if="apiCtrl.isOwner()" md-direction="left">Renew your API Key</md-tooltip>
+                <ng-md-icon ng-if="apiCtrl.isOwner()" icon="autorenew" style="top: 0;"
+                            ng-click="subscriptionsCtrl.generateAPIKey(subscriptionsCtrl.api.id, subscription)"></ng-md-icon>
+              </span>
+            </div>
+          </td>
+        </tr>
+        <tr md-row ng-if="collapsed" ng-repeat="apiKey in subscription.apiKeys | filter: showRevokedKeys" ng-mouseover="hovered = true" ng-mouseout="hovered = false">
+          <td md-cell colspan="4" style="line-height: 30px;">
+            <ng-md-icon icon="{{apiKey.revoked?'clear':'done'}}" ng-style="{'fill': apiKey.revoked ? '#BE2628':'#107F20'}"></ng-md-icon>
+            <code>{{apiKey.key}}</code>
+            <span style="position: absolute">
+            <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
+            <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"  ngclipboard data-clipboard-text="{{apiKey.key}}"
+                        ngclipboard-success="subscriptionsCtrl.onClipboardSuccess(e);" role="button" ></ng-md-icon>
+          </span>
+          </td>
+          <td md-cell>{{apiKey.revoked_at || apiKey.expire_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+          <td md-cell></td>
+          <td md-cell>
+            <span ng-if="!apiKey.revoked">
+              <md-tooltip md-direction="left">Revoke this API Key</md-tooltip>
+              <ng-md-icon ng-if="apiCtrl.isOwner()" style="top: 0;" icon="not_interested"
+                          ng-click="subscriptionsCtrl.revoke(subscription, apiKey.key)"></ng-md-icon>
+            </span>
+            <span ng-if="!apiKey.revoked">
+              <md-tooltip md-direction="left">Set expiration for this API Key</md-tooltip>
+              <ng-md-icon ng-if="apiCtrl.isOwner()" style="top: 0;" icon="schedule"
+                          ng-click="subscriptionsCtrl.showExpirationModal(apiKey)"></ng-md-icon>
+            </span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div ng-if="!subscriptionsCtrl.subscriptionsByApplication"
+     ng-include="'app/application/details/subscriptions/subscriptionsEmptyMode.html'"></div>

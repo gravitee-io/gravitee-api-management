@@ -1,0 +1,159 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div layout="row" layout-align="center" layout-wrap>
+  <div flex-xs="100" flex-sm="50" flex="33" flex-lg="25" flex-xl="20" ng-repeat="plan in apiPlansCtrl.plans | orderBy:'order'"
+       layout="row" layout-align="center"><md-card class="gravitee-card gravitee-plan-box">
+    <md-card-header>
+      <h3 layout-padding>{{plan.name}}</h3>
+      <md-button ng-click="configure(plan)" class="md-icon-button" aria-label="Configure">
+        <md-tooltip md-direction="top">Configure this page</md-tooltip>
+        <ng-md-icon style="top: 0;" icon="settings"></ng-md-icon>
+      </md-button>
+    </md-card-header>
+    <md-divider></md-divider>
+    <md-card-content layout="column">
+      <h4 class="gravitee-plan-content">{{plan.description}}</h4>
+      <md-divider></md-divider>
+      <div ng-repeat="characteristic in plan.characteristics">
+        <h5 class="gravitee-plan-content">{{characteristic}}</h5>
+        <md-divider></md-divider>
+      </div>
+    </md-card-content>
+    <md-divider ng-if="graviteeUser || plan.isPublic"></md-divider>
+    <md-card-footer ng-if="graviteeUser || plan.isPublic">
+      <div layout="row" layout-align="end">
+        <md-button class="md-primary md-raised" aria-label="Execute"
+                   ng-click="subscribe(plan)" ng-disabled="plan.status || planEdit">
+          {{plan.alreadySubscribed ? 'Subscribed' : (plan.validation === 'auto'?'Subscribe': 'Request for subscription')}}
+        </md-button>
+      </div>
+    </md-card-footer>
+  </md-card>
+  </div>
+</div>
+
+<md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="apiPlansCtrl.addPlan()">
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>
+
+<!-- Live preview -->
+<md-sidenav class="md-sidenav-left md-whiteframe-z2 resource" md-component-id="live-preview" md-is-open="livePreviewIsOpen" layout-padding>
+  <h4>Live preview</h4>
+  <div ng-include="'app/api/portal/plan/apiPlan.html'" style="width: 350px;margin: 0 auto;"></div>
+</md-sidenav>
+
+<!-- Add/Edit plan -->
+<md-sidenav class="md-sidenav-right md-whiteframe-z2 resource" md-component-id="plan-edit">
+  <md-toolbar>
+    <div class="md-toolbar-tools">
+      <h2>
+        <span ng-if="plan.id">Update plan '{{plan.name}}'</span>
+        <span ng-if="!plan.id">New plan</span>
+      </h2>
+    </div>
+  </md-toolbar>
+  <form name="formPlan" class="gravitee-api-plans-container" layout-padding>
+    <md-input-container class="md-block">
+      <label>Name*</label>
+      <input type="text" ng-model="plan.name" required>
+    </md-input-container>
+    <md-input-container class="md-block">
+      <label>Description*</label>
+      <input type="text" ng-model="plan.description" required>
+    </md-input-container>
+    <md-input-container class="md-block">
+      <label>Characteristics</label>
+      <md-chips ng-model="plan.characteristics" placeholder="Enter a characteristic"
+                secondary-placeholder="+Characteristic" ng-click="formPlan.$setDirty()"></md-chips>
+    </md-input-container>
+
+    <div layout="row">
+      <md-input-container class="md-block" flex="33">
+        <label>Order*</label>
+        <input type="number" ng-model="plan.order" required>
+      </md-input-container>
+      <span flex></span>
+      <md-input-container class="md-block" flex="33">
+        <label>Auto validation</label>
+        <md-switch aria-label="Auto validation"
+          ng-model="plan.validation" ng-true-value="'auto'" ng-false-value="'manual'"></md-switch>
+      </md-input-container>
+    </div>
+
+    <md-divider></md-divider>
+    <h3>Configuration</h3>
+
+    <h4>Rate limit</h4>
+    <div layout="row">
+      <md-input-container class="md-block">
+        <label>Max requests</label>
+        <input type="number" ng-model="rateLimit.limit">
+      </md-input-container>
+      <md-input-container class="md-block">
+        <label>Period time</label>
+        <input type="number" ng-model="rateLimit.periodTime">
+      </md-input-container>
+      <md-input-container class="md-block">
+        <label>Period time unit</label>
+        <md-select ng-model="rateLimit.periodTimeUnit" placeholder="Select a time unit">
+          <md-option ng-value="timeUnit" ng-repeat="timeUnit in timeUnits">{{timeUnit}}</md-option>
+        </md-select>
+      </md-input-container>
+    </div>
+
+    <h4>Quota</h4>
+    <div layout="row">
+      <md-input-container class="md-block">
+        <label>Max requests</label>
+        <input type="number" ng-model="quota.limit">
+      </md-input-container>
+      <md-input-container class="md-block">
+        <label>Period time</label>
+        <input type="number" ng-model="quota.periodTime">
+      </md-input-container>
+      <md-input-container class="md-block">
+        <label>Period time unit</label>
+        <md-select ng-model="quota.periodTimeUnit" placeholder="Select a time unit">
+          <md-option ng-value="timeUnit" ng-repeat="timeUnit in timeUnits">{{timeUnit}}</md-option>
+        </md-select>
+      </md-input-container>
+    </div>
+
+    <h4>Path authorization</h4>
+    <div ng-repeat="whitelist in resourceFiltering.whitelist">
+      <md-button type="button" class="md-icon-button gravitee-api-plans-remove-button"
+                 ng-click="resourceFiltering.whitelist.splice($index, 1);formPlan.$setDirty()">X</md-button>
+      <md-input-container class="md-block">
+        <label>Ant pattern</label>
+        <input type="text" ng-model="whitelist.pattern">
+      </md-input-container>
+      <md-input-container class="md-block">
+        <label>Methods</label>
+        <md-select ng-model="whitelist.methods" placeholder="Select the methods (Default ALL)" multiple>
+          <md-option ng-value="method" ng-repeat="method in methods">{{method}}</md-option>
+        </md-select>
+      </md-input-container>
+    </div>
+    <md-input-container class="md-block">
+      <md-button class="md-raised gravitee-api-plans-add-button" type="button" ng-click="resourceFiltering.whitelist.push({})">Add</md-button>
+    </md-input-container>
+
+    <md-button class="md-raised gravitee-fixed-button" type="submit" ng-click="apiPlansCtrl.save()"
+      ng-disabled="formPlan.$pristine || formPlan.$invalid">Save</md-button>
+  </form>
+</md-sidenav>

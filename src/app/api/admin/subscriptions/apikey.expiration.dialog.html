@@ -16,7 +16,7 @@
 
 -->
   <md-dialog aria-label="Set expiration date for API Key">
-    <form name="formExpireApiKeyProperty" ng-submit="dialogApiKeyExpirationController.save()" novalidate>
+    <form name="formExpireSubscriptionProperty" ng-submit="dialogApiKeyExpirationController.save()" novalidate>
       <md-toolbar>
         <div class="md-toolbar-tools">
           <h2>Expire API Key</h2>
@@ -60,7 +60,7 @@
 
       <div class="md-actions" layout="row">
         <md-button type="button" ng-click="dialogApiKeyExpirationController.hide()" class="md-primary">Cancel</md-button>
-        <md-button type="submit" class="md-primary" ng-disabled="formExpireApiKeyProperty.$invalid">Expire</md-button>
+        <md-button type="submit" class="md-primary" ng-disabled="formExpireSubscriptionProperty.$invalid">Expire</md-button>
       </div>
     </form>
   </md-dialog>

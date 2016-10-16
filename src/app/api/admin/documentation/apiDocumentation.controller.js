@@ -15,10 +15,9 @@
  */
 class DocumentationController {
 
-	constructor(DocumentationService, $mdDialog, $scope, $state, dragularService) {
+	constructor(DocumentationService, $scope, $state, dragularService) {
     'ngInject';
     this.DocumentationService = DocumentationService;
-    this.$mdDialog = $mdDialog;
 		this.editMode = false;
 
     this.$state = $state;

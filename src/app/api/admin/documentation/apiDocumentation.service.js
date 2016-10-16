@@ -29,7 +29,9 @@ class DocumentationService {
   }
 
   get(apiId, pageId) {
-    return this.$http.get(this.documentationURL(apiId) + pageId);
+    if (pageId) {
+      return this.$http.get(this.documentationURL(apiId) + pageId);
+    }
   }
 
   getContentUrl(apiId, pageId) {

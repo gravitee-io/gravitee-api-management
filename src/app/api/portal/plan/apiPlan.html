@@ -1,0 +1,40 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-card class="gravitee-card gravitee-plan-box">
+  <md-card-header>
+    <h3 layout-padding>{{plan.name}}</h3>
+  </md-card-header>
+  <md-divider></md-divider>
+  <md-card-content layout="column">
+    <h4 class="gravitee-plan-content">{{plan.description}}</h4>
+    <md-divider></md-divider>
+    <div ng-repeat="characteristic in plan.characteristics">
+      <h5 class="gravitee-plan-content">{{characteristic}}</h5>
+      <md-divider></md-divider>
+    </div>
+  </md-card-content>
+  <md-divider ng-if="graviteeUser || plan.isPublic"></md-divider>
+  <md-card-footer ng-if="graviteeUser || plan.isPublic">
+    <div layout="row" layout-align="end">
+      <md-button class="md-primary md-raised" aria-label="Execute"
+                 ng-click="subscribe(plan)" ng-disabled="plan.status || planEdit">
+        {{plan.alreadySubscribed ? 'Subscribed' : (plan.validation === 'auto'?'Subscribe': 'Request for subscription')}}
+      </md-button>
+    </div>
+  </md-card-footer>
+</md-card>

@@ -28,7 +28,6 @@ class ApisController {
     this.tableMode = this.$state.current.name.endsWith('table') ? true : false;
     this.apisScrollAreaHeight = this.$state.current.name === 'home' ? 195 : 90;
     this.isAPIsHome = this.$state.current.name.startsWith('apis') ? true : false;
-    this.init();
     this.goToView(this.$state.params.view || 'all');
 
     var that = this;
@@ -63,30 +62,10 @@ class ApisController {
     }
   }
 
-  init() {
-    var self = this;
-    this.$scope.$on("showApiModal", function () {
-      self.showApiModal();
-    });
-  }
-
   list() {
     this.apis = [];
     this.ApiService.list().then(response => {
       this.apis = response.data;
-    });
-  }
-
-  showApiModal() {
-    var _that = this;
-    this.$mdDialog.show({
-      controller: 'DialogApiController',
-      controllerAs: 'dialogApiCtrl',
-      templateUrl: 'app/api/dialog/api.dialog.html'
-    }).then(function (api) {
-      if (api) {
-        _that.$window.location.href = '#/apis/' + api.data.id + '/settings/general';
-      }
     });
   }
 

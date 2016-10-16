@@ -23,7 +23,7 @@ function interceptorConfig($httpProvider) {
   var interceptorUnauthorized = function ($q, $injector) {
     return {
       responseError: function (error) {
-        if(!error.config.tryItMode) {
+        if(error.config && !error.config.tryItMode) {
           var unauthorizedError = !error || error.status === 401;
           var errorMessage = '';
 
@@ -65,7 +65,7 @@ function interceptorConfig($httpProvider) {
         return config;
       },
       responseError: function (error) {
-        if(!error.config.tryItMode) {
+        if(error.config && !error.config.tryItMode) {
           if (error && error.status <= 0) {
             $injector.get('NotificationService').showError('Server unreachable');
           }

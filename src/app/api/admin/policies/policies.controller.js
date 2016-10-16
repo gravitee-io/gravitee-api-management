@@ -164,7 +164,7 @@ class ApiPoliciesController {
 
   acceptDragDrop(el, target, source) {
     const draggable = document.querySelector('.gravitee-policy-draggable');
-    return ( (source === draggable || source === target) && el.id !== "api-key");
+    return (source === draggable || source === target);
   }
 
   editPolicy(index, path, ev) {
@@ -309,7 +309,6 @@ class ApiPoliciesController {
       targetEvent: event,
       clickOutsideToClose: true,
       paths: this.apiPoliciesByPath,
-      apiKeyPolicy: this.policiesMap['api-key'],
       rootCtrl: this
     }).then( (paths) => {
       this.apiPoliciesByPath = paths;

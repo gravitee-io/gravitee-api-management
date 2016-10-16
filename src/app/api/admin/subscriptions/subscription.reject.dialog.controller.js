@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ApiPortalController {
-  constructor (resolvedApi, $rootScope) {
-    'ngInject';
-    this.api = resolvedApi.data;
+function DialogSubscriptionRejectController($scope, $mdDialog) {
+  'ngInject';
 
-    $rootScope.currentResource = this.api.name;
-  }
+  this.hide = function () {
+    $mdDialog.cancel();
+  };
+
+  this.save = function () {
+    $mdDialog.hide($scope.reason);
+  };
 }
 
-export default ApiPortalController;
+export default DialogSubscriptionRejectController;

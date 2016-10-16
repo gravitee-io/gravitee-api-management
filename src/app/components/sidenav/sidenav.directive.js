@@ -56,8 +56,10 @@ class SideNavController {
 
     $scope.$on('$stateChangeStart', function (event, toState, toParams, fromState) {
       // init current resource name to delegate its initialization to specific modules
-      if (!_.startsWith(toState.name.substring(0, _.lastIndexOf(toState.name, '.')),
-        fromState.name.substring(0, _.lastIndexOf(fromState.name, '.')))) {
+      var fromStates = fromState.name.split('.');
+      var toStates = toState.name.split('.');
+
+      if ((fromStates[0] + '.' + fromStates[1]) !== (toStates[0] + '.' + toStates[1])) {
         delete $scope.currentResource;
       }
     });

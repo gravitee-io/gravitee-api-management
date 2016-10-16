@@ -19,7 +19,6 @@ class AddPoliciesPathController {
     this.paths = paths;
     this.scope = $scope;
     this.mdDialog = $mdDialog;
-    this.apiKeyPolicy = apiKeyPolicy;
     this.rootCtrl = rootCtrl;
     this.newPath = {
       path: "",
@@ -37,8 +36,6 @@ class AddPoliciesPathController {
       _.forEach(this.paths[this.newPath.path], (policy) => {
         delete policy.$$hashKey;
       });
-    } else {
-      this.paths[this.newPath.path] = [this.apiKeyPolicy];
     }
 		this.mdDialog.hide(this.paths);
   }

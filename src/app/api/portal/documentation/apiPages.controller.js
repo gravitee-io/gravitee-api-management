@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ApiPortalPageController {
-  constructor (resolvedApi, resolvedPage, DocumentationService) {
+class ApiPortalPagesController {
+  constructor(resolvedPages, $scope, $stateParams, $location) {
     'ngInject';
-    this.api = resolvedApi.data;
-    this.page = resolvedPage.data;
+    this.pages = resolvedPages.data;
 
-    DocumentationService.cachePageConfiguration(this.api.id, this.page);
+    $scope.selectedIndex = 0;
+
+    var that = this;
+    $scope.$watch('selectedIndex', function (current) {
+      if (that.pages.length && !$stateParams.pageId && !current) {
+        $location.url('/apis/' + $stateParams.apiId + '/pages/' + that.pages[0].id);
+      }
+    });
   }
 }
 
-export default ApiPortalPageController;
+export default ApiPortalPagesController;

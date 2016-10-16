@@ -65,14 +65,6 @@ class ApiAdminController {
     // Failover
     this.failoverEnabled = (this.api.proxy.failover !== undefined);
 
-    // HTTP proxy
-    if (this.api.proxy.http.http_proxy === undefined) {
-      this.api.proxy.http.http_proxy = {
-        enabled: false,
-        type: 'HTTP'
-      }
-    }
-
     // Context-path editable
     this.contextPathEditable = (this.api.permission === 'primary_owner') || this.UserService.isUserInRoles(['ADMIN']);
 

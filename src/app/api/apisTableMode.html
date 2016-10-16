@@ -37,7 +37,7 @@
           </tr>
 				</thead>
 				<tbody md-body>
-					<tr md-row ng-repeat="api in apisCtrl.apis | filter:searchAPIs | orderBy: order" title="{{api.description}}" ui-sref="apis.portal({apiId: api.id})">
+					<tr md-row ng-repeat="api in apisCtrl.apis | filter:searchAPIs | orderBy: order" title="{{api.description}}" ui-sref="apis.portal.pages.page({apiId: api.id})">
 						<td md-cell>
 							<ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}"></ng-md-icon>
 						</td>

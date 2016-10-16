@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogSubscribeApiController($scope, $mdDialog, application, apiKeys, ApplicationService, NotificationService, ApiService) {
+function DialogSubscribeApiController($scope, $mdDialog, application, subscriptions, ApplicationService, NotificationService, ApiService) {
   'ngInject';
 
 	$scope.searchAPI = "";
@@ -27,7 +27,7 @@ function DialogSubscribeApiController($scope, $mdDialog, application, apiKeys, A
 		for(var i = 0; i < _apis.length; i++) {
 			var _api = _apis[i];
 			var exist = false;
-			for (var key in apiKeys) {
+			for (var key in subscriptions) {
 				if (_api.id === key) {
 					exist = true;
 					break;
@@ -72,9 +72,6 @@ function DialogSubscribeApiController($scope, $mdDialog, application, apiKeys, A
 				var apiId = $scope.apisSelected[i];
 				ApplicationService.subscribe(application, apiId).then(function() {
 					NotificationService.show('Application has subscribed to api ' + apiId);
-				}).catch(function (error) {
-					NotificationService.show('Error while subscribing for api ' + apiId);
-				  $scope.error = error;
 				});
 		}
 		$mdDialog.hide(application);

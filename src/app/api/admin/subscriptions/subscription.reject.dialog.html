@@ -1,0 +1,40 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-dialog aria-label="Give a reason for the reject of subscription">
+  <md-toolbar>
+    <div class="md-toolbar-tools">
+      <h2>Reject subscription</h2>
+      <span flex></span>
+      <md-button type="button" class="md-icon-button" ng-click="dialogSubscriptionRejectController.hide()">
+        X
+      </md-button>
+    </div>
+  </md-toolbar>
+
+  <md-dialog-content layout-padding>
+    <div layout="column" ng-cloak class="md-inline-form">
+      <h5>Explain the reason of the reject</h5>
+      <textarea ng-model="reason"></textarea>
+    </div>
+  </md-dialog-content>
+
+  <md-dialog-actions layout="row">
+    <md-button type="button" ng-click="dialogSubscriptionRejectController.hide()" class="md-primary">Cancel</md-button>
+    <md-button type="button" class="md-primary" ng-click="dialogSubscriptionRejectController.save()">Validate</md-button>
+  </md-dialog-actions>
+</md-dialog>

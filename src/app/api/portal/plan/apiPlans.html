@@ -15,8 +15,12 @@
     limitations under the License.
 
 -->
-<section>
-  <div ng-include="'app/api/apiHeader.html'"></div>
+<div ng-if="apiPortalPlanCtrl.plans.length">
+  <span class="md-headline" style="padding: 24px 16px 16px;">Plans</span>
+  <div layout="row" layout-align="center" layout-wrap>
+    <div flex-xs="100" flex-sm="50" flex="33" flex-lg="25" flex-xl="20" ng-repeat="plan in apiPortalPlanCtrl.plans | orderBy:'order'"
+         layout="row" layout-align="center" ng-include="'app/api/portal/plan/apiPlan.html'"></div>
+  </div>
+</div>
 
-  <div ui-view flex class="inset"></div>
-</section>
+<div ng-if="!apiPortalPlanCtrl.plans.length" ng-include="'app/api/portal/plan/plansEmptyMode.html'"></div>

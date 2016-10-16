@@ -15,10 +15,11 @@
  */
 class ApiService {
 
-  constructor($http, Constants) {
+  constructor($http, Constants, $q) {
     'ngInject';
     this.$http = $http;
     this.apisURL = Constants.baseURL + 'apis/';
+    this.$q = $q;
   }
 
   get(name) {
@@ -26,7 +27,7 @@ class ApiService {
   }
 
   list(view) {
-    return this.$http.get(this.apisURL + (view?'?view=' + view : ''));
+    return this.$http.get(this.apisURL + (view ? '?view=' + view : ''));
   }
 
   listByGroup(group) {
@@ -80,7 +81,7 @@ class ApiService {
   }
 
   import(apiId, apiDefinition) {
-    return this.$http.post(this.apisURL + (apiId?apiId + '/':'') + 'import', apiDefinition);
+    return this.$http.post(this.apisURL + (apiId ? apiId + '/' : '') + 'import', apiDefinition);
   }
 
   importSwagger(swaggerDescriptor) {
@@ -153,25 +154,78 @@ class ApiService {
   }
 
   /*
-   * API Keys
-   */
-  getApiKeys(api) {
-    return this.$http.get(this.apisURL + api + '/keys');
-  }
-
-  revokeApiKey(api, apiKey) {
-    return this.$http.delete(this.apisURL + api + '/keys/' + apiKey);
-  }
-
-  updateApiKey(api, apiKey) {
-    return this.$http.put(this.apisURL + api + '/keys/' + apiKey.key, apiKey);
-  }
-
-  /*
    * API events
    */
   getApiEvents(api, eventTypes) {
     return this.$http.get(this.apisURL + api + '/events?type=' + eventTypes);
+  }
+
+  listPlans(apiId, type) {
+    var url = this.$http.get(this.apisURL + apiId + '/plans');
+    if (type) {
+      url += '?type=' + type;
+    }
+    return url;
+  };
+
+  /*
+   * API plans
+   */
+  getApiPlans(apiId) {
+    return this.$http.get(this.apisURL + apiId + '/plans');
+  }
+
+  savePlan(apiId, plan) {
+    if (plan.id) {
+      return this.$http.put(this.apisURL + apiId + '/plans/' + plan.id,
+        {
+          id: plan.id, name: plan.name, description: plan.description,
+          validation: plan.validation, policies: plan.policies,
+          characteristics: plan.characteristics, order: plan.order, paths: plan.paths
+        });
+    } else {
+      return this.$http.post(this.apisURL + apiId + '/plans',
+        {
+          name: plan.name, description: plan.description, api: plan.api,
+          validation: plan.validation, policies: plan.policies,
+          characteristics: plan.characteristics, type: plan.type, paths: plan.paths
+        });
+    }
+  }
+
+  updatePlanSubscription(apiId, subscription) {
+    return this.$http.put(this.apisURL + apiId + '/plans/subscriptions/' + subscription.id, subscription);
+  }
+
+  processPlanSubscription(apiId, planId, subscriptionId, processSubscription) {
+    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/subscriptions/' + subscriptionId + '/process', processSubscription);
+  }
+
+  /*
+   * API subscriptions
+   */
+  getSubscriptions(apiId) {
+    return this.$http.get(this.apisURL + apiId + '/subscriptions');
+  }
+
+  revokeSubscription(apiId, subscriptionId) {
+    return this.$http.delete(this.apisURL + apiId + '/subscriptions/' + subscriptionId);
+  }
+
+  listApiKeys(apiId, subscriptionId) {
+    return this.$http.get(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/keys');
+  }
+
+  revokeApiKey(apiId, subscriptionId, apiKey) {
+    return this.$http.delete(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/keys/' + apiKey);
+  }
+
+  renewApiKey(apiId, subscriptionId) {
+    return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId);
+  }
+
+  updateApiKey(apiId, apiKey) {
+    return this.$http.put(this.apisURL + apiId + '/keys/' + apiKey.key, apiKey);
   }
 }
 

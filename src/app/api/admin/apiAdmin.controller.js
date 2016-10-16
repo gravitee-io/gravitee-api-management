@@ -74,6 +74,10 @@ class ApiAdminController {
       this.$rootScope.$broadcast("apiChangeSuccess");
     });
   }
+
+  isOwner() {
+    return this.api.permission && (this.api.permission === 'owner' || this.api.permission === 'primary_owner');
+  }
 }
 
 export default ApiAdminController;

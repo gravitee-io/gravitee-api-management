@@ -32,7 +32,7 @@
     <md-card-content style="padding: 0px; overflow-y: auto; height: calc(100vh - {{apisCtrl.apisScrollAreaHeight}}px);">
       <div layout="row" layout-wrap class="inset">
         <div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33" ng-repeat="api in apisCtrl.apis | filter:searchAPIs">
-          <a ui-sref="apis.portal({apiId: api.id})">
+          <a ui-sref="apis.portal.pages.page({apiId: api.id})">
             <md-card class="api-box gravitee-card gravitee-api-card">
               <md-card-header layout="row" layout-align="end start">
                 <md-card-avatar>
@@ -63,12 +63,6 @@
               </md-card-content>
               <md-card-footer>
                 <div class="api-box-footer" layout="row" layout-align="end">
-                <span>
-                  <span style="top: 2px; position: relative;">{{api.applicationsSize}}</span>
-                  <ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;">
-                    <md-tooltip>{{api.applicationsSize}} application(s)</md-tooltip>
-                  </ng-md-icon>
-                </span>
                   <ng-md-icon icon="{{apisCtrl.getVisibilityIcon(api)}}" size="20" style="fill: #cdcdcd;">
                     <md-tooltip>{{apisCtrl.getVisibility(api)}}</md-tooltip>
                   </ng-md-icon>
