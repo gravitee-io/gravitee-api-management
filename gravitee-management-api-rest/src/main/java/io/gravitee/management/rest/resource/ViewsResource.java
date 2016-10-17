@@ -16,9 +16,9 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.NewViewEntity;
-import io.gravitee.management.model.UpdateViewEntity;
-import io.gravitee.management.model.ViewEntity;
+import io.gravitee.management.model.*;
+import io.gravitee.management.rest.enhancer.ViewEnhancer;
+import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ViewService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -26,6 +26,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -36,10 +38,28 @@ public class ViewsResource extends AbstractResource  {
     @Autowired
     private ViewService viewService;
 
+    @Autowired
+    private ViewEnhancer viewEnhancer;
+
+    @Autowired
+    private ApiService apiService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<ViewEntity> list()  {
-        return viewService.findAll();
+        Set<ApiEntity> apis;
+        if (isAdmin()) {
+            apis = apiService.findAll();
+        } else if (isAuthenticated()) {
+            apis = apiService.findByUser(getAuthenticatedUsername());
+        } else {
+            apis = apiService.findByVisibility(Visibility.PUBLIC);
+        }
+
+        return viewService.findAll()
+                .stream()
+                .map(v -> viewEnhancer.enhance(apis).apply(v))
+                .collect(Collectors.toList());
     }
 
     @POST

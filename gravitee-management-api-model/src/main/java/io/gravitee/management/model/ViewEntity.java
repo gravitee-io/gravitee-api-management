@@ -30,6 +30,7 @@ public class ViewEntity {
     @Size(min = 1)
     private String name;
     private String description;
+    private long totalApis;
 
     public String getId() {
         return id;
@@ -53,6 +54,14 @@ public class ViewEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public long getTotalApis() {
+        return totalApis;
+    }
+
+    public void setTotalApis(long totalApis) {
+        this.totalApis = totalApis;
     }
 
     @Override
