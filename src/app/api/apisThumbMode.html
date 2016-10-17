@@ -25,7 +25,7 @@
       </md-card-header-text>
     </md-card-header>
     <md-tabs md-selected="apisCtrl.selectedIndex" md-dynamic-height md-border-bottom>
-      <md-tab label="{{view.name}}" ng-repeat="view in apisCtrl.views" ng-click="apisCtrl.goToView(view.id)">
+      <md-tab label="{{view.name}}" ng-repeat="view in apisCtrl.views" ng-if="view.id === 'all' || view.totalApis > 0" ng-click="apisCtrl.goToView(view.id)">
         <h5 ng-if="view.description" class="gravitee-view-description">{{view.description}}</h5>
       </md-tab>
     </md-tabs>
