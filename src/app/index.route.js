@@ -484,6 +484,17 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       },
       roles: ['ADMIN']
     })
+    .state('configuration.admin.groups', {
+      url: '/groups',
+      templateUrl: 'app/configuration/admin/groups/groups.html',
+      controller: 'GroupsController',
+      controllerAs: 'groupsCtrl',
+      menu: {
+        label: 'Groups',
+        icon: 'group_work'
+      },
+      roles: ['ADMIN']
+    })
     .state('user', {
       url: '/user',
       templateUrl: 'app/user/user.html',

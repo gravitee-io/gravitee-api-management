@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApplicationMembersController {
-  constructor(resolvedApplication, resolvedMembers, ApplicationService, NotificationService, $mdDialog) {
+  constructor(resolvedApplication, resolvedMembers, ApplicationService, GroupService, NotificationService, $mdDialog) {
     'ngInject';
     this.application = resolvedApplication.data;
     this.members = resolvedMembers.data;
@@ -22,6 +22,12 @@ class ApplicationMembersController {
     this.ApplicationService = ApplicationService;
     this.NotificationService = NotificationService;
     this.$mdDialog = $mdDialog;
+
+    if (this.application.group) {
+      GroupService.getMembers(this.application.group.id).then((members) => {
+        this.groupMembers = members.data;
+      })
+    }
   }
 
   getMembers(applicationId) {

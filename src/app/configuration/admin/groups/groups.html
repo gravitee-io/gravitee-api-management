@@ -1,0 +1,209 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-tabs md-dynamic-height md-border-bottom>
+    <md-tab label="Application Groups" ng-click="groupsCtrl.selectGroupType('APPLICATION')">
+        <md-table-container>
+            <table md-table>
+                <thead md-head md-order="order">
+                <tr md-row>
+                    <th md-column order-by="name">Name</th>
+                    <th style="text-align:center" md-column order-by="applications">Applications</th>
+                    <th style="text-align:center" md-column order-by="members">Members</th>
+                    <th md-column></th>
+                </tr>
+                </thead>
+                <tbody md-body>
+                <tr md-row ng-repeat="item in groupsCtrl.applicationGroups" ng-click="groupsCtrl.showApplications(item)">
+                    <td md-cell>{{item.group.name}}</td>
+                    <td md-cell style="text-align:center">{{item.applications.length}}</td>
+                    <td md-cell style="text-align:center">{{item.members.length}}</td>
+                    <td md-cell ng-click="$event.stopPropagation()">
+                        <div layout="row" layout-align="end center">
+                            <span style="padding: 0 10px">
+                                <ng-md-icon icon="group_add" ng-click="groupsCtrl.showMembers(item)" aria-label="manage-members"></ng-md-icon>
+                                <md-tooltip md-direction="top">Manage members</md-tooltip>
+                            </span>
+                            <span style="padding: 0 10px">
+                                <md-tooltip md-direction="top">rename</md-tooltip>
+                                <ng-md-icon icon="mode_edit" ng-click="groupsCtrl.showRenameGroupModal($event, item.group.id, item.group.name)" aria-label="rename-group"></ng-md-icon>
+                            </span>
+                            <span style="padding: 0 10px">
+                                <md-tooltip md-direction="top">delete</md-tooltip>
+                                <ng-md-icon icon="delete" ng-click="groupsCtrl.removeGroup($event, item.group.id, item.group.name)" aria-label="delete-group"></ng-md-icon>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </md-table-container>
+    </md-tab>
+    <md-tab label="Api Groups" ng-click="groupsCtrl.selectGroupType('API')">
+        <md-table-container>
+            <table md-table>
+                <thead md-head md-order="order">
+                <tr md-row>
+                    <th md-column order-by="name">Name</th>
+                    <th style="text-align:center" md-column order-by="apis">Apis</th>
+                    <th style="text-align:center" md-column order-by="members">Members</th>
+                    <th md-column></th>
+                </tr>
+                </thead>
+                <tbody md-body>
+                <tr md-row ng-repeat="item in groupsCtrl.apiGroups" ng-click="groupsCtrl.showApis(item)">
+                    <td md-cell>{{item.group.name}}</td>
+                    <td md-cell style="text-align:center">{{item.apis.length}}</td>
+                    <td md-cell style="text-align:center">{{item.members.length}}</td>
+                    <td md-cell ng-click="$event.stopPropagation()">
+                        <div layout="row" layout-align="end center">
+                            <span style="padding: 0 10px">
+                                <ng-md-icon icon="group_add" ng-click="groupsCtrl.showMembers(item)" aria-label="manage-members"></ng-md-icon>
+                                <md-tooltip md-direction="top">Manage members</md-tooltip>
+                            </span>
+                            <span style="padding: 0 10px">
+                                <ng-md-icon icon="mode_edit" ng-click="groupsCtrl.showRenameGroupModal($event, item.group.id, item.group.name)" aria-label="rename-group"></ng-md-icon>
+                                <md-tooltip md-direction="top">rename</md-tooltip>
+                            </span>
+                            <span style="padding: 0 10px">
+                                <ng-md-icon icon="delete" ng-click="groupsCtrl.removeGroup($event, item.group.id, item.group.name)" aria-label="delete-group"></ng-md-icon>
+                                <md-tooltip md-direction="top">delete</md-tooltip>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </md-table-container>
+    </md-tab>
+</md-tabs>
+
+
+<md-sidenav class="md-sidenav-right md-whiteframe-z2 resource" md-component-id="group-members">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>
+                <ng-md-icon icon="people"></ng-md-icon>
+                <span>Members</span>
+            </h2>
+        </div>
+    </md-toolbar>
+    <md-content layout-padding>
+        <md-table-container>
+            <table md-table>
+                <thead md-head md-order="order">
+                <tr md-row>
+                    <th md-column order-by="username">Username</th>
+                    <th md-column order-by="type">Type</th>
+                    <th md-column></th>
+                </tr>
+                </thead>
+                <tbody md-body>
+                <tr md-row ng-repeat="member in groupsCtrl.selectedGroup.members">
+                    <td md-cell>{{member.username}}</td>
+                    <td md-cell>
+                        <md-select aria-label="membership-type" ng-model="member.type" md-on-close="groupsCtrl.updateMember(member)">
+                            <md-option ng-value="'owner'"><em>OWNER</em></md-option>
+                            <md-option ng-value="'user'"><em>USER</em></md-option>
+                        </md-select>
+                    </td>
+                    <td md-cell ng-click="$event.stopPropagation()">
+                        <md-tooltip md-direction="left">delete</md-tooltip>
+                        <ng-md-icon icon="delete" ng-click="groupsCtrl.removeMember($event, member.username)" aria-label="delete-member"></ng-md-icon>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </md-table-container>
+    </md-content>
+    <md-fab-speed-dial md-open="false" class="md-scale md-fab-bottom-right">
+        <md-fab-trigger>
+            <md-button aria-label="Add Member" class="md-fab md-success" ng-click="groupsCtrl.showAddMemberModal($event)">
+                <md-tooltip md-direction="top" md-visible="false">Add a new member</md-tooltip>
+                <ng-md-icon icon="add"></ng-md-icon>
+            </md-button>
+        </md-fab-trigger>
+    </md-fab-speed-dial>
+</md-sidenav>
+
+<md-sidenav class="md-sidenav-right md-whiteframe-z2 resource" md-component-id="group-applications">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>
+                <ng-md-icon icon="people"></ng-md-icon>
+                <span>Applications</span>
+            </h2>
+        </div>
+    </md-toolbar>
+    <md-content layout-padding>
+        <md-table-container>
+            <table md-table>
+                <thead md-head md-order="order">
+                <tr md-row>
+                    <th md-column order-by="name">Name</th>
+                    <th md-column order-by="type">Type</th>
+                </tr>
+                </thead>
+                <tbody md-body>
+                <tr md-row ng-repeat="app in groupsCtrl.selectedGroup.applications">
+                    <td md-cell>{{app.name}}</td>
+                    <td md-cell>{{app.type}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </md-table-container>
+    </md-content>
+</md-sidenav>
+
+
+<md-sidenav class="md-sidenav-right md-whiteframe-z2 resource" md-component-id="group-apis">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>
+                <ng-md-icon icon="people"></ng-md-icon>
+                <span>Apis</span>
+            </h2>
+        </div>
+    </md-toolbar>
+    <md-content layout-padding>
+        <md-table-container>
+            <table md-table>
+                <thead md-head md-order="order">
+                <tr md-row>
+                    <th md-column order-by="name">Name</th>
+                    <th md-column order-by="version">Version</th>
+                </tr>
+                </thead>
+                <tbody md-body>
+                <tr md-row ng-repeat="api in groupsCtrl.selectedGroup.apis">
+                    <td md-cell>{{api.name}}</td>
+                    <td md-cell>{{api.version}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </md-table-container>
+    </md-content>
+</md-sidenav>
+
+<md-fab-speed-dial md-open="false" class="md-scale md-fab-bottom-right">
+    <md-fab-trigger>
+        <md-button aria-label="Add Group" class="md-fab md-success" ng-click="groupsCtrl.showAddGroupModal($event)">
+            <md-tooltip md-direction="top" md-visible="false">Add a new {{groupsCtrl.groupType | lowercase}} group</md-tooltip>
+            <ng-md-icon icon="add"></ng-md-icon>
+        </md-button>
+    </md-fab-trigger>
+</md-fab-speed-dial>

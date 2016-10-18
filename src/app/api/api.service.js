@@ -29,6 +29,10 @@ class ApiService {
     return this.$http.get(this.apisURL + (view?'?view=' + view : ''));
   }
 
+  listByGroup(group) {
+    return this.$http.get(this.apisURL + '?group=' + group);
+  }
+
   start(name) {
     return this.$http.post(this.apisURL + name + '?action=START');
   }
@@ -49,7 +53,8 @@ class ApiService {
     return this.$http.put(this.apisURL + api.id,
       {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private,
         'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
-        'picture': api.picture, 'resources': api.resources, 'views': api.views
+        'picture': api.picture, 'resources': api.resources, 'views': api.views,
+        'group': api.group ? api.group.id : ''
       }
     );
   }

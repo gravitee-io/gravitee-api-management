@@ -17,6 +17,29 @@
 -->
 <section layout="column" flex>
   <md-content flex layout-padding>
+    <div layout="column" ng-if="apiMembersCtrl.api.group">
+      <h4>Members inherited from group "{{apiMembersCtrl.api.group.name}}"</h4>
+      <md-content style="background: none">
+        <md-table-container ng-show="apiMembersCtrl.members.length > 0">
+          <table md-table>
+            <thead md-head md-order="order">
+            <tr md-row>
+              <th md-column order-by="username">Member</th>
+              <th md-column></th>
+              <th md-column order-by="type">Role</th>
+            </tr>
+            </thead>
+            <tbody md-body>
+            <tr md-row ng-repeat="member in apiMembersCtrl.groupMembers | orderBy: order">
+              <td md-cell> {{member.firstname}} {{member.lastname}} [{{member.username}}] </td>
+              <td md-cell> {{member.email}} </td>
+              <td md-cell> {{member.type}} </td>
+            </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+      </md-content>
+    </div>
     <div layout="column">
       <h4>Members
         <md-button class="md-icon-button" aria-label="Members Info" ng-click="apiMembersCtrl.showPermissionsInformation()">

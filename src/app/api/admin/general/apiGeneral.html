@@ -62,12 +62,25 @@
     <gravitee-image image="generalCtrl.api.picture" image-form="formApi" image-url="generalCtrl.api.picture_url"></gravitee-image>
   </div>
 
+  <div layout="" layout-sm="column" flex>
+    <md-input-container flex="30">
+      <label>Group</label>
+      <md-select aria-label="group"
+                 ng-model="generalCtrl.api.group"
+                 ng-model-options="{trackBy: '$value.id'}"
+                 md-on-open="generalCtrl.loadApplicationGroups()" >
+        <md-option ng-value="group" ng-repeat="group in generalCtrl.groups">{{group.name}}</md-option>
+      </md-select>
+    </md-input-container>
+  </div>
+
   <div layout="" layout-sm="column">
     <md-input-container class="flex">
       <label>Deployment tags</label>
       <md-chips ng-model="generalCtrl.api.tags" placeholder="Enter a tag" secondary-placeholder="+Tag" ng-click="formApi.$setDirty()"></md-chips>
     </md-input-container>
   </div>
+
 
   <div layout="column">
     <md-input-container class="flex">

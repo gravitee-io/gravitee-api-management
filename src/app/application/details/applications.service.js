@@ -41,8 +41,12 @@ class ApplicationService {
 		return this.$http.delete(this.applicationsURL + applicationId + '/members?user=' + memberUsername);
 	}
 
-	list() {
+  list() {
     return this.$http.get(this.applicationsURL);
+  }
+
+  listByGroup(group) {
+    return this.$http.get(this.applicationsURL + "?group=" + group);
   }
 
 	create(application) {
@@ -50,8 +54,14 @@ class ApplicationService {
   }
 
   update(application) {
-    return this.$http.put(this.applicationsURL + application.id,
-      {'name': application.name, 'description': application.description, 'type': application.type}
+    return this.$http.put(
+      this.applicationsURL + application.id,
+      {
+        'name': application.name,
+        'description': application.description,
+        'type': application.type,
+        'group': application.group ? application.group.id : ''
+      }
     );
   }
 

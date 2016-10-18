@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 class ApplicationGeneralController {
-  constructor(resolvedApplication, ApplicationService, NotificationService, $state, $scope, $mdDialog) {
+  constructor(resolvedApplication, ApplicationService, NotificationService, GroupService, UserService, $state, $scope, $mdDialog) {
     'ngInject';
     this.application = resolvedApplication.data;
+
+    if (!this.application.group) {
+      this.application.group = GroupService.getEmptyGroup();
+    }
+    this.groups = [this.application.group];
     this.initialApplication = _.cloneDeep(this.application);
     this.ApplicationService = ApplicationService;
     this.NotificationService = NotificationService;
+    this.GroupService = GroupService;
+    this.UserService = UserService;
     this.$scope = $scope;
     this.$state = $state;
     this.$mdDialog = $mdDialog;
@@ -50,6 +57,16 @@ class ApplicationGeneralController {
   reset() {
     this.application = _.cloneDeep(this.initialApplication);
     this.$scope.formApplication.$setPristine();
+  }
+
+  loadApplicationGroups() {
+    if (this.UserService.isUserInRoles(['ADMIN'])) {
+      this.GroupService.list("APPLICATION").then((groups) => {
+        this.groups = _.union(
+          [this.GroupService.getEmptyGroup()],
+          groups.data);
+      })
+    }
   }
 
   showDeleteApplicationConfirm(ev) {

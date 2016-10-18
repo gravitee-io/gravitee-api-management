@@ -91,13 +91,17 @@ import ViewService from './view/view.service';
 import DeleteViewDialogController from './configuration/admin/views/deleteview.dialog.controller';
 import AnalyticsAPIModelDirective from './application/details/analytics/analyticsAPIModel.directive';
 import AnalyticsApplicationModelDirective from './api/admin/analytics/analyticsApplicationModel.directive';
+import GroupsController from './configuration/admin/groups/groups.controller';
+import GroupService from './group/group.service';
+import DialogAddGroupController from './configuration/admin/groups/dialog/add-group.dialog.controller';
+import DialogAddGroupMemberController from './configuration/admin/groups/dialog/addMemberDialog.controller';
 import RegistrationController from './registration/registration.controller';
 import ConfirmController from './registration/confirm/confirm.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
-  'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'tc.chartjs', 'md-steppers', 'angular-jwt'])
+  'ab-base64', 'ngFileUpload', 'n3-pie-chart', 'tc.chartjs', 'md-steppers', 'angular-jwt'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -167,6 +171,9 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('DashboardController', DashboardController)
   .controller('ViewsController', ViewsController)
   .controller('DeleteViewDialogController', DeleteViewDialogController)
+  .controller('GroupsController', GroupsController)
+  .controller('DialogAddGroupController', DialogAddGroupController)
+  .controller('DialogAddGroupMemberController', DialogAddGroupMemberController)
   .controller('RegistrationController', RegistrationController)
   .controller('ConfirmController', ConfirmController)
   .service('ApplicationService', ApplicationService)
@@ -183,6 +190,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .service('PageSwaggerConfigurationService', PageSwaggerConfigurationService)
   .service('PageSwaggerHttpClientService', PageSwaggerHttpClientService)
   .service('ViewService', ViewService)
+  .service('GroupService', GroupService)
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
   .directive('graviteePage', () => new PageDirective())

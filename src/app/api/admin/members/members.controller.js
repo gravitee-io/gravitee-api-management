@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 class ApiMembersController {
-  constructor (ApiService, resolvedApi, resolvedMembers, $state, $mdDialog, NotificationService, $scope, UserService) {
+  constructor (ApiService, resolvedApi, resolvedMembers, $state, $mdDialog, NotificationService, $scope, UserService, GroupService) {
     'ngInject';
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
@@ -30,6 +30,12 @@ class ApiMembersController {
     this.membershipTypes = [ 'owner', 'user' ];
     this.newPrimaryOwner = null;
     this.$scope.searchText = "";
+
+    if (this.api.group) {
+      GroupService.getMembers(this.api.group.id).then((members) => {
+        this.groupMembers = members.data;
+      })
+    }
   }
 
   updateMember(member) {

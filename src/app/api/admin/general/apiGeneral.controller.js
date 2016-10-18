@@ -15,11 +15,12 @@
  */
 class ApiAdminController {
   constructor(ApiService, NotificationService, UserService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi,
-              base64, $state, ViewService) {
+              base64, $state, ViewService, GroupService) {
     'ngInject';
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.UserService = UserService;
+    this.GroupService = GroupService;
     this.$scope = $scope;
     this.$rootScope = $rootScope;
     this.$mdEditDialog = $mdEditDialog;
@@ -29,6 +30,10 @@ class ApiAdminController {
     this.$scope.selected = [];
     this.base64 = base64;
     this.$state = $state;
+    if (!this.api.group) {
+      this.api.group = GroupService.getEmptyGroup();
+    }
+    this.groups = [this.api.group];
 
     this.$scope.lbs = [
       {
@@ -76,6 +81,14 @@ class ApiAdminController {
       self.initialApi = _.cloneDeep(self.$scope.$parent.apiCtrl.api);
       self.api = self.$scope.$parent.apiCtrl.api;
     });
+  }
+
+  loadApplicationGroups() {
+    this.GroupService.list("API").then((groups) => {
+      this.groups = _.union(
+        [this.GroupService.getEmptyGroup()],
+        groups.data);
+    })
   }
 
   changeLifecycle(id) {
