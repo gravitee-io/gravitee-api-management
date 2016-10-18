@@ -41,4 +41,11 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @return List Applications.
      */
     Set<Application> findByIds(List<String> ids) throws TechnicalException;
+
+    /**
+     * find applications by their groups
+     * @param groupIds a list of group ids
+     * @return applications
+     */
+    Set<Application> findByGroups(List<String> groupIds) throws TechnicalException;
 }

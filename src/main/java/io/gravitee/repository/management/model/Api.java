@@ -79,6 +79,11 @@ public class Api {
      */
     private String picture;
 
+    /**
+     * the api group, may be null
+     */
+    private String group;
+
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -165,6 +170,14 @@ public class Api {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     @Override

@@ -13,16 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.repository.management.api;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.Group;
+
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum MembershipReferenceType {
+public interface GroupRepository extends CrudRepository<Group, String> {
 
-    APPLICATION,
-    API,
-    API_GROUP,
-    APPLICATION_GROUP
+    /**
+     * List all groups for specific group type.
+     * @param type the searched type
+     * @return groups.
+     */
+    Set<Group> findByType(Group.Type type) throws TechnicalException;
+
+    /**
+     * List all APIs
+     * @return all groups
+     * @throws TechnicalException if something goes wrong
+     */
+    Set<Group> findAll() throws TechnicalException;
 }

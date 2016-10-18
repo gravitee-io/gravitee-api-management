@@ -54,6 +54,11 @@ public class Application {
      */
     private Date updatedAt;
 
+    /**
+     * the application group
+     */
+    private String group;
+
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -100,6 +105,14 @@ public class Application {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     @Override

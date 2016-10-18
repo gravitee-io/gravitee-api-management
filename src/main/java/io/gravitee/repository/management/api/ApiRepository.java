@@ -50,4 +50,11 @@ public interface ApiRepository extends CrudRepository<Api, String>{
      * @return List APIs.
      */
     Set<Api> findByIds(List<String> ids) throws TechnicalException;
+
+    /**
+     * find apis by their groups
+     * @param groupIds a list of group ids
+     * @return applications
+     */
+    Set<Api> findByGroups(List<String> groupIds) throws TechnicalException;
 }
