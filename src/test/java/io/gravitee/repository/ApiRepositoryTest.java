@@ -16,6 +16,7 @@
 package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.*;
 import org.junit.Assert;
 import org.junit.Test;
@@ -94,5 +95,13 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         int nbApiAfter = apiRepository.findAll().size();
 
         Assert.assertEquals(nbApiBefore - 1, nbApiAfter);
+    }
+
+    @Test
+    public void shouldFindApiWithGroup() throws Exception {
+        Optional<Api> api = apiRepository.findById("grouped-api");
+        Assert.assertTrue(api.isPresent());
+        Assert.assertNotNull(api.get().getGroup());
+        Assert.assertEquals("api-group", api.get().getGroup());
     }
 }

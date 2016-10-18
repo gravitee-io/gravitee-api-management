@@ -78,6 +78,8 @@ public abstract class AbstractRepositoryTest {
     @Inject
     protected ViewRepository viewRepository;
     @Inject
+    protected GroupRepository groupRepository;
+	@Inject
     protected MembershipRepository membershipRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
@@ -126,6 +128,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof View) {
             viewRepository.create((View) object);
+        }
+        else if (object instanceof Group) {
+            groupRepository.create((Group)object);
         }
         else if (object instanceof Membership) {
             membershipRepository.create((Membership) object);

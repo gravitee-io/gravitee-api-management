@@ -1,0 +1,11 @@
+[
+  {
+    "id": "group-application-1",
+    "type": "APPLICATION",
+    "name": "group-application-1",
+    "administrators": [
+      "user1",
+      "user2"
+    ]
+  }
+]

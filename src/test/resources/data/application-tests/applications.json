@@ -22,5 +22,14 @@
     "type": "Web",
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
+  },
+  {
+    "id": "grouped-app",
+    "name": "grouped-app",
+    "description": "Sample grouped-app description",
+    "type": "Web",
+    "group": "application-group",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883"
   }
 ]

@@ -40,7 +40,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Set<Application> applications = applicationRepository.findAll();
 
         Assert.assertNotNull(applications);
-        Assert.assertEquals("Fail to resolve application in findAll", 3, applications.size());
+        Assert.assertEquals("Fail to resolve application in findAll", 4, applications.size());
     }
 
     @Test
@@ -117,5 +117,13 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
     public void findByIdTest() throws Exception {
         Optional<Application> optional = applicationRepository.findById("application-sample");
         Assert.assertTrue("Find application by name return no result ", optional.isPresent());
+    }
+
+    @Test
+    public void shouldFindApplicationWithGroup() throws Exception {
+        Optional<Application> application = applicationRepository.findById("grouped-app");
+        Assert.assertTrue(application.isPresent());
+        Assert.assertNotNull(application.get().getGroup());
+        Assert.assertEquals("application-group", application.get().getGroup());
     }
 }

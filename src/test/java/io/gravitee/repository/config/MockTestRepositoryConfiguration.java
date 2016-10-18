@@ -77,6 +77,10 @@ public class MockTestRepositoryConfiguration {
         when(newApi.getUpdatedAt()).thenReturn(parse("12/02/2016"));
         when(apiRepository.findById("sample-new")).thenReturn(of(newApi));
 
+        final Api groupedApi = mock(Api.class);
+        when(groupedApi.getGroup()).thenReturn("api-group");
+        when(apiRepository.findById("grouped-api")).thenReturn(of(groupedApi));
+
         return apiRepository;
     }
 
@@ -86,7 +90,7 @@ public class MockTestRepositoryConfiguration {
         final Application application = mock(Application.class);
         when(applicationRepository.findById("application-sample")).thenReturn(of(application));
 
-        final Set<Application> applications = newSet(application, mock(Application.class), mock(Application.class));
+        final Set<Application> applications = newSet(application, mock(Application.class), mock(Application.class), mock(Application.class));
         when(applicationRepository.findAll()).thenReturn(applications);
         doAnswer(invocation -> applications.remove(application)).when(applicationRepository).delete("deleted-app");
         when(applicationRepository.findById("deleted-app")).thenReturn(empty());
@@ -108,6 +112,10 @@ public class MockTestRepositoryConfiguration {
         when(updatedApplication.getUpdatedAt()).thenReturn(parse("22/02/2016"));
 
         when(applicationRepository.findById("updated-app")).thenReturn(of(updatedApplication));
+
+        final Application groupedApplication = mock(Application.class);
+        when(groupedApplication.getGroup()).thenReturn("application-group");
+        when(applicationRepository.findById("grouped-app")).thenReturn(of(groupedApplication));
 
         return applicationRepository;
     }
@@ -274,6 +282,25 @@ public class MockTestRepositoryConfiguration {
         when(viewRepository.findById("products")).thenReturn(of(view2));
 
         return viewRepository;
+    }
+
+
+    @Bean
+    public GroupRepository groupRepository() throws Exception {
+        final GroupRepository groupRepository = mock(GroupRepository.class);
+
+        final Group createGroup = new Group();
+        createGroup.setId("1");
+        createGroup.setAdministrators(Collections.emptyList());
+        when(groupRepository.create(any())).thenReturn(createGroup);
+
+        final Group group_application_1 = new Group();
+        group_application_1.setId("group-application-1");
+        group_application_1.setName("group-application-1");
+        group_application_1.setAdministrators(Arrays.asList("user1", "user2"));
+        when(groupRepository.findByType(Group.Type.APPLICATION)).thenReturn(Collections.singleton(group_application_1));
+
+        return groupRepository;
     }
 
     @Bean
