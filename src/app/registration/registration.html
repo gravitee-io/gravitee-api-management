@@ -19,17 +19,17 @@
   <div class="gravitee-no-sidenav-content">
     <div class="gravitee-no-sidenav-header" layout="column">
       <a ng-click="goToHome()"><img src="app/images/GRAVITEE_LOGOsstxtclair-05.png" /></a>
-      <label>Gravitee.io portal - registration</label>
+      <label>Gravitee.io Portal Registration</label>
     </div>
     <form name="formRegistration" ng-submit="register()" layout="column">
       <md-input-container class="md-icon-float">
-        <label>Last name</label>
-        <input ng-model="user.lastname" type="text" ng-required="true" autofocus>
+        <label>First name</label>
+        <input ng-model="user.firstname" type="text" ng-required="true">
       </md-input-container>
 
       <md-input-container class="md-icon-float">
-        <label>First name</label>
-        <input ng-model="user.firstname" type="text" ng-required="true">
+        <label>Last name</label>
+        <input ng-model="user.lastname" type="text" ng-required="true" autofocus>
       </md-input-container>
 
       <md-input-container class="md-icon-float">
