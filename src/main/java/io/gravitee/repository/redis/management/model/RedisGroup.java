@@ -15,38 +15,28 @@
  */
 package io.gravitee.repository.redis.management.model;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-public class RedisApplication {
-
+public class RedisGroup {
     private String id;
-    private String name;
-    private String description;
     private String type;
-    private String group;
+    private String name;
+    private Date createdAt;
+    private Date updatedAt;
+    private List<String> adminstrators;
 
-    private long createdAt;
-    private long updatedAt;
-
-    public long getCreatedAt() {
-        return createdAt;
+    public List<String> getAdminstrators() {
+        return adminstrators;
     }
 
-    public void setCreatedAt(long createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
+    public void setAdminstrators(List<String> adminstrators) {
+        this.adminstrators = adminstrators;
     }
 
     public String getId() {
@@ -57,14 +47,6 @@ public class RedisApplication {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getType() {
         return type;
     }
@@ -73,19 +55,27 @@ public class RedisApplication {
         this.type = type;
     }
 
-    public String getGroup() {
-        return group;
+    public String getName() {
+        return name;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public long getUpdatedAt() {
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(long updatedAt) {
+    public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -93,8 +83,8 @@ public class RedisApplication {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        RedisApplication that = (RedisApplication) o;
-        return Objects.equals(id, that.id);
+        RedisGroup redisGroup = (RedisGroup) o;
+        return Objects.equals(id, redisGroup.id);
     }
 
     @Override

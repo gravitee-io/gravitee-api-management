@@ -27,7 +27,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -55,6 +56,14 @@ public class RedisApiRepository implements ApiRepository {
     @Override
     public Set<Api> findByIds(List<String> ids) throws TechnicalException {
         return apiRedisRepository.find(ids).stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Api> findByGroups(List<String> groupIds) throws TechnicalException {
+        return apiRedisRepository.findByGroups(groupIds)
+                .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }
@@ -102,6 +111,7 @@ public class RedisApiRepository implements ApiRepository {
         api.setVisibility(Visibility.valueOf(redisApi.getVisibility()));
         api.setLifecycleState(LifecycleState.valueOf(redisApi.getLifecycleState()));
         api.setPicture(redisApi.getPicture());
+        api.setGroup(redisApi.getGroup());
 
         return api;
     }
@@ -124,6 +134,7 @@ public class RedisApiRepository implements ApiRepository {
         redisApi.setVisibility(api.getVisibility().name());
         redisApi.setLifecycleState(api.getLifecycleState().name());
         redisApi.setPicture(api.getPicture());
+        redisApi.setGroup(api.getGroup());
 
         return redisApi;
     }

@@ -15,29 +15,24 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
-import io.gravitee.repository.redis.management.model.RedisApi;
+import io.gravitee.repository.redis.management.model.RedisGroup;
 
-import java.util.List;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiRedisRepository {
+public interface GroupRedisRepository {
 
-    RedisApi find(String api);
 
-    Set<RedisApi> find(List<String> apis);
+    RedisGroup find(String groupId);
 
-    Set<RedisApi> findAll();
+    Set<RedisGroup> findByType(String type);
 
-    Set<RedisApi> findByVisibility(String visibility);
+    Set<RedisGroup> findAll();
 
-    Set<RedisApi> findByGroups(List<String> groupIds);
+    RedisGroup saveOrUpdate(RedisGroup group);
 
-    RedisApi saveOrUpdate(RedisApi api);
-
-    void delete(String api);
+    void delete(String groupId);
 }

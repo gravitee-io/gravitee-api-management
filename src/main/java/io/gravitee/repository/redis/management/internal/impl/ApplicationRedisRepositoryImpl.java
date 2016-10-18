@@ -19,14 +19,12 @@ import io.gravitee.repository.redis.management.internal.ApplicationRedisReposito
 import io.gravitee.repository.redis.management.model.RedisApplication;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -64,7 +62,22 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
     @Override
     public RedisApplication saveOrUpdate(RedisApplication application) {
         redisTemplate.opsForHash().put(REDIS_KEY, application.getId(), application);
+        if(application.getGroup() != null) {
+            redisTemplate.opsForSet().add(REDIS_KEY + ":group:" + application.getGroup(), application.getId());
+        }
         return application;
+    }
+
+
+    @Override
+    public Set<RedisApplication> findByGroups(List<String> groups) {
+        Set<Object> keys = new HashSet<>();
+        groups.forEach(group->keys.addAll(redisTemplate.opsForSet().members(REDIS_KEY + ":group:" + group)));
+        List<Object> apiObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
+
+        return apiObjects.stream()
+                .map(event -> convert(event, RedisApplication.class))
+                .collect(Collectors.toSet());
     }
 
     @Override

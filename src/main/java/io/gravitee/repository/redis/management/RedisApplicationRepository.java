@@ -27,7 +27,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -53,6 +54,14 @@ public class RedisApplicationRepository implements ApplicationRepository {
     }
 
     @Override
+    public Set<Application> findByGroups(List<String> groupIds) throws TechnicalException {
+        return applicationRedisRepository.findByGroups(groupIds)
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public Optional<Application> findById(String applicationId) throws TechnicalException {
         RedisApplication redisApplication = this.applicationRedisRepository.find(applicationId);
         return Optional.ofNullable(convert(redisApplication));
@@ -73,6 +82,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
         redisApplication.setDescription(application.getDescription());
         redisApplication.setUpdatedAt(application.getUpdatedAt().getTime());
         redisApplication.setType(application.getType());
+        redisApplication.setGroup(application.getGroup());
 
         applicationRedisRepository.saveOrUpdate(redisApplication);
         return convert(redisApplication);
@@ -96,6 +106,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
         application.setUpdatedAt(new Date(redisApplication.getUpdatedAt()));
         application.setDescription(redisApplication.getDescription());
         application.setType(redisApplication.getType());
+        application.setGroup(redisApplication.getGroup());
         return application;
     }
 
@@ -108,6 +119,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
         redisApplication.setUpdatedAt(application.getUpdatedAt().getTime());
         redisApplication.setDescription(application.getDescription());
         redisApplication.setType(application.getType());
+        redisApplication.setGroup(application.getGroup());
 
         return redisApplication;
     }

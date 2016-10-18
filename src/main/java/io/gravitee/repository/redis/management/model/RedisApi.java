@@ -18,7 +18,8 @@ package io.gravitee.repository.redis.management.model;
 import java.util.Objects;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RedisApi {
@@ -30,6 +31,7 @@ public class RedisApi {
     private String definition;
     private String lifecycleState;
     private String visibility;
+    private String group;
     private long deployedAt;
     private long createdAt;
     private long updatedAt;
@@ -97,6 +99,14 @@ public class RedisApi {
 
     public void setVisibility(String visibility) {
         this.visibility = visibility;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     public long getCreatedAt() {

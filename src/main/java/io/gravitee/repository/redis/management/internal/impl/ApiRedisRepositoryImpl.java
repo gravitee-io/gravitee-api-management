@@ -22,14 +22,12 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -75,15 +73,34 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
     }
 
     @Override
+    public Set<RedisApi> findByGroups(List<String> groups) {
+        Set<Object> keys = new HashSet<>();
+        groups.forEach(group ->keys.addAll(redisTemplate.opsForSet().members(REDIS_KEY + ":group:" + group)));
+        List<Object> apiObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
+
+        return apiObjects.stream()
+                .map(event -> convert(event, RedisApi.class))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public RedisApi saveOrUpdate(RedisApi api) {
         RedisApi oldApi = find(api.getId());
         redisTemplate.executePipelined(new RedisCallback<Object>() {
             @Override
             public Object doInRedis(RedisConnection connection) throws DataAccessException {
                 redisTemplate.opsForHash().put(REDIS_KEY, api.getId(), api);
-                redisTemplate.opsForSet().add(REDIS_KEY + ":visibility:" + api.getVisibility(), api.getId());
+
                 if (oldApi != null) {
                     redisTemplate.opsForSet().remove(REDIS_KEY + ":visibility:" + oldApi.getVisibility(), api.getId());
+                    if(oldApi.getGroup() != null) {
+                        redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + oldApi.getGroup(), api.getId());
+                    }
+                }
+
+                redisTemplate.opsForSet().add(REDIS_KEY + ":visibility:" + api.getVisibility(), api.getId());
+                if(api.getGroup() != null) {
+                    redisTemplate.opsForSet().add(REDIS_KEY + ":group:" + api.getGroup(), api.getId());
                 }
 
                 return null;

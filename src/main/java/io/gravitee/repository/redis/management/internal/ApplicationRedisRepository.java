@@ -33,6 +33,8 @@ public interface ApplicationRedisRepository {
 
     Set<RedisApplication> findAll();
 
+    Set<RedisApplication> findByGroups(List<String> groupIds);
+
     RedisApplication saveOrUpdate(RedisApplication application);
 
     void delete(String application);
