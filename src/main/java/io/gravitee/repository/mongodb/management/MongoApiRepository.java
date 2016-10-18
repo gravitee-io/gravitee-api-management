@@ -58,6 +58,11 @@ public class MongoApiRepository implements ApiRepository {
 	}
 
 	@Override
+	public Set<Api> findByGroups(List<String> groupIds) throws TechnicalException {
+		return mapApis(internalApiRepo.findByGroups(groupIds));
+	}
+
+	@Override
 	public Set<Api> findAll() throws TechnicalException {
 		List<ApiMongo> apis = internalApiRepo.findAll();
 		return mapApis(apis);
@@ -83,7 +88,8 @@ public class MongoApiRepository implements ApiRepository {
 		apiMongo.setVisibility(api.getVisibility().toString());
 		apiMongo.setVersion(api.getVersion());
 		apiMongo.setDeployedAt(api.getDeployedAt());
-                apiMongo.setPicture(api.getPicture());
+		apiMongo.setPicture(api.getPicture());
+        apiMongo.setGroup(api.getGroup());
 
 		ApiMongo applicationMongoUpdated = internalApiRepo.save(apiMongo);
 		return mapApi(applicationMongoUpdated);

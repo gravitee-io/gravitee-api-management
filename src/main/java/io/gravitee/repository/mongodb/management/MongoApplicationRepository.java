@@ -69,6 +69,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 		applicationMongo.setDescription(application.getDescription());
 		applicationMongo.setUpdatedAt(application.getUpdatedAt());
 		applicationMongo.setType(application.getType());
+		applicationMongo.setGroup(application.getGroup());
 
 		ApplicationMongo applicationMongoUpdated = internalApplicationRepo.save(applicationMongo);
 		return mapApplication(applicationMongoUpdated);
@@ -83,6 +84,11 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	@Override
 	public Set<Application> findByIds(List<String> ids) throws TechnicalException {
 		return mapApplications(internalApplicationRepo.findByIds(ids));
+	}
+
+	@Override
+	public Set<Application> findByGroups(List<String> groupIds) throws TechnicalException {
+		return mapApplications(internalApplicationRepo.findByGroups(groupIds));
 	}
 
 	@Override

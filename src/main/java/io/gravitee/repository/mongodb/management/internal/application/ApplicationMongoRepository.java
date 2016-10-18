@@ -28,6 +28,9 @@ public interface ApplicationMongoRepository extends MongoRepository<ApplicationM
 
     @Query("{ _id: {$in: ?0} }")
     Set<ApplicationMongo> findByIds(List<String> ids);
+
+    @Query("{ group: {$in: ?0} }")
+    Set<ApplicationMongo> findByGroups(List<String> ids);
 }
 
 

@@ -13,28 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.api;
+package io.gravitee.repository.mongodb.management.internal.group;
 
-import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
+import io.gravitee.repository.mongodb.management.internal.model.GroupMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Set;
+import java.util.Collection;
 
+/**
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author GraviteeSource Team
+ */
 @Repository
-public interface ApiMongoRepository extends MongoRepository<ApiMongo, String> {
-    @Query("{ visibility: ?0 }")
-    Set<ApiMongo> findByVisibility(String visibility);
+public interface GroupMongoRepository extends MongoRepository<GroupMongo, String> {
 
-    @Query("{ _id: {$in: ?0} }")
-    Set<ApiMongo> findByIds(List<String> ids);
-
-    @Query("{ group: {$in: ?0} }")
-    Set<ApiMongo> findByGroups(List<String> groupIds);
+        @Query("{ 'type' : ?0}")
+        Collection<GroupMongo> findByType(String type);
 
 }
-
-

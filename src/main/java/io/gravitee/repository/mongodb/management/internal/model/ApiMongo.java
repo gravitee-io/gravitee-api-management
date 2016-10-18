@@ -52,6 +52,8 @@ public class ApiMongo extends Auditable {
     
     private String picture;
 
+    private String group;
+
     public String getId() {
         return id;
     }
@@ -122,6 +124,14 @@ public class ApiMongo extends Auditable {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     @Override
