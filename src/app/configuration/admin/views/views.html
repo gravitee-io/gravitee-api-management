@@ -15,56 +15,47 @@
     limitations under the License.
 
 -->
-<md-card flex="">
-  <span class="md-headline" style="padding: 24px 16px 16px;">Configuration</span>
-  <md-card-content>
-    <md-card>
-      <md-card-content>
-        <md-toolbar class="md-table-toolbar md-default">
-          <div class="md-toolbar-tools">
-            <span>Portal views</span>
-            <div flex></div>
-          </div>
-        </md-toolbar>
+<md-toolbar class="md-table-toolbar md-default">
+  <div class="md-toolbar-tools">
+    <span>Portal views</span>
+    <div flex></div>
+  </div>
+</md-toolbar>
 
-        <md-table-container>
-          <table md-table ng-init="order = 'name'">
-            <thead md-head md-order="order">
-              <tr md-row>
-                <th md-column md-order-by="name">Name</th>
-                <th md-column md-order-by="description">Description</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody md-body>
-            <tr md-row ng-repeat="view in viewsCtrl.views | orderBy: order">
-              <td md-cell ng-click="viewsCtrl.editName($event, view)"
-                  ng-class="{'gravitee-placeholder': !view.name}">
-                {{view.name || 'Add a name'}}
-              </td>
-              <td md-cell ng-click="viewsCtrl.editDescription($event, view)"
-                  ng-class="{'gravitee-placeholder': !view.description}">
-                {{view.description || 'Add a description'}}
-              </td>
-              <td><ng-md-icon icon="delete" ng-click="viewsCtrl.deleteView(view)"></ng-md-icon></td>
-            </tr>
-            <tr md-row>
-              <td md-cell ng-click="viewsCtrl.newView($event)" class="gravitee-placeholder">
-                New view
-              </td>
-              <td md-cell></td>
-            </tr>
-            </tbody>
-          </table>
-        </md-table-container>
-        <md-card-actions layout="row" layout-align="end center">
-          <md-button ng-click="viewsCtrl.saveViews()"
-                     ng-disabled="!viewsCtrl.viewsToCreate.length && !viewsCtrl.viewsToUpdate.length">Save</md-button>
-          <md-button ng-click="viewsCtrl.reset()"
-                     ng-disabled="!viewsCtrl.viewsToCreate.length && !viewsCtrl.viewsToUpdate.length">Reset
-          </md-button>
-        </md-card-actions>
-      </md-card-content>
-    </md-card>
-  </md-card-content>
-</md-card>
+<md-table-container>
+  <table md-table ng-init="order = 'name'">
+    <thead md-head md-order="order">
+      <tr md-row>
+        <th md-column md-order-by="name">Name</th>
+        <th md-column md-order-by="description">Description</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody md-body>
+    <tr md-row ng-repeat="view in viewsCtrl.views | orderBy: order">
+      <td md-cell ng-click="viewsCtrl.editName($event, view)"
+          ng-class="{'gravitee-placeholder': !view.name}">
+        {{view.name || 'Add a name'}}
+      </td>
+      <td md-cell ng-click="viewsCtrl.editDescription($event, view)"
+          ng-class="{'gravitee-placeholder': !view.description}">
+        {{view.description || 'Add a description'}}
+      </td>
+      <td><ng-md-icon icon="delete" ng-click="viewsCtrl.deleteView(view)"></ng-md-icon></td>
+    </tr>
+    <tr md-row>
+      <td md-cell ng-click="viewsCtrl.newView($event)" class="gravitee-placeholder">
+        New view
+      </td>
+      <td md-cell></td>
+    </tr>
+    </tbody>
+  </table>
+</md-table-container>
+<md-card-actions layout="row" layout-align="end center">
+  <md-button ng-click="viewsCtrl.saveViews()"
+             ng-disabled="!viewsCtrl.viewsToCreate.length && !viewsCtrl.viewsToUpdate.length">Save</md-button>
+  <md-button ng-click="viewsCtrl.reset()"
+             ng-disabled="!viewsCtrl.viewsToCreate.length && !viewsCtrl.viewsToUpdate.length">Reset
+  </md-button>
+</md-card-actions>
