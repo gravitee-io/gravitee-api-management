@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource;
+package io.gravitee.management.service;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
+import io.gravitee.management.model.*;
+
+import java.util.List;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/configuration")
-public class ConfigurationResource {
+public interface GroupService {
 
-    @Context
-    private ResourceContext resourceContext;
+    List<GroupEntity> findAll();
 
-    @Path("views")
-    public ViewsResource getViewResource() {
-        return resourceContext.getResource(ViewsResource.class);
-    }
+    List<GroupEntity> findByType(GroupEntityType type);
 
-    @Path("groups")
-    public GroupsResource getGroupResource() {
-        return resourceContext.getResource(GroupsResource.class);
-    }
+    List<GroupEntity> findByTypeAndName(GroupEntityType type, String name);
+
+    GroupEntity create(NewGroupEntity group);
+
+    GroupEntity update(String groupId, UpdateGroupEntity group);
+
+    GroupEntity findById(String groupId);
+
+    void delete(String groupId);
+
 }

@@ -28,6 +28,8 @@ public interface ApplicationService {
 
     Set<ApplicationEntity> findByUser(String username);
 
+    Set<ApplicationEntity> findByGroup(String groupId);
+
     Set<ApplicationEntity> findAll();
 
     ApplicationEntity create(NewApplicationEntity application, String username);
@@ -37,12 +39,4 @@ public interface ApplicationService {
     void delete(String applicationId);
 
     Set<ApplicationEntity> findByApi(String applicationId);
-
-    Set<MemberEntity> getMembers(String applicationId, MembershipType membershipType);
-
-    MemberEntity getMember(String applicationId, String username);
-
-    void addOrUpdateMember(String applicationId, String username, MembershipType membershipType);
-
-    void deleteMember(String applicationId, String username);
 }

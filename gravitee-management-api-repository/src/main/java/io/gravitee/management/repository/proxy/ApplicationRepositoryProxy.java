@@ -61,4 +61,9 @@ public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationReposit
     public Set<Application> findByIds(List<String> ids) throws TechnicalException {
         return target.findByIds(ids);
     }
+
+    @Override
+    public Set<Application> findByGroups(List<String> groupIds) throws TechnicalException {
+        return target.findByGroups(groupIds);
+    }
 }

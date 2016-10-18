@@ -18,21 +18,23 @@ package io.gravitee.management.model;
 import javax.validation.constraints.NotNull;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-public class UpdateApplicationEntity {
+public class NewGroupEntity {
 
+    @NotNull
+    private GroupEntityType type;
     @NotNull
     private String name;
 
-    @NotNull
-    private String description;
+    public GroupEntityType getType() {
+        return type;
+    }
 
-    private String type;
-
-    private String group;
+    public void setType(GroupEntityType type) {
+        this.type = type;
+    }
 
     public String getName() {
         return name;
@@ -42,27 +44,11 @@ public class UpdateApplicationEntity {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getGroup() {
-        return group;
-    }
-
-    public void setGroup(String group) {
-        this.group = group;
+    @Override
+    public String toString() {
+        return "NewGroupEntity{" +
+                ", name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                "}";
     }
 }

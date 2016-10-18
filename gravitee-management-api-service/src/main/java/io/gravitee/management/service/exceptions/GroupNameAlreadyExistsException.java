@@ -13,30 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource;
+package io.gravitee.management.service.exceptions;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/configuration")
-public class ConfigurationResource {
+public class GroupNameAlreadyExistsException extends AbstractManagementException {
 
-    @Context
-    private ResourceContext resourceContext;
+    private final String name;
 
-    @Path("views")
-    public ViewsResource getViewResource() {
-        return resourceContext.getResource(ViewsResource.class);
+    public GroupNameAlreadyExistsException(String name) {
+        this.name = name;
     }
 
-    @Path("groups")
-    public GroupsResource getGroupResource() {
-        return resourceContext.getResource(GroupsResource.class);
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getMessage() {
+        return "A group with the name [" + name + "] already exists.";
     }
 }

@@ -30,6 +30,8 @@ public interface ApiService {
 
     Set<ApiEntity> findByUser(String username);
 
+    Set<ApiEntity> findByGroup(String groupId);
+
     Set<ApiEntity> findByVisibility(Visibility visibility);
     
     int countByApplication(String applicationId);
@@ -44,14 +46,6 @@ public interface ApiService {
 
     void stop(String apiId, String username);
 
-    Set<MemberEntity> getMembers(String apiId, MembershipType membershipType);
-
-    MemberEntity getMember(String apiId, String username);
-
-    void addOrUpdateMember(String apiId, String username, MembershipType membershipType);
-
-    void deleteMember(String apiId, String username);
-    
     boolean isAPISynchronized(String apiId);
     
     ApiEntity deploy(String apiId, String username, EventType eventType);

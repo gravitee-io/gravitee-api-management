@@ -13,30 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
+package io.gravitee.management.model;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-@Path("/configuration")
-public class ConfigurationResource {
-
-    @Context
-    private ResourceContext resourceContext;
-
-    @Path("views")
-    public ViewsResource getViewResource() {
-        return resourceContext.getResource(ViewsResource.class);
-    }
-
-    @Path("groups")
-    public GroupsResource getGroupResource() {
-        return resourceContext.getResource(GroupsResource.class);
-    }
+public enum GroupEntityType {
+    APPLICATION, API
 }

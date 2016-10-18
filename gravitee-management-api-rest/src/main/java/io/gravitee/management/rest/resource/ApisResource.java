@@ -18,11 +18,9 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.SwaggerService;
-import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
+import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -65,6 +63,9 @@ public class ApisResource extends AbstractResource {
     @Inject
     private SwaggerService swaggerService;
 
+    @Inject
+    private MembershipService membershipService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -73,10 +74,12 @@ public class ApisResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<ApiListItem> listApis(@QueryParam("view") final String view) {
+    public List<ApiListItem> listApis(@QueryParam("view") final String view, @QueryParam("group") final String group) {
         Set<ApiEntity> apis;
         if (isAdmin()) {
-            apis = apiService.findAll();
+            apis = group != null
+                    ? apiService.findByGroup(group)
+                    : apiService.findAll();
         } else if (isAuthenticated()) {
             apis = apiService.findByUser(getAuthenticatedUsername());
         } else {
@@ -85,6 +88,7 @@ public class ApisResource extends AbstractResource {
 
         return apis.stream()
                 .filter(apiEntity -> view == null || apiEntity.getViews().contains(view))
+                .filter(apiEntity -> group == null || (apiEntity.getGroup() != null && apiEntity.getGroup().getId().equals(group)))
                 .map(this::convert)
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .collect(Collectors.toList());
@@ -178,7 +182,7 @@ public class ApisResource extends AbstractResource {
         }
 
         // Add primary owner
-        Collection<MemberEntity> members = apiService.getMembers(api.getId(), MembershipType.PRIMARY_OWNER);
+        Collection<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, api.getId(), MembershipType.PRIMARY_OWNER);
         if (! members.isEmpty()) {
             MemberEntity primaryOwner = members.iterator().next();
             UserEntity user = userService.findByName(primaryOwner.getUsername());
@@ -196,7 +200,10 @@ public class ApisResource extends AbstractResource {
             if (isAdmin()) {
                 apiItem.setPermission(MembershipType.PRIMARY_OWNER);
             } else {
-                MemberEntity member = apiService.getMember(apiItem.getId(), getAuthenticatedUsername());
+                MemberEntity member = membershipService.getMember(MembershipReferenceType.API, apiItem.getId(), getAuthenticatedUsername());
+                if (member == null && api.getGroup() != null && api.getGroup().getId() != null) {
+                    member = membershipService.getMember(MembershipReferenceType.API_GROUP, api.getGroup().getId(), getAuthenticatedUsername());
+                }
                 if (member != null) {
                     apiItem.setPermission(member.getType());
                 } else {

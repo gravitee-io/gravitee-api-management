@@ -13,30 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
+package io.gravitee.management.service.exceptions;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/configuration")
-public class ConfigurationResource {
+public class GroupNotFoundException extends AbstractNotFoundException {
 
-    @Context
-    private ResourceContext resourceContext;
+    private final String groupId;
 
-    @Path("views")
-    public ViewsResource getViewResource() {
-        return resourceContext.getResource(ViewsResource.class);
+    public GroupNotFoundException(String groupId) {
+        this.groupId = groupId;
     }
 
-    @Path("groups")
-    public GroupsResource getGroupResource() {
-        return resourceContext.getResource(GroupsResource.class);
+    @Override
+    public String getMessage() {
+        return "Group [" + groupId + "] can not be found.";
     }
 }

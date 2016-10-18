@@ -27,7 +27,9 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @JsonFilter("apiMembershipTypeFilter")
 public class ApiEntity {
@@ -36,6 +38,7 @@ public class ApiEntity {
     private String name;
     private String version;
     private String description;
+    private GroupEntity group;
 
     @NotNull
     @DeploymentRequired
@@ -253,6 +256,14 @@ public class ApiEntity {
         this.views = views;
     }
 
+    public GroupEntity getGroup() {
+        return group;
+    }
+
+    public void setGroup(GroupEntity group) {
+        this.group = group;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -283,6 +294,7 @@ public class ApiEntity {
             ", permission=" + permission +
             ", tags=" + tags +
             ", view=" + views +
+            ", group=" + group +
             '}';
     }
 }

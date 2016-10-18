@@ -95,6 +95,9 @@ public class ApiServiceTest {
     private Api api;
 
     @Mock
+    private MembershipService membershipService;
+
+    @Mock
     private EventService eventService;
 
     @Mock
@@ -582,8 +585,16 @@ public class ApiServiceTest {
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
 
         verify(pageService, times(2)).create(eq(API_ID), any(NewPageEntity.class));
-        verify(membershipRepository, times(1)).update(po);
-        verify(membershipRepository, times(1)).update(owner);
+        verify(membershipService, times(1)).addOrUpdateMember(
+                MembershipReferenceType.API,
+                API_ID,
+                admin.getUsername(),
+                MembershipType.valueOf(po.getType()));
+        verify(membershipService, times(1)).addOrUpdateMember(
+                MembershipReferenceType.API,
+                API_ID,
+                user.getUsername(),
+                MembershipType.valueOf(owner.getType()));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
     }
@@ -619,8 +630,16 @@ public class ApiServiceTest {
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
 
         verify(pageService, never()).create(eq(API_ID), any(NewPageEntity.class));
-        verify(membershipRepository, times(1)).update(po);
-        verify(membershipRepository, times(1)).update(owner);
+        verify(membershipService, times(1)).addOrUpdateMember(
+                MembershipReferenceType.API,
+                API_ID,
+                admin.getUsername(),
+                MembershipType.valueOf(po.getType()));
+        verify(membershipService, times(1)).addOrUpdateMember(
+                MembershipReferenceType.API,
+                API_ID,
+                user.getUsername(),
+                MembershipType.valueOf(owner.getType()));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
     }
@@ -699,9 +718,14 @@ public class ApiServiceTest {
         membership.setType(MembershipType.PRIMARY_OWNER.name());
         when(membershipRepository.findByReferenceAndMembershipType(eq(MembershipReferenceType.API), eq(API_ID), any()))
                 .thenReturn(Collections.singleton(membership));
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.setUsername(membership.getUserId());
+        memberEntity.setType(MembershipType.valueOf(membership.getType()));
+        when(membershipService.getMembers(eq(MembershipReferenceType.API), eq(API_ID)))
+                .thenReturn(Collections.singleton(memberEntity));
         UserEntity userEntity = new UserEntity();
-        userEntity.setUsername(membership.getUserId());
-        when(userService.findByName(membership.getUserId())).thenReturn(userEntity);
+        userEntity.setUsername(memberEntity.getUsername());
+        when(userService.findByName(memberEntity.getUsername())).thenReturn(userEntity);
 
         String jsonForExport = apiService.exportAsJson(API_ID, io.gravitee.management.model.MembershipType.PRIMARY_OWNER);
 
@@ -739,8 +763,16 @@ public class ApiServiceTest {
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
         verify(pageService, times(2)).create(eq(API_ID), any(NewPageEntity.class));
-        verify(membershipRepository, times(1)).create(po);
-        verify(membershipRepository, times(1)).create(owner);
+        verify(membershipService, times(1)).addOrUpdateMember(
+                MembershipReferenceType.API,
+                API_ID,
+                admin.getUsername(),
+                MembershipType.valueOf(po.getType()));
+        verify(membershipService, times(1)).addOrUpdateMember(
+                MembershipReferenceType.API,
+                API_ID,
+                user.getUsername(),
+                MembershipType.valueOf(owner.getType()));
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
     }
@@ -771,9 +803,16 @@ public class ApiServiceTest {
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
         verify(pageService, never()).create(eq(API_ID), any(NewPageEntity.class));
-        verify(membershipRepository, times(1)).create(po);
-        verify(membershipRepository, times(1)).update(po);
-        verify(membershipRepository, times(1)).create(owner);
+        verify(membershipService, times(1)).addOrUpdateMember(
+                MembershipReferenceType.API,
+                API_ID,
+                admin.getUsername(),
+                MembershipType.valueOf(po.getType()));
+        verify(membershipService, times(1)).addOrUpdateMember(
+                MembershipReferenceType.API,
+                API_ID,
+                user.getUsername(),
+                MembershipType.valueOf(owner.getType()));
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
     }

@@ -19,7 +19,9 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class NewApiEntity {
 
@@ -37,6 +39,8 @@ public class NewApiEntity {
 
     @NotNull
     private String endpoint;
+
+    private String group;
 
     private List<String> paths;
 
@@ -88,6 +92,14 @@ public class NewApiEntity {
         this.paths = paths;
     }
 
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
     @Override
     public String toString() {
         return "NewApiEntity{" +
@@ -96,6 +108,7 @@ public class NewApiEntity {
                 ", description='" + description + '\'' +
                 ", contextPath='" + contextPath + '\'' +
                 ", endpoint='" + endpoint + '\'' +
+                ", group='" + group + '\'' +
                 '}';
     }
 }

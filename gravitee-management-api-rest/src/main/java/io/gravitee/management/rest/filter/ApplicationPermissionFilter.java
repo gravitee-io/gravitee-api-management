@@ -21,6 +21,8 @@ import io.gravitee.management.model.permissions.ApplicationPermission;
 import io.gravitee.management.model.permissions.PermissionHelper;
 import io.gravitee.management.rest.security.ApplicationPermissionsRequired;
 import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.MembershipService;
+import io.gravitee.repository.management.model.MembershipReferenceType;
 
 import javax.annotation.Priority;
 import javax.inject.Inject;
@@ -32,6 +34,7 @@ import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Provider
@@ -41,6 +44,9 @@ public class ApplicationPermissionFilter extends PermissionFilter<ApplicationPer
 
     @Inject
     private ApplicationService applicationService;
+
+    @Inject
+    private MembershipService membershipService;
 
     public ApplicationPermissionFilter() {
         super(ApplicationPermissionsRequired.class);
@@ -58,18 +64,28 @@ public class ApplicationPermissionFilter extends PermissionFilter<ApplicationPer
 
         logger.debug("Checking permissions for application: [{}] and user: [{}]", application.getId(), username);
 
-        Set<MemberEntity> members = applicationService.getMembers(application.getId(), null);
-        Optional<MemberEntity> optMember =
-                members.stream().filter(memberEntity -> memberEntity.getUsername().equalsIgnoreCase(username)).findFirst();
-
-        if (optMember.isPresent()) {
-            List<ApplicationPermission> permissions = PermissionHelper.getApplicationPermissionsByRole(optMember.get().getType());
-
-            if (!permissions.contains(permissionAnnotation.value())) {
+        MemberEntity member = membershipService.getMember(MembershipReferenceType.APPLICATION, application.getId(), username);
+        if(!checkMemberPermission(permissionAnnotation, requestContext, member)) {
+            if(application.getGroup() != null && application.getGroup().getId() != null) {
+                member = membershipService.getMember(MembershipReferenceType.APPLICATION_GROUP, application.getGroup().getId(), username);
+                if(!checkMemberPermission(permissionAnnotation, requestContext, member)) {
+                    sendSecurityError(requestContext);
+                }
+            } else {
                 sendSecurityError(requestContext);
             }
-        } else {
-            sendSecurityError(requestContext);
         }
+    }
+
+    private boolean checkMemberPermission(ApplicationPermissionsRequired permissionAnnotation, ContainerRequestContext requestContext, MemberEntity member) {
+        if (member == null) {
+            return false;
+        }
+        List<ApplicationPermission> permissions = PermissionHelper.getApplicationPermissionsByRole(member.getType());
+        if (!permissions.contains(permissionAnnotation.value())) {
+            sendSecurityError(requestContext);
+            return false;
+        }
+        return true;
     }
 }

@@ -61,6 +61,8 @@ public class UpdateApiEntity {
 
     private Set<String> views;
 
+    private String group;
+
     public Visibility getVisibility() {
         return visibility;
     }
@@ -155,5 +157,13 @@ public class UpdateApiEntity {
 
     public void setViews(Set<String> views) {
         this.views = views;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 }

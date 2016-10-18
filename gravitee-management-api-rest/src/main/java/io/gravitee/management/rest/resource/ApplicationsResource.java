@@ -57,13 +57,20 @@ public class ApplicationsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "User's applications", response = ApplicationEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<ApplicationEntity> listApplications() {
+    public List<ApplicationEntity> listApplications(@QueryParam("group") final String group) {
         Set<ApplicationEntity> applications;
 
         if (isAdmin()) {
-            applications = applicationService.findAll();
+            applications = group != null
+                    ? applicationService.findByGroup(group)
+                    : applicationService.findAll();
         } else {
             applications = applicationService.findByUser(getAuthenticatedUsername());
+            if (group != null && !group.isEmpty()) {
+                applications = applications.stream()
+                        .filter(app -> app.getGroup() != null && app.getGroup().getId().equals(group))
+                        .collect(Collectors.toSet());
+            }
         }
 
         applications.forEach(api -> api = applicationEnhancer.enhance(securityContext).apply(api));
@@ -72,6 +79,8 @@ public class ApplicationsResource extends AbstractResource {
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .collect(Collectors.toList());
     }
+
+
 
     /**
      * Create a new application for the authenticated user.

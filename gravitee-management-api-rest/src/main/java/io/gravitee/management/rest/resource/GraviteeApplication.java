@@ -51,6 +51,7 @@ public class GraviteeApplication extends ResourceConfig {
         register(UserResource.class);
         register(PlatformResource.class);
         register(ConfigurationResource.class);
+        register(GroupsResource.class);
 
         register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);

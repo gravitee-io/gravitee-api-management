@@ -188,13 +188,23 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     // User management
                     .antMatchers(HttpMethod.POST, "/users").permitAll()
                     .antMatchers(HttpMethod.POST, "/users/register").permitAll()
-                    .antMatchers(HttpMethod.GET, "/users").hasAnyAuthority("ADMIN")
+                    .antMatchers(HttpMethod.GET, "/users").hasAuthority("ADMIN")
                     .antMatchers(HttpMethod.GET, "/users/**").authenticated()
-                    .antMatchers(HttpMethod.PUT, "/users/**").hasAnyAuthority("ADMIN")
-                    .antMatchers(HttpMethod.DELETE, "/users/**").hasAnyAuthority("ADMIN")
+                    .antMatchers(HttpMethod.PUT, "/users/**").hasAuthority("ADMIN")
+                    .antMatchers(HttpMethod.DELETE, "/users/**").hasAuthority("ADMIN")
 
                     // Swagger
                     .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
+
+                    // Configuration Groups
+                    .antMatchers(HttpMethod.GET, "/configuration/groups/*").permitAll()
+                    .antMatchers(HttpMethod.POST, "/configuration/groups/**").hasAuthority("ADMIN")
+                    .antMatchers(HttpMethod.PUT, "/configuration/groups/**").hasAuthority("ADMIN")
+                    .antMatchers(HttpMethod.DELETE, "/configuration/groups/**").hasAuthority("ADMIN")
+                    // Configuration Views
+                    .antMatchers(HttpMethod.GET, "/configuration/views/**").permitAll()
+                    // Configuration
+                    .antMatchers("/configuration/**").hasAuthority("ADMIN")
 
                     .anyRequest().authenticated()
             .and()

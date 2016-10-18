@@ -20,7 +20,9 @@ import io.gravitee.management.model.*;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.PageService;
+import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -40,6 +42,9 @@ public class ApiPagesResource extends AbstractResource {
 
     @Inject
     private ApiService apiService;
+
+    @Inject
+    private MembershipService membershipService;
 
     @Inject
     private PageService pageService;
@@ -91,7 +96,7 @@ public class ApiPagesResource extends AbstractResource {
         final List<PageListItem> filteredPages = pages.stream()
             .filter(page -> {
                 if (isAuthenticated()) {
-                    MemberEntity member = apiService.getMember(apiEntity.getId(), getAuthenticatedUsername());
+                    MemberEntity member = membershipService.getMember(MembershipReferenceType.API, apiEntity.getId(), getAuthenticatedUsername());
                     if (member != null) {
                         return !MembershipType.USER.equals(member.getType());
                     }

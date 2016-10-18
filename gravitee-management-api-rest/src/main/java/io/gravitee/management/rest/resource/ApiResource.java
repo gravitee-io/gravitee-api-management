@@ -21,7 +21,10 @@ import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.resource.LifecycleActionParam.LifecycleAction;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -51,6 +54,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ApiService apiService;
+
+    @Inject
+    MembershipService membershipService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -319,14 +325,18 @@ public class ApiResource extends AbstractResource {
         if (isAdmin()) {
             api.setPermission(MembershipType.PRIMARY_OWNER);
         } else if (isAuthenticated()) {
-            MemberEntity member = apiService.getMember(api.getId(), getAuthenticatedUsername());
+            MemberEntity member = membershipService.getMember(MembershipReferenceType.API, api.getId(), getAuthenticatedUsername());
             if (member != null) {
                 api.setPermission(member.getType());
-            } else {
-                if (api.getVisibility() == Visibility.PUBLIC) {
-                    // If API is public, all users have the user permission
-                    api.setPermission(MembershipType.USER);
+            } else  if (api.getGroup() != null) {
+                member = membershipService.getMember(MembershipReferenceType.API_GROUP, api.getGroup().getId(), getAuthenticatedUsername());
+                if (member != null) {
+                    api.setPermission(member.getType());
                 }
+            }
+            if (member == null && api.getVisibility() == Visibility.PUBLIC) {
+                // If API is public, all users have the user permission
+                api.setPermission(MembershipType.USER);
             }
         }
     }

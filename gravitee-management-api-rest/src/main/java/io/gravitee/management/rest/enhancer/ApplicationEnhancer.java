@@ -17,8 +17,9 @@ package io.gravitee.management.rest.enhancer;
 
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.UserService;
+import io.gravitee.repository.management.model.MembershipReferenceType;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -28,13 +29,15 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Component
 public class ApplicationEnhancer {
 
     @Inject
-    private ApplicationService applicationService;
+    private MembershipService membershipService;
     
     @Inject
     private ApiService apiService;
@@ -45,7 +48,7 @@ public class ApplicationEnhancer {
     public Function<ApplicationEntity, ApplicationEntity> enhance(SecurityContext securityContext) {
         return application -> {
             // Add primary owner
-            Collection<MemberEntity> members = applicationService.getMembers(application.getId(), null);
+            Collection<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.APPLICATION, application.getId());
             Optional<MemberEntity> primaryOwnerOpt = members.stream().filter(m -> MembershipType.PRIMARY_OWNER.equals(m.getType())).findFirst();
             if (primaryOwnerOpt.isPresent()) {
                 MemberEntity primaryOwner = primaryOwnerOpt.get();
@@ -66,10 +69,20 @@ public class ApplicationEnhancer {
             if (securityContext.isUserInRole("ADMIN")) {
                 application.setPermission(MembershipType.PRIMARY_OWNER);
             } else if(securityContext.getUserPrincipal() != null) {
-                MemberEntity member = applicationService.getMember(
-                        application.getId(), securityContext.getUserPrincipal().getName());
+                MemberEntity member = membershipService.getMember(
+                        MembershipReferenceType.APPLICATION,
+                        application.getId(),
+                        securityContext.getUserPrincipal().getName());
                 if (member != null) {
                     application.setPermission(member.getType());
+                } else if (application.getGroup() != null && application.getGroup().getId() != null) {
+                    member = membershipService.getMember(
+                            MembershipReferenceType.APPLICATION_GROUP,
+                            application.getGroup().getId(),
+                            securityContext.getUserPrincipal().getName());
+                    if (member != null) {
+                        application.setPermission(member.getType());
+                    }
                 }
             }
             

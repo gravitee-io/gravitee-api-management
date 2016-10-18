@@ -21,7 +21,9 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ApplicationEntity {
 
@@ -29,6 +31,7 @@ public class ApplicationEntity {
     private String name;
     private String description;
     private String type;
+    private GroupEntity group;
 
     @JsonProperty("created_at")
     private Date createdAt;
@@ -127,7 +130,15 @@ public class ApplicationEntity {
 		this.apisSize = apisSize;
 	}
 
-	@Override
+    public GroupEntity getGroup() {
+        return group;
+    }
+
+    public void setGroup(GroupEntity group) {
+        this.group = group;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

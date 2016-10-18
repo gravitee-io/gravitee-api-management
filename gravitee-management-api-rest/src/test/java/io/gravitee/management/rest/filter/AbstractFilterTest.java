@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource;
+package io.gravitee.management.rest.filter;
 
-import io.gravitee.management.rest.JerseySpringTest;
 import io.gravitee.management.service.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +24,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
+import javax.ws.rs.container.ResourceInfo;
+import javax.ws.rs.core.SecurityContext;
+
 import static org.mockito.Mockito.mock;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(loader=AnnotationConfigContextLoader.class)
-public abstract class AbstractResourceTest extends JerseySpringTest {
+public abstract class AbstractFilterTest {
 
     @Autowired
     protected ApiService apiService;
@@ -41,16 +44,10 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ApplicationService applicationService;
 
     @Autowired
-    protected PolicyService policyService;
+    protected ResourceInfo resourceInfo;
 
     @Autowired
-    protected UserService userService;
-
-    @Autowired
-    protected FetcherService fetcherService;
-
-    @Autowired
-    protected SwaggerService swaggerService;
+    protected SecurityContext securityContext;
 
     @Autowired
     protected MembershipService membershipService;
@@ -69,23 +66,13 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
-        public UserService userService() {
-            return mock(UserService.class);
+        public SecurityContext securityContext() {
+            return mock(SecurityContext.class);
         }
 
         @Bean
-        public PolicyService policyService() {
-            return mock(PolicyService.class);
-        }
-
-        @Bean
-        public FetcherService fetcherService() {
-            return mock(FetcherService.class);
-        }
-
-        @Bean
-        public SwaggerService swaggerService() {
-            return mock(SwaggerService.class);
+        public ResourceInfo resourceInfo() {
+            return mock(ResourceInfo.class);
         }
 
         @Bean

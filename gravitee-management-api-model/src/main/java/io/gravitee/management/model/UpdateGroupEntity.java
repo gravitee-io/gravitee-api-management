@@ -13,30 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource;
+package io.gravitee.management.model;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
+import javax.validation.constraints.NotNull;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-@Path("/configuration")
-public class ConfigurationResource {
+public class UpdateGroupEntity {
 
-    @Context
-    private ResourceContext resourceContext;
+    @NotNull
+    private String name;
 
-    @Path("views")
-    public ViewsResource getViewResource() {
-        return resourceContext.getResource(ViewsResource.class);
+    public String getName() {
+        return name;
     }
 
-    @Path("groups")
-    public GroupsResource getGroupResource() {
-        return resourceContext.getResource(GroupsResource.class);
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "NewGroupEntity{" +
+                ", name='" + name + '\'' +
+                "}";
     }
 }

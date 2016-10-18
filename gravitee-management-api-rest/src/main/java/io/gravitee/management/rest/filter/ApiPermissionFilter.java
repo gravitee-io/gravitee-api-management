@@ -22,6 +22,8 @@ import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.PermissionHelper;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.MembershipService;
+import io.gravitee.repository.management.model.MembershipReferenceType;
 
 import javax.annotation.Priority;
 import javax.inject.Inject;
@@ -32,7 +34,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Provider
@@ -42,6 +45,9 @@ public class ApiPermissionFilter extends PermissionFilter<ApiPermissionsRequired
 
     @Inject
     private ApiService apiService;
+
+    @Inject
+    private MembershipService membershipService;
 
     public ApiPermissionFilter() {
         super(ApiPermissionsRequired.class);
@@ -71,19 +77,30 @@ public class ApiPermissionFilter extends PermissionFilter<ApiPermissionsRequired
 
         ApiPermission requiredPermission = permissionAnnotation.value();
         if (requiredPermission != ApiPermission.READ || api.getVisibility() != Visibility.PUBLIC) {
-            Set<MemberEntity> members = apiService.getMembers(api.getId(), null);
-            Optional<MemberEntity> optMember =
-                    members.stream().filter(memberEntity -> memberEntity.getUsername().equalsIgnoreCase(username)).findFirst();
-
-            if (optMember.isPresent()) {
-                List<ApiPermission> permissions = PermissionHelper.getApiPermissionsByRole(optMember.get().getType());
-
-                if (!permissions.contains(permissionAnnotation.value())) {
+            MemberEntity member = membershipService.getMember(MembershipReferenceType.API, api.getId(), username);
+            if(!checkMemberPermission(permissionAnnotation, requestContext, member)) {
+                if (api.getGroup() != null && api.getGroup().getId() != null) {
+                    member = membershipService.getMember(MembershipReferenceType.API_GROUP, api.getGroup().getId(), username);
+                    if (!checkMemberPermission(permissionAnnotation, requestContext, member)) {
+                        sendSecurityError(requestContext);
+                    }
+                } else {
                     sendSecurityError(requestContext);
                 }
-            } else {
-                sendSecurityError(requestContext);
             }
         }
+    }
+
+    private boolean checkMemberPermission(ApiPermissionsRequired permissionAnnotation, ContainerRequestContext requestContext, MemberEntity member) {
+        if (member == null) {
+            return false;
+        }
+        List<ApiPermission> permissions = PermissionHelper.getApiPermissionsByRole(member.getType());
+
+        if (!permissions.contains(permissionAnnotation.value())) {
+            sendSecurityError(requestContext);
+            return false;
+        }
+        return true;
     }
 }

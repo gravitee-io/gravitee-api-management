@@ -20,14 +20,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.*;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.service.*;
-import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -79,13 +77,13 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private UserService userService;
 
     @Autowired
-    private EmailService emailService;
-
-    @Autowired
     private PageService pageService;
 
     @Autowired
-    private IdentityService identityService;
+    private MembershipService membershipService;
+
+    @Autowired
+    private GroupService groupService;
 
     @Autowired
     private ApiSynchronizationProcessor apiSynchronizationProcessor;
@@ -100,6 +98,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setName(newApiEntity.getName());
         apiEntity.setDescription(newApiEntity.getDescription());
         apiEntity.setVersion(newApiEntity.getVersion());
+        apiEntity.setGroup(newApiEntity.getGroup());
 
         Proxy proxy = new Proxy();
         proxy.setContextPath(newApiEntity.getContextPath());
@@ -267,6 +266,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                             .collect(Collectors.toList())
             );
 
+            List<String> groupIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.API_GROUP).stream()
+                    .map(Membership::getReferenceId).collect(Collectors.toList());
+            Set<Api> groupApis = apiRepository.findByGroups(groupIds);
+
             final Set<ApiEntity> apis = new HashSet<>(publicApis.size() + restrictedApis.size() + userApis.size());
 
             apis.addAll(convert(publicApis));
@@ -275,10 +278,23 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
             apis.addAll(convert(userApis));
 
+            apis.addAll(convert(groupApis));
+
             return apis;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find APIs for user {}", username, ex);
             throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + username, ex);
+        }
+    }
+
+    @Override
+    public Set<ApiEntity> findByGroup(String groupId) {
+        LOGGER.debug("Find APIs by group {}", groupId);
+        try {
+            return convert(apiRepository.findByGroups(Collections.singletonList(groupId)));
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find APIs for group {}", groupId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find APIs for group " + groupId, ex);
         }
     }
 
@@ -382,114 +398,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to stop API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);
-        }
-    }
-
-    @Override
-    public Set<MemberEntity> getMembers(String apiId, io.gravitee.management.model.MembershipType membershipType) {
-        try {
-            LOGGER.debug("Get members for API {}", apiId);
-
-            Set<Membership> memberships = membershipRepository.findByReferenceAndMembershipType(
-                    MembershipReferenceType.API,
-                    apiId,
-                    (membershipType == null) ? null : membershipType.name());
-
-            return memberships.stream()
-                    .map(this::convert)
-                    .collect(Collectors.toSet());
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get members for API {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get members for API " + apiId, ex);
-        }
-    }
-
-    @Override
-    public MemberEntity getMember(String apiId, String username) {
-        try {
-            LOGGER.debug("Get membership for API {} and user {}", apiId, username);
-
-            Optional<Membership> membership = membershipRepository.findById(username, MembershipReferenceType.API, apiId);
-
-            if (membership.isPresent()) {
-                return convert(membership.get());
-            }
-
-            return null;
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get membership for API {} and user", apiId, username, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get members for API " + apiId + " and user " + username, ex);
-        }
-    }
-
-    @Override
-    public void addOrUpdateMember(String api, String username, io.gravitee.management.model.MembershipType membershipType) {
-        try {
-            LOGGER.debug("Add or update a new member for API {}", api);
-
-            UserEntity user;
-
-            try {
-                user = userService.findByName(username);
-            } catch (UserNotFoundException unfe) {
-                // User does not exist so we are looking into defined providers
-                io.gravitee.management.model.providers.User providerUser = identityService.findOne(username);
-                if (providerUser != null) {
-                    // Information will be updated after the first connection of the user
-                    NewExternalUserEntity newUser = new NewExternalUserEntity();
-                    newUser.setUsername(username);
-                    newUser.setFirstname(providerUser.getFirstname());
-                    newUser.setLastname(providerUser.getLastname());
-                    newUser.setEmail(providerUser.getEmail());
-                    newUser.setSource(providerUser.getSource());
-                    newUser.setSourceId(providerUser.getSourceId());
-
-                    user = userService.create(newUser);
-                } else {
-                    throw new UserNotFoundException(username);
-                }
-            }
-
-            Optional<Membership> optionalMembership =
-                    membershipRepository.findById(username, MembershipReferenceType.API, api);
-            Date updateDate = new Date();
-            if (optionalMembership.isPresent()) {
-                optionalMembership.get().setType(membershipType.name());
-                optionalMembership.get().setUpdatedAt(updateDate);
-                membershipRepository.update(optionalMembership.get());
-            } else {
-                Membership membership = new Membership(username, api, MembershipReferenceType.API);
-                membership.setType(membershipType.name());
-                membership.setCreatedAt(updateDate);
-                membership.setUpdatedAt(updateDate);
-                membershipRepository.create(membership);
-            }
-
-            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                        .to(user.getEmail())
-                        .subject("Subscription to API " + api)
-                        .content("apiMember.html")
-                        .params(ImmutableMap.of("api", api, "username", username))
-                        .build()
-                );
-            }
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to add or update member for API {}", api, ex);
-            throw new TechnicalManagementException("An error occurs while trying to add or update member for API " + api, ex);
-        }
-    }
-
-    @Override
-    public void deleteMember(String api, String username) {
-        try {
-            LOGGER.debug("Delete member {} for API {}", username, api);
-
-            userService.findByName(username);
-            membershipRepository.delete(new Membership(username, api, MembershipReferenceType.API));
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete member {} for API {}", username, api, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for API " + api, ex);
         }
     }
 
@@ -607,7 +515,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setState(null);
         apiEntity.setPermission(membershipType);
 
-        Set<MemberEntity> members = this.getMembers(apiId, null);
+        Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, apiId);
         if (members != null) {
             members.forEach(m -> {
                 m.setCreatedAt(null);
@@ -666,7 +574,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             if (membersDefinition != null && membersDefinition.isArray()) {
                 for (final JsonNode memberNode : membersDefinition) {
                     MemberEntity memberEntity = objectMapper.readValue(memberNode.toString(), MemberEntity.class);
-                    addOrUpdateMember(createdOrUpdatedApiEntity.getId(), memberEntity.getUsername(), memberEntity.getType());
+                    membershipService.addOrUpdateMember(
+                            MembershipReferenceType.API,
+                            createdOrUpdatedApiEntity.getId(),
+                            memberEntity.getUsername(),
+                            memberEntity.getType());
                 }
             }
             //Pages
@@ -753,6 +665,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         updateApiEntity.setTags(apiEntity.getTags());
         updateApiEntity.setVersion(apiEntity.getVersion());
         updateApiEntity.setVisibility(apiEntity.getVisibility());
+        if (apiEntity.getGroup() != null) {
+            updateApiEntity.setGroup(apiEntity.getGroup().getId());
+        }
 
         return updateApiEntity;
     }
@@ -797,6 +712,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setName(api.getName());
         apiEntity.setDeployedAt(api.getDeployedAt());
         apiEntity.setCreatedAt(api.getCreatedAt());
+        if(api.getGroup() != null) {
+            apiEntity.setGroup(groupService.findById(api.getGroup()));
+        }
 
         if (api.getDefinition() != null) {
             try {
@@ -849,6 +767,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         api.setName(updateApiEntity.getName().trim());
         api.setDescription(updateApiEntity.getDescription().trim());
         api.setPicture(updateApiEntity.getPicture());
+        api.setGroup(updateApiEntity.getGroup());
 
         try {
             io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
@@ -872,21 +791,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         return null;
-    }
-
-    private MemberEntity convert(Membership membership) {
-        MemberEntity member = new MemberEntity();
-
-        UserEntity userEntity = userService.findByName(membership.getUserId());
-        member.setUsername(userEntity.getUsername());
-        member.setCreatedAt(membership.getCreatedAt());
-        member.setUpdatedAt(membership.getUpdatedAt());
-        member.setType(MembershipType.valueOf(membership.getType()));
-        member.setFirstname(userEntity.getFirstname());
-        member.setLastname(userEntity.getLastname());
-        member.setEmail(userEntity.getEmail());
-
-        return member;
     }
 
     private LifecycleState convert(EventType eventType) {

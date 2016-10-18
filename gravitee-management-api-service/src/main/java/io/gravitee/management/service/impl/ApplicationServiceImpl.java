@@ -15,17 +15,13 @@
  */
 package io.gravitee.management.service.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
-import io.gravitee.management.service.IdentityService;
-import io.gravitee.management.service.exceptions.UserNotFoundException;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.EmailService;
-import io.gravitee.management.service.UserService;
-import io.gravitee.management.service.builder.EmailNotificationBuilder;
+import io.gravitee.management.model.permissions.Role;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.management.service.exceptions.NotAuthorizedRoleException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -42,8 +38,11 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 
+
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Component
 public class ApplicationServiceImpl extends TransactionalService implements ApplicationService {
@@ -60,13 +59,10 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     private UserService userService;
 
     @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private IdentityService identityService;
-
-    @Autowired
     private MembershipRepository membershipRepository;
+
+    @Autowired
+    private GroupService groupService;
 
     @Override
     public ApplicationEntity findById(String applicationId) {
@@ -101,11 +97,17 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Find applications for user {}", username);
 
+            //find applications where the user is a member
             List<String> appIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.APPLICATION).stream()
                     .map(Membership::getReferenceId).collect(Collectors.toList());
             final Set<Application> applications = applicationRepository.findByIds(appIds);
 
-            if (applications == null || applications.isEmpty()) {
+            //find applications wihch be part of the same group as the user
+            List<String> groupIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.APPLICATION_GROUP).stream()
+                    .map(Membership::getReferenceId).collect(Collectors.toList());
+            applications.addAll(applicationRepository.findByGroups(groupIds));
+
+            if (applications.isEmpty()) {
                 return emptySet();
             }
 
@@ -113,6 +115,17 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for user {}", username, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for user " + username, ex);
+        }
+    }
+
+    @Override
+    public Set<ApplicationEntity> findByGroup(String groupId) {
+        LOGGER.debug("Find applications by group {}", groupId);
+        try {
+            return convert(applicationRepository.findByGroups(Collections.singletonList(groupId)));
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find applications for group {}", groupId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find applications for group " + groupId, ex);
         }
     }
 
@@ -139,6 +152,10 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Create {} for user {}", newApplicationEntity, username);
 
+            if (newApplicationEntity.getGroup() != null) {
+                //throw a NotFoundException if the group doesn't exist
+                groupService.findById(newApplicationEntity.getGroup());
+            }
             String id = UUID.toString(UUID.random());
 
             Optional<Application> checkApplication = applicationRepository.findById(id);
@@ -174,7 +191,10 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     public ApplicationEntity update(String applicationId, UpdateApplicationEntity updateApplicationEntity) {
         try {
             LOGGER.debug("Update application {}", applicationId);
-
+            if (updateApplicationEntity.getGroup() != null) {
+                //throw a NotFoundException if the group doesn't exist
+                groupService.findById(updateApplicationEntity.getGroup());
+            }
             Optional<Application> optApplicationToUpdate = applicationRepository.findById(applicationId);
             if (!optApplicationToUpdate.isPresent()) {
                 throw new ApplicationNotFoundException(applicationId);
@@ -226,114 +246,6 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         }
     }
 
-    @Override
-    public Set<MemberEntity> getMembers(String applicationId, io.gravitee.management.model.MembershipType membershipType) {
-        try {
-            LOGGER.debug("Get members for application {}", applicationId);
-
-            Set<Membership> memberships = membershipRepository.findByReferenceAndMembershipType(
-                    MembershipReferenceType.APPLICATION,
-                    applicationId,
-                    (membershipType == null ) ? null : membershipType.name());
-
-            return memberships.stream()
-                    .map(this::convert)
-                    .collect(Collectors.toSet());
-
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get members for application {}", applicationId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get members for application " + applicationId, ex);
-        }
-    }
-
-    @Override
-    public MemberEntity getMember(String applicationId, String username) {
-        try {
-            LOGGER.debug("Get membership for application {} and user {}", applicationId, username);
-
-            Optional<Membership> optionalMembership = membershipRepository.findById(username, MembershipReferenceType.APPLICATION, applicationId);
-
-            if (optionalMembership.isPresent()) {
-                return convert(optionalMembership.get());
-            }
-
-            return null;
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get membership for application {} and user", applicationId, username, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get members for application " + applicationId + " and user " + username, ex);
-        }
-    }
-
-    @Override
-    public void addOrUpdateMember(String applicationId, String username, io.gravitee.management.model.MembershipType membershipType) {
-        try {
-            LOGGER.debug("Add a new member for applicationId {}", applicationId);
-
-            UserEntity user;
-
-            try {
-                user = userService.findByName(username);
-            } catch (UserNotFoundException unfe) {
-                // User does not exist so we are looking into defined providers
-                io.gravitee.management.model.providers.User providerUser = identityService.findOne(username);
-                if (providerUser != null) {
-                    // Information will be updated after the first connection of the user
-                    NewExternalUserEntity newUser = new NewExternalUserEntity();
-                    newUser.setUsername(username);
-                    newUser.setFirstname(providerUser.getFirstname());
-                    newUser.setLastname(providerUser.getLastname());
-                    newUser.setEmail(providerUser.getEmail());
-                    newUser.setSource(providerUser.getSource());
-                    newUser.setSourceId(providerUser.getSourceId());
-
-                    user = userService.create(newUser);
-                } else {
-                    throw new UserNotFoundException(username);
-                }
-            }
-
-            Optional<Membership> optionalMembership =
-                    membershipRepository.findById(username, MembershipReferenceType.APPLICATION, applicationId);
-            Date updateDate = new Date();
-            if (optionalMembership.isPresent()) {
-                optionalMembership.get().setType(membershipType.name());
-                optionalMembership.get().setUpdatedAt(updateDate);
-                membershipRepository.update(optionalMembership.get());
-            } else {
-                Membership membership = new Membership(username, applicationId, MembershipReferenceType.APPLICATION);
-                membership.setType(membershipType.name());
-                membership.setCreatedAt(updateDate);
-                membership.setUpdatedAt(updateDate);
-                membershipRepository.create(membership);
-            }
-
-            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                        .to(user.getEmail())
-                        .subject("Subscription to application " + applicationId)
-                        .content("applicationMember.html")
-                        .params(ImmutableMap.of("application", applicationId, "username", username))
-                        .build()
-                );
-            }
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to add member for applicationId {}", applicationId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to add member for applicationId " + applicationId, ex);
-        }
-    }
-
-    @Override
-    public void deleteMember(String applicationId, String username) {
-        try {
-            LOGGER.debug("Delete member {} for application {}", username, applicationId);
-
-            membershipRepository.delete(new Membership(username, applicationId, MembershipReferenceType.APPLICATION));
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete member {} for application {}", username, applicationId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for application " + applicationId, ex);
-        }
-    }
-
     private Set<ApplicationEntity> convert(Set<Application> applications) throws TechnicalException {
         if (applications == null || applications.isEmpty()){
             return Collections.emptySet();
@@ -367,13 +279,16 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
                 .collect(Collectors.toSet());
     }
 
-    private static ApplicationEntity convert(Application application, UserEntity primaryOwner) {
+    private ApplicationEntity convert(Application application, UserEntity primaryOwner) {
         ApplicationEntity applicationEntity = new ApplicationEntity();
 
         applicationEntity.setId(application.getId());
         applicationEntity.setName(application.getName());
         applicationEntity.setDescription(application.getDescription());
         applicationEntity.setType(application.getType());
+        if (application.getGroup() != null) {
+            applicationEntity.setGroup(groupService.findById(application.getGroup()));
+        }
 
         applicationEntity.setCreatedAt(application.getCreatedAt());
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
@@ -395,6 +310,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
         application.setName(newApplicationEntity.getName().trim());
         application.setDescription(newApplicationEntity.getDescription().trim());
+        application.setGroup(newApplicationEntity.getGroup());
 
         if (newApplicationEntity.getType() != null) {
             application.setType(newApplicationEntity.getType().trim());
@@ -408,27 +324,13 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
         application.setName(updateApplicationEntity.getName().trim());
         application.setDescription(updateApplicationEntity.getDescription().trim());
+        application.setGroup(updateApplicationEntity.getGroup());
 
         if (updateApplicationEntity.getType() != null) {
             application.setType(updateApplicationEntity.getType().trim());
         }
 
         return application;
-    }
-
-    private MemberEntity convert(Membership membership) {
-        MemberEntity member = new MemberEntity();
-
-        UserEntity userEntity = userService.findByName(membership.getUserId());
-        member.setUsername(userEntity.getUsername());
-        member.setCreatedAt(membership.getCreatedAt());
-        member.setUpdatedAt(membership.getUpdatedAt());
-        member.setType(MembershipType.valueOf(membership.getType()));
-        member.setFirstname(userEntity.getFirstname());
-        member.setLastname(userEntity.getLastname());
-        member.setEmail(userEntity.getEmail());
-
-        return member;
     }
 
 }

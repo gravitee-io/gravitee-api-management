@@ -67,4 +67,9 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     public Set<Api> findByIds(List<String> ids) throws TechnicalException {
         return target.findByIds(ids);
     }
+
+    @Override
+    public Set<Api> findByGroups(List<String> groupIds) throws TechnicalException {
+        return target.findByGroups(groupIds);
+    }
 }
