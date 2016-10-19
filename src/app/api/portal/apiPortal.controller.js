@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 class ApiPortalController {
-  constructor (resolvedApi, $rootScope) {
+  constructor (resolvedApi, $rootScope, $scope) {
     'ngInject';
     this.api = resolvedApi.data;
 
     $rootScope.currentResource = this.api.name;
+    $scope.apiReadMode = true;
+    $scope.apiEditMode = false;
   }
 }
 

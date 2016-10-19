@@ -15,11 +15,12 @@
     limitations under the License.
 
 -->
-<div layout="column" layout-align="end-start" layout-padding class="gravitee-api-header" flex>
-	<div class="gravitee-api-header-content inset">
+<div layout="column" layout-align="end-start" class="gravitee-api-header" flex>
+	<div class="gravitee-api-header-content">
 		<div ng-switch="apiCtrl.api.visibility" layout="row" layout-align="start center">
-      <div class="gravitee-api-header-image" ng-style="{'background-image':'url({{apiCtrl.api.picture || apiCtrl.api.picture_url}})'}" layout="column" layout-align="center center"></div>
-			<div flex="70">
+      <div class="gravitee-api-header-image" ng-if="apiReadMode" ng-style="{'background-image':'url({{apiCtrl.api.picture || apiCtrl.api.picture_url}})'}" layout="column" layout-align="center center"></div>
+      <gravitee-image ng-if="apiEditMode" image="apiCtrl.api.picture" image-url="apiCtrl.api.picture_url"></gravitee-image>
+      <div flex="70">
 				<h4>{{apiCtrl.api.name}}
 					<small>( {{apiCtrl.api.version}} )
 						<span ng-switch-when="public" flex="10"><ng-md-icon icon="public"></ng-md-icon><md-tooltip md-direction="right">public</md-tooltip></span>

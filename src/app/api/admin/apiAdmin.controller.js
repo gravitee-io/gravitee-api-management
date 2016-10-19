@@ -28,11 +28,17 @@ class ApiAdminController {
     this.NotificationService = NotificationService;
     this.apiJustDeployed = false;
     this.apiIsSynchronized = resolvedApiState.data.is_synchronized;
+    this.$scope.apiReadMode = false;
+    this.$scope.apiEditMode = true;
     this.init();
   }
 
   init() {
     var self = this;
+    this.$scope.$on("apiPictureChangeSuccess", function(event, args) {
+      self.api.picture = args.image;
+      self.updatePicture(self.api);
+    });
     this.$scope.$on("apiChangeSuccess", function() {
       self.checkAPISynchronization(self.api);
       self.$rootScope.$broadcast("apiChangeSucceed");
@@ -72,6 +78,14 @@ class ApiAdminController {
       this.api = deployedApi.data;
       this.apiJustDeployed = true;
       this.$rootScope.$broadcast("apiChangeSuccess");
+    });
+  }
+
+  updatePicture(api) {
+    var self = this;
+    this.ApiService.update(api).then(updatedApi => {
+      self.api = updatedApi.data;
+      self.NotificationService.show('API \'' + self.api.name + '\' saved');
     });
   }
 

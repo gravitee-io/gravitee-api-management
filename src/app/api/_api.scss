@@ -86,6 +86,7 @@
 .gravitee-api-header-content {
   color: grey;
   padding-left: 20px;
+  padding-right: 8px;
   width: 100%;
 }
 
@@ -105,8 +106,8 @@
 .gravitee-api-header-image {
   background: #ffffff no-repeat center center;
   background-size: contain;
-  margin-right: 20px;
-  min-width:110px;
+  margin: 0 20px 15px 0;
+  min-width: 110px;
   max-width: 110px;
   min-height: 110px;
   max-height: 110px;

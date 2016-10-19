@@ -26,12 +26,7 @@ class ImageDirective {
         imageUrl: '=',
         imageBorderRadius: '@'
       },
-      template: '<img ng-class="imageClass" ngf-no-object-url="true" ngf-src="imgCtrl.getSource()" style="width: 200px" ng-style="imageBorderRadius?{\'border-radius\': \'100px\'}:\'\'">' +
-      '<div class="button" ngf-select="imgCtrl.selectImage($file)" ngf-pattern="\'image/*\'"' +
-      'ngf-accept="\'image/*\'" ngf-max-size="1MB">' +
-      '<md-button class="md-raised">Upload</md-button>' +
-      '<p>Formats: jpeg, png, gif</p>' +
-      '</div>',
+      templateUrl: 'app/components/image/image.html',
       controller: ImageController,
       controllerAs: 'imgCtrl'
     };
@@ -41,8 +36,9 @@ class ImageDirective {
 }
 
 class ImageController {
-  constructor($scope, Upload) {
+  constructor($rootScope, $scope, Upload) {
     'ngInject';
+    this.$rootScope = $rootScope;
     this.$scope = $scope;
     this.Upload = Upload;
   }
@@ -58,6 +54,7 @@ class ImageController {
         if (that.$scope.imageForm) {
           that.$scope.imageForm.$setDirty();
         }
+        that.$rootScope.$broadcast("apiPictureChangeSuccess", {image: image});
       }
     });
   }
