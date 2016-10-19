@@ -31,6 +31,8 @@
 # Path to plugins repository
 #plugins:
 #  path: ${gravitee.home}/plugins
+# If a plugin is already installed (but with a different version), management node does not start anymore
+#  failOnDuplicate: true
 
 # Management repository is used to store global configuration such as APIs, applications, apikeys, ...
 # This is the default configuration using MongoDB (single server)

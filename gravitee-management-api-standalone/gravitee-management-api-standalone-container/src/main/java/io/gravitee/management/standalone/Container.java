@@ -38,6 +38,7 @@ public class Container {
 
     private final Node node;
     private ConfigurableApplicationContext ctx;
+    private boolean stopped = false;
 
     public Container() {
         initialize();
@@ -47,7 +48,6 @@ public class Container {
     }
 
     private void initialize() {
-        
         initializeEnvironment();
         initializeLogging();
         initializeContext();
@@ -70,17 +70,17 @@ public class Container {
 
         // If logback configuration available, load it, else, load default logback configuration
         if (logbackConfigurationfile.exists()) {
-                System.setProperty("logback.configurationFile", logbackConfigurationfile.getAbsolutePath());
-                StaticLoggerBinder loggerBinder = StaticLoggerBinder.getSingleton();
-                LoggerContext loggerContext = (LoggerContext) loggerBinder.getLoggerFactory();
-                loggerContext.reset();
-                JoranConfigurator configurator = new JoranConfigurator();
-                configurator.setContext(loggerContext);
-                try {
-                    configurator.doConfigure(logbackConfigurationfile);
-                } catch( JoranException e ) {
-                    e.printStackTrace();
-                }
+            System.setProperty("logback.configurationFile", logbackConfigurationfile.getAbsolutePath());
+            StaticLoggerBinder loggerBinder = StaticLoggerBinder.getSingleton();
+            LoggerContext loggerContext = (LoggerContext) loggerBinder.getLoggerFactory();
+            loggerContext.reset();
+            JoranConfigurator configurator = new JoranConfigurator();
+            configurator.setContext(loggerContext);
+            try {
+                configurator.doConfigure(logbackConfigurationfile);
+            } catch( JoranException e ) {
+                e.printStackTrace();
+            }
 
             // Internal status data is printed in case of warnings or errors.
             StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext);
@@ -88,7 +88,7 @@ public class Container {
     }
 
     private void initializeContext() {
-        LoggerFactory.getLogger(Container.class).info("Initializing Gravitee Management Standalone context...");
+        LoggerFactory.getLogger(Container.class).info("Initializing Gravitee Management API context...");
         ctx = new AnnotationConfigApplicationContext();
         ((AnnotationConfigApplicationContext)ctx).register(StandaloneConfiguration.class);
         ctx.refresh();
@@ -98,31 +98,36 @@ public class Container {
      * Start a new GraviteeIO Management Standalone node.
      */
     public void start() {
-        LoggerFactory.getLogger(Container.class).info("Start Gravitee Management Standalone...");
+        LoggerFactory.getLogger(Container.class).info("Start Gravitee Management API...");
 
         try {
             node.start();
-        } catch (Exception ex) {
-            LoggerFactory.getLogger(Container.class).error("Unexpected error", ex);
-        }
 
-        // Register shutdown hook
-        Thread shutdownHook = new ContainerShutdownHook();
-        Runtime.getRuntime().addShutdownHook(shutdownHook);
+            // Register shutdown hook
+            Thread shutdownHook = new ContainerShutdownHook();
+            shutdownHook.setName("gravitee-finalizer");
+            Runtime.getRuntime().addShutdownHook(shutdownHook);
+        } catch (Exception ex) {
+            LoggerFactory.getLogger(Container.class).error("An unexpected error occurs while starting Gravitee Management API", ex);
+            stop();
+        }
     }
 
     /**
      * Stop an existing GraviteeIO Management Standalone node.
      */
     public void stop() {
-        LoggerFactory.getLogger(Container.class).info("Shutting-down Gravitee Management Standalone...");
+        if (! stopped) {
+            LoggerFactory.getLogger(Container.class).info("Shutting-down Gravitee Management API...");
 
-        try {
-            node.stop();
-        } catch (Exception ex) {
-            LoggerFactory.getLogger(Container.class).error("Unexpected error", ex);
-        } finally {
-            ctx.close();
+            try {
+                node.stop();
+            } catch (Exception ex) {
+                LoggerFactory.getLogger(Container.class).error("Unexpected error", ex);
+            } finally {
+                ctx.close();
+                stopped = true;
+            }
         }
     }
 
