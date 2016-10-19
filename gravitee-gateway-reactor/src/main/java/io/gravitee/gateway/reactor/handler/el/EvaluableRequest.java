@@ -47,4 +47,12 @@ public class EvaluableRequest {
     public String[] getPaths() {
         return request.path().split("/");
     }
+
+    public String getContextPath() {
+        return request.contextPath();
+    }
+
+    public String [] getPathInfos() {
+        return request.pathInfo().split("/");
+    }
 }

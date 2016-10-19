@@ -140,12 +140,7 @@ public class DefaultHttpInvoker implements Invoker {
     }
 
     private String rewriteURI(Request request, String endpointUri) {
-        final StringBuilder requestURI =
-                new StringBuilder(request.path())
-                        .delete(0, api.getProxy().getContextPath().length())
-                        .insert(0, endpointUri);
-
-        return requestURI.toString();
+        return endpointUri + request.pathInfo();
     }
 
     private URI encodeQueryParameters(Request request, String endpointUri) {
