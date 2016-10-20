@@ -28,10 +28,7 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.service.*;
-import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
-import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -333,7 +330,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
-    /*
     @Override
     public void delete(String apiName) {
         ApiEntity api = findById(apiName);
@@ -343,18 +339,16 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             if (api.getState() == Lifecycle.State.STARTED) {
                 throw new ApiRunningStateException(apiName);
             } else {
-                Set<ApiKey> keys = apiKeyRepository.findByApi(apiName);
-                keys.forEach(apiKey -> {
-                    try {
-                        apiKeyRepository.delete(apiKey.getKey());
-                    } catch (TechnicalException e) {
-                        LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), e);
-                    }
-                });
 
-                Set<EventEntity> events = eventService.findByApi(apiName);
-                events.forEach(event -> eventService.delete(event.getId()));
+                // Delete plans
+                planService.findByApi(apiName)
+                        .forEach(plan -> planService.delete(plan.getId()));
 
+                // Delete events
+                eventService.findByApi(apiName)
+                        .forEach(event -> eventService.delete(event.getId()));
+
+                // Delete API
                 apiRepository.delete(apiName);
             }
         } catch (TechnicalException ex) {
@@ -362,7 +356,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             throw new TechnicalManagementException("An error occurs while trying to delete API " + apiName, ex);
         }
     }
-    */
 
     @Override
     public void start(String apiId, String username) {

@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -397,6 +398,29 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             LOGGER.error("An error occurs while trying to close subscription {}", subscriptionId, ex);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to close subscription %s", subscriptionId), ex);
+        }
+    }
+
+    @Override
+    public void delete(String subscriptionId) {
+        try {
+            LOGGER.debug("Delete subscription {}", subscriptionId);
+
+            Optional<Subscription> optSubscription = subscriptionRepository.findById(subscriptionId);
+            if (! optSubscription.isPresent()) {
+                throw new SubscriptionNotFoundException(subscriptionId);
+            }
+
+            // Delete API Keys
+            apiKeyService.findBySubscription(subscriptionId)
+                    .forEach(apiKey -> apiKeyService.delete(apiKey.getKey()));
+
+            // Delete subscription
+            subscriptionRepository.delete(subscriptionId);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete subscription: {}", subscriptionId, ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurs while trying to delete subscription: %s", subscriptionId), ex);
         }
     }
 

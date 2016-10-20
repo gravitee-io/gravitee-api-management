@@ -39,7 +39,7 @@ public interface ApiService {
 
     ApiEntity update(String apiId, UpdateApiEntity api);
 
-//    void delete(String apiId);
+    void delete(String apiId);
 
     void start(String apiId, String username);
 

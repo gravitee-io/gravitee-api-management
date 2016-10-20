@@ -34,4 +34,6 @@ public interface PlanService {
     PlanEntity create(NewPlanEntity plan);
 
     PlanEntity update(UpdatePlanEntity plan);
+
+    void delete(String plan);
 }

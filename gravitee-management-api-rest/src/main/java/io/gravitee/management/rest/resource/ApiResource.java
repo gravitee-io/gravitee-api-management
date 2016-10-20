@@ -190,8 +190,7 @@ public class ApiResource extends AbstractResource {
             @ApiResponse(code = 204, message = "API successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response delete(@PathParam("api") String api) {
-        // TODO: replace delete with "archive" (https://github.com/gravitee-io/issues/issues/55)
-    //    apiService.delete(api);
+        apiService.delete(api);
 
         return Response.noContent().build();
     }

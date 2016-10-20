@@ -22,6 +22,7 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Path;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.PlanService;
+import io.gravitee.management.service.SubscriptionService;
 import io.gravitee.management.service.exceptions.PlanNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -52,6 +53,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Autowired
     private PlanRepository planRepository;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -166,6 +170,29 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             LOGGER.error("Unexpected error while generating plan definition", jse);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to update a plan %s", updatePlan.getName()), jse);
+        }
+    }
+
+    @Override
+    public void delete(String plan) {
+        try {
+            LOGGER.debug("Delete plan {}", plan);
+
+            Optional<Plan> optPlan = planRepository.findById(plan);
+            if (! optPlan.isPresent()) {
+                throw new PlanNotFoundException(plan);
+            }
+
+            // Delete subscriptions
+            subscriptionService.findByPlan(plan)
+                    .forEach(subscription -> subscriptionService.delete(subscription.getId()));
+
+            // Delete plan
+            planRepository.delete(plan);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete plan: {}", plan, ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurs while trying to delete plan: %s", plan), ex);
         }
     }
 

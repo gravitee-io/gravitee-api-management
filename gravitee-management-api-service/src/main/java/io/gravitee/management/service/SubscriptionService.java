@@ -47,4 +47,6 @@ public interface SubscriptionService {
     SubscriptionEntity process(ProcessSubscriptionEntity processSubscription, String validator);
 
     SubscriptionEntity close(String subscription);
+
+    void delete(String subscription);
 }
