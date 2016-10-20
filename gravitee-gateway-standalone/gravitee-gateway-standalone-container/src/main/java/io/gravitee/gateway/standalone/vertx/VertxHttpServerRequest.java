@@ -32,7 +32,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 class VertxHttpServerRequest implements Request {
 
@@ -68,6 +69,16 @@ class VertxHttpServerRequest implements Request {
     @Override
     public String path() {
         return httpServerRequest.path();
+    }
+
+    @Override
+    public String pathInfo() {
+        return path();
+    }
+
+    @Override
+    public String contextPath() {
+        throw new IllegalStateException("Request is not managed by reactor");
     }
 
     @Override

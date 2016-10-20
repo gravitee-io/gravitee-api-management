@@ -36,6 +36,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -70,6 +72,36 @@ public class ReactorTest {
         when(request.metrics()).thenReturn(RequestMetrics.on(System.currentTimeMillis()).build());
 
         when(handlerResolver.resolve(request)).thenReturn(new AbstractReactorHandler() {
+            @Override
+            public Reactable reactable() {
+                return new Reactable() {
+                    @Override
+                    public Object item() {
+                        return null;
+                    }
+
+                    @Override
+                    public String contextPath() {
+                        return "";
+                    }
+
+                    @Override
+                    public boolean enabled() {
+                        return true;
+                    }
+
+                    @Override
+                    public Set dependencies(Class type) {
+                        return null;
+                    }
+
+                    @Override
+                    public Map<String, Object> properties() {
+                        return null;
+                    }
+                };
+            }
+
             @Override
             protected void doHandle(Request request, Response response, Handler<Response> handler, ExecutionContext executionContext) {
                 Response proxyResponse = mock(Response.class);

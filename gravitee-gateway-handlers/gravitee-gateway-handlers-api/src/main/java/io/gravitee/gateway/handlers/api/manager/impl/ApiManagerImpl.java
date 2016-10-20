@@ -61,6 +61,8 @@ public class ApiManagerImpl implements ApiManager {
             apis.put(api.getId(), api);
 
             if (api.isEnabled()) {
+                //TODO: load plan for this API
+
                 eventManager.publishEvent(ReactorEvent.DEPLOY, api);
             } else {
                 logger.debug("{} is not enabled. Skip deployment.", api);
