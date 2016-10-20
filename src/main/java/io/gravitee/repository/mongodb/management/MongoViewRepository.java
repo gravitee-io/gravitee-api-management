@@ -60,8 +60,8 @@ public class MongoViewRepository implements ViewRepository {
     public View create(View view) throws TechnicalException {
         LOGGER.debug("Create view [{}]", view.getName());
 
-        ViewMongo ViewMongo = mapper.map(view, ViewMongo.class);
-        ViewMongo createdViewMongo = internalViewRepo.insert(ViewMongo);
+        ViewMongo viewMongo = mapper.map(view, ViewMongo.class);
+        ViewMongo createdViewMongo = internalViewRepo.insert(viewMongo);
 
         View res = mapper.map(createdViewMongo, View.class);
 
