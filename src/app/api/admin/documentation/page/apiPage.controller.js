@@ -97,7 +97,7 @@ class PageController {
     }
     if(this.createMode) {
       this.DocumentationService.createPage(this.$state.params.apiId, this.page)
-        .then(function () {
+        .then(function (page) {
           that.onPageUpdate();
           that.$state.go('apis.admin.documentation.page', {apiId: that.$state.params.apiId,pageId: page.data.id}, {reload: true});
         })
