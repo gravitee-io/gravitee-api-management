@@ -17,19 +17,9 @@ function routerConfig($stateProvider, $urlRouterProvider) {
   'ngInject';
   $stateProvider
     .state('home', {
-      url: '/?:view',
-      templateUrl: 'app/main/main.html',
-      controller: 'ApisController',
-      controllerAs: 'apisCtrl',
-      resolve: {
-        resolvedApis: function (ApiService) {
-          return ApiService.list();
-        }
-      },
-      menu: {
-        label: 'Home',
-        icon: 'home',
-        firstLevel: true
+      url: '/',
+      controller: function ($state) {
+          $state.go('apis.list.thumb');
       },
       devMode: true
     })

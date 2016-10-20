@@ -29,7 +29,7 @@
 			<md-divider></md-divider>
 		</div>
 		<md-list class="sidenav-list">
-      <md-list-item ng-repeat="menuItem in menuItems" ng-if="graviteeUser || menuItem.name === 'home'">
+      <md-list-item ng-repeat="menuItem in menuItems" ng-if="graviteeUser || menuItem.name === 'apis.list.thumb'">
         <a ui-sref="{{menuItem.name}}" ui-sref-opts="{reload: true}" title="{{menuItem.menu.label}}"
            ng-class="{'sidenav-active':sidenavCtrl.$state.is(menuItem.name)}">
           <ng-md-icon icon="{{menuItem.menu.icon}}"></ng-md-icon>

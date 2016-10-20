@@ -26,7 +26,7 @@ class ApisController {
     this.resolvedApis = resolvedApis;
 
     this.tableMode = this.$state.current.name.endsWith('table') ? true : false;
-    this.apisScrollAreaHeight = this.$state.current.name === 'home' ? 195 : 90;
+    this.apisScrollAreaHeight = this.$state.current.name === 'apis.list.thumb' ? 195 : 90;
     this.isAPIsHome = this.$state.current.name.startsWith('apis') ? true : false;
     this.goToView(this.$state.params.view || 'all');
 
