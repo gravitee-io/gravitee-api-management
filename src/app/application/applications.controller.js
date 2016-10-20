@@ -23,7 +23,6 @@ class ApplicationsController {
 		this.ApplicationService = ApplicationService;
 		this.NotificationService = NotificationService;
 		this.applications = resolvedApplications.data;
-		this.tableMode = $state.current.name.endsWith('table')? true : false;
 	}
 
 	createInitApplication() {
@@ -48,11 +47,6 @@ class ApplicationsController {
     }, function() {
        // You cancelled the dialog
     });
-  }
-
-	changeMode(tableMode) {
-    this.tableMode = tableMode;
-    this.$state.go(this.tableMode ? 'applications.list.table' : 'applications.list.thumb');
   }
 }
 

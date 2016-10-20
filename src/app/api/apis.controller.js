@@ -25,7 +25,6 @@ class ApisController {
     this.graviteeUIVersion = Constants.version;
     this.resolvedApis = resolvedApis;
 
-    this.tableMode = this.$state.current.name.endsWith('table') ? true : false;
     this.apisScrollAreaHeight = this.$state.current.name === 'apis.list.thumb' ? 195 : 90;
     this.isAPIsHome = this.$state.current.name.startsWith('apis') ? true : false;
     this.goToView(this.$state.params.view || 'all');
@@ -74,11 +73,6 @@ class ApisController {
       this.$scope.formApi.$setPristine();
       this.NotificationService.show('Api updated with success');
     });
-  }
-
-  changeMode(tableMode) {
-    this.tableMode = tableMode;
-    this.$state.go(tableMode ? 'apis.list.table' : 'apis.list.thumb');
   }
 
   backToPreviousState() {

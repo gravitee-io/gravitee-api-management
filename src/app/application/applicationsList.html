@@ -15,20 +15,6 @@
     limitations under the License.
 
 -->
-<div layout="row">
- <div class="apis-view-mode" ng-if="applicationsCtrl.applications.length > 0 && percentWidth < 50">
-   <span class="btn-group">
-     <button ng-class="{'active': !applicationsCtrl.tableMode}" class="btn btn-default"
-             ng-click="applicationsCtrl.changeMode(false)" type="button">
-       <ng-md-icon icon="apps"></ng-md-icon>
-     </button>
-     <button ng-class="{'active': applicationsCtrl.tableMode}" class="btn btn-default"
-             ng-click="applicationsCtrl.changeMode(true)" type="button">
-       <ng-md-icon icon="list"></ng-md-icon>
-     </button>
-   </span>
- </div>
-</div>
 <div ui-view></div>
 
 <md-button gravitee-roles-allowed="ADMIN, API_CONSUMER" class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="applicationsCtrl.showAddApplicationModal($event)">

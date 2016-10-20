@@ -49,11 +49,6 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         }
       }
     })
-    .state('apis.list.table', {
-      url: 'table',
-      templateUrl: 'app/api/apisTableMode.html',
-      devMode: true
-    })
     .state('apis.list.thumb', {
       url: 'thumb?:view',
       templateUrl: 'app/api/apisThumbMode.html',
@@ -328,11 +323,6 @@ function routerConfig($stateProvider, $urlRouterProvider) {
           return ApplicationService.list();
         }
       }
-    })
-    .state('applications.list.table', {
-      url: 'table',
-      templateUrl: 'app/application/applicationsTableMode.html',
-      devMode: true
     })
     .state('applications.list.thumb', {
       url: 'thumb',
