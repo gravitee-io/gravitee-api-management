@@ -37,7 +37,7 @@ class ApiPlansController {
               $scope.rateLimit = path['rate-limit']['rate'];
             }
             if (path['quota']) {
-              $scope.quota = path['quota']['rate'];
+              $scope.quota = path['quota']['quota'];
             }
             if (path['resource-filtering']) {
               $scope.resourceFiltering.whitelist = path['resource-filtering']['whitelist'];
@@ -100,7 +100,8 @@ class ApiPlansController {
       this.$scope.plan.paths['/'].push({
         'methods': this.$scope.methods,
         'quota': {
-          'rate': this.$scope.quota
+          'quota': this.$scope.quota,
+          'addHeaders': true
         }
       });
     }
