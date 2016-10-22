@@ -63,3 +63,8 @@
   </div>
 
 </div>
+<gravitee-empty-state ng-if="apiHistoryCtrl.eventsTimeline.length == 0"
+                      icon="history"
+                      model="History"
+                      message="Your API History will appear here"
+                      sub-message="We will Keep you informed of API changes" />

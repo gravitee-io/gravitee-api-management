@@ -15,6 +15,11 @@
     limitations under the License.
 
 -->
-<div style="text-align:center; color: #424E5A; fill: #424E5A; ">
-  <h1><ng-md-icon size="48" icon="error"></ng-md-icon> Hmmm, there is no application yet :(</h1>
+<div layout="column" flex layout-align="center center" style="color: #424E5A;">
+  <ng-md-icon icon="{{icon}}" style="fill: #cdcccc;" size="120"></ng-md-icon>
+  <h2>{{message}}</h2>
+  <div>
+    <h5 ng-if="createMode">Create your first {{model}} by clicking on <md-button ng-disabled="true" class="md-fab md-mini" style="box-shadow: none; background-color: rgb(68,138,255)"><ng-md-icon icon="add"></ng-md-icon></md-button> button</h5>
+    <h5 ng-if="!createMode">{{subMessage}}</h5>
+  </div>
 </div>

@@ -18,7 +18,7 @@
 <div class="landing-header">
   <h3>{{portalTitle}} <small>version {{apisCtrl.graviteeUIVersion}}</small></h3>
 </div>
-<div ng-if="apisCtrl.apis.length > 0 || apisCtrl.$state.params.view">
+<div ng-if="apisCtrl.apis.length > 0">
   <md-card class="no-box-shadow">
     <md-card-header>
       <md-card-header-text layout="row" layout-align="center">
@@ -86,5 +86,3 @@
     </md-card-content>
   </md-card>
 </div>
-
-<div ng-if="!isLoading && apisCtrl.apis.length === 0 && !apisCtrl.$state.params.view" ng-include="'app/api/apisEmptyMode.html'"></div>

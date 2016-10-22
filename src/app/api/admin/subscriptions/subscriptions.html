@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div ng-if="subscriptionsCtrl.subscriptionsByApplication">
+<div ng-if="subscriptionsCtrl.hasKeysDefined()">
   <span class="md-headline" style="padding: 24px 16px 16px;">Subscriptions</span>
 
   <span class="btn-group pull-right">
@@ -116,6 +116,9 @@
     </div>
   </div>
 </div>
+<gravitee-empty-state ng-if="!subscriptionsCtrl.hasKeysDefined()"
+                      icon="vpn_key"
+                      model="Subscription"
+                      message="Your API Subscriptions will appear here"
+                      sub-message="Tell users your API is awesome" />
 
-<div ng-if="!subscriptionsCtrl.subscriptionsByApplication"
-     ng-include="'app/application/details/subscriptions/subscriptionsEmptyMode.html'"></div>

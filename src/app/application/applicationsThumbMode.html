@@ -57,15 +57,3 @@
     </div>
   </md-card-content>
 </md-card>
-
-<div ng-if="!isLoading && applicationsCtrl.applications.length === 0" style="text-align:center; color: #424E5A; fill: #424E5A; ">
-	<h1><ng-md-icon size="48" icon="error"></ng-md-icon> There is no application (yet).</h1>
-	<div>
-		<p gravitee-roles-allowed="ADMIN, API_CONSUMER">
-			Create your applications to interact with Gravitee.IO portal
-		</p>
-		<p>
-			<md-button class="md-raised" gravitee-roles-allowed="ADMIN, API_CONSUMER" ng-click="applicationsCtrl.createInitApplication()">Create Applications</md-button>
-		</p>
-	</div>
-</div>

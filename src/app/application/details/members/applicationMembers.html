@@ -86,6 +86,11 @@
             </tbody>
           </table>
         </md-table-container>
+        <gravitee-empty-state ng-if="applicationMembersCtrl.members.length <= 1"
+                              icon="group"
+                              model="Member"
+                              message="Your Application Members will appear here"
+                              create-mode="true" />
       </md-content>
     </div>
   </md-content>

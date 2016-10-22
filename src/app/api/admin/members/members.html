@@ -84,6 +84,11 @@
             </tbody>
           </table>
         </md-table-container>
+        <gravitee-empty-state ng-if="apiMembersCtrl.members.length <= 1"
+                              icon="group"
+                              model="Member"
+                              message="Your API Members will appear here"
+                              create-mode="true" />
       </md-content>
     </div>
     <div ng-if="apiMembersCtrl.isPrimaryOwner()">

@@ -16,7 +16,7 @@
 
 -->
 <div layout="row" ng-init="documentationCtrl.init()">
-  <md-list ng-if="listPagesDisplayed" layout="column" class="inset pages" flex="20">
+  <md-list ng-if="documentationCtrl.pages.length > 0" layout="column" class="inset pages" flex="20">
     <md-item ng-repeat="page in documentationCtrl.pages">
         <md-item-content layout="row" layout-align="start center" ui-sref="apis.admin.documentation.page({pageId: page.id})">
           <md-button class="gravitee-api-page-menu-item"
@@ -31,6 +31,12 @@
   </md-list>
   <div flex ui-view></div>
 </div>
+
+<gravitee-empty-state ng-if="documentationCtrl.pages.length == 0 && documentationCtrl.$state.current.name != 'apis.admin.documentation.new'"
+                      icon="insert_drive_file"
+                      model="Page"
+                      message="Your API Documentation will appear here"
+                      create-mode="true"/>
 
 <md-fab-speed-dial gravitee-roles-allowed="ADMIN, API_PUBLISHER" md-direction="left" md-open="false" class="md-scale md-fab-bottom-right gravitee-add-button">
   <md-fab-trigger>

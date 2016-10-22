@@ -28,6 +28,7 @@ class ApisController {
     this.apisScrollAreaHeight = this.$state.current.name === 'apis.list.thumb' ? 195 : 90;
     this.isAPIsHome = this.$state.current.name.startsWith('apis') ? true : false;
     this.goToView(this.$state.params.view || 'all');
+    this.createMode = !$rootScope.devMode && Object.keys($rootScope.graviteeUser).length > 0;
 
     var that = this;
 
@@ -110,14 +111,6 @@ class ApisController {
 
   login() {
     this.$rootScope.$broadcast("authenticationRequired");
-  }
-
-  createInitAPI() {
-    if (!this.$rootScope.graviteeUser) {
-      this.$rootScope.$broadcast("authenticationRequired");
-    } else {
-      this.$state.go("apis.new");
-    }
   }
 
   showImportDialog() {

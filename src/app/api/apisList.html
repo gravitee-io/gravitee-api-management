@@ -17,6 +17,16 @@
 -->
 <div ui-view></div>
 
+<gravitee-empty-state ng-if="!isLoading && apisCtrl.apis.length == 0"
+                      icon="dashboard"
+                      model="API"
+                      message="Hmmm, there is no API for you here :("
+                      create-mode="apisCtrl.createMode" />
+
+<div ng-if="!isLoading && apisCtrl.apis.length == 0" style="text-align: center;">
+  <md-button ng-if="!graviteeUser" class="md-raised" ng-click="apisCtrl.login()">Login</md-button>
+</div>
+
 <md-fab-speed-dial ng-if="!devMode" gravitee-roles-allowed="ADMIN, API_PUBLISHER" md-direction="left" md-open="false" class="md-scale md-fab-bottom-right">
   <md-fab-trigger>
     <md-button aria-label="menu" class="md-fab md-success">

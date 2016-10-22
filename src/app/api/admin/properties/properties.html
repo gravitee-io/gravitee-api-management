@@ -15,10 +15,10 @@
     limitations under the License.
 
 -->
-<form name="formApiProperties" ng-submit="apiPropertiesCtrl.update(apiPropertiesCtrl.api)" novalidate>
+<form ng-if="apiPropertiesCtrl.api.properties" name="formApiProperties" ng-submit="apiPropertiesCtrl.update(apiPropertiesCtrl.api)" novalidate>
   <md-table-container>
     <table md-table>
-      <thead md-head ng-if="apiPropertiesCtrl.api.properties">
+      <thead md-head>
         <tr md-row>
           <th md-column>Name</th>
           <th md-column>Value</th>
@@ -40,12 +40,18 @@
     </table>
   </md-table-container>
 
-  <div ng-if="apiPropertiesCtrl.api.properties" class="md-actions gravitee-api-save-button" layout="row">
+  <div class="md-actions gravitee-api-save-button" layout="row">
     <md-button class="md-accent" type="submit" ng-disabled="formApiProperties.$invalid">
       Save
     </md-button>
   </div>
 </form>
+
+<gravitee-empty-state ng-if="!apiPropertiesCtrl.api.properties"
+                      icon="assignment"
+                      model="Property"
+                      message="Your API Properties will appear here"
+                      create-mode="true"/>
 
 <md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="apiPropertiesCtrl.showPropertyModal()">
   <ng-md-icon icon="add"></ng-md-icon>

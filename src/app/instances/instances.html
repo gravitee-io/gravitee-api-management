@@ -16,18 +16,18 @@
 
 -->
 <div>
-  <md-card class="no-box-shadow" ng-if="!isLoading && instancesCtrl.instances.length > 0">
-    <md-card-header layout="column">
+  <md-card class="no-box-shadow">
+    <md-card-header layout="column" ng-if="!isLoading && instancesCtrl.instances.length > 0">
       <md-card-header-text layout="row" layout-align="center">
         <div class="input-group apis-header-filter" flex="60">
           <input class="form-control" type="text" ng-model="searchGatewayInstances" placeholder="Search Gateway instances..." autofocus/>
         </div>
       </md-card-header-text>
-      <md-switch style="margin: 0 auto;" ng-model="displayAllInstances">
+      <md-switch style="margin: 0 auto;" ng-model="displayAllInstances" ng-change="instancesCtrl.switchDisplayInstances(displayAllInstances)">
         Display all instances
       </md-switch>
     </md-card-header>
-    <md-card-content style="padding: 0; overflow-y: auto; height: calc(100vh - 90px);">
+    <md-card-content ng-if="!isLoading && !instancesCtrl.displayEmptyMode" style="padding: 0; overflow-y: auto; height: calc(100vh - 90px);">
       <div layout="row" layout-wrap class="inset">
         <div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33"
              ng-repeat="instance in instancesCtrl.instances | filter:displayAllInstances?{}:{state: 'started'}
@@ -57,6 +57,7 @@
   </md-card>
 </div>
 
-<div ng-if="!isLoading && instancesCtrl.instances.length === 0" style="text-align:center; color: #424E5A; fill: #424E5A; ">
-  <h1><ng-md-icon size="48" icon="error"></ng-md-icon> There is no Gateway instance running</h1>
-</div>
+<gravitee-empty-state ng-if="!isLoading && instancesCtrl.displayEmptyMode"
+                      icon="developer_dashboard"
+                      model="Instance"
+                      message="There is no Gateway instance running" />

@@ -15,14 +15,11 @@
     limitations under the License.
 
 -->
-<div ng-if="apiPortalPagesCtrl.pages.length === 0" style="text-align:center; color: #424E5A; fill: #424E5A; ">
-  <h2><ng-md-icon size="42" icon="error"></ng-md-icon> There is no published documentation for this API</h2>
-  <div>
-    <p>
-      The API will be complete shortly.
-    </p>
-  </div>
-</div>
+<gravitee-empty-state ng-if="apiPortalPagesCtrl.pages.length == 0"
+                      icon="insert_drive_file"
+                      model="Plan"
+                      message="There is no published documentation for this API"
+                      sub-message="The API will be complete shortly." />
 
 <md-tabs md-selected="apiPortalPagesCtrl.selectedIndex" md-stretch-tabs md-dynamic-height md-border-bottom ng-if="apiPortalPagesCtrl.pages.length > 0">
   <md-tab label="{{page.name}}" ui-sref="apis.portal.pages.page({pageId: page.id})" ng-repeat="page in apiPortalPagesCtrl.pages"></md-tab>

@@ -14,10 +14,23 @@
  * limitations under the License.
  */
 class InstancesController {
-  constructor(resolvedInstances) {
+  constructor(resolvedInstances, $scope) {
 		'ngInject';
     this.instances = resolvedInstances.data;
+    this.$scope = $scope;
+    this.$scope.displayAllInstances = false;
+    this.startedInstances = _.filter(this.instances, { 'state': 'started'});
+    this.displayEmptyMode = this.startedInstances.length == 0;
 	}
+
+	switchDisplayInstances(displayAllInstances) {
+    if (!displayAllInstances) {
+      this.displayEmptyMode = this.startedInstances.length == 0;
+    } else {
+      this.displayEmptyMode = this.instances.length == 0;
+    }
+    this.$scope.displayAllInstances = displayAllInstances;
+  }
 
   getOSIcon(osName) {
     if (osName) {
@@ -31,6 +44,11 @@ class InstancesController {
       }
     }
     return 'desktop_windows';
+  }
+
+  displayEmptyMode() {
+    console.log(this.$scope.displayAllInstances);
+    return this.instances.length == 0;
   }
 }
 

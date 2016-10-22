@@ -46,6 +46,11 @@
   </md-card>
   </div>
 </div>
+<gravitee-empty-state ng-if="apiPlansCtrl.plans.length == 0"
+                      icon="view_week"
+                      model="Plan"
+                      message="Your API Plans will appear here"
+                      create-mode="true" />
 
 <md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="apiPlansCtrl.addPlan()">
   <ng-md-icon icon="add"></ng-md-icon>

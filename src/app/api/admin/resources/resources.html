@@ -17,8 +17,7 @@
 -->
 <div layout="column">
   <section layout="row" flex>
-
-    <md-content flex layout-padding>
+    <md-content flex>
       <md-table-container ng-show="apiResourcesCtrl.api.resources.length > 0">
         <table md-table>
           <thead md-head md-order="order">
@@ -102,6 +101,12 @@
     </md-sidenav>
   </section>
 </div>
+
+<gravitee-empty-state ng-if="apiResourcesCtrl.api.resources.length == 0"
+                      icon="style"
+                      model="Resource"
+                      message="Your API Resources will appear here"
+                      create-mode="true" />
 
 <md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add resource" ng-click="apiResourcesCtrl.showResourcePanel()">
   <ng-md-icon icon="add"></ng-md-icon>

@@ -17,6 +17,12 @@
 -->
 <div ui-view></div>
 
+<gravitee-empty-state ng-if="applicationsCtrl.applications.length == 0"
+                      icon="list"
+                      model="Application"
+                      message="There is no application (yet)."
+                      create-mode="true" />
+
 <md-button gravitee-roles-allowed="ADMIN, API_CONSUMER" class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="applicationsCtrl.showAddApplicationModal($event)">
   <ng-md-icon icon="add"></ng-md-icon>
 </md-button>
