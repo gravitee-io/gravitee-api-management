@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis, ViewService) {
+  constructor($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis, ViewService, $q) {
     'ngInject';
+    this.$q = $q;
     this.$window = $window;
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
@@ -52,14 +53,37 @@ class ApisController {
   }
 
   loadApis(viewId) {
-    if (viewId && viewId !== 'all') {
-      var that = this;
-      this.ApiService.list(viewId).then(function (response) {
+    var that = this;
+    this.$q.resolve(viewId)
+      .then( (viewId) => {
+        if (viewId && viewId !== 'all') {
+          return that.ApiService
+            .list(viewId)
+            .then( (response) => {
+              return response;
+            });
+        } else {
+          return that.resolvedApis;
+        }
+      })
+      .then( response => {
         that.apis = response.data;
+        return that.apis;
+      })
+      .then( (apis) => {
+        const promises = _.map(apis, (api) => {
+          return that.ApiService.isAPISynchronized(api.id)
+            .then( (sync) => {
+              return sync;
+            })
+        });
+        return this.$q.all(promises)
+          .then( (syncList) => {
+            that.syncStatus = _.fromPairs(_.map(syncList, (sync) => {
+               return [sync.data.api_id, sync.data.is_synchronized];
+            }));
+          });
       });
-    } else {
-      this.apis = this.resolvedApis.data;
-    }
   }
 
   list() {
