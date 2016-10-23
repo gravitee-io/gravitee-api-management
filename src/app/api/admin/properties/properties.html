@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form ng-if="apiPropertiesCtrl.api.properties" name="formApiProperties" ng-submit="apiPropertiesCtrl.update(apiPropertiesCtrl.api)" novalidate>
+<form ng-if="apiPropertiesCtrl.hasPropertiesDefined()" name="formApiProperties" ng-submit="apiPropertiesCtrl.update(apiPropertiesCtrl.api)" novalidate>
   <md-table-container>
     <table md-table>
       <thead md-head>
@@ -47,7 +47,7 @@
   </div>
 </form>
 
-<gravitee-empty-state ng-if="!apiPropertiesCtrl.api.properties"
+<gravitee-empty-state ng-if="!apiPropertiesCtrl.hasPropertiesDefined()"
                       icon="assignment"
                       model="Property"
                       message="Your API Properties will appear here"

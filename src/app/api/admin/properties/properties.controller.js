@@ -25,8 +25,25 @@ class ApiPropertiesController {
     this.api = resolvedApi.data;
   }
 
+  hasPropertiesDefined() {
+    return this.api.properties !== null && Object.keys(this.api.properties).length > 0;
+  }
+
   deleteProperty(key) {
-    delete this.api.properties[key];
+    var alert = this.$mdDialog.confirm({
+      title: 'Warning',
+      content: 'Are you sure you want to remove this property ?',
+      ok: 'OK',
+      cancel: 'Cancel'
+    });
+
+    var that = this;
+    this.$mdDialog
+      .show(alert)
+      .then(function () {
+        delete that.api.properties[key];
+        that.update(that.api);
+      });
   }
 
   showPropertyModal() {
