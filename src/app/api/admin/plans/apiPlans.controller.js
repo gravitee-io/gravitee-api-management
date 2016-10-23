@@ -69,9 +69,17 @@ class ApiPlansController {
 
   resetPlan() {
     this.$scope.plan = {characteristics: []};
-    delete this.$scope.rateLimit;
-    delete this.$scope.quota;
+    this.resetRateLimit();
+    this.resetQuota();
     this.resetResourceFiltering();
+  }
+
+  resetRateLimit() {
+    delete this.$scope.rateLimit;
+  }
+
+  resetQuota() {
+    delete this.$scope.quota;
   }
 
   addPlan() {
@@ -83,28 +91,9 @@ class ApiPlansController {
   save() {
     var that = this;
 
-    // set rate limit policy
     this.$scope.plan.paths = {
       '/': []
     };
-    if (this.$scope.rateLimit) {
-      this.$scope.plan.paths['/'].push({
-        'methods': this.$scope.methods,
-        'rate-limit': {
-          'rate': this.$scope.rateLimit
-        }
-      });
-    }
-    // set quota policy
-    if (this.$scope.quota) {
-      this.$scope.plan.paths['/'].push({
-        'methods': this.$scope.methods,
-        'quota': {
-          'quota': this.$scope.quota,
-          'addHeaders': true
-        }
-      });
-    }
     // set resource filtering whitelist
     _.remove(this.$scope.resourceFiltering.whitelist, function (whitelistItem) {
       return !whitelistItem.pattern;
@@ -114,6 +103,25 @@ class ApiPlansController {
         'methods': that.$scope.methods,
         'resource-filtering': {
           'whitelist': this.$scope.resourceFiltering.whitelist
+        }
+      });
+    }
+    // set rate limit policy
+    if (this.$scope.rateLimit && this.$scope.rateLimit.limit) {
+      this.$scope.plan.paths['/'].push({
+        'methods': this.$scope.methods,
+        'rate-limit': {
+          'rate': this.$scope.rateLimit
+        }
+      });
+    }
+    // set quota policy
+    if (this.$scope.quota && this.$scope.quota.limit) {
+      this.$scope.plan.paths['/'].push({
+        'methods': this.$scope.methods,
+        'quota': {
+          'quota': this.$scope.quota,
+          'addHeaders': true
         }
       });
     }

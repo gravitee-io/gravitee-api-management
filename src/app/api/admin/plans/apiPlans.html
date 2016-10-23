@@ -103,62 +103,91 @@
     <md-divider></md-divider>
     <h3>Configuration</h3>
 
-    <h4>Rate limit</h4>
+    <div layout="row">
+      <h4>Rate limit</h4>
+    </div>
     <div layout="row">
       <md-input-container class="md-block">
+        <md-button class="md-icon-button" aria-label="Reset rate limit" ng-if="rateLimit.limit"
+                   ng-click="apiPlansCtrl.resetRateLimit();formPlan.$setDirty()">
+          <md-tooltip md-direction="top">Reset rate limit</md-tooltip>
+          <ng-md-icon icon="remove_circle_outline" style="fill: #b1bdc5;top: 0;"></ng-md-icon>
+        </md-button>
+      </md-input-container>
+      <md-input-container class="md-block">
         <label>Max requests</label>
-        <input type="number" ng-model="rateLimit.limit">
+        <input type="number" ng-model="rateLimit.limit" ng-required="rateLimit.periodTime">
       </md-input-container>
       <md-input-container class="md-block">
         <label>Period time</label>
-        <input type="number" ng-model="rateLimit.periodTime">
+        <input type="number" ng-model="rateLimit.periodTime" ng-required="rateLimit.limit">
       </md-input-container>
       <md-input-container class="md-block">
         <label>Period time unit</label>
-        <md-select ng-model="rateLimit.periodTimeUnit" placeholder="Select a time unit">
+        <md-select ng-model="rateLimit.periodTimeUnit" placeholder="Select a time unit" ng-required="rateLimit.limit">
           <md-option ng-value="timeUnit" ng-repeat="timeUnit in timeUnits">{{timeUnit}}</md-option>
         </md-select>
       </md-input-container>
     </div>
 
-    <h4>Quota</h4>
+    <div layout="row">
+      <h4>Quota</h4>
+    </div>
     <div layout="row">
       <md-input-container class="md-block">
+        <md-button class="md-icon-button" aria-label="Reset quota" ng-if="quota.limit"
+                   ng-click="apiPlansCtrl.resetQuota();formPlan.$setDirty()">
+          <md-tooltip md-direction="top">Reset quota</md-tooltip>
+          <ng-md-icon icon="remove_circle_outline" style="fill: #b1bdc5;top: 0;"></ng-md-icon>
+        </md-button>
+      </md-input-container>
+      <md-input-container class="md-block">
         <label>Max requests</label>
-        <input type="number" ng-model="quota.limit">
+        <input type="number" ng-model="quota.limit" ng-required="quota.periodTime">
       </md-input-container>
       <md-input-container class="md-block">
         <label>Period time</label>
-        <input type="number" ng-model="quota.periodTime">
+        <input type="number" ng-model="quota.periodTime" ng-required="quota.limit">
       </md-input-container>
       <md-input-container class="md-block">
         <label>Period time unit</label>
-        <md-select ng-model="quota.periodTimeUnit" placeholder="Select a time unit">
+        <md-select ng-model="quota.periodTimeUnit" placeholder="Select a time unit" ng-required="quota.limit">
           <md-option ng-value="timeUnit" ng-repeat="timeUnit in timeUnits">{{timeUnit}}</md-option>
         </md-select>
       </md-input-container>
     </div>
 
-    <h4>Path authorization</h4>
+    <div layout="row">
+      <h4>Path authorization</h4>
+      <md-tooltip md-direction="top">Add path authorization</md-tooltip>
+      <md-button type="button" class="md-icon-button" aria-label="Add path authorization"
+                 ng-click="resourceFiltering.whitelist.push({})">
+        <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5;top: 0;"></ng-md-icon>
+      </md-button>
+    </div>
     <div ng-repeat="whitelist in resourceFiltering.whitelist">
-      <md-button type="button" class="md-icon-button gravitee-api-plans-remove-button"
-                 ng-click="resourceFiltering.whitelist.splice($index, 1);formPlan.$setDirty()">X</md-button>
-      <md-input-container class="md-block">
-        <label>Ant pattern</label>
-        <input type="text" ng-model="whitelist.pattern">
-      </md-input-container>
-      <md-input-container class="md-block">
-        <label>Methods</label>
-        <md-select ng-model="whitelist.methods" placeholder="Select the methods (Default ALL)" multiple>
-          <md-option ng-value="method" ng-repeat="method in methods">{{method}}</md-option>
-        </md-select>
-      </md-input-container>
+      <div layout="row">
+        <md-input-container class="md-block">
+          <md-tooltip md-direction="top">Delete path authorization</md-tooltip>
+          <md-button class="md-icon-button" aria-label="Delete path authorization"
+                     ng-click="resourceFiltering.whitelist.splice($index, 1);formPlan.$setDirty()">
+            <ng-md-icon icon="remove_circle_outline" style="fill: #b1bdc5;top: 0;"></ng-md-icon>
+          </md-button>
+        </md-input-container>
+        <md-input-container class="md-block">
+          <label>Ant pattern</label>
+          <input type="text" ng-model="whitelist.pattern">
+        </md-input-container>
+        <md-input-container class="md-block" flex>
+          <label>Methods</label>
+          <md-select ng-model="whitelist.methods" placeholder="Select the methods (Default ALL)" multiple>
+            <md-option ng-value="method" ng-repeat="method in methods">{{method}}</md-option>
+          </md-select>
+        </md-input-container>
+      </div>
     </div>
-    <md-input-container class="md-block">
-      <md-button class="md-raised gravitee-api-plans-add-button" type="button" ng-click="resourceFiltering.whitelist.push({})">Add</md-button>
-    </md-input-container>
 
-    <md-button class="md-raised gravitee-fixed-button" type="submit" ng-click="apiPlansCtrl.save()"
+    <md-button class="md-primary md-raised gravitee-fixed-button" type="submit" ng-click="apiPlansCtrl.save()"
       ng-disabled="formPlan.$pristine || formPlan.$invalid">Save</md-button>
   </form>
 </md-sidenav>

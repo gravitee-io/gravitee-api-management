@@ -1,14 +1,17 @@
 .gravitee-fixed-button {
-  background-color: silver !important;
   bottom: 0;
   position: fixed;
   margin: 0;
   width: 97%;
   z-index: 1;
+
+  &:disabled {
+    background-color: silver !important;
+  }
 }
 
 .gravitee-api-plans-container {
-  height: calc(100% - 64px);
+  height: calc(100% - 100px);
   overflow: scroll;
 }
 
