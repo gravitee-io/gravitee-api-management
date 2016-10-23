@@ -37,8 +37,10 @@
               <ng-md-icon ng-if="!resource.enabled" icon="pause_circle_outline" style="fill: red;"></ng-md-icon>
             </td>
             <td md-cell>
-                <ng-md-icon ng-click="apiResourcesCtrl.showResourcePanel(resource)" icon="settings" size="24"></ng-md-icon>
+              <div layout="row">
+                <ng-md-icon ng-click="apiResourcesCtrl.showResourcePanel(resource)" icon="settings" size="24" style="margin-right: 20px;"></ng-md-icon>
                 <ng-md-icon ng-click="apiResourcesCtrl.deleteResource($index)" icon="delete" size="24"></ng-md-icon>
+              </div>
             </td>
           </tr>
           </tbody>

@@ -111,9 +111,20 @@ class ApiResourcesController {
   }
 
   deleteResource(resourceIdx) {
-    this.api.resources.splice(resourceIdx, 1);
+    var alert = this.$mdDialog.confirm({
+      title: 'Warning',
+      content: 'Are you sure you want to remove this resource ?',
+      ok: 'OK',
+      cancel: 'Cancel'
+    });
 
-    this.updateApi();
+    var that = this;
+    this.$mdDialog
+      .show(alert)
+      .then(function () {
+        that.api.resources.splice(resourceIdx, 1);
+        that.updateApi();
+      });
   }
 
   saveResource() {
