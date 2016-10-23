@@ -64,10 +64,10 @@ public class EmailNotificationBuilder {
     public enum EmailTemplate {
 
         REVOKE_API_KEY("apiKeyRevoked.html"),
-        EXPIRE_API_KEY("apiKeyRevoked.html"),
-        NEW_SUBSCRIPTION("apiMember.html"),
-        APPROVE_SUBSCRIPTION("apiMember.html"),
-        REJECT_SUBSCRIPTION("apiMember.html"),
+        EXPIRE_API_KEY("apiKeyExpired.html"),
+        NEW_SUBSCRIPTION("subscriptionReceived.html"),
+        APPROVE_SUBSCRIPTION("subscriptionApproved.html"),
+        REJECT_SUBSCRIPTION("subscriptionRejected.html"),
         USER_REGISTRATION("userRegistration.html"),
         APPLICATION_MEMBER_SUBSCRIPTION("applicationMember.html"),
         API_MEMBER_SUBSCRIPTION("apiMember.html"),

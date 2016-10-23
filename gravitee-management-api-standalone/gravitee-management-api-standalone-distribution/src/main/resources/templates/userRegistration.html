@@ -1,11 +1,12 @@
 <html>
-	<body>
-        <h3>Hi ${username},</h3>
-        <div>You have been successfully registered.</div>
-		<div><a href="${portalURL}/#/registration/confirm/${token}">Click here</a> to confirm your registration.</div>
-		<br>
-        <footer>
-    		<#include "footer.html" />
-    	</footer>
+	<body style="text-align: center;">
+		<header>
+			<#include "header.html" />
+		</header>
+		<div style="margin-top: 50px; color: #424e5a;">
+			<h3>Hi ${username},</h3>
+			<p>You have been successfully registered.</p>
+			<p><a href="${portalURL}/#/registration/confirm/${token}">Click here</a> to confirm your registration.</p>
+		</div>
 	</body>
 </html>
