@@ -201,6 +201,9 @@ swagger:
   scheme: https
 
 user:
+   login:
+      # Create a default application when user connects to the portal for the very first time (default true)
+      #defaultApplication: true
    creation:
       # Allows to register new users from portal (default false)
       #enabled: true

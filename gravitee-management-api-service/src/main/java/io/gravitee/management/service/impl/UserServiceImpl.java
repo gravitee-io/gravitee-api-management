@@ -20,6 +20,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.permissions.Role;
+import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.EmailService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
@@ -34,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -65,6 +67,12 @@ public class UserServiceImpl extends TransactionalService implements UserService
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private ApplicationService applicationService;
+
+    @Value("${user.login.defaultApplication:true}")
+    private boolean defaultApplicationForFirstConnection;
+
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
@@ -77,6 +85,15 @@ public class UserServiceImpl extends TransactionalService implements UserService
             }
 
             User user = checkUser.get();
+
+            // First connection: create default application for user
+            if (defaultApplicationForFirstConnection && user.getLastConnectionAt() == null) {
+                LOGGER.debug("Create a default application for {}", username);
+                NewApplicationEntity defaultApp = new NewApplicationEntity();
+                defaultApp.setName("Default application");
+                defaultApp.setDescription("My default application");
+                applicationService.create(defaultApp, username);
+            }
 
             // Set date fields
             user.setLastConnectionAt(new Date());
@@ -292,6 +309,14 @@ public class UserServiceImpl extends TransactionalService implements UserService
             LOGGER.error("An error occurs while trying to find all users", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all users", ex);
         }
+    }
+
+    public boolean isDefaultApplicationForFirstConnection() {
+        return defaultApplicationForFirstConnection;
+    }
+
+    public void setDefaultApplicationForFirstConnection(boolean defaultApplicationForFirstConnection) {
+        this.defaultApplicationForFirstConnection = defaultApplicationForFirstConnection;
     }
 
     private static User convert(NewUserEntity newUserEntity) {

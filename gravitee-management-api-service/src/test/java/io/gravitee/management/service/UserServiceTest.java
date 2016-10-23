@@ -56,10 +56,13 @@ public class UserServiceTest {
     private static final Set<String> ROLES = Collections.singleton(Role.USER.name());
 
     @InjectMocks
-    private UserService userService = new UserServiceImpl();
+    private UserServiceImpl userService = new UserServiceImpl();
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ApplicationService applicationService;
 
     @Mock
     private NewExternalUserEntity newUser;
@@ -166,5 +169,46 @@ public class UserServiceTest {
         userService.create(newUser);
 
         verify(userRepository, never()).create(any());
+    }
+
+    @Test(expected = UserNotFoundException.class)
+    public void shouldNotConnectBecauseNotExists() throws TechnicalException {
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.empty());
+
+        userService.connect(USER_NAME);
+
+        verify(userRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldCreateDefaultApplication() throws TechnicalException {
+        userService.setDefaultApplicationForFirstConnection(true);
+        when(user.getLastConnectionAt()).thenReturn(null);
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(user));
+
+        userService.connect(USER_NAME);
+
+        verify(applicationService, times(1)).create(any(), eq(USER_NAME));
+    }
+
+    @Test
+    public void shouldNotCreateDefaultApplicationBecauseDisabled() throws TechnicalException {
+        userService.setDefaultApplicationForFirstConnection(false);
+        when(user.getLastConnectionAt()).thenReturn(null);
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(user));
+
+        userService.connect(USER_NAME);
+
+        verify(applicationService, never()).create(any(), eq(USER_NAME));
+    }
+
+    @Test
+    public void shouldNotCreateDefaultApplicationBecauseAlreadyConnected() throws TechnicalException {
+        when(user.getLastConnectionAt()).thenReturn(new Date());
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(user));
+
+        userService.connect(USER_NAME);
+
+        verify(applicationService, never()).create(any(), eq(USER_NAME));
     }
 }
