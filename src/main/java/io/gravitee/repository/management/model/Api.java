@@ -16,8 +16,8 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -84,6 +84,11 @@ public class Api {
      * the api group, may be null
      */
     private String group;
+
+    /**
+     * The views associated to this API
+     */
+    private Set<String> views;
 
     public Date getCreatedAt() {
         return createdAt;
@@ -179,6 +184,14 @@ public class Api {
 
     public void setGroup(String group) {
         this.group = group;
+    }
+
+    public Set<String> getViews() {
+        return views;
+    }
+
+    public void setViews(Set<String> views) {
+        this.views = views;
     }
 
     @Override
