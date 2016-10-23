@@ -33,6 +33,9 @@ class ViewsController {
     var that = this;
     this.ViewService.list().then(function (response) {
       that.views = response.data;
+      _.each(that.views, function(view) {
+        delete view.totalApis;
+      });
       that.initialViews = _.cloneDeep(that.views);
     });
   }
