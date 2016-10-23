@@ -44,8 +44,6 @@ public class Api {
 
     private Set<String> tags = new HashSet<>();
 
-    private Set<String> views = new HashSet<>();
-
     public String getId() {
         return id;
     }
@@ -116,14 +114,6 @@ public class Api {
 
     public void setResources(List<Resource> resources) {
         this.resources = resources;
-    }
-
-    public Set<String> getViews() {
-        return views;
-    }
-
-    public void setViews(Set<String> views) {
-        this.views = views;
     }
 
     @Override
