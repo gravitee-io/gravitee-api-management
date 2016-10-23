@@ -21,7 +21,7 @@ describe('The main view', function () {
   browser.addMockModule('httpBackendMockModule', require('../mocked-backend').httpBackendMock);
 
   beforeEach(function () {
-    browser.get('/');
+    browser.get('#/apis/');
     page = require('./main.po');
   });
 

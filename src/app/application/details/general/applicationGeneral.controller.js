@@ -50,7 +50,7 @@ class ApplicationGeneralController {
   delete(application) {
     this.ApplicationService.delete(application).then(() => {
       this.NotificationService.show('Application ' + application.name + ' has been deleted');
-      this.$state.go('applications.list.thumb', {}, {reload: true});
+      this.$state.go('applications.list', {}, {reload: true});
     });
   }
 

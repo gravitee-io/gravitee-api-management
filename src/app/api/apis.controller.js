@@ -25,7 +25,7 @@ class ApisController {
     this.graviteeUIVersion = Constants.version;
     this.resolvedApis = resolvedApis;
 
-    this.apisScrollAreaHeight = this.$state.current.name === 'apis.list.thumb' ? 195 : 90;
+    this.apisScrollAreaHeight = this.$state.current.name === 'apis.list' ? 195 : 90;
     this.isAPIsHome = this.$state.current.name.startsWith('apis') ? true : false;
     this.goToView(this.$state.params.view || 'all');
     this.createMode = !$rootScope.devMode && Object.keys($rootScope.graviteeUser).length > 0;
@@ -78,7 +78,7 @@ class ApisController {
 
   backToPreviousState() {
     if (!this.$scope.previousState) {
-      this.$scope.previousState = 'apis.list.thumb';
+      this.$scope.previousState = 'apis.list';
     }
     this.$state.go(this.$scope.previousState, {}, {reload: true});
   }

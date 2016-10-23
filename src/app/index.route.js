@@ -19,12 +19,11 @@ function routerConfig($stateProvider, $urlRouterProvider) {
     .state('home', {
       url: '/',
       controller: function ($state) {
-          $state.go('apis.list.thumb');
+        $state.go('apis.list');
       },
       devMode: true
     })
     .state('apis', {
-      abstract: true,
       url: '/apis',
       templateUrl: 'app/api/apis.html'
     })
@@ -38,7 +37,6 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       }
     })
     .state('apis.list', {
-      abstract: true,
       url: '/',
       templateUrl: 'app/api/apisList.html',
       controller: 'ApisController',
@@ -47,11 +45,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         resolvedApis: function ($stateParams, ApiService) {
           return ApiService.list();
         }
-      }
-    })
-    .state('apis.list.thumb', {
-      url: 'thumb?:view',
-      templateUrl: 'app/api/apisThumbMode.html',
+      },
       menu: {
         label: 'APIs',
         icon: 'dashboard',
@@ -308,12 +302,10 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       }
     })
     .state('applications', {
-      abstract: true,
       url: '/applications',
       templateUrl: 'app/application/applications.html'
     })
     .state('applications.list', {
-      abstract: true,
       url: '/',
       templateUrl: 'app/application/applicationsList.html',
       controller: 'ApplicationsController',
@@ -322,11 +314,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
         resolvedApplications: function (ApplicationService) {
           return ApplicationService.list();
         }
-      }
-    })
-    .state('applications.list.thumb', {
-      url: 'thumb',
-      templateUrl: 'app/application/applicationsThumbMode.html',
+      },
       menu: {
         label: 'Applications',
         icon: 'list',

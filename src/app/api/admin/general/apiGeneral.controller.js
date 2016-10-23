@@ -189,7 +189,7 @@ class ApiAdminController {
       .then(function () {
         that.ApiService.delete(id).then(() => {
           that.NotificationService.show('API \'' + that.initialApi.name + '\' has been removed');
-          that.$state.go('apis.list.thumb', {}, {reload: true});
+          that.$state.go('apis.list', {}, {reload: true});
         });
       });
   }
