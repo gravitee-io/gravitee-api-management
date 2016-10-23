@@ -17,13 +17,18 @@ package io.gravitee.repository.redis.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.redis.management.internal.ApiRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -112,6 +117,7 @@ public class RedisApiRepository implements ApiRepository {
         api.setLifecycleState(LifecycleState.valueOf(redisApi.getLifecycleState()));
         api.setPicture(redisApi.getPicture());
         api.setGroup(redisApi.getGroup());
+        api.setViews(redisApi.getViews());
 
         return api;
     }
@@ -135,7 +141,8 @@ public class RedisApiRepository implements ApiRepository {
         redisApi.setLifecycleState(api.getLifecycleState().name());
         redisApi.setPicture(api.getPicture());
         redisApi.setGroup(api.getGroup());
-
+        redisApi.setViews(api.getViews());
+        
         return redisApi;
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.repository.redis.management.model;
 
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,6 +37,7 @@ public class RedisApi {
     private long createdAt;
     private long updatedAt;
     private String picture;
+    private Set<String> views;
 
     public String getDefinition() {
         return definition;
@@ -131,6 +133,14 @@ public class RedisApi {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public Set<String> getViews() {
+        return views;
+    }
+
+    public void setViews(Set<String> views) {
+        this.views = views;
     }
 
     @Override
