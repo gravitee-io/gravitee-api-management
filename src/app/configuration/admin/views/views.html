@@ -25,11 +25,11 @@
 <md-table-container>
   <table md-table ng-init="order = 'name'">
     <thead md-head md-order="order">
-      <tr md-row>
-        <th md-column md-order-by="name">Name</th>
-        <th md-column md-order-by="description">Description</th>
-        <th></th>
-      </tr>
+    <tr md-row>
+      <th md-column md-order-by="name">Name</th>
+      <th md-column md-order-by="description">Description</th>
+      <th></th>
+    </tr>
     </thead>
     <tbody md-body>
     <tr md-row ng-repeat="view in viewsCtrl.views | orderBy: order">
@@ -41,12 +41,13 @@
           ng-class="{'gravitee-placeholder': !view.description}">
         {{view.description || 'Add a description'}}
       </td>
-      <td><ng-md-icon icon="delete" ng-click="viewsCtrl.deleteView(view)"></ng-md-icon></td>
+      <td md-cell><ng-md-icon icon="delete" ng-click="viewsCtrl.deleteView(view)"></ng-md-icon></td>
     </tr>
     <tr md-row>
       <td md-cell ng-click="viewsCtrl.newView($event)" class="gravitee-placeholder">
         New view
       </td>
+      <td md-cell></td>
       <td md-cell></td>
     </tr>
     </tbody>
