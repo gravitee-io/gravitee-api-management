@@ -49,7 +49,6 @@ class ApiPropertiesController {
 
   update(api) {
     var _this = this;
-    console.log(api.properties);
     this.ApiService.update(api).then((updatedApi) => {
       _this.api = updatedApi.data;
       _this.$rootScope.$broadcast('apiChangeSuccess');

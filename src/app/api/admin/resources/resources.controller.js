@@ -131,7 +131,7 @@ class ApiResourcesController {
 
     return this.ApiService.update(this.api).then( ( {data} ) => {
       that.closeResourcePanel();
-      that.$scope.$parent.apiCtrl.api = data;
+      that.api = data;
       that.$rootScope.$broadcast('apiChangeSuccess');
       that.NotificationService.show('API \'' + that.$scope.$parent.apiCtrl.api.name + '\' saved');
     });

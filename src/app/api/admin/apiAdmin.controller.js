@@ -76,6 +76,7 @@ class ApiAdminController {
     this.ApiService.deploy(api.id).then((deployedApi) => {
       this.NotificationService.show("API deployed");
       this.api = deployedApi.data;
+      this.api.picture_url = api.picture_url;
       this.apiJustDeployed = true;
       this.$rootScope.$broadcast("apiChangeSuccess");
     });
