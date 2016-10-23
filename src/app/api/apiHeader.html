@@ -41,13 +41,20 @@
 					<span>{{apiCtrl.api.created_at | humanDateFilter}}<md-tooltip md-direction="left">Created at</md-tooltip></span>
 					<span><ng-md-icon icon="timer"></ng-md-icon></span>
 				</p>
-				<p ng-if="apiCtrl.api.deployed_at" style="padding: 0; margin: 0;">
+				<p ng-if="apiEditMode" ng-if="apiCtrl.api.deployed_at" style="padding: 0; margin: 0;">
 					<span>{{apiCtrl.api.deployed_at | humanDateFilter}}<md-tooltip md-direction="left">Last deployment</md-tooltip></span>
 					<span><ng-md-icon icon="send"></ng-md-icon></span>
 				</p>
 				<p ng-if="apiCtrl.api.proxy.context_path" style="padding: 0; margin: 0;">
 					<span>{{apiCtrl.api.proxy.context_path}}<md-tooltip md-direction="left">Context path</md-tooltip></span>
 					<span><ng-md-icon icon="http"></ng-md-icon></span>
+				</p>
+                <p ng-if="apiReadMode" style="padding: 0; margin: 0;">
+					<md-button class="md-raised md-primary"
+							   style="margin: 6px 0; background-color: #006CAB"
+							   ui-sref="apis.portal.plans">
+						Subscribe
+					</md-button>
 				</p>
 			</div>
 		</div>
