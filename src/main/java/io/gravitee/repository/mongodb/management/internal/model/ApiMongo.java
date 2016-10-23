@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Mongo model for Api
@@ -53,6 +54,8 @@ public class ApiMongo extends Auditable {
     private String picture;
 
     private String group;
+
+    private Set<String> views;
 
     public String getId() {
         return id;
@@ -132,6 +135,14 @@ public class ApiMongo extends Auditable {
 
     public void setGroup(String group) {
         this.group = group;
+    }
+
+    public Set<String> getViews() {
+        return views;
+    }
+
+    public void setViews(Set<String> views) {
+        this.views = views;
     }
 
     @Override

@@ -17,14 +17,18 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -90,6 +94,7 @@ public class MongoApiRepository implements ApiRepository {
 		apiMongo.setDeployedAt(api.getDeployedAt());
 		apiMongo.setPicture(api.getPicture());
         apiMongo.setGroup(api.getGroup());
+		apiMongo.setViews(api.getViews());
 
 		ApiMongo applicationMongoUpdated = internalApiRepo.save(apiMongo);
 		return mapApi(applicationMongoUpdated);
