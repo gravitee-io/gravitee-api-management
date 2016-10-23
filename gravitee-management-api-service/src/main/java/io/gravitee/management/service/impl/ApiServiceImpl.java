@@ -160,7 +160,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 membership.setUpdatedAt(repoApi.getCreatedAt());
                 membershipRepository.create(membership);
 
-                return convert(createdApi, primaryOwner);
+                return convert(createdApi, primaryOwner, true);
             } else {
                 LOGGER.error("Unable to create API {} because of previous error.");
                 throw new TechnicalManagementException("Unable to create API " + id);
@@ -187,7 +187,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         final boolean contextPathExists = apiRepository.findAll().stream()
                 .filter(api -> !api.getId().equals(apiId))
                 .anyMatch(api -> {
-                    final String contextPath = convert(api, null).getProxy().getContextPath();
+                    final String contextPath = convert(api, null, true).getProxy().getContextPath();
                     final int indexOfEndOfSubContextPath = contextPath.lastIndexOf('/', 1);
                     final String subContextPath = contextPath.substring(0, indexOfEndOfSubContextPath <= 0 ?
                             contextPath.length() : indexOfEndOfSubContextPath) + '/';
@@ -217,7 +217,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     LOGGER.error("The API {} doesn't have any primary owner.", apiId);
                     throw new TechnicalException("The API " + apiId + " doesn't have any primary owner.");
                 }
-                return convert(api.get(), userService.findByName(primaryOwnerMembership.get().getUserId()));
+                return convert(api.get(), userService.findByName(primaryOwnerMembership.get().getUserId()), true);
             }
 
             throw new ApiNotFoundException(apiId);
@@ -231,7 +231,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public Set<ApiEntity> findByVisibility(io.gravitee.management.model.Visibility visibility) {
         try {
             LOGGER.debug("Find APIs by visibility {}", visibility);
-            return convert(apiRepository.findByVisibility(Visibility.valueOf(visibility.name())));
+            return convert(apiRepository.findByVisibility(Visibility.valueOf(visibility.name())), false);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -242,7 +242,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public Set<ApiEntity> findAll() {
         try {
             LOGGER.debug("Find all APIs");
-            return convert(apiRepository.findAll());
+            return convert(apiRepository.findAll(), false);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -265,12 +265,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     .map(Membership::getReferenceId).collect(Collectors.toList());
             Set<Api> groupApis = apiRepository.findByGroups(groupIds);
 
-            final Set<ApiEntity> apis = new HashSet<>(publicApis.size() + userApis.size());
+            final Set<ApiEntity> apis = new HashSet<>(publicApis.size() + userApis.size() + groupApis.size());
 
-            apis.addAll(convert(publicApis));
-            apis.addAll(convert(userApis));
+            apis.addAll(convert(publicApis, false));
+            apis.addAll(convert(userApis, false));
 
-            apis.addAll(convert(groupApis));
+            apis.addAll(convert(groupApis, false));
 
             return apis;
         } catch (TechnicalException ex) {
@@ -283,7 +283,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public Set<ApiEntity> findByGroup(String groupId) {
         LOGGER.debug("Find APIs by group {}", groupId);
         try {
-            return convert(apiRepository.findByGroups(Collections.singletonList(groupId)));
+            return convert(apiRepository.findByGroups(Collections.singletonList(groupId)), false);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find APIs for group {}", groupId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find APIs for group " + groupId, ex);
@@ -319,7 +319,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 }
 
                 Api updatedApi = apiRepository.update(api);
-                return convert(Collections.singleton(updatedApi)).iterator().next();
+                return convert(Collections.singleton(updatedApi), true).iterator().next();
             } else {
                 LOGGER.error("Unable to update API {} because of previous error.");
                 throw new TechnicalManagementException("Unable to update API " + apiId);
@@ -402,7 +402,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
                 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, enabled);
 
-                boolean sync = apiSynchronizationProcessor.processCheckSynchronization(convert(payloadEntity), api);
+                boolean sync = apiSynchronizationProcessor.processCheckSynchronization(convert(payloadEntity, true), api);
 
                 // 2_ If APY definition is synchronized, check if there is any modification for API's plans
                 if (sync) {
@@ -458,7 +458,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 apiValue.setUpdatedAt(event.getCreatedAt());
                 apiRepository.update(apiValue);
             }
-            return convert(Collections.singleton(api.get())).iterator().next();
+            return convert(Collections.singleton(api.get()), true).iterator().next();
         } else {
             throw new ApiNotFoundException(apiId);
         }
@@ -480,7 +480,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 properties.put(Event.EventProperties.API_ID.getValue(), lastPublishedAPI.getId());
                 properties.put(Event.EventProperties.USERNAME.getValue(), username);
                 eventService.create(eventType, objectMapper.writeValueAsString(lastPublishedAPI), properties);
-                return convert(Collections.singleton(lastPublishedAPI)).iterator().next();
+                return convert(Collections.singleton(lastPublishedAPI), true).iterator().next();
             } else {
                 throw new TechnicalException("No event found for API " + apiId);
             }
@@ -672,7 +672,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         return updateApiEntity;
     }
 
-    private Set<ApiEntity> convert(Set<Api> apis) throws TechnicalException {
+    private Set<ApiEntity> convert(Set<Api> apis, boolean readDefinition) throws TechnicalException {
         if (apis == null || apis.isEmpty()) {
             return Collections.emptySet();
         }
@@ -701,15 +701,15 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 .forEach(userEntity -> userIdToUserEntity.put(userEntity.getUsername(), userEntity));
 
         return apis.stream()
-                .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId()))))
+                .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId())), readDefinition))
                 .collect(Collectors.toSet());
     }
 
-    private ApiEntity convert(Api api) {
-        return convert(api, null);
+    private ApiEntity convert(Api api, boolean readDefinition) {
+        return convert(api, null, readDefinition);
     }
 
-    private ApiEntity convert(Api api, UserEntity primaryOwner) {
+    private ApiEntity convert(Api api, UserEntity primaryOwner, boolean readDefinition) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
@@ -720,7 +720,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiEntity.setGroup(groupService.findById(api.getGroup()));
         }
 
-        if (api.getDefinition() != null) {
+        if (readDefinition && api.getDefinition() != null) {
             try {
                 io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(api.getDefinition(),
                         io.gravitee.definition.model.Api.class);
@@ -731,7 +731,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
-                apiEntity.setViews(apiDefinition.getViews());
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while generating API definition", ioe);
             }
@@ -740,6 +739,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
         apiEntity.setPicture(api.getPicture());
+        apiEntity.setViews(api.getViews());
+
         final LifecycleState lifecycleState = api.getLifecycleState();
         if (lifecycleState != null) {
             apiEntity.setState(Lifecycle.State.valueOf(lifecycleState.name()));
@@ -771,6 +772,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         api.setName(updateApiEntity.getName().trim());
         api.setDescription(updateApiEntity.getDescription().trim());
         api.setPicture(updateApiEntity.getPicture());
+        api.setViews(updateApiEntity.getViews());
 
         if (updateApiEntity.getGroup() != null && !updateApiEntity.getGroup().isEmpty()) {
             api.setGroup(updateApiEntity.getGroup());
@@ -788,7 +790,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiDefinition.setResources(updateApiEntity.getResources());
             apiDefinition.setProperties(updateApiEntity.getProperties());
             apiDefinition.setTags(updateApiEntity.getTags());
-            apiDefinition.setViews(updateApiEntity.getViews());
 
             String definition = objectMapper.writeValueAsString(apiDefinition);
             api.setDefinition(definition);

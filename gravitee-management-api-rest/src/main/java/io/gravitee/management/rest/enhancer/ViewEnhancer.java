@@ -32,7 +32,7 @@ public class ViewEnhancer {
     public Function<ViewEntity, ViewEntity> enhance(Set<ApiEntity> apis) {
         return view -> {
             long totalApis = apis.stream()
-                                    .filter(api -> api.getViews().contains(view.getId()))
+                                    .filter(api -> api.getViews() != null && api.getViews().contains(view.getId()))
                                     .count();
             view.setTotalApis(totalApis);
 
