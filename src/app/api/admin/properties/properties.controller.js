@@ -26,7 +26,7 @@ class ApiPropertiesController {
   }
 
   hasPropertiesDefined() {
-    return this.api.properties !== null && Object.keys(this.api.properties).length > 0;
+    return this.api.properties && Object.keys(this.api.properties).length > 0;
   }
 
   deleteProperty(key) {
