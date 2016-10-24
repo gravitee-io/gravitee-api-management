@@ -1,4 +1,9 @@
-
+input[type="number"] + div.md-errors-spacer + .hint {
+  bottom: -5px;
+}
+md-select + .hint {
+  bottom: -17px;
+}
 .hint {
   /* Position the hint */
   position: absolute;
