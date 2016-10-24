@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>5</version>
+        <version>6-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.definition</groupId>
@@ -59,6 +59,5 @@
 
     <properties>
         <gravitee-common.version>0.11.0</gravitee-common.version>
-        <jackson.version>2.7.3</jackson.version>
     </properties>
 </project>
