@@ -81,8 +81,12 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
     }
 
     @Override
-    public void delete(String application) {
-        redisTemplate.opsForHash().delete(REDIS_KEY, application);
+    public void delete(String applicationId) {
+        RedisApplication redisApplication = find(applicationId);
+        redisTemplate.opsForHash().delete(REDIS_KEY, applicationId);
+        if (redisApplication.getGroup() != null) {
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + redisApplication.getGroup(), applicationId);
+        }
     }
 
 }

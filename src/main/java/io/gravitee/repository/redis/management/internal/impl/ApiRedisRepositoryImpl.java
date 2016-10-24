@@ -79,6 +79,7 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
         List<Object> apiObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
 
         return apiObjects.stream()
+                .filter(Objects::nonNull)
                 .map(event -> convert(event, RedisApi.class))
                 .collect(Collectors.toSet());
     }
@@ -110,8 +111,15 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
     }
 
     @Override
-    public void delete(String api) {
-        redisTemplate.opsForHash().delete(REDIS_KEY, api);
+    public void delete(String apiId) {
+        RedisApi api = find(apiId);
+        redisTemplate.opsForHash().delete(REDIS_KEY, api.getId());
+        if (api.getVisibility() != null) {
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":visibility:" + api.getVisibility(), apiId);
+        }
+        if (api.getGroup() != null) {
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + api.getGroup(), apiId);
+        }
     }
 
 }
