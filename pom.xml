@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>5</version>
+        <version>6-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.gateway</groupId>
@@ -156,14 +156,13 @@
         <gravitee-policy-api.version>1.0.0-SNAPSHOT</gravitee-policy-api.version>
         <gravitee-gateway-api.version>1.0.0-SNAPSHOT</gravitee-gateway-api.version>
         <gravitee-reporter-api.version>1.0.0-SNAPSHOT</gravitee-reporter-api.version>
-        <jackson.version>2.7.3</jackson.version>
         <vertx.version>3.3.3</vertx.version>
-        <jetty.version>9.3.3.v20150827</jetty.version>
-        <netty.version>4.1.5.Final</netty.version>
-        <httpclient.version>4.5</httpclient.version>
+        <jetty.version>9.3.13.v20161014</jetty.version>
+        <netty.version>4.1.6.Final</netty.version>
+        <httpclient.version>4.5.2</httpclient.version>
         <reflections.version>0.9.10</reflections.version>
-        <snakeyaml.version>1.16</snakeyaml.version>
-        <commons-io.version>2.4</commons-io.version>
+        <snakeyaml.version>1.17</snakeyaml.version>
+        <commons-io.version>2.5</commons-io.version>
         <commons-validator.version>1.4.1</commons-validator.version>
         <json-path.version>2.2.0</json-path.version>
     </properties>
