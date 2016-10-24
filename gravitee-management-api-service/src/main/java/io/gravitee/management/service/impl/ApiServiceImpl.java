@@ -523,6 +523,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             ObjectNode apiJsonNode = objectMapper.valueToTree(apiEntity);
             apiJsonNode.remove("permission");
+            apiJsonNode.remove("group");
+            if (apiEntity.getGroup() != null) {
+                apiJsonNode.put("group", apiEntity.getGroup().getName());
+            }
             apiJsonNode.putPOJO("members", members == null ? Collections.emptyList() : members);
             apiJsonNode.putPOJO("pages", pages == null ? Collections.emptyList() : pages);
             return objectMapper.writeValueAsString(apiJsonNode);
@@ -535,23 +539,31 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     @Override
     public ApiEntity createOrUpdateWithDefinition(final ApiEntity apiEntity, String apiDefinition, String username) {
         try {
-            ApiEntity createdOrUpdatedApiEntity = null;
-            //create
-            if (apiEntity == null || apiEntity.getId() == null) {
+            final UpdateApiEntity importedApi = objectMapper
+                    // because definition could contains other values than the api itself (pages, members)
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    .readValue(apiDefinition, UpdateApiEntity.class);
 
-                final UpdateApiEntity importedApi = objectMapper
-                        // because definition could contains other values than the api itself (pages, members)
-                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                        .readValue(apiDefinition, UpdateApiEntity.class);
+            //create group if not exist
+            if (importedApi.getGroup() != null && importedApi.getGroup() != null) {
+                List<GroupEntity> groupEntities = groupService.findByTypeAndName(GroupEntityType.API, importedApi.getGroup());
+                GroupEntity group;
+                if (groupEntities.isEmpty()) {
+                    NewGroupEntity newGroupEntity = new NewGroupEntity();
+                    newGroupEntity.setName(importedApi.getGroup());
+                    newGroupEntity.setType(GroupEntityType.API);
+                    group = groupService.create(newGroupEntity);
+                } else {
+                    group = groupEntities.get(0);
+                }
+                importedApi.setGroup(group.getId());
+            }
+
+            ApiEntity createdOrUpdatedApiEntity;
+            if (apiEntity == null || apiEntity.getId() == null) {
                 createdOrUpdatedApiEntity = create0(importedApi, username);
             }
-            // update
             else {
-
-                final UpdateApiEntity importedApi = objectMapper
-                        // because definition could contains other values than the api itself (pages, members)
-                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                        .readValue(apiDefinition, UpdateApiEntity.class);
                 createdOrUpdatedApiEntity = update(apiEntity.getId(), importedApi);
             }
 
