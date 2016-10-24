@@ -19,7 +19,7 @@
                       icon="insert_drive_file"
                       model="Plan"
                       message="There is no published documentation for this API"
-                      sub-message="The API will be complete shortly." />
+                      sub-message="The API will be complete shortly."></gravitee-empty-state>
 
 <md-tabs md-selected="apiPortalPagesCtrl.selectedIndex" md-stretch-tabs md-dynamic-height md-border-bottom ng-if="apiPortalPagesCtrl.pages.length > 0">
   <md-tab label="{{page.name}}" ui-sref="apis.portal.pages.page({pageId: page.id})" ng-repeat="page in apiPortalPagesCtrl.pages"></md-tab>

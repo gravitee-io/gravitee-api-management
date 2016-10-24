@@ -96,7 +96,7 @@
                       icon="dashboard"
                       model="API"
                       message="Hmmm, there is no API for you here :("
-                      create-mode="apisCtrl.createMode" />
+                      create-mode="apisCtrl.createMode"></gravitee-empty-state>
 
 <div ng-if="!isLoading && apisCtrl.apis.length == 0" style="text-align: center;">
   <md-button ng-if="!graviteeUser" class="md-raised" ng-click="apisCtrl.login()">Login</md-button>
