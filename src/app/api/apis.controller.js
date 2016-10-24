@@ -72,16 +72,19 @@ class ApisController {
       })
       .then( (apis) => {
         const promises = _.map(apis, (api) => {
-          return that.ApiService.isAPISynchronized(api.id)
-            .then( (sync) => {
-              return sync;
-            })
+          if (that.isOwner(api) && !that.devMode) {
+            return that.ApiService.isAPISynchronized(api.id)
+              .then((sync) => {
+                return sync;
+              });
+          }
         });
-        return this.$q.all(promises)
-          .then( (syncList) => {
-            that.syncStatus = _.fromPairs(_.map(syncList, (sync) => {
-               return [sync.data.api_id, sync.data.is_synchronized];
-            }));
+        return this.$q
+          .all( _.filter( promises, ( p ) => { return p!== undefined } ) )
+          .then((syncList) => {
+              that.syncStatus = _.fromPairs(_.map(syncList, (sync) => {
+                return [sync.data.api_id, sync.data.is_synchronized];
+              }));
           });
       });
   }

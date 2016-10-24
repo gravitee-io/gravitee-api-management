@@ -66,7 +66,7 @@
               </md-card-content>
               <md-card-footer>
                 <div class="api-box-footer" layout="row" layout-align="end">
-                  <ng-md-icon ng-if=" apisCtrl.syncStatus[api.id]===undefined?false:!apisCtrl.syncStatus[api.id] && apisCtrl.isOwner(api) && !devMode"
+                  <ng-md-icon ng-if=" apisCtrl.syncStatus[api.id]===undefined?false:!apisCtrl.syncStatus[api.id]"
                               icon="sync_problem" aria-label="async" size="20"
                               style="fill: #e8ac3c;">
                     <md-tooltip>API out of sync</md-tooltip>
