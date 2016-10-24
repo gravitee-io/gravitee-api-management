@@ -29,7 +29,7 @@
   <div layout-padding ui-tree data-empty-placeholder-enabled="false"
        ng-repeat="(api, subscriptions) in applicationSubscriptionsCtrl.subscriptionsByApi">
     <div ui-tree-nodes ng-model="data">
-      <h5>Api <b>{{api}}</b></h5>
+      <h5>Api <a ui-sref="apis.portal.pages.page({ apiId: api } )"><b>{{applicationSubscriptionsCtrl.apiNameById[api]}}</b></a></h5>
       <table md-table>
         <thead md-head>
         <tr md-row>
@@ -92,7 +92,7 @@
             <span ng-if="!apiKey.revoked">
               <md-tooltip md-direction="left">Set expiration for this API Key</md-tooltip>
               <ng-md-icon ng-if="applicationCtrl.isOwner()" style="top: 0;" icon="schedule"
-                          ng-click="applicationSubscriptionsCtrl.showExpirationModal(api.id, apiKey)"></ng-md-icon>
+                          ng-click="applicationSubscriptionsCtrl.showExpirationModal(api, apiKey)"></ng-md-icon>
             </span>
           </td>
         </tr>

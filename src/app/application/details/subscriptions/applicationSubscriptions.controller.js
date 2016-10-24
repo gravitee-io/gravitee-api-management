@@ -29,6 +29,7 @@ class ApplicationSubscriptionsController {
 
     this.statusFilters = ['accepted', 'pending', 'rejected', 'closed'];
     this.selectedStatus = ['accepted', 'pending'];
+    this.apiNameById = {};
     this.applyFilters();
   }
 
@@ -46,7 +47,8 @@ class ApplicationSubscriptionsController {
     this.subscriptionsByApi = _.groupBy(_.filter(this.subscriptions, function (subscription) {
       return _.includes(that.selectedStatus, subscription.status);
     }), function (sub) {
-      return sub.plan.apis[0].name;
+      that.apiNameById[sub.plan.apis[0].id] = sub.plan.apis[0].name;
+      return sub.plan.apis[0].id;
     });
   }
 
