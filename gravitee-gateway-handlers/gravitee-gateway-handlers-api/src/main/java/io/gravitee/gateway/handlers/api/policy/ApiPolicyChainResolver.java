@@ -25,6 +25,7 @@ import io.gravitee.gateway.policy.StreamType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +49,8 @@ public class ApiPolicyChainResolver extends AbstractPolicyChainResolver {
         return path.getRules()
                 .stream()
                 .filter(rule -> rule.isEnabled() && rule.getMethods().contains(request.method()))
-                .map(rule -> create(rule.getPolicy().getName(), rule.getPolicy().getConfiguration()))
+                .map(rule -> create(streamType, rule.getPolicy().getName(), rule.getPolicy().getConfiguration()))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 }

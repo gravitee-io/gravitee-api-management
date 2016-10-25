@@ -40,7 +40,7 @@ public class ApiKeyPolicyChainResolver extends AbstractPolicyChainResolver {
     protected List<Policy> calculate(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
         // Apply api-key policy only for ON_REQUEST
         if (streamType == StreamType.ON_REQUEST) {
-            Policy apiKeyPolicy = create(API_KEY_POLICY, API_KEY_POLICY_CONFIGURATION);
+            Policy apiKeyPolicy = create(streamType, API_KEY_POLICY, API_KEY_POLICY_CONFIGURATION);
             return Collections.singletonList(apiKeyPolicy);
         }
 

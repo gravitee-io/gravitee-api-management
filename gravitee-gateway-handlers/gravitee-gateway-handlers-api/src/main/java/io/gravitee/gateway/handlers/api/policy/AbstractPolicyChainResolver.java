@@ -25,6 +25,10 @@ import io.gravitee.gateway.policy.impl.PolicyImpl;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
 import io.gravitee.policy.api.PolicyConfiguration;
+import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnRequestContent;
+import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.annotations.OnResponseContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,25 +71,33 @@ abstract class AbstractPolicyChainResolver implements PolicyChainResolver {
                 ResponsePolicyChain.create(policies, executionContext);
     }
 
-    protected Policy create(String policy, String configuration) {
+    protected Policy create(StreamType streamType, String policy, String configuration) {
         PolicyMetadata policyMetadata = policyManager.get(policy);
-        PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
-                policyMetadata.configuration(), configuration);
 
-        // TODO: this should be done only if policy is injectable
-        Map<Class<?>, Object> injectables = new HashMap<>(2);
-        injectables.put(policyMetadata.configuration(), policyConfiguration);
-        if (policyMetadata.context() != null) {
-            injectables.put(policyMetadata.context().getClass(), policyMetadata.context());
+        if ((streamType == StreamType.ON_REQUEST &&
+                        (policyMetadata.method(OnRequest.class) != null || policyMetadata.method(OnRequestContent.class) != null)) ||
+                        (streamType == StreamType.ON_RESPONSE && (
+                                policyMetadata.method(OnResponse.class) != null || policyMetadata.method(OnResponseContent.class) != null))) {
+            PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
+                    policyMetadata.configuration(), configuration);
+
+            // TODO: this should be done only if policy is injectable
+            Map<Class<?>, Object> injectables = new HashMap<>(2);
+            injectables.put(policyMetadata.configuration(), policyConfiguration);
+            if (policyMetadata.context() != null) {
+                injectables.put(policyMetadata.context().getClass(), policyMetadata.context());
+            }
+
+            Object policyInst = policyFactory.create(policyMetadata, injectables);
+
+            LOGGER.debug("Policy {} has been added to the policy chain", policyMetadata.id());
+            return PolicyImpl
+                    .target(policyInst)
+                    .definition(policyMetadata)
+                    .build();
         }
 
-        Object policyInst = policyFactory.create(policyMetadata, injectables);
-
-        LOGGER.debug("Policy {} has been added to the policy chain", policyMetadata.id());
-        return PolicyImpl
-                .target(policyInst)
-                .definition(policyMetadata)
-                .build();
+        return null;
     }
 
     public Api getApi() {
