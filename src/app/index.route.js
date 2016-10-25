@@ -128,17 +128,17 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       url: '',
       templateUrl: 'app/api/admin/general/api.html',
       controller: 'ApiGeneralController',
-      controllerAs: 'generalCtrl'
-    })
-    .state('apis.admin.general.main', {
-      url: '/general',
-      templateUrl: 'app/api/admin/general/apiGeneral.html',
-      controller: 'ApiGeneralController',
       controllerAs: 'generalCtrl',
       menu: {
         label: 'Global settings',
         icon: 'blur_on'
       }
+    })
+    .state('apis.admin.general.main', {
+      url: '/general',
+      templateUrl: 'app/api/admin/general/apiGeneral.html',
+      controller: 'ApiGeneralController',
+      controllerAs: 'generalCtrl'
     })
     .state('apis.admin.general.gateway', {
       url: '/gateway',
@@ -146,7 +146,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       controller: 'ApiGeneralController',
       controllerAs: 'generalCtrl'
     })
-    .state('apis.admin.endpoint', {
+    .state('apis.admin.general.endpoint', {
       url: '/endpoint/:endpointName',
       templateUrl: 'app/api/admin/endpoint/endpointConfiguration.html',
       controller: 'ApiEndpointController',
