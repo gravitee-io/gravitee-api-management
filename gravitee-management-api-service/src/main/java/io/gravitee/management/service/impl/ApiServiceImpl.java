@@ -407,7 +407,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 // 2_ If APY definition is synchronized, check if there is any modification for API's plans
                 if (sync) {
                     Set<PlanEntity> plans = planService.findByApi(api.getId());
-                    sync = plans.stream().filter(plan -> plan.getUpdatedAt().after(api.getUpdatedAt())).count() == 0;
+                    sync = plans.stream().filter(plan -> plan.getUpdatedAt().after(api.getDeployedAt())).count() == 0;
                 }
 
                 return sync;
@@ -447,18 +447,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         Optional<Api> api = apiRepository.findById(apiId);
 
         if (api.isPresent()) {
-            Map<String, String> properties = new HashMap<>();
-            properties.put(Event.EventProperties.API_ID.getValue(), api.get().getId());
-            properties.put(Event.EventProperties.USERNAME.getValue(), username);
-            EventEntity event = eventService.create(eventType, objectMapper.writeValueAsString(api.get()), properties);
             // add deployment date
-            if (event != null) {
-                Api apiValue = api.get();
-                apiValue.setDeployedAt(event.getCreatedAt());
-                apiValue.setUpdatedAt(event.getCreatedAt());
-                apiRepository.update(apiValue);
-            }
-            return convert(Collections.singleton(api.get()), true).iterator().next();
+            Api apiValue = api.get();
+            apiValue.setUpdatedAt(new Date());
+            apiValue.setDeployedAt(apiValue.getUpdatedAt());
+            apiValue = apiRepository.update(apiValue);
+
+            Map<String, String> properties = new HashMap<>();
+            properties.put(Event.EventProperties.API_ID.getValue(), apiValue.getId());
+            properties.put(Event.EventProperties.USERNAME.getValue(), username);
+            eventService.create(eventType, objectMapper.writeValueAsString(apiValue), properties);
+
+            return convert(Collections.singleton(apiValue), true).iterator().next();
         } else {
             throw new ApiNotFoundException(apiId);
         }
@@ -475,7 +475,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 Api lastPublishedAPI = objectMapper.convertValue(node, Api.class);
                 lastPublishedAPI.setLifecycleState(convert(eventType));
                 lastPublishedAPI.setUpdatedAt(new Date());
-                lastPublishedAPI.setDeployedAt(lastPublishedAPI.getUpdatedAt());
+                lastPublishedAPI.setDeployedAt(new Date());
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.API_ID.getValue(), lastPublishedAPI.getId());
                 properties.put(Event.EventProperties.USERNAME.getValue(), username);
