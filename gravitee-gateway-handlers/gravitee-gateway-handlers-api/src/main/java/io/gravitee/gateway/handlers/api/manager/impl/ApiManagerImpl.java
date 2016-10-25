@@ -78,6 +78,10 @@ public class ApiManagerImpl implements ApiManager {
     public void update(Api api) {
         MDC.put("api", api.getId());
         logger.info("Updating {}", api);
+        logger.info("Deploying {} plan(s) for API {}:", api.getPlans().size(), api.getId());
+        for(Plan plan: api.getPlans()) {
+            logger.info("\t- {}", plan.getName());
+        }
 
         try {
             validator.validate(api);

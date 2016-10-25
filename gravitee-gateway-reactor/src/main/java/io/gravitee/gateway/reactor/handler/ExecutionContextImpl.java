@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public class ExecutionContextImpl implements ExecutionContext {
 
-    private final Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, Object> attributes = new AttributeMap();
 
     private final ApplicationContext applicationContext;
 
@@ -73,5 +73,14 @@ public class ExecutionContextImpl implements ExecutionContext {
 
     public Map<String, Object> getAttributes() {
         return this.attributes;
+    }
+
+    private class AttributeMap extends HashMap<String, Object> {
+
+        @Override
+        public Object get(Object key) {
+            Object value = super.get(key);
+            return (value != null) ? value : super.get(ExecutionContext.ATTR_PREFIX + key);
+        }
     }
 }
