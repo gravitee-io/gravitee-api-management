@@ -127,8 +127,11 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       abtract: true,
       url: '',
       templateUrl: 'app/api/admin/general/api.html',
-      controller: 'ApiGeneralController',
-      controllerAs: 'generalCtrl',
+      controller: function ($state) {
+        if ('apis.admin.general' === $state.current.name) {
+          $state.go('apis.admin.general.main');
+        }
+      },
       menu: {
         label: 'Global settings',
         icon: 'blur_on'
