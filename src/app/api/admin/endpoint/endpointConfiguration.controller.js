@@ -27,6 +27,7 @@ class ApiEndpointController {
     this.api = resolvedApi.data;
 
     this.endpoint = _.find(this.api.proxy.endpoints, { 'name': $stateParams.endpointName});
+    this.initialEndpoints = _.cloneDeep(this.api.proxy.endpoints);
 
     // Creation mode
     if (!this.endpoint) {
@@ -78,6 +79,11 @@ class ApiEndpointController {
   reset() {
     this.$scope.formEndpoint.$setPristine();
     this.endpoint = _.cloneDeep(this.initialEndpoint);
+  }
+
+  backToGatewayConfiguration() {
+    this.api.proxy.endpoints = _.cloneDeep(this.initialEndpoints);
+    this.$state.go('apis.admin.general.gateway');
   }
 }
 

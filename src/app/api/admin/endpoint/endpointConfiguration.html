@@ -18,7 +18,7 @@
 <form name="formEndpoint" ng-submit="endpointCtrl.update(endpointCtrl.api)" novalidate>
 
   <section>
-    <md-button class="md-button" aria-label="Back to gateway configuration" ui-sref="apis.admin.general.gateway({apiId: endpointCtrl.api.id})">
+    <md-button class="md-button" aria-label="Back to gateway configuration" ng-click="endpointCtrl.backToGatewayConfiguration()">
       <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
       <span style="color: rgba(0, 0, 0, 0.54);">Back to gateway configuration</span>
     </md-button>
