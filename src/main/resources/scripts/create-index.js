@@ -1,0 +1,20 @@
+db.apis.createIndex( { "visibility" : 1 } );
+db.apis.createIndex( { "group" : 1 } );
+db.applications.createIndex( { "group" : 1 } );
+db.events.createIndex( { "type" : 1 } );
+db.events.createIndex( { "updatedAt" : 1 } );
+db.events.createIndex( { "properties.api_id" : 1 } );
+db.plans.createIndex( { "apis" : 1 } );
+db.subscriptions.createIndex( { "plan" : 1 } );
+db.subscriptions.createIndex( { "application" : 1 } );
+db.keys.createIndex( { "plan" : 1 } );
+db.keys.createIndex( { "application" : 1 } );
+db.pages.createIndex( { "api" : 1 } );
+
+db.apis.reIndex();
+db.applications.reIndex();
+db.events.reIndex();
+db.plans.reIndex();
+db.subscriptions.reIndex();
+db.keys.reIndex();
+db.pages.reIndex();
