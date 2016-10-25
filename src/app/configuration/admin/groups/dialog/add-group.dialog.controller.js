@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogAddGroupController($scope, $mdDialog, currentName) {
+function DialogAddGroupController($scope, $mdDialog, currentName, action) {
   'ngInject';
   $scope.name = currentName;
+  $scope.action = action;
 
   this.hide = function () {
     $mdDialog.hide();

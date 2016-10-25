@@ -97,6 +97,7 @@ class GroupsController {
       controllerAs: 'dialogAddGroupCtrl',
       templateUrl: 'app/configuration/admin/groups/dialog/add-group.dialog.html',
       currentName: "",
+      action: "Add",
       clickOutsideToClose: true
     }).then( (name) => {
       if (name) {
@@ -117,6 +118,7 @@ class GroupsController {
       controllerAs: 'dialogAddGroupCtrl',
       templateUrl: 'app/configuration/admin/groups/dialog/add-group.dialog.html',
       currentName: name,
+      action: "Edit",
       clickOutsideToClose: true
     }).then( (name) => {
       if (name) {
