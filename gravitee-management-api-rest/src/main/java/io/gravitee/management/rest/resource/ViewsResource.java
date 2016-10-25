@@ -58,6 +58,7 @@ public class ViewsResource extends AbstractResource  {
 
         return viewService.findAll()
                 .stream()
+                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .map(v -> viewEnhancer.enhance(apis).apply(v))
                 .collect(Collectors.toList());
     }
