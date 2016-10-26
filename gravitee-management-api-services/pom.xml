@@ -28,7 +28,7 @@
 	</parent>
 
     <groupId>io.gravitee.management.services</groupId>
-    <artifactId>gravitee-management-services</artifactId>
+    <artifactId>gravitee-management-api-services</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee IO - Management - Services</name>
 

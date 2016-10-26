@@ -85,7 +85,7 @@
 
 		<dependency>
 			<groupId>io.gravitee.management.services</groupId>
-			<artifactId>gravitee-management-services-subscriptions</artifactId>
+			<artifactId>gravitee-management-api-services-subscriptions</artifactId>
 			<version>${project.version}</version>
 			<type>zip</type>
 			<scope>runtime</scope>
@@ -129,7 +129,7 @@
 								</artifactItem>
 								<artifactItem>
 									<groupId>io.gravitee.management.services</groupId>
-									<artifactId>gravitee-management-services-subscriptions</artifactId>
+									<artifactId>gravitee-management-api-services-subscriptions</artifactId>
 									<version>${project.version}</version>
 									<type>zip</type>
 								</artifactItem>

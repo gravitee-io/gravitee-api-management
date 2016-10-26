@@ -46,7 +46,7 @@
 
         <dependency>
             <groupId>io.gravitee.management.services</groupId>
-            <artifactId>gravitee-management-services-core</artifactId>
+            <artifactId>gravitee-management-api-services-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 

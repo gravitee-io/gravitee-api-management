@@ -23,12 +23,12 @@
 
     <parent>
         <groupId>io.gravitee.management.services</groupId>
-        <artifactId>gravitee-management-services</artifactId>
+        <artifactId>gravitee-management-api-services</artifactId>
         <version>1.1.0-SNAPSHOT</version>
     </parent>
 
 
-    <artifactId>gravitee-management-services-subscriptions</artifactId>
+    <artifactId>gravitee-management-api-services-subscriptions</artifactId>
     <name>Gravitee IO - Management - Services - Subscriptions</name>
 
     <dependencies>
@@ -42,6 +42,7 @@
             <groupId>io.gravitee.management</groupId>
             <artifactId>gravitee-management-api-service</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Spring dependencies -->
