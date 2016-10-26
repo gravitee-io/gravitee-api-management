@@ -115,6 +115,10 @@
                                     <value>"version": "${project.version}"</value>
                                 </replacement>
                                 <replacement>
+                                    <token>'version': '(.*)'</token>
+                                    <value>'version': '${project.version}'</value>
+                                </replacement>
+                                <replacement>
                                     <token>"description"(\s*):(\s*)"(.*)"</token>
                                     <value>"description": "${project.name}"</value>
                                 </replacement>
