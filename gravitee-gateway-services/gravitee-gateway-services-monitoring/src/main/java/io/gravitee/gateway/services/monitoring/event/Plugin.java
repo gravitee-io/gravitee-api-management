@@ -88,11 +88,11 @@ public class Plugin {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Plugin plugin = (Plugin) o;
-        return Objects.equals(id, plugin.id);
+        return Objects.equals(id, plugin.id) && Objects.equals(type, plugin.type);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, type);
     }
 }
