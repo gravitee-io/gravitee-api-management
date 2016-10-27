@@ -134,10 +134,13 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                         responsePolicyChain.doNext(serverRequest, serverResponse);
                     });
 
-                    // Plug request policy chain stream to backend request stream
-                    requestPolicyChainResult.getPolicyChain()
-                            .bodyHandler(clientRequest::write)
-                            .endHandler(aVoid -> clientRequest.end());
+                    // In case of underlying service unavailable, we can have a null client request
+                    if (clientRequest != null) {
+                        // Plug request policy chain stream to backend request stream
+                        requestPolicyChainResult.getPolicyChain()
+                                .bodyHandler(clientRequest::write)
+                                .endHandler(aVoid -> clientRequest.end());
+                    }
 
                     // Plug server request stream to request policy chain stream
                     serverRequest
