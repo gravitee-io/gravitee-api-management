@@ -19,11 +19,8 @@
     "load_balancing": {
       "type": "weighted_round_robin"
     },
-    "http": {
-      "configuration": {
-        "dumpRequest": true
-      }
-    }
+    "strip_context_path": false,
+    "dumpRequest": true
   },
 
   "paths": {

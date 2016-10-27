@@ -22,15 +22,14 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.vertx.core.http.HttpServerResponse;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 class VertxHttpServerResponse implements Response {
 
     private final HttpServerResponse httpServerResponse;
 
     private final HttpHeaders headers = new HttpHeaders();
-
-    private boolean headersWritten = false;
 
     VertxHttpServerResponse(HttpServerResponse httpServerResponse) {
         this.httpServerResponse = httpServerResponse;
@@ -54,39 +53,42 @@ class VertxHttpServerResponse implements Response {
 
     @Override
     public Response write(Buffer chunk) {
-        if (! headersWritten) {
-            writeHeaders();
+        if (! httpServerResponse.ended()) {
+            if (!httpServerResponse.headWritten()) {
+                writeHeaders();
 
-            // Vertx requires to set the chunked flag if transfer_encoding header as the "chunked" value
-            String transferEncodingHeader = headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
-            if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncodingHeader)) {
-                httpServerResponse.setChunked(true);
-            } else if (transferEncodingHeader == null) {
-                String connectionHeader = headers().getFirst(HttpHeaders.CONNECTION);
-                String contentLengthHeader = headers().getFirst(HttpHeaders.CONTENT_LENGTH);
-                if (HttpHeadersValues.CONNECTION_CLOSE.equalsIgnoreCase(connectionHeader)
-                        && contentLengthHeader == null) {
+                // Vertx requires to set the chunked flag if transfer_encoding header as the "chunked" value
+                String transferEncodingHeader = headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
+                if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncodingHeader)) {
                     httpServerResponse.setChunked(true);
+                } else if (transferEncodingHeader == null) {
+                    String connectionHeader = headers().getFirst(HttpHeaders.CONNECTION);
+                    String contentLengthHeader = headers().getFirst(HttpHeaders.CONTENT_LENGTH);
+                    if (HttpHeadersValues.CONNECTION_CLOSE.equalsIgnoreCase(connectionHeader)
+                            && contentLengthHeader == null) {
+                        httpServerResponse.setChunked(true);
+                    }
                 }
             }
-        }
 
-        httpServerResponse.write(io.vertx.core.buffer.Buffer.buffer(chunk.getBytes()));
+            httpServerResponse.write(io.vertx.core.buffer.Buffer.buffer(chunk.getBytes()));
+        }
         return this;
     }
 
     @Override
     public void end() {
-        if (! headersWritten) {
-            writeHeaders();
-        }
+        if (! httpServerResponse.ended()) {
+            if (!httpServerResponse.headWritten()) {
+                writeHeaders();
+            }
 
-        httpServerResponse.end();
+            httpServerResponse.end();
+        }
     }
 
     private void writeHeaders() {
         headers.entrySet().forEach(
                 headerEntry -> httpServerResponse.putHeader(headerEntry.getKey(), headerEntry.getValue()));
-        headersWritten = true;
     }
 }

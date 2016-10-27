@@ -10,11 +10,8 @@
         "target": "http://localhost:8080/echo"
       }
     ],
-    "http": {
-      "configuration": {
-        "dumpRequest": true
-      }
-    }
+    "strip_context_path": false,
+    "dumpRequest": true
   },
 
   "paths": {

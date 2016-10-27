@@ -11,12 +11,7 @@
       }
     ],
     "strip_context_path": false,
-    "http": {
-      "configuration": {
-        "dumpRequest": true,
-        "connectTimeout": 3000
-      }
-    }
+    "dumpRequest": true
   },
 
   "paths": {

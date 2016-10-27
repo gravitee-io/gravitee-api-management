@@ -240,7 +240,7 @@ public class VertxHttpClient extends AbstractHttpClient {
 
     @Override
     protected void doStop() throws Exception {
-        LOGGER.info("Closing HTTP Client for {} [{}]", endpoint.getName(), endpoint.getTarget());
+        LOGGER.info("Closing HTTP Client for '{}' endpoint [{}]", endpoint.getName(), endpoint.getTarget());
 
         httpClients.values().stream().forEach(httpClient -> {
             try {

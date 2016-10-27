@@ -14,11 +14,7 @@
       }
     ],
     "strip_context_path": false,
-    "http": {
-      "configuration": {
-        "dumpRequest": true
-      }
-    }
+    "dumpRequest": true
   },
 
   "paths": {
