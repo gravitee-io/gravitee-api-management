@@ -19,8 +19,8 @@ import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.http.client.HttpClient;
-import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager;
+import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -28,10 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -69,12 +66,13 @@ public class EndpointLifecycleManagerImpl extends AbstractLifecycleComponent<End
 
     @Override
     protected void doStop() throws Exception {
-        for(Map.Entry<String, HttpEndpoint> connectors : endpoints.entrySet()) {
+        for(Iterator<Map.Entry<String, HttpEndpoint>> it = endpoints.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<String, HttpEndpoint> endpoint = it.next();
             try {
-                LOGGER.debug("Closing target endpoint: {}", connectors.getKey());
-                connectors.getValue().getHttpClient().stop();
-                endpoints.remove(connectors.getKey());
-                endpointsTarget.remove(connectors.getKey());
+                LOGGER.debug("Closing target endpoint: {}", endpoint.getKey());
+                endpoint.getValue().getHttpClient().stop();
+                it.remove();
+                endpointsTarget.remove(endpoint.getKey());
             } catch (Exception ex) {
                 LOGGER.error("Unexpected error while closing endpoint connector", ex);
             }
