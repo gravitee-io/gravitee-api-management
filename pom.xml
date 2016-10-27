@@ -185,6 +185,13 @@
                 <version>${logback.version}</version>
             </dependency>
 
+            <!-- JWT -->
+            <dependency>
+                <groupId>com.auth0</groupId>
+                <artifactId>java-jwt</artifactId>
+                <version>${java-jwt.version}</version>
+            </dependency>
+
             <!-- test -->
             <dependency>
                 <groupId>org.assertj</groupId>
@@ -203,12 +210,6 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.auth0</groupId>
-            <artifactId>java-jwt</artifactId>
-            <version>${java-jwt.version}</version>
         </dependency>
     </dependencies>
 </project>
