@@ -157,8 +157,8 @@
         <gravitee-gateway-api.version>1.0.0</gravitee-gateway-api.version>
         <gravitee-reporter-api.version>1.0.0</gravitee-reporter-api.version>
         <vertx.version>3.3.3</vertx.version>
-        <jetty.version>9.3.13.v20161014</jetty.version>
-        <netty.version>4.1.6.Final</netty.version>
+        <jetty.version>9.3.3.v20150827</jetty.version>
+        <netty.version>4.1.5.Final</netty.version>
         <httpclient.version>4.5.2</httpclient.version>
         <reflections.version>0.9.10</reflections.version>
         <snakeyaml.version>1.17</snakeyaml.version>
