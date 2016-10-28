@@ -87,6 +87,7 @@
             <unpack>false</unpack>
             <excludes>
                 <exclude>io.gravitee.*:*:*</exclude>
+                <exclude>commons-logging:commons-logging:*</exclude>
             </excludes>
             <!-- Used to not include transitive dependencies for runtime dependency (IDP plugins) -->
             <scope>compile</scope>
