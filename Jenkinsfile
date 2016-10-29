@@ -22,5 +22,11 @@ node() {
         } catch (Exception ex) {
             echo "No tests to archive"
         }
+        try {
+            sh "ls target/surefire-reports/TEST-*.xml"
+            step([$class: 'JUnitResultArchiver', testResults: 'target/surefire-reports/TEST-*.xml'])
+        } catch (Exception ex) {
+            echo "No tests to archive"
+        }
     }
 }
