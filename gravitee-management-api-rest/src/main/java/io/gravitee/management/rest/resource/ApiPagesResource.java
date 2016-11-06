@@ -99,7 +99,8 @@ public class ApiPagesResource extends AbstractResource {
                 if (isAuthenticated()) {
                     MemberEntity member = membershipService.getMember(MembershipReferenceType.API, apiEntity.getId(), getAuthenticatedUsername());
                     if (member != null) {
-                        return !MembershipType.USER.equals(member.getType());
+                        return (MembershipType.USER == member.getType() && page.isPublished()) ||
+                                MembershipType.USER != member.getType();
                     }
                 }
 
