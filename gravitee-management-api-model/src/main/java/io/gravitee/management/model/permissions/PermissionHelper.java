@@ -53,6 +53,7 @@ public class PermissionHelper {
                 add(ApiPermission.ANALYTICS);
                 add(ApiPermission.MANAGE_API_KEYS);
                 add(ApiPermission.MANAGE_PAGES);
+                add(ApiPermission.MANAGE_PLANS);
             }
         });
 
@@ -77,6 +78,7 @@ public class PermissionHelper {
                 add(ApiPermission.MANAGE_PAGES);
                 add(ApiPermission.DELETE);
                 add(ApiPermission.TRANSFER_OWNERSHIP);
+                add(ApiPermission.MANAGE_PLANS);
             }
         });
 
