@@ -57,7 +57,7 @@ public class ApplicationSubscriptionsResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_PLANS)
+    @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_SUBSCRIPTIONS)
     @ApiOperation(value = "Subscribe to a plan",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({

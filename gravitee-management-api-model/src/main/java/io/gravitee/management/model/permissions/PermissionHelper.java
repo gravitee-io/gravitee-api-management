@@ -64,6 +64,7 @@ public class PermissionHelper {
                 add(ApplicationPermission.ANALYTICS);
                 add(ApplicationPermission.MANAGE_API_KEYS);
                 add(ApplicationPermission.MANAGE_MEMBERS);
+                add(ApplicationPermission.MANAGE_SUBSCRIPTIONS);
             }
         });
 
@@ -90,6 +91,7 @@ public class PermissionHelper {
                 add(ApplicationPermission.MANAGE_API_KEYS);
                 add(ApplicationPermission.MANAGE_MEMBERS);
                 add(ApplicationPermission.DELETE);
+                add(ApplicationPermission.MANAGE_SUBSCRIPTIONS);
             }
         });
     }

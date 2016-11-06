@@ -25,7 +25,7 @@ public enum ApplicationPermission {
     MANAGE_APPLICATION,
     DELETE,
     MANAGE_MEMBERS,
-    MANAGE_PLANS,
+    MANAGE_SUBSCRIPTIONS,
     MANAGE_API_KEYS,
     ANALYTICS
 }
