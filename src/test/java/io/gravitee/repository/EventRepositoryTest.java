@@ -62,6 +62,15 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void checkModifiabledMap() throws Exception {
+        Optional<Event> event = eventRepository.findById("event1");
+        assertTrue("Event not found", event.isPresent());
+        assertEquals(EventType.PUBLISH_API, event.get().getType());
+
+        event.get().getProperties().put("key", "value");
+    }
+
+    @Test
     public void searchNoResults() {
         Page<Event> eventPage = eventRepository.search(
                 new EventCriteria.Builder().from(1420070400000L).to(1422748800000L)
