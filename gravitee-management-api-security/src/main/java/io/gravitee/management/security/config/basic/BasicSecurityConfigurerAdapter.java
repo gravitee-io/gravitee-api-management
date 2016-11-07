@@ -200,7 +200,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
 
                     // Configuration Groups
-                    .antMatchers(HttpMethod.GET, "/configuration/groups/*").permitAll()
+                    .antMatchers(HttpMethod.GET, "/configuration/groups/**").permitAll()
                     .antMatchers(HttpMethod.POST, "/configuration/groups/**").hasAuthority("ADMIN")
                     .antMatchers(HttpMethod.PUT, "/configuration/groups/**").hasAuthority("ADMIN")
                     .antMatchers(HttpMethod.DELETE, "/configuration/groups/**").hasAuthority("ADMIN")
