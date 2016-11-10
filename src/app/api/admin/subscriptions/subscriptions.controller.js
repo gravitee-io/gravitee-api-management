@@ -77,7 +77,7 @@ class SubscriptionsController {
   onClipboardSuccess(e) {
     this.NotificationService.show('API Key has been copied to clipboard');
     e.clearSelection();
-  };
+  }
 
   showExpirationModal(apiKey) {
     var _this = this;

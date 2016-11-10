@@ -22,7 +22,7 @@ class ApplicationService {
     this.applicationsURL = this.baseURL + 'applications/';
     this.subscriptionsURL = function(applicationId) {
       return this.applicationsURL + applicationId + '/subscriptions/';
-    }
+    };
   }
 
 	get(applicationId) {
@@ -123,11 +123,11 @@ class ApplicationService {
   }
 
   applicationGlobalHits(application, from, to, interval, key, query) {
-    return this.$http.get(this.applicationsURL + application + '/analytics?type=global_hits&key=' + key + '&query=' + query + '&interval=' + interval + '&from=' + from + '&to=' + to)
+    return this.$http.get(this.applicationsURL + application + '/analytics?type=global_hits&key=' + key + '&query=' + query + '&interval=' + interval + '&from=' + from + '&to=' + to);
   }
 
   applicationTopHits(application, from, to, interval, key, query, field, size) {
-    return this.$http.get(this.applicationsURL + application + '/analytics?type=top_hits&key=' + key + '&query=' + query + '&field=' + field + '&interval=' + interval + '&from=' + from + '&to=' + to + '&size=' + size)
+    return this.$http.get(this.applicationsURL + application + '/analytics?type=top_hits&key=' + key + '&query=' + query + '&field=' + field + '&interval=' + interval + '&from=' + from + '&to=' + to + '&size=' + size);
   }
 
 }

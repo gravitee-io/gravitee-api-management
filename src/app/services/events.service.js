@@ -22,13 +22,13 @@ class EventsService {
   }
 
   search(type, apis, from, to, page, size) {
-    return this.$http.get(this.eventsURL
-      + "?type=" + type
-      + "&api_ids=" + apis
-      + "&from=" + from
-      + "&to=" + to
-      + "&page=" + page
-      + "&size=" + size);
+    return this.$http.get(this.eventsURL +
+      "?type=" + type +
+      "&api_ids=" + apis +
+      "&from=" + from +
+      "&to=" + to +
+      "&page=" + page +
+      "&size=" + size);
   }
 
 }

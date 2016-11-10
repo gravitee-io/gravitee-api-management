@@ -110,7 +110,7 @@ class SideNavController {
     var that = this;
     this.UserService.logout().then(function () {
       that.$rootScope.$broadcast('graviteeLogout');
-    })
+    });
   }
 
   isDisplayed() {

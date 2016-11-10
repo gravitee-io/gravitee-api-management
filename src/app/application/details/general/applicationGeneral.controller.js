@@ -65,7 +65,7 @@ class ApplicationGeneralController {
         this.groups = _.union(
           [this.GroupService.getEmptyGroup()],
           groups.data);
-      })
+      });
     }
   }
 

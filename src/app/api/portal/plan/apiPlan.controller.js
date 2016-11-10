@@ -40,7 +40,7 @@ class ApiPortalPlanController {
           $state.go('applications.portal.subscriptions', {applicationId: application.id});
         }
       });
-    }
+    };
   }
 }
 

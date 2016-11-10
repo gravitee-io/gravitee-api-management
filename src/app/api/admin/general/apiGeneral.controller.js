@@ -80,7 +80,7 @@ class ApiAdminController {
       this.groups = _.union(
         [this.GroupService.getEmptyGroup()],
         groups.data);
-    })
+    });
   }
 
   changeLifecycle(id) {

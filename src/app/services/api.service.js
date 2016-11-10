@@ -120,11 +120,11 @@ class ApiService {
   }
 
   apiGlobalHits(api, from, to, interval, key, query) {
-    return this.$http.get(this.apisURL + api + '/analytics?type=global_hits&key=' + key + '&query=' + query + '&interval=' + interval + '&from=' + from + '&to=' + to)
+    return this.$http.get(this.apisURL + api + '/analytics?type=global_hits&key=' + key + '&query=' + query + '&interval=' + interval + '&from=' + from + '&to=' + to);
   }
 
   apiTopHits(api, from, to, interval, key, query, field, size) {
-    return this.$http.get(this.apisURL + api + '/analytics?type=top_hits&key=' + key + '&query=' + query + '&field=' + field + '&interval=' + interval + '&from=' + from + '&to=' + to + '&size=' + size)
+    return this.$http.get(this.apisURL + api + '/analytics?type=top_hits&key=' + key + '&query=' + query + '&field=' + field + '&interval=' + interval + '&from=' + from + '&to=' + to + '&size=' + size);
   }
 
   /*
@@ -166,7 +166,7 @@ class ApiService {
       url += '?type=' + type;
     }
     return url;
-  };
+  }
 
   /*
    * API plans

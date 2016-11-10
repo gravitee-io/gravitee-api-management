@@ -137,7 +137,6 @@ class ApiPoliciesController {
               };
             } else {
               //todo manage errors
-              console.log(response);
             }
           });
       });
@@ -171,7 +170,7 @@ class ApiPoliciesController {
     ev.stopPropagation();
     this.selectedApiPolicy = this.apiPoliciesByPath[path][index];
     this.$scope.policyJsonSchema = this.selectedApiPolicy.schema;
-    if (Object.keys(this.$scope.policyJsonSchema).length == 0) {
+    if (Object.keys(this.$scope.policyJsonSchema).length === 0) {
       this.$scope.policyJsonSchema = {
         "type": "object",
         "id": "empty",

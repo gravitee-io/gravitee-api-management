@@ -9,17 +9,23 @@
   "unused": true,
   "validthis": true,
   "jasmine": true,
+  "loopfunc": true,
   "globals": {
     "angular": false,
     "inject": false,
     "module": false,
-    "document": false,
+    "document": true,
     "_": false,
     "setInterval": false,
+    "setTimeout": true,
     "clearInterval": false,
     "FileReader": false,
     "btoa": false,
     "Highcharts": false,
-    "moment": false
+    "moment": false,
+    "window": true,
+    "URL": true,
+    "location": true,
+    "JsDiff": true
   }
 }

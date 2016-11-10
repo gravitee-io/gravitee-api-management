@@ -29,7 +29,7 @@ function interceptorConfig($httpProvider) {
 
           var notificationService = $injector.get('NotificationService');
           if (unauthorizedError) {
-            if (error.config.headers['Authorization']) {
+            if (error.config.headers.Authorization) {
               errorMessage = 'Wrong user or password';
             } else {
               if (!sessionExpired) {
@@ -38,7 +38,7 @@ function interceptorConfig($httpProvider) {
                 notificationService.showError(error, 'Session expired, redirecting to home...');
                 $injector.get('$timeout')(function () {
                   $injector.get('$rootScope').$broadcast('graviteeLogout');
-                }, 2000)
+                }, 2000);
               }
             }
           } else {

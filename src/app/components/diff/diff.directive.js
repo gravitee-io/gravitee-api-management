@@ -21,13 +21,13 @@ class DiffDirective {
       newValue: "=newValue"
     };
   }
-    
-  link(scope, elem, attr) {
+
+  link(scope, elem) {
     scope.$watch('oldValue', function(){
       var oldValue = scope.oldValue;
       var newValue = scope.newValue;
-      
-      if (oldValue != null && newValue != null) {
+
+      if (oldValue !== null && newValue !== null) {
         elem.html('');
         var diff = JsDiff.diffJson(oldValue, newValue);
         diff.forEach(function(part){

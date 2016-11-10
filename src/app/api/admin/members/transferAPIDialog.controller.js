@@ -21,11 +21,11 @@ function DialogTransferApiController($scope, $mdDialog) {
 
   $scope.cancel = function() {
     $mdDialog.cancel();
-  }
+  };
 
   $scope.transferOwnership = function() {
     $mdDialog.hide(true);
-  }
+  };
 }
 
 export default DialogTransferApiController;

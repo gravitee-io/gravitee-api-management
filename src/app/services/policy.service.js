@@ -21,7 +21,7 @@ class PolicyService {
     this.policiesURL = Constants.baseURL + 'policies/';
   }
 
-  list({expandSchema}) {
+  list() {
     let url = this.policiesURL;
 /*    if(expandSchema) {
       url += "?expand=schema";

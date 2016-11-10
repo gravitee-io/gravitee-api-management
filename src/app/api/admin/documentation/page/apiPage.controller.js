@@ -47,7 +47,7 @@ class PageController {
     FetcherService.list().then(response => {
       that.fetchers = response.data;
       if ( $state.current.name === 'apis.admin.documentation.new' ) {
-        if (['SWAGGER', 'RAML', 'MARKDOWN'].indexOf($state.params.type) == -1) {
+        if (['SWAGGER', 'RAML', 'MARKDOWN'].indexOf($state.params.type) === -1) {
           $state.go('apis.admin.documentation');
         }
         this.createMode = true;
@@ -58,7 +58,7 @@ class PageController {
         this.preview();
         DocumentationService.get($state.params.apiId, $state.params.pageId).then( response => {
           that.page = response.data;
-          DocumentationService.cachePageConfiguration($state.params.apiId, that.page)
+          DocumentationService.cachePageConfiguration($state.params.apiId, that.page);
           that.initialPage = _.clone(response.data);
           if(!(_.isNil(that.page.source) || _.isNil(that.page.source.type))) {
             that.useFetcher = true;
@@ -152,7 +152,7 @@ class PageController {
         if(fetcher.id === this.page.source.type) {
           this.$scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
         }
-      })
+      });
     }
   }
 

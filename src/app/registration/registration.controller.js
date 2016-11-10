@@ -22,7 +22,7 @@ class RegistrationController {
         $scope.formRegistration.$setPristine();
         NotificationService.show('Thank you for registering, you will receive an e-mail confirmation in a fewer minutes');
       });
-    }
+    };
   }
 }
 

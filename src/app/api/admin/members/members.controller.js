@@ -34,7 +34,7 @@ class ApiMembersController {
     if (this.api.group) {
       GroupService.getMembers(this.api.group.id).then((members) => {
         this.groupMembers = members.data;
-      })
+      });
     }
   }
 
@@ -81,7 +81,7 @@ class ApiMembersController {
     });
   }
 
-  showPermissionsInformation(ev) {
+  showPermissionsInformation() {
     this.$mdDialog.show({
       controller: 'DialogApiPermissionsHelpController',
       controllerAs: 'ctrl',
@@ -115,13 +115,13 @@ class ApiMembersController {
           return _.findIndex(_this.members,
               function(apiMember) {
                 return apiMember.username === user.id && apiMember.type === 'primary_owner';
-              }) == -1;
+              }) === -1;
         });
         return filterUsers;
       });
     } else {
-      var filterMembers = _.filter(this.members, function(member) { return member.type != 'primary_owner'});
-      var members = _.flatMap(filterMembers, function(member) { return { 'id' : member.username}});
+      var filterMembers = _.filter(this.members, function(member) { return member.type !== 'primary_owner'; });
+      var members = _.flatMap(filterMembers, function(member) { return { 'id' : member.username}; });
       return members;
     }
   }
@@ -130,11 +130,11 @@ class ApiMembersController {
     if (item) {
       this.newPrimaryOwner = item;
     } else {
-      if (this.newPrimaryOwner != null) {
+      if (this.newPrimaryOwner !== null) {
         this.newPrimaryOwner = null;
       }
     }
-  };
+  }
 
   showTransferOwnershipConfirm(ev) {
     var _this = this;
@@ -150,7 +150,7 @@ class ApiMembersController {
       }
     }, function() {
       // You cancelled the dialog
-    });;
+    });
   }
 
   transferOwnership() {

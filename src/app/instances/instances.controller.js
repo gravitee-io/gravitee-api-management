@@ -20,14 +20,14 @@ class InstancesController {
     this.$scope = $scope;
     this.$scope.displayAllInstances = false;
     this.startedInstances = _.filter(this.instances, { 'state': 'started'});
-    this.displayEmptyMode = this.startedInstances.length == 0;
+    this.displayEmptyMode = this.startedInstances.length === 0;
 	}
 
 	switchDisplayInstances(displayAllInstances) {
     if (!displayAllInstances) {
-      this.displayEmptyMode = this.startedInstances.length == 0;
+      this.displayEmptyMode = this.startedInstances.length === 0;
     } else {
-      this.displayEmptyMode = this.instances.length == 0;
+      this.displayEmptyMode = this.instances.length === 0;
     }
     this.$scope.displayAllInstances = displayAllInstances;
   }
@@ -40,15 +40,14 @@ class InstancesController {
       } else if (lowerOSName.indexOf('nix') >= 0 || lowerOSName.indexOf('nux') >= 0 || lowerOSName.indexOf('aix') >= 0) {
         return 'desktop_windows';
       } else if (lowerOSName.indexOf('win') >= 0) {
-        return 'windows'
+        return 'windows';
       }
     }
     return 'desktop_windows';
   }
 
   displayEmptyMode() {
-    console.log(this.$scope.displayAllInstances);
-    return this.instances.length == 0;
+    return this.instances.length === 0;
   }
 }
 

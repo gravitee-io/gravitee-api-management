@@ -85,8 +85,8 @@ import ImageDirective from './components/image/image.directive';
 import EventsService from './services/events.service';
 import AnalyticsService from './services/analytics.service';
 import DashboardController from './platform/dashboard/dashboard.controller';
-import PageSwaggerConfigurationService from './services/pageSwaggerConfiguration.service'
-import PageSwaggerHttpClientService from './services/pageSwaggerHttpClient.service'
+import PageSwaggerConfigurationService from './services/pageSwaggerConfiguration.service';
+import PageSwaggerHttpClientService from './services/pageSwaggerHttpClient.service';
 import DashboardModelDirective from './platform/dashboard/dashboardModel.directive';
 import ViewsController from './configuration/admin/views/views.controller';
 import ViewService from './services/view.service';
@@ -225,7 +225,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
       } else {
         return moment(input).format('D MMM. YYYY');
       }
-    }
+    };
   })
   .filter('apiKeyFilter', function () {
     return function (keys) {

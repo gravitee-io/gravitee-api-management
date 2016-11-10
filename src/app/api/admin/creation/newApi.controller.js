@@ -62,7 +62,7 @@ class NewApiController {
     if (!stepData.completed) {
       var _this = this;
 
-      if (this.vm.selectedStep != 1) {
+      if (this.vm.selectedStep !== 1) {
         _this.vm.showBusyText = false;
         //move to next step when success
         stepData.completed = true;
@@ -72,7 +72,7 @@ class NewApiController {
           _this.vm.showBusyText = false;
           _this.NotificationService.show('API created');
           _this.$window.location.href = '#/apis/' + api.data.id + '/settings/general';
-        }).catch(function (error) {
+        }).catch(function () {
           _this.vm.showBusyText = false;
         });
       }

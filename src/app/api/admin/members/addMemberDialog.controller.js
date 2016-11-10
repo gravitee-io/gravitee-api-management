@@ -33,7 +33,7 @@ function DialogAddMemberApiController($scope, $mdDialog, api, apiMembers, ApiSer
 				var membersFound = response.data;
         var filterMembers = _.filter(membersFound, function(member) {
           return _.findIndex($scope.apiMembers,
-                              function(apiMember) { return apiMember.username === member.id;}) == -1;
+                              function(apiMember) { return apiMember.username === member.id;}) === -1;
         });
 				return filterMembers;
 			});

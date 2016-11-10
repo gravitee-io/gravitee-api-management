@@ -33,7 +33,7 @@ function DialogAddGroupMemberController($scope, $mdDialog, group, GroupService, 
         return _.filter(membersFound, (member) => {
           return _.findIndex($scope.groupItem.members, (m) => {
               return m.username === member.id;
-            }) == -1;
+            }) === -1;
         });
       });
     }

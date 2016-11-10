@@ -33,7 +33,7 @@ function DialogAddMemberController($scope, $mdDialog, application, applicationMe
         var membersFound = response.data;
         var filterMembers = _.filter(membersFound, function(member) {
           return _.findIndex($scope.applicationMembers,
-                              function(applicationMember) { return applicationMember.username === member.id;}) == -1;
+                              function(applicationMember) { return applicationMember.username === member.id;}) === -1;
         });
         return filterMembers;
 			});

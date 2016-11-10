@@ -28,7 +28,6 @@ class GroupsController {
     this.applicationGroups = [];
     this.apiGroups = [];
     this.listGroups();
-
   }
 
   listGroups() {
@@ -38,7 +37,7 @@ class GroupsController {
           return {
             group,
             members: getMembersResponse.data
-          }
+          };
         }).then(groupWithMembers => {
           if(groupWithMembers.group.type === "application") {
             return this.ApplicationService.listByGroup(groupWithMembers.group.id).then (applicationsResponse => {
@@ -46,28 +45,27 @@ class GroupsController {
                 group: groupWithMembers.group,
                 members: groupWithMembers.members,
                 applications: applicationsResponse.data
-              }
-            })
+              };
+            });
           } else {
             return this.ApiService.listByGroup(groupWithMembers.group.id).then (apiResponse => {
               return {
                 group: groupWithMembers.group,
                 members: groupWithMembers.members,
                 apis: apiResponse.data
-              }
-            })
+              };
+            });
           }
-
-        })
+        });
       });
 
       this.$q.all(promises).then(responses => {
         var partition = _.partition(responses, item => {
-          return item.group.type === "application"
+          return item.group.type === "application";
         });
         this.applicationGroups = partition[0];
         this.apiGroups = partition[1];
-      })
+      });
     });
   }
 
@@ -90,7 +88,7 @@ class GroupsController {
     this.groupType = type;
   }
 
-  showAddGroupModal(ev) {
+  showAddGroupModal() {
     var _this = this;
     this.$mdDialog.show({
       controller: 'DialogAddGroupController',
@@ -159,7 +157,7 @@ class GroupsController {
     this.$mdDialog.show(confirm).then( () => {
       _this.GroupService.remove(groupId).then( () => {
         _this.listGroups();
-      })
+      });
     }, () => {
       _this.$mdDialog.cancel();
     });
@@ -177,10 +175,10 @@ class GroupsController {
       _this.GroupService.deleteMember(_this.selectedGroup.group.id, username).then( () => {
         _this.NotificationService.show('Member ' + username + ' has been removed from the group');
         _.remove(_this.selectedGroup.members, (m) => {
-          return m.username == username;
+          return m.username === username;
         });
 
-      })
+      });
     }, () => {
       _this.$mdDialog.cancel();
     });

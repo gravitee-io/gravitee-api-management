@@ -32,13 +32,13 @@ class PageSwaggerConfigurationService {
         swaggerSpec.schemes = [apiUrl.protocol.slice(0, -1)];
         swaggerSpec.basePath = apiUrl.pathname;
         if (swaggerSpec.basePath[swaggerSpec.basePath.length-1] === "/") {
-          swaggerSpec.basePath = swaggerSpec.basePath.slice(0, -1)
+          swaggerSpec.basePath = swaggerSpec.basePath.slice(0, -1);
         }
         deferred.resolve(swaggerSpec);
       } catch (error) {
         deferred.reject({message: 'Bad URL in Swagger descriptor', code: '500'});
       }
-    }else {
+    } else {
       deferred.resolve(false);
     }
 

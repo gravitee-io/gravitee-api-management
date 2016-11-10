@@ -53,7 +53,7 @@ class UserService {
 	    return false;
 	  }
 
-	  if (this.$rootScope.graviteeUser && (!roles || roles.length == 0)) {
+	  if (this.$rootScope.graviteeUser && (!roles || roles.length === 0)) {
 	    return false;
 	  }
 

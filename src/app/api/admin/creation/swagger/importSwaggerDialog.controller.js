@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogApiSwaggerImportController($scope, $mdDialog, ApiService, apiId) {
+function DialogApiSwaggerImportController($scope, $mdDialog, ApiService) {
   'ngInject';
 
   $scope.swagger = {
@@ -33,7 +33,7 @@ function DialogApiSwaggerImportController($scope, $mdDialog, ApiService, apiId) 
 
   this.import = function() {
     delete $scope.swagger.name;
-    if ($scope.swagger.type == 'INLINE') {
+    if ($scope.swagger.type === 'INLINE') {
       delete $scope.swagger.url;
     } else {
       $scope.swagger.payload = $scope.swagger.url;

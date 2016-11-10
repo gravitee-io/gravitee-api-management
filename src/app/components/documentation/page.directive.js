@@ -62,8 +62,9 @@ class PageController {
   }
 
   enableTryIt() {
-    if (this.$scope.page.type !== 'SWAGGER')
+    if (this.$scope.page.type !== 'SWAGGER') {
       return false;
+    }
     return !_.isNil(this.$scope.page.configuration) && this.$scope.page.configuration.tryIt && this.$rootScope.graviteeUser;
   }
 }

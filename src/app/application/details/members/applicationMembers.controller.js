@@ -26,7 +26,7 @@ class ApplicationMembersController {
     if (this.application.group) {
       GroupService.getMembers(this.application.group.id).then((members) => {
         this.groupMembers = members.data;
-      })
+      });
     }
   }
 
@@ -84,7 +84,7 @@ class ApplicationMembersController {
     });
   }
 
-  showPermissionsInformation(ev) {
+  showPermissionsInformation() {
     this.$mdDialog.show({
       controller: 'DialogApplicationPermissionsHelpController',
       controllerAs: 'ctrl',

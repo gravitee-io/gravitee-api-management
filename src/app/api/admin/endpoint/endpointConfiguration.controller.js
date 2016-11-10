@@ -65,7 +65,7 @@ class ApiEndpointController {
   }
 
   update(api) {
-    this.ApiService.update(api).then(updatedApi => {
+    this.ApiService.update(api).then(() => {
       this.onApiUpdate();
     });
   }

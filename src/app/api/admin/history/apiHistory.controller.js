@@ -155,7 +155,7 @@ class ApiHistoryController {
         var event2UpdatedAt = this.eventsSelected[0].event.updated_at;
 
         if (this.eventsSelected[0].isCurrentAPI) {
-          eventSelected = this.eventsSelected[0].event
+          eventSelected = this.eventsSelected[0].event;
         } else {
           eventSelected = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
         }

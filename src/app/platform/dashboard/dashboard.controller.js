@@ -142,10 +142,10 @@ class DashboardController {
   }
 
   initEventLabels() {
-    this.eventLabels["start_api"] = "Start";
-    this.eventLabels["stop_api"] = "Stop";
-    this.eventLabels["publish_api"] = "Deploy";
-    this.eventLabels["unpublish_api"] = "Undeploy";
+    this.eventLabels.start_api = "Start";
+    this.eventLabels.stop_api = "Stop";
+    this.eventLabels.publish_api = "Deploy";
+    this.eventLabels.unpublish_api = "Undeploy";
   }
 
   getEventLabel(label) {
@@ -158,18 +158,19 @@ class DashboardController {
 
   updateCharts() {
     var _this = this;
+    var i;
 
     var queryFilter = '';
     if (this.selectedAPIs.length) {
       queryFilter = ' AND(';
-      for (var i = 0; i < this.selectedAPIs.length; i++) {
+      for (i = 0; i < this.selectedAPIs.length; i++) {
         queryFilter += 'api:' + this.selectedAPIs[i].id + (this.selectedAPIs.length - 1 === i ? ')' : ' OR ');
       }
     }
 
     if (this.selectedApplications.length) {
       queryFilter = ' AND(';
-      for (var i = 0; i < this.selectedApplications.length; i++) {
+      for (i = 0; i < this.selectedApplications.length; i++) {
         queryFilter += 'application:' + this.selectedApplications[i].id + (this.selectedApplications.length - 1 === i ? ')' : ' OR ');
       }
     }

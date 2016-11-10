@@ -34,13 +34,13 @@ class ApiPlansController {
         if ($scope.plan.paths['/']) {
           _.forEach($scope.plan.paths['/'], function (path) {
             if (path['rate-limit']) {
-              $scope.rateLimit = path['rate-limit']['rate'];
+              $scope.rateLimit = path['rate-limit'].rate;
             }
-            if (path['quota']) {
-              $scope.quota = path['quota']['quota'];
+            if (path.quota) {
+              $scope.quota = path.quota.quota;
             }
             if (path['resource-filtering']) {
-              $scope.resourceFiltering.whitelist = path['resource-filtering']['whitelist'];
+              $scope.resourceFiltering.whitelist = path['resource-filtering'].whitelist;
             }
           });
         }
@@ -58,7 +58,7 @@ class ApiPlansController {
       if (livePreviewIsOpen === false && $mdSidenav('plan-edit').isOpen()) {
         $mdSidenav('plan-edit').toggle();
       }
-    })
+    });
   }
 
   resetResourceFiltering() {

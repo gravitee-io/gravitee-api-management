@@ -185,10 +185,10 @@ class ApplicationAnalyticsController {
       promises.push(this.getAPI(response[0].data.values[0].buckets[i].name));
     }
     var _this = this;
-    this.$q.all(promises).then(function(value) {
-      _this.pushHitsByData(report, response)
+    this.$q.all(promises).then(function() {
+      _this.pushHitsByData(report, response);
       _this.pushTopHitsData();
-    }, function(reason) {
+    }, function() {
     });
   }
 

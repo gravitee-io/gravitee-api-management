@@ -39,7 +39,7 @@ class ApisController {
 
       if (that.views.length && that.$state.params.view) {
         that.selectedIndex = _.findIndex(that.views, function (v) {
-          return v.id == that.$state.params.view;
+          return v.id === that.$state.params.view;
         });
       } else {
         that.selectedIndex = 0;
@@ -80,7 +80,7 @@ class ApisController {
           }
         });
         return this.$q
-          .all( _.filter( promises, ( p ) => { return p!== undefined } ) )
+          .all( _.filter( promises, ( p ) => { return p!== undefined; } ) )
           .then((syncList) => {
               that.syncStatus = _.fromPairs(_.map(syncList, (sync) => {
                 return [sync.data.api_id, sync.data.is_synchronized];

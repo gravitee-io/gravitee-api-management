@@ -164,7 +164,7 @@ class ApiHealthCheckController {
 
   close() {
     this.$mdSidenav('healthcheck-config').close();
-  };
+  }
 
   openMenu($mdOpenMenu, ev) {
     $mdOpenMenu(ev);
@@ -188,7 +188,7 @@ class ApiHealthCheckController {
     if (this.healthcheck.expectation === undefined) {
       this.healthcheck.expectation = {
         assertions: ['']
-      }
+      };
     } else {
       this.healthcheck.expectation.assertions.push('');
     }
@@ -327,7 +327,7 @@ class ApiHealthCheckController {
             "KO",
             "OK"
           ]
-        }
+        };
       });
   }
 

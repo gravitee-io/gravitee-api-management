@@ -35,7 +35,7 @@ class DocumentationController {
 
   init() {
     let that = this;
-    this.list().then( ({pages}) => {
+    this.list().then( () => {
       let d = document.querySelector('.pages');
       that.DragularService([d], {
         scope: this.$scope,
@@ -64,7 +64,7 @@ class DocumentationController {
       return {pages: this.pages};
     }).then( response => {
       if(response.pages && response.pages.length > 0) {
-        if (this.$state.params.pageId != undefined) {
+        if (this.$state.params.pageId !== undefined) {
           this.$state.go("apis.admin.documentation.page", {pageId: this.$state.params.pageId});
         } else {
           this.$state.go("apis.admin.documentation.page", {pageId: response.pages[0].id});

@@ -21,7 +21,7 @@ class ResourceService {
     this.resourcesURL = Constants.baseURL + 'resources/';
   }
 
-  list({expandSchema}) {
+  list() {
     let url = this.resourcesURL;
 /*    if(expandSchema) {
       url += "?expand=schema";
