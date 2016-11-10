@@ -33,7 +33,9 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -57,9 +59,12 @@ public class ApiPlansResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List accessible plans for current user", response = PlanEntity.class, responseContainer = "Set"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Set<PlanEntity> listPlans(
+    public List<PlanEntity> listPlans(
             @PathParam("api") String api) {
-        return planService.findByApi(api);
+
+        return planService.findByApi(api).stream()
+                .sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
+                .collect(Collectors.toList());
     }
 
     @POST
