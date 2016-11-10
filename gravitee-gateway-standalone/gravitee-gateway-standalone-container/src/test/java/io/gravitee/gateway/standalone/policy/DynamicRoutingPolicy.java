@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.policy.apikey;
+package io.gravitee.gateway.standalone.policy;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.policy.api.PolicyChain;
@@ -24,10 +25,11 @@ import io.gravitee.policy.api.annotations.OnRequest;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DummyApiKeyPolicy {
+public class DynamicRoutingPolicy {
 
     @OnRequest
-    public void onRequest(Request request, Response response, PolicyChain policyChain) {
+    public void onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
+        executionContext.setAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT, request.headers().getFirst("X-Dynamic-Routing-URI"));
         policyChain.doNext(request, response);
     }
 }

@@ -19,7 +19,7 @@ import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.policy.PolicyRegister;
-import io.gravitee.gateway.standalone.policy.apikey.DummyApiKeyPolicy;
+import io.gravitee.gateway.standalone.policy.ApiKeyPolicy;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.junit.Rule;
@@ -38,7 +38,7 @@ public abstract class AbstractGatewayTest implements PolicyRegister {
             .around(new ApiDeployer(this));
 
     public void registerPlugin(PolicyPluginManager policyPluginManager) {
-        PolicyPlugin apiKey = PolicyBuilder.register("api-key", DummyApiKeyPolicy.class);
+        PolicyPlugin apiKey = PolicyBuilder.register("api-key", ApiKeyPolicy.class);
         policyPluginManager.register(apiKey);
     }
 }

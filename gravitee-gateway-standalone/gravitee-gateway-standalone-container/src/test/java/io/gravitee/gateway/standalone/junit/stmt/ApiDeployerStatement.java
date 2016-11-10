@@ -95,15 +95,15 @@ public class ApiDeployerStatement extends Statement {
                 int port = SocketUtils.getBindPorts().get(i);
                 if (i < endpoints.size()) {
                     Endpoint edpt = endpoints.get(i);
-                    URI target = URI.create(edpt.getTarget());
-                    URI newTarget = new URI(target.getScheme(), target.getUserInfo(), target.getHost(), port, target.getPath(), target.getQuery(), target.getFragment());
+                    URL target = new URL(edpt.getTarget());
+                    URL newTarget = new URL(target.getProtocol(), target.getHost(), port, target.getFile());
                     edpt.setTarget(newTarget.toString());
                     edpt.setName(UUID.random().toString());
                 } else {
                     // Use the first defined endpoint as reference
                     Endpoint first = endpoints.get(0);
-                    URI target = URI.create(first.getTarget());
-                    URI newTarget = new URI(target.getScheme(), target.getUserInfo(), target.getHost(), port, target.getPath(), target.getQuery(), target.getFragment());
+                    URL target = new URL(first.getTarget());
+                    URL newTarget = new URL(target.getProtocol(), target.getHost(), port, target.getFile());
                     Endpoint edpt = new Endpoint(newTarget.toString());
                     edpt.setName(UUID.random().toString());
                     edpt.setHttpClientOptions(first.getHttpClientOptions());
