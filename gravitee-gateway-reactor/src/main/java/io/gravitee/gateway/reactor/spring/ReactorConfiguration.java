@@ -20,12 +20,13 @@ import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerResolver;
+import io.gravitee.gateway.reactor.handler.transaction.TransactionHandlerFactory;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
@@ -44,5 +45,10 @@ public class ReactorConfiguration {
     @Bean
     public ReactorHandlerRegistry reactorHandlerManager() {
         return new DefaultReactorHandlerRegistry();
+    }
+
+    @Bean
+    public TransactionHandlerFactory transactionHandlerFactory() {
+        return new TransactionHandlerFactory();
     }
 }

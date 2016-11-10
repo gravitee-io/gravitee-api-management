@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.core.logger;
+package io.gravitee.gateway.reactor.handler.transaction;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.handler.Handler;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface HttpDump {
+public class TransactionHandlerFactory {
 
-    Logger logger = LoggerFactory.getLogger("io.gravitee.gateway.http.client");
+    @Value("${handlers.request.transaction.header:" + TransactionHandler.DEFAULT_TRANSACTIONAL_ID_HEADER + "}")
+    private String transactionHeader;
+
+    public Handler<Request> create(Handler<Request> next) {
+        return new TransactionHandler(transactionHeader, next);
+    }
 }

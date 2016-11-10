@@ -25,7 +25,7 @@ import io.gravitee.gateway.api.stream.ReadStream;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class LoggableClientResponse implements ClientResponse {
@@ -41,9 +41,9 @@ public class LoggableClientResponse implements ClientResponse {
     @Override
     public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
         return clientResponse.bodyHandler(chunk -> {
-            HttpDump.logger.info("{} << proxying content to downstream: {} bytes", request.id(),
-                    chunk.length());
-            HttpDump.logger.info("{} << {}", request.id(), chunk.toString());
+            HttpDump.logger.info("{}/{} << proxying content to downstream: {} bytes", request.id(),
+                    request.transactionId(), chunk.length());
+            HttpDump.logger.info("{}/{} << {}", request.id(), request.transactionId(), chunk.toString());
 
             bodyHandler.handle(chunk);
         });
@@ -52,7 +52,7 @@ public class LoggableClientResponse implements ClientResponse {
     @Override
     public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
         return clientResponse.endHandler(result -> {
-            HttpDump.logger.info("{} << downstream proxying complete", request.id());
+            HttpDump.logger.info("{}/{} << downstream proxying complete", request.id(), request.transactionId());
 
             endHandler.handle(result);
         });

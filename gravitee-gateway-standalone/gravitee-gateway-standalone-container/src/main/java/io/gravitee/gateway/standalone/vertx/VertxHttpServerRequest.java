@@ -62,6 +62,11 @@ class VertxHttpServerRequest implements Request {
     }
 
     @Override
+    public String transactionId() {
+        throw new IllegalStateException("Request not yet managed.");
+    }
+
+    @Override
     public String uri() {
         return httpServerRequest.uri();
     }
@@ -78,7 +83,7 @@ class VertxHttpServerRequest implements Request {
 
     @Override
     public String contextPath() {
-        throw new IllegalStateException("Request is not managed by reactor");
+        throw new IllegalStateException("Request not yet managed.");
     }
 
     @Override

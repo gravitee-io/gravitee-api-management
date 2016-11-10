@@ -114,11 +114,11 @@ public class DefaultHttpInvoker implements Invoker {
                 (enableHttpDump) ? loggableClientResponse(result, serverRequest) : result);
 
         if (enableHttpDump) {
-            HttpDump.logger.info("{} >> Rewriting: {} -> {}", serverRequest.id(), serverRequest.uri(), uri);
-            HttpDump.logger.info("{} >> {} {}", serverRequest.id(), httpMethod, uri);
+            HttpDump.logger.info("{}/{} >> Rewriting: {} -> {}", serverRequest.id(), serverRequest.transactionId(), serverRequest.uri(), uri);
+            HttpDump.logger.info("{}/{} >> {} {}", serverRequest.id(), serverRequest.transactionId(), httpMethod, uri);
 
-            serverRequest.headers().forEach((headerName, headerValues) -> HttpDump.logger.info("{} >> {}: {}",
-                    serverRequest.id(), headerName, headerValues.stream().collect(Collectors.joining(","))));
+            serverRequest.headers().forEach((headerName, headerValues) -> HttpDump.logger.info("{}/{} >> {}: {}",
+                    serverRequest.id(), serverRequest.transactionId(), headerName, headerValues.stream().collect(Collectors.joining(","))));
 
             clientRequest = new LoggableClientRequest(clientRequest, serverRequest);
         }

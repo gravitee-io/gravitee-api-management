@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler.http;
+package io.gravitee.gateway.reactor.handler.transaction;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
@@ -31,18 +31,14 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ContextualizedHttpServerRequest implements Request {
+public class TransactionRequest implements Request {
 
     private final Request request;
-    private final String contextPath;
-    private final String pathInfo;
+    private final String transactionId;
 
-    public ContextualizedHttpServerRequest(final String contextPath, final Request request) {
-        this.contextPath = contextPath;
+    public TransactionRequest(final String transactionId, final Request request) {
+        this.transactionId = transactionId;
         this.request = request;
-
-        this.pathInfo = new StringBuilder(request.path())
-                .delete(0, contextPath.length()).toString();
     }
 
     @Override
@@ -52,7 +48,7 @@ public class ContextualizedHttpServerRequest implements Request {
 
     @Override
     public String transactionId() {
-        return request.transactionId();
+        return transactionId;
     }
 
     @Override
@@ -67,12 +63,12 @@ public class ContextualizedHttpServerRequest implements Request {
 
     @Override
     public String pathInfo() {
-        return pathInfo;
+        return request.pathInfo();
     }
 
     @Override
     public String contextPath() {
-        return contextPath;
+        return request.contextPath();
     }
 
     @Override
