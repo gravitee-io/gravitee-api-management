@@ -27,6 +27,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
+import io.gravitee.gateway.reactor.handler.transaction.TransactionHandlerFactory;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import io.gravitee.reporter.api.http.RequestMetrics;
 import org.junit.Assert;
@@ -35,6 +36,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +61,9 @@ public class ReactorTest {
     @Mock
     private ReactorHandlerRegistry reactorHandlerRegistry;
 
+    @Spy
+    private TransactionHandlerFactory transactionHandlerFactory = new TransactionHandlerFactory();
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -68,10 +73,11 @@ public class ReactorTest {
     public void processRequest_startedApi() throws Exception {
         Request request = mock(Request.class);
         when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.headers()).thenReturn(new HttpHeaders());
         when(request.path()).thenReturn("/team");
         when(request.metrics()).thenReturn(RequestMetrics.on(System.currentTimeMillis()).build());
 
-        when(handlerResolver.resolve(request)).thenReturn(new AbstractReactorHandler() {
+        when(handlerResolver.resolve(any(Request.class))).thenReturn(new AbstractReactorHandler() {
             @Override
             public Reactable reactable() {
                 return new Reactable() {

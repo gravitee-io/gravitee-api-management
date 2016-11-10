@@ -22,7 +22,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.WriteStream;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class LoggableClientRequest implements ClientRequest {
@@ -42,16 +42,16 @@ public class LoggableClientRequest implements ClientRequest {
 
     @Override
     public void end() {
-        HttpDump.logger.info("{} >> upstream proxying complete", request.id());
+        HttpDump.logger.info("{}/{} >> upstream proxying complete", request.id(), request.transactionId());
 
         clientRequest.end();
     }
 
     @Override
     public WriteStream<Buffer> write(Buffer chunk) {
-        HttpDump.logger.info("{} >> proxying content to upstream: {} bytes", request.id(),
+        HttpDump.logger.info("{}/{} >> proxying content to upstream: {} bytes", request.id(), request.transactionId(),
                 chunk.length());
-        HttpDump.logger.info("{} >> {}", request.id(), chunk.toString());
+        HttpDump.logger.info("{}/{} >> {}", request.id(), request.transactionId(), chunk.toString());
 
         return clientRequest.write(chunk);
     }

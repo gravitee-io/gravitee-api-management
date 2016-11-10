@@ -150,6 +150,11 @@ services:
   healthcheck:
     threads: 3 # Threads core size used to check endpoint availability
 
+handlers:
+  request:
+    transaction:
+      header: X-Gravitee-Transaction-Id
+
 # Referenced properties
 ds:
   mongodb:

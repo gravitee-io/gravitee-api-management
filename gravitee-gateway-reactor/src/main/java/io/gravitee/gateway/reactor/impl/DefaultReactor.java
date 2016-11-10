@@ -34,6 +34,7 @@ import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
 import io.gravitee.gateway.reactor.handler.ResponseTimeHandler;
 import io.gravitee.gateway.reactor.handler.reporter.ReporterHandler;
+import io.gravitee.gateway.reactor.handler.transaction.TransactionHandlerFactory;
 import io.gravitee.gateway.report.ReporterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,21 +65,30 @@ public class DefaultReactor extends AbstractService implements
     @Autowired
     private ReporterService reporterService;
 
+    @Autowired
+    private TransactionHandlerFactory transactionHandlerFactory;
+
     @Override
-    public void route(Request serverRequest, Response serverResponse, Handler<Response> handler) {
+    public void route(Request serverRequest, Response serverResponse, final Handler<Response> handler) {
         LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
 
-        ReactorHandler reactorHandler = reactorHandlerResolver.resolve(serverRequest);
-        if (reactorHandler != null) {
-            // Prepare the handler chain
-            handler = new ResponseTimeHandler(serverRequest,
-                    new ReporterHandler(reporterService, serverRequest, handler));
+        // Prepare handler chain
+        Handler<Request> requestHandlerChain = transactionHandlerFactory.create(request -> {
+            ReactorHandler reactorHandler = reactorHandlerResolver.resolve(request);
+            if (reactorHandler != null) {
+                // Prepare the handler chain
+                Handler<Response> responseHandlerChain = new ResponseTimeHandler(request,
+                        new ReporterHandler(reporterService, request, handler));
 
-            reactorHandler.handle(serverRequest, serverResponse, handler);
-        } else {
-            LOGGER.debug("No handler can be found for request {}, returning NOT_FOUND (404)", serverRequest.path());
-            sendNotFound(serverResponse, handler);
-        }
+                reactorHandler.handle(request, serverResponse, responseHandlerChain);
+            } else {
+                LOGGER.debug("No handler can be found for request {}, returning NOT_FOUND (404)", request.path());
+                sendNotFound(serverResponse, handler);
+            }
+        });
+
+        // And handle the request
+        requestHandlerChain.handle(serverRequest);
     }
 
     private void sendNotFound(Response serverResponse, Handler<Response> handler) {
