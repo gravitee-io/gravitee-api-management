@@ -106,6 +106,14 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(dateBuffer);
 		buf.append("] ");
 
+		// Append request id
+		buf.append(metrics.getRequestId());
+		buf.append(" ");
+
+		// Append transaction id
+		buf.append(metrics.getTransactionId());
+		buf.append(" ");
+
 		// Append local IP
 		buf.append('(');
 		buf.append(metrics.getRequestLocalAddress());
