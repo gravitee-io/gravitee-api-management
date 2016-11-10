@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApiPlansController {
-  constructor(resolvedPlans, $mdSidenav, $scope, ApiService, $stateParams, NotificationService) {
+  constructor(resolvedPlans, $mdSidenav, $scope, ApiService, $stateParams, NotificationService, dragularService) {
     'ngInject';
     this.plans = resolvedPlans.data;
     this.$mdSidenav = $mdSidenav;
@@ -22,6 +22,8 @@ class ApiPlansController {
     this.ApiService = ApiService;
     this.$stateParams = $stateParams;
     this.NotificationService = NotificationService;
+    this.DragularService = dragularService;
+
     $scope.planEdit = true;
 
     this.resetPlan();
@@ -58,6 +60,38 @@ class ApiPlansController {
       if (livePreviewIsOpen === false && $mdSidenav('plan-edit').isOpen()) {
         $mdSidenav('plan-edit').toggle();
       }
+    });
+  }
+
+  init() {
+    let that = this;
+    let d = document.querySelector('.plans');
+    this.DragularService([d], {
+      scope: this.$scope,
+      containersModel: _.cloneDeep(this.plans),
+      nameSpace: 'plan'
+    });
+    this.$scope.$on('dragulardrop', function(e, el, target, source, dragularList, index) {
+      let movedPlan = that.plans[index];
+      for (let idx = 0; idx < dragularList.length; idx++) {
+        if (movedPlan.id === dragularList[idx].id) {
+          movedPlan.order = idx+1;
+          break;
+        }
+      }
+      that.plans = dragularList;
+      that.ApiService.savePlan(that.$stateParams.apiId, movedPlan).then(function () {
+        // sync list from server because orders has been changed
+        that.list();
+        that.NotificationService.show('Plans have been reordered successfully');
+      });
+    });
+  }
+
+  list() {
+    return this.ApiService.getApiPlans(this.$stateParams.apiId).then(response => {
+      this.plans = response.data;
+      return {pages: this.pages};
     });
   }
 
