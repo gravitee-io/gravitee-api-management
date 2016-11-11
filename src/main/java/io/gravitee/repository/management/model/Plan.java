@@ -38,6 +38,8 @@ public class Plan {
 
     private PlanType type;
 
+    private Status status;
+
     /**
      * The position of the plan against the other Plans.
      */
@@ -57,6 +59,16 @@ public class Plan {
      * Plan last update date
      */
     private Date updatedAt;
+
+    /**
+     * Plan publication date
+     */
+    private Date publishedAt;
+
+    /**
+     * Plan closing date
+     */
+    private Date closedAt;
 
     /**
      * The JSON payload of all policies to apply for this plan
@@ -153,6 +165,30 @@ public class Plan {
         this.order = order;
     }
 
+    public Date getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(Date publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
+    public Date getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Date closedAt) {
+        this.closedAt = closedAt;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -201,5 +237,22 @@ public class Plan {
          * Subscription requires a human validation.
          */
         MANUAL
+    }
+
+    public enum Status {
+        /**
+         * Plan is configured but not yet published
+         */
+        STAGING,
+
+        /**
+         * Plan is published to portal and can be used to make calls
+         */
+        PUBLISHED,
+
+        /**
+         * Plan is closed
+         */
+        CLOSED
     }
 }
