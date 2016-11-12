@@ -19,7 +19,7 @@
   <div>
     <div layout="row" layout-align="center center">
       <div ng-repeat="timeframe in analyticsCtrl.analyticsData.timeframes">
-        <md-button ng-click="analyticsCtrl.updateTimeframe(timeframe.id)"
+        <md-button ng-click="analyticsCtrl.updateTimeframe(timeframe.id)" ng-disabled="!fetchDone"
                    ng-class="{'gravitee-analytics-timeframe-active' : timeframe === analyticsCtrl.timeframe && !timeframeDate}">
           {{timeframe.title}}
         </md-button>

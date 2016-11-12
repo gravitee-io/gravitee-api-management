@@ -104,6 +104,9 @@ class ApiAnalyticsController {
 
     $scope.chartConfig = [];
 
+    // data fetching settings
+    this.setUpDataFetchSettings();
+
     var that = this;
 
     $scope.$watch('filteredApplications', function () {
@@ -176,7 +179,10 @@ class ApiAnalyticsController {
       this.ApplicationService.get(id).then(response => {
         _this.cache[id] = response.data;
         deferred.resolve(this.cache[id]);
-    });
+      }).catch(function() {
+        _this.cache[id] = { 'name' : id };
+        deferred.resolve(_this.cache[id]);
+      });
     }
     return deferred.promise;
   }
@@ -232,6 +238,7 @@ class ApiAnalyticsController {
           top.size);
 
         request.then(response => {
+          _this.dataFetched(_this.topsFetched, top.key);
           if (Object.keys(response.data.values).length) {
           top.results = _.map(response.data.values, function (value, key) {
             return {topApp: key, topHits: value};
@@ -247,6 +254,7 @@ class ApiAnalyticsController {
 
   updateCharts() {
     var _this = this;
+    this.initDataFetching();
 
     var queryFilter = '';
     if (this.$scope.filteredApplications.length) {
@@ -269,6 +277,7 @@ class ApiAnalyticsController {
       });
 
       _this.$q.all(requests).then(response => {
+        _this.dataFetched(_this.reportsFetched, report.key);
         _this.$scope.chartConfig[report.id] = {
           labels: _.map(response[0].data.timestamps, function (timestamp) {
             return moment(timestamp).format("YYYY-MM-DD HH:mm:ss");
@@ -314,6 +323,7 @@ class ApiAnalyticsController {
       totalIndicator.query + queryFilter);
 
     request.then(response => {
+      _this.dataFetched(_this.indicatorsFetched, 'total');
       totalIndicator.value = response.data.hits;
       this.total = totalIndicator.value;
 
@@ -330,6 +340,7 @@ class ApiAnalyticsController {
           indicator.query + queryFilter);
 
         request.then(response => {
+          _this.dataFetched(_this.indicatorsFetched, indicator.key);
           indicator.value = response.data.hits;
           if (indicator.value) {
             var percentage = _.round(indicator.value / _this.total * 100);
@@ -340,6 +351,41 @@ class ApiAnalyticsController {
           }
         });
       });
+    });
+  }
+
+  dataFetched(obj, key) {
+    obj[key] = true;
+    this.$scope.$broadcast('dataFetched');
+  }
+
+  initDataFetching() {
+    var _this = this;
+    this.topsFetched = {};
+    this.reportsFetched = {};
+    this.indicatorsFetched = {};
+    _.forEach(this.analyticsData.tops, function(top) {
+      _this.topsFetched[top.key] = false;
+    });
+    _.forEach(this.analyticsData.reports, function(report) {
+      _this.reportsFetched[report.key] = false;
+    });
+    _.forEach(this.analyticsData.indicators, function(indicator) {
+      _this.indicatorsFetched[indicator.key] = false;
+    });
+    this.$scope.fetchDone = false;
+  }
+
+  setUpDataFetchSettings() {
+    // data fetching settings
+    var _this = this;
+    this.$scope.fetchDone = true;
+    this.$scope.$on('dataFetched', function() {
+      var analyticsFetched = {};
+      analyticsFetched.tops = _.every(_this.topsFetched, Boolean);
+      analyticsFetched.reports = _.every(_this.reportsFetched, Boolean);
+      analyticsFetched.indicators = _.every(_this.indicatorsFetched, Boolean);
+      _this.$scope.fetchDone = _.every(analyticsFetched, Boolean);
     });
   }
 
