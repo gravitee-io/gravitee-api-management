@@ -175,9 +175,10 @@ class ApplicationAnalyticsController {
     } else {
       this.ApiService.get(id).then(response => {
         _this.cache[id] = response.data;
+        _this.cache[id].exists = true;
         deferred.resolve(this.cache[id]);
       }).catch(function() {
-        _this.cache[id] = { 'name' : id, 'version' : 'N/A' };
+        _this.cache[id] = { 'name' : id, 'exists' : false };
         deferred.resolve(_this.cache[id]);
       });
     }

@@ -15,9 +15,8 @@
     limitations under the License.
 
 -->
-<span ng-if="entity.name">
-  {{entity.name}}
-</span>
-<span ng-if="!entity.name">
-  {{id}}
+<span ng-if="entity.exists">{{entity.name}}</span>
+
+<span ng-if="!entity.exists" style="color: grey;">
+  Deleted application
 </span>

@@ -15,9 +15,10 @@
     limitations under the License.
 
 -->
-<span ng-if="entity.name">
+<span ng-if="entity.exists">
   {{entity.name}} <small>({{entity.version}})</small>
 </span>
-<span ng-if="!entity.name">
-  {{id}}
+
+<span ng-if="!entity.exists" style="color: grey;">
+  Deleted API
 </span>
