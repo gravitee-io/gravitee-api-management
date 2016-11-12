@@ -21,6 +21,7 @@ import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.PlanType;
 import io.gravitee.management.model.UpdatePlanEntity;
 import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.rest.resource.param.PlanStatusParam;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.PlanService;
 import io.swagger.annotations.*;
@@ -34,7 +35,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -60,9 +60,11 @@ public class ApiPlansResource extends AbstractResource {
             @ApiResponse(code = 200, message = "List accessible plans for current user", response = PlanEntity.class, responseContainer = "Set"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<PlanEntity> listPlans(
-            @PathParam("api") String api) {
+            @PathParam("api") String api,
+            @QueryParam("status") @DefaultValue("published") PlanStatusParam status) {
 
         return planService.findByApi(api).stream()
+                .filter(plan -> status.getStatuses().contains(plan.getStatus()))
                 .sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
                 .collect(Collectors.toList());
     }
@@ -149,6 +151,74 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         return Response.ok(planEntity).build();
+    }
+
+    @DELETE
+    @Path("/{plan}")
+    @ApiPermissionsRequired(ApiPermission.MANAGE_PLANS)
+    @ApiOperation(value = "Delete a plan",
+            notes = "User must have the MANAGE_PLANS permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Plan successfully deleted"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response deletePlan(
+            @PathParam("api") String api,
+            @PathParam("plan") String plan) {
+        PlanEntity planEntity = planService.findById(plan);
+        if (! planEntity.getApis().contains(api)) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("'plan' parameter does not correspond to the current API")
+                    .build();
+        }
+
+        planService.delete(plan);
+
+        return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/{plan}/_close")
+    @ApiPermissionsRequired(ApiPermission.MANAGE_PLANS)
+    @ApiOperation(value = "Close  a plan",
+            notes = "User must have the MANAGE_PLANS permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Plan successfully closed", response = PlanEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response closePlan(
+            @PathParam("api") String api,
+            @PathParam("plan") String plan) {
+        PlanEntity planEntity = planService.findById(plan);
+        if (! planEntity.getApis().contains(api)) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("'plan' parameter does not correspond to the current API")
+                    .build();
+        }
+
+        return Response.ok(planService.close(plan)).build();
+    }
+
+    @POST
+    @Path("/{plan}/_publish")
+    @ApiPermissionsRequired(ApiPermission.MANAGE_PLANS)
+    @ApiOperation(value = "Publicly publish plan",
+            notes = "User must have the MANAGE_PLANS permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Plan successfully published", response = PlanEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response publishPlan(
+            @PathParam("api") String api,
+            @PathParam("plan") String plan) {
+        PlanEntity planEntity = planService.findById(plan);
+        if (! planEntity.getApis().contains(api)) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("'plan' parameter does not correspond to the current API")
+                    .build();
+        }
+
+        return Response.ok(planService.publish(plan)).build();
     }
 
     @Path("/{plan}/subscriptions")

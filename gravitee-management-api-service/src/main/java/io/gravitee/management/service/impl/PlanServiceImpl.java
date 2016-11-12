@@ -23,8 +23,7 @@ import io.gravitee.definition.model.Path;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.SubscriptionService;
-import io.gravitee.management.service.exceptions.PlanNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -111,6 +110,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setCreatedAt(new Date());
             plan.setUpdatedAt(plan.getCreatedAt());
             plan.setType(Plan.PlanType.valueOf(newPlan.getType().name()));
+            plan.setStatus(Plan.Status.STAGING);
 
             String planPolicies = objectMapper.writeValueAsString(newPlan.getPaths());
             plan.setDefinition(planPolicies);
@@ -174,6 +174,41 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
+    public PlanEntity close(String planId) {
+        try {
+            LOGGER.debug("Close plan {}", planId);
+
+            Optional<Plan> optPlan = planRepository.findById(planId);
+            if (! optPlan.isPresent()) {
+                throw new PlanNotFoundException(planId);
+            }
+
+            Plan plan = optPlan.get();
+            if (plan.getStatus() == Plan.Status.CLOSED) {
+                throw new PlanAlreadyClosedException(planId);
+            }
+
+            // Update plan status
+            plan.setStatus(Plan.Status.CLOSED);
+            plan.setClosedAt(new Date());
+
+            // Close active subscriptions
+            subscriptionService.findByPlan(planId)
+                    .stream()
+                    .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED)
+                    .forEach(subscription -> subscriptionService.close(subscription.getId()));
+
+            // Save plan
+            plan = planRepository.update(plan);
+            return convert(plan);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete plan: {}", planId, ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurs while trying to delete plan: %s", planId), ex);
+        }
+    }
+
+    @Override
     public void delete(String plan) {
         try {
             LOGGER.debug("Delete plan {}", plan);
@@ -183,9 +218,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new PlanNotFoundException(plan);
             }
 
-            // Delete subscriptions
-            subscriptionService.findByPlan(plan)
-                    .forEach(subscription -> subscriptionService.delete(subscription.getId()));
+            int subscriptions = subscriptionService.findByPlan(plan).size();
+            if (subscriptions > 0) {
+                throw new PlanWithSubscriptionsException();
+            }
 
             // Delete plan
             planRepository.delete(plan);
@@ -193,6 +229,37 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             LOGGER.error("An error occurs while trying to delete plan: {}", plan, ex);
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to delete plan: %s", plan), ex);
+        }
+    }
+
+    @Override
+    public PlanEntity publish(String planId) {
+        try {
+            LOGGER.debug("Publish plan {}", planId);
+
+            Optional<Plan> optPlan = planRepository.findById(planId);
+            if (! optPlan.isPresent()) {
+                throw new PlanNotFoundException(planId);
+            }
+
+            Plan plan = optPlan.get();
+            if (plan.getStatus() == Plan.Status.CLOSED) {
+                throw new PlanAlreadyClosedException(planId);
+            } else if (plan.getStatus() == Plan.Status.PUBLISHED) {
+                throw new PlanAlreadyPublishedException(planId);
+            }
+
+            // Update plan status
+            plan.setStatus(Plan.Status.PUBLISHED);
+            plan.setPublishedAt(new Date());
+
+            // Save plan
+            plan = planRepository.update(plan);
+            return convert(plan);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to publish plan: {}", planId, ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurs while trying to publish plan: %s", planId), ex);
         }
     }
 
@@ -249,6 +316,16 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         }
 
         entity.setType(PlanType.valueOf(plan.getType().name()));
+
+        // Backward compatibility
+        if (plan.getStatus() != null) {
+            entity.setStatus(PlanStatus.valueOf(plan.getStatus().name()));
+        } else {
+            entity.setStatus(PlanStatus.PUBLISHED);
+        }
+
+        entity.setClosedAt(plan.getClosedAt());
+        entity.setPublishedAt(plan.getPublishedAt());
         entity.setValidation(PlanValidationType.valueOf(plan.getValidation().name()));
         entity.setCharacteristics(plan.getCharacteristics());
 

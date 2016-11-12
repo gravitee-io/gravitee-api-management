@@ -13,31 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.NewPlanEntity;
-import io.gravitee.management.model.PlanEntity;
-import io.gravitee.management.model.UpdatePlanEntity;
-
-import java.util.Set;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PlanService {
+public class PlanWithSubscriptionsException extends AbstractManagementException {
 
-    PlanEntity findById(String plan);
+    public PlanWithSubscriptionsException() {
+    }
 
-    Set<PlanEntity> findByApi(String api);
+    @Override
+    public String getMessage() {
+        return "You can't delete a plan with existing subscriptions. Please close it instead.";
+    }
 
-    PlanEntity create(NewPlanEntity plan);
-
-    PlanEntity update(UpdatePlanEntity plan);
-
-    PlanEntity close(String plan);
-
-    void delete(String plan);
-
-    PlanEntity publish(String plan);
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 }

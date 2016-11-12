@@ -13,31 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.rest.resource.param;
 
-import io.gravitee.management.model.NewPlanEntity;
-import io.gravitee.management.model.PlanEntity;
-import io.gravitee.management.model.UpdatePlanEntity;
+import io.gravitee.management.model.PlanStatus;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PlanService {
+public class PlanStatusParam {
 
-    PlanEntity findById(String plan);
+    private static final String SEPARATOR = ",";
+    private List<PlanStatus> statuses;
 
-    Set<PlanEntity> findByApi(String api);
+    public PlanStatusParam(String param) {
+        statuses = new ArrayList<>();
 
-    PlanEntity create(NewPlanEntity plan);
+        if (param != null) {
+            String[] params = param.replaceAll("\\s","").split(SEPARATOR);
+            for (String _param : params) {
+                statuses.add(PlanStatus.valueOf(_param.toUpperCase()));
+            }
+        }
+    }
 
-    PlanEntity update(UpdatePlanEntity plan);
-
-    PlanEntity close(String plan);
-
-    void delete(String plan);
-
-    PlanEntity publish(String plan);
+    public List<PlanStatus> getStatuses() {
+        return statuses;
+    }
 }

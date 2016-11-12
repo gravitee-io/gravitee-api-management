@@ -13,31 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.NewPlanEntity;
-import io.gravitee.management.model.PlanEntity;
-import io.gravitee.management.model.UpdatePlanEntity;
-
-import java.util.Set;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PlanService {
+public class PlanAlreadyClosedException extends AbstractManagementException {
 
-    PlanEntity findById(String plan);
+    private final String plan;
 
-    Set<PlanEntity> findByApi(String api);
+    public PlanAlreadyClosedException(String plan) {
+        this.plan = plan;
+    }
 
-    PlanEntity create(NewPlanEntity plan);
+    @Override
+    public String getMessage() {
+        return "Plan " + plan + " is already closed !";
+    }
 
-    PlanEntity update(UpdatePlanEntity plan);
-
-    PlanEntity close(String plan);
-
-    void delete(String plan);
-
-    PlanEntity publish(String plan);
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 }

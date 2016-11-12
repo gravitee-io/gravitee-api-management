@@ -17,9 +17,7 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.*;
-import io.gravitee.management.service.exceptions.SubscriptionNotFoundException;
-import io.gravitee.management.service.exceptions.SubscriptionNotUpdatableException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.SubscriptionServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -46,7 +44,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -163,6 +161,26 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.findByPlan(PLAN_ID)).thenThrow(TechnicalException.class);
 
         subscriptionService.findByPlan(PLAN_ID);
+    }
+
+    @Test(expected = PlanNotYetPublishedException.class)
+    public void shouldCreateBecausePlanNotPublished() throws Exception {
+        // Stub
+        when(plan.getStatus()).thenReturn(PlanStatus.STAGING);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+
+        // Run
+        subscriptionService.create(PLAN_ID, APPLICATION_ID);
+    }
+
+    @Test(expected = PlanAlreadyClosedException.class)
+    public void shouldCreateBecausePlanAlreadyClosed() throws Exception {
+        // Stub
+        when(plan.getStatus()).thenReturn(PlanStatus.CLOSED);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+
+        // Run
+        subscriptionService.create(PLAN_ID, APPLICATION_ID);
     }
 
     @Test

@@ -39,6 +39,8 @@ public class PlanEntity {
 
     private PlanType type;
 
+    private PlanStatus status;
+
     private Set<String> apis;
 
     private int order;
@@ -54,6 +56,18 @@ public class PlanEntity {
      */
     @JsonProperty("updated_at")
     private Date updatedAt;
+
+    /**
+     * Plan publication date
+     */
+    @JsonProperty("published_at")
+    private Date publishedAt;
+
+    /**
+     * Plan closing date
+     */
+    @JsonProperty("closed_at")
+    private Date closedAt;
 
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
@@ -146,6 +160,30 @@ public class PlanEntity {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public PlanStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PlanStatus status) {
+        this.status = status;
+    }
+
+    public Date getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(Date publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
+    public Date getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Date closedAt) {
+        this.closedAt = closedAt;
     }
 
     @Override

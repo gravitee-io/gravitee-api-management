@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -172,6 +171,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             LOGGER.debug("Create a new subscription for plan {} and application {}", plan, application);
 
             PlanEntity planEntity = planService.findById(plan);
+
+            if (planEntity.getStatus() == PlanStatus.CLOSED) {
+                throw new PlanAlreadyClosedException(plan);
+            }
+
+            if (planEntity.getStatus() == PlanStatus.STAGING) {
+                throw new PlanNotYetPublishedException(plan);
+            }
+
             ApplicationEntity applicationEntity = applicationService.findById(application);
 
             long subscriptionCount = subscriptionRepository.findByApplication(application)

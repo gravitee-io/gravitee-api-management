@@ -404,10 +404,13 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
                 boolean sync = apiSynchronizationProcessor.processCheckSynchronization(convert(payloadEntity, true), api);
 
-                // 2_ If APY definition is synchronized, check if there is any modification for API's plans
+                // 2_ If API definition is synchronized, check if there is any modification for API's plans
+                // but only for published or closed plan
                 if (sync) {
                     Set<PlanEntity> plans = planService.findByApi(api.getId());
-                    sync = plans.stream().filter(plan -> plan.getUpdatedAt().after(api.getDeployedAt())).count() == 0;
+                    sync = plans.stream()
+                            .filter(plan -> plan.getStatus() != PlanStatus.STAGING)
+                            .filter(plan -> plan.getUpdatedAt().after(api.getDeployedAt())).count() == 0;
                 }
 
                 return sync;

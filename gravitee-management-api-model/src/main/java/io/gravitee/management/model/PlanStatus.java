@@ -13,31 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.NewPlanEntity;
-import io.gravitee.management.model.PlanEntity;
-import io.gravitee.management.model.UpdatePlanEntity;
-
-import java.util.Set;
+package io.gravitee.management.model;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PlanService {
+public enum PlanStatus {
+    /**
+     * Plan is configured but not yet published
+     */
+    STAGING,
 
-    PlanEntity findById(String plan);
+    /**
+     * Plan is published to portal and can be used to make calls
+     */
+    PUBLISHED,
 
-    Set<PlanEntity> findByApi(String api);
-
-    PlanEntity create(NewPlanEntity plan);
-
-    PlanEntity update(UpdatePlanEntity plan);
-
-    PlanEntity close(String plan);
-
-    void delete(String plan);
-
-    PlanEntity publish(String plan);
+    /**
+     * Plan is closed
+     */
+    CLOSED
 }
