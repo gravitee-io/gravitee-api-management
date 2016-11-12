@@ -23,7 +23,7 @@
         <div layout="row">
           <div flex layout="row" style="margin-left: -15px;">
             <div ng-repeat="timeframe in dashboardCtrl.analyticsData.timeframes">
-              <md-button class="dashboard-timeframe" ng-click="dashboardCtrl.updateTimeframe(timeframe.id)"
+              <md-button class="dashboard-timeframe" ng-click="dashboardCtrl.updateTimeframe(timeframe.id)" ng-disabled="fetchData"
                          ng-class="{'dashboard-timeframe-active' : timeframe === dashboardCtrl.timeframe}">
                 {{timeframe.title}}
               </md-button>

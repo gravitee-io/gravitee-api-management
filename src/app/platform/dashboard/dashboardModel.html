@@ -16,13 +16,9 @@
 
 -->
 <span ng-if="entity && model === 'api'">
-  <a ui-sref="apis.admin.analytics({ apiId: entity.id } )">
+  <a ng-if="entity.exists" ui-sref="apis.admin.analytics({ apiId: entity.id } )">
     {{entity.name}} <small ng-if="model === 'api'">({{entity.version}})</small>
   </a>
+  <span ng-if="!entity.exists" style="color: grey;">{{entity.name}}</span>
 </span>
-<span ng-if="entity && model === 'application'">
-  {{entity.name}} <small ng-if="model === 'api'">({{entity.version}})</small>
-</span>
-<span ng-if="!entity">
-  {{id}}
-</span>
+<span ng-if="entity && model === 'application'" ng-style="!entity.exists && {'color':'grey'}">{{entity.name}}</span>

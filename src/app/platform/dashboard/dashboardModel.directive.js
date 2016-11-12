@@ -52,6 +52,11 @@ class DashboardModelController {
     } else {
       this.ApplicationService.get(id).then(response => {
         _this.$scope.entity = response.data;
+        _this.$scope.entity.exists = true;
+        _this.$scope.$parent.dashboardCtrl.cache[id + model] = _this.$scope.entity;
+      }).catch(function() {
+        _this.$scope.entity = { 'name' : id };
+        _this.$scope.entity.exists = false;
         _this.$scope.$parent.dashboardCtrl.cache[id + model] = _this.$scope.entity;
       });
     }
@@ -64,6 +69,11 @@ class DashboardModelController {
     } else {
       this.ApiService.get(id).then(response => {
         _this.$scope.entity = response.data;
+        _this.$scope.entity.exists = true;
+        _this.$scope.$parent.dashboardCtrl.cache[id + model] = _this.$scope.entity;
+      }).catch(function() {
+        _this.$scope.entity = { 'name' : id };
+        _this.$scope.entity.exists = false;
         _this.$scope.$parent.dashboardCtrl.cache[id + model] = _this.$scope.entity;
       });
     }
