@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -42,6 +43,8 @@ public class PlanMongo extends Auditable {
 
     private String type;
 
+    private String status;
+
     private int order;
 
     /**
@@ -55,6 +58,16 @@ public class PlanMongo extends Auditable {
     private String definition;
 
     private List<String> characteristics;
+
+    /**
+     * Plan publication date
+     */
+    private Date publishedAt;
+
+    /**
+     * Plan closing date
+     */
+    private Date closedAt;
 
     public String getId() {
         return id;
@@ -122,6 +135,30 @@ public class PlanMongo extends Auditable {
 
     public int getOrder() {
         return order;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Date getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(Date publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
+    public Date getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Date closedAt) {
+        this.closedAt = closedAt;
     }
 
     public void setOrder(int order) {
