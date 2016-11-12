@@ -105,6 +105,8 @@ import ApiPlansController from './api/admin/plans/apiPlans.controller';
 import DialogSubscriptionRejectController from './api/admin/subscriptions/subscription.reject.dialog.controller';
 import DialogSubscriptionAcceptController from './api/admin/subscriptions/subscription.accept.dialog.controller';
 import EmptyStateDirective from './components/emptystate/emptystate.directive';
+import DialogClosePlanController from './api/admin/plans/closePlanDialog.controller';
+import DialogPublishPlanController from './api/admin/plans/publishPlanDialog.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -190,6 +192,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('ApiPlansController', ApiPlansController)
   .controller('DialogSubscriptionRejectController', DialogSubscriptionRejectController)
   .controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController)
+  .controller('DialogClosePlanController', DialogClosePlanController)
+  .controller('DialogPublishPlanController', DialogPublishPlanController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)

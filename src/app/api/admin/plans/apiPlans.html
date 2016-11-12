@@ -15,16 +15,54 @@
     limitations under the License.
 
 -->
-<div ng-init="apiPlansCtrl.init()">
-  <div layout="row" layout-align="center" layout-wrap class="plans">
-    <div flex-xs="100" flex-sm="50" flex="33" flex-lg="25" flex-xl="20" ng-repeat="plan in apiPlansCtrl.plans | orderBy:'order'"
+<div ng-init="apiPlansCtrl.init()" layout="column">
+
+  <div>
+    <span class="md-headline" style="padding: 24px 16px 16px;">Plans</span>
+
+    <div class="btn-group pull-right">
+      <button class="btn btn-default" ng-class="{'active': apiPlansCtrl.selectedStatus.indexOf(statusFilter) !== -1}"
+              ng-click="apiPlansCtrl.changeFilter(statusFilter)" type="button"
+              ng-repeat="statusFilter in apiPlansCtrl.statusFilters" style="text-transform: capitalize;">
+        {{statusFilter}}
+      </button>
+    </div>
+  </div>
+
+  <div layout="column" flex>
+    <div layout="row" layout-align="center" layout-wrap class="plans">
+      <div flex-xs="100" flex-sm="50" flex="33" flex-lg="25" flex-xl="20" ng-repeat="plan in apiPlansCtrl.filteredPlans | orderBy:'order'"
        layout="row" layout-align="center"><md-card class="gravitee-card gravitee-plan-box">
     <md-card-header>
-      <h3 layout-padding>{{plan.name}}</h3>
-      <md-button ng-click="configure(plan)" class="md-icon-button" aria-label="Configure">
-        <md-tooltip md-direction="top">Configure this page</md-tooltip>
-        <ng-md-icon style="top: 0;" icon="settings"></ng-md-icon>
-      </md-button>
+      <md-toolbar>
+        <div class="md-toolbar-tools">
+          <h3 ng-class="{italic: plan.status === 'staging', strike: plan.status === 'closed'}" layout-padding>{{plan.name}}</h3>
+          <span flex></span>
+          <md-fab-speed-dial md-direction="down" md-open="false" class="md-scale md-fab-bottom-right"
+                             style="right: -20px;top: 10px;" ng-if="plan.status !== 'closed'">
+            <md-fab-trigger>
+              <md-button class="md-fab md-mini md-primary" aria-label="Expand">
+                <ng-md-icon icon="more_vert"></ng-md-icon>
+              </md-button>
+            </md-fab-trigger>
+
+            <md-fab-actions>
+              <md-button ng-if="plan.status !== 'closed'" ng-click="apiPlansCtrl.close(plan)" class="md-fab md-raised md-mini" aria-label="Close">
+                <md-tooltip md-direction="top">Close this plan</md-tooltip>
+                <ng-md-icon style="fill: rgb(255,87,34);" icon="close"></ng-md-icon>
+              </md-button>
+              <md-button ng-if="plan.status !== 'closed'" ng-click="configure(plan)" class="md-fab md-raised md-mini" aria-label="Configure">
+                <md-tooltip md-direction="top">Configure this plan</md-tooltip>
+                <ng-md-icon style="fill: #7a8288;" icon="settings"></ng-md-icon>
+              </md-button>
+              <md-button ng-if="plan.status === 'staging'" ng-click="apiPlansCtrl.publish(plan)" class="md-fab md-raised md-mini" aria-label="Publish">
+                <md-tooltip md-direction="top">Publish this plan</md-tooltip>
+                <ng-md-icon style="fill: green;" icon="publish"></ng-md-icon>
+              </md-button>
+            </md-fab-actions>
+          </md-fab-speed-dial>
+        </div>
+      </md-toolbar>
     </md-card-header>
     <md-divider></md-divider>
     <md-card-content layout="column">
@@ -46,9 +84,11 @@
     </md-card-footer>
   </md-card>
   </div>
-  </div>
-  <div layout="row" layout-align="center" layout-wrap>
-    <span ng-if="apiPlansCtrl.plans.length != 0"><ng-md-icon icon="info" style="fill: #b1bdc5;"></ng-md-icon> Plans can be re-ordered by drag & dropping them.</span>
+    </div>
+
+    <div layout="row" layout-align="center" layout-wrap>
+      <span ng-if="apiPlansCtrl.plans.length != 0"><ng-md-icon icon="info" style="fill: #b1bdc5;"></ng-md-icon> Plans can be re-ordered by dragging & dropping them.</span>
+    </div>
   </div>
 </div>
 

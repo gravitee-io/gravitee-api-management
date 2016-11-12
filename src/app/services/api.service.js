@@ -172,7 +172,7 @@ class ApiService {
    * API plans
    */
   getApiPlans(apiId) {
-    return this.$http.get(this.apisURL + apiId + '/plans');
+    return this.$http.get(this.apisURL + apiId + '/plans?status=staging,published,closed');
   }
 
   savePlan(apiId, plan) {
@@ -193,12 +193,28 @@ class ApiService {
     }
   }
 
+  closePlan(apiId, planId) {
+    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_close');
+  }
+
+  deletePlan(apiId, planId) {
+    return this.$http.delete(this.apisURL + apiId + '/plans/' + planId);
+  }
+
+  publishPlan(apiId, planId) {
+    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_publish');
+  }
+
   updatePlanSubscription(apiId, subscription) {
     return this.$http.put(this.apisURL + apiId + '/plans/subscriptions/' + subscription.id, subscription);
   }
 
   processPlanSubscription(apiId, planId, subscriptionId, processSubscription) {
     return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/subscriptions/' + subscriptionId + '/process', processSubscription);
+  }
+
+  getPlanSubscriptions(apiId, planId) {
+    return this.$http.get(this.apisURL + apiId + '/plans/' + planId + '/subscriptions/');
   }
 
   /*

@@ -1,0 +1,47 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+  <md-dialog aria-label="Close plan" style="width: 60%">
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Close plan</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" aria-label="Hide dialog" ng-click="hide()">
+          <ng-md-icon icon="close"></ng-md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+    <md-dialog-content>
+      <div class="md-dialog-content">
+        <h5 ng-if="subscriptions == 0">No subscription is associated to this plan. You can delete it safely.</h5>
+        <h5 ng-if="subscriptions > 0">There are <code>{{subscriptions}}</code> subscriptions associated to this plan.</h5>
+        <p ng-if="subscriptions > 0">
+          By closing this plan, all relative subscriptions will also be closed and associated api-keys will be no longer
+          available.
+        </p>
+      </div>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button type="button" ng-click="hide()" class="md-primary" md-autofocus>
+        Cancel
+      </md-button>
+      <md-button type="submit" class="md-primary" ng-click="close()">
+        {{subscriptions == 0 ? 'Delete' : 'Close'}}
+      </md-button>
+    </md-dialog-actions>
+  </md-dialog>

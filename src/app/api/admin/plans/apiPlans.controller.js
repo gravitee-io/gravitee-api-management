@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 class ApiPlansController {
-  constructor(resolvedPlans, $mdSidenav, $scope, ApiService, $stateParams, NotificationService, dragularService) {
+  constructor(resolvedPlans, $mdSidenav, $mdDialog, $scope, ApiService, $stateParams, NotificationService, dragularService) {
     'ngInject';
     this.plans = resolvedPlans.data;
     this.$mdSidenav = $mdSidenav;
+    this.$mdDialog = $mdDialog;
     this.$scope = $scope;
     this.ApiService = ApiService;
     this.$stateParams = $stateParams;
     this.NotificationService = NotificationService;
     this.DragularService = dragularService;
 
+    this.statusFilters = ['staging', 'published', 'closed'];
+    this.selectedStatus = ['staging', 'published'];
+
     $scope.planEdit = true;
 
     this.resetPlan();
+    this.applyFilters();
 
     var that = this;
     $scope.configure = function (plan) {
@@ -91,7 +96,33 @@ class ApiPlansController {
   list() {
     return this.ApiService.getApiPlans(this.$stateParams.apiId).then(response => {
       this.plans = response.data;
-      return {pages: this.pages};
+      this.applyFilters();
+      return {plans: this.plans};
+    });
+  }
+
+  changeFilter(statusFilter) {
+    if (statusFilter === 'closed') {
+      this.selectedStatus.length = 0;
+    } else {
+      var idx = this.selectedStatus.indexOf('closed');
+      if (idx !== -1) {
+        this.selectedStatus.splice(idx, 1);
+      }
+    }
+
+    if (_.includes(this.selectedStatus, statusFilter)) {
+      _.pull(this.selectedStatus, statusFilter);
+    } else {
+      this.selectedStatus.push(statusFilter);
+    }
+    this.applyFilters();
+  }
+
+  applyFilters() {
+    var that = this;
+    this.filteredPlans = _.filter(this.plans, function (plan) {
+      return _.includes(that.selectedStatus, plan.status);
     });
   }
 
@@ -167,8 +198,52 @@ class ApiPlansController {
         that.plans = response.data;
         that.$mdSidenav('plan-edit').toggle();
         that.$mdSidenav('live-preview').toggle();
+        that.applyFilters();
       });
     });
+  }
+
+  close(plan, ev) {
+    var _this = this;
+
+    this.ApiService.getPlanSubscriptions(this.$stateParams.apiId, plan.id).then(function(response) {
+      _this.$mdDialog.show({
+        controller: 'DialogClosePlanController',
+        templateUrl: 'app/api/admin/plans/closePlan.dialog.html',
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose: true,
+        apiId: _this.$stateParams.apiId,
+        plan: plan,
+        subscriptions: response.data.length
+      }).then(function (plan) {
+        if (plan) {
+          _this.list();
+        }
+      }, function() {
+        // You cancelled the dialog
+      });
+    });
+  }
+
+  publish(plan, ev) {
+    var _this = this;
+    
+    this.$mdDialog.show({
+        controller: 'DialogPublishPlanController',
+        templateUrl: 'app/api/admin/plans/publishPlan.dialog.html',
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose: true,
+        apiId: this.$stateParams.apiId,
+        plan: plan
+      }).then(function (plan) {
+        if (plan) {
+          _this.list();
+        }
+      }, function() {
+        // You cancelled the dialog
+      });
   }
 }
 
