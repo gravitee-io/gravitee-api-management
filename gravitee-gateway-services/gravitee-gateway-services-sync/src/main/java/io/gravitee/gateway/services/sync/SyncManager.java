@@ -187,8 +187,10 @@ public class SyncManager {
                 api.setDeployedAt(remoteApi.getUpdatedAt());
 
                 try {
+                    // Deploy only published plan
                     api.setPlans(planRepository.findByApi(api.getId())
                             .stream()
+                            .filter(plan -> plan.getStatus() == io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
                             .map(this::convert)
                             .collect(Collectors.toList()));
                 } catch (TechnicalException te) {
