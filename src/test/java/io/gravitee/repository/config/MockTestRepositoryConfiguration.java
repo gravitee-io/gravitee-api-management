@@ -105,7 +105,7 @@ public class MockTestRepositoryConfiguration {
         final Application application = mock(Application.class);
         when(applicationRepository.findById("application-sample")).thenReturn(of(application));
 
-        final Set<Application> applications = newSet(application, mock(Application.class), mock(Application.class), mock(Application.class));
+        final Set<Application> applications = newSet(application, mock(Application.class), mock(Application.class), mock(Application.class), mock(Application.class), mock(Application.class));
         when(applicationRepository.findAll()).thenReturn(applications);
         doAnswer(invocation -> applications.remove(application)).when(applicationRepository).delete("deleted-app");
         when(applicationRepository.findById("deleted-app")).thenReturn(empty());
@@ -131,6 +131,16 @@ public class MockTestRepositoryConfiguration {
         final Application groupedApplication = mock(Application.class);
         when(groupedApplication.getGroup()).thenReturn("application-group");
         when(applicationRepository.findById("grouped-app")).thenReturn(of(groupedApplication));
+
+        final Application searchedApp1 = mock(Application.class);
+        final Application searchedApp2 = mock(Application.class);
+        when(searchedApp1.getId()).thenReturn("searched-app1");
+        when(searchedApp1.getName()).thenReturn("searched-app1");
+        when(searchedApp2.getId()).thenReturn("searched-app2");
+        when(searchedApp2.getName()).thenReturn("searched-app2");
+        when(applicationRepository.findByName("searched-app1")).thenReturn(Collections.singleton(searchedApp1));
+        when(applicationRepository.findByName("arched")).thenReturn(newSet(searchedApp1, searchedApp2));
+        when(applicationRepository.findByName("aRcHEd")).thenReturn(newSet(searchedApp1, searchedApp2));
 
         return applicationRepository;
     }

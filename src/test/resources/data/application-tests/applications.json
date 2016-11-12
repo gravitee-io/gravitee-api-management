@@ -31,5 +31,21 @@
     "group": "application-group",
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
+  },
+  {
+    "id": "searched-app1",
+    "name": "searched-app1",
+    "description": "Sample searched app",
+    "type": "Web",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883"
+  },
+  {
+    "id": "searched-app2",
+    "name": "searched-app2",
+    "description": "Sample searched app",
+    "type": "Web",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883"
   }
 ]

@@ -26,7 +26,9 @@ import java.util.Set;
 import static io.gravitee.repository.utils.DateUtils.parse;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
@@ -40,7 +42,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Set<Application> applications = applicationRepository.findAll();
 
         Assert.assertNotNull(applications);
-        Assert.assertEquals("Fail to resolve application in findAll", 4, applications.size());
+        Assert.assertEquals("Fail to resolve application in findAll", 6, applications.size());
     }
 
     @Test
@@ -125,5 +127,34 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue(application.isPresent());
         Assert.assertNotNull(application.get().getGroup());
         Assert.assertEquals("application-group", application.get().getGroup());
+    }
+
+    @Test
+    public void shouldFindApplicationByExactName() throws Exception {
+        Set<Application> apps = applicationRepository.findByName("searched-app1");
+        Assert.assertNotNull(apps);
+        Assert.assertEquals(1, apps.size());
+        Assert.assertEquals("searched-app1", apps.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldNotFindApplicationByName() throws Exception {
+        Set<Application> apps = applicationRepository.findByName("unknowd-app");
+        Assert.assertNotNull(apps);
+        Assert.assertEquals(0, apps.size());
+    }
+
+    @Test
+    public void shouldFindApplicationByPartialName() throws Exception {
+        Set<Application> apps = applicationRepository.findByName("arched");
+        Assert.assertNotNull(apps);
+        Assert.assertEquals(2, apps.size());
+    }
+
+    @Test
+    public void shouldFindApplicationByPartialNameIgnoreCase() throws Exception {
+        Set<Application> apps = applicationRepository.findByName("aRcHEd");
+        Assert.assertNotNull(apps);
+        Assert.assertEquals(2, apps.size());
     }
 }
