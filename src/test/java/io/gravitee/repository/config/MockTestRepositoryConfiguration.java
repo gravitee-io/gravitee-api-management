@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
+import org.mockito.internal.util.collections.Sets;
 import org.springframework.context.annotation.Bean;
 
 import java.util.*;
@@ -60,8 +61,23 @@ public class MockTestRepositoryConfiguration {
         final ApiRepository apiRepository = mock(ApiRepository.class);
 
         final Api api = mock(Api.class);
+        when(api.getName()).thenReturn("api1");
+
+        final Api apiUpdated = mock(Api.class);
+        when(apiUpdated.getName()).thenReturn("New API name");
+        when(apiUpdated.getDescription()).thenReturn("New description");
+        when(apiUpdated.getViews()).thenReturn(Sets.newSet("view1", "view2"));
+        when(apiUpdated.getDefinition()).thenReturn("New definition");
+        when(apiUpdated.getDeployedAt()).thenReturn(parse("11/02/2016"));
+        when(apiUpdated.getGroup()).thenReturn("New group");
+        when(apiUpdated.getLifecycleState()).thenReturn(LifecycleState.STARTED);
+        when(apiUpdated.getPicture()).thenReturn("New picture");
+        when(apiUpdated.getUpdatedAt()).thenReturn(parse("13/11/2016"));
+        when(apiUpdated.getVersion()).thenReturn("New version");
+        when(apiUpdated.getVisibility()).thenReturn(Visibility.PRIVATE);
+
         when(apiRepository.findById(anyString())).thenReturn(empty());
-        when(apiRepository.findById("api1")).thenReturn(of(api));
+        when(apiRepository.findById("api1")).thenReturn(of(api), of(apiUpdated));
 
         final Set<Api> apis = newSet(api, mock(Api.class));
         when(apiRepository.findAll()).thenReturn(apis);
@@ -267,7 +283,11 @@ public class MockTestRepositoryConfiguration {
         when(view.getDescription()).thenReturn("Description for the new view");
 
         final View view2 = mock(View.class);
-        when(view2.getName()).thenReturn("New product");
+        when(view2.getName()).thenReturn("Products");
+
+        final View view2Updated = mock(View.class);
+        when(view2Updated.getName()).thenReturn("New product");
+        when(view2Updated.getDescription()).thenReturn("New description");
 
         final Set<View> views = newSet(view, view2, mock(View.class));
         final Set<View> viewsAfterDelete = newSet(view, view2);
@@ -278,7 +298,7 @@ public class MockTestRepositoryConfiguration {
         when(viewRepository.create(any(View.class))).thenReturn(view);
 
         when(viewRepository.findById("new-view")).thenReturn(of(view));
-        when(viewRepository.findById("products")).thenReturn(of(view2));
+        when(viewRepository.findById("products")).thenReturn(of(view2), of(view2Updated));
 
         return viewRepository;
     }

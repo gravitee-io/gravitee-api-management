@@ -66,9 +66,11 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
     public void shouldUpdate() throws Exception {
         Optional<View> optional = viewRepository.findById("products");
         Assert.assertTrue("View to update not found", optional.isPresent());
+        Assert.assertEquals("Invalid saved view name.", "Products", optional.get().getName());
 
         final View view = optional.get();
         view.setName("New product");
+        view.setDescription("New description");
 
         int nbViewsBeforeUpdate = viewRepository.findAll().size();
         viewRepository.update(view);
@@ -81,7 +83,7 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
 
         final View viewUpdated = optionalUpdated.get();
         Assert.assertEquals("Invalid saved view name.", "New product", viewUpdated.getName());
-        Assert.assertEquals("Invalid view description.", view.getDescription(), viewUpdated.getDescription());
+        Assert.assertEquals("Invalid view description.", "New description", viewUpdated.getDescription());
     }
 
     @Test

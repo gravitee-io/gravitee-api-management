@@ -16,10 +16,12 @@
 package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.internal.util.collections.Sets;
 
 import java.util.Optional;
 import java.util.Set;
@@ -31,13 +33,6 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     @Override
     protected String getTestCasesPath() {
         return "/data/api-tests/";
-    }
-
-    private User createUser(String userName) throws Exception {
-        User user = new User();
-        user.setUsername(userName);
-        user.setEmail(userName + "@itest.test");
-        return userRepository.create(user);
     }
 
     @Test
@@ -66,6 +61,48 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid api definition.", api.getDefinition(), apiSaved.getDefinition());
         Assert.assertEquals("Invalid api createdAt.", api.getCreatedAt(), apiSaved.getCreatedAt());
         Assert.assertEquals("Invalid api updateAt.", api.getUpdatedAt(), apiSaved.getUpdatedAt());
+    }
+
+    @Test
+    public void shouldUpdate() throws Exception {
+        Optional<Api> optional = apiRepository.findById("api1");
+        Assert.assertTrue("API to update not found", optional.isPresent());
+        Assert.assertEquals("Invalid saved api name.", "api1", optional.get().getName());
+
+        final Api api = optional.get();
+        api.setName("New API name");
+        api.setDescription("New description");
+        api.setViews(Sets.newSet("view1", "view2"));
+        api.setDefinition("New definition");
+        api.setDeployedAt(parse("11/02/2016"));
+        api.setGroup("New group");
+        api.setLifecycleState(LifecycleState.STARTED);
+        api.setPicture("New picture");
+        api.setUpdatedAt(parse("13/11/2016"));
+        api.setVersion("New version");
+        api.setVisibility(Visibility.PRIVATE);
+
+        int nbAPIsBeforeUpdate = apiRepository.findAll().size();
+        apiRepository.update(api);
+        int nbAPIsAfterUpdate = apiRepository.findAll().size();
+
+        Assert.assertEquals(nbAPIsBeforeUpdate, nbAPIsAfterUpdate);
+
+        Optional<Api> optionalUpdated = apiRepository.findById("api1");
+        Assert.assertTrue("API to update not found", optionalUpdated.isPresent());
+
+        final Api apiUpdated = optionalUpdated.get();
+        Assert.assertEquals("Invalid saved API name.", "New API name", apiUpdated.getName());
+        Assert.assertEquals("Invalid API description.", "New description", apiUpdated.getDescription());
+        Assert.assertEquals("Invalid API views.", Sets.newSet("view1", "view2"), apiUpdated.getViews());
+        Assert.assertEquals("Invalid API definition.", "New definition", apiUpdated.getDefinition());
+        Assert.assertEquals("Invalid API deployment date.", parse("11/02/2016"), apiUpdated.getDeployedAt());
+        Assert.assertEquals("Invalid API group.", "New group", apiUpdated.getGroup());
+        Assert.assertEquals("Invalid API lifecycle state.", LifecycleState.STARTED, apiUpdated.getLifecycleState());
+        Assert.assertEquals("Invalid API picture.", "New picture", apiUpdated.getPicture());
+        Assert.assertEquals("Invalid API update date.", parse("13/11/2016"), apiUpdated.getUpdatedAt());
+        Assert.assertEquals("Invalid API version.", "New version", apiUpdated.getVersion());
+        Assert.assertEquals("Invalid API visibility.", Visibility.PRIVATE, apiUpdated.getVisibility());
     }
 
     @Test
