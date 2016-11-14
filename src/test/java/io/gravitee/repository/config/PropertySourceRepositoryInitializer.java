@@ -44,7 +44,7 @@ public class PropertySourceRepositoryInitializer implements ApplicationContextIn
             PropertySource source = new ResourcePropertySource("repository", new ClassPathResource(REPOSITORY_PROPERTY_SOURCE));
             MutablePropertySources sources = environment.getPropertySources();
             sources.addFirst(source);
-            logger.error("Repository properties file has been correctly added to environment");
+            logger.info("Repository properties file has been correctly added to environment");
         } catch (Exception ex) {
             logger.error("Unable to load repository properties file into environment", ex);
         }
