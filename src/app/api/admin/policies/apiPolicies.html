@@ -50,37 +50,37 @@
       <md-divider></md-divider>
       <div class="gravitee-policy-panel gravitee-policy-panel-center">
         <v-accordion class="vAccordion--default" multiple>
-            <v-pane ng-repeat="path in apiPoliciesCtrl.sortedPaths()" expanded="$first">
-              <v-pane-header>
-                <h3 class="gravitee-policy-path" ng-if='path === "/"'>{{path}}</h3>
-                <div ng-if='path !== "/"' layout="row" layout-align="space-between center">
-                  <div flex="80">
-                    <md-input-container style="margin: 0">
-                      <input ng_model="path"
-                             name="path{{$index}}"
-                             class="gravitee-policy-path"
-                             required
-                             aria-label="path"
-                             ui-validate="{
+          <v-pane ng-repeat="path in apiPoliciesCtrl.sortedPaths()" expanded="$first">
+            <v-pane-header>
+              <h3 class="gravitee-policy-path" ng-if='path === "/"'>{{path}}</h3>
+              <div ng-if='path !== "/"' layout="row" layout-align="space-between center">
+                <div flex="80">
+                  <md-input-container style="margin: 0">
+                    <input ng_model="path"
+                           name="path{{$index}}"
+                           class="gravitee-policy-path"
+                           required
+                           aria-label="path"
+                           ui-validate="{
                             pathAlreadyExists : 'apiPoliciesCtrl.pathNotExists($value, $index)',
                             mustStartWithSlash : 'apiPoliciesCtrl.pathStartWithSlash($value)'
                          }"
-                             ng-keydown="apiPoliciesCtrl.pathKeyPress($event, editPathForm['path'+$index], path, $index)"
-                             ng-blur="apiPoliciesCtrl.restoreOldPath($index, editPathForm['path'+$index])"
-                             ng-click="$event.stopPropagation();">
-                      <div ng-messages="editPathForm['path'+$index].$error"
-                           ng-show="editPathForm['path'+$index].$dirty">
-                        <div ng-message="required">This is required!</div>
-                        <div ng-message="pathAlreadyExists">This path is already configured.</div>
-                        <div ng-message="mustStartWithSlash">The path must start with /</div>
-                      </div>
-                    </md-input-container>
-                  </div>
-                  <div flex><a href ng-click="apiPoliciesCtrl.removePath(path);$event.stopPropagation();">remove path</a></div>
+                           ng-keydown="apiPoliciesCtrl.pathKeyPress($event, editPathForm['path'+$index], path, $index)"
+                           ng-blur="apiPoliciesCtrl.restoreOldPath($index, editPathForm['path'+$index])"
+                           ng-click="$event.stopPropagation();">
+                    <div ng-messages="editPathForm['path'+$index].$error"
+                         ng-show="editPathForm['path'+$index].$dirty">
+                      <div ng-message="required">This is required!</div>
+                      <div ng-message="pathAlreadyExists">This path is already configured.</div>
+                      <div ng-message="mustStartWithSlash">The path must start with /</div>
+                    </div>
+                  </md-input-container>
                 </div>
-              </v-pane-header>
-              <v-pane-content>
-                <div ng-class="apiPoliciesCtrl.getDropzoneClass(path)">
+                <div flex><a href ng-click="apiPoliciesCtrl.removePath(path);$event.stopPropagation();">remove path</a></div>
+              </div>
+            </v-pane-header>
+            <v-pane-content>
+              <div ng-class="apiPoliciesCtrl.getDropzoneClass(path)" data-path="{{path}}">
                 <md-card ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath[path]"
                          ng-click="apiPoliciesCtrl.editPolicy($index, path, $event)"
                          ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
@@ -108,24 +108,24 @@
                         Edit policy description
                       </md-tooltip>
                     </ng-md-icon>
-                      <ng-md-icon icon="done" ng-if="policy.enabled" style="fill: #437536" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.switchPolicyEnabled($index, path, $event)">
-                        <md-tooltip md-direction="right">
-                          Policy is enabled. Click to disable it.
-                        </md-tooltip>
-                      </ng-md-icon>
-                      <ng-md-icon icon="pause_circle_outline" ng-if="!policy.enabled" style="fill: #751c16" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.switchPolicyEnabled($index, path, $event)">
-                        <md-tooltip md-direction="right">
-                          Policy is disabled. Click to enable it.
-                        </md-tooltip>
-                      </ng-md-icon>
+                    <ng-md-icon icon="done" ng-if="policy.enabled" style="fill: #437536" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.switchPolicyEnabled($index, path, $event)">
+                      <md-tooltip md-direction="right">
+                        Policy is enabled. Click to disable it.
+                      </md-tooltip>
+                    </ng-md-icon>
+                    <ng-md-icon icon="pause_circle_outline" ng-if="!policy.enabled" style="fill: #751c16" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.switchPolicyEnabled($index, path, $event)">
+                      <md-tooltip md-direction="right">
+                        Policy is disabled. Click to enable it.
+                      </md-tooltip>
+                    </ng-md-icon>
                   </div>
                 </md-card>
               </div>
-                <span ng-if="apiPoliciesCtrl.initDragularDropZone(path)"></span>
-              </v-pane-content>
-            </v-pane>
-          </v-accordion>
-        </div>
+              <span ng-if="apiPoliciesCtrl.initDragularDropZone(path)"></span>
+            </v-pane-content>
+          </v-pane>
+        </v-accordion>
+      </div>
     </form>
   </div>
 
@@ -133,8 +133,8 @@
     <div ng-if="apiPoliciesCtrl.selectedApiPolicy.policyId">
       <div class="inset">
         <div layout="row" layout-align="space-between center">
-        <h5>{{policy.name}}</h5>
-      </div>
+          <h5>{{policy.name}}</h5>
+        </div>
         <md-divider></md-divider>
       </div>
       <div layout="row" layout-align="start center" layout-wrap>

@@ -35,21 +35,25 @@ class ApiPoliciesController {
 
     this.listAllPoliciesWithSchema().then( (policiesWithSchema) => {
       _.forEach(policiesWithSchema, ({policy}) => {
-        this.policiesToCopy.push(policy);
-        this.policiesMap[policy.policyId] = policy;
-      });
-      _.forEach(resolvedApi.data.paths, (policies, path) => {
-        this.apiPoliciesByPath[path] = _.cloneDeep(policies);
-      });
-      this.completeApiPolicies(this.apiPoliciesByPath);
-      this.initDragular();
-      this.pathsToCompare = this.generatePathsToCompare();
-    });
+      this.policiesToCopy.push(policy);
+    this.policiesMap[policy.policyId] = policy;
+  });
+    _.forEach(resolvedApi.data.paths, (policies, path) => {
+      this.apiPoliciesByPath[path] = _.cloneDeep(policies);
+  });
+    this.completeApiPolicies(this.apiPoliciesByPath);
+    this.initDragular();
+    this.pathsToCompare = this.generatePathsToCompare();
+  });
 
     const that = this;
     this.$scope.$on('dragulardrop', function(event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
 
       var policy = dropzoneObjList[dropzoneIndex];
+
+      // Automatically display the configuration associated to the dragged policy
+      that.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value, event);
+
       // Automatically save if there is no json schema configuration attached to the dragged policy.
       if (policy.schema === undefined || policy.schema === '') {
         that.savePaths();
@@ -59,31 +63,31 @@ class ApiPoliciesController {
 
   generatePathsToCompare() {
     return _.map(_.keys(this.apiPoliciesByPath), (p) => {
-      return this.clearPathParam(p);
-    });
+        return this.clearPathParam(p);
+  });
   }
 
   completeApiPolicies(pathMap) {
     _.forEach(pathMap, (policies) => {
       _.forEach(policies, (policy) => {
 
-        _.forEach(policy, (value, property) => {
-          if (property !== "methods" && property !== "enabled" && property !== "description" && property !== "$$hashKey") {
-            policy.policyId = property;
-            policy.name = this.policiesMap[policy.policyId].name;
-            policy.type = this.policiesMap[policy.policyId].type;
-            policy.version = this.policiesMap[policy.policyId].version;
-            policy.schema = this.policiesMap[policy.policyId].schema;
-          }
-        });
+      _.forEach(policy, (value, property) => {
+      if (property !== "methods" && property !== "enabled" && property !== "description" && property !== "$$hashKey") {
+      policy.policyId = property;
+      policy.name = this.policiesMap[policy.policyId].name;
+      policy.type = this.policiesMap[policy.policyId].type;
+      policy.version = this.policiesMap[policy.policyId].version;
+      policy.schema = this.policiesMap[policy.policyId].schema;
+    }
+  });
 
-        if ( !policy.methods ) {
-          policy.methods = _.clone(this.httpMethods);
-        } else {
-          policy.methods = _.map(policy.methods, (method) => { return method.toUpperCase(); });
-        }
-      });
-    });
+    if ( !policy.methods ) {
+      policy.methods = _.clone(this.httpMethods);
+    } else {
+      policy.methods = _.map(policy.methods, (method) => { return method.toUpperCase(); });
+    }
+  });
+  });
   }
 
   initDragular() {
@@ -122,26 +126,26 @@ class ApiPoliciesController {
   listAllPoliciesWithSchema() {
     return this.PolicyService.list({expandSchema: true}).then( (policyServiceListResponse) => {
 
-      const promises = _.map(policyServiceListResponse.data, (originalPolicy) => {
-        return this.PolicyService.getSchema(originalPolicy.id).then( ({data}) => {
-          return {
-            schema: data,
-            originalPolicy
-          };
-        },
-          (response) => {
-            if ( response.status === 404) {
+        const promises = _.map(policyServiceListResponse.data, (originalPolicy) => {
+            return this.PolicyService.getSchema(originalPolicy.id).then( ({data}) => {
               return {
-                schema: {},
+                schema: data,
                 originalPolicy
               };
-            } else {
-              //todo manage errors
-            }
-          });
-      });
+  },
+    (response) => {
+      if ( response.status === 404) {
+        return {
+          schema: {},
+          originalPolicy
+        };
+      } else {
+        //todo manage errors
+      }
+    });
+  });
 
-      return this.$q.all(promises).then( (policySchemaResponses) => {
+    return this.$q.all(promises).then( (policySchemaResponses) => {
         return _.map(policySchemaResponses, ({schema, originalPolicy}) => {
           const policy = {
             policyId: originalPolicy.id,
@@ -153,12 +157,12 @@ class ApiPoliciesController {
             enabled: originalPolicy.enabled || true,
             schema
           };
-          policy[originalPolicy.id] = {};
+    policy[originalPolicy.id] = {};
 
-          return {policy};
-        });
-      });
-    });
+    return {policy};
+  });
+  });
+  });
   }
 
   acceptDragDrop(el, target, source) {
@@ -217,7 +221,7 @@ class ApiPoliciesController {
     return _.reduce(
       _.map(policy.methods, (method) => {
         return this.httpMethodsFilter.indexOf(method) < 0;
-      }), (result, n) => { return result && n; });
+  }), (result, n) => { return result && n; });
   }
 
   removePolicy(index, path, ev) {
@@ -238,10 +242,10 @@ class ApiPoliciesController {
       .then(function () {
         _.forEach(that.apiPoliciesByPath[path], (policy, idx) => {
           if ( policy.$$hashKey === hashKey ) {
-            that.apiPoliciesByPath[path].splice(idx, 1);
-            return false;
-          }
-        });
+          that.apiPoliciesByPath[path].splice(idx, 1);
+          return false;
+        }
+      });
         that.savePaths();
       });
   }
@@ -281,22 +285,22 @@ class ApiPoliciesController {
     this.$scope.$parent.apiCtrl.api.paths = _.cloneDeep(this.apiPoliciesByPath);
     _.forEach(this.$scope.$parent.apiCtrl.api.paths, (policies, path) => {
       _.forEach(this.$scope.$parent.apiCtrl.api.paths[path], (policy, idx) => {
-        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].policyId;
-        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].name;
-        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].type;
-      //  delete this.$scope.$parent.apiCtrl.api.paths[path][idx].description;
-        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].version;
-        delete this.$scope.$parent.apiCtrl.api.paths[path][idx].schema;
-      });
-    });
+      delete this.$scope.$parent.apiCtrl.api.paths[path][idx].policyId;
+    delete this.$scope.$parent.apiCtrl.api.paths[path][idx].name;
+    delete this.$scope.$parent.apiCtrl.api.paths[path][idx].type;
+    //  delete this.$scope.$parent.apiCtrl.api.paths[path][idx].description;
+    delete this.$scope.$parent.apiCtrl.api.paths[path][idx].version;
+    delete this.$scope.$parent.apiCtrl.api.paths[path][idx].schema;
+  });
+  });
 
     const that = this;
     return this.ApiService.update(this.$scope.$parent.apiCtrl.api).then( ( {data} ) => {
       that.$scope.$parent.apiCtrl.api = data;
-      that.$rootScope.$broadcast('apiChangeSuccess');
-      that.NotificationService.show('API \'' + that.$scope.$parent.apiCtrl.api.name + '\' saved');
-      this.pathsToCompare = this.generatePathsToCompare();
-    });
+    that.$rootScope.$broadcast('apiChangeSuccess');
+    that.NotificationService.show('API \'' + that.$scope.$parent.apiCtrl.api.name + '\' saved');
+    this.pathsToCompare = this.generatePathsToCompare();
+  });
   }
 
   showAddPathModal(event) {
@@ -311,8 +315,8 @@ class ApiPoliciesController {
       rootCtrl: this
     }).then( (paths) => {
       this.apiPoliciesByPath = paths;
-      this.savePaths();
-    });
+    this.savePaths();
+  });
   }
 
   removePath(path) {
@@ -363,8 +367,8 @@ class ApiPoliciesController {
   sortedPaths() {
     let paths = _.keys(this.apiPoliciesByPath);
     return _.sortBy(paths, (path) => {
-      return this.clearPathParam(path);
-    });
+        return this.clearPathParam(path);
+  });
   }
 
   pathKeyPress(ev, el, newPath, index) {
