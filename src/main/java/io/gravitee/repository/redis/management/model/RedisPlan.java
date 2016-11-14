@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.redis.management.model;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -63,6 +64,18 @@ public class RedisPlan {
     private String definition;
 
     private List<String> characteristics;
+
+    /**
+     * Plan publication date
+     */
+    private long publishedAt;
+
+    /**
+     * Plan closing date
+     */
+    private long closedAt;
+
+    private String status;
 
     public String getId() {
         return id;
@@ -150,6 +163,30 @@ public class RedisPlan {
 
     public void setCharacteristics(List<String> characteristics) {
         this.characteristics = characteristics;
+    }
+
+    public long getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(long publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
+    public long getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(long closedAt) {
+        this.closedAt = closedAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override

@@ -100,6 +100,17 @@ public class RedisPlanRepository implements PlanRepository {
             plan.setUpdatedAt(new Date(redisPlan.getUpdatedAt()));
         }
 
+        if (redisPlan.getStatus() != null) {
+            plan.setStatus(Plan.Status.valueOf(redisPlan.getStatus()));
+        }
+
+        if (redisPlan.getPublishedAt() != 0) {
+            plan.setPublishedAt(new Date(redisPlan.getPublishedAt()));
+        }
+
+        if (redisPlan.getClosedAt() != 0) {
+            plan.setClosedAt(new Date(redisPlan.getClosedAt()));
+        }
         return plan;
     }
 
@@ -128,6 +139,18 @@ public class RedisPlanRepository implements PlanRepository {
 
         if (plan.getUpdatedAt() != null) {
             redisPlan.setUpdatedAt(plan.getUpdatedAt().getTime());
+        }
+
+        if (plan.getStatus() != null) {
+            redisPlan.setStatus(plan.getStatus().name());
+        }
+
+        if (plan.getClosedAt() != null) {
+            redisPlan.setClosedAt(plan.getClosedAt().getTime());
+        }
+
+        if (plan.getPublishedAt() != null) {
+            redisPlan.setPublishedAt(plan.getPublishedAt().getTime());
         }
 
         return redisPlan;
