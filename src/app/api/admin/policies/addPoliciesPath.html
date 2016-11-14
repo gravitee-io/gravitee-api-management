@@ -21,7 +21,7 @@
       <div class="md-toolbar-tools">
         <h2>New path</h2>
         <span flex></span>
-        <md-button class="md-icon-button" ng-click="addPoliciesPathCtrl.hide()">
+        <md-button class="md-icon-button" aria-label="close" ng-click="addPoliciesPathCtrl.hide()">
           <ng-md-icon icon="close"></ng-md-icon>
         </md-button>
       </div>
@@ -48,13 +48,13 @@
       </div>
     </md-dialog-content>
 
-    <div class="md-actions" layout="row">
+    <md-dialog-actions layout="row">
       <md-button type="button" ng-click="addPoliciesPathCtrl.hide()" class="md-primary">
         Cancel
       </md-button>
       <md-button type="submit" class="md-primary" ng-disabled="newPathForm.$invalid">
         Add
       </md-button>
-    </div>
+    </md-dialog-actions>
   </form>
 </md-dialog>

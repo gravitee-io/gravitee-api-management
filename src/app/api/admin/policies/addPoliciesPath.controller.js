@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class AddPoliciesPathController {
-  constructor($mdDialog, $scope, paths, apiKeyPolicy, rootCtrl) {
+  constructor($mdDialog, $scope, paths, rootCtrl) {
     'ngInject';
     this.paths = paths;
     this.scope = $scope;
