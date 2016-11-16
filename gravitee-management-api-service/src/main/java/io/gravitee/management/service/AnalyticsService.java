@@ -38,11 +38,5 @@ public interface AnalyticsService {
 
     TopHitsAnalytics topHits(String query, String key, String field, Order order, long from, long to, int size);
 
-    HistogramAnalytics apiKeyHits(String apiKey, long from, long to, long interval);
-
-    HistogramAnalytics apiKeyHitsByStatus(String apiKey, long from, long to, long interval);
-
-    HistogramAnalytics apiKeyHitsByLatency(String apiKey, long from, long to, long interval);
-
     HealthAnalytics health(String api, long from, long to, long interval);
 }

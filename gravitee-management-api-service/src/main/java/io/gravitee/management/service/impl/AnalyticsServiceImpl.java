@@ -19,7 +19,6 @@ import io.gravitee.common.data.domain.Order;
 import io.gravitee.management.model.analytics.*;
 import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
-import io.gravitee.repository.analytics.query.*;
 import io.gravitee.repository.analytics.query.response.HealthResponse;
 import io.gravitee.repository.analytics.query.response.HitsResponse;
 import io.gravitee.repository.analytics.query.response.TopHitsResponse;
@@ -89,22 +88,6 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
     }
 
-
-    @Override
-    public HistogramAnalytics apiKeyHits(String apiKey, long from, long to, long interval) {
-        return apiKeyHits(HitsByApiKeyQuery.Type.HITS, apiKey, from, to, interval);
-    }
-
-    @Override
-    public HistogramAnalytics apiKeyHitsByStatus(String apiKey, long from, long to, long interval) {
-        return apiKeyHits(HitsByApiKeyQuery.Type.HITS_BY_STATUS, apiKey, from, to, interval);
-    }
-
-    @Override
-    public HistogramAnalytics apiKeyHitsByLatency(String apiKey, long from, long to, long interval) {
-        return apiKeyHits(HitsByApiKeyQuery.Type.HITS_BY_LATENCY, apiKey, from, to, interval);
-    }
-
     @Override
     public HealthAnalytics health(String api, long from, long to, long interval) {
         logger.debug("Run health query for API '{}'", api);
@@ -115,27 +98,6 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             logger.error("An unexpected error occurs while searching for health data.", ex);
             return null;
         }
-    }
-
-    private HistogramAnalytics apiKeyHits(HitsByApiKeyQuery.Type type, String apiKey, long from, long to, long interval) {
-        logger.debug("Run analytics query {} for API key '{}'", type, apiKey);
-
-        try {
-            return runHistoricalQuery(QueryBuilders.query()
-                    .hitsByApiKey(apiKey)
-                    .period(DateRangeBuilder.between(from, to))
-                    .interval(IntervalBuilder.interval(interval))
-                    .type(type)
-                    .build(), from, interval);
-
-        } catch (Exception ex) {
-            logger.error("An unexpected error occurs while searching for analytics data.", ex);
-            return null;
-        }
-    }
-
-    private HistogramAnalytics runHistoricalQuery(Query<HistogramResponse> query, long from, long interval) throws Exception {
-        return convert(analyticsRepository.query(query), from, interval);
     }
 
     private HistogramAnalytics convert(HistogramResponse histogramResponse, long from, long interval) {
