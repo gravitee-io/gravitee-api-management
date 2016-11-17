@@ -73,21 +73,21 @@ public class SyncManager {
 
         try {
             Set<io.gravitee.repository.management.model.Api> apis = apiRepository.findAll();
-            
+
             // Determine deployed APIs store into events payload
             Set<Api> deployedApis = getDeployedApis(apis);
 
             Map<String, Api> apisMap = deployedApis.stream()
-                    .filter(api -> api != null && isConfiguredTags(api))
+                    .filter(api -> api != null && hasMatchingTags(api))
                     .collect(Collectors.toMap(Api::getId, api -> api));
 
             // Determine APIs to undeploy
             Set<String> apiToRemove = apiManager.apis().stream()
-                    .filter(api -> !apisMap.containsKey(api.getId()) || !isConfiguredTags(api))
+                    .filter(api -> !apisMap.containsKey(api.getId()) || !hasMatchingTags(api))
                     .map(Api::getId)
                     .collect(Collectors.toSet());
 
-            apiToRemove.stream().forEach(apiManager::undeploy);
+            apiToRemove.forEach(apiManager::undeploy);
 
             // Determine APIs to update
             apisMap.keySet().stream()
@@ -116,24 +116,53 @@ public class SyncManager {
         }
     }
 
-    private boolean isConfiguredTags(Api api) {
+    private boolean hasMatchingTags(Api api) {
         final String systemPropertyTags = System.getProperty(TAGS_PROP);
         final String tags = systemPropertyTags == null ? propertyTags : systemPropertyTags;
+
         if (tags != null && !tags.isEmpty()) {
             if (api.getTags() != null) {
                 final List<String> tagList = Arrays.asList(tags.split(","));
-                final boolean isTagConfigured = tagList.stream()
-                        .anyMatch(tag -> api.getTags().stream()
-                                .anyMatch(apiTag -> {
-                                    final Collator collator = Collator.getInstance();
-                                    collator.setStrength(Collator.NO_DECOMPOSITION);
-                                    return collator.compare(tag, apiTag) == 0;
-                                })
-                        );
-                if (!isTagConfigured) {
+
+                final List<String> inclusionTags = tagList.stream()
+                        .map(String::trim)
+                        .filter(tag -> !tag.startsWith("!"))
+                        .collect(Collectors.toList());
+
+                final List<String> exclusionTags = tagList.stream()
+                        .map(String::trim)
+                        .filter(tag -> tag.startsWith("!"))
+                        .map(tag -> tag.substring(1))
+                        .collect(Collectors.toList());
+
+                if (inclusionTags.stream()
+                        .filter(exclusionTags::contains)
+                        .count() > 0) {
+                    throw new IllegalArgumentException("You must not configure a tag to be included and excluded");
+                }
+
+                final boolean hasMatchingTags =
+                        inclusionTags.stream()
+                                .anyMatch(tag -> api.getTags().stream()
+                                        .anyMatch(apiTag -> {
+                                            final Collator collator = Collator.getInstance();
+                                            collator.setStrength(Collator.NO_DECOMPOSITION);
+                                            return collator.compare(tag, apiTag) == 0;
+                                        })
+                                ) || (!exclusionTags.isEmpty() &&
+                                exclusionTags.stream()
+                                        .noneMatch(tag -> api.getTags().stream()
+                                                .anyMatch(apiTag -> {
+                                                    final Collator collator = Collator.getInstance();
+                                                    collator.setStrength(Collator.NO_DECOMPOSITION);
+                                                    return collator.compare(tag, apiTag) == 0;
+                                                })
+                                        ));
+
+                if (!hasMatchingTags) {
                     logger.info("The API {} has been ignored because not in configured tags {}", api.getName(), tags);
                 }
-                return isTagConfigured;
+                return hasMatchingTags;
             }
             logger.info("Tags {} are configured on gateway instance but not found on the API {}", tags, api.getName());
             return false;
@@ -141,18 +170,18 @@ public class SyncManager {
         // no tags configured on this gateway instance
         return true;
     }
-    
+
     private Set<Api> getDeployedApis(Set<io.gravitee.repository.management.model.Api> apis) {
         Set<Api> deployedApis = new HashSet<>();
 
         List<Event> events = eventRepository.search(
-                    new EventCriteria.Builder().types(
-                            EventType.PUBLISH_API,
-                            EventType.UNPUBLISH_API,
-                            EventType.START_API,
-                            EventType.STOP_API).build());
+                new EventCriteria.Builder().types(
+                        EventType.PUBLISH_API,
+                        EventType.UNPUBLISH_API,
+                        EventType.START_API,
+                        EventType.STOP_API).build());
 
-        if (events != null && ! events.isEmpty()) {
+        if (events != null && !events.isEmpty()) {
             try {
                 for (io.gravitee.repository.management.model.Api api : apis) {
                     for (Event _event : events) {
@@ -213,9 +242,10 @@ public class SyncManager {
         plan.setName(repoPlan.getName());
 
         try {
-            if (repoPlan.getDefinition() != null && ! repoPlan.getDefinition().trim().isEmpty()) {
+            if (repoPlan.getDefinition() != null && !repoPlan.getDefinition().trim().isEmpty()) {
                 HashMap<String, Path> paths = objectMapper.readValue(repoPlan.getDefinition(),
-                        new TypeReference<HashMap<String, Path>>() {});
+                        new TypeReference<HashMap<String, Path>>() {
+                        });
 
                 plan.setPaths(paths);
             }
@@ -231,9 +261,9 @@ public class SyncManager {
     }
 
     public void setEventRepository(EventRepository eventRepository) {
-    	this.eventRepository = eventRepository;
+        this.eventRepository = eventRepository;
     }
-    
+
     public void setApiManager(ApiManager apiManager) {
         this.apiManager = apiManager;
     }
