@@ -1,6 +1,3 @@
-/**
- * Created by david on 27/11/2015.
- */
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -16,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DeleteViewDialogController($scope, $mdDialog, view) {
+function DeleteTagDialogController($scope, $mdDialog, tag) {
   'ngInject';
 
-  $scope.view = view.name;
+  $scope.tag = tag.name;
 
   $scope.cancel = function() {
     $mdDialog.cancel();
@@ -30,4 +27,4 @@ function DeleteViewDialogController($scope, $mdDialog, view) {
   };
 }
 
-export default DeleteViewDialogController;
+export default DeleteTagDialogController;

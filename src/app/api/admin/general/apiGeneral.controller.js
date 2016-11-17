@@ -15,7 +15,7 @@
  */
 class ApiAdminController {
   constructor(ApiService, NotificationService, UserService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi,
-              base64, $state, ViewService, GroupService) {
+              base64, $state, ViewService, GroupService, TagService) {
     'ngInject';
 
     if ('apis.admin.general' === $state.current.name) {
@@ -57,10 +57,12 @@ class ApiAdminController {
 
     this.initState();
 
-    // Views
     var that = this;
     ViewService.list().then(function(response) {
       that.views = response.data;
+    });
+    TagService.list().then(function(response) {
+      that.tags = response.data;
     });
   }
 

@@ -65,20 +65,23 @@
     </md-input-container>
   </div>
 
-  <div layout="" layout-sm="column">
+  <div layout="column">
     <md-input-container class="flex">
       <label>Deployment tags</label>
-      <md-chips ng-model="generalCtrl.api.tags" placeholder="Enter a tag" secondary-placeholder="+Tag" ng-click="formApi.$setDirty()"></md-chips>
+      <md-select ng-model="generalCtrl.api.tags" multiple>
+        <md-option ng-repeat="tag in generalCtrl.tags" ng-value="tag.id">
+          {{tag.name}}<span ng-if="tag.description" class="gravitee-general-description"> - {{tag.description}}</span>
+        </md-option>
+      </md-select>
     </md-input-container>
   </div>
-
 
   <div layout="column">
     <md-input-container class="flex">
       <label>Portal views</label>
       <md-select ng-model="generalCtrl.api.views" multiple>
         <md-option ng-repeat="view in generalCtrl.views" ng-value="view.id">
-          {{view.name}}<span ng-if="view.description" class="gravitee-general-view-description"> - {{view.description}}</span>
+          {{view.name}}<span ng-if="view.description" class="gravitee-general-description"> - {{view.description}}</span>
         </md-option>
       </md-select>
     </md-input-container>

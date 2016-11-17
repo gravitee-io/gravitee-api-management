@@ -90,7 +90,7 @@ import PageSwaggerHttpClientService from './services/pageSwaggerHttpClient.servi
 import DashboardModelDirective from './platform/dashboard/dashboardModel.directive';
 import ViewsController from './configuration/admin/views/views.controller';
 import ViewService from './services/view.service';
-import DeleteViewDialogController from './configuration/admin/views/deleteview.dialog.controller';
+import DeleteViewDialogController from './configuration/admin/views/delete.view.dialog.controller';
 import AnalyticsAPIModelDirective from './application/details/analytics/analyticsAPIModel.directive';
 import AnalyticsApplicationModelDirective from './api/admin/analytics/analyticsApplicationModel.directive';
 import GroupsController from './configuration/admin/groups/groups.controller';
@@ -108,6 +108,9 @@ import DialogSubscriptionCreateController from './api/admin/subscriptions/subscr
 import EmptyStateDirective from './components/emptystate/emptystate.directive';
 import DialogClosePlanController from './api/admin/plans/closePlanDialog.controller';
 import DialogPublishPlanController from './api/admin/plans/publishPlanDialog.controller';
+import TagsController from './configuration/admin/tags/tags.controller';
+import TagService from './services/tag.service';
+import DeleteTagDialogController from './configuration/admin/tags/delete.tag.dialog.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -196,6 +199,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController)
   .controller('DialogClosePlanController', DialogClosePlanController)
   .controller('DialogPublishPlanController', DialogPublishPlanController)
+  .controller('TagsController', TagsController)
+  .controller('DeleteTagDialogController', DeleteTagDialogController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
@@ -212,6 +217,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .service('ViewService', ViewService)
   .service('GroupService', GroupService)
   .service('SubscriptionService', SubscriptionService)
+  .service('TagService', TagService)
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
   .directive('graviteePage', () => new PageDirective())

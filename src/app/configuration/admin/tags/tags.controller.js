@@ -13,34 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ViewsController {
-  constructor($scope, ViewService, NotificationService, $q, $mdEditDialog, $mdDialog) {
+class TagsController {
+  constructor($scope, TagService, NotificationService, $q, $mdEditDialog, $mdDialog) {
     'ngInject';
 
     this.$scope = $scope;
-    this.ViewService = ViewService;
+    this.TagService = TagService;
     this.NotificationService = NotificationService;
     this.$q = $q;
     this.$mdEditDialog = $mdEditDialog;
     this.$mdDialog = $mdDialog;
 
-    this.loadViews();
-    this.viewsToCreate = [];
-    this.viewsToUpdate = [];
+    this.loadTags();
+    this.tagsToCreate = [];
+    this.tagsToUpdate = [];
   }
 
-  loadViews() {
+  loadTags() {
     var that = this;
-    this.ViewService.list().then(function (response) {
-      that.views = response.data;
-      _.each(that.views, function(view) {
-        delete view.totalApis;
+    this.TagService.list().then(function (response) {
+      that.tags = response.data;
+      _.each(that.tags, function(tag) {
+        delete tag.totalApis;
       });
-      that.initialViews = _.cloneDeep(that.views);
+      that.initialTags = _.cloneDeep(that.tags);
     });
   }
 
-  newView(event) {
+  newTag(event) {
     event.stopPropagation();
 
     var that = this;
@@ -48,9 +48,9 @@ class ViewsController {
     var promise = this.$mdEditDialog.small({
       placeholder: 'Add a name',
       save: function (input) {
-        var view = {name: input.$modelValue};
-        that.views.push(view);
-        that.viewsToCreate.push(view);
+        var tag = {name: input.$modelValue};
+        that.tags.push(tag);
+        that.tagsToCreate.push(tag);
       },
       targetEvent: event,
       validators: {
@@ -63,23 +63,23 @@ class ViewsController {
 
       input.$viewChangeListeners.push(function () {
         input.$setValidity('empty', input.$modelValue.length !== 0);
-        input.$setValidity('duplicate', !_.includes(_.map(that.views, 'name'), input.$modelValue));
+        input.$setValidity('duplicate', !_.includes(_.map(that.tags, 'name'), input.$modelValue));
       });
     });
   }
 
-  editName(event, view) {
+  editName(event, tag) {
     event.stopPropagation();
 
     var that = this;
 
     var promise = this.$mdEditDialog.small({
-      modelValue: view.name,
+      modelValue: tag.name,
       placeholder: 'Add a name',
       save: function (input) {
-        view.name = input.$modelValue;
-        if (!_.includes(that.viewsToCreate, view)) {
-          that.viewsToUpdate.push(view);
+        tag.name = input.$modelValue;
+        if (!_.includes(that.tagsToCreate, tag)) {
+          that.tagsToUpdate.push(tag);
         }
       },
       targetEvent: event,
@@ -91,24 +91,24 @@ class ViewsController {
     promise.then(function (ctrl) {
       var input = ctrl.getInput();
 
-      input.$viewChangeListeners.push(function () {
+      input.$tagChangeListeners.push(function () {
         input.$setValidity('empty', input.$modelValue.length !== 0);
       });
     });
   }
 
-  editDescription(event, view) {
+  editDescription(event, tag) {
     event.stopPropagation();
 
     var that = this;
 
     this.$mdEditDialog.small({
-      modelValue: view.description,
+      modelValue: tag.description,
       placeholder: 'Add a description',
       save: function (input) {
-        view.description = input.$modelValue;
-        if (!_.includes(that.viewsToCreate, view)) {
-          that.viewsToUpdate.push(view);
+        tag.description = input.$modelValue;
+        if (!_.includes(that.tagsToCreate, tag)) {
+          that.tagsToUpdate.push(tag);
         }
       },
       targetEvent: event,
@@ -118,46 +118,46 @@ class ViewsController {
     });
   }
 
-  saveViews() {
+  saveTags() {
     var that = this;
 
     this.$q.all([
-      this.ViewService.create(that.viewsToCreate),
-      this.ViewService.update(that.viewsToUpdate)
+      this.TagService.create(that.tagsToCreate),
+      this.TagService.update(that.tagsToUpdate)
     ]).then(function () {
-      that.NotificationService.show("Views saved with success");
-      that.loadViews();
-      that.viewsToCreate = [];
-      that.viewsToUpdate = [];
+      that.NotificationService.show("Tags saved with success");
+      that.loadTags();
+      that.tagsToCreate = [];
+      that.tagsToUpdate = [];
     });
   }
 
-  deleteView(view) {
+  deleteTag(tag) {
     var that = this;
     this.$mdDialog.show({
-      controller: 'DeleteViewDialogController',
-      templateUrl: 'app/configuration/admin/views/delete.view.dialog.html',
-      view: view
-    }).then(function (deleteView) {
-      if (deleteView) {
-        if (view.id) {
-          that.ViewService.delete(view).then(function () {
-            that.NotificationService.show("View '" + view.name + "' deleted with success");
-            _.remove(that.views, view);
+      controller: 'DeleteTagDialogController',
+      templateUrl: 'app/configuration/admin/tags/delete.tag.dialog.html',
+      tag: tag
+    }).then(function (deleteTag) {
+      if (deleteTag) {
+        if (tag.id) {
+          that.TagService.delete(tag).then(function () {
+            that.NotificationService.show("Tag '" + tag.name + "' deleted with success");
+            _.remove(that.tags, tag);
           });
         } else {
-          _.remove(that.viewsToCreate, view);
-          _.remove(that.views, view);
+          _.remove(that.tagsToCreate, tag);
+          _.remove(that.tags, tag);
         }
       }
     });
   }
 
   reset() {
-    this.views = _.cloneDeep(this.initialViews);
-    this.viewsToCreate = [];
-    this.viewsToUpdate = [];
+    this.tags = _.cloneDeep(this.initialTags);
+    this.tagsToCreate = [];
+    this.tagsToUpdate = [];
   }
 }
 
-export default ViewsController;
+export default TagsController;
