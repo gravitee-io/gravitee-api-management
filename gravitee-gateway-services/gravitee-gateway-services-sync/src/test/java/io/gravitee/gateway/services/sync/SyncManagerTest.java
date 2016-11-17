@@ -27,6 +27,7 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.LifecycleState;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -67,6 +68,11 @@ public class SyncManagerTest {
 
     @Mock
     private ObjectMapper objectMapper;
+
+    @Before
+    public void init() {
+        System.clearProperty(SyncManager.TAGS_PROP);
+    }
 
     @Test
     public void test_empty() throws TechnicalException {
@@ -318,48 +324,118 @@ public class SyncManagerTest {
 
     @Test
     public void test_deployApiWithTag() throws Exception {
-        shouldDeployApiWithTags(new String[]{"test"});
+        shouldDeployApiWithTags("test,toto", new String[]{"test"});
     }
 
     @Test
     public void test_deployApiWithUpperCasedTag() throws Exception {
-        shouldDeployApiWithTags(new String[]{"Test"});
+        shouldDeployApiWithTags("test,toto", new String[]{"Test"});
     }
 
     @Test
     public void test_deployApiWithAccentTag() throws Exception {
-        shouldDeployApiWithTags(new String[]{"tést"});
+        shouldDeployApiWithTags("test,toto", new String[]{"tést"});
     }
 
     @Test
     public void test_deployApiWithUpperCasedAndAccentTag() throws Exception {
-        shouldDeployApiWithTags(new String[]{"Tést"});
+        shouldDeployApiWithTags("test", new String[]{"Tést"});
     }
 
-    public void shouldDeployApiWithTags(final String[] apiTags) throws Exception {
-        System.setProperty(SyncManager.TAGS_PROP, "test,toto");
+    @Test
+    public void test_deployApiWithTagExclusion() throws Exception {
+        shouldDeployApiWithTags("test,!toto", new String[]{"test"});
+    }
+
+    @Test
+    public void test_deployApiWithSpaceAfterComma() throws Exception {
+        shouldDeployApiWithTags("test, !toto", new String[]{"test"});
+    }
+
+    @Test
+    public void test_deployApiWithSpaceBeforeComma() throws Exception {
+        shouldDeployApiWithTags("test ,!toto", new String[]{"test"});
+    }
+
+    @Test
+    public void test_deployApiWithSpaceBeforeTag() throws Exception {
+        shouldDeployApiWithTags(" test,!toto", new String[]{"test"});
+    }
+
+    public void shouldDeployApiWithTags(final String tags, final String[] apiTags) throws Exception {
+        System.setProperty(SyncManager.TAGS_PROP, tags);
 
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
         final Api mockApi = mockApi(api, apiTags);
-        
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
 
+        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
+
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(
                 new EventCriteria.Builder()
                         .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
                         .build()
         )).thenReturn(Collections.singletonList(mockEvent));
 
+        syncManager.refresh();
+
+        verify(apiManager).deploy(mockApi);
+        verify(apiManager, never()).update(any(Api.class));
+        verify(apiManager, never()).undeploy(any(String.class));
+    }
+
+    @Test
+    public void test_not_deployApiWithTagExclusion() throws Exception {
+        System.setProperty(SyncManager.TAGS_PROP, "!test");
+
+        io.gravitee.repository.management.model.Api api =
+                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
+
+        final Api mockApi = mockApi(api, new String[]{"test"});
+
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
+
+        syncManager.refresh();
+
+        verify(apiManager, never()).deploy(mockApi);
+        verify(apiManager, never()).update(any(Api.class));
+        verify(apiManager, never()).undeploy(any(String.class));
+    }
+
+    @Test
+    public void test_deployApiWithTagInclusionExclusion() throws Exception {
+        System.setProperty(SyncManager.TAGS_PROP, "!test,toto");
+
+        io.gravitee.repository.management.model.Api api =
+                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
+
+        final Api mockApi = mockApi(api, new String[]{"test", "toto"});
+
+        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
+
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
 
         syncManager.refresh();
 
         verify(apiManager).deploy(mockApi);
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
-        System.clearProperty(SyncManager.TAGS_PROP);
     }
 
     @Test
@@ -373,12 +449,40 @@ public class SyncManagerTest {
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
+
         syncManager.refresh();
 
         verify(apiManager, never()).deploy(mockApi);
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
-        System.clearProperty(SyncManager.TAGS_PROP);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotDeployBecauseWrongConfiguration() throws Exception {
+        System.setProperty(SyncManager.TAGS_PROP, "test, !test");
+
+        io.gravitee.repository.management.model.Api api =
+                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
+
+        final Api mockApi = mockApi(api);
+
+        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
+
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                        .build()
+        )).thenReturn(Collections.singletonList(mockEvent));
+
+        syncManager.refresh();
     }
     
     @Test
@@ -409,12 +513,11 @@ public class SyncManagerTest {
 
         final Api mockApi = mockApi(api);
 
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-
         Set<io.gravitee.repository.management.model.Api> apis = new HashSet<>();
         apis.add(api);
         apis.add(api2);
 
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(
                 new EventCriteria.Builder()
                         .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
@@ -564,6 +667,7 @@ public class SyncManagerTest {
         )).thenReturn(Collections.singletonList(mockEvent));
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
 
         syncManager.refresh();
 
