@@ -90,6 +90,11 @@ public class Api {
      */
     private Set<String> views;
 
+    /**
+     * The tags associated to this API
+     */
+    private Set<String> tags;
+
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -192,6 +197,14 @@ public class Api {
 
     public void setViews(Set<String> views) {
         this.views = views;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     @Override
