@@ -76,6 +76,8 @@ public abstract class AbstractRepositoryTest {
     protected MembershipRepository membershipRepository;
     @Inject
     protected PlanRepository planRepository;
+    @Inject
+    protected TagRepository tagRepository;
 
 
     private ObjectMapper mapper = new ObjectMapper();
@@ -133,6 +135,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Plan) {
             planRepository.create((Plan) object);
+        }
+        else if (object instanceof Tag) {
+            tagRepository.create((Tag) object);
         }
     }
 

@@ -1,0 +1,17 @@
+[
+   {
+      "id":"international",
+      "name":"International",
+      "description": "Description for international tag"
+   },
+   {
+      "id":"products",
+      "name":"Products",
+      "description": "Description for products tag"
+   },
+   {
+      "id":"stores",
+      "name":"Stores",
+      "description": "Description for stores tag"
+   }
+]

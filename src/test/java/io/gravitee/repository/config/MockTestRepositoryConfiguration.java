@@ -303,6 +303,35 @@ public class MockTestRepositoryConfiguration {
         return viewRepository;
     }
 
+    @Bean
+    public TagRepository tagRepository() throws Exception {
+        final TagRepository tagRepository = mock(TagRepository.class);
+
+        final Tag tag = mock(Tag.class);
+        when(tag.getName()).thenReturn("Tag name");
+        when(tag.getDescription()).thenReturn("Description for the new tag");
+
+        final Tag tag2 = mock(Tag.class);
+        when(tag2.getName()).thenReturn("Products");
+
+        final Tag tag2Updated = mock(Tag.class);
+        when(tag2Updated.getName()).thenReturn("New product");
+        when(tag2Updated.getDescription()).thenReturn("New description");
+
+        final Set<Tag> tags = newSet(tag, tag2, mock(Tag.class));
+        final Set<Tag> tagsAfterDelete = newSet(tag, tag2);
+        final Set<Tag> tagsAfterAdd = newSet(tag, tag2, mock(Tag.class), mock(Tag.class));
+
+        when(tagRepository.findAll()).thenReturn(tags, tagsAfterAdd, tags, tagsAfterDelete, tags);
+
+        when(tagRepository.create(any(Tag.class))).thenReturn(tag);
+
+        when(tagRepository.findById("new-tag")).thenReturn(of(tag));
+        when(tagRepository.findById("products")).thenReturn(of(tag2), of(tag2Updated));
+
+        return tagRepository;
+    }
+
 
     @Bean
     public GroupRepository groupRepository() throws Exception {
