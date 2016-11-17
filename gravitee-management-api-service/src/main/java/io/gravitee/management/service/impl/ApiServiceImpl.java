@@ -644,6 +644,31 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
+    @Override
+    public void deleteTagFromAPIs(final String tagId) {
+        findAll().forEach(api -> {
+            if (api.getTags() != null && api.getTags().contains(tagId)) {
+                removeTag(api.getId(), tagId);
+            }
+        });
+    }
+
+    private void removeTag(String apiId, String tagId) throws TechnicalManagementException {
+        try {
+            Optional<Api> optApi = apiRepository.findById(apiId);
+            if (optApi.isPresent()) {
+                Api api = optApi.get();
+                api.getTags().remove(tagId);
+                apiRepository.update(api);
+            } else {
+                throw new ApiNotFoundException(apiId);
+            }
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while removing tag from API: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while removing tag from API: " + apiId, ex);
+        }
+    }
+
     private void updateLifecycle(String apiId, LifecycleState lifecycleState, String username) throws TechnicalException {
         Optional<Api> optApi = apiRepository.findById(apiId);
         if (optApi.isPresent()) {

@@ -67,4 +67,6 @@ public interface ApiService {
     ImageEntity getPicture(String apiId);
 
     void deleteViewFromAPIs(String viewId);
+
+    void deleteTagFromAPIs(String tagId);
 }

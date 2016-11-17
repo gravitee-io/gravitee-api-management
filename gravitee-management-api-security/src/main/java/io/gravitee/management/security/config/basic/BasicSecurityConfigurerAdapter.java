@@ -163,9 +163,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
                     .antMatchers(HttpMethod.GET, "/user/**").permitAll()
 
-                    // View requests
-                    .antMatchers(HttpMethod.GET, "/configuration/views/**").permitAll()
-
                     // API requests
                     .antMatchers(HttpMethod.GET, "/apis/**").permitAll()
                     .antMatchers(HttpMethod.POST, "/apis").hasAnyAuthority("ADMIN", "API_PUBLISHER")
@@ -201,11 +198,13 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                     // Configuration Groups
                     .antMatchers(HttpMethod.GET, "/configuration/groups/**").permitAll()
-                    .antMatchers(HttpMethod.POST, "/configuration/groups/**").hasAuthority("ADMIN")
-                    .antMatchers(HttpMethod.PUT, "/configuration/groups/**").hasAuthority("ADMIN")
-                    .antMatchers(HttpMethod.DELETE, "/configuration/groups/**").hasAuthority("ADMIN")
+
                     // Configuration Views
                     .antMatchers(HttpMethod.GET, "/configuration/views/**").permitAll()
+
+                    // Configuration Tags
+                    .antMatchers(HttpMethod.GET, "/configuration/tags/**").permitAll()
+
                     // Configuration
                     .antMatchers("/configuration/**").hasAuthority("ADMIN")
 

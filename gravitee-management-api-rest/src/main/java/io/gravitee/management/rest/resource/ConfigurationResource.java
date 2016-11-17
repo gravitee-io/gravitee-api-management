@@ -39,4 +39,9 @@ public class ConfigurationResource {
     public GroupsResource getGroupResource() {
         return resourceContext.getResource(GroupsResource.class);
     }
+
+    @Path("tags")
+    public TagsResource getTagResource() {
+        return resourceContext.getResource(TagsResource.class);
+    }
 }
