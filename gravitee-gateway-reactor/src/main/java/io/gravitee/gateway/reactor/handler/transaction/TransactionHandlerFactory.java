@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 public class TransactionHandlerFactory {
 
     @Value("${handlers.request.transaction.header:" + TransactionHandler.DEFAULT_TRANSACTIONAL_ID_HEADER + "}")
-    private String transactionHeader;
+    private String transactionHeader = TransactionHandler.DEFAULT_TRANSACTIONAL_ID_HEADER;
 
     public Handler<Request> create(Handler<Request> next) {
         return new TransactionHandler(transactionHeader, next);
