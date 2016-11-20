@@ -17,6 +17,11 @@ class ApiAdminController {
   constructor(ApiService, NotificationService, UserService, $scope, $mdDialog, $mdEditDialog, $rootScope, resolvedApi,
               base64, $state, ViewService, GroupService) {
     'ngInject';
+
+    if ('apis.admin.general' === $state.current.name) {
+      $state.go('apis.admin.general.main');
+    }
+    
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.UserService = UserService;
