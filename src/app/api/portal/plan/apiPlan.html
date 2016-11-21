@@ -32,7 +32,7 @@
   <md-card-footer ng-if="graviteeUser || plan.isPublic">
     <div layout="row" layout-align="end">
       <md-button class="md-primary md-raised" aria-label="Execute"
-                 ng-click="subscribe(plan)" ng-disabled="plan.status || planEdit">
+                 ng-click="subscribe(plan)" ng-disabled="planEdit">
         {{plan.alreadySubscribed ? 'Subscribed' : (plan.validation === 'auto'?'Subscribe': 'Request for subscription')}}
       </md-button>
     </div>
