@@ -220,6 +220,7 @@ public class VertxHttpClient extends AbstractHttpClient {
             httpClientOptions.setProxyOptions(proxyOptions);
         }
 
+        URI target = URI.create(endpoint.getTarget());
         // Configure SSL
         HttpClientSslOptions sslOptions = endpoint.getHttpClientSslOptions();
         if (sslOptions != null && sslOptions.isEnabled()) {
@@ -233,6 +234,10 @@ public class VertxHttpClient extends AbstractHttpClient {
                         new PemTrustOptions().addCertValue(
                                 io.vertx.core.buffer.Buffer.buffer(sslOptions.getPem())));
             }
+        } else if(target.getScheme().equals("https")) {
+            // SSL is not configured but the endpoint scheme is HTTPS so let's enable the SSL on Vert.x HTTP client
+            // automatically
+            httpClientOptions.setSsl(true).setTrustAll(true);
         }
 
         printHttpClientConfiguration(httpClientOptions);
