@@ -622,11 +622,26 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     @Override
     public void deleteViewFromAPIs(final String viewId) {
         findAll().forEach(api -> {
-            if (api.getViews()
-                    .removeIf(view -> view.equals(viewId))) {
-                update(api.getId(), convert(api));
+            if (api.getViews() != null && api.getViews().contains(viewId)) {
+                removeView(api.getId(), viewId);
             }
         });
+    }
+
+    private void removeView(String apiId, String viewId) throws TechnicalManagementException {
+        try {
+            Optional<Api> optApi = apiRepository.findById(apiId);
+            if (optApi.isPresent()) {
+                Api api = optApi.get();
+                api.getViews().remove(viewId);
+                apiRepository.update(api);
+            } else {
+                throw new ApiNotFoundException(apiId);
+            }
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while removing view from API: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while removing view from API: " + apiId, ex);
+        }
     }
 
     private void updateLifecycle(String apiId, LifecycleState lifecycleState, String username) throws TechnicalException {
@@ -650,29 +665,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         } else {
             throw new ApiNotFoundException(apiId);
         }
-    }
-
-    private UpdateApiEntity convert(final ApiEntity apiEntity) {
-        final UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-
-        updateApiEntity.setDescription(apiEntity.getDescription());
-        updateApiEntity.setName(apiEntity.getName());
-        updateApiEntity.setViews(apiEntity.getViews());
-        updateApiEntity.setPaths(apiEntity.getPaths());
-        updateApiEntity.setPicture(apiEntity.getPicture());
-        updateApiEntity.setProperties(apiEntity.getProperties());
-        updateApiEntity.setProxy(apiEntity.getProxy());
-        updateApiEntity.setResources(apiEntity.getResources());
-        updateApiEntity.setServices(apiEntity.getServices());
-        updateApiEntity.setTags(apiEntity.getTags());
-        updateApiEntity.setVersion(apiEntity.getVersion());
-        updateApiEntity.setVisibility(apiEntity.getVisibility());
-        if (apiEntity.getGroup() != null && (
-                apiEntity.getGroup().getId() != null && !apiEntity.getGroup().getId().isEmpty())) {
-            updateApiEntity.setGroup(apiEntity.getGroup().getId());
-        }
-
-        return updateApiEntity;
     }
 
     private Set<ApiEntity> convert(Set<Api> apis, boolean readDefinition) throws TechnicalException {
