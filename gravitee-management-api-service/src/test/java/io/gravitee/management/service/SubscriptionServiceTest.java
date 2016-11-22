@@ -328,7 +328,14 @@ public class SubscriptionServiceTest {
             }
         });
 
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID))
+                .thenAnswer(new Answer<Optional<Subscription>>() {
+                    @Override
+                    public Optional<Subscription> answer(InvocationOnMock invocation) throws Throwable {
+                        subscription.setCreatedAt(new Date());
+                        return Optional.of(subscription);
+                    }
+                });
 
         // Run
         final SubscriptionEntity subscriptionEntity = subscriptionService.create(PLAN_ID, APPLICATION_ID);
