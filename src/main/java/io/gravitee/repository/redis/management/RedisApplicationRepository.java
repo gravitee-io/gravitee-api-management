@@ -62,6 +62,14 @@ public class RedisApplicationRepository implements ApplicationRepository {
     }
 
     @Override
+    public Set<Application> findByName(String partialName) throws TechnicalException {
+        return applicationRedisRepository.findByName(partialName)
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public Optional<Application> findById(String applicationId) throws TechnicalException {
         RedisApplication redisApplication = this.applicationRedisRepository.find(applicationId);
         return Optional.ofNullable(convert(redisApplication));

@@ -35,6 +35,8 @@ public interface ApplicationRedisRepository {
 
     Set<RedisApplication> findByGroups(List<String> groupIds);
 
+    Set<RedisApplication> findByName(String partialName);
+
     RedisApplication saveOrUpdate(RedisApplication application);
 
     void delete(String application);

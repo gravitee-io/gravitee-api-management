@@ -17,6 +17,11 @@ package io.gravitee.repository.redis.management.internal.impl;
 
 import io.gravitee.repository.redis.management.internal.ApplicationRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApplication;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -61,10 +66,18 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
 
     @Override
     public RedisApplication saveOrUpdate(RedisApplication application) {
+        //remove old "searchByName" set if necessary
+        RedisApplication oldApplication = find(application.getId());
+        if (oldApplication != null && !oldApplication.getName().equals(application.getName())) {
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":search-by:name:" + oldApplication.getName().toUpperCase(), oldApplication.getId());
+        }
+
         redisTemplate.opsForHash().put(REDIS_KEY, application.getId(), application);
         if(application.getGroup() != null) {
             redisTemplate.opsForSet().add(REDIS_KEY + ":group:" + application.getGroup(), application.getId());
         }
+        redisTemplate.opsForSet().add(REDIS_KEY + ":search-by:name:" + application.getName().toUpperCase(), application.getId());
+
         return application;
     }
 
@@ -81,12 +94,40 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
     }
 
     @Override
+    public Set<RedisApplication> findByName(final String partialName) {
+
+        List<String> matchedNames = redisTemplate.execute(new RedisCallback<List<String>>() {
+            @Override
+            public List<String> doInRedis(RedisConnection redisConnection) throws DataAccessException {
+                ScanOptions options = ScanOptions.scanOptions().match(REDIS_KEY + ":search-by:name:*" + partialName.toUpperCase() + "*").build();
+                Cursor<byte[]> cursor = redisConnection.scan(options);
+                List<String> result = new ArrayList<>();
+                if (cursor != null) {
+                    while (cursor.hasNext()) {
+                        result.add(new String(cursor.next()));
+                    }
+                }
+                return result;
+            }
+        });
+
+        if (matchedNames == null || matchedNames.isEmpty() ) {
+            return Collections.emptySet();
+        }
+        Set<Object> applicationIds = new HashSet<>();
+        matchedNames.forEach(matchedName -> applicationIds.addAll(redisTemplate.opsForSet().members(matchedName)));
+
+        return find(applicationIds.stream().map(Object::toString).collect(Collectors.toList()));
+    }
+
+    @Override
     public void delete(String applicationId) {
         RedisApplication redisApplication = find(applicationId);
         redisTemplate.opsForHash().delete(REDIS_KEY, applicationId);
         if (redisApplication.getGroup() != null) {
             redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + redisApplication.getGroup(), applicationId);
         }
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":search-by:name:" + redisApplication.getName().toUpperCase(), applicationId);
     }
 
 }

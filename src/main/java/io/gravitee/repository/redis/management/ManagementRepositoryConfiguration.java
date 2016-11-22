@@ -28,6 +28,7 @@ import org.springframework.transaction.support.AbstractPlatformTransactionManage
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
@@ -38,6 +39,8 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     public RedisTemplate redisTemplate(org.springframework.data.redis.connection.RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate redisTemplate = new RedisTemplate();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
         redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Object.class));
         redisTemplate.setDefaultSerializer(new Jackson2JsonRedisSerializer<>(Object.class));
         return redisTemplate;
