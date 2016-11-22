@@ -210,7 +210,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             // Send a notification to the primary owner of the API
             if (apiOwner != null && apiOwner.getEmail() != null && !apiOwner.getEmail().isEmpty()) {
-                emailService.sendEmailNotification(new EmailNotificationBuilder()
+                emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                         .to(apiOwner.getEmail())
                         .subject("New subscription for " + api.getName() + " with plan " + planEntity.getName())
                         .template(EmailNotificationBuilder.EmailTemplate.NEW_SUBSCRIPTION)
@@ -323,7 +323,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
                 if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
-                    emailService.sendEmailNotification(new EmailNotificationBuilder()
+                    emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                             .to(owner.getEmail())
                             .subject("Your subscription to " + api.getName() + " with plan " + plan.getName() +
                                     " has been approved")
@@ -335,7 +335,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                                     "application", application))
                             .build());
                 } else {
-                    emailService.sendEmailNotification(new EmailNotificationBuilder()
+                    emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                             .to(owner.getEmail())
                             .subject("Your subscription to " + api.getName() + " with plan " + plan.getName() +
                                     " has been rejected")
