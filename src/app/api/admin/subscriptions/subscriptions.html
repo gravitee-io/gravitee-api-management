@@ -27,9 +27,12 @@
   </span>
 
   <div layout-padding ui-tree data-empty-placeholder-enabled="false"
-       ng-repeat="(application, subscriptions) in subscriptionsCtrl.subscriptionsByApplication">
+       ng-repeat="subscriptions in subscriptionsCtrl.subscriptionsByApplication">
     <div ui-tree-nodes ng-model="data">
-      <h5>[<b> {{application}} </b>]</h5>
+      <h4><b>{{subscriptions[0].application.name}} </b>
+        <span style="font-size: small;" ng-if="subscriptions[0].application.type">( {{subscriptions[0].application.type}} )</span>
+        <span style="color:rgba(0, 0, 0, 0.54);font-size: small;">by {{subscriptions[0].application.owner.username}}</span>
+      </h4>
       <table md-table>
         <thead md-head>
         <tr md-row>
@@ -120,5 +123,8 @@
                       icon="vpn_key"
                       model="Subscription"
                       message="Your API Subscriptions will appear here"
-                      sub-message="Tell users your API is awesome"></gravitee-empty-state>
+                      create-mode="true"></gravitee-empty-state>
 
+<md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="subscriptionsCtrl.showAddSubscriptionModal()">
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

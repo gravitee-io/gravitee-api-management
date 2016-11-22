@@ -1,0 +1,79 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-dialog aria-label="Create a subscription" style="width: 30%">
+  <md-toolbar>
+    <div class="md-toolbar-tools">
+      <h2>Create a subscription</h2>
+      <span flex></span>
+      <md-button type="button" class="md-icon-button" ng-click="dialogSubscriptionCreateController.hide()">
+        X
+      </md-button>
+    </div>
+  </md-toolbar>
+
+  <md-dialog-content layout-padding >
+    <div>
+      <h5>Choose an application</h5>
+      <form name="CreateSubscriptionForm" ng-submit="$event.preventDefault()" novalidate>
+        <md-autocomplete
+                md-selected-item="dialogSubscriptionCreateController.selectedApp"
+                md-selected-item-change="dialogSubscriptionCreateController.selectedItemChange()"
+                md-search-text="searchText"
+                md-items="app in dialogSubscriptionCreateController.searchApplication(searchText)"
+                md-item-text="app.name"
+                md-min-length="3"
+                placeholder="Search application ..."
+                md-autofocus="true"
+                required>
+          <md-item-template id="searchedApp">
+            <span md-highlight-text="searchText" md-highlight-flags="i">
+              {{app.name}} ({{app.type}}) by {{app.owner.username}}
+            </span>
+          </md-item-template>
+          <md-not-found>
+            No application matching "{{searchText}}" were found.
+          </md-not-found>
+        </md-autocomplete>
+      </form>
+    </div>
+    <h5>Select a plan</h5>
+    <div layout="column" layout-align="start start" ng-cloak >
+      <md-radio-group ng-model="dialogSubscriptionCreateController.selectedPlan">
+        <md-radio-button ng-repeat="plan in dialogSubscriptionCreateController.plans | orderBy: 'order'"
+                         value="{{plan.id}}"
+                         ng-disabled="dialogSubscriptionCreateController.planAlreadyHaveSubscriptions(plan.id)">
+          {{plan.name}}
+          <md-tooltip md-direction="right"> {{plan.description}} </md-tooltip>
+          <div ng-if="dialogSubscriptionCreateController.planAlreadyHaveSubscriptions(plan.id)"
+                style="color:rgba(0, 0, 0, 0.54);font-size: smaller;">
+            There is already a <i>pending</i> or <i>accepted</i> subscription for this plan.
+          </div>
+        </md-radio-button>
+      </md-radio-group>
+    </div>
+  </md-dialog-content>
+
+  <md-dialog-actions layout="row">
+    <md-button type="button" ng-click="dialogSubscriptionCreateController.hide()" class="md-primary">Cancel</md-button>
+    <md-button type="button" class="md-primary"
+               ng-click="dialogSubscriptionCreateController.save()"
+               ng-disabled="!dialogSubscriptionCreateController.selectedApp || !dialogSubscriptionCreateController.selectedPlan">
+      Create
+    </md-button>
+  </md-dialog-actions>
+</md-dialog>

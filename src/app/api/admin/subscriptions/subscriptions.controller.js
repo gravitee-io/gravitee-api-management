@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 class SubscriptionsController {
-  constructor($window, $mdDialog, $scope, $state, ApiService, NotificationService, resolvedApi, resolvedSubscriptions) {
+  constructor($window, $mdDialog, $scope, $state, ApiService, NotificationService, resolvedApi, resolvedSubscriptions, ApplicationService) {
     'ngInject';
     this.$window = $window;
     this.$mdDialog = $mdDialog;
     this.$state = $state;
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
+    this.ApplicationService = ApplicationService;
 
     $scope.data = [];
 
@@ -44,9 +45,16 @@ class SubscriptionsController {
 
   applyFilters() {
     var that = this;
-    this.subscriptionsByApplication = _.groupBy(_.filter(this.subscriptions, function (subscription) {
-      return _.includes(that.selectedStatus, subscription.status);
-    }), 'application.name');
+    this.subscriptionsByApplication =
+      _.orderBy(
+        _.groupBy(
+          _.filter(this.subscriptions, (subscription) => {
+            return _.includes(that.selectedStatus, subscription.status);
+          }), 'application.id'
+        ), (subscriptions) => {
+          return subscriptions[0].application.name;
+        }
+      );
   }
 
   hasKeysDefined() {
@@ -167,6 +175,34 @@ class SubscriptionsController {
           _this.listApiKeys(subscription);
         });
       });
+  }
+
+  showAddSubscriptionModal() {
+    var _this = this;
+    this.ApiService.getPublishedApiPlans(this.api.id).then( (response) => {
+      var plans = response.data;
+
+      _this.$mdDialog.show({
+        controller: 'DialogSubscriptionCreateController',
+        controllerAs: 'dialogSubscriptionCreateController',
+        templateUrl: 'app/api/admin/subscriptions/subscription.create.dialog.html',
+        plans: plans,
+        clickOutsideToClose: false
+      }).then( (data) => {
+        if(data && data.applicationId && data.planId) {
+          _this.ApplicationService.subscribe(data.applicationId, data.planId).then( (response) => {
+            var newSub = response.data;
+            _this.NotificationService.show('A new subscription has been created.');
+            _this.subscriptions.push(newSub);
+            if (newSub.status === "pending") {
+              _this.doProcessSubscription(newSub, {accepted: true});
+            } else {
+              _this.refresh();
+            }
+          });
+        }
+      });
+    });
   }
 }
 

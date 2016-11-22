@@ -104,6 +104,7 @@ import SubscriptionService from './services/subscription.service';
 import ApiPlansController from './api/admin/plans/apiPlans.controller';
 import DialogSubscriptionRejectController from './api/admin/subscriptions/subscription.reject.dialog.controller';
 import DialogSubscriptionAcceptController from './api/admin/subscriptions/subscription.accept.dialog.controller';
+import DialogSubscriptionCreateController from './api/admin/subscriptions/subscription.create.dialog.controller';
 import EmptyStateDirective from './components/emptystate/emptystate.directive';
 import DialogClosePlanController from './api/admin/plans/closePlanDialog.controller';
 import DialogPublishPlanController from './api/admin/plans/publishPlanDialog.controller';
@@ -192,6 +193,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('ApiPlansController', ApiPlansController)
   .controller('DialogSubscriptionRejectController', DialogSubscriptionRejectController)
   .controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController)
+  .controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController)
   .controller('DialogClosePlanController', DialogClosePlanController)
   .controller('DialogPublishPlanController', DialogPublishPlanController)
   .service('ApplicationService', ApplicationService)

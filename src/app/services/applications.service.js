@@ -69,14 +69,22 @@ class ApplicationService {
     return this.$http.delete(this.applicationsURL + application.id);
   }
 
+  search(query) {
+    return this.$http.get(this.applicationsURL + "?query=" + query);
+  }
+
   // Plans
 
   subscribe(applicationId, planId) {
     return this.$http.post(this.subscriptionsURL(applicationId) + '?plan=' + planId);
   }
 
-  listSubscriptions(applicationId) {
-    return this.$http.get(this.subscriptionsURL(applicationId));
+  listSubscriptions(applicationId, planId) {
+    var url = this.subscriptionsURL(applicationId);
+    if (planId) {
+      url = url + '?plan=' + planId;
+    }
+    return this.$http.get(url);
   }
 
   getSubscription(applicationId, subscriptionId) {
