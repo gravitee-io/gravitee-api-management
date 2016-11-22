@@ -48,4 +48,12 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @return applications
      */
     Set<Application> findByGroups(List<String> groupIds) throws TechnicalException;
+
+    /**
+     * find applications by name. Support partial name (works like `contains`)
+     * @param partialName
+     * @return applications
+     * @throws TechnicalException
+     */
+    Set<Application> findByName(String partialName) throws TechnicalException;
 }
