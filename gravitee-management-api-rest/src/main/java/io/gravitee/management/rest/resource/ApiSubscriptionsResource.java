@@ -155,15 +155,18 @@ public class ApiSubscriptionsResource extends AbstractResource {
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
 
-        ApplicationEntity applicationEntity = applicationService.findById(subscriptionEntity.getApplication());
-        Subscription.Application application = new Subscription.Application(applicationEntity.getId(), applicationEntity.getName());
-
-        Subscription.Owner owner = new Subscription.Owner(applicationEntity.getPrimaryOwner().getUsername());
-        owner.setFirstname(applicationEntity.getPrimaryOwner().getFirstname());
-        owner.setLastname(applicationEntity.getPrimaryOwner().getLastname());
-        application.setOwner(owner);
-        
-        subscription.setApplication(application);
+        ApplicationEntity application = applicationService.findById(subscriptionEntity.getApplication());
+        subscription.setApplication(
+                new Subscription.Application(
+                        application.getId(),
+                        application.getName(),
+                        application.getType(),
+                        new Subscription.Owner(
+                                application.getPrimaryOwner().getUsername(),
+                                application.getPrimaryOwner().getFirstname(),
+                                application.getPrimaryOwner().getLastname()
+                        )
+                ));
 
         return subscription;
     }

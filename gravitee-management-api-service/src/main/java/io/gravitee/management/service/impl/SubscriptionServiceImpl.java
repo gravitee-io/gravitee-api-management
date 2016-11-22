@@ -229,10 +229,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 process.setStartingAt(new Date());
 
                 // Do process
-                process(process, SUBSCRIPTION_SYSTEM_VALIDATOR);
+                return process(process, SUBSCRIPTION_SYSTEM_VALIDATOR);
+            } else {
+                return convert(subscription);
             }
-
-            return convert(subscription);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to subscribe to the plan {}", plan, ex);
             throw new TechnicalManagementException(String.format(

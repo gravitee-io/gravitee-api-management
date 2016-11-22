@@ -36,6 +36,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -78,7 +79,7 @@ public class ApplicationServiceTest {
     private Application application;
 
     @Test
-    public void shouldFindByName() throws TechnicalException {
+    public void shouldFindById() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         Membership po = new Membership(USER_NAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
         po.setType(MembershipType.PRIMARY_OWNER.name());
@@ -92,13 +93,13 @@ public class ApplicationServiceTest {
     }
 
     @Test(expected = ApplicationNotFoundException.class)
-    public void shouldNotFindByNameBecauseNotExists() throws TechnicalException {
+    public void shouldNotFindByIdBecauseNotExists() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
         applicationService.findById(APPLICATION_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
-    public void shouldNotFindByNameBecauseTechnicalException() throws TechnicalException {
+    public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenThrow(TechnicalException.class);
 
         applicationService.findById(APPLICATION_ID);
@@ -179,6 +180,30 @@ public class ApplicationServiceTest {
         when(existingApplication.getDescription()).thenReturn("My description");
 
         applicationService.update(APPLICATION_ID, existingApplication);
+    }
+
+    @Test
+    public void shouldNotFindByNameWhenNull() throws Exception {
+        Set<ApplicationEntity> set = applicationService.findByName(null);
+        assertNotNull(set);
+        assertEquals("result is empty", 0, set.size());
+        verify(applicationRepository, never()).findByName(any());
+    }
+
+    @Test
+    public void shouldNotFindByNameWhenEmpty() throws Exception {
+        Set<ApplicationEntity> set = applicationService.findByName(" ");
+        assertNotNull(set);
+        assertEquals("result is empty", 0, set.size());
+        verify(applicationRepository, never()).findByName(any());
+    }
+
+    @Test
+    public void shouldNotFindByName() throws Exception {
+        Set<ApplicationEntity> set = applicationService.findByName("a");
+        assertNotNull(set);
+        assertEquals("result is empty", 0, set.size());
+        verify(applicationRepository, times(1)).findByName("a");
     }
 
     /*

@@ -17,15 +17,13 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApiKeyEntity;
+import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.model.permissions.ApplicationPermission;
 import io.gravitee.management.rest.model.Subscription;
 import io.gravitee.management.rest.security.ApplicationPermissionsRequired;
-import io.gravitee.management.service.ApiKeyService;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.PlanService;
-import io.gravitee.management.service.SubscriptionService;
+import io.gravitee.management.service.*;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -55,6 +53,9 @@ public class ApplicationSubscriptionsResource {
     @Inject
     private ApiService apiService;
 
+    @Inject
+    private ApplicationService applicationService;
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_SUBSCRIPTIONS)
@@ -83,8 +84,14 @@ public class ApplicationSubscriptionsResource {
             @ApiResponse(code = 200, message = "List of subscriptions", response = Subscription.class, responseContainer = "Set"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Set<Subscription> listApplicationSubscriptions(
-            @PathParam("application") String application) {
-        return subscriptionService.findByApplicationAndPlan(application, null)
+            @PathParam("application") String application,
+            @QueryParam("plan") String optionalPlanId) {
+        String planId = null;
+        if (optionalPlanId != null) {
+            planService.findById(optionalPlanId);
+            planId = optionalPlanId;
+        }
+        return subscriptionService.findByApplicationAndPlan(application, planId)
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
@@ -184,6 +191,19 @@ public class ApplicationSubscriptionsResource {
 
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
+
+        ApplicationEntity application = applicationService.findById(subscriptionEntity.getApplication());
+        subscription.setApplication(
+                new Subscription.Application(
+                        application.getId(),
+                        application.getName(),
+                        application.getType(),
+                        new Subscription.Owner(
+                                application.getPrimaryOwner().getUsername(),
+                                application.getPrimaryOwner().getFirstname(),
+                                application.getPrimaryOwner().getLastname()
+                        )
+                ));
 
         subscription.getPlan().setApis(plan.getApis().stream().map(api -> {
             io.gravitee.management.model.ApiEntity apiEntity = apiService.findById(api);

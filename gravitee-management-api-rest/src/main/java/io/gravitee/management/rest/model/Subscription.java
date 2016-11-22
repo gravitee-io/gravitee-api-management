@@ -205,15 +205,22 @@ public class Subscription {
     public static class Application {
         private final String id;
         private final String name;
+        private final String type;
         private Owner owner;
 
-        public Application(final String id, final String name) {
+        public Application(final String id, final String name, final String type, final Owner owner) {
             this.id = id;
             this.name = name;
+            this.type = type;
+            this.owner = owner;
         }
 
         public String getId() {
             return id;
+        }
+
+        public String getType() {
+            return type;
         }
 
         public String getName() {
@@ -224,9 +231,6 @@ public class Subscription {
             return owner;
         }
 
-        public void setOwner(Owner owner) {
-            this.owner = owner;
-        }
     }
 
     public static class Api {
@@ -261,8 +265,10 @@ public class Subscription {
         private String firstname;
         private String lastname;
 
-        public Owner(final String username) {
+        public Owner(final String username, final String firstName, final String lastname) {
             this.username = username;
+            this.firstname = firstName;
+            this.lastname = lastname;
         }
 
         public String getUsername() {
@@ -275,14 +281,6 @@ public class Subscription {
 
         public String getLastname() {
             return lastname;
-        }
-
-        public void setFirstname(String firstname) {
-            this.firstname = firstname;
-        }
-
-        public void setLastname(String lastname) {
-            this.lastname = lastname;
         }
     }
 }

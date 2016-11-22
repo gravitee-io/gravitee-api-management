@@ -29,6 +29,8 @@ public interface ApplicationService {
 
     Set<ApplicationEntity> findByUser(String username);
 
+    Set<ApplicationEntity> findByName(String name);
+
     Set<ApplicationEntity> findByGroup(String groupId);
 
     Set<ApplicationEntity> findAll();

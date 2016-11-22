@@ -18,8 +18,11 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
+import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.enhancer.ApplicationEnhancer;
+import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApplicationService;
+import io.gravitee.repository.management.model.Application;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -58,10 +61,14 @@ public class ApplicationsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "User's applications", response = ApplicationEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<ApplicationEntity> listApplications(@QueryParam("group") final String group) {
+    public List<ApplicationEntity> listApplications(
+            @QueryParam("group") final String group,
+            @QueryParam("query") final String query) {
         Set<ApplicationEntity> applications;
 
-        if (isAdmin()) {
+        if (query != null && !query.trim().isEmpty()) {
+            applications = applicationService.findByName(query);
+        } else if (isAdmin()) {
             applications = group != null
                     ? applicationService.findByGroup(group)
                     : applicationService.findAll();
@@ -80,8 +87,6 @@ public class ApplicationsResource extends AbstractResource {
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .collect(Collectors.toList());
     }
-
-
 
     /**
      * Create a new application for the authenticated user.

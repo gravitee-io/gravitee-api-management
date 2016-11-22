@@ -86,7 +86,17 @@ public class SubscriptionsResource {
         subscription.setStatus(subscriptionEntity.getStatus());
 
         ApplicationEntity application = applicationService.findById(subscriptionEntity.getApplication());
-        subscription.setApplication(new Subscription.Application(application.getId(), application.getName()));
+        subscription.setApplication(
+                new Subscription.Application(
+                        application.getId(),
+                        application.getName(),
+                        application.getType(),
+                        new Subscription.Owner(
+                                application.getPrimaryOwner().getUsername(),
+                                application.getPrimaryOwner().getFirstname(),
+                                application.getPrimaryOwner().getLastname()
+                        )
+                ));
 
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));

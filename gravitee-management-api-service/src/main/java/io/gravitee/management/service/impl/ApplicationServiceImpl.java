@@ -121,6 +121,20 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     }
 
     @Override
+    public Set<ApplicationEntity> findByName(String name) {
+        LOGGER.debug("Find applications by name {}", name);
+        try {
+            if (name == null || name.trim().isEmpty()) {
+                return emptySet();
+            }
+            return convert(applicationRepository.findByName(name.trim()));
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find applications for name {}", name, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find applications for name " + name, ex);
+        }
+    }
+
+    @Override
     public Set<ApplicationEntity> findByGroup(String groupId) {
         LOGGER.debug("Find applications by group {}", groupId);
         try {
