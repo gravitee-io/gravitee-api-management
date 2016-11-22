@@ -37,7 +37,7 @@
 		<mongo.version>3.0.4</mongo.version>
 		<spring.data.mongodb.version>1.7.2.RELEASE</spring.data.mongodb.version>
 		<dozer.version>5.4.0</dozer.version>
-		<gravitee-repository-test.version>1.0.0</gravitee-repository-test.version>
+		<gravitee-repository-test.version>1.1.0-SNAPSHOT</gravitee-repository-test.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
 	</properties>
 

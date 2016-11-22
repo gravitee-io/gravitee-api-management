@@ -1,6 +1,7 @@
 db.apis.createIndex( { "visibility" : 1 } );
 db.apis.createIndex( { "group" : 1 } );
 db.applications.createIndex( { "group" : 1 } );
+db.applications.createIndex( { "name" : 1 } );
 db.events.createIndex( { "type" : 1 } );
 db.events.createIndex( { "updatedAt" : 1 } );
 db.events.createIndex( { "properties.api_id" : 1 } );

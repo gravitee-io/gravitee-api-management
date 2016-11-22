@@ -92,6 +92,11 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
+	public Set<Application> findByName(String partialName) throws TechnicalException {
+		return mapApplications(internalApplicationRepo.findByName(partialName));
+	}
+
+	@Override
 	public void delete(String applicationId) throws TechnicalException {
 		internalApplicationRepo.delete(applicationId);
 	}

@@ -35,6 +35,9 @@ public interface ApplicationMongoRepository extends MongoRepository<ApplicationM
 
     @Query("{ group: {$in: ?0} }")
     Set<ApplicationMongo> findByGroups(List<String> ids);
+
+    @Query("{ name: { $regex: ?0, $options: 'i'}}")
+    Set<ApplicationMongo> findByName(String name);
 }
 
 
