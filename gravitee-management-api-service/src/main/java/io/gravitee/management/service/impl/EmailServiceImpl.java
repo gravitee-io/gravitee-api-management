@@ -60,29 +60,34 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     @Value("${templates.path:${gravitee.home}/templates}")
     private String templatesPath;
 
+    @Value("${email.enabled:false}")
+    private boolean enabled;
+
     public void sendEmailNotification(final EmailNotification emailNotification) {
-        try {
-            final Template template = freemarkerConfiguration.getTemplate(emailNotification.getContent());
-            final String htmlText =
-                    FreeMarkerTemplateUtils.processTemplateIntoString(template, emailNotification.getParams());
+        if (enabled) {
+            try {
+                final Template template = freemarkerConfiguration.getTemplate(emailNotification.getContent());
+                final String htmlText =
+                        FreeMarkerTemplateUtils.processTemplateIntoString(template, emailNotification.getParams());
 
-            final String from = emailNotification.getFrom();
-            if (from != null && !from.isEmpty()) {
-                mailMessage.setFrom(from);
+                final String from = emailNotification.getFrom();
+                if (from != null && !from.isEmpty()) {
+                    mailMessage.setFrom(from);
+                }
+
+                mailMessage.setTo(emailNotification.getTo());
+                mailMessage.setSubject("[Gravitee.io] " + emailNotification.getSubject());
+
+                final String html = addResourcesInMessage(mailMessage, htmlText);
+
+                LOGGER.debug("Sending an email to: {}\nSubject: {}\nMessage: {}",
+                        emailNotification.getTo(), emailNotification.getSubject(), html);
+
+                mailSender.send(mailMessage.getMimeMessage());
+            } catch (final Exception ex) {
+                LOGGER.error("Error while sending email notification", ex);
+                throw new TechnicalManagementException("Error while sending email notification", ex);
             }
-
-            mailMessage.setTo(emailNotification.getTo());
-            mailMessage.setSubject("[Gravitee.io] " + emailNotification.getSubject());
-
-            final String html = addResourcesInMessage(mailMessage, htmlText);
-
-            LOGGER.debug("Sending an email to: {}\nSubject: {}\nMessage: {}",
-                    emailNotification.getTo(), emailNotification.getSubject(), html);
-
-            mailSender.send(mailMessage.getMimeMessage());
-        } catch (final Exception ex) {
-            LOGGER.error("Error while sending email notification", ex);
-            throw new TechnicalManagementException("Error while sending email notification", ex);
         }
     }
 

@@ -161,6 +161,7 @@ security:
 
 # SMTP configuration used to send mails
 email:
+  enabled: false
   host: smtp.my.domain
 #  port: 465
   from: noreply@my.domain
