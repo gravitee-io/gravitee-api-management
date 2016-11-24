@@ -20,7 +20,8 @@ class DashboardModelDirective {
       templateUrl: 'app/platform/dashboard/dashboardModel.html',
       scope: {
         id: '@id',
-        model: '@model'
+        model: '@model',
+        metadata: '@metadata'
       },
       controller: DashboardModelController,
       controllerAs: 'dashboardModelCtrl'
@@ -31,55 +32,14 @@ class DashboardModelDirective {
 }
 
 class DashboardModelController {
-  constructor(ApplicationService, ApiService, $scope) {
+  constructor($scope) {
     'ngInject';
-    this.ApplicationService = ApplicationService;
-    this.ApiService = ApiService;
     this.$scope = $scope;
-    this.$scope.entity = {};
-
-    if (this.$scope.model === 'api') {
-      this.getAPI(this.$scope.id, this.$scope.model);
-    } else if (this.$scope.model === 'application') {
-      this.getApplication(this.$scope.id, this.$scope.model);
+    if (this.$scope.metadata) {
+      this.$scope.entity = JSON.parse(this.$scope.metadata);
+      this.$scope.entity.id = this.$scope.id;
     }
   }
-
-  getApplication(id, model) {
-    var _this = this;
-    if (this.$scope.$parent.dashboardCtrl.cache[id + model]) {
-      this.$scope.entity = this.$scope.$parent.dashboardCtrl.cache[id + model];
-    } else {
-      this.ApplicationService.get(id).then(response => {
-        _this.$scope.entity = response.data;
-        _this.$scope.entity.exists = true;
-        _this.$scope.$parent.dashboardCtrl.cache[id + model] = _this.$scope.entity;
-      }).catch(function() {
-        _this.$scope.entity = { 'name' : id };
-        _this.$scope.entity.exists = false;
-        _this.$scope.$parent.dashboardCtrl.cache[id + model] = _this.$scope.entity;
-      });
-    }
-  }
-
-  getAPI(id, model) {
-    var _this = this;
-    if (this.$scope.$parent.dashboardCtrl.cache[id + model]) {
-      this.$scope.entity = this.$scope.$parent.dashboardCtrl.cache[id + model];
-    } else {
-      this.ApiService.get(id).then(response => {
-        _this.$scope.entity = response.data;
-        _this.$scope.entity.exists = true;
-        _this.$scope.$parent.dashboardCtrl.cache[id + model] = _this.$scope.entity;
-      }).catch(function() {
-        _this.$scope.entity = { 'name' : id };
-        _this.$scope.entity.exists = false;
-        _this.$scope.$parent.dashboardCtrl.cache[id + model] = _this.$scope.entity;
-      });
-    }
-  }
-
-
 }
 
 export default DashboardModelDirective;

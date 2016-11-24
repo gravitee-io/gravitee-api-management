@@ -32,7 +32,6 @@ class ApisController {
     this.createMode = !$rootScope.devMode && Object.keys($rootScope.graviteeUser).length > 0;
 
     var that = this;
-
     ViewService.list().then(function (response) {
       that.views = response.data;
       that.views.unshift({id: 'all', name: 'All APIs'});

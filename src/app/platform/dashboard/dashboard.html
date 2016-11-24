@@ -110,9 +110,13 @@
               </thead>
               <tbody md-body>
               <tr md-row ng-repeat="event in dashboardCtrl.events.content" style="height: 25px;">
-                <td md-cell>{{event.updated_at | date : 'medium' }}</td>
+                <td md-cell>{{event.updated_at | humanDatetimeFilter }}</td>
                 <td md-cell>{{dashboardCtrl.getEventLabel(event.type)}}</td>
-                <td md-cell><gravitee-dashboard-model id="{{event.properties.api_id}}" model="api" /></td>
+                <td md-cell>
+                  <a ui-sref="apis.admin.analytics({ apiId: event.properties.api_id } )">
+                    {{event.properties.api_name}} <small>({{event.properties.api_version}})</small>
+                  </a>
+                </td>
               </tr>
               </tbody>
             </table>

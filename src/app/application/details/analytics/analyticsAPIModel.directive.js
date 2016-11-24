@@ -19,7 +19,8 @@ class AnalyticsAPIModelDirective {
       restrict: 'E',
       templateUrl: 'app/application/details/analytics/analyticsAPIModel.html',
       scope: {
-        id: '@id'
+        id: '@id',
+        metadata: '@metadata'
       },
       controller: AnalyticsAPIModelController,
       controllerAs: 'analyticsAPIModelCtrl'
@@ -33,17 +34,11 @@ class AnalyticsAPIModelController {
   constructor($scope) {
     'ngInject';
     this.$scope = $scope;
-    this.$scope.entity = {};
-    this.getAPI(this.$scope.id);
-  }
-
-  getAPI(id) {
-    if (this.$scope.$parent.analyticsCtrl.cache[id]) {
-      this.$scope.entity = this.$scope.$parent.analyticsCtrl.cache[id];
+    if (this.$scope.metadata) {
+      this.$scope.entity = JSON.parse(this.$scope.metadata);
+      this.$scope.entity.id = this.$scope.id;
     }
   }
-
-
 }
 
 export default AnalyticsAPIModelDirective;

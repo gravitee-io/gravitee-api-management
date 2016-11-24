@@ -33,7 +33,7 @@
         </thead>
         <tbody md-body>
         <tr md-row ng-repeat="result in top.results | limitTo: 5: (paging[top.key] - 1) * 5" style="height: 25px;">
-          <td md-cell><gravitee-dashboard-model id="{{result.topKey}}" model="{{top.field}}" /></td>
+          <td md-cell><gravitee-dashboard-model id="{{result.topKey}}" model="{{top.field}}" metadata="{{result.metadata}}"/></td>
           <td md-cell>{{result.topValue}}</td>
         </tr>
         </tbody>

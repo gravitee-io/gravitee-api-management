@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 class ApiAnalyticsController {
-  constructor(ApiService, ApplicationService, resolvedApi, $q, $scope, $state) {
+  constructor($log, ApiService, resolvedApi, $q, $scope, $state) {
     'ngInject';
+    this.$log = $log;
     this.ApiService = ApiService;
-    this.ApplicationService = ApplicationService;
     this.$scope = $scope;
     this.$scope.Object = Object;
     this.$state = $state;
     this.api = resolvedApi.data;
     this.$q = $q;
-    this.cache = {};
 
     this.$scope.filteredApplications = [];
 
@@ -170,36 +169,9 @@ class ApiAnalyticsController {
     });
   }
 
-  getApplication(id) {
-    var deferred = this.$q.defer();
-    var _this = this;
-    if(this.cache[id]) {
-      deferred.resolve(this.cache[id]);
-    } else {
-      this.ApplicationService.get(id).then(response => {
-        _this.cache[id] = response.data;
-        _this.cache[id].exists = true;
-        deferred.resolve(this.cache[id]);
-      }).catch(function() {
-        _this.cache[id] = { 'name' : id, 'exists' : false };
-        deferred.resolve(_this.cache[id]);
-      });
-    }
-    return deferred.promise;
-  }
-
   fetchApplicationAnalytics(report, response) {
-    // get APIs data
-    var promises = [];
-    for (var i = 0; i < response[0].data.values[0].buckets.length; i++) {
-      promises.push(this.getApplication(response[0].data.values[0].buckets[i].name));
-    }
-    var _this = this;
-    this.$q.all(promises).then(function() {
-      _this.pushHitsByData(report, response);
-      _this.pushTopHitsData();
-    }, function() {
-    });
+    this.pushHitsByData(report, response);
+    this.pushTopHitsData();
   }
 
   pushHitsByData(report, response) {
@@ -208,7 +180,7 @@ class ApiAnalyticsController {
       var bgColor = report.id === 'response-status' ? this.getBgColorByStatus(response[0].data.values[0].buckets[i].name) : this.bgColorByBucket[i % this.bgColorByBucket.length];
       var label = report.requests[0].label ? report.requests[0].label : (report.label || report.labelPrefix + ' ' + response[0].data.values[0].buckets[i].name);
       if (report.id === 'applications') {
-        var application = this.cache[response[0].data.values[0].buckets[i].name];
+        var application = response[0].data.metadata[response[0].data.values[0].buckets[i].name];
         label = application.name;
       }
 
@@ -242,7 +214,11 @@ class ApiAnalyticsController {
           _this.dataFetched(_this.topsFetched, top.key);
           if (Object.keys(response.data.values).length) {
           top.results = _.map(response.data.values, function (value, key) {
-            return {topApp: key, topHits: value};
+            return {
+              topApp: key,
+              topHits: value,
+              metadata: (response.data) ? response.data.metadata[key] : undefined
+            };
           });
           _this.$scope.paging[top.key] = 1;
           } else {

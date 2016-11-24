@@ -42,7 +42,7 @@
             <tbody md-body>
             <tr class="gravitee-link" md-row ng-repeat="result in top.results | limitTo: 5: (paging[top.key] - 1) * 5"
                 md-auto-select md-select="result" md-select-id="topApp">
-              <td md-cell><gravitee-analytics-application-model id="{{result.topApp}}" /></td>
+              <td md-cell><gravitee-analytics-application-model id="{{result.topApp}}" metadata="{{result.metadata}}" /></td>
               <td md-cell>{{result.topHits}}</td>
             </tr>
             </tbody>

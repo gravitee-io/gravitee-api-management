@@ -15,8 +15,9 @@
  */
 class DashboardController {
 
-  constructor(EventsService, AnalyticsService, ApiService, ApplicationService, $scope, $state, $timeout) {
+  constructor($log, EventsService, AnalyticsService, ApiService, ApplicationService, $scope, $state, $timeout) {
     'ngInject';
+    this.$log = $log;
     this.EventsService = EventsService;
     this.AnalyticsService = AnalyticsService;
     this.ApiService = ApiService;
@@ -32,7 +33,6 @@ class DashboardController {
     this.beginDate = moment().subtract(1, 'weeks').toDate();
     this.endDate = moment().toDate();
     this.now = moment().toDate();
-    this.cache = {};
 
     // init events
     this.initEventLabels();
@@ -193,7 +193,12 @@ class DashboardController {
         if (response.data && response.data.values) {
           if (Object.keys(response.data.values).length) {
             top.results = _.map(response.data.values, function (value, key) {
-              return {topKey: key, topValue: value, model: top.field};
+              return {
+                topKey: key,
+                topValue: value,
+                model: top.field,
+                metadata: (response.data) ? response.data.metadata[key] : undefined
+              };
             });
             _this.$scope.paging[top.key] = 1;
           } else {

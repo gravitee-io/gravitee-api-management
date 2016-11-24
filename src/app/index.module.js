@@ -239,6 +239,15 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
       }
     };
   })
+  .filter('humanDatetimeFilter', function () {
+    return function(input) {
+      if (!moment().subtract(1, 'weeks').isAfter(input)) {
+        return moment(input).fromNow();
+      } else {
+        return moment(input).format('D MMM. YYYY HH:mm:ss');
+      }
+    };
+  })
   .filter('apiKeyFilter', function () {
     return function (keys) {
       return keys;

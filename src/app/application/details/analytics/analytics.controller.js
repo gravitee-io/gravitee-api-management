@@ -167,36 +167,9 @@ class ApplicationAnalyticsController {
     });
   }
 
-  getAPI(id) {
-    var deferred = this.$q.defer();
-    var _this = this;
-    if(this.cache[id]) {
-      deferred.resolve(this.cache[id]);
-    } else {
-      this.ApiService.get(id).then(response => {
-        _this.cache[id] = response.data;
-        _this.cache[id].exists = true;
-        deferred.resolve(this.cache[id]);
-      }).catch(function() {
-        _this.cache[id] = { 'name' : id, 'exists' : false };
-        deferred.resolve(_this.cache[id]);
-      });
-    }
-    return deferred.promise;
-  }
-
   fetchAPIAnalytics(report, response) {
-    // get APIs data
-    var promises = [];
-    for (var i = 0; i < response[0].data.values[0].buckets.length; i++) {
-      promises.push(this.getAPI(response[0].data.values[0].buckets[i].name));
-    }
-    var _this = this;
-    this.$q.all(promises).then(function() {
-      _this.pushHitsByData(report, response);
-      _this.pushTopHitsData();
-    }, function() {
-    });
+    this.pushHitsByData(report, response);
+    this.pushTopHitsData();
   }
 
   pushHitsByData(report, response) {
@@ -205,8 +178,8 @@ class ApplicationAnalyticsController {
       var bgColor = report.id === 'response-status' ? this.getBgColorByStatus(response[0].data.values[0].buckets[i].name) : this.bgColorByBucket[i % this.bgColorByBucket.length];
       var label = report.requests[0].label ? report.requests[0].label : (report.label || report.labelPrefix + ' ' + response[0].data.values[0].buckets[i].name);
       if (report.id === 'apis') {
-         var api = this.cache[response[0].data.values[0].buckets[i].name];
-         label = api.name + ' (' + api.version + ')';
+         var api = response[0].data.metadata[response[0].data.values[0].buckets[i].name];
+         label = (! api.deleted) ? api.name + ' (' + api.version + ')' : api.name;
       }
 
       this.$scope.chartConfig[report.id].datasets.push({
@@ -239,7 +212,10 @@ class ApplicationAnalyticsController {
           _this.dataFetched(_this.topsFetched, top.key);
           if (Object.keys(response.data.values).length) {
             top.results = _.map(response.data.values, function (value, key) {
-              return {topAPI: key, topHits: value};
+              return {
+                topAPI: key,
+                topHits: value,
+                metadata: (response.data) ? response.data.metadata[key] : undefined};
             });
             _this.$scope.paging[top.key] = 1;
           } else {

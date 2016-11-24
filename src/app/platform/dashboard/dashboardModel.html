@@ -16,17 +16,13 @@
 
 -->
 <span ng-if="entity && model === 'api'">
-  <a ng-if="entity.exists" ui-sref="apis.admin.analytics({ apiId: entity.id } )">
+  <a ng-if="!entity.deleted" ui-sref="apis.admin.analytics({ apiId: entity.id } )">
     {{entity.name}} <small ng-if="model === 'api'">({{entity.version}})</small>
   </a>
-  <span ng-if="!entity.exists" style="color: grey;">
-    Deleted API
-  </span>
+  <span ng-if="entity.deleted" style="color: grey;">{{entity.name}}</span>
 </span>
 
 <span ng-if="entity && model === 'application'">
-  <span ng-if="entity.exists">{{entity.name}}</span>
-  <span ng-if="!entity.exists" style="color: grey;" layout="row">
-    Deleted application
-  </span>
+  <span ng-if="!entity.deleted">{{entity.name}}</span>
+  <span ng-if="entity.deleted" style="color: grey;" layout="row">{{entity.name}}</span>
 </span>
