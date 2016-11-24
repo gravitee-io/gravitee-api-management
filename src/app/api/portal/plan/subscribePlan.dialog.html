@@ -26,23 +26,28 @@
     </div>
   </md-toolbar>
   <md-dialog-content>
-    <div ng-if="applications.length" layout="row" layout-align="center" layout-wrap>
-      <div class="md-padding" flex-xs="100" flex-sm="50" flex="33" flex-lg="25" flex-xl="20" ng-repeat="application in applications">
-        <md-card class="gravitee-card gravitee-plan-application-card">
-          <md-card-content>
-            <h5>{{application.name}}</h5>
-            <div class="gravitee-plan-application-image"></div>
-          </md-card-content>
-          <md-card-footer>
-            <md-tooltip ng-if="isNotSelectable(application.id)">You already have a subscription to this plan for this application</md-tooltip>
-            <md-button type="button" ng-click="select(application)" class="md-primary md-raised"
-                       ng-disabled="isNotSelectable(application.id)">
-              Select
-            </md-button>
-          </md-card-footer>
-        </md-card>
+    <div class="md-dialog-content">
+      <div ng-if="applications.length" layout="row" layout-align="center" layout-wrap>
+        <div class="md-padding" flex-xs="100" flex-sm="50" flex="33" flex-lg="25" flex-xl="20" ng-repeat="application in applications">
+          <md-card class="gravitee-card gravitee-plan-application-card">
+            <md-card-content>
+              <h5>{{application.name}}</h5>
+              <div class="gravitee-plan-application-image"></div>
+            </md-card-content>
+            <md-card-footer>
+              <md-tooltip ng-if="isNotSelectable(application.id)">You already have a subscription to this plan for this application</md-tooltip>
+              <md-button type="button" ng-click="select(application)" class="md-primary md-raised"
+                         ng-disabled="isNotSelectable(application.id)">
+                Select
+              </md-button>
+            </md-card-footer>
+          </md-card>
+        </div>
+      </div>
+      <div ng-if="!applications.length">
+        <h5>You do not have application!</h5>
+        <h5>Let's start by <a ng-click="goToApplications()">creating your first application.</a></h5>
       </div>
     </div>
-    <div ng-if="!applications.length" ng-include="'app/api/portal/plan/plansEmptyMode.html'"></div>
   </md-dialog-content>
 </md-dialog>

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogSubscribePlanController($scope, $mdDialog, plan, resolvedApplications, NotificationService,
+function DialogSubscribePlanController($scope, $state, $mdDialog, plan, resolvedApplications, NotificationService,
                                        ApplicationService, resolvedSubscriptions) {
   'ngInject';
   $scope.plan = plan;
@@ -31,6 +31,11 @@ function DialogSubscribePlanController($scope, $mdDialog, plan, resolvedApplicat
       $mdDialog.hide(application);
       NotificationService.show('Application has subscribed to plan ' + plan.name);
     });
+  };
+
+  $scope.goToApplications = function() {
+    $mdDialog.cancel();
+    $state.go('applications.list', {}, {reload: true});
   };
 
   $scope.hide = function () {
