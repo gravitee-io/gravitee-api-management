@@ -87,9 +87,15 @@
         <gravitee-empty-state ng-if="apiMembersCtrl.members.length <= 1"
                               icon="group"
                               model="Member"
-                              message="Your API Members will appear here"
+                              message="Members will appear here"
+                              sub-message="Start attaching a member"
                               create-mode="true"></gravitee-empty-state>
       </md-content>
+      <div ng-style="apiMembersCtrl.members.length <= 1 && {'text-align':'center'}">
+        <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': apiMembersCtrl.members.length > 1}" class="md-fab" aria-label="Add" ng-click="apiMembersCtrl.showAddMemberModal($event)">
+          <ng-md-icon icon="add"></ng-md-icon>
+        </md-button>
+      </div>
     </div>
     <div ng-if="apiMembersCtrl.isPrimaryOwner()">
       <hr />
@@ -131,7 +137,3 @@
     </div>
   </md-content>
 </section>
-
-<md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="apiMembersCtrl.showAddMemberModal($event)">
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>

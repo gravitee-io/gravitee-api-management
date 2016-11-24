@@ -50,9 +50,12 @@
 <gravitee-empty-state ng-if="!apiPropertiesCtrl.hasPropertiesDefined()"
                       icon="assignment"
                       model="Property"
-                      message="Your API Properties will appear here"
+                      message="Properties will appear here"
+                      sub-message="Start creating a property"
                       create-mode="true"></gravitee-empty-state>
 
-<md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="apiPropertiesCtrl.showPropertyModal()">
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
+<div ng-style="!apiPropertiesCtrl.hasPropertiesDefined() && {'text-align':'center'}">
+  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': apiPropertiesCtrl.hasPropertiesDefined()}" class="md-fab" aria-label="Add" ng-click="apiPropertiesCtrl.showPropertyModal()">
+    <ng-md-icon icon="add"></ng-md-icon>
+  </md-button>
+</div>

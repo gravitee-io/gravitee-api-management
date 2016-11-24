@@ -107,9 +107,13 @@
 <gravitee-empty-state ng-if="apiResourcesCtrl.api.resources.length == 0"
                       icon="style"
                       model="Resource"
-                      message="Your API Resources will appear here"
+                      message="Resources will appear here"
+                      sub-message="Start creating a resource"
                       create-mode="true"></gravitee-empty-state>
 
-<md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add resource" ng-click="apiResourcesCtrl.showResourcePanel()">
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
+
+<div ng-style="apiResourcesCtrl.api.resources.length == 0 && {'text-align':'center'}">
+  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': apiResourcesCtrl.api.resources.length > 0}" class="md-fab" aria-label="Add resource" ng-click="apiResourcesCtrl.showResourcePanel()">
+    <ng-md-icon icon="add"></ng-md-icon>
+  </md-button>
+</div>

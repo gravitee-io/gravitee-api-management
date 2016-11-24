@@ -95,12 +95,15 @@
 <gravitee-empty-state ng-if="apiPlansCtrl.plans.length == 0"
                       icon="view_week"
                       model="Plan"
-                      message="Your API Plans will appear here"
+                      message="Plans will appear here"
+                      sub-message="Start creating a plan"
                       create-mode="true"></gravitee-empty-state>
 
-<md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="apiPlansCtrl.addPlan()">
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
+<div ng-style="apiPlansCtrl.plans.length == 0 && {'text-align':'center'}">
+  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': apiPlansCtrl.plans.length > 0}" class="md-fab" aria-label="Add" ng-click="apiPlansCtrl.addPlan()">
+    <ng-md-icon icon="add"></ng-md-icon>
+  </md-button>
+</div>
 
 <!-- Live preview -->
 <md-sidenav class="md-sidenav-left md-whiteframe-z2 resource" md-component-id="live-preview" md-is-open="livePreviewIsOpen" layout-padding>

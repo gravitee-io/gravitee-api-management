@@ -89,13 +89,17 @@
         <gravitee-empty-state ng-if="applicationMembersCtrl.members.length <= 1"
                               icon="group"
                               model="Member"
-                              message="Your Application Members will appear here"
+                              message="Members will appear here"
+                              sub-message="Start attaching a member"
                               create-mode="true"></gravitee-empty-state>
+
+        <div ng-if="applicationCtrl.isOwner()" ng-style="applicationMembersCtrl.members.length <= 1 && {'text-align':'center'}">
+          <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': applicationMembersCtrl.members.length > 1}" class="md-fab" aria-label="Add" ng-click="applicationMembersCtrl.showAddMemberModal($event)">
+            <ng-md-icon icon="add"></ng-md-icon>
+          </md-button>
+        </div>
       </md-content>
     </div>
   </md-content>
 </section>
 
-<md-button ng-if="applicationCtrl.isOwner()" class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="applicationMembersCtrl.showAddMemberModal($event)">
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>

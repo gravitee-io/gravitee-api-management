@@ -96,35 +96,38 @@
                       icon="dashboard"
                       model="API"
                       message="Hmmm, there is no API for you here :("
+                      sub-message="Start creating an API"
                       create-mode="apisCtrl.createMode"></gravitee-empty-state>
 
 <div ng-if="!isLoading && apisCtrl.apis.length == 0" style="text-align: center;">
   <md-button ng-if="!graviteeUser" class="md-raised" ng-click="apisCtrl.login()">Login</md-button>
 </div>
 
-<md-fab-speed-dial ng-if="!devMode" gravitee-roles-allowed="ADMIN, API_PUBLISHER" md-direction="left" md-open="false" class="md-scale md-fab-bottom-right">
+<md-fab-speed-dial ng-if="!devMode" gravitee-roles-allowed="ADMIN, API_PUBLISHER"
+                   md-direction="{{apisCtrl.apis.length > 0 ? 'left' : 'down'}}"
+                   md-open="false" ng-class="{'md-fab-bottom-right' : apisCtrl.apis.length > 0}" class="md-scale">
   <md-fab-trigger>
     <md-button aria-label="menu" class="md-fab md-success">
-      <md-tooltip md-direction="top" md-visible="false">Create</md-tooltip>
+      <md-tooltip ng-if="apisCtrl.apis.length > 0" md-direction="top" md-visible="false">Create</md-tooltip>
       <ng-md-icon icon="add"></ng-md-icon>
     </md-button>
   </md-fab-trigger>
 
   <md-fab-actions>
     <md-button class="md-fab md-success md-mini" ng-href="#/apis/new">
-      <md-tooltip md-direction="top">
+      <md-tooltip md-direction="{{apisCtrl.apis.length > 0 ? 'top' : 'right'}}">
         Create a new API
       </md-tooltip>
       <ng-md-icon icon="fibre_new"></ng-md-icon>
     </md-button>
     <md-button class="md-fab md-success md-mini" ng-click="apisCtrl.showImportDialog()">
-      <md-tooltip md-direction="top">
+      <md-tooltip md-direction="{{apisCtrl.apis.length > 0 ? 'top' : 'right'}}">
         Import API definition
       </md-tooltip>
       <ng-md-icon icon="file_download"></ng-md-icon>
     </md-button>
     <md-button class="md-fab md-success md-mini" ng-click="apisCtrl.showImportSwaggerDialog()">
-      <md-tooltip md-direction="top">
+      <md-tooltip md-direction="{{apisCtrl.apis.length > 0 ? 'top' : 'right'}}">
         Import Swagger descriptor
       </md-tooltip>
       <md-icon md-svg-src="app/images/logo_swagger.svg" aria-label="Swagger"></md-icon>

@@ -62,8 +62,11 @@
                       icon="list"
                       model="Application"
                       message="There is no application (yet)."
+                      sub-message="Start creating an application"
                       create-mode="true"></gravitee-empty-state>
 
-<md-button gravitee-roles-allowed="ADMIN, API_CONSUMER" class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="applicationsCtrl.showAddApplicationModal($event)">
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
+<div ng-style="applicationsCtrl.applications.length == 0 && {'text-align':'center'}">
+  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': applicationsCtrl.applications.length > 0}" class="md-fab" aria-label="Add" ng-click="applicationsCtrl.showAddApplicationModal($event)">
+    <ng-md-icon icon="add"></ng-md-icon>
+  </md-button>
+</div>
