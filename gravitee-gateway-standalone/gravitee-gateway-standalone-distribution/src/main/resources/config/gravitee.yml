@@ -164,3 +164,7 @@ ds:
   elastic:
     host: ${GRAVITEEIO_ELASTIC_HOST:localhost}
     port: ${GRAVITEEIO_ELASTIC_PORT:9300}
+
+# Sharding tags configuration
+# Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
+#tags: products,stocks,!international
