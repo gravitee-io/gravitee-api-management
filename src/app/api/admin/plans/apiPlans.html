@@ -38,29 +38,34 @@
         <div class="md-toolbar-tools">
           <h3 ng-class="{italic: plan.status === 'staging', strike: plan.status === 'closed'}" layout-padding>{{plan.name}}</h3>
           <span flex></span>
-          <md-fab-speed-dial md-direction="down" md-open="false" class="md-scale md-fab-bottom-right"
-                             style="right: -20px;top: 10px;" ng-if="plan.status !== 'closed'">
-            <md-fab-trigger>
-              <md-button class="md-fab md-mini md-primary" aria-label="Expand">
-                <ng-md-icon icon="more_vert"></ng-md-icon>
-              </md-button>
-            </md-fab-trigger>
-
-            <md-fab-actions>
-              <md-button ng-if="plan.status !== 'closed'" ng-click="apiPlansCtrl.close(plan)" class="md-fab md-raised md-mini" aria-label="Close">
-                <md-tooltip md-direction="top">Close this plan</md-tooltip>
-                <ng-md-icon style="fill: rgb(255,87,34);" icon="close"></ng-md-icon>
-              </md-button>
-              <md-button ng-if="plan.status !== 'closed'" ng-click="configure(plan)" class="md-fab md-raised md-mini" aria-label="Configure">
-                <md-tooltip md-direction="top">Configure this plan</md-tooltip>
-                <ng-md-icon style="fill: #7a8288;" icon="settings"></ng-md-icon>
-              </md-button>
-              <md-button ng-if="plan.status === 'staging'" ng-click="apiPlansCtrl.publish(plan)" class="md-fab md-raised md-mini" aria-label="Publish">
-                <md-tooltip md-direction="top">Publish this plan</md-tooltip>
-                <ng-md-icon style="fill: green;" icon="publish"></ng-md-icon>
-              </md-button>
-            </md-fab-actions>
-          </md-fab-speed-dial>
+          <md-menu-bar>
+            <md-menu>
+              <button ng-click="$mdOpenMenu()">
+                <ng-md-icon style="fill: black;" icon="more_vert"></ng-md-icon>
+              </button>
+              <md-menu-content>
+                <md-menu-item class="md-indent" ng-if="plan.status === 'staging'">
+                  <md-button ng-click="apiPlansCtrl.publish(plan)" aria-label="Publish">
+                    <ng-md-icon style="fill: green;" icon="publish"></ng-md-icon>
+                    Publish
+                  </md-button>
+                </md-menu-item>
+                <md-menu-item class="md-indent" ng-if="plan.status !== 'closed'">
+                  <md-button ng-click="configure(plan)" aria-label="Configure">
+                    <ng-md-icon style="fill: #7a8288;" icon="settings"></ng-md-icon>
+                    Configure
+                  </md-button>
+                </md-menu-item>
+                <md-menu-divider></md-menu-divider>
+                <md-menu-item class="md-indent" ng-if="plan.status !== 'closed'">
+                  <md-button ng-click="apiPlansCtrl.close(plan)" aria-label="Close">
+                    <ng-md-icon style="fill: rgb(255,87,34);" icon="close"></ng-md-icon>
+                    Close
+                  </md-button>
+                </md-menu-item>
+              </md-menu-content>
+            </md-menu>
+          </md-menu-bar>
         </div>
       </md-toolbar>
     </md-card-header>

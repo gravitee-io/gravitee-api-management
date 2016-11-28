@@ -32,8 +32,32 @@
   font-style: italic;
 }
 
-.md-toolbar-tools {
+.plans .md-toolbar-tools {
   background: #fafafa;
   color: black;
 }
 
+.plans .md-button.md-fab {
+  box-shadow: none;
+  background: none;
+}
+
+.plans a.md-button.md-default-theme.md-fab:not([disabled]):hover, .plans a.md-button.md-fab:not([disabled]):hover, .plans .md-button.md-default-theme.md-fab:not([disabled]):hover, .plans .md-button.md-fab:not([disabled]):hover {
+  background-color: #ccdae3;
+}
+
+md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent > .md-button, md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent .md-menu > .md-button {
+  padding-left: 10px;
+}
+
+md-menu-content.md-menu-bar-menu.md-dense .md-button span {
+  padding-left: 10px;
+}
+
+md-menu-bar {
+  padding-right: 0px;
+}
+
+md-menu-bar md-menu button ng-md-icon {
+  top: 0px;
+}

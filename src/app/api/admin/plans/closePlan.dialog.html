@@ -28,7 +28,7 @@
     <md-dialog-content>
       <div class="md-dialog-content">
         <h5 ng-if="subscriptions == 0">No subscription is associated to this plan. You can delete it safely.</h5>
-        <h5 ng-if="subscriptions > 0">There are <code>{{subscriptions}}</code> subscriptions associated to this plan.</h5>
+        <h5 ng-if="subscriptions > 0">There are <code>{{subscriptions}}</code> active subscriptions associated to this plan.</h5>
         <p ng-if="subscriptions > 0">
           By closing this plan, all relative subscriptions will also be closed and associated api-keys will be no longer
           available.
