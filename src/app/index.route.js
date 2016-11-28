@@ -497,7 +497,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       controller: 'TagsController',
       controllerAs: 'tagsCtrl',
       menu: {
-        label: 'Tags',
+        label: 'Sharding tags',
         icon: 'label'
       },
       roles: ['ADMIN']

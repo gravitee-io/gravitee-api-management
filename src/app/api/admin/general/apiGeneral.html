@@ -67,7 +67,7 @@
 
   <div layout="column">
     <md-input-container class="flex">
-      <label>Deployment tags</label>
+      <label>Sharding tags</label>
       <md-select ng-model="generalCtrl.api.tags" multiple>
         <md-option ng-repeat="tag in generalCtrl.tags" ng-value="tag.id">
           {{tag.name}}<span ng-if="tag.description" class="gravitee-general-description"> - {{tag.description}}</span>
