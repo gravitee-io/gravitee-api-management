@@ -15,10 +15,7 @@
  */
 package io.gravitee.management.model.analytics;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -27,6 +24,7 @@ public class HistogramAnalytics implements Analytics {
 
     private List<Long> timestamps = new ArrayList<>();
     private List<Bucket> values = new ArrayList<>();
+    private Map<String, Map<String, String>> metadata;
 
     public List<Bucket> getValues() {
         return values;
@@ -42,5 +40,13 @@ public class HistogramAnalytics implements Analytics {
 
     public void setTimestamps(List<Long> timestamps) {
         this.timestamps = timestamps;
+    }
+
+    public Map<String, Map<String, String>> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Map<String, String>> metadata) {
+        this.metadata = metadata;
     }
 }

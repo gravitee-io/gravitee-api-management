@@ -16,8 +16,14 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.common.data.domain.Order;
+import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.analytics.*;
 import io.gravitee.management.service.AnalyticsService;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.exceptions.ApiNotFoundException;
+import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.response.HealthResponse;
 import io.gravitee.repository.analytics.query.response.HitsResponse;
@@ -29,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +54,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     @Autowired
     private AnalyticsRepository analyticsRepository;
+
+    @Autowired
+    private ApiService apiService;
+
+    @Autowired
+    private ApplicationService applicationService;
 
     @Override
     public HistogramAnalytics hitsBy(String query, String key, String field, List<String> aggTypes, long from, long to, long interval) {
@@ -102,12 +115,29 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     private HistogramAnalytics convert(HistogramResponse histogramResponse, long from, long interval) {
         HistogramAnalytics analytics = new HistogramAnalytics();
-
         analytics.setTimestamps(histogramResponse.timestamps());
 
         for(io.gravitee.repository.analytics.query.response.histogram.Bucket bucket : histogramResponse.values()) {
             Bucket analyticsBucket = convertBucket(analytics.getTimestamps(), from, interval, bucket);
             analytics.getValues().add(analyticsBucket);
+
+            if (analyticsBucket.getName().equals("api-hits-by-application")) {
+                // Prepare metadata
+                Map<String, Map<String, String>> metadata = new HashMap<>();
+                analyticsBucket.getBuckets().stream().map(Bucket::getName).forEach(app -> {
+                    metadata.put(app, getApplicationMetadata(app));
+                });
+
+                analytics.setMetadata(metadata);
+            } else if (analyticsBucket.getName().equals("application-hits-by-api")) {
+                // Prepare metadata
+                Map<String, Map<String, String>> metadata = new HashMap<>();
+                analyticsBucket.getBuckets().stream().map(Bucket::getName).forEach(api -> {
+                    metadata.put(api, getAPIMetadata(api));
+                });
+
+                analytics.setMetadata(metadata);
+            }
         }
         return analytics;
     }
@@ -159,6 +189,55 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         topHitsAnalytics.setName(topHitsResponse.getName());
         topHitsAnalytics.setValues(topHitsResponse.getValues());
 
+        String queryName = topHitsResponse.getName();
+        boolean api = false;
+        if (queryName.contains("apis")) {
+            api = true;
+        } else if (queryName.contains("apps")) {
+            api = false;
+        }
+
+        // Prepare metadata
+        Map<String, Map<String, String>> metadata = new HashMap<>();
+        for(String key: topHitsResponse.getValues().keySet()) {
+            if (api) {
+                metadata.put(key, getAPIMetadata(key));
+            } else {
+                metadata.put(key, getApplicationMetadata(key));
+            }
+        }
+
+        topHitsAnalytics.setMetadata(metadata);
+
         return  topHitsAnalytics;
+    }
+
+    private Map<String, String> getAPIMetadata(String api) {
+        Map<String, String> metadata = new HashMap<>();
+
+        try {
+            ApiEntity apiEntity = apiService.findById(api);
+            metadata.put("name", apiEntity.getName());
+            metadata.put("version", apiEntity.getVersion());
+        } catch (ApiNotFoundException anfe) {
+            metadata.put("name", "Deleted API");
+            metadata.put("deleted", "true");
+        }
+
+        return metadata;
+    }
+
+    private Map<String, String> getApplicationMetadata(String application) {
+        Map<String, String> metadata = new HashMap<>();
+
+        try {
+            ApplicationEntity applicationEntity = applicationService.findById(application);
+            metadata.put("name", applicationEntity.getName());
+        } catch (ApplicationNotFoundException anfe) {
+            metadata.put("name", "Deleted application");
+            metadata.put("deleted", "true");
+        }
+
+        return metadata;
     }
 }

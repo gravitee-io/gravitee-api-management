@@ -17,8 +17,10 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.rest.resource.param.EventSearchParam;
+import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.EventService;
 import io.gravitee.repository.management.model.Event;
 import io.swagger.annotations.Api;
@@ -29,6 +31,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -39,6 +42,9 @@ public class PlatformEventsResource {
     
     @Inject
     private EventService eventService;
+
+    @Inject
+    private ApiService apiService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -52,12 +58,29 @@ public class PlatformEventsResource {
             properties.put(Event.EventProperties.API_ID.getValue(), eventSearchParam.getApiIdsParam().getIds());
         }
 
-        return eventService.search(
+        Page<EventEntity> events = eventService.search(
                 eventSearchParam.getEventTypeListParam().getEventTypes(),
                 properties,
                 eventSearchParam.getFrom(),
                 eventSearchParam.getTo(),
                 eventSearchParam.getPage(),
                 eventSearchParam.getSize());
+
+        events.getContent().forEach(event -> {
+            Map<String, String> properties1 = event.getProperties();
+            // Event relative to API
+            if (properties1 != null && properties1.containsKey(Event.EventProperties.API_ID.getValue())) {
+                // Remove payload content from response since it's not required anymore
+                event.setPayload(null);
+
+                // Retrieve additional data
+                String apiId = properties1.get(Event.EventProperties.API_ID.getValue());
+                ApiEntity api = apiService.findById(apiId);
+                properties1.put("api_name", api.getName());
+                properties1.put("api_version", api.getVersion());
+            }
+        });
+
+        return events;
     }
 }
