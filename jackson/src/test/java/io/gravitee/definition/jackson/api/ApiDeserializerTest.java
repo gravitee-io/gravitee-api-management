@@ -38,7 +38,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
         Assert.assertEquals("http://localhost:1234", endpoint.getTarget());
         Assert.assertNotNull(endpoint.getHttpClientOptions());
-        Assert.assertFalse(endpoint.getHttpClientOptions().isUseCompression());
+        Assert.assertTrue(endpoint.getHttpClientOptions().isUseCompression());
     }
 
     @Test

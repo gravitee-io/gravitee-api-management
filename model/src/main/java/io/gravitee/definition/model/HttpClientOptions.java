@@ -27,7 +27,7 @@ public class HttpClientOptions {
     public static int DEFAULT_MAX_CONCURRENT_CONNECTIONS = 100;
     public static boolean DEFAULT_KEEP_ALIVE = true;
     public static boolean DEFAULT_PIPELINING = false;
-    public static boolean DEFAULT_USE_COMPRESSION = false;
+    public static boolean DEFAULT_USE_COMPRESSION = true;
 
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
