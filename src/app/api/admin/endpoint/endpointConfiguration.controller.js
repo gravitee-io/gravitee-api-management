@@ -41,7 +41,7 @@ class ApiEndpointController {
           readTimeout : 10000,
           pipelining : false,
           maxConcurrentConnections : 100,
-          useCompression : false
+          useCompression : true
         }
       };
 
