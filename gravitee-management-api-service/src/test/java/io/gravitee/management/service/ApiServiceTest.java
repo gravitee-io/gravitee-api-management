@@ -28,10 +28,7 @@ import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.mixin.ApiMixin;
-import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
-import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.management.service.jackson.filter.ApiMembershipTypeFilter;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -67,6 +64,7 @@ public class ApiServiceTest {
     private static final String API_ID2 = "id-api2";
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
+    private static final String PLAN_ID = "my-plan";
 
     @InjectMocks
     private ApiServiceImpl apiService = new ApiServiceImpl();
@@ -103,6 +101,12 @@ public class ApiServiceTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private PlanService planService;
+
+    @Mock
+    private PlanEntity planEntity;
 
     @Before
     public void setUp() {
@@ -878,5 +882,58 @@ public class ApiServiceTest {
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
+    }
+
+    @Test(expected = ApiRunningStateException.class)
+    public void shouldNotDeleteBecauseRunningState() throws TechnicalException {
+        when(api.getLifecycleState()).thenReturn(LifecycleState.STARTED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        apiService.delete(API_ID);
+    }
+
+    @Test
+    public void shouldDeleteBecauseNoPlan() throws TechnicalException {
+        when(api.getLifecycleState()).thenReturn(LifecycleState.STOPPED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(planService.findByApi(API_ID)).thenReturn(Collections.emptySet());
+
+        apiService.delete(API_ID);
+    }
+
+    @Test(expected = ApiNotDeletableException.class)
+    public void shouldNotDeleteBecausePlanNotClosed() throws TechnicalException {
+        when(api.getLifecycleState()).thenReturn(LifecycleState.STOPPED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(planEntity.getStatus()).thenReturn(PlanStatus.PUBLISHED);
+        when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
+
+        apiService.delete(API_ID);
+    }
+
+    @Test
+    public void shouldNotDeleteBecausePlanClosed() throws TechnicalException {
+        when(api.getLifecycleState()).thenReturn(LifecycleState.STOPPED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(planEntity.getId()).thenReturn(PLAN_ID);
+        when(planEntity.getStatus()).thenReturn(PlanStatus.CLOSED);
+        when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
+
+        apiService.delete(API_ID);
+
+        verify(planService, times(1)).delete(PLAN_ID);
+    }
+
+    @Test
+    public void shouldNotDeleteBecausePlanStaging() throws TechnicalException {
+        when(api.getLifecycleState()).thenReturn(LifecycleState.STOPPED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(planEntity.getId()).thenReturn(PLAN_ID);
+        when(planEntity.getStatus()).thenReturn(PlanStatus.STAGING);
+        when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
+
+        apiService.delete(API_ID);
+
+        verify(planService, times(1)).delete(PLAN_ID);
     }
 }

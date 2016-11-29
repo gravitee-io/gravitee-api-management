@@ -86,10 +86,44 @@ public class PlanServiceTest {
 
     @Test(expected = PlanWithSubscriptionsException.class)
     public void shouldNotDeleteBecauseSubscriptionsExist() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
 
         planService.delete(PLAN_ID);
+    }
+
+    @Test
+    public void shouldDeleteBecauseStagingState() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
+
+        planService.delete(PLAN_ID);
+
+        verify(planRepository, times(1)).delete(PLAN_ID);
+    }
+
+    @Test
+    public void shouldDeleteBecauseClosedState() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
+
+        planService.delete(PLAN_ID);
+
+        verify(planRepository, times(1)).delete(PLAN_ID);
+    }
+
+    @Test
+    public void shouldDeleteBecausePublishedWithNoSubscription() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
+
+        planService.delete(PLAN_ID);
+
+        verify(planRepository, times(1)).delete(PLAN_ID);
     }
 
     @Test

@@ -219,7 +219,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             }
 
             int subscriptions = subscriptionService.findByPlan(plan).size();
-            if (subscriptions > 0) {
+            if (optPlan.get().getStatus() == Plan.Status.PUBLISHED && subscriptions > 0) {
                 throw new PlanWithSubscriptionsException();
             }
 

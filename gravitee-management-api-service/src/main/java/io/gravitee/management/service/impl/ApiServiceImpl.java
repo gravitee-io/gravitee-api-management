@@ -332,17 +332,30 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Override
     public void delete(String apiName) {
-        ApiEntity api = findById(apiName);
         try {
             LOGGER.debug("Delete API {}", apiName);
 
-            if (api.getState() == Lifecycle.State.STARTED) {
+            Optional<Api> optApi = apiRepository.findById(apiName);
+            if (! optApi.isPresent()) {
+                throw new ApiNotFoundException(apiName);
+            }
+
+            if (optApi.get().getLifecycleState() == LifecycleState.STARTED) {
                 throw new ApiRunningStateException(apiName);
             } else {
-
                 // Delete plans
-                planService.findByApi(apiName)
-                        .forEach(plan -> planService.delete(plan.getId()));
+                Set<PlanEntity> plans = planService.findByApi(apiName);
+                Set<String> plansNotClosed = plans.stream()
+                        .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
+                        .map(PlanEntity::getName)
+                        .collect(Collectors.toSet());
+
+                if (! plansNotClosed.isEmpty()) {
+                    throw new ApiNotDeletableException("Plan(s) [" + String.join(", ", plansNotClosed) +
+                            "] must be closed before being able to delete the API !");
+                }
+
+                plans.stream().forEach(plan -> planService.delete(plan.getId()));
 
                 // Delete events
                 eventService.findByApi(apiName)
