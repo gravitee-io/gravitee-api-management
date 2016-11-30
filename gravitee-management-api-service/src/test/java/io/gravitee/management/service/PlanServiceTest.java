@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.SubscriptionEntity;
+import io.gravitee.management.model.SubscriptionStatus;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.PlanServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -43,6 +44,7 @@ import static org.mockito.Mockito.*;
 public class PlanServiceTest {
 
     private static final String PLAN_ID = "my-plan";
+    private static final String SUBSCRIPTION_ID = "my-subscription";
 
     @InjectMocks
     private PlanService planService = new PlanServiceImpl();
@@ -146,13 +148,54 @@ public class PlanServiceTest {
     }
 
     @Test
-    public void shouldClose() throws TechnicalException {
+    public void shouldClosePlanAndAcceptedSubscription() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getStatus()).thenReturn(SubscriptionStatus.ACCEPTED);
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+
+        planService.close(PLAN_ID);
+
+        verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
+        verify(planRepository, times(1)).update(plan);
+        verify(subscriptionService, times(1)).close(SUBSCRIPTION_ID);
+    }
+
+    @Test
+    public void shouldClosePlanAndPendingSubscription() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getStatus()).thenReturn(SubscriptionStatus.PENDING);
+        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+
+        planService.close(PLAN_ID);
+
+        verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
+        verify(planRepository, times(1)).update(plan);
+        verify(subscriptionService, times(1)).close(SUBSCRIPTION_ID);
+    }
+
+    @Test
+    public void shouldClosePlanButNotClosedSubscription() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getStatus()).thenReturn(SubscriptionStatus.CLOSED);
+        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
 
         planService.close(PLAN_ID);
 

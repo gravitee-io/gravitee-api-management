@@ -541,4 +541,26 @@ public class SubscriptionServiceTest {
         assertEquals(SUBSCRIPTION_VALIDATOR, subscriptionEntity.getProcessedBy());
         assertNotNull(subscriptionEntity.getProcessedAt());
     }
+
+    @Test(expected = PlanAlreadyClosedException.class)
+    public void shouldNotProcessBecauseClosedPlan() throws Exception {
+        // Prepare data
+        ProcessSubscriptionEntity processSubscription = new ProcessSubscriptionEntity();
+        processSubscription.setId(SUBSCRIPTION_ID);
+        processSubscription.setAccepted(false);
+
+        Subscription subscription = new Subscription();
+        subscription.setApplication(APPLICATION_ID);
+        subscription.setPlan(PLAN_ID);
+        subscription.setStatus(Subscription.Status.PENDING);
+
+        when(plan.getStatus()).thenReturn(PlanStatus.CLOSED);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+
+        // Run
+        subscriptionService.process(processSubscription, SUBSCRIPTION_VALIDATOR);
+    }
 }

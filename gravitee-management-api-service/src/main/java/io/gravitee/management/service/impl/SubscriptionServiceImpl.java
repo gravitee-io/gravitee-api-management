@@ -296,9 +296,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
 
             Subscription subscription = optSubscription.get();
-
             if (subscription.getStatus() != Subscription.Status.PENDING) {
                 throw new SubscriptionAlreadyProcessedException(subscription.getId());
+            }
+
+            PlanEntity planEntity = planService.findById(subscription.getPlan());
+
+            if (planEntity.getStatus() == PlanStatus.CLOSED) {
+                throw new PlanAlreadyClosedException(planEntity.getId());
             }
 
             subscription.setProcessedBy(validator);

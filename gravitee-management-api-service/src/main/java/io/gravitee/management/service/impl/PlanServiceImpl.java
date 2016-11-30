@@ -195,7 +195,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             // Close active subscriptions
             subscriptionService.findByPlan(planId)
                     .stream()
-                    .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED)
+                    .filter(subscriptionEntity ->
+                            subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED ||
+                                    subscriptionEntity.getStatus() == SubscriptionStatus.PENDING)
                     .forEach(subscription -> subscriptionService.close(subscription.getId()));
 
             // Save plan
