@@ -334,9 +334,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		Page page = new Page();
 
 		page.setName(newPageEntity.getName());
-		final String type = newPageEntity.getType();
+		final PageType type = newPageEntity.getType();
 		if (type != null) {
-			page.setType(io.gravitee.repository.management.model.PageType.valueOf(type));
+			page.setType(io.gravitee.repository.management.model.PageType.valueOf(type.name()));
 		}
 		page.setContent(newPageEntity.getContent());
 		page.setLastContributor(newPageEntity.getLastContributor());

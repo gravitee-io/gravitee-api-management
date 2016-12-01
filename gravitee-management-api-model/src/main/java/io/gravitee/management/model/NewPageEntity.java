@@ -19,15 +19,17 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class NewPageEntity {
 
 	@NotNull
 	@Size(min = 1)
 	private String name;
-	
-	private String type;
+
+	@NotNull
+	private PageType type;
 	
 	private String content;
 	
@@ -46,12 +48,12 @@ public class NewPageEntity {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	public String getType() {
+
+	public PageType getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(PageType type) {
 		this.type = type;
 	}
 

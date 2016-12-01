@@ -164,7 +164,7 @@ public class PageServiceTest {
         when(newPage.getOrder()).thenReturn(1);
         when(newPage.getContent()).thenReturn(content);
         when(newPage.getLastContributor()).thenReturn(contrib);
-        when(newPage.getType()).thenReturn(type);
+        when(newPage.getType()).thenReturn(io.gravitee.management.model.PageType.SWAGGER);
 
         final PageEntity createdPage = pageService.create(API_ID, newPage);
 
@@ -176,7 +176,7 @@ public class PageServiceTest {
                     name.equals(pageToCreate.getName()) &&
                     contrib.equals(pageToCreate.getLastContributor()) &&
                     content.equals(pageToCreate.getContent()) &&
-                    type.equals(pageToCreate.getType().name()) &&
+                    io.gravitee.management.model.PageType.SWAGGER.name().equals(pageToCreate.getType().name()) &&
                     pageToCreate.getCreatedAt() != null &&
                     pageToCreate.getUpdatedAt() != null &&
                     pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt());
