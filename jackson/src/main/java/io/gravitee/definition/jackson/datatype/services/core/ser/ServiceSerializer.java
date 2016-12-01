@@ -26,18 +26,20 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ServiceSerializer extends StdScalarSerializer<Service> {
+public abstract class ServiceSerializer<T extends Service> extends StdScalarSerializer<T> {
 
-    public ServiceSerializer(Class<Service> t) {
+    public ServiceSerializer(Class<T> t) {
         super(t);
     }
 
-    public ServiceSerializer() {
-        super(Service.class);
+    @Override
+    public void serialize(T service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+        jgen.writeStartObject();
+        doSerialize(service, jgen, serializerProvider);
+        jgen.writeEndObject();
     }
 
-    @Override
-    public void serialize(Service service, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-        jgen.writeObjectField(service.getName(), service);
+    protected void doSerialize(T service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+        jgen.writeBooleanField("enabled", service.isEnabled());
     }
 }

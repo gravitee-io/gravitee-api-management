@@ -16,18 +16,18 @@
 package io.gravitee.definition.jackson.datatype.services.core.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.Service;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheck;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Type;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,14 +38,11 @@ public class ServicesDeserializer extends StdScalarDeserializer<Services> {
     private final Map<String, Class<? extends Service>> registeredServices = new HashMap<>();
     {
         registeredServices.put(HealthCheck.SERVICE_KEY, HealthCheck.class);
+        registeredServices.put(DynamicPropertyService.SERVICE_KEY, DynamicPropertyService.class);
     }
 
     public ServicesDeserializer(Class<Services> vc) {
         super(vc);
-    }
-
-    public ServicesDeserializer() {
-        super(Services.class);
     }
 
     @Override
@@ -53,20 +50,31 @@ public class ServicesDeserializer extends StdScalarDeserializer<Services> {
         JsonNode node = jp.getCodec().readTree(jp);
 
         Services services = new Services();
-
         List<Service> individualServices = new ArrayList<>();
 
-        node.fields().forEachRemaining(jsonNode -> {
+        Iterator<String> fieldNames = node.fieldNames();
+        while (fieldNames.hasNext()) {
             try {
-                JsonNode serviceNode = node.findParent(jsonNode.getKey());
-                Service service = serviceNode.traverse(jp.getCodec()).readValueAs(Service.class);
-                if (service != null) {
-                    individualServices.add(service);
+                String serviceType = fieldNames.next();
+                JsonNode serviceNode = node.findValue(serviceType);
+
+                Class<? extends Service> serviceClass = registeredServices.get(serviceType);
+                if (serviceClass != null) {
+                    Service service = serviceNode.traverse(jp.getCodec()).readValueAs(new TypeReference<Service>() {
+                        @Override
+                        public Type getType() {
+                            return serviceClass;
+                        }
+                    });
+
+                    if (service != null) {
+                        individualServices.add(service);
+                    }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ioe) {
+                throw ctxt.mappingException(ioe.getMessage());
             }
-        });
+        }
 
         services.set(individualServices);
 

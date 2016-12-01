@@ -19,9 +19,9 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.common.util.TemplatedValueHashMap;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
@@ -122,11 +122,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
 
         JsonNode propertiesNode = node.get("properties");
         if (propertiesNode != null) {
-            Map<String, String> properties = new TemplatedValueHashMap();
-            propertiesNode.fields().forEachRemaining(jsonNode ->
-                properties.put(jsonNode.getKey(), jsonNode.getValue().textValue())
-            );
-
+            Properties properties = propertiesNode.traverse(jp.getCodec()).readValueAs(Properties.class);
             api.setProperties(properties);
         }
 

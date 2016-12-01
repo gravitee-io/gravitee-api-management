@@ -16,11 +16,8 @@
 package io.gravitee.definition.jackson.datatype.services.core;
 
 import io.gravitee.definition.jackson.datatype.GraviteeModule;
-import io.gravitee.definition.jackson.datatype.services.core.deser.ServiceDeserializer;
 import io.gravitee.definition.jackson.datatype.services.core.deser.ServicesDeserializer;
-import io.gravitee.definition.jackson.datatype.services.core.ser.ServiceSerializer;
 import io.gravitee.definition.jackson.datatype.services.core.ser.ServicesSerializer;
-import io.gravitee.definition.model.Service;
 import io.gravitee.definition.model.services.Services;
 
 /**
@@ -37,10 +34,8 @@ public class ServiceModule extends GraviteeModule {
 
         // first deserializers
         addDeserializer(Services.class, new ServicesDeserializer(Services.class));
-        addDeserializer(Service.class, new ServiceDeserializer(Service.class));
 
         // then serializers:
         addSerializer(Services.class, new ServicesSerializer(Services.class));
-        addSerializer(Service.class, new ServiceSerializer(Service.class));
     }
 }

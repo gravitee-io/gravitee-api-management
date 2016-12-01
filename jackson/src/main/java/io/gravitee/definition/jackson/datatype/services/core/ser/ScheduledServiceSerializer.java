@@ -13,29 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson;
+package io.gravitee.definition.jackson.datatype.services.core.ser;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import io.gravitee.definition.model.services.ScheduledService;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractTest {
+public abstract class ScheduledServiceSerializer<T extends ScheduledService> extends ServiceSerializer<T> {
 
-    protected <T> T load(String resource, Class<T> type) throws IOException {
-        return objectMapper().readValue(read(resource), type);
+    protected ScheduledServiceSerializer(Class<T> t) {
+        super(t);
     }
 
-    protected InputStream read(String resource) throws IOException {
-        return this.getClass().getResourceAsStream(resource);
-    }
+    @Override
+    protected void doSerialize(T service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+        super.doSerialize(service, jgen, serializerProvider);
 
-    protected ObjectMapper objectMapper() {
-        return new GraviteeMapper();
+        jgen.writeNumberField("interval", service.getInterval());
+        jgen.writeStringField("unit", service.getUnit().toString());
     }
 }

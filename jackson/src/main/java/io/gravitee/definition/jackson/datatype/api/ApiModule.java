@@ -45,6 +45,8 @@ public class ApiModule extends GraviteeModule {
         addDeserializer(HttpClientOptions.class, new HttpClientOptionsDeserializer(HttpClientOptions.class));
         addDeserializer(HttpClientSslOptions.class, new HttpClientSslOptionsDeserializer(HttpClientSslOptions.class));
         addDeserializer(Endpoint.class, new EndpointDeserializer(Endpoint.class));
+        addDeserializer(Properties.class, new PropertiesDeserializer(Properties.class));
+        addDeserializer(Property.class, new PropertyDeserializer(Property.class));
 
         // then serializers:
         addSerializer(Api.class, new ApiSerializer(Api.class));
@@ -59,5 +61,7 @@ public class ApiModule extends GraviteeModule {
         addSerializer(HttpClientOptions.class, new HttpClientOptionsSerializer(HttpClientOptions.class));
         addSerializer(HttpClientSslOptions.class, new HttpClientSslOptionsSerializer(HttpClientSslOptions.class));
         addSerializer(Endpoint.class, new EndpointSerializer(Endpoint.class));
+        addSerializer(Properties.class, new PropertiesSerializer(Properties.class));
+        addSerializer(Property.class, new PropertySerializer(Property.class));
     }
 }

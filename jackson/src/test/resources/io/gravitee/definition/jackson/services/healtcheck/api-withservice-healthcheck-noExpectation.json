@@ -4,7 +4,12 @@
 
   "proxy": {
     "context_path": "/team",
-    "endpoint": "http://localhost:8083/myapi",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8083/myapi"
+      }
+    ],
     "strip_context_path": false
   },
 
@@ -14,16 +19,16 @@
   },
 
   "properties": {
-    "my_property": true,
-    "my_property2": 123,
+    "my_property": "true",
+    "my_property2": "123",
     "my_property3": "text"
   },
 
   "services": {
     "health-check": {
       "interval": 60,
-      "unit": "SECONDS",
-      "enabled": true,
+      "unit": "seconds",
+      "enabled": false,
       "request": {
         "uri": "http://se56-2-qlf.mbstech.aec.corp/services/cxf/mobilite",
         "method": "GET",
@@ -37,13 +42,6 @@
           }
         ],
         "body": "My content in JSON form"
-      },
-      "expectation": {
-        "assertions": [
-          "response.status == 200",
-          "#jsonPath(response.body, '$.store.book[0].author')",
-          "#jsonPath(response.body, '$.store.book[0].author')"
-        ]
       }
     }
   }

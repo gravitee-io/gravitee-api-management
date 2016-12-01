@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson.datatype.services.healthcheck.ser;
+package io.gravitee.definition.jackson.datatype.api.ser;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import io.gravitee.definition.jackson.datatype.services.core.ser.ScheduledServiceSerializer;
-import io.gravitee.definition.model.services.healthcheck.HealthCheck;
+import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
+import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.Property;
 
 import java.io.IOException;
 
@@ -26,17 +27,18 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheckSerializer extends ScheduledServiceSerializer<HealthCheck> {
+public class PropertiesSerializer extends StdScalarSerializer<Properties> {
 
-    public HealthCheckSerializer(Class<HealthCheck> t) {
+    public PropertiesSerializer(Class<Properties> t) {
         super(t);
     }
 
     @Override
-    protected void doSerialize(HealthCheck service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
-        super.doSerialize(service, jgen, serializerProvider);
-
-        jgen.writeObjectField("request", service.getRequest());
-        jgen.writeObjectField("expectation", service.getExpectation());
+    public void serialize(Properties properties, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+        jgen.writeStartArray(properties.getValues().size());
+        for(Property property : properties.getProperties()) {
+            jgen.writeObject(property);
+        }
+        jgen.writeEndArray();
     }
 }

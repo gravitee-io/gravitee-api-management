@@ -13,29 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson;
+package io.gravitee.definition.model.services.dynamicproperty.http;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-
-import java.io.IOException;
-import java.io.InputStream;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractTest {
+public class HttpDynamicPropertyProviderConfiguration implements DynamicPropertyProviderConfiguration {
 
-    protected <T> T load(String resource, Class<T> type) throws IOException {
-        return objectMapper().readValue(read(resource), type);
+    private String url;
+
+    private String specification;
+
+    public String getUrl() {
+        return url;
     }
 
-    protected InputStream read(String resource) throws IOException {
-        return this.getClass().getResourceAsStream(resource);
+    public void setUrl(String url) {
+        this.url = url;
     }
 
-    protected ObjectMapper objectMapper() {
-        return new GraviteeMapper();
+    public String getSpecification() {
+        return specification;
+    }
+
+    public void setSpecification(String specification) {
+        this.specification = specification;
     }
 }

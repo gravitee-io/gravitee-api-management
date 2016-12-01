@@ -13,29 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-
-import java.io.IOException;
-import java.io.InputStream;
+package io.gravitee.definition.model.services.dynamicproperty;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractTest {
+public enum DynamicPropertyProvider {
 
-    protected <T> T load(String resource, Class<T> type) throws IOException {
-        return objectMapper().readValue(read(resource), type);
-    }
-
-    protected InputStream read(String resource) throws IOException {
-        return this.getClass().getResourceAsStream(resource);
-    }
-
-    protected ObjectMapper objectMapper() {
-        return new GraviteeMapper();
-    }
+    HTTP
 }

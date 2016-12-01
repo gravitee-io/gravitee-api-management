@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.jackson.services.healthcheck;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.services.healthcheck.HealthCheck;
@@ -31,7 +32,7 @@ public class HealthCheckDeserializerTest extends AbstractTest {
 
     @Test
     public void healthcheck() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withservice-healthcheck.json", Api.class);
+        Api api = load("/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck.json", Api.class);
         HealthCheck healthCheckService = api.getServices().get(HealthCheck.class);
         Assert.assertNotNull(healthCheckService);
         Assert.assertTrue(healthCheckService.isEnabled());
@@ -46,14 +47,16 @@ public class HealthCheckDeserializerTest extends AbstractTest {
         Assert.assertNotNull(healthCheckService.getExpectation());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = JsonMappingException.class)
     public void healthcheck_badUnit() throws Exception {
-        load("/io/gravitee/definition/jackson/api-withservice-healthcheck-badUnit.json", Api.class);
+        Api api = load("/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-badUnit.json", Api.class);
+
+        Assert.assertNotNull(api);
     }
 
     @Test
     public void healthcheck_unitInLowerCase() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withservice-healthcheck-unitInLowerCase.json", Api.class);
+        Api api = load("/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-unitInLowerCase.json", Api.class);
         HealthCheck healthCheckService = api.getServices().get(HealthCheck.class);
         Assert.assertNotNull(healthCheckService);
         Assert.assertFalse(healthCheckService.isEnabled());
@@ -63,7 +66,7 @@ public class HealthCheckDeserializerTest extends AbstractTest {
 
     @Test
     public void healthcheck_noExpectation() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withservice-healthcheck-noExpectation.json", Api.class);
+        Api api = load("/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-noExpectation.json", Api.class);
         HealthCheck healthCheckService = api.getServices().get(HealthCheck.class);
 
         Assert.assertFalse(healthCheckService.getExpectation().getAssertions().isEmpty());

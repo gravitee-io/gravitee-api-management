@@ -13,30 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson.services.healthcheck;
+package io.gravitee.definition.jackson.services;
 
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
-import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheckSerializerTest extends AbstractTest {
+public class ServicesDeserializerTest extends AbstractTest {
 
     @Test
-    public void definition_withHealtcheck() throws Exception {
-        String definition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck.json";
-        Api api = load(definition, Api.class);
+    public void definition_withServices() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/services/api-withservices.json", Api.class);
 
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        Assert.assertNotNull(generatedJsonDefinition);
-
-        String expected = IOUtils.toString(read(definition));
-        JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
+        Assert.assertNotNull(api);
+        Assert.assertFalse(api.getServices().isEmpty());
+        Assert.assertEquals(2, api.getServices().getAll().size());
     }
 }

@@ -13,29 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson;
+package io.gravitee.definition.model.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.Service;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractTest {
+public abstract class ScheduledService extends Service {
 
-    protected <T> T load(String resource, Class<T> type) throws IOException {
-        return objectMapper().readValue(read(resource), type);
+    protected long interval;
+
+    protected TimeUnit unit;
+
+    public ScheduledService(String name) {
+        super(name);
     }
 
-    protected InputStream read(String resource) throws IOException {
-        return this.getClass().getResourceAsStream(resource);
+    public long getInterval() {
+        return interval;
     }
 
-    protected ObjectMapper objectMapper() {
-        return new GraviteeMapper();
+    public void setInterval(long interval) {
+        this.interval = interval;
+    }
+
+    public TimeUnit getUnit() {
+        return unit;
+    }
+
+    public void setUnit(TimeUnit unit) {
+        this.unit = unit;
     }
 }

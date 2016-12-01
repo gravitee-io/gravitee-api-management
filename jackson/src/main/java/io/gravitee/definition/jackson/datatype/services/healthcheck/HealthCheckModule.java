@@ -36,7 +36,7 @@ public class HealthCheckModule extends GraviteeModule {
 
     @SuppressWarnings("unchecked")
     public HealthCheckModule() {
-        super("health-check");
+        super(HealthCheck.SERVICE_KEY);
 
         // first deserializers
         addDeserializer(HealthCheck.class, new HealthCheckDeserializer(HealthCheck.class));

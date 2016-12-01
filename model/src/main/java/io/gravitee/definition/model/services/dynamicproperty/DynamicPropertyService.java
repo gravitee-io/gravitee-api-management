@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.services.healthcheck;
+package io.gravitee.definition.model.services.dynamicproperty;
 
 import io.gravitee.definition.model.services.ScheduledService;
 
@@ -21,31 +21,35 @@ import io.gravitee.definition.model.services.ScheduledService;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheck extends ScheduledService {
+public class DynamicPropertyService extends ScheduledService {
 
-    public final static String SERVICE_KEY = "health-check";
+    public final static String SERVICE_KEY = "dynamic-property";
 
-    public HealthCheck() {
+    public DynamicPropertyService() {
         super(SERVICE_KEY);
     }
 
-    private Request request;
+    private DynamicPropertyProvider provider;
 
-    private Expectation expectation;
+    private DynamicPropertyProviderConfiguration configuration;
 
-    public Request getRequest() {
-        return request;
+    public DynamicPropertyProvider getProvider() {
+        return provider;
     }
 
-    public void setRequest(Request request) {
-        this.request = request;
+    public void setProvider(DynamicPropertyProvider provider) {
+        this.provider = provider;
     }
 
-    public Expectation getExpectation() {
-        return expectation;
+    public DynamicPropertyProviderConfiguration getConfiguration() {
+        return configuration;
     }
 
-    public void setExpectation(Expectation expectation) {
-        this.expectation = expectation;
+    public void setConfiguration(DynamicPropertyProviderConfiguration configuration) {
+        this.configuration = configuration;
+    }
+
+    public static String getServiceKey() {
+        return SERVICE_KEY;
     }
 }

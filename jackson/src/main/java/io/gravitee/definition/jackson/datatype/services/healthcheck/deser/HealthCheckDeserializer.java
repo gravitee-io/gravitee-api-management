@@ -16,71 +16,45 @@
 package io.gravitee.definition.jackson.datatype.services.healthcheck.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.services.healthcheck.HealthCheck;
+import io.gravitee.definition.jackson.datatype.services.core.deser.ScheduledServiceDeserializer;
 import io.gravitee.definition.model.services.healthcheck.Expectation;
+import io.gravitee.definition.model.services.healthcheck.HealthCheck;
 import io.gravitee.definition.model.services.healthcheck.Request;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheckDeserializer extends StdScalarDeserializer<HealthCheck> {
+public class HealthCheckDeserializer extends ScheduledServiceDeserializer<HealthCheck> {
 
     public HealthCheckDeserializer(Class<HealthCheck> vc) {
         super(vc);
     }
 
     @Override
-    public HealthCheck deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
-
-        HealthCheck healthCheck = new HealthCheck();
-
-        final JsonNode intervalNode = node.get("interval");
-        if (intervalNode != null) {
-            healthCheck.setInterval(intervalNode.asLong());
-        } else {
-            throw ctxt.mappingException("[healthcheck] Interval is required");
-        }
-
-        final JsonNode unitNode = node.get("unit");
-        if (unitNode != null) {
-            healthCheck.setUnit(TimeUnit.valueOf(unitNode.asText().toUpperCase()));
-        } else {
-            throw ctxt.mappingException("[healthcheck] Unit is required");
-        }
+    protected void deserialize(HealthCheck service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        super.deserialize(service, jsonParser, node, ctxt);
 
         final JsonNode requestNode = node.get("request");
         if (requestNode != null) {
-            healthCheck.setRequest(requestNode.traverse(jp.getCodec()).readValueAs(Request.class));
+            service.setRequest(requestNode.traverse(jsonParser.getCodec()).readValueAs(Request.class));
         } else {
             throw ctxt.mappingException("[healthcheck] Request is required");
         }
 
         final JsonNode expectationNode = node.get("expectation");
         if (expectationNode != null) {
-            healthCheck.setExpectation(expectationNode.traverse(jp.getCodec()).readValueAs(Expectation.class));
+            service.setExpectation(expectationNode.traverse(jsonParser.getCodec()).readValueAs(Expectation.class));
         } else {
             Expectation expectation = new Expectation();
             expectation.setAssertions(Collections.singletonList(Expectation.DEFAULT_ASSERTION));
-            healthCheck.setExpectation(expectation);
+            service.setExpectation(expectation);
         }
-
-        final JsonNode healthCheckEnabledNode = node.get("enabled");
-        if (healthCheckEnabledNode != null) {
-            healthCheck.setEnabled(healthCheckEnabledNode.asBoolean(true));
-        } else {
-            healthCheck.setEnabled(true);
-        }
-
-        return healthCheck;
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson.services.healthcheck;
+package io.gravitee.definition.jackson.services;
 
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
@@ -26,11 +26,11 @@ import org.skyscreamer.jsonassert.JSONAssert;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheckSerializerTest extends AbstractTest {
+public class ServicesSerializerTest extends AbstractTest {
 
     @Test
-    public void definition_withHealtcheck() throws Exception {
-        String definition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck.json";
+    public void definition_withServices() throws Exception {
+        String definition = "/io/gravitee/definition/jackson/services/api-withservices.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);

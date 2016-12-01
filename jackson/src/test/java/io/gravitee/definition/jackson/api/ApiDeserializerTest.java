@@ -173,7 +173,7 @@ public class ApiDeserializerTest extends AbstractTest {
     @Test
     public void definition_apiWithoutProperties() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withoutproperties.json", Api.class);
-        Map<String, String> properties = api.getProperties();
+        Properties properties = api.getProperties();
 
         Assert.assertNull(properties);
     }
@@ -181,23 +181,23 @@ public class ApiDeserializerTest extends AbstractTest {
     @Test
     public void definition_apiWithEmptyProperties() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withemptyproperties.json", Api.class);
-        Map<String, String> properties = api.getProperties();
+        Properties properties = api.getProperties();
 
         Assert.assertNotNull(properties);
-        Assert.assertTrue(properties.isEmpty());
+        Assert.assertTrue(properties.getValues().isEmpty());
     }
 
     @Test
     public void definition_apiWithProperties() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withproperties.json", Api.class);
-        Map<String, String> properties = api.getProperties();
+        Properties properties = api.getProperties();
 
         Assert.assertNotNull(properties);
-        Assert.assertEquals(4, properties.size());
-        Assert.assertEquals("true", properties.get("my_property"));
-        Assert.assertEquals("123", properties.get("my_property2"));
-        Assert.assertEquals("text", properties.get("my_property3"));
-        Assert.assertEquals("text", properties.get("my_property4"));
+        Assert.assertEquals(4, properties.getValues().size());
+        Assert.assertEquals("true", properties.getValues().get("my_property"));
+        Assert.assertEquals("123", properties.getValues().get("my_property2"));
+        Assert.assertEquals("text", properties.getValues().get("my_property3"));
+        Assert.assertEquals("text", properties.getValues().get("my_property4"));
     }
 
     @Test(expected = JsonMappingException.class)

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson.datatype.services.healthcheck.ser;
+package io.gravitee.definition.jackson.datatype.services.dynamicproperty.ser;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.jackson.datatype.services.core.ser.ScheduledServiceSerializer;
-import io.gravitee.definition.model.services.healthcheck.HealthCheck;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 
 import java.io.IOException;
 
@@ -26,17 +26,17 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheckSerializer extends ScheduledServiceSerializer<HealthCheck> {
+public class DynamicPropertySerializer extends ScheduledServiceSerializer<DynamicPropertyService> {
 
-    public HealthCheckSerializer(Class<HealthCheck> t) {
+    public DynamicPropertySerializer(Class<DynamicPropertyService> t) {
         super(t);
     }
 
     @Override
-    protected void doSerialize(HealthCheck service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(DynamicPropertyService service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
         super.doSerialize(service, jgen, serializerProvider);
 
-        jgen.writeObjectField("request", service.getRequest());
-        jgen.writeObjectField("expectation", service.getExpectation());
+        jgen.writeStringField("provider", service.getProvider().name());
+        jgen.writeObjectField("configuration", service.getConfiguration());
     }
 }
