@@ -39,8 +39,6 @@ import java.util.stream.Collectors;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-
-@Api(tags = {"GROUP"})
 public class GroupMembersResource extends AbstractResource {
 
     @Inject

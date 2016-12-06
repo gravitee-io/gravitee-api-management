@@ -20,6 +20,7 @@ import io.gravitee.management.model.NewTagEntity;
 import io.gravitee.management.model.TagEntity;
 import io.gravitee.management.model.UpdateTagEntity;
 import io.gravitee.management.service.TagService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Api(tags = {"Sharding Tags"})
 public class TagsResource extends AbstractResource  {
 
     @Autowired

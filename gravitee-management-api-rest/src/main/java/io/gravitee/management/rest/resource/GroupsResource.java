@@ -39,7 +39,7 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-
+@Api(tags = {"Group"})
 public class GroupsResource extends AbstractResource {
 
     @Context

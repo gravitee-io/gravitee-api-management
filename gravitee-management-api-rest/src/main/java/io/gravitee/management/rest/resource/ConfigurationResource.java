@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.swagger.annotations.Api;
+
 import javax.ws.rs.Path;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -25,6 +27,7 @@ import javax.ws.rs.core.Context;
  * @author GraviteeSource Team
  */
 @Path("/configuration")
+@Api(tags = {"Configuration"})
 public class ConfigurationResource {
 
     @Context

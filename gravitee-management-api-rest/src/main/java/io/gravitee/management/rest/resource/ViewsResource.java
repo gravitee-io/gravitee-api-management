@@ -20,6 +20,7 @@ import io.gravitee.management.model.*;
 import io.gravitee.management.rest.enhancer.ViewEnhancer;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ViewService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Api(tags = {"Views"})
 public class ViewsResource extends AbstractResource  {
 
     @Autowired
