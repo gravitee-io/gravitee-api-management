@@ -81,7 +81,7 @@
                   <label>Type</label>
                   <md-select ng-model="apiResourcesCtrl.resource.type" placeholder="Type" required ng-required="true"
                              ng-change="apiResourcesCtrl.onTypeChange()" ng-disabled="!apiResourcesCtrl.creation">
-                    <md-option ng-repeat="type in apiResourcesCtrl.types">{{type}}</md-option>
+                    <md-option ng-repeat="type in apiResourcesCtrl.types" ng-value="type.id">{{type.name}}</md-option>
                   </md-select>
                 </md-input-container>
             </div>

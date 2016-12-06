@@ -27,8 +27,11 @@ class ApiResourcesController {
     this.api = resolvedApi.data;
     this.creation = true;
     this.resourceJsonSchemaForm = ["*"];
-    // TODO: retrieve resource types from /resources service
-    this.types = ['oauth2', 'cache'];
+
+    this.types = [];
+    this.ResourceService.list().then( ( {data} ) => {
+      this.types = data;
+    });
   }
 
   initState() {
