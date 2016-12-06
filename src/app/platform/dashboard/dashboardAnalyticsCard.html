@@ -28,13 +28,13 @@
         <thead md-head>
         <tr md-row style="height: 30px;">
           <th md-column>{{top.titleKey}}</th>
-          <th md-column>{{top.titleValue}}</th>
+          <th md-column data-md-numeric>{{top.titleValue}}</th>
         </tr>
         </thead>
         <tbody md-body>
         <tr md-row ng-repeat="result in top.results | limitTo: 5: (paging[top.key] - 1) * 5" style="height: 25px;">
           <td md-cell><gravitee-dashboard-model id="{{result.topKey}}" model="{{top.field}}" metadata="{{result.metadata}}"/></td>
-          <td md-cell>{{result.topValue}}</td>
+          <td md-cell>{{result.topValue | number}}</td>
         </tr>
         </tbody>
       </table>
