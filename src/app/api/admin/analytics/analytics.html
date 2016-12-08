@@ -51,10 +51,9 @@
         <md-table-pagination md-limit="5" md-page="paging[top.key]" md-total="{{top.results.length}}"></md-table-pagination>
       </md-card-content>
     </md-card>
-    <md-card flex="30">
-      <md-card-content ng-if="analyticsCtrl.indicatorChartData.datasets[0].data[0] >= 0">
-        <canvas tc-chartjs chart-type="doughnut" chart-options="analyticsCtrl.indicatorChartOptions"
-                chart-data="analyticsCtrl.indicatorChartData" height="145"></canvas>
+    <md-card flex="30" layout-align="center center">
+      <md-card-content ng-if="analyticsCtrl.indicatorChartData.series.length">
+        <gravitee-chart options="analyticsCtrl.indicatorChartData" type="pie" height="200" width="300"></gravitee-chart>
         <div class="gravitee-analytics-total">{{analyticsCtrl.total}} hits</div>
       </md-card-content>
     </md-card>
@@ -63,10 +62,9 @@
   <md-card ng-repeat="report in analyticsCtrl.analyticsData.reports">
     <md-card-content>
       <label ng-bind="report.title"></label>
-      <div ng-if="chartConfig[report.id].datasets.length === 0">No data</div>
-      <canvas ng-if="chartConfig[report.id].datasets.length > 0" tc-chartjs
-              chart-options="report.stacked? optionsStacked:options"
-              chart-data="chartConfig[report.id]" chart-type="{{report.type}}" height="40"></canvas>
+      <div ng-if="!chartConfig[report.id].series.length">No data</div>
+      <gravitee-chart ng-if="chartConfig[report.id].series.length" options="chartConfig[report.id]"
+                      type="areaspline" height="200" stacked="report.stacked"></gravitee-chart>
     </md-card-content>
   </md-card>
 </md-content>

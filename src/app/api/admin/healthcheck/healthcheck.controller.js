@@ -118,7 +118,7 @@ class ApiHealthCheckController {
 
     $scope.doughnut = {};
 
-    $scope.data = [];
+    $scope.chartData = [];
 
     this.initState();
     this.updateChart();
@@ -255,30 +255,22 @@ class ApiHealthCheckController {
       _this.$scope.analytics.range.to).then(response => {
 
       _this.$scope.hasData = !(_.isEmpty(response.data.buckets));
-        _this.$scope.data = {
-          labels: _.map(response.data.timestamps, function (timestamp) {
-            return moment(timestamp).format("YYYY-MM-DD HH:mm:ss");
-          }),
-          datasets: []
+        _this.$scope.chartData = {
+          xAxis: {
+            categories: _.map(response.data.timestamps, function (timestamp) {
+              return moment(timestamp).format("YYYY-MM-DD HH:mm:ss");
+            })
+          },
+          series: []
         };
 
         var okCounter = 0;
         if (response.data.buckets.true) {
-          _this.$scope.data.datasets.push({
+          _this.$scope.chartData.series.push({
             data: response.data.buckets.true,
-            label: "OK",
-            backgroundColor: '#a5d6a7',
-            borderColor: '#66bb6a',
-            pointBackgroundColor: 'rgba(220,220,220,0.2)',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#66bb6a',
-            pointHoverBorderColor: 'rgba(220,220,220,1)',
-            fillColor: 'rgba(151,187,205,0.2)',
-            strokeColor: 'rgba(151,187,205,1)',
-            pointColor: 'rgba(151,187,205,1)',
-            pointStrokeColor: '#fff',
-            pointHighlightFill: '#fff',
-            pointHighlightStroke: 'rgba(151,187,205,1)'
+            name: "OK",
+            fillColor: '#a5d6a7',
+            color: '#66bb6a'
           });
 
           _.forEach(response.data.buckets.true, function (value) {
@@ -289,21 +281,11 @@ class ApiHealthCheckController {
 
         var koCounter = 0;
         if (response.data.buckets.false) {
-          _this.$scope.data.datasets.push({
+          _this.$scope.chartData.series.push({
             data: response.data.buckets.false,
-            label: "KO",
-            backgroundColor: '#ef9a9a',
-            borderColor: '#ef5350',
-            pointBackgroundColor: 'rgba(220,220,220,1)',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#ef5350',
-            pointHoverBorderColor: 'rgba(220,220,220,1)',
-            fillColor: 'rgba(220,220,220,0.2)',
-            strokeColor: 'rgba(220,220,220,1)',
-            pointColor: 'rgba(220,220,220,1)',
-            pointStrokeColor: '#fff',
-            pointHighlightFill: '#fff',
-            pointHighlightStroke: 'rgba(220,220,220,1)'
+            name: "KO",
+            fillColor: '#ef9a9a',
+            color: '#ef5350'
           });
 
           _.forEach(response.data.buckets.false, function (value) {
@@ -312,21 +294,13 @@ class ApiHealthCheckController {
         }
 
         _this.$scope.doughnut = {
-          datasets: [{
-            label: "Healthcheck repartition",
+          series: [{
+            name: "Healthcheck repartition",
             data: [
-              koCounter,
-              okCounter
-            ],
-            backgroundColor: [
-              "#ef9a9a",
-              "#a5d6a7"
+              {y: koCounter, name: 'KO', color: '#ef9a9a'},
+              {y: okCounter, name: 'OK', color: '#a5d6a7'}
             ]
-          }],
-          labels: [
-            "KO",
-            "OK"
-          ]
+          }]
         };
       });
   }

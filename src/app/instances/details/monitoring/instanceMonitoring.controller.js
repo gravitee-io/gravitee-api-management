@@ -17,6 +17,7 @@ class InstanceMonitoringController {
   constructor(resolvedMonitoringData, $stateParams, resolvedInstance, InstancesService, $scope) {
     'ngInject';
     this.monitoringData = resolvedMonitoringData.data;
+    this.buildChartData();
     this.instanceStarted = resolvedInstance.data.state === 'started';
 
     if (this.instanceStarted) {
@@ -24,6 +25,7 @@ class InstanceMonitoringController {
       var interval = setInterval(function () {
         InstancesService.getMonitoringData($stateParams.id, resolvedInstance.data.id).then(function (response) {
           that.monitoringData = response.data;
+          that.buildChartData();
         });
       }, 5000);
 
@@ -55,6 +57,21 @@ class InstanceMonitoringController {
 
   getPieChartPercentColor(value) {
     return value > 80 ? '#d62728' : '#2ca02c';
+  }
+
+  buildChartData() {
+    this.monitoringCpuChartData = {
+      series: [{
+        name: 'CPU',
+        data: [this.monitoringData.cpu.percent_use]
+      }]
+    };
+    this.monitoringHeapChartData = {
+      series: [{
+        name: 'Heap',
+        data: [this.monitoringData.jvm.heap_used_percent]
+      }]
+    };
   }
 }
 

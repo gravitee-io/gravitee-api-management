@@ -41,38 +41,6 @@ class ApplicationAnalyticsController {
       this.setTimeframe('3d');
     }
 
-    this.indicatorChartOptions = {
-      tooltips: {
-        callbacks: {
-          label: function (tooltipItem, data) {
-            return data.labels[tooltipItem.index];
-          }
-        }
-      }
-    };
-
-    $scope.options = {
-      elements: {
-        point: {
-          radius: 5
-        }
-      },
-      scales: {
-        xAxes: [{
-          display: false
-        }],
-        yAxes: [{
-          stacked: false
-        }]
-      },
-      tooltips: {
-        mode: 'label'
-      }
-    };
-
-    $scope.optionsStacked = _.cloneDeep($scope.options);
-    $scope.optionsStacked.scales.yAxes[0].stacked = true;
-
     //from https://material.google.com/style/color.html#color-color-palette
     //shade 500 & 900
     //
@@ -173,26 +141,38 @@ class ApplicationAnalyticsController {
   }
 
   pushHitsByData(report, response) {
-    for (var i = 0; i < response[0].data.values[0].buckets.length; i++) {
-      var lineColor = report.id === 'response-status' ? this.getColorByStatus(response[0].data.values[0].buckets[i].name) : this.colorByBucket[i % this.colorByBucket.length];
-      var bgColor = report.id === 'response-status' ? this.getBgColorByStatus(response[0].data.values[0].buckets[i].name) : this.bgColorByBucket[i % this.bgColorByBucket.length];
-      var label = report.requests[0].label ? report.requests[0].label : (report.label || report.labelPrefix + ' ' + response[0].data.values[0].buckets[i].name);
-      if (report.id === 'apis') {
-         var api = response[0].data.metadata[response[0].data.values[0].buckets[i].name];
-         label = (! api.deleted) ? api.name + ' (' + api.version + ')' : api.name;
+    let that = this;
+    let data = [], i = 0;
+    _.forEach(report.requests, function (request) {
+      let currentResponse = response[i++];
+      if (currentResponse) {
+        _.forEach(currentResponse.data.values[0].buckets, function (bucket) {
+          if (bucket) {
+            let lineColor = report.id === 'response-status' ? that.getColorByStatus(bucket.name) : that.colorByBucket[i % that.colorByBucket.length];
+            let bgColor = report.id === 'response-status' ? that.getBgColorByStatus(bucket.name) : that.bgColorByBucket[i % that.bgColorByBucket.length];
+            var label = request.label ? request.label : (report.label || report.labelPrefix + ' ' + bucket.name);
+            if (report.id === 'apis') {
+              var api = currentResponse.data.metadata[bucket.name];
+              label = (! api.deleted) ? api.name + ' (' + api.version + ')' : api.name;
+            }
+            data.push({
+              name: label || bucket.name, data: bucket.data, color: lineColor, fillColor: bgColor,
+              labelPrefix: report.labelPrefix
+            });
+          }
+        });
       }
+    });
 
-      this.$scope.chartConfig[report.id].datasets.push({
-        label: label,
-        data: response[0].data.values[0].buckets[i].data,
-        backgroundColor: bgColor,
-        borderColor: lineColor,
-        pointBackgroundColor: 'rgba(220,220,220,0.2)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: lineColor,
-        pointHoverBorderColor: 'rgba(220,220,220,1)'
-      });
-    }
+    this.$scope.chartConfig[report.id] = {
+      xAxis: {
+        labels: {enabled: false},
+        categories: _.map(response[0].data.timestamps, function (timestamp) {
+          return moment(timestamp).format("YYYY-MM-DD HH:mm:ss");
+        })
+      },
+      series: data
+    };
   }
 
   pushTopHitsData() {
@@ -283,10 +263,16 @@ class ApplicationAnalyticsController {
       totalIndicator.key,
       totalIndicator.query + queryFilter);
 
+    let data = [];
+
+    delete _this.indicatorChartData;
+
     request.then(response => {
       _this.dataFetched(_this.indicatorsFetched, 'total');
       totalIndicator.value = response.data.hits;
       this.total = totalIndicator.value;
+
+      let i = 0;
 
       // then we get other indicators
       var indicators = _.filter(this.analyticsData.indicators, function (indicator) {
@@ -303,12 +289,27 @@ class ApplicationAnalyticsController {
         request.then(response => {
           _this.dataFetched(_this.indicatorsFetched, indicator.key);
           indicator.value = response.data.hits;
-          if (indicator.value) {
-            var percentage = _.round(indicator.value / _this.total * 100);
-            _this.indicatorChartData.labels.push(indicator.title + ': (' + percentage + '%) ' + indicator.value + ' hits');
-            var dataset = _this.indicatorChartData.datasets[0];
-            dataset.data.push(percentage);
-            dataset.backgroundColor.push(indicator.color);
+          i++;
+          if (indicator.value !== undefined) {
+            let percentage = _.round(indicator.value / _this.total * 100);
+            if (percentage !== 0) {
+              data.push({
+                name: indicator.title + ': (' + percentage + '%) ' + indicator.value + ' hits',
+                y: percentage,
+                color: indicator.color
+              });
+            }
+
+            if (indicators.length === i && _.filter(indicators, function (indicator) {
+                return indicator.value !== 0;
+              }).length) {
+              _this.indicatorChartData = {
+                series: [{
+                  name: 'Percent hits',
+                  data: data
+                }]
+              };
+            }
           }
         });
       });
@@ -445,7 +446,7 @@ class ApplicationAnalyticsController {
         {
           id: 'response-status',
           type: 'line',
-          stacked: true,
+          stacked: false,
           title: 'Response Status',
           labelPrefix: 'HTTP Status',
           requests: [
@@ -460,7 +461,7 @@ class ApplicationAnalyticsController {
         }, {
           id: 'response-times',
           type: 'line',
-          stacked: false,
+          stacked: true,
           title: 'Response Times',
           requests: [
             {
@@ -475,7 +476,7 @@ class ApplicationAnalyticsController {
         }, {
           id: 'apis',
           type: 'line',
-          stacked: true,
+          stacked: false,
           title: 'Hits by APIs',
           labelPrefix: '',
           requests: [

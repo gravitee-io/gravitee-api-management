@@ -23,18 +23,14 @@
     <md-card flex="25">
       <md-card-content>
         <div class="gravitee-pie-chart-container">
-          <pie-chart data="[{label: 'CPU', value: instanceMonitoringCtrl.monitoringData.cpu.percent_use,
-            color: instanceMonitoringCtrl.getPieChartPercentColor(instanceMonitoringCtrl.monitoringData.cpu.percent_use), suffix: '%'}]"
-                     options="{thickness: 5, mode: 'gauge', total: 100}"></pie-chart>
+          <gravitee-chart height="160" width="160" options="instanceMonitoringCtrl.monitoringCpuChartData" type="solidgauge"></gravitee-chart>
         </div>
       </md-card-content>
     </md-card>
     <md-card flex="25">
       <md-card-content>
         <div class="gravitee-pie-chart-container">
-          <pie-chart data="[{label: 'Heap', value: instanceMonitoringCtrl.monitoringData.jvm.heap_used_percent,
-            color: instanceMonitoringCtrl.getPieChartPercentColor(instanceMonitoringCtrl.monitoringData.jvm.heap_used_percent), suffix: '%'}]"
-                     options="{thickness: 5, mode: 'gauge', total: 100}"></pie-chart>
+          <gravitee-chart height="160" width="160" options="instanceMonitoringCtrl.monitoringHeapChartData" type="solidgauge"></gravitee-chart>
         </div>
       </md-card-content>
     </md-card>

@@ -11,6 +11,8 @@
   "jasmine": true,
   "loopfunc": true,
   "globals": {
+    "$": true,
+    "console": true,
     "angular": false,
     "inject": false,
     "module": false,

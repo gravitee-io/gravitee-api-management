@@ -39,38 +39,6 @@ class ApiAnalyticsController {
       this.setTimeframe('3d');
     }
 
-    this.indicatorChartOptions = {
-      tooltips: {
-        callbacks: {
-          label: function (tooltipItem, data) {
-            return data.labels[tooltipItem.index];
-          }
-        }
-      }
-    };
-
-    $scope.options = {
-      elements: {
-        point: {
-          radius: 5
-        }
-      },
-      scales: {
-        xAxes: [{
-          display: false
-        }],
-        yAxes: [{
-          stacked: false
-        }]
-      },
-      tooltips: {
-        mode: 'label'
-      }
-    };
-
-    $scope.optionsStacked = _.cloneDeep($scope.options);
-    $scope.optionsStacked.scales.yAxes[0].stacked = true;
-
     //from https://material.google.com/style/color.html#color-color-palette
     //shade 500 & 900
     //
@@ -119,7 +87,11 @@ class ApiAnalyticsController {
 
   updateDate(date) {
     if (date) {
-      this.$state.transitionTo(this.$state.current, {apiId: this.api.id, timestamp: date.getTime() / 1000, timeframe: ''}, { notify: false });
+      this.$state.transitionTo(this.$state.current, {
+        apiId: this.api.id,
+        timestamp: date.getTime() / 1000,
+        timeframe: ''
+      }, {notify: false});
       this.setTimestamp(date.getTime() / 1000);
       this.updateCharts();
     }
@@ -127,7 +99,11 @@ class ApiAnalyticsController {
 
   updateTimeframe(timeframeId) {
     if (timeframeId) {
-      this.$state.transitionTo(this.$state.current, {apiId: this.api.id, timestamp: '', timeframe: timeframeId}, { notify: false });
+      this.$state.transitionTo(this.$state.current, {
+        apiId: this.api.id,
+        timestamp: '',
+        timeframe: timeframeId
+      }, {notify: false});
       this.setTimeframe(timeframeId);
       this.updateCharts();
     }
@@ -175,26 +151,38 @@ class ApiAnalyticsController {
   }
 
   pushHitsByData(report, response) {
-    for (var i = 0; i < response[0].data.values[0].buckets.length; i++) {
-      var lineColor = report.id === 'response-status' ? this.getColorByStatus(response[0].data.values[0].buckets[i].name) : this.colorByBucket[i % this.colorByBucket.length];
-      var bgColor = report.id === 'response-status' ? this.getBgColorByStatus(response[0].data.values[0].buckets[i].name) : this.bgColorByBucket[i % this.bgColorByBucket.length];
-      var label = report.requests[0].label ? report.requests[0].label : (report.label || report.labelPrefix + ' ' + response[0].data.values[0].buckets[i].name);
-      if (report.id === 'applications') {
-        var application = response[0].data.metadata[response[0].data.values[0].buckets[i].name];
-        label = application.name;
+    let that = this;
+    let data = [], i = 0;
+    _.forEach(report.requests, function (request) {
+      let currentResponse = response[i++];
+      if (currentResponse) {
+        _.forEach(currentResponse.data.values[0].buckets, function (bucket) {
+          if (bucket) {
+            let lineColor = report.id === 'response-status' ? that.getColorByStatus(bucket.name) : that.colorByBucket[i % that.colorByBucket.length];
+            let bgColor = report.id === 'response-status' ? that.getBgColorByStatus(bucket.name) : that.bgColorByBucket[i % that.bgColorByBucket.length];
+            var label = request.label ? request.label : (report.label || report.labelPrefix + ' ' + bucket.name);
+            if (report.id === 'applications') {
+              var application = currentResponse.data.metadata[bucket.name];
+              label = application.name;
+            }
+            data.push({
+              name: label || bucket.name, data: bucket.data, color: lineColor, fillColor: bgColor,
+              labelPrefix: report.labelPrefix
+            });
+          }
+        });
       }
+    });
 
-      this.$scope.chartConfig[report.id].datasets.push({
-        label: label,
-        data: response[0].data.values[0].buckets[i].data,
-        backgroundColor: bgColor,
-        borderColor: lineColor,
-        pointBackgroundColor: 'rgba(220,220,220,0.2)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: lineColor,
-        pointHoverBorderColor: 'rgba(220,220,220,1)'
-      });
-    }
+    this.$scope.chartConfig[report.id] = {
+      xAxis: {
+        labels: {enabled: false},
+        categories: _.map(response[0].data.timestamps, function (timestamp) {
+          return moment(timestamp).format("YYYY-MM-DD HH:mm:ss");
+        })
+      },
+      series: data
+    };
   }
 
   pushTopHitsData() {
@@ -213,14 +201,14 @@ class ApiAnalyticsController {
         request.then(response => {
           _this.dataFetched(_this.topsFetched, top.key);
           if (Object.keys(response.data.values).length) {
-          top.results = _.map(response.data.values, function (value, key) {
-            return {
-              topApp: key,
-              topHits: value,
-              metadata: (response.data) ? response.data.metadata[key] : undefined
-            };
-          });
-          _this.$scope.paging[top.key] = 1;
+            top.results = _.map(response.data.values, function (value, key) {
+              return {
+                topApp: key,
+                topHits: value,
+                metadata: (response.data && response.data.metadata) ? response.data.metadata[key] : undefined
+              };
+            });
+            _this.$scope.paging[top.key] = 1;
           } else {
             delete top.results;
           }
@@ -255,26 +243,6 @@ class ApiAnalyticsController {
 
       _this.$q.all(requests).then(response => {
         _this.dataFetched(_this.reportsFetched, report.key);
-        _this.$scope.chartConfig[report.id] = {
-          labels: _.map(response[0].data.timestamps, function (timestamp) {
-            return moment(timestamp).format("YYYY-MM-DD HH:mm:ss");
-          }),
-          datasets: []
-        };
-
-        // Push data for global hits
-        if (response[1] && response[1].data.values && response[1].data.values[0] && response[1].data.values[0].buckets[0]) {
-          _this.$scope.chartConfig[report.id].datasets.push({
-            data: response[1].data.values[0].buckets[0].data,
-            label: report.requests[1].label,
-            backgroundColor: 'rgba(220,220,220,0.2)',
-            borderColor: 'rgba(220,220,220,1)',
-            pointBackgroundColor: 'rgba(220,220,220,1)',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: 'rgba(220,220,220,0.2)',
-            pointHoverBorderColor: 'rgba(220,220,220,1)'
-          });
-        }
 
         // Push data for hits by 'something'
         if (response[0] && response[0].data.values && response[0].data.values[0]) {
@@ -289,7 +257,6 @@ class ApiAnalyticsController {
 
     // indicators
     _this.indicators = [];
-    _this.indicatorChartData = {labels: [], datasets: [{data: [], backgroundColor: []}]};
     // first we need to get total calls to produce ratios
     var totalIndicator = _.find(_this.analyticsData.indicators, 'isTotal');
     var request = totalIndicator.request.call(this.ApiService, this.api.id,
@@ -298,6 +265,8 @@ class ApiAnalyticsController {
       _this.analyticsData.range.interval,
       totalIndicator.key,
       totalIndicator.query + queryFilter);
+
+    let data = [];
 
     request.then(response => {
       _this.dataFetched(_this.indicatorsFetched, 'total');
@@ -308,6 +277,10 @@ class ApiAnalyticsController {
       var indicators = _.filter(this.analyticsData.indicators, function (indicator) {
         return !indicator.isTotal;
       });
+
+      let i = 0;
+
+      delete _this.indicatorChartData;
       _.forEach(indicators, function (indicator) {
         var request = indicator.request.call(_this.ApiService, _this.api.id,
           _this.analyticsData.range.from,
@@ -319,12 +292,27 @@ class ApiAnalyticsController {
         request.then(response => {
           _this.dataFetched(_this.indicatorsFetched, indicator.key);
           indicator.value = response.data.hits;
-          if (indicator.value) {
-            var percentage = _.round(indicator.value / _this.total * 100);
-            _this.indicatorChartData.labels.push(indicator.title + ': (' + percentage + '%) ' + indicator.value + ' hits');
-            var dataset = _this.indicatorChartData.datasets[0];
-            dataset.data.push(percentage);
-            dataset.backgroundColor.push(indicator.color);
+          i++;
+          if (indicator.value !== undefined) {
+            let percentage = _.round(indicator.value / _this.total * 100);
+            if (percentage !== 0) {
+              data.push({
+                name: indicator.title + ': (' + percentage + '%) ' + indicator.value + ' hits',
+                y: percentage,
+                color: indicator.color
+              });
+            }
+
+            if (indicators.length === i && _.filter(indicators, function (indicator) {
+                return indicator.value !== 0;
+              }).length) {
+              _this.indicatorChartData = {
+                series: [{
+                  name: 'Percent hits',
+                  data: data
+                }]
+              };
+            }
           }
         });
       });
@@ -341,13 +329,13 @@ class ApiAnalyticsController {
     this.topsFetched = {};
     this.reportsFetched = {};
     this.indicatorsFetched = {};
-    _.forEach(this.analyticsData.tops, function(top) {
+    _.forEach(this.analyticsData.tops, function (top) {
       _this.topsFetched[top.key] = false;
     });
-    _.forEach(this.analyticsData.reports, function(report) {
+    _.forEach(this.analyticsData.reports, function (report) {
       _this.reportsFetched[report.key] = false;
     });
-    _.forEach(this.analyticsData.indicators, function(indicator) {
+    _.forEach(this.analyticsData.indicators, function (indicator) {
       _this.indicatorsFetched[indicator.key] = false;
     });
     this.$scope.fetchDone = false;
@@ -357,7 +345,7 @@ class ApiAnalyticsController {
     // data fetching settings
     var _this = this;
     this.$scope.fetchDone = true;
-    this.$scope.$on('dataFetched', function() {
+    this.$scope.$on('dataFetched', function () {
       var analyticsFetched = {};
       analyticsFetched.tops = _.every(_this.topsFetched, Boolean);
       analyticsFetched.reports = _.every(_this.reportsFetched, Boolean);
@@ -462,7 +450,7 @@ class ApiAnalyticsController {
         {
           id: 'response-status',
           type: 'line',
-          stacked: true,
+          stacked: false,
           title: 'Response Status',
           labelPrefix: 'HTTP Status',
           requests: [
@@ -477,7 +465,7 @@ class ApiAnalyticsController {
         }, {
           id: 'response-times',
           type: 'line',
-          stacked: false,
+          stacked: true,
           title: 'Response Times',
           requests: [
             {
@@ -500,7 +488,7 @@ class ApiAnalyticsController {
         }, {
           id: 'applications',
           type: 'line',
-          stacked: true,
+          stacked: false,
           title: 'Hits by applications',
           labelPrefix: '',
           requests: [

@@ -111,11 +111,12 @@ import DialogPublishPlanController from './api/admin/plans/publishPlanDialog.con
 import TagsController from './configuration/admin/tags/tags.controller';
 import TagService from './services/tag.service';
 import DeleteTagDialogController from './configuration/admin/tags/delete.tag.dialog.controller';
+import ChartDirective from './components/chart/chart.directive';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'gvConstants', 'angular-timeline',
-  'ab-base64',  'ngFileUpload', 'n3-pie-chart', 'tc.chartjs', 'md-steppers', 'ui.tree', 'angular-jwt'])
+  'ab-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt'])
   .config(config)
   .config(routerConfig)
   .config(interceptorConfig)
@@ -230,6 +231,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .directive('graviteeAnalyticsApiModel', () => new AnalyticsAPIModelDirective())
   .directive('graviteeAnalyticsApplicationModel', () => new AnalyticsApplicationModelDirective())
   .directive('graviteeEmptyState', () => new EmptyStateDirective())
+  .directive('graviteeChart', () => new ChartDirective())
   .filter('humanDateFilter', function () {
     return function(input) {
       if (!moment().subtract(1, 'weeks').isAfter(input)) {

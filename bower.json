@@ -1,6 +1,6 @@
 {
   "name": "gravitee-management-webui",
-  "version": "1.1.0",
+  "version": "1.2.0-SNAPSHOT",
   "description": "Gravitee IO - API Management - Admin - Web Console",
   "dependencies": {
     "angular-ui-router": "~0.2.15",
@@ -28,15 +28,14 @@
     "angular-utf8-base64": "~0.0.5",
     "ng-file-upload": "^12.0.4",
     "js-yaml": "^3.5.5",
-    "pie-chart": "n3-charts.pie-chart#^1.0.0",
     "angular-schema-form-ui-codemirror": "^0.2.2",
-    "tc-angular-chartjs": "^2.0.0",
     "md-steppers": "^0.3.3",
     "ng-showdown": "^1.1.0",
     "showdown-prettify": "^1.3.0",
     "v-accordion": "^1.6.0",
     "angular-ui-tree": "^2.22.1",
-    "angular-jwt": "^0.1.5"
+    "angular-jwt": "^0.1.5",
+    "highcharts": "^5.0.5"
   },
   "resolutions": {
     "angular-material": "^1.0.0",
@@ -46,6 +45,13 @@
     "codemirror": "~5.1.0"
   },
   "overrides": {
+    "highcharts": {
+      "main": [
+        "./highcharts.js",
+        "./highcharts-more.js",
+        "./js/modules/solid-gauge.js"
+      ]
+    },
     "api-console": {
       "main": [
         "./dist/scripts/api-console.js",
@@ -62,16 +68,6 @@
         "./dist/scripts/swagger-ui.js",
         "./dist/css/swagger-ui.min.css",
         "./dist/scripts/modules/swagger-yaml-parser.min.js"
-      ]
-    },
-    "d3": {
-      "main": [
-        "./d3.min.js"
-      ]
-    },
-    "pie-chart": {
-      "main": [
-        "./dist/pie-chart.js"
       ]
     },
     "codemirror": {
