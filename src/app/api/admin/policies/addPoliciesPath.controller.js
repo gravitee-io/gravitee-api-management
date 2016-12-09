@@ -36,6 +36,8 @@ class AddPoliciesPathController {
       _.forEach(this.paths[this.newPath.path], (policy) => {
         delete policy.$$hashKey;
       });
+    } else {
+      this.paths[this.newPath.path] = [];
     }
 		this.mdDialog.hide(this.paths);
   }
