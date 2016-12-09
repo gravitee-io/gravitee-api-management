@@ -19,7 +19,7 @@
   <div style="border: 1px solid #e7eaec; border-bottom: 0; padding: 0 20px 10px 20px;">
     <div layout="row" layout-align="start center" >
 
-      <div layout="row" layout-align="start center" flex="45">
+      <div layout="row" layout-align="start center" flex="40">
         <div style="padding: 10px"><md-icon ng-if="pageCtrl.page.type" md-svg-src="app/images/logo_{{pageCtrl.page.type | lowercase}}.svg"></md-icon></div>
         <div>
           <h3 ng-if="!pageCtrl.editMode" style="color: #676a6c; clear:both;">{{pageCtrl.page.name}}</h3>
@@ -27,7 +27,7 @@
         </div>
       </div>
 
-      <div layout="column" layout-align="end center" flex="10">
+      <div layout="column" layout-align="end center" flex="20">
         <md-switch ng-model="pageCtrl.page.published" ng-change="pageCtrl.changePublication()" style="margin: 4px 0;">
           <md-tooltip md-direction="top">Publish modifications</md-tooltip>
           <span ng-show="pageCtrl.page.published">Published</span>
@@ -41,7 +41,7 @@
         <span style="top: 5px;position: relative;">{{pageCtrl.page.lastModificationDate | date}}</span>
       </div></div>
 
-      <div class="documentation-tool-bar" layout="row" layout-align="end center" flex="45">
+      <div class="documentation-tool-bar" layout="row" layout-align="end center" flex="40">
 
         <md-button ng-click="pageCtrl.edit()" class="md-icon-button" aria-label="Edit">
           <md-tooltip md-direction="top">Edit this page</md-tooltip>
