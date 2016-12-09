@@ -109,6 +109,7 @@ reporters:
     hosts:
       - ${ds.elastic.host}:${ds.elastic.port}
 #    index: gravitee
+#    cluster: elasticsearch
 #    bulk:
 #      actions: 1000           # Number of requests action before flush
 #      flush_interval: 5       # Flush interval in seconds
