@@ -29,7 +29,7 @@
 
 
     <artifactId>gravitee-gateway-reporting</artifactId>
-    <name>Gravitee IO - Gateway - Reporting</name>
+    <name>Gravitee.io APIM - Gateway - Reporting</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

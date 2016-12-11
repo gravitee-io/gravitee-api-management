@@ -29,7 +29,7 @@
 
 
     <artifactId>gravitee-gateway-el</artifactId>
-    <name>Gravitee IO - Gateway - Expression Language</name>
+    <name>Gravitee.io APIM - Gateway - Expression Language</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

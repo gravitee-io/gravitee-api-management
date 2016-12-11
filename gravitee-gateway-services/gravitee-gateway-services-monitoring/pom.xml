@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-services-monitoring</artifactId>
-    <name>Gravitee IO - Gateway - Services - Monitoring</name>
+    <name>Gravitee.io APIM - Gateway - Services - Monitoring</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

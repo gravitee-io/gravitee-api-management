@@ -30,7 +30,7 @@
     <groupId>io.gravitee.gateway.handlers</groupId>
     <artifactId>gravitee-gateway-handlers</artifactId>
     <packaging>pom</packaging>
-    <name>Gravitee IO - Gateway - Reactor Handlers</name>
+    <name>Gravitee.io APIM - Gateway - Reactor Handlers</name>
 
     <modules>
         <module>gravitee-gateway-handlers-api</module>

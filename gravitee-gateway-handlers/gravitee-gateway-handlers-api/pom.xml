@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-handlers-api</artifactId>
-    <name>Gravitee IO - Gateway - Reactor Handlers - API</name>
+    <name>Gravitee.io APIM - Gateway - Reactor Handlers - API</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

@@ -28,5 +28,5 @@
     </parent>
 
     <artifactId>gravitee-gateway-standalone-bootstrap</artifactId>
-    <name>Gravitee IO - Gateway - Standalone - Bootstrap</name>
+    <name>Gravitee.io APIM - Gateway - Standalone - Bootstrap</name>
 </project>

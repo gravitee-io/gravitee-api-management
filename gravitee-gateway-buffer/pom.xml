@@ -29,7 +29,7 @@
 
 
     <artifactId>gravitee-gateway-buffer</artifactId>
-    <name>Gravitee IO - Gateway - Buffer implementation</name>
+    <name>Gravitee.io APIM - Gateway - Buffer implementation</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

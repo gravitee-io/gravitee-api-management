@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-services-sync</artifactId>
-    <name>Gravitee IO - Gateway - Services - Sync</name>
+    <name>Gravitee.io APIM - Gateway - Services - Sync</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

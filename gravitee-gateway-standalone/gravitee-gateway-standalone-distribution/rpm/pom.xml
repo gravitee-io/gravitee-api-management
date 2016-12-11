@@ -27,7 +27,7 @@
 	</parent>
 
 	<artifactId>gravitee-gateway-standalone-distribution-rpm</artifactId>
-	<name>Gravitee IO - Gateway - Standalone - Distribution - RPM</name>
+	<name>Gravitee.io APIM - Gateway - Standalone - Distribution - RPM</name>
 	<packaging>pom</packaging>
 
 	<properties>

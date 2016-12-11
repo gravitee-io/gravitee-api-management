@@ -29,7 +29,7 @@
 
 
     <artifactId>gravitee-gateway-policy</artifactId>
-    <name>Gravitee IO - Gateway - Policy</name>
+    <name>Gravitee.io APIM - Gateway - Policy</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

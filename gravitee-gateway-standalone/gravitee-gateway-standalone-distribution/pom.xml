@@ -28,7 +28,7 @@
 
 	<artifactId>gravitee-gateway-standalone-distribution</artifactId>
 	<packaging>pom</packaging>
-	<name>Gravitee IO - Gateway - Standalone - Distribution</name>
+	<name>Gravitee.io APIM - Gateway - Standalone - Distribution</name>
 	  
  	<properties>
         <!-- Properties used for building RPM & DEB package-->

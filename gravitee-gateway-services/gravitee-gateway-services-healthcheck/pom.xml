@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-services-healthcheck</artifactId>
-    <name>Gravitee IO - Gateway - Services - Health Check</name>
+    <name>Gravitee.io APIM - Gateway - Services - Health Check</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

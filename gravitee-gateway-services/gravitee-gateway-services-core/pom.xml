@@ -29,7 +29,7 @@
 
 
     <artifactId>gravitee-gateway-services-core</artifactId>
-    <name>Gravitee IO - Gateway - Services - Core</name>
+    <name>Gravitee.io APIM - Gateway - Services - Core</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

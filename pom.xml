@@ -31,7 +31,7 @@
     <artifactId>gravitee-gateway</artifactId>
     <version>1.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Gravitee IO - Gateway</name>
+    <name>Gravitee.io APIM - Gateway</name>
 
     <modules>
         <module>gravitee-gateway-env</module>

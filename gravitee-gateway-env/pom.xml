@@ -29,7 +29,7 @@
 
 
     <artifactId>gravitee-gateway-env</artifactId>
-    <name>Gravitee IO - Gateway - Environment</name>
+    <name>Gravitee.io APIM - Gateway - Environment</name>
 
     <dependencies>
         <dependency>

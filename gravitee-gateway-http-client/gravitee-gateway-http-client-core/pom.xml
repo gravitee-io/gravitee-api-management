@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-http-client-core</artifactId>
-    <name>Gravitee IO - Gateway - HTTP Client - Core</name>
+    <name>Gravitee.io APIM - Gateway - HTTP Client - Core</name>
 
     <dependencies>
         <!-- Spring dependencies -->

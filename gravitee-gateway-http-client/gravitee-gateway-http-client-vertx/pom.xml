@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-http-client-vertx</artifactId>
-    <name>Gravitee IO - Gateway - HTTP Client - Vert.x</name>
+    <name>Gravitee.io APIM - Gateway - HTTP Client - Vert.x</name>
 
     <dependencies>
         <!-- Vertx.io HTTP client -->

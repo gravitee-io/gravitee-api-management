@@ -30,7 +30,7 @@
     <groupId>io.gravitee.gateway.standalone</groupId>
     <artifactId>gravitee-gateway-standalone</artifactId>
     <packaging>pom</packaging>
-    <name>Gravitee IO - Gateway - Standalone</name>
+    <name>Gravitee.io APIM - Gateway - Standalone</name>
     
     <modules>
         <module>gravitee-gateway-standalone-container</module>

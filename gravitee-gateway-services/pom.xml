@@ -30,7 +30,7 @@
     <groupId>io.gravitee.gateway.services</groupId>
     <artifactId>gravitee-gateway-services</artifactId>
     <packaging>pom</packaging>
-    <name>Gravitee IO - Gateway - Services</name>
+    <name>Gravitee.io APIM - Gateway - Services</name>
 
     <modules>
         <module>gravitee-gateway-services-core</module>

@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-standalone-container</artifactId>
-    <name>Gravitee IO - Gateway - Standalone - Container</name>
+    <name>Gravitee.io APIM - Gateway - Standalone - Container</name>
 
     <build>
         <resources>

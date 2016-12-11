@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-standalone-distribution-zip</artifactId>
-    <name>Gravitee IO - Gateway - Standalone - Distribution - ZIP</name>
+    <name>Gravitee.io APIM - Gateway - Standalone - Distribution - ZIP</name>
     <packaging>pom</packaging>
 
     <properties>

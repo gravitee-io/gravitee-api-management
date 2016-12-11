@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-services-apikeyscache</artifactId>
-    <name>Gravitee IO - Gateway - Services - API Keys cache</name>
+    <name>Gravitee.io APIM - Gateway - Services - API Keys cache</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

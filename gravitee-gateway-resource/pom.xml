@@ -29,7 +29,7 @@
 
 
     <artifactId>gravitee-gateway-resource</artifactId>
-    <name>Gravitee IO - Gateway - Resource</name>
+    <name>Gravitee.io APIM - Gateway - Resource</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

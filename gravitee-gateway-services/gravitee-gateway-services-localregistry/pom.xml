@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-services-localregistry</artifactId>
-    <name>Gravitee IO - Gateway - Services - Local Registry</name>
+    <name>Gravitee.io APIM - Gateway - Services - Local Registry</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->
