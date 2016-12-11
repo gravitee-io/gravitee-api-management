@@ -31,7 +31,7 @@
     <artifactId>gravitee-management-api-idp</artifactId>
     <packaging>pom</packaging>
 
-    <name>Gravitee IO - Management - Identity Providers</name>
+    <name>Gravitee.io APIM - Management - Identity Providers</name>
 
     <modules>
         <module>gravitee-management-api-idp-api</module>

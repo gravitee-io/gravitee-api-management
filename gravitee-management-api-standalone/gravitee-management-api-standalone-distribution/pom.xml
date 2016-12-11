@@ -43,7 +43,7 @@
 		<packaging.gravitee.management.group>gravitee</packaging.gravitee.management.group>
 	</properties>
 
-	<name>Gravitee IO - Management - Standalone - Distribution</name>
+	<name>Gravitee.io APIM - Management - Standalone - Distribution</name>
 
 	<dependencies>
 		<!-- Gravitee dependencies -->

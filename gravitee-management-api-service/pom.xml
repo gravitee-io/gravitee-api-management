@@ -33,7 +33,7 @@
 	<artifactId>gravitee-management-api-service</artifactId>
 	<packaging>jar</packaging>
 
-	<name>Gravitee IO - Management - Service</name>
+	<name>Gravitee.io APIM - Management - Service</name>
 	<description>Gravitee IO Manager Service</description>
 
 	<dependencies>

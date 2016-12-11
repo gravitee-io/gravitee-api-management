@@ -29,7 +29,7 @@
 	<artifactId>gravitee-management-api-model</artifactId>
 	<packaging>jar</packaging>
 
-	<name>Gravitee IO - Management - Model</name>
+	<name>Gravitee.io APIM - Management - Model</name>
 	<description>Gravitee IO Manager Model</description>
 
 	<dependencies>

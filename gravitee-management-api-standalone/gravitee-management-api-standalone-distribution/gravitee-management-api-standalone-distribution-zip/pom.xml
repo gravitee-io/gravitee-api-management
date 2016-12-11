@@ -27,7 +27,7 @@
 	</parent>
 
 	<artifactId>gravitee-management-api-standalone-distribution-zip</artifactId>
-	<name>Gravitee IO - Management - Standalone - Distribution zip</name>
+	<name>Gravitee.io APIM - Management - Standalone - Distribution zip</name>
 	<packaging>pom</packaging>
 
 	<properties>

@@ -29,7 +29,7 @@
 
 
     <artifactId>gravitee-management-api-services-subscriptions</artifactId>
-    <name>Gravitee IO - Management - Services - Subscriptions</name>
+    <name>Gravitee.io APIM - Management - Services - Subscriptions</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

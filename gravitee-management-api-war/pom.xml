@@ -29,7 +29,7 @@
 	<artifactId>gravitee-management-api-war</artifactId>
 	<packaging>war</packaging>
 
-	<name>Gravitee IO - Management - WAR</name>
+	<name>Gravitee.io APIM - Management - WAR</name>
 
 	<dependencies>
 		<!-- Gravitee Management dependencies -->

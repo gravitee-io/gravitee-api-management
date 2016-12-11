@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-management-api-idp-repository</artifactId>
-    <name>Gravitee IO - Management - Identity Providers - Repository</name>
+    <name>Gravitee.io APIM - Management - Identity Providers - Repository</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

@@ -29,7 +29,7 @@
     <artifactId>gravitee-management-api-fetcher</artifactId>
     <packaging>jar</packaging>
 
-    <name>Gravitee IO - Management - Fetcher</name>
+    <name>Gravitee.io APIM - Management - Fetcher</name>
     <description>Gravitee IO Manager Fetcher</description>
 
     <dependencies>

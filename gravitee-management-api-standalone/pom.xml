@@ -30,7 +30,7 @@
 	<artifactId>gravitee-management-api-standalone</artifactId>
 	<packaging>pom</packaging>
 
-	<name>Gravitee IO - Management - Standalone</name>
+	<name>Gravitee.io APIM - Management - Standalone</name>
 	<description>Gravitee IO Manager in Standalone mode (based on Jetty).</description>
 
 	<modules>

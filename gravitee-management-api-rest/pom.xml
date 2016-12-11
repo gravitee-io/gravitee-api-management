@@ -28,7 +28,7 @@
 
 	<artifactId>gravitee-management-api-rest</artifactId>
 	<packaging>jar</packaging>
-	<name>Gravitee IO - Management - Rest API</name>
+	<name>Gravitee.io APIM - Management - Rest API</name>
 
 	<properties>
 		<swagger2markup.version>1.0.1</swagger2markup.version>

@@ -28,5 +28,5 @@
     </parent>
 
     <artifactId>gravitee-management-api-standalone-bootstrap</artifactId>
-    <name>Gravitee IO - Management - Standalone - Boostrap</name>
+    <name>Gravitee.io APIM - Management - Standalone - Boostrap</name>
 </project>

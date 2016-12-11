@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-management-api-standalone-container</artifactId>
-    <name>Gravitee IO - Management - Standalone - Container</name>
+    <name>Gravitee.io APIM - Management - Standalone - Container</name>
 
     <dependencies>
         <!-- Gravitee Management dependencies -->

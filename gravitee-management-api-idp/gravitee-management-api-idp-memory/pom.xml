@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-management-api-idp-memory</artifactId>
-    <name>Gravitee IO - Management - Identity Providers - InMemory</name>
+    <name>Gravitee.io APIM - Management - Identity Providers - InMemory</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

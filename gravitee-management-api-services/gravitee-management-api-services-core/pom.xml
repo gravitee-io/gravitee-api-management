@@ -29,7 +29,7 @@
 
 
     <artifactId>gravitee-management-api-services-core</artifactId>
-    <name>Gravitee IO - Management - Services - Core</name>
+    <name>Gravitee.io APIM - Management - Services - Core</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

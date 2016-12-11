@@ -30,7 +30,7 @@
     <groupId>io.gravitee.management.services</groupId>
     <artifactId>gravitee-management-api-services</artifactId>
     <packaging>pom</packaging>
-    <name>Gravitee IO - Management - Services</name>
+    <name>Gravitee.io APIM - Management - Services</name>
 
     <modules>
         <module>gravitee-management-api-services-core</module>

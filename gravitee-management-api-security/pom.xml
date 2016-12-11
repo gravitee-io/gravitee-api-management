@@ -27,7 +27,7 @@
 	</parent>
 
 	<artifactId>gravitee-management-api-security</artifactId>
-	<name>Gravitee IO - Management - Security</name>
+	<name>Gravitee.io APIM - Management - Security</name>
 
 	<dependencies>
 		<!-- Gravitee Management dependencies -->

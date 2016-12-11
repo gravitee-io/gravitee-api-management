@@ -26,7 +26,7 @@
 	</parent>
 
 	<artifactId>gravitee-management-api-standalone-distribution-rpm</artifactId>
-	<name>Gravitee IO - Management - Standalone - Distribution rpm</name>
+	<name>Gravitee.io APIM - Management - Standalone - Distribution rpm</name>
 	<packaging>pom</packaging>
 
 	<properties>
