@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-definition-jackson</artifactId>
-    <name>Gravitee IO - API Management - Definition - Jackson</name>
+    <name>Gravitee.io APIM - Definition - Jackson</name>
 
     <dependencies>
         <dependency>

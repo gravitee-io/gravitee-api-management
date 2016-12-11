@@ -31,7 +31,7 @@
     <artifactId>gravitee-definition</artifactId>
     <version>1.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Gravitee IO - API Management - Definition</name>
+    <name>Gravitee.io APIM - Definition</name>
 
     <modules>
         <module>model</module>

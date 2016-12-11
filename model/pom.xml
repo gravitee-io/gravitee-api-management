@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-definition-model</artifactId>
-    <name>Gravitee IO - API Management - Definition - Model</name>
+    <name>Gravitee.io APIM - Definition - Model</name>
 
     <dependencies>
         <dependency>
