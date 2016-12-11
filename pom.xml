@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>6</version>
+        <version>7</version>
     </parent>
 
     <groupId>io.gravitee.gateway</groupId>
