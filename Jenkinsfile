@@ -1,7 +1,7 @@
 node() {
     def redisHost = "-DREDIS_HOST=${env.REDIS_TEST_HOST}"
     def redisPort = "-DREDIS_PORT=${env.REDIS_TEST_PORT}"
-    def mvnArgs = ["-U", redisHost, redisPort, "clean", "deploy"]
+    def mvnArgs = ["-U", "-Pgravitee-report", redisHost, redisPort, "clean", "deploy"]
 
     stage "Checkout"
     checkout scm
@@ -27,6 +27,12 @@ node() {
             step([$class: 'JUnitResultArchiver', testResults: 'target/surefire-reports/TEST-*.xml'])
         } catch (Exception ex) {
             echo "No tests to archive"
+        }
+
+        stage("SonarQube analysis") {
+            withSonarQubeEnv('SonarQube') {
+                sh "${mvnHome}/bin/mvn sonar:sonar"
+            }
         }
     }
 }
