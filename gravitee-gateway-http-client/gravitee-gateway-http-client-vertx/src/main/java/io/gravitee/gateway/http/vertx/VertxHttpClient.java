@@ -75,11 +75,13 @@ public class VertxHttpClient extends AbstractHttpClient {
         final int port = uri.getPort() != -1 ? uri.getPort() :
                 (uri.getScheme().equals("https") ? 443 : 80);
 
+        String relativeUri = (uri.getRawQuery() == null) ? uri.getRawPath() : uri.getRawPath() + '?' + uri.getRawQuery();
+
         HttpClientRequest clientRequest = httpClient.request(
                 convert(method),
                 port,
                 uri.getHost(),
-                uri.toString(),
+                relativeUri,
                 clientResponse -> handleClientResponse(clientResponse, responseHandler));
 
         clientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
