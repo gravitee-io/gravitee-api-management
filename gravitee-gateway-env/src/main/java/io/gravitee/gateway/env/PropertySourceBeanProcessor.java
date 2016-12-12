@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.env;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.Ordered;
@@ -45,7 +44,7 @@ public class PropertySourceBeanProcessor implements BeanFactoryPostProcessor, Or
     }
 
     @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
         ((ConfigurableEnvironment) environment).getPropertySources().addFirst(
                 new PropertiesPropertySource("graviteeConfiguration", properties));
     }

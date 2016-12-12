@@ -36,7 +36,7 @@ import java.net.URLClassLoader;
  */
 public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ApiContextHandlerFactory.class);
+    private final Logger logger = LoggerFactory.getLogger(ApiContextHandlerFactory.class);
 
     @Autowired
     private ApplicationContext gatewayApplicationContext;
@@ -49,7 +49,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
             handler.setClassLoader(internalApplicationContext.getClassLoader());
             return handler;
         } else {
-            LOGGER.warn("Api is disabled !");
+            logger.warn("Api is disabled !");
             return null;
         }
     }

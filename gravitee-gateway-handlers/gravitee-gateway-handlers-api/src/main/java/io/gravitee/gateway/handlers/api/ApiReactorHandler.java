@@ -50,7 +50,7 @@ import java.util.List;
  */
 public class ApiReactorHandler extends AbstractReactorHandler implements InitializingBean {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ApiReactorHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(ApiReactorHandler.class);
 
     @Autowired
     private Api api;
@@ -96,10 +96,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                     handler.handle(serverResponse);
                 } else {
                     // Use the upstream invoker (call the remote API using HTTP client)
-                    Invoker invoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
+                    Invoker upstreamInvoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
 
                     long serviceInvocationStart = System.currentTimeMillis();
-                    ClientRequest clientRequest = invoker.invoke(executionContext, serverRequest, responseStream -> {
+                    ClientRequest clientRequest = upstreamInvoker.invoke(executionContext, serverRequest, responseStream -> {
 
                         // Set the status
                         serverResponse.status(responseStream.status());
@@ -119,7 +119,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                                     serverResponse.end();
 
                                     serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
-                                    LOGGER.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
+                                    logger.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
 
                                     // Transfer proxy response to the initial consumer
                                     handler.handle(serverResponse);
@@ -153,8 +153,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
             });
 
             requestPolicyChain.execute(serverRequest, serverResponse, executionContext);
-        } catch (Throwable t) {
-            LOGGER.error("An unexpected error occurs while processing request", t);
+        } catch (Exception ex) {
+            logger.error("An unexpected error occurs while processing request", ex);
 
             // Send an INTERNAL_SERVER_ERROR (500)
             serverResponse.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
@@ -177,8 +177,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                 response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(buf.length()));
                 response.headers().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
                 response.write(buf);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+            } catch (JsonProcessingException jpe) {
+                logger.error("Unable to transform a policy result into a json payload", jpe);
             }
         }
 
@@ -240,7 +240,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
     @Override
     protected void doStart() throws Exception {
-        LOGGER.info("API handler is now starting, preparing API context...");
+        logger.info("API handler is now starting, preparing API context...");
         long startTime = System.currentTimeMillis(); // Get the start Time
         super.doStart();
 
@@ -250,20 +250,20 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         endpointLifecycleManager.start();
 
         long endTime = System.currentTimeMillis(); // Get the end Time
-        LOGGER.info("API handler started in {} ms and now ready to accept requests on {}/*",
+        logger.info("API handler started in {} ms and now ready to accept requests on {}/*",
                 (endTime - startTime), api.getProxy().getContextPath());
     }
 
     @Override
     protected void doStop() throws Exception {
-        LOGGER.info("API handler is now stopping, closing context...");
+        logger.info("API handler is now stopping, closing context...");
 
         applicationContext.getBean(PolicyManager.class).stop();
         applicationContext.getBean(ResourceLifecycleManager.class).stop();
         endpointLifecycleManager.stop();
 
         super.doStop();
-        LOGGER.info("API handler is now stopped", api);
+        logger.info("API handler is now stopped", api);
     }
 
     @Override

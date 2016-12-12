@@ -56,6 +56,7 @@ public class BufferImpl implements Buffer {
         this(str, StandardCharsets.UTF_8);
     }
 
+    @Override
     public Buffer appendBuffer(Buffer buff) {
         ByteBuf cb = (ByteBuf) buff.getNativeBuffer();
         buffer.writeBytes(cb);

@@ -24,18 +24,18 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  */
 public class SpelTemplateEngine implements TemplateEngine {
 
-    private final static String EXPRESSION_REGEX = "\\{([^#|T|(])";
-    private final static String EXPRESSION_REGEX_SUBSTITUTE = "{'{'}$1";
+    private static final String EXPRESSION_REGEX = "\\{([^#|T|(])";
+    private static final String EXPRESSION_REGEX_SUBSTITUTE = "{'{'}$1";
 
     private final SpelTemplateContext templateContext = new SpelTemplateContext();
 
     @Override
     public String convert(String expression) {
         // Escape sequence
-        expression = expression.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE);
+        final String replaced = expression.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE);
 
         return new SpelExpressionParser()
-                .parseExpression(expression, new TemplateParserContext())
+                .parseExpression(replaced, new TemplateParserContext())
                 .getValue(getTemplateContext().getContext(), String.class);
     }
 

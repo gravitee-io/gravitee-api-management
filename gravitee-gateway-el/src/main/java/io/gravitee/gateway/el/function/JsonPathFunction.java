@@ -19,6 +19,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Predicate;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
@@ -35,7 +36,7 @@ public final class JsonPathFunction {
     private JsonPathFunction() {
     }
 
-    public static <T> T evaluate(Object json, String jsonPath, Predicate... predicates) throws Exception {
+    public static <T> T evaluate(Object json, String jsonPath, Predicate... predicates) throws IOException {
         if (json instanceof String) {
             return JsonPath.read((String) json, jsonPath, predicates);
         }

@@ -32,9 +32,9 @@ import java.util.Properties;
 @Configuration
 public class PropertiesConfiguration {
 
-    protected final static Logger LOGGER = LoggerFactory.getLogger(PropertiesConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesConfiguration.class);
 
-    public final static String GRAVITEE_CONFIGURATION = "gravitee.conf";
+    public static final String GRAVITEE_CONFIGURATION = "gravitee.conf";
 
     @Bean(name = "graviteeProperties")
     public static Properties graviteeProperties() throws IOException {
