@@ -32,11 +32,11 @@ import java.util.Map;
  */
 public class PolicyBuilder {
 
-    public static PolicyPlugin register(String id, Class<?> policy) {
-        return register(id, policy, null);
+    public static PolicyPlugin build(String id, Class<?> policy) {
+        return build(id, policy, null);
     }
 
-    public static PolicyPlugin register(String id, Class<?> policy, Class<? extends PolicyConfiguration> policyConfiguration) {
+    public static PolicyPlugin build(String id, Class<?> policy, Class<? extends PolicyConfiguration> policyConfiguration) {
         return new PolicyPlugin() {
             @Override
             public Class<?> policy() {

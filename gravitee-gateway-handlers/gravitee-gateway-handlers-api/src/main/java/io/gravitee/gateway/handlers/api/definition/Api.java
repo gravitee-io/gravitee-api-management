@@ -97,10 +97,8 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
 
         Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
 
-        // Default api-key policy
-        Policy apiKey = new Policy();
-        apiKey.setName("api-key");
-        policies.add(apiKey);
+        // Load security policies
+        registerSecurityPolicy(policies);
 
         // Load policies from the API
         getPaths().values()
@@ -125,6 +123,18 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
                     }});
 
         return policies;
+    }
+
+    private void registerSecurityPolicy(Set<io.gravitee.definition.model.Policy> policies) {
+        // api-key policy
+        Policy apiKey = new Policy();
+        apiKey.setName("api-key");
+        policies.add(apiKey);
+
+        // keyless policy
+        Policy keyless = new Policy();
+        keyless.setName("key-less");
+        policies.add(keyless);
     }
 
     @Override

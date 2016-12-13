@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.servlet.TeamServlet;
@@ -37,7 +37,7 @@ import static org.junit.Assert.assertEquals;
         servlet = TeamServlet.class,
         contextPath = "/team"
 )
-public class ServiceUnavailableTest extends AbstractGatewayTest implements ApiLoaderInterceptor {
+public class ServiceUnavailableTest extends AbstractGatewayTest {
 
     private Api api;
 
@@ -85,11 +85,7 @@ public class ServiceUnavailableTest extends AbstractGatewayTest implements ApiLo
 
     @Override
     public void before(Api api) {
+        super.before(api);
         this.api = api;
-    }
-
-    @Override
-    public void after(Api api) {
-        // Do nothing
     }
 }

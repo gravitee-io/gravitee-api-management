@@ -19,6 +19,7 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.handlers.api.http.client.spring.HttpClientConfiguration;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.gravitee.gateway.handlers.api.path.impl.ApiPathResolverImpl;
+import io.gravitee.gateway.handlers.api.policy.security.PlanBasedSecurityProviderFilter;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManager;
@@ -30,6 +31,9 @@ import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
 import io.gravitee.gateway.resource.internal.ResourceManagerImpl;
+import io.gravitee.gateway.security.core.SecurityManager;
+import io.gravitee.gateway.security.core.SecurityProviderFilter;
+import io.gravitee.gateway.security.core.SecurityProviderLoader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -75,5 +79,20 @@ public class ApiHandlerConfiguration {
     @Bean
     public ResourceConfigurationFactory resourceConfigurationFactory() {
         return new ResourceConfigurationFactoryImpl();
+    }
+
+    @Bean
+    public SecurityProviderLoader securityProviderLoader() {
+        return new SecurityProviderLoader();
+    }
+
+    @Bean
+    public SecurityManager securityManager() {
+        return new SecurityManager();
+    }
+
+    @Bean
+    public SecurityProviderFilter securityProviderFilter() {
+        return new PlanBasedSecurityProviderFilter();
     }
 }

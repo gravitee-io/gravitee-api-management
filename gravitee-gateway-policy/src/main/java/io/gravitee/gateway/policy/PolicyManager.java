@@ -18,9 +18,12 @@ package io.gravitee.gateway.policy;
 import io.gravitee.common.component.LifecycleComponent;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface PolicyManager extends LifecycleComponent<PolicyManager> {
 
     PolicyMetadata get(String policy);
+
+    Policy create(StreamType streamType, String policy, String configuration);
 }

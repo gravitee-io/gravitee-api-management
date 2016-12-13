@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.DynamicRoutingPolicy;
@@ -43,7 +43,7 @@ import static org.junit.Assert.assertEquals;
 @ApiConfiguration(
         servlet = TeamServlet.class,
         contextPath = "/team")
-public class DynamicRoutingGatewayTest extends AbstractGatewayTest implements ApiLoaderInterceptor {
+public class DynamicRoutingGatewayTest extends AbstractGatewayTest {
 
     private Api api;
 
@@ -62,24 +62,20 @@ public class DynamicRoutingGatewayTest extends AbstractGatewayTest implements Ap
     }
 
     @Override
-    public void registerPlugin(PolicyPluginManager policyPluginManager) {
-        super.registerPlugin(policyPluginManager);
+    public void register(PolicyPluginManager policyPluginManager) {
+        super.register(policyPluginManager);
 
-        PolicyPlugin dynamicRoutingPolicy = PolicyBuilder.register("dynamic-routing", DynamicRoutingPolicy.class);
+        PolicyPlugin dynamicRoutingPolicy = PolicyBuilder.build("dynamic-routing", DynamicRoutingPolicy.class);
         policyPluginManager.register(dynamicRoutingPolicy);
     }
 
     @Override
     public void before(Api api) {
+        super.before(api);
         this.api = api;
     }
 
-    @Override
-    public void after(Api api) {
-        // Do nothing
-    }
-
-    public static URI create(URI uri, int port) {
+    private static URI create(URI uri, int port) {
         try {
             return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), port, uri.getPath(), uri.getQuery(), uri.getFragment());
         } catch (URISyntaxException e) {

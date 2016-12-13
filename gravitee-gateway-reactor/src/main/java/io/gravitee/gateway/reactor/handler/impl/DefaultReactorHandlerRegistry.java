@@ -15,36 +15,27 @@
  */
 package io.gravitee.gateway.reactor.handler.impl;
 
+import io.gravitee.common.spring.factory.SpringFactoriesLoader;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.core.io.support.SpringFactoriesLoader;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
-import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry, ApplicationContextAware {
+public class DefaultReactorHandlerRegistry extends SpringFactoriesLoader<ReactorHandlerFactory>
+        implements ReactorHandlerRegistry {
 
     private final Logger LOGGER = LoggerFactory.getLogger(DefaultReactorHandlerRegistry.class);
 
-    private ApplicationContext applicationContext;
     private Collection<ReactorHandlerFactory> reactorHandlerFactories;
 
     private final ConcurrentMap<String, ReactorHandler> handlers = new ConcurrentHashMap<>();
@@ -117,54 +108,14 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry, Ap
 
     private ReactorHandler create0(Reactable reactable) {
         if (reactorHandlerFactories == null) {
-            reactorHandlerFactories = (Collection) getSpringFactoriesInstances(ReactorHandlerFactory.class);
+            reactorHandlerFactories = (Collection<ReactorHandlerFactory>) getFactoriesInstances();
         }
 
         return reactorHandlerFactories.iterator().next().create(reactable.item());
     }
 
-    private <T> Collection<? extends T> getSpringFactoriesInstances(Class<T> type) {
-        return getSpringFactoriesInstances(type, new Class<?>[] {});
-    }
-
-    private <T> Collection<? extends T> getSpringFactoriesInstances(Class<T> type,
-                                                                    Class<?>[] parameterTypes, Object... args) {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        // Use names and ensure unique to protect against duplicates
-        Set<String> names = new LinkedHashSet<>(
-                SpringFactoriesLoader.loadFactoryNames(type, classLoader));
-        List<T> instances = createSpringFactoriesInstances(type, parameterTypes,
-                classLoader, args, names);
-        AnnotationAwareOrderComparator.sort(instances);
-        return instances;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> List<T> createSpringFactoriesInstances(Class<T> type,
-                                                       Class<?>[] parameterTypes, ClassLoader classLoader, Object[] args,
-                                                       Set<String> names) {
-        List<T> instances = new ArrayList<>(names.size());
-        for (String name : names) {
-            try {
-                Class<?> instanceClass = ClassUtils.forName(name, classLoader);
-                Assert.isAssignable(type, instanceClass);
-                Constructor<?> constructor = instanceClass
-                        .getDeclaredConstructor(parameterTypes);
-                T instance = (T) BeanUtils.instantiateClass(constructor, args);
-                ((AbstractApplicationContext) applicationContext)
-                        .getBeanFactory().autowireBean(instance);
-                instances.add(instance);
-            }
-            catch (Throwable ex) {
-                throw new IllegalArgumentException(
-                        "Cannot instantiate " + type + " : " + name, ex);
-            }
-        }
-        return instances;
-    }
-
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+    protected Class<ReactorHandlerFactory> getObjectType() {
+        return ReactorHandlerFactory.class;
     }
 }

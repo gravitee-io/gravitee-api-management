@@ -241,6 +241,13 @@ public class SyncManager {
         plan.setId(repoPlan.getId());
         plan.setName(repoPlan.getName());
 
+        if (repoPlan.getSecurity() != null) {
+            plan.setSecurity(repoPlan.getSecurity().name());
+        } else {
+            // TODO: must be handle by a migration script
+            plan.setSecurity("api_key");
+        }
+
         try {
             if (repoPlan.getDefinition() != null && !repoPlan.getDefinition().trim().isEmpty()) {
                 HashMap<String, Path> paths = objectMapper.readValue(repoPlan.getDefinition(),

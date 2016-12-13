@@ -17,8 +17,7 @@ package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.gateway.policy.PolicyManager;
-import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -29,6 +28,10 @@ import io.gravitee.plugin.policy.PolicyPluginManager;
 import io.gravitee.plugin.policy.internal.PolicyMethodResolver;
 import io.gravitee.policy.api.PolicyConfiguration;
 import io.gravitee.policy.api.PolicyContext;
+import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnRequestContent;
+import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.annotations.OnResponseContent;
 import io.gravitee.resource.api.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +57,12 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private PolicyFactory policyFactory;
+
+    @Autowired
+    private PolicyConfigurationFactory policyConfigurationFactory;
 
     private final Map<String, RegisteredPolicy> policies = new HashMap<>();
 
@@ -192,6 +201,36 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
     public PolicyMetadata get(String policy) {
         RegisteredPolicy registeredPolicy = policies.get(policy);
         return (registeredPolicy != null) ? registeredPolicy.metadata : null;
+    }
+
+    @Override
+    public io.gravitee.gateway.policy.Policy create(StreamType streamType, String policy, String configuration) {
+        PolicyMetadata policyMetadata = get(policy);
+
+        if ((streamType == StreamType.ON_REQUEST &&
+                (policyMetadata.method(OnRequest.class) != null || policyMetadata.method(OnRequestContent.class) != null)) ||
+                (streamType == StreamType.ON_RESPONSE && (
+                        policyMetadata.method(OnResponse.class) != null || policyMetadata.method(OnResponseContent.class) != null))) {
+            PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
+                    policyMetadata.configuration(), configuration);
+
+            // TODO: this should be done only if policy is injectable
+            Map<Class<?>, Object> injectables = new HashMap<>(2);
+            injectables.put(policyMetadata.configuration(), policyConfiguration);
+            if (policyMetadata.context() != null) {
+                injectables.put(policyMetadata.context().getClass(), policyMetadata.context());
+            }
+
+            Object policyInst = policyFactory.create(policyMetadata, injectables);
+
+            logger.debug("Policy {} has been added to the policy chain", policyMetadata.id());
+            return PolicyImpl
+                    .target(policyInst)
+                    .definition(policyMetadata)
+                    .build();
+        }
+
+        return null;
     }
 
     private static class RegisteredPolicy {

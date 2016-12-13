@@ -18,7 +18,6 @@ package io.gravitee.gateway.standalone;
 import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
-import io.gravitee.gateway.standalone.policy.TransformRequestContentPolicy;
 import io.gravitee.gateway.standalone.policy.TransformResponseContentPolicy;
 import io.gravitee.gateway.standalone.servlet.EchoServlet;
 import io.gravitee.gateway.standalone.utils.StringUtils;
@@ -29,10 +28,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
-import java.util.UUID;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -62,10 +58,10 @@ public class TransformResponseContentUsingBuilderGatewayTest extends AbstractGat
     }
 
     @Override
-    public void registerPlugin(PolicyPluginManager policyPluginManager) {
-        super.registerPlugin(policyPluginManager);
+    public void register(PolicyPluginManager policyPluginManager) {
+        super.register(policyPluginManager);
 
-        PolicyPlugin transformResponseContentPolicy = PolicyBuilder.register("transform-response-content", TransformResponseContentPolicy.class);
+        PolicyPlugin transformResponseContentPolicy = PolicyBuilder.build("transform-response-content", TransformResponseContentPolicy.class);
         policyPluginManager.register(transformResponseContentPolicy);
     }
 }

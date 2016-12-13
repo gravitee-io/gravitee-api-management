@@ -13,34 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.policy;
+package io.gravitee.gateway.security.keyless;
 
-import io.gravitee.gateway.policy.impl.PolicyChain;
-import io.gravitee.policy.api.PolicyResult;
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.gateway.api.Request;
+import org.junit.Assert;
+import org.junit.Test;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyChainResult {
+public class KeylessSecurityProviderTest {
 
-    private final PolicyResult policyResult;
-    private final PolicyChain policyChain;
+    private KeylessSecurityProvider securityProvider = new KeylessSecurityProvider();
 
-    public PolicyChainResult(final PolicyChain policyChain, final PolicyResult policyResult) {
-        this.policyChain = policyChain;
-        this.policyResult = policyResult;
-    }
+    @Test
+    public void shouldHandleRequest() {
+        Request request = mock(Request.class);
+        when(request.headers()).thenReturn(new HttpHeaders());
 
-    public PolicyResult getPolicyResult() {
-        return policyResult;
-    }
-
-    public PolicyChain getPolicyChain() {
-        return policyChain;
-    }
-
-    public boolean isFailure() {
-        return policyResult != null && policyResult.isFailure();
+        boolean handle = securityProvider.canHandle(request);
+        Assert.assertTrue(handle);
     }
 }

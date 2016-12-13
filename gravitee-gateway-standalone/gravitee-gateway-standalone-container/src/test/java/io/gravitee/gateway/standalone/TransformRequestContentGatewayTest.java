@@ -62,10 +62,10 @@ public class TransformRequestContentGatewayTest extends AbstractGatewayTest {
     }
 
     @Override
-    public void registerPlugin(PolicyPluginManager policyPluginManager) {
-        super.registerPlugin(policyPluginManager);
+    public void register(PolicyPluginManager policyPluginManager) {
+        super.register(policyPluginManager);
 
-        PolicyPlugin transformRequestContentPolicy = PolicyBuilder.register("transform-request-content", TransformRequestContentPolicy.class);
+        PolicyPlugin transformRequestContentPolicy = PolicyBuilder.build("transform-request-content", TransformRequestContentPolicy.class);
         policyPluginManager.register(transformRequestContentPolicy);
     }
 }

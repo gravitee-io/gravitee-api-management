@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.policy;
+package io.gravitee.gateway.handlers.api.policy.api;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.handlers.api.path.Path;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
+import io.gravitee.gateway.policy.AbstractPolicyChainResolver;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.StreamType;
 import org.springframework.beans.factory.annotation.Autowired;

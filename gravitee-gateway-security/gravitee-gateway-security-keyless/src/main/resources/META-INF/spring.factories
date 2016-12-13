@@ -1,0 +1,2 @@
+io.gravitee.gateway.security.core.SecurityProvider=\
+  io.gravitee.gateway.security.keyless.KeylessSecurityProvider

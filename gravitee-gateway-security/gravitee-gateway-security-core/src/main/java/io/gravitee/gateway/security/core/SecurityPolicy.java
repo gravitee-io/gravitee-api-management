@@ -13,28 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.policy;
-
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.policy.StreamType;
-import io.gravitee.gateway.policy.impl.PolicyChain;
+package io.gravitee.gateway.security.core;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyChainResolver {
+public interface SecurityPolicy {
 
-    /**
-     * Return a specific implementation of {@link PolicyChain} based on the stream type
-     *
-     * @param streamType
-     * @param request
-     * @param response
-     * @param executionContext
-     * @return
-     */
-    PolicyChain resolve(StreamType streamType, Request request, Response response, ExecutionContext executionContext);
+    String policy();
+
+    String configuration();
 }

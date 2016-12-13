@@ -94,6 +94,13 @@
             <artifactId>jackson-annotations</artifactId>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+            <scope>compile</scope>
+        </dependency>
         
         <!-- Vert.x -->
         <dependency>
