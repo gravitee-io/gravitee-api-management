@@ -26,15 +26,19 @@ import io.gravitee.gateway.api.*;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.policy.*;
+import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
+import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
 import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager;
 import io.gravitee.gateway.http.core.invoker.DefaultHttpInvoker;
+import io.gravitee.gateway.policy.PolicyChainResolver;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.PolicyChain;
+import io.gravitee.gateway.policy.impl.RequestPolicyChainProcessor;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.gateway.security.core.SecurityPolicyChainResolver;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -212,16 +216,16 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         contextPath = reactable().contextPath() + '/';
 
         apiPolicyResolver = new ApiPolicyChainResolver();
-        PolicyChainResolver apiKeyPolicyResolver = new ApiKeyPolicyChainResolver();
+        PolicyChainResolver securityPolicyResolver = new SecurityPolicyChainResolver();
         PolicyChainResolver planPolicyResolver = new PlanPolicyChainResolver();
 
         policyResolvers = new ArrayList<PolicyChainResolver>() {
             {
-                applicationContext.getAutowireCapableBeanFactory().autowireBean(apiKeyPolicyResolver);
+                applicationContext.getAutowireCapableBeanFactory().autowireBean(securityPolicyResolver);
                 applicationContext.getAutowireCapableBeanFactory().autowireBean(planPolicyResolver);
                 applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPolicyResolver);
 
-                add(apiKeyPolicyResolver);
+                add(securityPolicyResolver);
                 add(planPolicyResolver);
                 add(apiPolicyResolver);
             }

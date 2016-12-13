@@ -13,42 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.policy;
+package io.gravitee.gateway.policy;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.impl.PolicyChain;
 
-import java.util.Iterator;
-import java.util.List;
-
 /**
- * A no-op policy chain used to chain an empty policy collection.
- * It immediately returns a successful result when invoking its <code>doNext</code> method.
- *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-class NoOpPolicyChain extends PolicyChain {
+public interface PolicyChainResolver {
 
-    public NoOpPolicyChain(List<Policy> policies, ExecutionContext executionContext) {
-        super(policies, executionContext);
-    }
-
-    @Override
-    public void doNext(Request request, Response response) {
-        resultHandler.handle(SUCCESS_POLICY_CHAIN);
-    }
-
-    @Override
-    protected void execute(Policy policy, Object... args) throws Exception {
-        // Nothing to do
-    }
-
-    @Override
-    protected Iterator<Policy> iterator() {
-        return null;
-    }
+    /**
+     * Return a specific implementation of {@link PolicyChain} based on the stream type
+     *
+     * @param streamType
+     * @param request
+     * @param response
+     * @param executionContext
+     * @return
+     */
+    PolicyChain resolve(StreamType streamType, Request request, Response response, ExecutionContext executionContext);
 }

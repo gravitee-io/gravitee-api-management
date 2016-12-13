@@ -50,7 +50,7 @@ public class PolicyNotFoundGatewayTest extends AbstractGatewayTest {
     }
 
     @Override
-    public void registerPlugin(PolicyPluginManager policyPluginManager) {
+    public void register(PolicyPluginManager policyPluginManager) {
         // Do not install any policy in registry
     }
 }

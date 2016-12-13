@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.handlers.api.definition.Api;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

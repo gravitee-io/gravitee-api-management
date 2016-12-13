@@ -30,6 +30,8 @@ public class Plan {
     private String id;
     private String name;
 
+    private String security;
+
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
 
@@ -57,6 +59,14 @@ public class Plan {
         this.paths = paths;
     }
 
+    public String getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(String security) {
+        this.security = security;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -65,7 +75,6 @@ public class Plan {
         Plan plan = (Plan) o;
 
         return id.equals(plan.id);
-
     }
 
     @Override

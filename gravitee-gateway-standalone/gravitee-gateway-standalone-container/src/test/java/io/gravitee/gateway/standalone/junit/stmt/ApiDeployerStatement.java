@@ -28,7 +28,6 @@ import io.gravitee.gateway.standalone.utils.SocketUtils;
 import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.junit.runners.model.Statement;
 
-import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.List;
@@ -57,7 +56,7 @@ public class ApiDeployerStatement extends Statement {
         container = new Container();
 
         if (target instanceof PolicyRegister) {
-            ((PolicyRegister) target).registerPlugin(container.getApplicationContext().getBean(PolicyPluginManager.class));
+            ((PolicyRegister) target).register(container.getApplicationContext().getBean(PolicyPluginManager.class));
         }
 
         container.start();

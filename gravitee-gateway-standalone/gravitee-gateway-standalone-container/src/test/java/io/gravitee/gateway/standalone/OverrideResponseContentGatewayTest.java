@@ -17,7 +17,6 @@ package io.gravitee.gateway.standalone;
 
 import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.policy.OverrideRequestContentPolicy;
 import io.gravitee.gateway.standalone.policy.OverrideResponseContentPolicy;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.servlet.EchoServlet;
@@ -56,10 +55,10 @@ public class OverrideResponseContentGatewayTest extends AbstractGatewayTest {
     }
 
     @Override
-    public void registerPlugin(PolicyPluginManager policyPluginManager) {
-        super.registerPlugin(policyPluginManager);
+    public void register(PolicyPluginManager policyPluginManager) {
+        super.register(policyPluginManager);
 
-        PolicyPlugin rewriteResponseStreamPolicy = PolicyBuilder.register("override-response-content", OverrideResponseContentPolicy.class);
+        PolicyPlugin rewriteResponseStreamPolicy = PolicyBuilder.build("override-response-content", OverrideResponseContentPolicy.class);
         policyPluginManager.register(rewriteResponseStreamPolicy);
     }
 }

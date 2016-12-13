@@ -23,5 +23,5 @@ import io.gravitee.plugin.policy.PolicyPluginManager;
  */
 public interface PolicyRegister {
 
-    void registerPlugin(PolicyPluginManager policyPluginManager);
+    void register(PolicyPluginManager policyPluginManager);
 }

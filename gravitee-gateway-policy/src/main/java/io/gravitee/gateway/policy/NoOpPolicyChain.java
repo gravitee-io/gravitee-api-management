@@ -13,37 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.policy;
+package io.gravitee.gateway.policy;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.gateway.policy.impl.PolicyChain;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
- * A policy resolver used to create an api-key policy chain.
- * This chain is only executed for request stream.
+ * A no-op policy chain used to chain an empty policy collection.
+ * It immediately returns a successful result when invoking its <code>doNext</code> method.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiKeyPolicyChainResolver extends AbstractPolicyChainResolver {
+public class NoOpPolicyChain extends PolicyChain {
 
-    private final static String API_KEY_POLICY = "api-key";
-    private final static String API_KEY_POLICY_CONFIGURATION = "{}";
+    public NoOpPolicyChain(ExecutionContext executionContext) {
+        super(Collections.emptyList(), executionContext);
+    }
 
     @Override
-    protected List<Policy> calculate(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
-        // Apply api-key policy only for ON_REQUEST
-        if (streamType == StreamType.ON_REQUEST) {
-            Policy apiKeyPolicy = create(streamType, API_KEY_POLICY, API_KEY_POLICY_CONFIGURATION);
-            return Collections.singletonList(apiKeyPolicy);
-        }
+    public void doNext(Request request, Response response) {
+        resultHandler.handle(SUCCESS_POLICY_CHAIN);
+    }
 
-        return Collections.emptyList();
+    @Override
+    protected void execute(Policy policy, Object... args) throws Exception {
+        // Nothing to do
+    }
+
+    @Override
+    protected Iterator<Policy> iterator() {
+        return null;
     }
 }

@@ -55,10 +55,10 @@ public class OverrideRequestContentGatewayTest extends AbstractGatewayTest {
     }
 
     @Override
-    public void registerPlugin(PolicyPluginManager policyPluginManager) {
-        super.registerPlugin(policyPluginManager);
+    public void register(PolicyPluginManager policyPluginManager) {
+        super.register(policyPluginManager);
 
-        PolicyPlugin rewriteRequestStreamPolicy = PolicyBuilder.register("override-request-content", OverrideRequestContentPolicy.class);
+        PolicyPlugin rewriteRequestStreamPolicy = PolicyBuilder.build("override-request-content", OverrideRequestContentPolicy.class);
         policyPluginManager.register(rewriteRequestStreamPolicy);
     }
 }

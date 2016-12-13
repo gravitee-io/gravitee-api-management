@@ -21,7 +21,6 @@ import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.OverrideMethodPolicy;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.servlet.EchoServlet;
-import io.gravitee.gateway.standalone.utils.StringUtils;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.apache.http.HttpResponse;
@@ -52,10 +51,10 @@ public class OverrideMethodGatewayTest extends AbstractGatewayTest {
     }
 
     @Override
-    public void registerPlugin(PolicyPluginManager policyPluginManager) {
-        super.registerPlugin(policyPluginManager);
+    public void register(PolicyPluginManager policyPluginManager) {
+        super.register(policyPluginManager);
 
-        PolicyPlugin dynamicRoutingPolicy = PolicyBuilder.register("override-method", OverrideMethodPolicy.class);
+        PolicyPlugin dynamicRoutingPolicy = PolicyBuilder.build("override-method", OverrideMethodPolicy.class);
         policyPluginManager.register(dynamicRoutingPolicy);
     }
 }

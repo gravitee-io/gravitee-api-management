@@ -15,30 +15,54 @@
  */
 package io.gravitee.gateway.standalone;
 
+import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.policy.PolicyRegister;
 import io.gravitee.gateway.standalone.policy.ApiKeyPolicy;
+import io.gravitee.gateway.standalone.policy.KeylessPolicy;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
+import java.util.Collections;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractGatewayTest implements PolicyRegister {
+public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderInterceptor {
 
     @Rule
     public final TestRule chain = RuleChain
             .outerRule(new ApiPublisher())
             .around(new ApiDeployer(this));
 
-    public void registerPlugin(PolicyPluginManager policyPluginManager) {
-        PolicyPlugin apiKey = PolicyBuilder.register("api-key", ApiKeyPolicy.class);
+    @Override
+    public void register(PolicyPluginManager policyPluginManager) {
+        PolicyPlugin apiKey = PolicyBuilder.build("api-key", ApiKeyPolicy.class);
         policyPluginManager.register(apiKey);
+
+        PolicyPlugin unsecuredPolicy = PolicyBuilder.build("key-less", KeylessPolicy.class);
+        policyPluginManager.register(unsecuredPolicy);
+    }
+
+    @Override
+    public void before(Api api) {
+        // By default, add a keyless plan to the API
+        Plan plan = new Plan();
+        plan.setName("Default plan");
+        plan.setSecurity("key_less");
+
+        api.setPlans(Collections.singletonList(plan));
+    }
+
+    @Override
+    public void after(Api api) {
+
     }
 }

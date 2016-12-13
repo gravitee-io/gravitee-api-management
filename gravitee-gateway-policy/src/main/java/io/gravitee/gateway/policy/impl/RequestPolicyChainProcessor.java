@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.policy;
+package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.policy.PolicyChainResolver;
+import io.gravitee.gateway.policy.PolicyChainResult;
 import io.gravitee.gateway.policy.StreamType;
-import io.gravitee.gateway.policy.impl.PolicyChain;
 
 import java.util.Iterator;
 import java.util.List;
