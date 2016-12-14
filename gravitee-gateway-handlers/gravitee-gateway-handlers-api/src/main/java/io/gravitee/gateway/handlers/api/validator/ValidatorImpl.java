@@ -25,9 +25,9 @@ import org.slf4j.LoggerFactory;
  */
 public class ValidatorImpl implements Validator {
 
-    private final static Logger logger = LoggerFactory.getLogger(ValidatorImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ValidatorImpl.class);
 
-    private final static Validator [] VALIDATORS = {
+    private static final Validator [] VALIDATORS = {
             new ApiValidator(),
             new ProxyValidator(),
             new PathValidator(),

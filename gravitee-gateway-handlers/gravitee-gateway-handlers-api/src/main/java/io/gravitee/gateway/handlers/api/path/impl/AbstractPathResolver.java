@@ -43,14 +43,14 @@ public abstract class AbstractPathResolver implements PathResolver {
     }
 
     @Override
-    public Path resolve(String path) {
-        path = path + '/';
+    public Path resolve(final String path) {
+        String tmpPath = path + '/';
 
         int pieces = -1;
         Path bestPath = null;
 
         for(Path registerPath : registeredPaths) {
-            if (registerPath.getPattern().matcher(path).lookingAt()) {
+            if (registerPath.getPattern().matcher(tmpPath).lookingAt()) {
                 int split = registerPath.getPath().split(URL_PATH_SEPARATOR).length;
                 if (split > pieces) {
                     pieces = split;

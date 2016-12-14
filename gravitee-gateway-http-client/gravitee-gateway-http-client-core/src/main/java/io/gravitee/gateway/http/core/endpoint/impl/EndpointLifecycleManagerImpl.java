@@ -23,7 +23,6 @@ import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -36,7 +35,7 @@ import java.util.*;
  */
 public class EndpointLifecycleManagerImpl extends AbstractLifecycleComponent<EndpointLifecycleManager> implements EndpointLifecycleManager<HttpClient>, ApplicationContextAware {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(EndpointLifecycleManagerImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(EndpointLifecycleManagerImpl.class);
 
     @Autowired
     private Api api;
@@ -53,13 +52,13 @@ public class EndpointLifecycleManagerImpl extends AbstractLifecycleComponent<End
                 .filter(endpoint -> ! endpoint.isBackup())
                 .forEach(endpoint -> {
                     try {
-                        LOGGER.debug("Preparing a new target endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
+                        logger.debug("Preparing a new target endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
                         HttpClient httpClient = applicationContext.getBean(HttpClient.class, endpoint);
                         httpClient.start();
                         endpoints.put(endpoint.getName(), new HttpEndpoint(endpoint, httpClient));
                         endpointsTarget.put(endpoint.getName(), endpoint.getTarget());
                     } catch (Exception ex) {
-                        LOGGER.error("Unexpected error while creating endpoint connector", ex);
+                        logger.error("Unexpected error while creating endpoint connector", ex);
                     }
                 });
     }
@@ -69,19 +68,23 @@ public class EndpointLifecycleManagerImpl extends AbstractLifecycleComponent<End
         for(Iterator<Map.Entry<String, HttpEndpoint>> it = endpoints.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<String, HttpEndpoint> endpoint = it.next();
             try {
-                LOGGER.debug("Closing target endpoint: {}", endpoint.getKey());
+                logger.debug("Closing target endpoint: {}", endpoint.getKey());
                 endpoint.getValue().getHttpClient().stop();
                 it.remove();
                 endpointsTarget.remove(endpoint.getKey());
             } catch (Exception ex) {
-                LOGGER.error("Unexpected error while closing endpoint connector", ex);
+                logger.error("Unexpected error while closing endpoint connector", ex);
             }
         }
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+    }
+
+    public void setApi(Api api) {
+        this.api = api;
     }
 
     @Override

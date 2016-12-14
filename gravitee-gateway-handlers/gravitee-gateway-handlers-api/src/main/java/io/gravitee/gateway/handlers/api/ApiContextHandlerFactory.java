@@ -31,7 +31,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
@@ -54,7 +54,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         }
     }
 
-    private AbstractApplicationContext createApplicationContext(Api api) {
+    AbstractApplicationContext createApplicationContext(Api api) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.setParent(gatewayApplicationContext);
         context.setClassLoader(new ReactorHandlerClassLoader(gatewayApplicationContext.getClassLoader()));
@@ -71,6 +71,10 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         context.refresh();
 
         return context;
+    }
+
+    public void setGatewayApplicationContext(ApplicationContext gatewayApplicationContext) {
+        this.gatewayApplicationContext = gatewayApplicationContext;
     }
 
     private static class ReactorHandlerClassLoader extends URLClassLoader {
