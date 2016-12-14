@@ -24,12 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ServiceManagerImpl extends AbstractService implements ServiceManager {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ServiceManagerImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceManagerImpl.class);
 
     private final List<AbstractService> services = new ArrayList<>();
 

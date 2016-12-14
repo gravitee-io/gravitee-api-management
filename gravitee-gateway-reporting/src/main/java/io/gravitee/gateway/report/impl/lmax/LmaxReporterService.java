@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  */
 public class LmaxReporterService extends ReporterServiceImpl implements InitializingBean {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(LmaxReporterService.class);
+    private final Logger logger = LoggerFactory.getLogger(LmaxReporterService.class);
 
     @Autowired
     private Environment environment;
@@ -49,8 +49,9 @@ public class LmaxReporterService extends ReporterServiceImpl implements Initiali
 
         disruptor = new Disruptor<>(factory, bufferSize, new ThreadFactory() {
             private int counter = 0;
-            private final String prefix = "reporter-disruptor";
+            private static final String prefix = "reporter-disruptor";
 
+            @Override
             public Thread newThread(Runnable r) {
                 return new Thread(r, prefix + '-' + counter++);
             }
@@ -60,10 +61,11 @@ public class LmaxReporterService extends ReporterServiceImpl implements Initiali
     @Override
     protected void doStop() throws Exception {
         try {
-            LOGGER.info("Shutdown LMAX reporter");
+            logger.info("Shutdown LMAX reporter");
             disruptor.shutdown();
             super.doStop();
         } catch (Exception ex) {
+            logger.error("Unexpected error", ex);
             throw new IllegalStateException("LMAX reporter should never go here !");
         }
     }
@@ -75,7 +77,7 @@ public class LmaxReporterService extends ReporterServiceImpl implements Initiali
         disruptor.handleEventsWith(
                 (ReporterEventHandler []) getReporters().stream().map(ReporterEventHandler::new).collect(Collectors.toList()).toArray(new ReporterEventHandler[getReporters().size()]));
 
-        LOGGER.info("Start reportable event disruptor");
+        logger.info("Start reportable event disruptor");
         disruptor.start();
     }
 
@@ -83,7 +85,7 @@ public class LmaxReporterService extends ReporterServiceImpl implements Initiali
     protected void doReport(Reportable reportable) {
         boolean eventWasPublished = disruptor.getRingBuffer().tryPublishEvent((reportableEvent, l) -> reportableEvent.setReportable(reportable));
         if(!eventWasPublished) {
-        	LOGGER.warn("A reportable event was dropped ! Check for slow reporter consumer or a too small {reporters.system.buffersize}, actual value = {}", 
+        	logger.warn("A reportable event was dropped ! Check for slow reporter consumer or a too small {reporters.system.buffersize}, actual value = {}",
         			disruptor.getRingBuffer().getBufferSize());
         }
     }

@@ -22,21 +22,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ServicePluginHandler implements PluginHandler {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ServicePluginHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServicePluginHandler.class);
 
     @Autowired
     private ServiceManager serviceManager;
-
-    @Autowired
-    private Environment environment;
 
     @Autowired
     private PluginContextFactory pluginContextFactory;

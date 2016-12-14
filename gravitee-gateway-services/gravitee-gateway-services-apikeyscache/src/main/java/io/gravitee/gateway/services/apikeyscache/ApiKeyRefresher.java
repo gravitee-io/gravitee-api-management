@@ -18,7 +18,6 @@ package io.gravitee.gateway.services.apikeyscache;
 import io.gravitee.definition.model.Api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Plan;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
@@ -26,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -35,7 +33,7 @@ import java.util.stream.Stream;
  */
 public class ApiKeyRefresher implements Runnable {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ApiKeyRefresher.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApiKeyRefresher.class);
 
     private ApiKeyRepository apiKeyRepository;
 
@@ -51,18 +49,15 @@ public class ApiKeyRefresher implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.debug("Refresh API keys for API {}", api);
+        logger.debug("Refresh API keys for API {}", api);
 
         plans.stream()
-                .flatMap(new Function<Plan, Stream<ApiKey>>() {
-                    @Override
-                    public Stream<ApiKey> apply(Plan plan) {
-                        try {
-                            return apiKeyRepository.findByPlan(plan.getId()).stream();
-                        } catch (TechnicalException e) {
-                            LOGGER.warn("Not able to refresh API keys from repository: {}", e.getMessage());
-                            return Stream.empty();
-                        }
+                .flatMap(plan -> {
+                    try {
+                        return apiKeyRepository.findByPlan(plan.getId()).stream();
+                    } catch (TechnicalException te) {
+                        logger.warn("Not able to refresh API keys from repository: {}", te);
+                        return Stream.empty();
                     }
                 })
                 .forEach(apiKey -> cache.put(new Element(apiKey.getKey(), apiKey)));

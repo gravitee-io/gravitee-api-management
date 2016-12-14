@@ -38,14 +38,14 @@ import java.net.SocketTimeoutException;
 import java.util.Iterator;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 class EndpointHealthCheck implements Runnable {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(EndpointHealthCheck.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointHealthCheck.class);
 
-    private final static int GLOBAL_TIMEOUT = 2000;
+    private static final int GLOBAL_TIMEOUT = 2000;
 
     private ReporterService reporterService;
 
@@ -96,34 +96,8 @@ class EndpointHealthCheck implements Runnable {
                 asyncHttpClient.prepareRequest(requestBuilder.build()).execute(new AsyncCompletionHandler<Void>() {
                     @Override
                     public Void onCompleted(Response response) throws Exception {
-                        healthBuilder.success().status(response.getStatusCode());
-
-                        // Run assertions
-                        if (healthCheck.getExpectation().getAssertions() != null) {
-                            Iterator<String> assertionIterator = healthCheck.getExpectation().getAssertions().iterator();
-                            boolean success = true;
-                            while (success && assertionIterator.hasNext()) {
-                                String assertion = assertionIterator.next();
-                                ExpressionParser parser = new SpelExpressionParser();
-                                Expression expr = parser.parseExpression(assertion);
-
-                                StandardEvaluationContext context = new StandardEvaluationContext();
-                                context.registerFunction("jsonPath",
-                                        BeanUtils.resolveSignature("evaluate", JsonPathFunction.class));
-
-                                context.setVariable("response", new HealthCheckResponse(response));
-
-                                success = expr.getValue(context, boolean.class);
-
-                                if (!success) {
-                                    healthBuilder.message("Assertion can not be verified : " + assertion);
-                                }
-                            }
-
-                            healthBuilder.success(success);
-                        }
-
-                        report();
+                        validateAssertions(healthBuilder, new HealthCheckResponse(response));
+                        report(endpoint, healthBuilder);
                         return null;
                     }
 
@@ -133,24 +107,54 @@ class EndpointHealthCheck implements Runnable {
                         healthBuilder.fail().message(t.getMessage());
 
                         if (t instanceof SpelEvaluationException) {
+                            healthBuilder.message(t.getMessage());
                             healthBuilder.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-                        }
-                        if (t instanceof SocketTimeoutException) {
+                        } else if (t instanceof SocketTimeoutException) {
+                            healthBuilder.message(t.getMessage());
                             healthBuilder.status(HttpStatusCode.REQUEST_TIMEOUT_408);
                         } else {
                             healthBuilder.status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
                         }
 
-                        report();
-                    }
-
-                    private void report() {
-                        LOGGER.debug("Report health results for {}", api);
-                        statusManager.update(endpoint, healthBuilder.isSuccess());
-                        reporterService.report(healthBuilder.build());
+                        report(endpoint, healthBuilder);
                     }
                 });
             }
+        }
+    }
+
+    private void report(final Endpoint endpoint, final HealthStatus.Builder healthBuilder) {
+        LOGGER.debug("Report health results for {}", api);
+        statusManager.update(endpoint, healthBuilder.isSuccess());
+        reporterService.report(healthBuilder.build());
+    }
+
+    private void validateAssertions(final HealthStatus.Builder healthBuilder, final HealthCheckResponse response) {
+        healthBuilder.success().status(response.getStatus());
+
+        // Run assertions
+        if (healthCheck.getExpectation().getAssertions() != null) {
+            Iterator<String> assertionIterator = healthCheck.getExpectation().getAssertions().iterator();
+            boolean success = true;
+            while (success && assertionIterator.hasNext()) {
+                String assertion = assertionIterator.next();
+                ExpressionParser parser = new SpelExpressionParser();
+                Expression expr = parser.parseExpression(assertion);
+
+                StandardEvaluationContext context = new StandardEvaluationContext();
+                context.registerFunction("jsonPath",
+                        BeanUtils.resolveSignature("evaluate", JsonPathFunction.class));
+
+                context.setVariable("response", response);
+
+                success = expr.getValue(context, boolean.class);
+
+                if (!success) {
+                    healthBuilder.message("Assertion can not be verified : " + assertion);
+                }
+            }
+
+            healthBuilder.success(success);
         }
     }
 

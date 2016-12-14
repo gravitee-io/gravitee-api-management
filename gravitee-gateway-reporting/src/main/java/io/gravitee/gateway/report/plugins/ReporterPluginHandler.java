@@ -25,12 +25,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ReporterPluginHandler implements PluginHandler {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ReporterPluginHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReporterPluginHandler.class);
 
     @Autowired
     private Environment environment;

@@ -100,6 +100,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                         private int counter = 0;
                         private String prefix = "apikeys-refresher";
 
+                        @Override
                         public Thread newThread(Runnable r) {
                             return new Thread(r, prefix + '-' + counter++);
                         }
@@ -141,6 +142,10 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             case UPDATE:
                 stopRefresher(api);
                 startRefresher(api);
+                break;
+            default:
+                // Nothing to do with unknown event type
+                break;
         }
     }
 

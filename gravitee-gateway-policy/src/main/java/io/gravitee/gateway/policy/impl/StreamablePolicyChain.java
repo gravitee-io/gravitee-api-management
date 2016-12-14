@@ -32,7 +32,7 @@ import java.util.List;
  */
 public abstract class StreamablePolicyChain extends PolicyChain {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ResponsePolicyChain.class);
+    private final Logger logger = LoggerFactory.getLogger(ResponsePolicyChain.class);
 
     private ReadWriteStream<Buffer> streamablePolicyHandlerChain;
     private boolean initialized;
@@ -57,10 +57,8 @@ public abstract class StreamablePolicyChain extends PolicyChain {
             if (policy.isStreamable()) {
                 try {
                     // Run OnXXXContent to get ReadWriteStream object
-                    ReadWriteStream streamer = stream(policy, request, response, executionContext);
+                    final ReadWriteStream streamer = stream(policy, request, response, executionContext);
                     if (streamer != null) {
-                        //    final ReadWriteStream streamer = result;
-
                         // An handler was never assigned to start the chain, so let's do it
                         if (streamablePolicyHandlerChain == null) {
                             streamablePolicyHandlerChain = streamer;
@@ -76,7 +74,7 @@ public abstract class StreamablePolicyChain extends PolicyChain {
                         previousPolicyStreamer = streamer;
                     }
                 } catch (Exception ex) {
-                    LOGGER.error("Unexpected error while running onXXXXContent for policy {}", policy, ex);
+                    logger.error("Unexpected error while running onXXXXContent for policy {}", policy, ex);
                 }
             }
         }
@@ -108,5 +106,5 @@ public abstract class StreamablePolicyChain extends PolicyChain {
         }
     }
 
-    protected abstract ReadWriteStream<?> stream(Policy policy, Object... args) throws Exception;
+    protected abstract ReadWriteStream stream(Policy policy, Object... args) throws Exception;
 }

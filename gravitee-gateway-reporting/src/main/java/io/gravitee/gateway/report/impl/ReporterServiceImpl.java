@@ -31,7 +31,7 @@ import java.util.Collection;
  */
 public class ReporterServiceImpl extends AbstractService implements ReporterService {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ReporterServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(ReporterServiceImpl.class);
 
     private final Collection<Reporter> reporters = new ArrayList<>();
 
@@ -54,11 +54,11 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
                 try {
                     reporter.start();
                 } catch (Exception ex) {
-                    LOGGER.error("Unexpected error while starting reporter", ex);
+                    logger.error("Unexpected error while starting reporter", ex);
                 }
             }
         } else {
-            LOGGER.info("\tThere is no reporter to start");
+            logger.info("\tThere is no reporter to start");
         }
     }
 
@@ -70,7 +70,7 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
             try {
                 reporter.stop();
             } catch (Exception ex) {
-                LOGGER.error("Unexpected error while starting reporter", ex);
+                logger.error("Unexpected error while starting reporter", ex);
             }
         }
     }
