@@ -21,35 +21,138 @@ class ChartDirective {
       scope: {
         options: '=',
         type: '@',
-        stacked: '=',
+        zoom: '@',
         height: '@',
         width: '@'
       },
       link: function (scope, element) {
-        setWindowSize();
+        if (scope.type && scope.type.startsWith('area') && _.isArray(scope.options)) {
+          initSynchronizedCharts();
+        }
+
+        setChartSize();
 
         let lastOptions;
         scope.$watch('options', function (newOptions) {
+          executeDisplayChart(newOptions, element);
           lastOptions = newOptions;
-          displayChart(newOptions);
         }, true);
 
         $(window).resize(function () {
-          setWindowSize();
-          displayChart(lastOptions);
+          onResize();
         });
 
-        function setWindowSize() {
+        scope.$root.$watch('reducedMode', function (reducedMode) {
+          if (reducedMode !== undefined) {
+            setTimeout(function () {
+              onResize();
+            });
+          }
+        });
+
+        function onResize() {
+          setChartSize();
+          executeDisplayChart(lastOptions, element);
+        }
+
+        function setChartSize() {
           let chartElement = angular.element(element[0]);
           chartElement.css('height', scope.height || chartElement.parent().height());
           chartElement.css('width', scope.width || chartElement.parent().width());
         }
 
-        function displayChart(newOptions) {
+        function executeDisplayChart(newOptions, element) {
+          if (_.isArray(newOptions)) {
+            while (element[0].firstChild) {
+              element[0].removeChild(element[0].firstChild);
+            }
+
+            _.forEach(newOptions, function (newOption) {
+              let child = document.createElement('div');
+              element[0].append(child);
+
+              let childElement = angular.element(child);
+              childElement.css('height', scope.height || childElement.parent().height());
+
+              displayChart(newOption, child);
+            });
+          } else {
+            displayChart(newOptions, element[0]);
+          }
+        }
+
+        function initSynchronizedCharts() {
+          let points = [];
+          element.bind('mousemove touchmove touchstart', function (e) {
+            let chart, i, event;
+
+            for (i = 0; i < Highcharts.charts.length; i++) {
+              chart = Highcharts.charts[i];
+              if (chart) {
+                event = chart.pointer.normalize(e.originalEvent);
+                points = _.map(chart.series, function (serie) {
+                  return serie.searchPoint(event, true);
+                });
+                points = _.filter(points, function (point) {
+                  return point;
+                });
+
+                if (points.length && points[0] && points[0].series.area) {
+                  points[0].highlight(e);
+                }
+              }
+            }
+          });
+          Highcharts.Pointer.prototype.reset = function () {
+            let chart;
+            for (let i = 0; i < Highcharts.charts.length; i++) {
+              chart = Highcharts.charts[i];
+              if (chart) {
+                chart.tooltip.hide(this);
+                chart.xAxis[0].hideCrosshair();
+              }
+            }
+          };
+          Highcharts.Point.prototype.highlight = function (event) {
+            if (points.length) {
+              this.onMouseOver();
+              this.series.chart.tooltip.refresh(points);
+              this.series.chart.xAxis[0].drawCrosshair(event, this);
+            }
+          };
+        }
+
+        function syncExtremes(e) {
+          let thisChart = this.chart;
+
+          if (e.trigger !== 'syncExtremes') {
+            Highcharts.each(Highcharts.charts, function (chart) {
+              if (chart && chart !== thisChart) {
+                if (chart.xAxis[0].setExtremes) {
+                  chart.xAxis[0].setExtremes(e.min, e.max, undefined, false, {trigger: 'syncExtremes'});
+                }
+              }
+            });
+          }
+        }
+
+        function displayChart(newOptions, element) {
           if (newOptions) {
-            newOptions.title = {text: ''};
+            if (newOptions.title) {
+              newOptions.title.style = {
+                'fontWeight': 'bold',
+                'fontSize': '12px',
+                'fontFamily': '"Helvetica Neue",Helvetica,Arial,sans-serif'
+              };
+              newOptions.title.align = 'left';
+            } else {
+              newOptions.title = {text: ''};
+            }
             newOptions.yAxis = _.merge(newOptions.yAxis, {title: {text: ''}});
             newOptions.chart = {type: scope.type};
+            if (scope.zoom) {
+              newOptions.chart.zoomType = 'x';
+            }
             newOptions.credits = {
               enabled: false
             };
@@ -77,17 +180,16 @@ class ChartDirective {
                 },
                 shared: true
               };
-              newOptions.plotOptions = {
+              newOptions.plotOptions = _.merge(newOptions.plotOptions, {
                 series: {
                   marker: {
                     enabled: false
-                  }
+                  },
+                  fillOpacity: 0.1
                 }
-              };
-              if (scope.stacked) {
-                newOptions.plotOptions.areaspline = {
-                  stacking: 'normal'
-                };
+              });
+              if (_.isArray(scope.options)) {
+                newOptions.xAxis = _.merge(newOptions.xAxis, {crosshair: true, events: {setExtremes: syncExtremes}});
               }
             } else if (scope.type && scope.type === 'solidgauge') {
               newOptions = _.merge(newOptions, {
@@ -146,7 +248,7 @@ class ChartDirective {
                 };
               }
             }
-            Highcharts.chart(element[0], newOptions);
+            Highcharts.chart(element, newOptions);
           }
         }
       }

@@ -71,8 +71,6 @@ class ApplicationAnalyticsController {
       '#7986cb', '#ba68c8', '#e57373', '#4dd0e1', '#a1887f'
     ];
 
-    $scope.chartConfig = [];
-
     // data fetching settings
     this.setUpDataFetchSettings();
 
@@ -144,10 +142,11 @@ class ApplicationAnalyticsController {
     let that = this;
     let data = [], i = 0;
     _.forEach(report.requests, function (request) {
-      let currentResponse = response[i++];
+      let currentResponse = response[i];
       if (currentResponse) {
         _.forEach(currentResponse.data.values[0].buckets, function (bucket) {
           if (bucket) {
+            i++;
             let lineColor = report.id === 'response-status' ? that.getColorByStatus(bucket.name) : that.colorByBucket[i % that.colorByBucket.length];
             let bgColor = report.id === 'response-status' ? that.getBgColorByStatus(bucket.name) : that.bgColorByBucket[i % that.bgColorByBucket.length];
             var label = request.label ? request.label : (report.label || report.labelPrefix + ' ' + bucket.name);
@@ -164,15 +163,24 @@ class ApplicationAnalyticsController {
       }
     });
 
-    this.$scope.chartConfig[report.id] = {
-      xAxis: {
-        labels: {enabled: false},
-        categories: _.map(response[0].data.timestamps, function (timestamp) {
-          return moment(timestamp).format("YYYY-MM-DD HH:mm:ss");
-        })
-      },
-      series: data
-    };
+    if (data.length) {
+      this.$scope.chartConfig.push({
+        title: {text: report.title},
+        xAxis: {
+          labels: {enabled: false},
+          categories: _.map(response[0].data.timestamps, function (timestamp) {
+            return moment(timestamp).format("YYYY-MM-DD HH:mm:ss");
+          })
+        },
+        plotOptions: {areaspline: {stacking: report.stacked ? 'normal':null}},
+        series: data
+      });
+
+      // sort by configured reports
+      this.$scope.chartConfig = _.sortBy(this.$scope.chartConfig, function (report) {
+        return _.findIndex(that.analyticsData.reports, {title: report.title.text});
+      });
+    }
   }
 
   pushTopHitsData() {
@@ -304,6 +312,7 @@ class ApplicationAnalyticsController {
                 return indicator.value !== 0;
               }).length) {
               _this.indicatorChartData = {
+                title: {text: _this.total + ' hits'},
                 series: [{
                   name: 'Percent hits',
                   data: data
@@ -336,6 +345,7 @@ class ApplicationAnalyticsController {
       _this.indicatorsFetched[indicator.key] = false;
     });
     this.$scope.fetchDone = false;
+    _this.$scope.chartConfig = [];
   }
 
   setUpDataFetchSettings() {
@@ -446,7 +456,7 @@ class ApplicationAnalyticsController {
         {
           id: 'response-status',
           type: 'line',
-          stacked: false,
+          stacked: true,
           title: 'Response Status',
           labelPrefix: 'HTTP Status',
           requests: [
@@ -461,7 +471,7 @@ class ApplicationAnalyticsController {
         }, {
           id: 'response-times',
           type: 'line',
-          stacked: true,
+          stacked: false,
           title: 'Response Times',
           requests: [
             {
@@ -476,7 +486,7 @@ class ApplicationAnalyticsController {
         }, {
           id: 'apis',
           type: 'line',
-          stacked: false,
+          stacked: true,
           title: 'Hits by APIs',
           labelPrefix: '',
           requests: [
