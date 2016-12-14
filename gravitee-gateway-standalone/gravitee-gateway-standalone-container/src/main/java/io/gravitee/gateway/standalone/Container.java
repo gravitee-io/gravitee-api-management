@@ -79,7 +79,7 @@ public class Container {
             try {
                 configurator.doConfigure(logbackConfigurationfile);
             } catch( JoranException e ) {
-                e.printStackTrace();
+                LoggerFactory.getLogger(Container.class).error("An error occurs while initializing logging system", e);
             }
 
             // Internal status data is printed in case of warnings or errors.

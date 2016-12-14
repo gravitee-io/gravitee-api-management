@@ -17,6 +17,8 @@ package io.gravitee.gateway.services.monitoring.probe;
 
 import io.gravitee.gateway.services.monitoring.Constants;
 import io.gravitee.reporter.api.monitor.OsInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -27,10 +29,12 @@ import java.nio.file.Files;
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class OsProbe {
+
+    private final Logger logger = LoggerFactory.getLogger(OsProbe.class);
 
     private static final OperatingSystemMXBean osMxBean = ManagementFactory.getOperatingSystemMXBean();
 
@@ -70,7 +74,8 @@ public class OsProbe {
         }
         try {
             return (long) getFreePhysicalMemorySize.invoke(osMxBean);
-        } catch (Throwable t) {
+        } catch (Exception ex) {
+            logger.debug("Unexpected exception", ex);
             return -1;
         }
     }
@@ -84,7 +89,8 @@ public class OsProbe {
         }
         try {
             return (long) getTotalPhysicalMemorySize.invoke(osMxBean);
-        } catch (Throwable t) {
+        } catch (Exception ex) {
+            logger.debug("Unexpected exception", ex);
             return -1;
         }
     }
@@ -98,7 +104,8 @@ public class OsProbe {
         }
         try {
             return (long) getFreeSwapSpaceSize.invoke(osMxBean);
-        } catch (Throwable t) {
+        } catch (Exception ex) {
+            logger.debug("Unexpected exception", ex);
             return -1;
         }
     }
@@ -112,7 +119,8 @@ public class OsProbe {
         }
         try {
             return (long) getTotalSwapSpaceSize.invoke(osMxBean);
-        } catch (Throwable t) {
+        } catch (Exception ex) {
+            logger.debug("Unexpected exception", ex);
             return -1;
         }
     }
@@ -138,7 +146,8 @@ public class OsProbe {
         try {
             double oneMinuteLoadAverage = (double) getSystemLoadAverage.invoke(osMxBean);
             return new double[] { oneMinuteLoadAverage >= 0 ? oneMinuteLoadAverage : -1, -1, -1 };
-        } catch (Throwable t) {
+        } catch (Exception ex) {
+            logger.debug("Unexpected exception", ex);
             return null;
         }
     }

@@ -16,20 +16,24 @@
 package io.gravitee.gateway.services.monitoring.probe;
 
 import io.gravitee.reporter.api.monitor.JvmInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.management.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class JvmProbe {
 
-    private final static RuntimeMXBean runtimeMXBean;
-    private final static MemoryMXBean memoryMXBean;
-    private final static ThreadMXBean threadMXBean;
+    private final Logger logger = LoggerFactory.getLogger(JvmProbe.class);
+
+    private static final RuntimeMXBean runtimeMXBean;
+    private static final MemoryMXBean memoryMXBean;
+    private static final ThreadMXBean threadMXBean;
 
     static {
         runtimeMXBean = ManagementFactory.getRuntimeMXBean();
@@ -80,7 +84,8 @@ public class JvmProbe {
                 ));
             } catch (OutOfMemoryError err) {
                 throw err; // rethrow
-            } catch (Throwable ex) {
+            } catch (Exception ex) {
+                logger.debug("Unexpected exception", ex);
                 /* ignore some JVMs might barf here with:
                  * java.lang.InternalError: Memory Pool not found*/
             }

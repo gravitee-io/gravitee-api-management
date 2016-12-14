@@ -88,7 +88,7 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
             return (Set<D>) new HashSet<>(getResources());
         }
 
-        return null;
+        return Collections.emptySet();
     }
 
     private Set<Policy> policies() {
@@ -129,6 +129,6 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
 
     @Override
     public Map<String, Object> properties() {
-        return (getProperties() != null) ? Collections.unmodifiableMap(getProperties()) : Collections.EMPTY_MAP;
+        return (getProperties() != null) ? Collections.unmodifiableMap(getProperties()) : Collections.emptyMap();
     }
 }

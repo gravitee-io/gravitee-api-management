@@ -27,9 +27,12 @@ import io.gravitee.gateway.api.endpoint.EndpointManager;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.api.http.loadbalancer.LoadBalancerStrategy;
+import io.gravitee.gateway.http.core.endpoint.impl.EndpointLifecycleManagerImpl;
 import io.gravitee.gateway.http.core.logger.HttpDump;
 import io.gravitee.gateway.http.core.logger.LoggableClientRequest;
 import io.gravitee.gateway.http.core.logger.LoggableClientResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.UnsupportedEncodingException;
@@ -46,6 +49,8 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 public class DefaultHttpInvoker implements Invoker {
+
+    private final Logger logger = LoggerFactory.getLogger(EndpointLifecycleManagerImpl.class);
 
 	// Pattern reuse for duplicate slash removal
 	private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
@@ -157,7 +162,7 @@ public class DefaultHttpInvoker implements Invoker {
                     try {
                         query.append('=').append(URLEncoder.encode(queryParam.getValue(), StandardCharsets.UTF_8.name()));
                     } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
+                        logger.error("Unexpected error while encoding query parameters");
                     }
                 }
 

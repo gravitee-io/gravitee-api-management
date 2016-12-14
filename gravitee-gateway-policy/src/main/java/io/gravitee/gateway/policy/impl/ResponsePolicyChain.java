@@ -50,8 +50,13 @@ public class ResponsePolicyChain extends StreamablePolicyChain {
     public Iterator<Policy> iterator() {
         final ListIterator<Policy> listIterator = policies.listIterator(policies.size());
         return new Iterator<Policy>() {
+            @Override
             public boolean hasNext() { return listIterator.hasPrevious(); }
+
+            @Override
             public Policy next() { return listIterator.previous(); }
+
+            @Override
             public void remove() { listIterator.remove(); }
         };
     }

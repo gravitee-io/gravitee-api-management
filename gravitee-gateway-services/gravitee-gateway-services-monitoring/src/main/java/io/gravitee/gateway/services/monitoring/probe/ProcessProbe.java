@@ -16,16 +16,20 @@
 package io.gravitee.gateway.services.monitoring.probe;
 
 import io.gravitee.reporter.api.monitor.ProcessInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Method;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ProcessProbe {
+
+    private final Logger logger = LoggerFactory.getLogger(ProcessProbe.class);
 
     private static final OperatingSystemMXBean osMxBean = ManagementFactory.getOperatingSystemMXBean();
 
@@ -57,7 +61,8 @@ public class ProcessProbe {
         }
         try {
             return (Long) getMaxFileDescriptorCountField.invoke(osMxBean);
-        } catch (Throwable t) {
+        } catch (Exception ex) {
+            logger.debug("Unexpected exception", ex);
             return -1;
         }
     }
@@ -71,7 +76,8 @@ public class ProcessProbe {
         }
         try {
             return (Long) getOpenFileDescriptorCountField.invoke(osMxBean);
-        } catch (Throwable t) {
+        } catch (Exception ex) {
+            logger.debug("Unexpected exception", ex);
             return -1;
         }
     }

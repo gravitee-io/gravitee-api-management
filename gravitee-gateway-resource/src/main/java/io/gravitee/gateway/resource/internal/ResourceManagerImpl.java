@@ -37,12 +37,12 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceManager> implements ResourceLifecycleManager {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ResourceManagerImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(ResourceManagerImpl.class);
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -59,10 +59,10 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
                 .stream()
                 .forEach(resource -> {
                     try {
-                        LOGGER.info("Start resource {} [{}]", resource.getKey(), resource.getValue().getClass());
+                        logger.info("Start resource {} [{}]", resource.getKey(), resource.getValue().getClass());
                         resource.getValue().start();
                     } catch (Exception ex) {
-                        LOGGER.error("Unable to start resource", ex);
+                        logger.error("Unable to start resource", ex);
                     }
                 });
     }
@@ -74,10 +74,10 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
                 .stream()
                 .forEach(resource -> {
                     try {
-                        LOGGER.info("Stop resource {} [{}]", resource.getKey(), resource.getValue().getClass());
+                        logger.info("Stop resource {} [{}]", resource.getKey(), resource.getValue().getClass());
                         resource.getValue().stop();
                     } catch (Exception ex) {
-                        LOGGER.error("Unable to stop resource", ex);
+                        logger.error("Unable to stop resource", ex);
                     }
                 });
 
@@ -87,8 +87,8 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
             if (resourceClassLoader instanceof PluginClassLoader) {
                 try {
                     ((PluginClassLoader)resourceClassLoader).close();
-                } catch (IOException e) {
-                    LOGGER.error("Unable to close classloader for resource {}", resource.getClass());
+                } catch (IOException ioe) {
+                    logger.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
                 }
             }
         });
@@ -109,12 +109,12 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
         resourceDeps.forEach(resource -> {
             final ResourcePlugin resourcePlugin = rpm.get(resource.getType());
             if (resourcePlugin == null) {
-                LOGGER.error("Resource [{}] can not be found in plugin registry", resource.getType());
+                logger.error("Resource [{}] can not be found in plugin registry", resource.getType());
                 throw new IllegalStateException("Resource ["+resource.getType()+"] can not be found in plugin registry");
             }
 
             PluginClassLoader resourceClassLoader = rclf.getOrCreateClassLoader(resourcePlugin, rh.classloader());
-            LOGGER.debug("Loading resource {} for {}", resource.getName(), rh);
+            logger.debug("Loading resource {} for {}", resource.getName(), rh);
 
             try {
                 Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(resourcePlugin.resource().getName(), resourceClassLoader);
@@ -128,12 +128,12 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
                 io.gravitee.resource.api.Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);
                 resources.put(resource.getName(), resourceInstance);
             } catch (Exception ex) {
-                LOGGER.error("Unable to create resource", ex);
+                logger.error("Unable to create resource", ex);
                 if (resourceClassLoader != null) {
                     try {
                         resourceClassLoader.close();
                     } catch (IOException ioe) {
-                        LOGGER.error("Unable to close classloader for resource", ioe);
+                        logger.error("Unable to close classloader for resource", ioe);
                     }
                 }
             }
@@ -151,7 +151,7 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
                     .filter(resourceEntry -> resourceEntry.getClass().isAssignableFrom(requiredType))
                     .findFirst();
 
-            return resource.get();
+            return resource.orElse(null);
     }
 
     @Override

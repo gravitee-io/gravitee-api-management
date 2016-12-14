@@ -17,6 +17,7 @@ package io.gravitee.policy;
 
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
+import io.gravitee.policy.api.PolicyConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -67,4 +68,9 @@ public class CachedPolicyConfigurationFactoryTest {
         }
     }
 
+    @Test
+    public void createNullPolicyClassFromCache() {
+        PolicyConfiguration policyConfiguration1 = policyConfigurationFactory.create(null, null);
+        Assert.assertNull(policyConfiguration1);
+    }
 }

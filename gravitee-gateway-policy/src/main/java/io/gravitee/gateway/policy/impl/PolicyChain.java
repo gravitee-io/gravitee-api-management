@@ -37,13 +37,13 @@ import java.util.Objects;
  */
 public abstract class PolicyChain extends BufferedReadWriteStream implements io.gravitee.policy.api.PolicyChain {
 
-    protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     protected static final PolicyResult SUCCESS_POLICY_CHAIN = new SuccessPolicyResult();
 
     protected Handler<PolicyResult> resultHandler;
     protected final List<Policy> policies;
-    protected final Iterator<Policy> iterator;
+    protected final Iterator<Policy> policyIterator;
     protected final ExecutionContext executionContext;
 
     protected PolicyChain(List<Policy> policies, final ExecutionContext executionContext) {
@@ -53,13 +53,13 @@ public abstract class PolicyChain extends BufferedReadWriteStream implements io.
         this.policies = policies;
         this.executionContext = executionContext;
 
-        iterator = iterator();
+        policyIterator = iterator();
     }
 
     @Override
     public void doNext(final Request request, final Response response) {
-        if (iterator.hasNext()) {
-            Policy policy = iterator.next();
+        if (policyIterator.hasNext()) {
+            Policy policy = policyIterator.next();
             try {
                 if (policy.isRunnable()) {
                     execute(policy, request, response, this, executionContext);
@@ -67,7 +67,7 @@ public abstract class PolicyChain extends BufferedReadWriteStream implements io.
                     doNext(request, response);
                 }
             } catch (Exception ex) {
-                LOGGER.error("Unexpected error while running policy {}", policy, ex);
+                logger.error("Unexpected error while running policy {}", policy, ex);
                 failWith(ex);
             }
         } else {
