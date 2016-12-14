@@ -199,11 +199,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         // Prepare metadata
         Map<String, Map<String, String>> metadata = new HashMap<>();
-        for(String key: topHitsResponse.getValues().keySet()) {
-            if (api) {
-                metadata.put(key, getAPIMetadata(key));
-            } else {
-                metadata.put(key, getApplicationMetadata(key));
+        if (topHitsResponse.getValues() != null) {
+            for (String key : topHitsResponse.getValues().keySet()) {
+                if (api) {
+                    metadata.put(key, getAPIMetadata(key));
+                } else {
+                    metadata.put(key, getApplicationMetadata(key));
+                }
             }
         }
 
