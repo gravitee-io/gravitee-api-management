@@ -24,7 +24,7 @@
       <button class="btn btn-default" ng-class="{'active': apiPlansCtrl.selectedStatus.indexOf(statusFilter) !== -1}"
               ng-click="apiPlansCtrl.changeFilter(statusFilter)" type="button"
               ng-repeat="statusFilter in apiPlansCtrl.statusFilters" style="text-transform: capitalize;">
-        {{statusFilter}}
+        {{statusFilter}} <span ng-if="apiPlansCtrl.countByStatus[statusFilter]">({{apiPlansCtrl.countByStatus[statusFilter]}})</span>q
       </button>
     </div>
   </div>
@@ -87,7 +87,7 @@
     </md-card-header>
     <md-divider></md-divider>
     <md-card-content layout="column">
-      <h4 class="gravitee-plan-content">{{plan.description}}</h4>
+      <h4 class="gravitee-plan-content">{{plan.description}} ({{plan.security}})</h4>
       <md-divider></md-divider>
       <div ng-repeat="characteristic in plan.characteristics">
         <h5 class="gravitee-plan-content">{{characteristic}}</h5>
@@ -97,9 +97,13 @@
     <md-divider ng-if="graviteeUser || plan.isPublic"></md-divider>
     <md-card-footer ng-if="graviteeUser || plan.isPublic">
       <div layout="row" layout-align="end">
-        <md-button class="md-primary md-raised" aria-label="Execute"
+        <md-button ng-if="plan.security === 'api_key' || plan.security === undefined" class="md-primary md-raised" aria-label="Execute"
                    ng-click="subscribe(plan)" ng-disabled="plan.status || planEdit">
           {{plan.alreadySubscribed ? 'Subscribed' : (plan.validation === 'auto'?'Subscribe': 'Request for subscription')}}
+        </md-button>
+        <md-button ng-if="plan.security === 'key_less'" class="md-primary md-raised" aria-label="Execute"
+                   ng-click="subscribe(plan)" ng-disabled="plan.status || planEdit">
+          No subscription required
         </md-button>
       </div>
     </md-card-footer>
@@ -151,6 +155,13 @@
       <input type="text" ng-model="plan.description" required>
     </md-input-container>
     <md-input-container class="md-block">
+      <label>Security Type</label>
+      <md-select ng-model="plan.security" placeholder="Security type" required ng-required="true"
+                 ng-disabled="plan.id">
+        <md-option ng-repeat="type in apiPlansCtrl.securityTypes" ng-value="type.id">{{type.name}}</md-option>
+      </md-select>
+    </md-input-container>
+    <md-input-container class="md-block">
       <label>Characteristics</label>
       <md-chips ng-model="plan.characteristics" placeholder="Enter a characteristic"
                 secondary-placeholder="+Characteristic" ng-click="formPlan.$setDirty()"></md-chips>
@@ -160,7 +171,7 @@
       <md-input-container class="md-block" flex="33">
         <label>Auto validation</label>
         <md-switch aria-label="Auto validation"
-          ng-model="plan.validation" ng-true-value="'auto'" ng-false-value="'manual'"></md-switch>
+          ng-model="plan.validation" ng-true-value="'auto'" ng-disabled="plan.security == 'key_less'" ng-false-value="'manual'"></md-switch>
       </md-input-container>
     </div>
 

@@ -21,7 +21,7 @@
   </md-card-header>
   <md-divider></md-divider>
   <md-card-content layout="column">
-    <h4 class="gravitee-plan-content">{{plan.description}}</h4>
+    <h4 class="gravitee-plan-content">{{plan.description}} ({{plan.security}})</h4>
     <md-divider></md-divider>
     <div ng-repeat="characteristic in plan.characteristics">
       <h5 class="gravitee-plan-content">{{characteristic}}</h5>
@@ -31,9 +31,13 @@
   <md-divider ng-if="graviteeUser || plan.isPublic"></md-divider>
   <md-card-footer ng-if="graviteeUser || plan.isPublic">
     <div layout="row" layout-align="end">
-      <md-button class="md-primary md-raised" aria-label="Execute"
+      <md-button ng-if="plan.security === 'api_key' || plan.security === undefined" class="md-primary md-raised" aria-label="Execute"
                  ng-click="subscribe(plan)" ng-disabled="planEdit">
         {{plan.alreadySubscribed ? 'Subscribed' : (plan.validation === 'auto'?'Subscribe': 'Request for subscription')}}
+      </md-button>
+      <md-button ng-if="plan.security === 'key_less'" class="md-primary md-raised" aria-label="Execute"
+                 ng-click="subscribe(plan)" ng-disabled="true">
+        No subscription required
       </md-button>
     </div>
   </md-card-footer>

@@ -27,7 +27,6 @@ function DialogPublishPlanController($scope, $mdDialog, ApiService, Notification
     ApiService.publishPlan($scope.apiId, $scope.plan.id).then(function() {
       NotificationService.show('Plan ' + plan.name + ' has been published');
     }).catch(function (error) {
-      NotificationService.show('Error while publishing plan ' + plan.name);
       $scope.error = error;
     });
 

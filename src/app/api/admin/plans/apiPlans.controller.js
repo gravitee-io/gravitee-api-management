@@ -27,9 +27,18 @@ class ApiPlansController {
     this.dndEnabled = true;
     this.statusFilters = ['staging', 'published', 'closed'];
     this.selectedStatus = ['published'];
+    this.securityTypes = [
+      {
+        'id': 'api_key',
+        'name': 'API Key'
+      }, {
+        'id': 'key_less',
+        'name': 'Keyless (public)'
+      }];
 
     $scope.planEdit = true;
 
+    this.countByStatus = {};
     this.resetPlan();
     this.applyFilters();
 
@@ -117,6 +126,7 @@ class ApiPlansController {
   }
 
   applyFilters() {
+    this.countPlansByStatus();
     var that = this;
     this.filteredPlans = _.filter(this.plans, function (plan) {
       return _.includes(that.selectedStatus, plan.status);
@@ -242,6 +252,11 @@ class ApiPlansController {
         // You cancelled the dialog
       });
   }
+
+  countPlansByStatus() {
+    this.countByStatus = _.countBy(this.plans, 'status');
+  }
+
 }
 
 export default ApiPlansController;

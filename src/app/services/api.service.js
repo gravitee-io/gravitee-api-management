@@ -192,7 +192,8 @@ class ApiService {
         {
           name: plan.name, description: plan.description, api: plan.api,
           validation: plan.validation, policies: plan.policies,
-          characteristics: plan.characteristics, type: plan.type, paths: plan.paths
+          characteristics: plan.characteristics, type: plan.type, paths: plan.paths,
+          security: plan.security
         });
     }
   }

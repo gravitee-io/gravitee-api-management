@@ -25,7 +25,7 @@ function DialogClosePlanController($scope, $mdDialog, ApiService, NotificationSe
   };
 
   $scope.close = function () {
-    if ($scope.subscriptions === 0) {
+    if ($scope.plan.security === 'api_key' && $scope.subscriptions === 0) {
       ApiService.deletePlan($scope.apiId, $scope.plan.id).then(function() {
         NotificationService.show('Plan ' + plan.name + ' has been deleted');
       }).catch(function (error) {
