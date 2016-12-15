@@ -45,6 +45,8 @@ public class PlanMongo extends Auditable {
 
     private String status;
 
+    private String security;
+
     private int order;
 
     /**
@@ -163,6 +165,14 @@ public class PlanMongo extends Auditable {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public String getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(String security) {
+        this.security = security;
     }
 
     @Override
