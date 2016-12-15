@@ -164,7 +164,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanNotYetPublishedException.class)
-    public void shouldCreateBecausePlanNotPublished() throws Exception {
+    public void shouldNotCreateBecausePlanNotPublished() throws Exception {
         // Stub
         when(plan.getStatus()).thenReturn(PlanStatus.STAGING);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -174,9 +174,19 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
-    public void shouldCreateBecausePlanAlreadyClosed() throws Exception {
+    public void shouldNotCreateBecausePlanAlreadyClosed() throws Exception {
         // Stub
         when(plan.getStatus()).thenReturn(PlanStatus.CLOSED);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+
+        // Run
+        subscriptionService.create(PLAN_ID, APPLICATION_ID);
+    }
+
+    @Test(expected = PlanNotSubscribableException.class)
+    public void shouldNotCreateBecausePlanKeyless() throws Exception {
+        // Stub
+        when(plan.getSecurity()).thenReturn(PlanSecurityType.KEY_LESS);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
 
         // Run

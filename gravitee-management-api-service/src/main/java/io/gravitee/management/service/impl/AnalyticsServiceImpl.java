@@ -52,6 +52,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
      */
     private final Logger logger = LoggerFactory.getLogger(AnalyticsServiceImpl.class);
 
+    private static final String APPLICATION_KEYLESS = "1";
+
     @Autowired
     private AnalyticsRepository analyticsRepository;
 
@@ -243,8 +245,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             ApplicationEntity applicationEntity = applicationService.findById(application);
             metadata.put("name", applicationEntity.getName());
         } catch (ApplicationNotFoundException anfe) {
-            metadata.put("name", "Deleted application");
             metadata.put("deleted", "true");
+            if (application.equals(APPLICATION_KEYLESS)) {
+                metadata.put("name", "Unknown application (keyless)");
+            } else {
+                metadata.put("name", "Deleted application");
+
+            }
         }
 
         return metadata;

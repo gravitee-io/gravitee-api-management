@@ -37,6 +37,8 @@ public class PlanEntity {
      */
     private PlanValidationType validation;
 
+    private PlanSecurityType security;
+
     private PlanType type;
 
     private PlanStatus status;
@@ -184,6 +186,14 @@ public class PlanEntity {
 
     public void setClosedAt(Date closedAt) {
         this.closedAt = closedAt;
+    }
+
+    public PlanSecurityType getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(PlanSecurityType security) {
+        this.security = security;
     }
 
     @Override

@@ -47,9 +47,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     /**
      * Logger.
      */
-    private final Logger LOGGER = LoggerFactory.getLogger(SubscriptionServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(SubscriptionServiceImpl.class);
 
-    private final static String SUBSCRIPTION_SYSTEM_VALIDATOR = "system";
+    private static final String SUBSCRIPTION_SYSTEM_VALIDATOR = "system";
 
     @Autowired
     private PlanService planService;
@@ -72,7 +72,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Override
     public SubscriptionEntity findById(String subscription) {
         try {
-            LOGGER.debug("Find subscription by id : {}", subscription);
+            logger.debug("Find subscription by id : {}", subscription);
 
             Optional<Subscription> optSubscription = subscriptionRepository.findById(subscription);
 
@@ -82,7 +82,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             return convert(optSubscription.get());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find a subscription using its ID: {}", subscription, ex);
+            logger.error("An error occurs while trying to find a subscription using its ID: {}", subscription, ex);
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to find a subscription using its ID: %s", subscription), ex);
         }
@@ -91,7 +91,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Override
     public Set<SubscriptionEntity> findByApplicationAndPlan(String application, String plan) {
         try {
-            LOGGER.debug("Find subscriptions by application {} and plan {}", application, plan);
+            logger.debug("Find subscriptions by application {} and plan {}", application, plan);
 
             Set<Subscription> subscriptions = null;
 
@@ -122,7 +122,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             return Collections.emptySet();
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find subscriptions by application: {}", application, ex);
+            logger.error("An error occurs while trying to find subscriptions by application: {}", application, ex);
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to find subscriptions by application: %s", application), ex);
         }
@@ -130,14 +130,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Override
     public Set<SubscriptionEntity> findByApi(String api) {
-        LOGGER.debug("Find subscriptions by api {}", api);
+        logger.debug("Find subscriptions by api {}", api);
 
         Set<PlanEntity> plans = planService.findByApi(api);
         Set<Subscription> subscriptions = plans.stream().flatMap(plan -> {
             try {
                 return subscriptionRepository.findByPlan(plan.getId()).stream();
             } catch (TechnicalException te) {
-                LOGGER.error("An error occurs while searching for subscriptions by plan: {}", plan.getId(), te);
+                logger.error("An error occurs while searching for subscriptions by plan: {}", plan.getId(), te);
             }
             return Stream.empty();
         }).collect(Collectors.toSet());
@@ -155,11 +155,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Override
     public Set<SubscriptionEntity> findByPlan(String plan) {
         try {
-            LOGGER.debug("Find subscriptions by plan : {}", plan);
+            logger.debug("Find subscriptions by plan : {}", plan);
             Set<Subscription> subscriptions = subscriptionRepository.findByPlan(plan);
             return subscriptions.stream().map(this::convert).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find subscriptions by plan: {}", plan, ex);
+            logger.error("An error occurs while trying to find subscriptions by plan: {}", plan, ex);
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to find subscriptions by plan: %s", plan), ex);
         }
@@ -168,7 +168,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Override
     public SubscriptionEntity create(String plan, String application) {
         try {
-            LOGGER.debug("Create a new subscription for plan {} and application {}", plan, application);
+            logger.debug("Create a new subscription for plan {} and application {}", plan, application);
 
             PlanEntity planEntity = planService.findById(plan);
 
@@ -178,6 +178,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             if (planEntity.getStatus() == PlanStatus.STAGING) {
                 throw new PlanNotYetPublishedException(plan);
+            }
+
+            if (planEntity.getSecurity() == PlanSecurityType.KEY_LESS) {
+                throw new PlanNotSubscribableException(plan);
             }
 
             ApplicationEntity applicationEntity = applicationService.findById(application);
@@ -234,7 +238,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 return convert(subscription);
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to subscribe to the plan {}", plan, ex);
+            logger.error("An error occurs while trying to subscribe to the plan {}", plan, ex);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to subscribe to the plan %s", plan), ex);
         }
@@ -243,7 +247,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Override
     public SubscriptionEntity update(UpdateSubscriptionEntity updateSubscription) {
         try {
-            LOGGER.debug("Update subscription {}", updateSubscription.getId());
+            logger.debug("Update subscription {}", updateSubscription.getId());
 
             Optional<Subscription> optSubscription = subscriptionRepository.findById(updateSubscription.getId());
             if (! optSubscription.isPresent()) {
@@ -279,7 +283,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             throw new SubscriptionNotUpdatableException(updateSubscription.getId());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update subscription {}", updateSubscription.getId(), ex);
+            logger.error("An error occurs while trying to update subscription {}", updateSubscription.getId(), ex);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to update subscription %s", updateSubscription.getId()), ex);
         }
@@ -288,7 +292,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Override
     public SubscriptionEntity process(ProcessSubscriptionEntity processSubscription, String validator) {
         try {
-            LOGGER.debug("Subscription {} processed by {}", processSubscription.getId(), validator);
+            logger.debug("Subscription {} processed by {}", processSubscription.getId(), validator);
 
             Optional<Subscription> optSubscription = subscriptionRepository.findById(processSubscription.getId());
             if (! optSubscription.isPresent()) {
@@ -360,7 +364,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             return convert(subscription);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to process subscription {} by {}",
+            logger.error("An error occurs while trying to process subscription {} by {}",
                     processSubscription.getId(), validator, ex);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to process subscription %s by %s",
@@ -371,7 +375,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Override
     public SubscriptionEntity close(String subscriptionId) {
         try {
-            LOGGER.debug("Close subscription {}", subscriptionId);
+            logger.debug("Close subscription {}", subscriptionId);
 
             Optional<Subscription> optSubscription = subscriptionRepository.findById(subscriptionId);
             if (! optSubscription.isPresent()) {
@@ -408,7 +412,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             throw new SubscriptionNotClosableException(subscriptionId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to close subscription {}", subscriptionId, ex);
+            logger.error("An error occurs while trying to close subscription {}", subscriptionId, ex);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to close subscription %s", subscriptionId), ex);
         }
@@ -417,7 +421,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Override
     public void delete(String subscriptionId) {
         try {
-            LOGGER.debug("Delete subscription {}", subscriptionId);
+            logger.debug("Delete subscription {}", subscriptionId);
 
             Optional<Subscription> optSubscription = subscriptionRepository.findById(subscriptionId);
             if (! optSubscription.isPresent()) {
@@ -431,7 +435,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             // Delete subscription
             subscriptionRepository.delete(subscriptionId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete subscription: {}", subscriptionId, ex);
+            logger.error("An error occurs while trying to delete subscription: {}", subscriptionId, ex);
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to delete subscription: %s", subscriptionId), ex);
         }

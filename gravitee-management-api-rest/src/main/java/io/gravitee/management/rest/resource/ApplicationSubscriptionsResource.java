@@ -60,7 +60,7 @@ public class ApplicationSubscriptionsResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_SUBSCRIPTIONS)
     @ApiOperation(value = "Subscribe to a plan",
-            notes = "User must have the MANAGE_PLANS permission to use this service")
+            notes = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Subscription successfully created", response = Subscription.class),
             @ApiResponse(code = 500, message = "Internal server error")})

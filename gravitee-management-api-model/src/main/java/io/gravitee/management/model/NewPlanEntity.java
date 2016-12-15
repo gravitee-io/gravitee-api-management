@@ -39,6 +39,9 @@ public class NewPlanEntity {
     private PlanValidationType validation = PlanValidationType.MANUAL;
 
     @NotNull
+    private PlanSecurityType security = PlanSecurityType.API_KEY;
+
+    @NotNull
     private PlanType type = PlanType.API;
 
     private String api;
@@ -102,6 +105,14 @@ public class NewPlanEntity {
 
     public void setCharacteristics(List<String> characteristics) {
         this.characteristics = characteristics;
+    }
+
+    public PlanSecurityType getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(PlanSecurityType security) {
+        this.security = security;
     }
 
     @Override

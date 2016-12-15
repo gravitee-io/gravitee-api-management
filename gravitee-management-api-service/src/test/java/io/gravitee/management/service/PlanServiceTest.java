@@ -31,8 +31,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.*;
 
@@ -44,6 +46,7 @@ import static org.mockito.Mockito.*;
 public class PlanServiceTest {
 
     private static final String PLAN_ID = "my-plan";
+    private static final String API_ID = "my-api";
     private static final String SUBSCRIPTION_ID = "my-subscription";
 
     @InjectMocks
@@ -72,6 +75,19 @@ public class PlanServiceTest {
         assertNotNull(planEntity);
     }
 
+    @Test
+    public void shouldFindByApi() throws TechnicalException {
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getId()).thenReturn(PLAN_ID);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(plan));
+
+        final Set<PlanEntity> plans = planService.findByApi(API_ID);
+
+        assertNotNull(plans);
+        assertTrue(! plans.isEmpty());
+    }
+
     @Test(expected = PlanNotFoundException.class)
     public void shouldNotFindByIdBecauseNotExists() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
@@ -84,6 +100,13 @@ public class PlanServiceTest {
         when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
         planService.findById(PLAN_ID);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldNotFindByApiBecauseTechnicalException() throws TechnicalException {
+        when(planRepository.findByApi(API_ID)).thenThrow(TechnicalException.class);
+
+        planService.findByApi(API_ID);
     }
 
     @Test(expected = PlanWithSubscriptionsException.class)
@@ -104,6 +127,13 @@ public class PlanServiceTest {
         planService.delete(PLAN_ID);
 
         verify(planRepository, times(1)).delete(PLAN_ID);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldNotDeleteBecauseTechnicalException() throws TechnicalException {
+        when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
+
+        planService.delete(PLAN_ID);
     }
 
     @Test
@@ -138,11 +168,25 @@ public class PlanServiceTest {
         verify(planRepository, times(1)).delete(PLAN_ID);
     }
 
+    @Test(expected = PlanNotFoundException.class)
+    public void shouldNotCloseBecauseNotFound() throws TechnicalException {
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
+
+        planService.close(PLAN_ID);
+    }
+
     @Test(expected = PlanAlreadyClosedException.class)
     public void shouldNotCloseBecauseAlreadyClosed() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+
+        planService.close(PLAN_ID);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldNotCloseBecauseTechnicalException() throws TechnicalException {
+        when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
         planService.close(PLAN_ID);
     }
@@ -219,11 +263,56 @@ public class PlanServiceTest {
         planService.publish(PLAN_ID);
     }
 
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldNotPublishBecauseTechnicalException() throws TechnicalException {
+        when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
+
+        planService.publish(PLAN_ID);
+    }
+
+    public void shouldPublishWithExistingKeylessPlan() throws TechnicalException {
+        Plan keylessPlan = mock(Plan.class);
+        when(keylessPlan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        when(keylessPlan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
+        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+
+        planService.publish(PLAN_ID);
+    }
+
+    @Test(expected = KeylessPlanAlreadyPublishedException.class)
+    public void shouldNotPublishBecauseExistingKeylessPlan() throws TechnicalException {
+        Plan keylessPlan = mock(Plan.class);
+        when(keylessPlan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        when(keylessPlan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
+        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+
+        planService.publish(PLAN_ID);
+    }
+
     @Test
     public void shouldPublish() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));

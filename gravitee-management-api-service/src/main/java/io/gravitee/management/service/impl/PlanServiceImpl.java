@@ -48,7 +48,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     /**
      * Logger.
      */
-    private final Logger LOGGER = LoggerFactory.getLogger(PlanServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(PlanServiceImpl.class);
 
     @Autowired
     private PlanRepository planRepository;
@@ -62,7 +62,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Override
     public PlanEntity findById(String plan) {
         try {
-            LOGGER.debug("Find plan by id : {}", plan);
+            logger.debug("Find plan by id : {}", plan);
 
             Optional<Plan> optPlan = planRepository.findById(plan);
 
@@ -72,7 +72,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             return convert(optPlan.get());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find a plan by id: {}", plan, ex);
+            logger.error("An error occurs while trying to find a plan by id: {}", plan, ex);
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to find a plan by id: %s", plan), ex);
         }
@@ -81,7 +81,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Override
     public Set<PlanEntity> findByApi(String api) {
         try {
-            LOGGER.debug("Find plan by api : {}", api);
+            logger.debug("Find plan by api : {}", api);
 
             Set<Plan> plans = planRepository.findByApi(api);
 
@@ -91,7 +91,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                     .sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
                     .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find a plan by api: {}", api, ex);
+            logger.error("An error occurs while trying to find a plan by api: {}", api, ex);
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to find a plan by api: %s", api), ex);
         }
@@ -100,7 +100,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Override
     public PlanEntity create(NewPlanEntity newPlan) {
         try {
-            LOGGER.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApi());
+            logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApi());
             Plan plan = new Plan();
 
             plan.setId(UUID.toString(UUID.random()));
@@ -110,22 +110,29 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setCreatedAt(new Date());
             plan.setUpdatedAt(plan.getCreatedAt());
             plan.setType(Plan.PlanType.valueOf(newPlan.getType().name()));
+            plan.setSecurity(Plan.PlanSecurityType.valueOf(newPlan.getSecurity().name()));
             plan.setStatus(Plan.Status.STAGING);
+
+            if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
+                // There is no need for a validation when authentication is KEY_LESS, force to AUTO
+                plan.setValidation(Plan.PlanValidationType.AUTO);
+            } else {
+                plan.setValidation(Plan.PlanValidationType.valueOf(newPlan.getValidation().name()));
+            }
+
+            plan.setCharacteristics(newPlan.getCharacteristics());
 
             String planPolicies = objectMapper.writeValueAsString(newPlan.getPaths());
             plan.setDefinition(planPolicies);
 
-            plan.setValidation(Plan.PlanValidationType.valueOf(newPlan.getValidation().name()));
-            plan.setCharacteristics(newPlan.getCharacteristics());
-            
             plan = planRepository.create(plan);
             return convert(plan);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create a plan {} for API {}", newPlan.getName(), newPlan.getApi(), ex);
+            logger.error("An error occurs while trying to create a plan {} for API {}", newPlan.getName(), newPlan.getApi(), ex);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to create a plan %s for API %s", newPlan.getName(), newPlan.getApi()), ex);
         } catch (JsonProcessingException jse) {
-            LOGGER.error("Unexpected error while generating plan definition", jse);
+            logger.error("Unexpected error while generating plan definition", jse);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to create a plan %s for API %s", newPlan.getName(), newPlan.getApi()), jse);
         }
@@ -134,7 +141,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Override
     public PlanEntity update(UpdatePlanEntity updatePlan) {
         try {
-            LOGGER.debug("Update plan {}", updatePlan.getName());
+            logger.debug("Update plan {}", updatePlan.getName());
 
             Optional<Plan> optPlan = planRepository.findById(updatePlan.getId());
             if (! optPlan.isPresent()) {
@@ -149,7 +156,13 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             String planPolicies = objectMapper.writeValueAsString(updatePlan.getPaths());
             plan.setDefinition(planPolicies);
 
-            plan.setValidation(Plan.PlanValidationType.valueOf(updatePlan.getValidation().name()));
+            if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
+                // There is no need for a validation when authentication is KEY_LESS, force to AUTO
+                plan.setValidation(Plan.PlanValidationType.AUTO);
+            } else {
+                plan.setValidation(Plan.PlanValidationType.valueOf(updatePlan.getValidation().name()));
+            }
+
             plan.setCharacteristics(updatePlan.getCharacteristics());
 
             // if order change, reorder all pages
@@ -163,11 +176,11 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             }
 
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update plan {}", updatePlan.getName(), ex);
+            logger.error("An error occurs while trying to update plan {}", updatePlan.getName(), ex);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to update plan %s", updatePlan.getName()), ex);
         } catch (JsonProcessingException jse) {
-            LOGGER.error("Unexpected error while generating plan definition", jse);
+            logger.error("Unexpected error while generating plan definition", jse);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to update a plan %s", updatePlan.getName()), jse);
         }
@@ -176,7 +189,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Override
     public PlanEntity close(String planId) {
         try {
-            LOGGER.debug("Close plan {}", planId);
+            logger.debug("Close plan {}", planId);
 
             Optional<Plan> optPlan = planRepository.findById(planId);
             if (! optPlan.isPresent()) {
@@ -193,18 +206,20 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setClosedAt(new Date());
 
             // Close active subscriptions
-            subscriptionService.findByPlan(planId)
-                    .stream()
-                    .filter(subscriptionEntity ->
-                            subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED ||
-                                    subscriptionEntity.getStatus() == SubscriptionStatus.PENDING)
-                    .forEach(subscription -> subscriptionService.close(subscription.getId()));
+            if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
+                subscriptionService.findByPlan(planId)
+                        .stream()
+                        .filter(subscriptionEntity ->
+                                subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED ||
+                                        subscriptionEntity.getStatus() == SubscriptionStatus.PENDING)
+                        .forEach(subscription -> subscriptionService.close(subscription.getId()));
+            }
 
             // Save plan
             plan = planRepository.update(plan);
             return convert(plan);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete plan: {}", planId, ex);
+            logger.error("An error occurs while trying to delete plan: {}", planId, ex);
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to delete plan: %s", planId), ex);
         }
@@ -213,22 +228,24 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Override
     public void delete(String plan) {
         try {
-            LOGGER.debug("Delete plan {}", plan);
+            logger.debug("Delete plan {}", plan);
 
             Optional<Plan> optPlan = planRepository.findById(plan);
             if (! optPlan.isPresent()) {
                 throw new PlanNotFoundException(plan);
             }
 
-            int subscriptions = subscriptionService.findByPlan(plan).size();
-            if (optPlan.get().getStatus() == Plan.Status.PUBLISHED && subscriptions > 0) {
-                throw new PlanWithSubscriptionsException();
+            if (optPlan.get().getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
+                int subscriptions = subscriptionService.findByPlan(plan).size();
+                if (optPlan.get().getStatus() == Plan.Status.PUBLISHED && subscriptions > 0) {
+                    throw new PlanWithSubscriptionsException();
+                }
             }
 
             // Delete plan
             planRepository.delete(plan);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete plan: {}", plan, ex);
+            logger.error("An error occurs while trying to delete plan: {}", plan, ex);
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to delete plan: %s", plan), ex);
         }
@@ -237,7 +254,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Override
     public PlanEntity publish(String planId) {
         try {
-            LOGGER.debug("Publish plan {}", planId);
+            logger.debug("Publish plan {}", planId);
 
             Optional<Plan> optPlan = planRepository.findById(planId);
             if (! optPlan.isPresent()) {
@@ -251,6 +268,19 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new PlanAlreadyPublishedException(planId);
             }
 
+            if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
+                // Look to other plans if there is already a keyless-published plan
+                long count = planRepository.findByApi(plan.getApis().iterator().next())
+                        .stream()
+                        .filter(plan1 -> plan1.getStatus() == Plan.Status.PUBLISHED)
+                        .filter(plan1 -> plan1.getSecurity() == Plan.PlanSecurityType.KEY_LESS)
+                        .count();
+
+                if (count > 0) {
+                    throw new KeylessPlanAlreadyPublishedException(planId);
+                }
+            }
+
             // Update plan status
             plan.setStatus(Plan.Status.PUBLISHED);
             plan.setPublishedAt(new Date());
@@ -259,7 +289,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan = planRepository.update(plan);
             return convert(plan);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to publish plan: {}", planId, ex);
+            logger.error("An error occurs while trying to publish plan: {}", planId, ex);
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to publish plan: %s", planId), ex);
         }
@@ -289,7 +319,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                         }
                         planRepository.update(page);
                     } catch (final TechnicalException ex) {
-                        LOGGER.error("An error occurs while trying to update plan {}", planToReorder.getId(), ex);
+                        logger.error("An error occurs while trying to update plan {}", planToReorder.getId(), ex);
                         throw new TechnicalManagementException("An error occurs while trying to update plan " + planToReorder.getId(), ex);
                     }
                 });
@@ -313,7 +343,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
                 entity.setPaths(rules);
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while generating policy definition", ioe);
+                logger.error("Unexpected error while generating policy definition", ioe);
             }
         }
 
@@ -324,6 +354,12 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             entity.setStatus(PlanStatus.valueOf(plan.getStatus().name()));
         } else {
             entity.setStatus(PlanStatus.PUBLISHED);
+        }
+
+        if (plan.getSecurity() != null) {
+            entity.setSecurity(PlanSecurityType.valueOf(plan.getSecurity().name()));
+        } else {
+            entity.setSecurity(PlanSecurityType.API_KEY);
         }
 
         entity.setClosedAt(plan.getClosedAt());
