@@ -31,6 +31,8 @@ public class Plan {
 
     private String description;
 
+    private PlanSecurityType security;
+
     /**
      * The way to validate subscriptions
      */
@@ -189,6 +191,14 @@ public class Plan {
         this.status = status;
     }
 
+    public PlanSecurityType getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(PlanSecurityType security) {
+        this.security = security;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -225,6 +235,18 @@ public class Plan {
          * A plan for a bunch of APIs.
          */
         CATALOG
+    }
+
+    public enum PlanSecurityType {
+        /**
+         * Plan which is using a key_less (ie. public) security authentication for incoming HTTP requests.
+         */
+        KEY_LESS,
+
+        /**
+         * Plan which is using an api-key security authentication for incoming HTTP requests.
+         */
+        API_KEY
     }
 
     public enum PlanValidationType {
