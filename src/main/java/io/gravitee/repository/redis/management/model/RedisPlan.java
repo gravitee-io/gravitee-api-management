@@ -32,7 +32,7 @@ public class RedisPlan {
     private String description;
 
     /**
-     * The way to validate subscriptions
+     * The way to validate subscriptionsà
      */
     private String validation;
 
@@ -76,6 +76,8 @@ public class RedisPlan {
     private long closedAt;
 
     private String status;
+
+    private String security;
 
     public String getId() {
         return id;
@@ -187,6 +189,14 @@ public class RedisPlan {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(String security) {
+        this.security = security;
     }
 
     @Override

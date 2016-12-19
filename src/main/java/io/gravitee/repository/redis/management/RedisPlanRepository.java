@@ -104,6 +104,10 @@ public class RedisPlanRepository implements PlanRepository {
             plan.setStatus(Plan.Status.valueOf(redisPlan.getStatus()));
         }
 
+        if (redisPlan.getSecurity() != null) {
+            plan.setSecurity(Plan.PlanSecurityType.valueOf(redisPlan.getSecurity()));
+        }
+
         if (redisPlan.getPublishedAt() != 0) {
             plan.setPublishedAt(new Date(redisPlan.getPublishedAt()));
         }
@@ -143,6 +147,10 @@ public class RedisPlanRepository implements PlanRepository {
 
         if (plan.getStatus() != null) {
             redisPlan.setStatus(plan.getStatus().name());
+        }
+
+        if (plan.getSecurity() != null) {
+            redisPlan.setSecurity(plan.getSecurity().name());
         }
 
         if (plan.getClosedAt() != null) {
