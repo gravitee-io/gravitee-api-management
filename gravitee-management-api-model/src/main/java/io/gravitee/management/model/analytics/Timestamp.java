@@ -15,41 +15,31 @@
  */
 package io.gravitee.management.model.analytics;
 
-import java.util.*;
-
-
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HistogramAnalytics implements Analytics {
+public class Timestamp {
 
-    private Timestamp timestamp;
-    private List<Bucket> values = new ArrayList<>();
-    private Map<String, Map<String, String>> metadata;
+    private final Long from;
+    private final Long to;
+    private final Long gap;
 
-    public List<Bucket> getValues() {
-        return values;
+    public Timestamp(Long from, Long to, Long gap) {
+        this.from = from;
+        this.to = to;
+        this.gap = gap;
     }
 
-    public void setValues(List<Bucket> values) {
-        this.values = values;
+    public Long getFrom() {
+        return from;
     }
 
-    public Timestamp getTimestamp() {
-        return timestamp;
+    public Long getTo() {
+        return to;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public Map<String, Map<String, String>> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, Map<String, String>> metadata) {
-        this.metadata = metadata;
+    public Long getGap() {
+        return gap;
     }
 }

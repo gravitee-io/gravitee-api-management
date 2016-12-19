@@ -64,7 +64,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public HistogramAnalytics hitsBy(String query, String key, String field, List<String> aggTypes, long from, long to, long interval) {
         try {
-            return convert(analyticsRepository.query(query, key, field, aggTypes, from, to, interval), from, interval);
+            return convert(analyticsRepository.query(query, key, field, aggTypes, from, to, interval));
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while searching for api hits by {}.", field, ex);
             return null;
@@ -113,12 +113,17 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
     }
 
-    private HistogramAnalytics convert(HistogramResponse histogramResponse, long from, long interval) {
-        HistogramAnalytics analytics = new HistogramAnalytics();
-        analytics.setTimestamps(histogramResponse.timestamps());
+    private HistogramAnalytics convert(HistogramResponse histogramResponse) {
+        final HistogramAnalytics analytics = new HistogramAnalytics();
+        final List<Long> timestamps = histogramResponse.timestamps();
+        final long from = timestamps.get(0);
+        final long interval = timestamps.get(1) - from;
+        final long to = timestamps.get(timestamps.size() - 1);
+
+        analytics.setTimestamp(new Timestamp(from, to, interval));
 
         for(io.gravitee.repository.analytics.query.response.histogram.Bucket bucket : histogramResponse.values()) {
-            Bucket analyticsBucket = convertBucket(analytics.getTimestamps(), from, interval, bucket);
+            Bucket analyticsBucket = convertBucket(histogramResponse.timestamps(), from, interval, bucket);
             analytics.getValues().add(analyticsBucket);
 
             if (analyticsBucket.getName().equals("api-hits-by-application")) {
