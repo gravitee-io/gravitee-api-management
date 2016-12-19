@@ -144,33 +144,38 @@ class ApplicationAnalyticsController {
     _.forEach(report.requests, function (request) {
       let currentResponse = response[i];
       if (currentResponse) {
-        _.forEach(currentResponse.data.values[0].buckets, function (bucket) {
-          if (bucket) {
-            i++;
-            let lineColor = report.id === 'response-status' ? that.getColorByStatus(bucket.name) : that.colorByBucket[i % that.colorByBucket.length];
-            let bgColor = report.id === 'response-status' ? that.getBgColorByStatus(bucket.name) : that.bgColorByBucket[i % that.bgColorByBucket.length];
-            var label = request.label ? request.label : (report.label || report.labelPrefix + ' ' + bucket.name);
-            if (report.id === 'apis') {
-              var api = currentResponse.data.metadata[bucket.name];
-              label = (! api.deleted) ? api.name + ' (' + api.version + ')' : api.name;
+        if (currentResponse.data.values[0]) {
+          _.forEach(currentResponse.data.values[0].buckets, function (bucket) {
+            if (bucket) {
+              i++;
+              let lineColor = report.id === 'response-status' ? that.getColorByStatus(bucket.name) : that.colorByBucket[i % that.colorByBucket.length];
+              let bgColor = report.id === 'response-status' ? that.getBgColorByStatus(bucket.name) : that.bgColorByBucket[i % that.bgColorByBucket.length];
+              var label = request.label ? request.label : (report.label || bucket.name);
+              if (report.id === 'apis') {
+                var api = currentResponse.data.metadata[bucket.name];
+                label = (!api.deleted) ? api.name + ' (' + api.version + ')' : api.name;
+              }
+              data.push({
+                name: label || bucket.name, data: bucket.data, color: lineColor, fillColor: bgColor,
+                labelPrefix: report.labelPrefix
+              });
             }
-            data.push({
-              name: label || bucket.name, data: bucket.data, color: lineColor, fillColor: bgColor,
-              labelPrefix: report.labelPrefix
-            });
-          }
-        });
+          });
+        }
       }
     });
 
     if (data.length) {
+      let categories = [];
+      for (let timestamp = response[0].data.timestamp.from; timestamp <= response[0].data.timestamp.to;
+           timestamp = timestamp + response[0].data.timestamp.gap) {
+        categories.push(moment(timestamp).format("YYYY-MM-DD HH:mm:ss"));
+      }
       this.$scope.chartConfig.push({
         title: {text: report.title},
         xAxis: {
           labels: {enabled: false},
-          categories: _.map(response[0].data.timestamps, function (timestamp) {
-            return moment(timestamp).format("YYYY-MM-DD HH:mm:ss");
-          })
+          categories: categories
         },
         plotOptions: {areaspline: {stacking: report.stacked ? 'normal':null}},
         series: data
@@ -198,7 +203,7 @@ class ApplicationAnalyticsController {
 
         request.then(response => {
           _this.dataFetched(_this.topsFetched, top.key);
-          if (Object.keys(response.data.values).length) {
+          if (response.data.values && Object.keys(response.data.values).length) {
             top.results = _.map(response.data.values, function (value, key) {
               return {
                 topAPI: key,
@@ -249,7 +254,7 @@ class ApplicationAnalyticsController {
         };
 
         // Push data for hits by 'something'
-        if (response[0] && response[0].data.values && response[0].data.values[0]) {
+        if (response[0] && response[0].data.values) {
           if (report.id === 'apis') {
             _this.fetchAPIAnalytics(report, response);
           } else {
