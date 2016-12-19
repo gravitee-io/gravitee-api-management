@@ -25,7 +25,7 @@
 }
 
 .strike {
- text-decoration: line-through;
+  text-decoration: line-through;
 }
 
 .italic {
@@ -34,7 +34,8 @@
 
 .plans .md-toolbar-tools {
   background: #fafafa;
-  color: black;
+  color: grey;
+  padding: 0 0;
 }
 
 .plans .md-button.md-fab {
@@ -46,18 +47,20 @@
   background-color: #ccdae3;
 }
 
-md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent > .md-button, md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent .md-menu > .md-button {
-  padding-left: 10px;
-}
+.plans {
+  md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent > .md-button, md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent .md-menu > .md-button {
+    padding: 0 0 0 10px;
+  }
+  md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent > .md-button, md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent .md-menu > .md-button {
+    padding: 0 0 0 10px;
+    background-color: #00A000;
+  }
 
-md-menu-content.md-menu-bar-menu.md-dense .md-button span {
-  padding-left: 10px;
-}
+  md-menu-bar {
+    padding: 0 0;
+  }
 
-md-menu-bar {
-  padding-right: 0px;
-}
-
-md-menu-bar md-menu button ng-md-icon {
-  top: 0px;
+  .md-menu-bar md-menu button ng-md-icon {
+    top: 10px;
+  }
 }

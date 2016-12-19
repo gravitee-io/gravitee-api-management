@@ -24,9 +24,9 @@ class ApiPlansController {
     this.$stateParams = $stateParams;
     this.NotificationService = NotificationService;
     this.DragularService = dragularService;
-
+    this.dndEnabled = true;
     this.statusFilters = ['staging', 'published', 'closed'];
-    this.selectedStatus = ['staging', 'published'];
+    this.selectedStatus = ['published'];
 
     $scope.planEdit = true;
 
@@ -72,6 +72,9 @@ class ApiPlansController {
     let that = this;
     let d = document.querySelector('.plans');
     this.DragularService([d], {
+      moves: function () {
+        return that.dndEnabled;
+      },
       scope: this.$scope,
       containersModel: _.cloneDeep(this.plans),
       nameSpace: 'plan'
@@ -102,14 +105,8 @@ class ApiPlansController {
   }
 
   changeFilter(statusFilter) {
-    if (statusFilter === 'closed') {
-      this.selectedStatus.length = 0;
-    } else {
-      var idx = this.selectedStatus.indexOf('closed');
-      if (idx !== -1) {
-        this.selectedStatus.splice(idx, 1);
-      }
-    }
+    this.selectedStatus = statusFilter;
+    this.dndEnabled = (statusFilter === 'published');
 
     if (_.includes(this.selectedStatus, statusFilter)) {
       _.pull(this.selectedStatus, statusFilter);
@@ -228,7 +225,7 @@ class ApiPlansController {
 
   publish(plan, ev) {
     var _this = this;
-    
+
     this.$mdDialog.show({
         controller: 'DialogPublishPlanController',
         templateUrl: 'app/api/admin/plans/publishPlan.dialog.html',

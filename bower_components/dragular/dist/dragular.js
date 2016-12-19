@@ -60,7 +60,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var dragularService = __webpack_require__(2);
 
 	/**
-	 * Dragular 4.2.0 by Luckylooke https://github.com/luckylooke/dragular
+	 * Dragular 4.2.4 by Luckylooke https://github.com/luckylooke/dragular
 	 * Angular version of dragula https://github.com/bevacqua/dragula
 	 */
 	module.exports = 'dragularModule';
@@ -138,7 +138,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 2 */
 /***/ function(module, exports) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {/* global angular */
+	/* global angular */
 	'use strict';
 
 	/**
@@ -413,8 +413,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      shared.grabbed = context;
 	      eventualMovements();
 	      if (e.type === 'mousedown') {
-	        if (isInput(context.item)) { // see also: https://github.com/bevacqua/dragula/issues/208
-	          context.item.focus(); // fixes https://github.com/bevacqua/dragula/issues/176
+	        if (isInput(e.target)) { // see also: https://github.com/bevacqua/dragula/issues/208
+	          e.target.focus(); // fixes https://github.com/bevacqua/dragula/issues/176
+	          // changed from context.item to e.target fixing https://github.com/luckylooke/dragular/issues/87#issuecomment-256865796
 	        } else {
 	          e.preventDefault(); // fixes https://github.com/bevacqua/dragula/issues/155
 	        }
@@ -453,7 +454,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 
 	      if (o.scope) {
-	        o.scope.$emit(o.eventNames.dragularrelease, shared.item, shared.source);
+	        o.scope.$emit(o.eventNames.dragularrelease, shared.item, shared.source, e);
 	      }
 	    }
 
@@ -569,8 +570,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      e.preventDefault();
 
-	      addClass(shared.item, o.classes.transit);
 	      renderMirrorImage();
+	      addClass(shared.item, o.classes.transit);
 	      // initial position
 	      shared.mirror.style.left = shared.clientX - shared.offsetX + 'px';
 	      shared.mirror.style.top = shared.clientY - shared.offsetY + 'px';
@@ -660,16 +661,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    function drop(item, target) {
+	      if(!item){ // https://github.com/luckylooke/dragular/issues/102
+	        cleanup();
+	        return;
+	      }
 	      var sourceItem = shared.sourceItem,
-	          currentSibling = shared.currentSibling;
+	          currentSibling = shared.currentSibling,
+	          dropIndex = domIndexOf(item, target);
 	        
 	      if (shared.copy && g(o.copySortSource) && target === shared.source && getParent(item)) {
 	        item.parentNode.removeChild(shared.sourceItem);
 	      }
 
 	      if (shared.sourceModel && !isInitialPlacement(target)) {
-
-	        var dropIndex = domIndexOf(item, target);
 	        if(shared.targetCtx.fm){ // target has filtered model
 	          // convert index from index-in-filteredModel to index-in-model
 	          dropIndex = shared.targetCtx.m.indexOf(shared.targetCtx.fm[dropIndex]);
@@ -775,7 +779,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        drop(shared.item, parent);
 	      } else if (o.scope) {
 	        if (initial || reverts) {
-	          o.scope.$emit(o.eventNames.dragularcancel, shared.item, shared.source);
+	          o.scope.$emit(o.eventNames.dragularcancel, shared.item, shared.source, shared.sourceModel, shared.initialIndex);
 	        }
 	      }
 
@@ -962,13 +966,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        dropTarget.insertBefore(shared.item, reference); // if reference is null item is inserted at the end
 
 	        if (o.scope) {
-	          o.scope.$emit(o.eventNames.dragularshadow, shared.item, dropTarget);
+	          o.scope.$emit(o.eventNames.dragularshadow, shared.item, dropTarget, e);
 	        }
 	      }
 
 	      function moved(type) {
 	        if (o.scope) {
-	          o.scope.$emit(o.eventNames['dragular' + type], shared.item, shared.lastDropTarget, shared.source);
+	          o.scope.$emit(o.eventNames['dragular' + type], shared.item, shared.lastDropTarget, shared.source, e);
 	        }
 	        if (g(o.removeOnSpill) === true) {
 	          type === 'over' ? spillOver() : spillOut();
@@ -1011,7 +1015,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      shared.mirrorHeight = rect.height;
 	      shared.mirror.style.width = getRectWidth(rect) + 'px';
 	      shared.mirror.style.height = getRectHeight(rect) + 'px';
-	      rmClass(shared.mirror, o.classes.transit);
 	      addClass(shared.mirror, o.classes.mirror);
 	      o.mirrorContainer.appendChild(shared.mirror);
 	      regEvent(docElm, 'on', 'mousemove', drag);
@@ -1113,9 +1116,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      },
 	      $el = angular.element(el);
 
-	    if (global.navigator.pointerEnabled && pointers[type]) {
+	    if (typeof navigator !== 'undefined' && navigator.pointerEnabled && pointers[type]) {
 	      $el[op](pointers[type], fn);
-	    } else if (global.navigator.msPointerEnabled && microsoft[type]) {
+	    } else if (typeof navigator !== 'undefined' && navigator.msPointerEnabled && microsoft[type]) {
 	      $el[op](microsoft[type], fn);
 	    } else if (touch[type]) {
 	      $el[op](touch[type], fn);
@@ -1146,10 +1149,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function whichMouseButton (e) {
 	    if (e.touches) { return e.touches.length; }
 	    if (e.originalEvent && e.originalEvent.touches) { return e.originalEvent.touches.length; }
+	    if (e.which !== void 0 && e.which !== 0) { return e.which; } // github.com/bevacqua/dragula/issues/261
 	    if (e.buttons !== undefined) { return e.buttons; }
-	    if (e.which !== undefined) { return e.which; }
 	    var button = e.button;
-	    if (button !== undefined) { // see https://github.com/jquery/jquery/blob/99e8ff1baa7ae341e94bb89c3e84570c7c3ad9ea/src/event.js#L573-L575
+	    if (button !== undefined) { // see github.com/jquery/jquery/blob/99e8ff1baa7ae341e94bb89c3e84570c7c3ad9ea/src/event.js#L573-L575
 	      return button & 1 ? 1 : button & 2 ? 3 : (button & 4 ? 2 : 0);
 	    }
 	  }
@@ -1198,6 +1201,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  function nextEl(el) {
+	    if(!el){ // https://github.com/luckylooke/dragular/issues/102
+	      return;
+	    }
 	    return el.nextElementSibling || manually();
 
 	    function manually() {
@@ -1321,7 +1327,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = dragularService;
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }
 /******/ ])

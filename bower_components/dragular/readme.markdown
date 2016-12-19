@@ -10,7 +10,7 @@ Browser support includes every sane browser and **IE7+**. <sub>_(Granted you pol
 
 I am working on huge angular project and I am using several drag&drop libraries in it, one for UI, one for lists, etc.. I want to use one full-featured drag&drop library for whole project. As I could not find any suitable, I decided to create one. I have choosen great library [dragula](http://github.com/bevacqua/dragula) by [Nicolas Bevacqua](http://github.com/bevacqua) as my starting point, make it more angular and started to put features in it! If you wish light-weight angular version of dragula, there is [official angular version of dragula](http://github.com/bevacqua/angular-dragula).
 
-<b>Actual version 4.2.0 is based on dragula 3.6.3 and tested with angular 1.5.5.</b>
+<b>Actual version 4.2.5 is based on dragula 3.6.3 and tested with angular 1.5.5.</b>
 
 # Differences of dragular (against dragula)
 
@@ -170,13 +170,15 @@ The options are detailed below. All boolean options can be also function returni
 
 ### `options.containers`
 
-Container element, NodeList, array of elements, jQuery object returnet by selector or any array-like object where containers elements are placed on properties named 0,1,2,.. etc. 
+Container element, NodeList, array of elements, jQuery object returned by selector or any array-like object where containers elements are placed on properties named 0,1,2,.. etc. 
 
 ### `options.containersModel`
 
 If you wish to have model synced with containers state, you need to provide it within this property. For single container you can provide an array with items in it. Items can by any type. For multiple containers you need to provide array of arrays (2D-array), where order of arrays representing containers (models) must be same as order of containers elements provided in `containers` parameter of service.
 
-Please note that if you are using filters on your items you must provide filtered array no source one!
+You can also provide callback function via `options.containersModel` which is called everytime drag starts. It must return array or 2D-array as mentioned in above paragraph.
+
+**Please note that if you are using filters on your items you must provide filtered array no source one!**
 ```html
   <input ng-model="query">
   <div id="container">
@@ -297,15 +299,15 @@ When an element is dropped onto a container, it'll be placed near the point wher
 
 Scope can be provided for emitting events, you can provide whichever scope you like.
 
-### `options.lockX' 
+### `options.lockX` 
 
 Lock movement into x-axis.
 
-### `options.lockY
+### `options.lockY`
 
 Lock movement into y-axis.
 
-### `options.boundingBox'
+### `options.boundingBox`
 
 Lock movement inside provided element boundaries.
 
@@ -373,19 +375,22 @@ In case your draggable items are customized by other directives/attributes, you 
 You can provide function callback called after dragular initialisation with drake as first argument.
 
 
-## `Events`
+## Events
 
 If $scope is provided as options.scope the following events can be tracked using `$scope.on(type, listener)`:
 
 Event Name | Listener Arguments      | Event Description
 -----------|-------------------------|-------------------------------------------------------------------------------------
-`dragulardrag`     | `el, container`         | `el` was lifted from `container`
-`dragulardragend`  | `el`                    | Dragging event for `el` ended with either `cancel`, `remove`, or `drop`
-`dragulardrop`     | `el, container, source` | `el` was dropped into `container`, and originally came from `source`
-`dragularcancel`   | `el, container`         | `el` was being dragged but it got nowhere and went back into `container`, its last stable parent
-`dragularremove`   | `el, container`         | `el` was being dragged but it got nowhere and it was removed from the DOM. Its last stable parent was `container`.
-`dragularshadow`   | `el, container`         | `el`, _the visual aid shadow_, was moved into `container`. May trigger many times as the position of `el` changes, even within the same `container`
-`dragularcloned`   | `clone, original`       | DOM element `original` was cloned as `clone`. Triggers for mirror images and when `copy: true`
+`dragulardrag`     | `Event, el, container`         | `el` was lifted from `container`
+`dragularrelease`     | `Event, el, container, DOM-Event`         | user released button
+`dragulardragend`  | `Event, el`                    | Dragging event for `el` ended with either `cancel`, `remove`, or `drop`
+`dragulardrop`     | `Event, el, target-container, source-container, con-model, el-index, target-model, drop-index` | `el` was dropped into `target-container` from `source-container`, `con-model` if models are used, provides model representating the source container and `el-index` is original index(position) in `source-container`. `target-model` is model of target container and `drop-index` is index (position) of drop.
+`dragularcancel`   | `Event, el, container, con-model, el-index`         | `el` was being dragged but it got nowhere and went back into `container`, its last stable parent. `con-model` if models are used, provides model representating the source container and `el-index` is original index(position) in `container`.
+`dragularremove`   | `Event, el, container, con-model, el-index`         | `el` was being dragged but it got nowhere and it was removed from the DOM. Its last stable parent was `container`. `con-model` if models are used, provides model representating the source container and `el-index` is original index(position) in `container`.
+`dragularshadow`   | `Event, el, container, DOM-Event`         | `el`, _the visual aid shadow_, was moved into `container`. May trigger many times as the position of `Event, el` changes, even within the same `container`
+`dragularcloned`   | `Event, clone, original`       | DOM element `original` was cloned as `clone`. Triggers for mirror images and when `copy: true`
+`dragularover`   | `Event, el, target, container, DOM-Event`       | Dragged element `el` left hover target `target` and orginaly came from `container`
+`dragularout`   | `Event, el, target, container, DOM-Event`       | Dragged element `el` left hovered target `target` and orginaly came from `container`
 
 Event names can be modified via options.eventNames.
 

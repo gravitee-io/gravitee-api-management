@@ -2,6 +2,23 @@
 - **[Braking change!]** rename 'dragulardrag' event to 'dragulardragstart'
 - new event 'dragulardrag' emited each iteration while dragging
 
+# 4.2.5 Di-strict 9
+- fixing #108 - Webpack and strict mode
+
+# 4.2.4 Trolls
+- fixed #87 - problem in example "NestedNgRepeat", input field doesnt work
+
+# 4.2.3 The lost explorer
+- fixed #107 - IE dragging issue, drag did not start
+
+# 4.2.2 The Drop
+- fixed #104 - drop index undefined in dragulardrop event listeners
+
+# 4.2.1 Skyfall
+- fixed #102
+- transit class added after mirror rendering #101
+- original DOM events passed as new parameter to angular listeners #97
+
 # 4.2.0 Bad Moms
 - UMD compatible #79
 - options.onInit, on init callback function, closes #65

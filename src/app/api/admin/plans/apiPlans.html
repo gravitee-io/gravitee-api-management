@@ -36,17 +36,33 @@
     <md-card-header>
       <md-toolbar>
         <div class="md-toolbar-tools">
-          <h3 ng-class="{italic: plan.status === 'staging', strike: plan.status === 'closed'}" layout-padding>{{plan.name}}</h3>
+          <h4 ng-class="{italic: plan.status === 'staging', strike: plan.status === 'closed'}" layout-padding>
+            <ng-md-icon ng-if="plan.status === 'staging'" style="fill: grey;" icon="rotate_right">
+              <md-tooltip md-direction="top">
+                Status: staging
+              </md-tooltip>
+            </ng-md-icon>
+            <ng-md-icon ng-if="plan.status === 'published'" style="fill: grey;" icon="backup">
+              <md-tooltip md-direction="top">
+                Status: published
+              </md-tooltip>
+            </ng-md-icon>
+            <ng-md-icon ng-if="plan.status === 'closed'" style="fill: grey;" icon="block">
+              <md-tooltip md-direction="top">
+                Status: closed
+              </md-tooltip>
+            </ng-md-icon>{{plan.name}}
+          </h4>
           <span flex></span>
-          <md-menu-bar>
+          <md-menu-bar ng-if="plan.status !== 'closed'">
             <md-menu>
               <button ng-click="$mdOpenMenu()">
-                <ng-md-icon style="fill: black;" icon="more_vert"></ng-md-icon>
+                <ng-md-icon style="fill: grey;" icon="more_vert"></ng-md-icon>
               </button>
               <md-menu-content>
                 <md-menu-item class="md-indent" ng-if="plan.status === 'staging'">
                   <md-button ng-click="apiPlansCtrl.publish(plan)" aria-label="Publish">
-                    <ng-md-icon style="fill: green;" icon="publish"></ng-md-icon>
+                    <ng-md-icon style="fill: green;" icon="backup"></ng-md-icon>
                     Publish
                   </md-button>
                 </md-menu-item>
@@ -90,22 +106,21 @@
   </md-card>
   </div>
     </div>
-
     <div layout="row" layout-align="center" layout-wrap>
-      <span ng-if="apiPlansCtrl.plans.length != 0"><ng-md-icon icon="info" style="fill: #b1bdc5;"></ng-md-icon> Plans can be re-ordered by dragging & dropping them.</span>
+      <span ng-if="apiPlansCtrl.filteredPlans.length != 0 && apiPlansCtrl.dndEnabled"><ng-md-icon icon="info" style="fill: #b1bdc5;"></ng-md-icon> Plans can be re-ordered by dragging & dropping them.</span>
     </div>
   </div>
 </div>
 
-<gravitee-empty-state ng-if="apiPlansCtrl.plans.length == 0"
+<gravitee-empty-state ng-if="apiPlansCtrl.filteredPlans.length == 0"
                       icon="view_week"
                       model="Plan"
                       message="Plans will appear here"
                       sub-message="Start creating a plan"
                       create-mode="true"></gravitee-empty-state>
 
-<div ng-style="apiPlansCtrl.plans.length == 0 && {'text-align':'center'}">
-  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': apiPlansCtrl.plans.length > 0}" class="md-fab" aria-label="Add" ng-click="apiPlansCtrl.addPlan()">
+<div ng-style="apiPlansCtrl.filteredPlans.length == 0 && {'text-align':'center'}">
+  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': apiPlansCtrl.filteredPlans.length > 0}" class="md-fab" aria-label="Add" ng-click="apiPlansCtrl.addPlan()">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
 </div>
