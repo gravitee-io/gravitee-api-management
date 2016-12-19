@@ -166,6 +166,7 @@ class EndpointHealthCheck implements Runnable {
                 .setMaxConnections(10)
                 .setMaxConnectionsPerHost(5)
                 .setAcceptAnyCertificate(true)
+                .setThreadPoolName("healthcheck-poller")
                 .build();
 
         return new DefaultAsyncHttpClient(cf);
