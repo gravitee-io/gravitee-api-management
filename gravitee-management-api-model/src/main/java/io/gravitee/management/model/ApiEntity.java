@@ -18,8 +18,8 @@ package io.gravitee.management.model;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 
@@ -71,7 +71,7 @@ public class ApiEntity {
     @DeploymentRequired
     @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     @JsonProperty(value = "properties")
-    private Map<String, String> properties;
+    private io.gravitee.definition.model.Properties properties;
 
     private MembershipType permission;
 
@@ -200,11 +200,11 @@ public class ApiEntity {
         this.services = services;
     }
 
-    public Map<String, String> getProperties() {
+    public Properties getProperties() {
         return properties;
     }
 
-    public void setProperties(Map<String, String> properties) {
+    public void setProperties(Properties properties) {
         this.properties = properties;
     }
 

@@ -17,6 +17,7 @@ package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
@@ -50,7 +51,7 @@ public class UpdateApiEntity {
     private List<Resource> resources = new ArrayList<>();
 
     @JsonProperty(value = "properties")
-    private Map<String, String> properties;
+    private io.gravitee.definition.model.Properties properties;
 
     @NotNull
     private Visibility visibility;
@@ -119,11 +120,11 @@ public class UpdateApiEntity {
         this.services = services;
     }
 
-    public Map<String, String> getProperties() {
+    public Properties getProperties() {
         return properties;
     }
 
-    public void setProperties(Map<String, String> properties) {
+    public void setProperties(Properties properties) {
         this.properties = properties;
     }
 
