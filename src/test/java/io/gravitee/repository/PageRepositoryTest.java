@@ -17,10 +17,12 @@ package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageType;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -49,6 +51,9 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setContent("Page content");
         page.setOrder(0);
         page.setApi("my-api");
+        page.setType(PageType.MARKDOWN);
+        page.setCreatedAt(new Date());
+        page.setUpdatedAt(new Date());
 
         int nbPagesBeforeCreation = pageRepository.findByApi("my-api").size();
         pageRepository.create(page);

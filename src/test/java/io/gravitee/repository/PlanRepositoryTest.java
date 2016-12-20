@@ -16,6 +16,7 @@
 package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Plan;
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,6 +46,13 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(plan);
         assertTrue(plan.isPresent());
         assertEquals("my-plan", plan.get().getId());
+    }
+
+    @Test
+    public void shouldNotFindById() throws TechnicalException {
+        Optional<Plan> unknown = planRepository.findById("unknown");
+        assertNotNull(unknown);
+        assertFalse(unknown.isPresent());
     }
 
     @Test
@@ -100,6 +108,13 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         final Plan planUpdated = optionalUpdated.get();
         Assert.assertEquals("Invalid saved plan name.", "New plan", planUpdated.getName());
         Assert.assertEquals("Invalid plan description.", plan.getDescription(), planUpdated.getDescription());
+    }
+
+    @Test(expected = Exception.class)
+    public void shouldNotUpdateNull() throws Exception {
+        Plan update = planRepository.update(null);
+
+        Assert.fail("should not update NULL entity");
     }
 
     @Test

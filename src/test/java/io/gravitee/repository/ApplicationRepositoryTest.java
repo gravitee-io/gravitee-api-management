@@ -20,6 +20,7 @@ import io.gravitee.repository.management.model.Application;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 
@@ -122,6 +123,13 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void findByIdsTest() throws Exception {
+        Set<Application> apps = applicationRepository.findByIds(Arrays.asList("searched-app1", "searched-app2"));
+        Assert.assertNotNull(apps);
+        Assert.assertEquals(2, apps.size());
+    }
+
+    @Test
     public void shouldFindApplicationWithGroup() throws Exception {
         Optional<Application> application = applicationRepository.findById("grouped-app");
         Assert.assertTrue(application.isPresent());
@@ -156,5 +164,14 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Set<Application> apps = applicationRepository.findByName("aRcHEd");
         Assert.assertNotNull(apps);
         Assert.assertEquals(2, apps.size());
+    }
+
+    @Test
+    public void shouldFindByGroups() throws Exception {
+        Set<Application> apps = applicationRepository.findByGroups(Arrays.asList("application-group"));
+
+        Assert.assertNotNull(apps);
+        Assert.assertEquals(1, apps.size());
+        Assert.assertEquals("grouped-app", apps.iterator().next().getId());
     }
 }

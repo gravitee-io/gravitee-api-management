@@ -3,18 +3,27 @@
       "id":"page1",
       "name":"Page 1",
       "content": "Content of the page 1",
-      "api": "my-api"
+      "api": "my-api",
+      "type": "MARKDOWN",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
    },
    {
       "id":"page2",
       "name":"Page 2",
       "content": "Content of the page 2",
-      "api": "my-api"
+      "api": "my-api",
+      "type": "MARKDOWN",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
    },
    {
       "id":"page3",
       "name":"Page 3",
       "content": "Content of the page 3",
-      "api": "my-api"
+      "api": "my-api",
+      "type": "MARKDOWN",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
    }
 ]

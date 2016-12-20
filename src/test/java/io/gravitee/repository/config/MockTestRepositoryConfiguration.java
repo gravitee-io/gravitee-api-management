@@ -15,10 +15,12 @@
  */
 package io.gravitee.repository.config;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
+import org.mockito.ArgumentMatcher;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.context.annotation.Bean;
 
@@ -128,6 +130,7 @@ public class MockTestRepositoryConfiguration {
         when(applicationRepository.findById("updated-app")).thenReturn(of(updatedApplication));
 
         final Application groupedApplication = mock(Application.class);
+        when(groupedApplication.getId()).thenReturn("grouped-app");
         when(groupedApplication.getGroup()).thenReturn("application-group");
         when(applicationRepository.findById("grouped-app")).thenReturn(of(groupedApplication));
 
@@ -141,6 +144,8 @@ public class MockTestRepositoryConfiguration {
         when(applicationRepository.findByName("arched")).thenReturn(newSet(searchedApp1, searchedApp2));
         when(applicationRepository.findByName("aRcHEd")).thenReturn(newSet(searchedApp1, searchedApp2));
 
+        when(applicationRepository.findByIds(Arrays.asList("searched-app1", "searched-app2"))).thenReturn(newSet(searchedApp1, searchedApp2));
+        when(applicationRepository.findByGroups(Arrays.asList("application-group"))).thenReturn(newSet(groupedApplication));
         return applicationRepository;
     }
 
@@ -307,7 +312,18 @@ public class MockTestRepositoryConfiguration {
         when(viewRepository.create(any(View.class))).thenReturn(view);
 
         when(viewRepository.findById("new-view")).thenReturn(of(view));
+        when(viewRepository.findById("unknown")).thenReturn(empty());
         when(viewRepository.findById("products")).thenReturn(of(view2), of(view2Updated));
+
+        when(viewRepository.update(argThat(new ArgumentMatcher<View>() {
+            @Override
+            public boolean matches(Object o) {
+                if (o==null) {
+                    throw new NullPointerException();
+                }
+                return o instanceof View && "unknown".equals(((View)o).getId());
+            }
+        }))).thenReturn(null);
 
         return viewRepository;
     }
@@ -354,8 +370,36 @@ public class MockTestRepositoryConfiguration {
         final Group group_application_1 = new Group();
         group_application_1.setId("group-application-1");
         group_application_1.setName("group-application-1");
+        group_application_1.setType(Group.Type.APPLICATION);
         group_application_1.setAdministrators(Arrays.asList("user1", "user2"));
+        final Group group_api_to_delete = new Group();
+        group_api_to_delete.setId("group-api-to-delete");
+        group_api_to_delete.setName("group-api-to-delete");
+        group_api_to_delete.setType(Group.Type.API);
+        group_api_to_delete.setAdministrators(Collections.emptyList());
+        final Group group_updated = new Group();
+        group_updated.setId("group-application-1");
+        group_updated.setType(Group.Type.APPLICATION);
+        group_updated.setName("Modified Name");
+        group_updated.setUpdatedAt(new Date(0));
         when(groupRepository.findByType(Group.Type.APPLICATION)).thenReturn(Collections.singleton(group_application_1));
+        when(groupRepository.findAll()).thenReturn(newSet(group_application_1, group_api_to_delete));
+        when(groupRepository.findById("group-application-1")).thenReturn(of(group_application_1));
+        when(groupRepository.findById("unknown")).thenReturn(empty());
+        when(groupRepository.findById("group-api-to-delete")).thenReturn(empty());
+        when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
+            @Override
+            public boolean matches(Object o) {
+                return o != null && o instanceof Group && ((Group)o).getId().equals("unknown");
+            }
+        }))).thenThrow(new TechnicalException());
+
+        when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
+            @Override
+            public boolean matches(Object o) {
+                return o != null && o instanceof Group && ((Group)o).getId().equals("group-application-1");
+            }
+        }))).thenReturn(group_updated);
 
         return groupRepository;
     }
@@ -387,6 +431,9 @@ public class MockTestRepositoryConfiguration {
         when(planRepository.findByApi("api1")).thenReturn(
                 new HashSet<>(Arrays.asList(plan, plan2)));
 
+        when(planRepository.findById("unknown")).thenReturn(empty());
+        when(planRepository.update(null)).thenThrow(Exception.class);
+
         return planRepository;
     }
 
@@ -403,9 +450,13 @@ public class MockTestRepositoryConfiguration {
         m2.setType("OWNER");
         Membership m3 = new Membership("user3", "api3", MembershipReferenceType.API);
         m3.setType("USER");
+        Membership m4 = new Membership("userToDelete", "app1", MembershipReferenceType.APPLICATION);
+        m4.setCreatedAt(new Date(0));
 
         when(repo.findById("user1", MembershipReferenceType.API, "api1"))
                 .thenReturn(of(m1));
+        when(repo.findById("userToDelete", MembershipReferenceType.APPLICATION, "app1"))
+                .thenReturn(empty());
         when(repo.findByReferenceAndMembershipType(eq(MembershipReferenceType.API), eq("api1"), any()))
                 .thenReturn(Collections.singleton(m1));
         when(repo.findByUserAndReferenceType("user1", MembershipReferenceType.API))
@@ -416,6 +467,7 @@ public class MockTestRepositoryConfiguration {
                 .thenReturn(new HashSet<>(Arrays.asList(m2, m3)));
         when(repo.findByReferencesAndMembershipType(MembershipReferenceType.API, Arrays.asList("api2", "api3"), "OWNER"))
                 .thenReturn(new HashSet<>(Collections.singletonList(m2)));
+        when(repo.update(any())).thenReturn(m4);
 
         return repo;
     }
@@ -447,5 +499,26 @@ public class MockTestRepositoryConfiguration {
         when(pageRepository.findById("page2")).thenReturn(of(page2), of(page2Updated));
 
         return pageRepository;
+    }
+
+    @Bean
+    public SubscriptionRepository subscriptionRepository() throws Exception {
+        final SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
+
+        final Subscription sub1 = new Subscription();
+        sub1.setId("sub1");
+        sub1.setApplication("app1");
+        sub1.setPlan("plan1");
+        sub1.setUpdatedAt(new Date(0));
+
+        when(subscriptionRepository.findByPlan("plan1")).thenReturn(newSet(sub1));
+        when(subscriptionRepository.findByPlan("unknown-plan")).thenReturn(Collections.emptySet());
+        when(subscriptionRepository.findByApplication("app1")).thenReturn(newSet(sub1));
+        when(subscriptionRepository.findByApplication("unknown-app")).thenReturn(Collections.emptySet());
+        when(subscriptionRepository.findById("sub1")).thenReturn(of(sub1));
+        when(subscriptionRepository.findById("unknown-sub")).thenReturn(empty());
+        when(subscriptionRepository.findById("sub2")).thenReturn(empty());
+        when(subscriptionRepository.update(sub1)).thenReturn(sub1);
+        return subscriptionRepository;
     }
 }

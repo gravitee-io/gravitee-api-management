@@ -20,9 +20,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -67,10 +70,68 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldNotFindByType() throws TechnicalException {
-        Set<Group> groups = groupRepository.findByType(Group.Type.API);
+    public void shouldFindById() throws TechnicalException {
+        Optional<Group> group = groupRepository.findById("group-application-1");
+
+        Assert.assertNotNull(group);
+        Assert.assertTrue(group.isPresent());
+        Assert.assertEquals("group-application-1", group.get().getId());
+        Assert.assertEquals(Group.Type.APPLICATION, group.get().getType());
+        Assert.assertEquals("group-application-1", group.get().getName());
+    }
+
+    @Test
+    public void shouldNotFindByUnknownId() throws TechnicalException {
+        Optional<Group> group = groupRepository.findById("unknown");
+
+        Assert.assertNotNull(group);
+        Assert.assertFalse(group.isPresent());
+    }
+
+    @Ignore
+    @Test(expected = TechnicalException.class)
+    public void shouldNotUpdateUnknownGroup() throws TechnicalException {
+        Group group = new Group();
+        group.setId("unknown");
+        group.setType(Group.Type.APPLICATION);
+        group.setName("Unknown");
+
+        groupRepository.update(group);
+
+        Assert.fail("should not update an unknown group");
+    }
+
+    @Test
+    public void shouldUpdate() throws TechnicalException {
+        Group group = new Group();
+        group.setId("group-application-1");
+        group.setType(Group.Type.APPLICATION);
+        group.setName("Modified Name");
+        group.setUpdatedAt(new Date(0));
+
+        Group update = groupRepository.update(group);
+
+        Assert.assertEquals(group.getId(), update.getId());
+        Assert.assertEquals(group.getType(), update.getType());
+        Assert.assertEquals(group.getName(), update.getName());
+        Assert.assertEquals(new Date(0), update.getUpdatedAt());
+    }
+
+    @Test
+    public void shouldFindAll() throws TechnicalException {
+        Set<Group> groups = groupRepository.findAll();
 
         Assert.assertNotNull(groups);
-        Assert.assertEquals(0, groups.size());
+        Assert.assertFalse("not empty", groups.isEmpty());
+        Assert.assertEquals(2, groups.size());
+    }
+
+    @Test
+    public void shouldDelete() throws TechnicalException {
+        groupRepository.delete("group-api-to-delete");
+        Optional<Group> group = groupRepository.findById("group-api-to-delete");
+
+        Assert.assertNotNull(group);
+        Assert.assertFalse(group.isPresent());
     }
 }

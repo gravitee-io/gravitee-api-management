@@ -1,0 +1,18 @@
+[
+  {
+    "id":"sub1",
+    "plan": "plan1",
+    "application": "app1",
+    "status": "PENDING",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id":"sub2",
+    "plan": "plan2",
+    "application": "app2",
+    "status": "PENDING",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  }
+]

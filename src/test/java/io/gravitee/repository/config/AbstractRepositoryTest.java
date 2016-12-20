@@ -80,6 +80,8 @@ public abstract class AbstractRepositoryTest {
     protected TagRepository tagRepository;
     @Inject
     protected PageRepository pageRepository;
+    @Inject
+    protected SubscriptionRepository subscriptionRepository;
 
 
     private ObjectMapper mapper = new ObjectMapper();
@@ -143,6 +145,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Page) {
             pageRepository.create((Page) object);
+        }
+        else if (object instanceof Subscription) {
+            subscriptionRepository.create((Subscription) object);
         }
     }
 

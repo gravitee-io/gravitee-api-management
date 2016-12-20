@@ -94,4 +94,25 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
 
         Assert.assertEquals(nbViewsBeforeDeletion - 1, nbViewsAfterDeletion);
     }
+
+    @Test(expected = Exception.class)
+    public void shouldNotUpdateIfViewIsNull() throws Exception {
+        viewRepository.update(null);
+
+        Assert.fail("should not update a null view");
+    }
+
+    @Test
+    public void shouldNotUpdateIfViewIsUnknown() throws Exception {
+        View view = new View();
+        view.setId("unknown");
+
+        View update = viewRepository.update(view);
+
+        Assert.assertNull(update);
+
+        Optional<View> optional = viewRepository.findById(view.getId());
+
+        Assert.assertFalse(optional.isPresent());
+    }
 }

@@ -99,4 +99,25 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("api1", membership.getReferenceId());
         Assert.assertEquals("user1", membership.getUserId());
     }
+
+    @Test
+    public void shouldDelete() throws TechnicalException {
+        Membership membership = new Membership("userToDelete", "app1", MembershipReferenceType.APPLICATION);
+
+        membershipRepository.delete(membership);
+
+        Optional<Membership> optional = membershipRepository.findById("userToDelete", MembershipReferenceType.APPLICATION, "app1");
+        Assert.assertFalse("There is no membership", optional.isPresent());
+    }
+
+    @Test
+    public void shouldUpdate() throws TechnicalException {
+        Membership membership = new Membership("userToUpdate", "app1", MembershipReferenceType.APPLICATION);
+        membership.setCreatedAt(new Date(0));
+
+        Membership update = membershipRepository.update(membership);
+
+        Assert.assertNotNull(update);
+        Assert.assertEquals(new Date(0), update.getCreatedAt());
+    }
 }

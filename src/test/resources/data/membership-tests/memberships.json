@@ -22,5 +22,21 @@
     "type" : "USER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
+  },
+  {
+    "userId" : "userToDelete",
+    "referenceId" : "app1",
+    "referenceType" : "APPLICATION",
+    "type" : "USER",
+    "createdAt" : "1439022010883",
+    "updatedAt" : "1439022010883"
+  },
+  {
+    "userId" : "userToUpdate",
+    "referenceId" : "app1",
+    "referenceType" : "APPLICATION",
+    "type" : "USER",
+    "createdAt" : "1439022010883",
+    "updatedAt" : "1439022010883"
   }
 ]
