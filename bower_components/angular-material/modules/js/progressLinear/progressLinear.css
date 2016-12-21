@@ -2,13 +2,8 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.0.9
+ * v1.1.1
  */
-/*  Only used with Theme processes */
-html.md-THEME_NAME-theme, body.md-THEME_NAME-theme {
-  color: '{{foreground-1}}';
-  background-color: '{{background-color}}'; }
-
 md-progress-linear {
   display: block;
   position: relative;
@@ -16,6 +11,8 @@ md-progress-linear {
   height: 5px;
   padding-top: 0 !important;
   margin-bottom: 0 !important; }
+  md-progress-linear._md-progress-linear-disabled {
+    visibility: hidden; }
   md-progress-linear .md-container {
     display: block;
     position: relative;
@@ -42,11 +39,14 @@ md-progress-linear {
       background-size: 10px 10px !important;
       background-position: 0px -23px; }
     md-progress-linear .md-container .md-bar1, md-progress-linear .md-container .md-bar2 {
+      -webkit-transition: -webkit-transform 0.2s linear;
       transition: -webkit-transform 0.2s linear;
-      transition: transform 0.2s linear; }
+      transition: transform 0.2s linear;
+      transition: transform 0.2s linear, -webkit-transform 0.2s linear; }
     md-progress-linear .md-container.md-mode-query .md-bar1 {
       display: none; }
     md-progress-linear .md-container.md-mode-query .md-bar2 {
+      -webkit-transition: all 0.2s linear;
       transition: all 0.2s linear;
       -webkit-animation: query 0.8s infinite cubic-bezier(0.39, 0.575, 0.565, 1);
               animation: query 0.8s infinite cubic-bezier(0.39, 0.575, 0.565, 1); }
@@ -58,17 +58,18 @@ md-progress-linear {
     md-progress-linear .md-container.md-mode-indeterminate .md-bar2 {
       -webkit-animation: md-progress-linear-indeterminate-scale-2 4s infinite, md-progress-linear-indeterminate-2 4s infinite;
               animation: md-progress-linear-indeterminate-scale-2 4s infinite, md-progress-linear-indeterminate-2 4s infinite; }
-    md-progress-linear .md-container.ng-hide {
+    md-progress-linear .md-container.ng-hide ._md-progress-linear-disabled md-progress-linear .md-container {
       -webkit-animation: none;
               animation: none; }
-      md-progress-linear .md-container.ng-hide .md-bar1 {
+      md-progress-linear .md-container.ng-hide ._md-progress-linear-disabled md-progress-linear .md-container .md-bar1 {
         -webkit-animation-name: none;
                 animation-name: none; }
-      md-progress-linear .md-container.ng-hide .md-bar2 {
+      md-progress-linear .md-container.ng-hide ._md-progress-linear-disabled md-progress-linear .md-container .md-bar2 {
         -webkit-animation-name: none;
                 animation-name: none; }
   md-progress-linear .md-container.md-mode-buffer {
     background-color: transparent !important;
+    -webkit-transition: all 0.2s linear;
     transition: all 0.2s linear; }
     md-progress-linear .md-container.md-mode-buffer .md-dashed:before {
       display: block;

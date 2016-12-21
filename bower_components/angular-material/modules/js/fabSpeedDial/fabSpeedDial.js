@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.0.9
+ * v1.1.1
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -10,10 +10,11 @@
 (function() {
   'use strict';
 
+  MdFabController.$inject = ["$scope", "$element", "$animate", "$mdUtil", "$mdConstant", "$timeout"];
   angular.module('material.components.fabShared', ['material.core'])
-    .controller('FabController', FabController);
+    .controller('MdFabController', MdFabController);
 
-  function FabController($scope, $element, $animate, $mdUtil, $mdConstant, $timeout) {
+  function MdFabController($scope, $element, $animate, $mdUtil, $mdConstant, $timeout) {
     var vm = this;
 
     // NOTE: We use async eval(s) below to avoid conflicts with any existing digest loops
@@ -151,7 +152,7 @@
       // If the element is actually visible on the screen
       if ($element[0].scrollHeight > 0) {
         // Fire our animation
-        $animate.addClass($element, 'md-animations-ready').then(function() {
+        $animate.addClass($element, '_md-animations-ready').then(function() {
           // Remove the waiting class
           $element.removeClass('md-animations-waiting');
         });
@@ -302,7 +303,6 @@
       return $element.find('md-fab-actions');
     }
   }
-  FabController.$inject = ["$scope", "$element", "$animate", "$mdUtil", "$mdConstant", "$timeout"];
 })();
 
 (function() {
@@ -313,6 +313,8 @@
    *
    * @type {number}
    */
+  MdFabSpeedDialFlingAnimation.$inject = ["$timeout"];
+  MdFabSpeedDialScaleAnimation.$inject = ["$timeout"];
   var cssAnimationDuration = 300;
 
   /**
@@ -324,7 +326,6 @@
     .module('material.components.fabSpeedDial', [
       'material.core',
       'material.components.fabShared',
-      'material.components.fabTrigger',
       'material.components.fabActions'
     ])
 
@@ -413,7 +414,7 @@
       },
 
       bindToController: true,
-      controller: 'FabController',
+      controller: 'MdFabController',
       controllerAs: 'vm',
 
       link: FabSpeedDialLink
@@ -421,7 +422,7 @@
 
     function FabSpeedDialLink(scope, element) {
       // Prepend an element to hold our CSS variables so we can use them in the animations below
-      element.prepend('<div class="md-css-variables"></div>');
+      element.prepend('<div class="_md-css-variables"></div>');
     }
   }
 
@@ -430,7 +431,7 @@
 
     function runAnimation(element) {
       // Don't run if we are still waiting and we are not ready
-      if (element.hasClass('md-animations-waiting') && !element.hasClass('md-animations-ready')) {
+      if (element.hasClass('md-animations-waiting') && !element.hasClass('_md-animations-ready')) {
         return;
       }
 
@@ -442,7 +443,7 @@
       var triggerElement = el.querySelector('md-fab-trigger');
 
       // Grab our element which stores CSS variables
-      var variablesElement = el.querySelector('.md-css-variables');
+      var variablesElement = el.querySelector('._md-css-variables');
 
       // Setup JS variables based on our CSS variables
       var startZIndex = parseInt(window.getComputedStyle(variablesElement).zIndex);
@@ -515,7 +516,6 @@
       }
     }
   }
-  MdFabSpeedDialFlingAnimation.$inject = ["$timeout"];
 
   function MdFabSpeedDialScaleAnimation($timeout) {
     function delayDone(done) { $timeout(done, cssAnimationDuration, false); }
@@ -528,7 +528,7 @@
       var items = el.querySelectorAll('.md-fab-action-item');
 
       // Grab our element which stores CSS variables
-      var variablesElement = el.querySelector('.md-css-variables');
+      var variablesElement = el.querySelector('._md-css-variables');
 
       // Setup JS variables based on our CSS variables
       var startZIndex = parseInt(window.getComputedStyle(variablesElement).zIndex);
@@ -559,7 +559,6 @@
       }
     }
   }
-  MdFabSpeedDialScaleAnimation.$inject = ["$timeout"];
 })();
 
 })(window, window.angular);

@@ -2,15 +2,16 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.1.0-rc4-master-c26842a
+ * v1.1.1
  */
-goog.provide('ng.material.components.toolbar');
-goog.require('ng.material.components.content');
-goog.require('ng.material.core');
+goog.provide('ngmaterial.components.toolbar');
+goog.require('ngmaterial.components.content');
+goog.require('ngmaterial.core');
 /**
  * @ngdoc module
  * @name material.components.toolbar
  */
+mdToolbarDirective.$inject = ["$$rAF", "$mdConstant", "$mdUtil", "$mdTheming", "$animate"];
 angular.module('material.components.toolbar', [
   'material.core',
   'material.components.content'
@@ -80,6 +81,10 @@ function mdToolbarDirective($$rAF, $mdConstant, $mdUtil, $mdTheming, $animate) {
 
       element.addClass('_md');     // private md component indicator for styling
       $mdTheming(element);
+
+      $mdUtil.nextTick(function () {
+        element.addClass('_md-toolbar-transitions');     // adding toolbar transitions after digest
+      }, false);
 
       if (angular.isDefined(attr.mdScrollShrink)) {
         setupScrollShrink();
@@ -202,14 +207,14 @@ function mdToolbarDirective($$rAF, $mdConstant, $mdUtil, $mdTheming, $animate) {
           contentElement.on('scroll', debouncedContentScroll);
           contentElement.attr('scroll-shrink', 'true');
 
-          $$rAF(updateToolbarHeight);
+          $mdUtil.nextTick(updateToolbarHeight, false);
 
           return function disableScrollShrink() {
             contentElement.off('scroll', debouncedContentScroll);
             contentElement.attr('scroll-shrink', 'false');
 
-            $$rAF(updateToolbarHeight);
-          }
+            updateToolbarHeight();
+          };
         }
 
         /**
@@ -239,6 +244,5 @@ function mdToolbarDirective($$rAF, $mdConstant, $mdUtil, $mdTheming, $animate) {
   };
 
 }
-mdToolbarDirective.$inject = ["$$rAF", "$mdConstant", "$mdUtil", "$mdTheming", "$animate"];
 
-ng.material.components.toolbar = angular.module("material.components.toolbar");
+ngmaterial.components.toolbar = angular.module("material.components.toolbar");

@@ -2,24 +2,26 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.0.9
+ * v1.1.1
  */
-/*  Only used with Theme processes */
-html.md-THEME_NAME-theme, body.md-THEME_NAME-theme {
-  color: '{{foreground-1}}';
-  background-color: '{{background-color}}'; }
-
-.md-contact-chips .md-chips .md-chip {
+.md-contact-chips .md-chips md-chip {
   padding: 0 25px 0 0; }
-  .md-contact-chips .md-chips .md-chip .md-contact-avatar {
+  [dir=rtl] .md-contact-chips .md-chips md-chip {
+    padding: 0 0 0 25px; }
+  .md-contact-chips .md-chips md-chip .md-contact-avatar {
     float: left; }
-    .md-contact-chips .md-chips .md-chip .md-contact-avatar img {
+    [dir=rtl] .md-contact-chips .md-chips md-chip .md-contact-avatar {
+      float: right; }
+    .md-contact-chips .md-chips md-chip .md-contact-avatar img {
       height: 32px;
       border-radius: 16px; }
-  .md-contact-chips .md-chips .md-chip .md-contact-name {
+  .md-contact-chips .md-chips md-chip .md-contact-name {
     display: inline-block;
     height: 32px;
     margin-left: 8px; }
+    [dir=rtl] .md-contact-chips .md-chips md-chip .md-contact-name {
+      margin-left: auto;
+      margin-right: 8px; }
 
 .md-contact-suggestion {
   height: 56px; }
@@ -30,6 +32,9 @@ html.md-THEME_NAME-theme, body.md-THEME_NAME-theme {
   .md-contact-suggestion .md-contact-name {
     margin-left: 8px;
     width: 120px; }
+    [dir=rtl] .md-contact-suggestion .md-contact-name {
+      margin-left: auto;
+      margin-right: 8px; }
   .md-contact-suggestion .md-contact-name, .md-contact-suggestion .md-contact-email {
     display: inline-block;
     overflow: hidden;
@@ -48,13 +53,23 @@ html.md-THEME_NAME-theme, body.md-THEME_NAME-theme {
     content: '';
     display: table;
     clear: both; }
+  [dir=rtl] .md-chips {
+    padding: 0 3px 8px 0; }
+  .md-chips.md-readonly .md-chip-input-container {
+    min-height: 32px; }
   .md-chips:not(.md-readonly) {
     cursor: text; }
-    .md-chips:not(.md-readonly) .md-chip:not(.md-readonly) {
-      padding-right: 22px; }
-      .md-chips:not(.md-readonly) .md-chip:not(.md-readonly) .md-chip-content {
-        padding-right: 4px; }
-  .md-chips .md-chip {
+  .md-chips.md-removable md-chip {
+    padding-right: 22px; }
+    [dir=rtl] .md-chips.md-removable md-chip {
+      padding-right: 0;
+      padding-left: 22px; }
+    .md-chips.md-removable md-chip .md-chip-content {
+      padding-right: 4px; }
+      [dir=rtl] .md-chips.md-removable md-chip .md-chip-content {
+        padding-right: 0;
+        padding-left: 4px; }
+  .md-chips md-chip {
     cursor: default;
     border-radius: 16px;
     display: block;
@@ -66,20 +81,38 @@ html.md-THEME_NAME-theme, body.md-THEME_NAME-theme {
     box-sizing: border-box;
     max-width: 100%;
     position: relative; }
-    .md-chips .md-chip .md-chip-content {
+    [dir=rtl] .md-chips md-chip {
+      margin: 8px 0 0 8px; }
+    [dir=rtl] .md-chips md-chip {
+      float: right; }
+    .md-chips md-chip .md-chip-content {
       display: block;
       float: left;
       white-space: nowrap;
       max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis; }
-      .md-chips .md-chip .md-chip-content:focus {
+      [dir=rtl] .md-chips md-chip .md-chip-content {
+        float: right; }
+      .md-chips md-chip .md-chip-content:focus {
         outline: none; }
-    .md-chips .md-chip .md-chip-remove-container {
+    .md-chips md-chip._md-chip-content-edit-is-enabled {
+      -webkit-user-select: none;
+      /* webkit (safari, chrome) browsers */
+      -moz-user-select: none;
+      /* mozilla browsers */
+      -khtml-user-select: none;
+      /* webkit (konqueror) browsers */
+      -ms-user-select: none;
+      /* IE10+ */ }
+    .md-chips md-chip .md-chip-remove-container {
       position: absolute;
       right: 0;
       line-height: 22px; }
-    .md-chips .md-chip .md-chip-remove {
+      [dir=rtl] .md-chips md-chip .md-chip-remove-container {
+        right: auto;
+        left: 0; }
+    .md-chips md-chip .md-chip-remove {
       text-align: center;
       width: 32px;
       height: 32px;
@@ -90,7 +123,7 @@ html.md-THEME_NAME-theme, body.md-THEME_NAME-theme {
       box-shadow: none;
       margin: 0;
       position: relative; }
-      .md-chips .md-chip .md-chip-remove md-icon {
+      .md-chips md-chip .md-chip-remove md-icon {
         height: 18px;
         width: 18px;
         position: absolute;
@@ -104,6 +137,10 @@ html.md-THEME_NAME-theme, body.md-THEME_NAME-theme {
     margin: 8px 8px 0 0;
     padding: 0;
     float: left; }
+    [dir=rtl] .md-chips .md-chip-input-container {
+      margin: 8px 0 0 8px; }
+    [dir=rtl] .md-chips .md-chip-input-container {
+      float: right; }
     .md-chips .md-chip-input-container input:not([type]), .md-chips .md-chip-input-container input[type="email"], .md-chips .md-chip-input-container input[type="number"], .md-chips .md-chip-input-container input[type="tel"], .md-chips .md-chip-input-container input[type="url"], .md-chips .md-chip-input-container input[type="text"] {
       border: 0;
       height: 32px;
@@ -133,6 +170,8 @@ html.md-THEME_NAME-theme, body.md-THEME_NAME-theme {
         position: relative; }
     .md-chips .md-chip-input-container:not(:first-child) {
       margin: 8px 8px 0 0; }
+      [dir=rtl] .md-chips .md-chip-input-container:not(:first-child) {
+        margin: 8px 0 0 8px; }
     .md-chips .md-chip-input-container input {
       background: transparent;
       border-width: 0; }

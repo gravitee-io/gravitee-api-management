@@ -2,10 +2,10 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.0.9
+ * v1.1.1
  */
-goog.provide('ng.material.components.fabActions');
-goog.require('ng.material.core');
+goog.provide('ngmaterial.components.fabActions');
+goog.require('ngmaterial.core');
 (function() {
   'use strict';
 
@@ -13,6 +13,7 @@ goog.require('ng.material.core');
    * @ngdoc module
    * @name material.components.fabActions
    */
+  MdFabActionsDirective.$inject = ["$mdUtil"];
   angular
     .module('material.components.fabActions', ['material.core'])
     .directive('mdFabActions', MdFabActionsDirective);
@@ -32,7 +33,7 @@ goog.require('ng.material.core');
    * @usage
    * See the `<md-fab-speed-dial>` or `<md-fab-toolbar>` directives for example usage.
    */
-  function MdFabActionsDirective() {
+  function MdFabActionsDirective($mdUtil) {
     return {
       restrict: 'E',
 
@@ -41,11 +42,7 @@ goog.require('ng.material.core');
       compile: function(element, attributes) {
         var children = element.children();
 
-        var hasNgRepeat = false;
-
-        angular.forEach(['', 'data-', 'x-'], function(prefix) {
-          hasNgRepeat = hasNgRepeat || (children.attr(prefix + 'ng-repeat') ? true : false);
-        });
+        var hasNgRepeat = $mdUtil.prefixer().hasAttribute(children, 'ng-repeat');
 
         // Support both ng-repeat and static content
         if (hasNgRepeat) {
@@ -60,4 +57,4 @@ goog.require('ng.material.core');
 
 })();
 
-ng.material.components.fabActions = angular.module("material.components.fabActions");
+ngmaterial.components.fabActions = angular.module("material.components.fabActions");

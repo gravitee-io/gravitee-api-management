@@ -2,13 +2,12 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.0.9
+ * v1.1.1
  */
-goog.provide('ng.material.components.fabToolbar');
-goog.require('ng.material.components.fabActions');
-goog.require('ng.material.components.fabShared');
-goog.require('ng.material.components.fabTrigger');
-goog.require('ng.material.core');
+goog.provide('ngmaterial.components.fabToolbar');
+goog.require('ngmaterial.components.fabActions');
+goog.require('ngmaterial.components.fabShared');
+goog.require('ngmaterial.core');
 (function() {
   'use strict';
 
@@ -21,7 +20,6 @@ goog.require('ng.material.core');
     .module('material.components.fabToolbar', [
       'material.core',
       'material.components.fabShared',
-      'material.components.fabTrigger',
       'material.components.fabActions'
     ])
 
@@ -65,15 +63,17 @@ goog.require('ng.material.core');
    *     <md-button aria-label="Add..."><md-icon icon="/img/icons/plus.svg"></md-icon></md-button>
    *   </md-fab-trigger>
    *
-   *   <md-fab-actions>
-   *     <md-button aria-label="Add User">
-   *       <md-icon icon="/img/icons/user.svg"></md-icon>
-   *     </md-button>
+   *   <md-toolbar>
+   *    <md-fab-actions>
+   *      <md-button aria-label="Add User">
+   *        <md-icon icon="/img/icons/user.svg"></md-icon>
+   *      </md-button>
    *
-   *     <md-button aria-label="Add Group">
-   *       <md-icon icon="/img/icons/group.svg"></md-icon>
-   *     </md-button>
-   *   </md-fab-actions>
+   *      <md-button aria-label="Add Group">
+   *        <md-icon icon="/img/icons/group.svg"></md-icon>
+   *      </md-button>
+   *    </md-fab-actions>
+   *   </md-toolbar>
    * </md-fab-toolbar>
    * </hljs>
    *
@@ -95,7 +95,7 @@ goog.require('ng.material.core');
       },
 
       bindToController: true,
-      controller: 'FabController',
+      controller: 'MdFabController',
       controllerAs: 'vm',
 
       link: link
@@ -146,7 +146,7 @@ goog.require('ng.material.core');
         // If we're open
         if (ctrl.isOpen) {
           // Turn on toolbar pointer events when closed
-          toolbarElement.style.pointerEvents = 'initial';
+          toolbarElement.style.pointerEvents = 'inherit';
 
           backgroundElement.style.width = triggerElement.offsetWidth + 'px';
           backgroundElement.style.height = triggerElement.offsetHeight + 'px';
@@ -205,4 +205,5 @@ goog.require('ng.material.core');
     }
   }
 })();
-ng.material.components.fabToolbar = angular.module("material.components.fabToolbar");
+
+ngmaterial.components.fabToolbar = angular.module("material.components.fabToolbar");

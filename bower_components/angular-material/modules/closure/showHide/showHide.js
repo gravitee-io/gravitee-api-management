@@ -2,10 +2,10 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.1.0-rc4-master-c26842a
+ * v1.1.1
  */
-goog.provide('ng.material.components.showHide');
-goog.require('ng.material.core');
+goog.provide('ngmaterial.components.showHide');
+goog.require('ngmaterial.core');
 /**
  * @ngdoc module
  * @name material.components.showHide
@@ -22,7 +22,7 @@ angular.module('material.components.showHide', [
 
 
 function createDirective(name, targetValue) {
-  return ['$mdUtil', function($mdUtil) {
+  return ['$mdUtil', '$window', function($mdUtil, $window) {
     return {
       restrict: 'A',
       multiElement: true,
@@ -30,12 +30,21 @@ function createDirective(name, targetValue) {
         var unregister = $scope.$on('$md-resize-enable', function() {
           unregister();
 
+          var node = $element[0];
+          var cachedTransitionStyles = node.nodeType === $window.Node.ELEMENT_NODE ?
+            $window.getComputedStyle(node) : {};
+
           $scope.$watch($attr[name], function(value) {
             if (!!value === targetValue) {
               $mdUtil.nextTick(function() {
                 $scope.$broadcast('$md-resize');
               });
-              $mdUtil.dom.animator.waitTransitionEnd($element).then(function() {
+
+              var opts = {
+                cachedTransitionStyles: cachedTransitionStyles
+              };
+
+              $mdUtil.dom.animator.waitTransitionEnd($element, opts).then(function() {
                 $scope.$broadcast('$md-resize');
               });
             }
@@ -45,4 +54,5 @@ function createDirective(name, targetValue) {
     };
   }];
 }
-ng.material.components.showHide = angular.module("material.components.showHide");
+
+ngmaterial.components.showHide = angular.module("material.components.showHide");

@@ -2,10 +2,10 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.0.9
+ * v1.1.1
  */
 $font-family: Roboto, 'Helvetica Neue', sans-serif !default;
-$font-size:   10px;
+$font-size:   10px !default;
 $display-4-font-size-base: rem(11.20) !default;
 $display-3-font-size-base: rem(5.600) !default;
 $display-2-font-size-base: rem(4.500) !default;
@@ -21,13 +21,14 @@ $layout-breakpoint-xs:     600px !default;
 $layout-breakpoint-sm:     960px !default;
 $layout-breakpoint-md:     1280px !default;
 $layout-breakpoint-lg:     1920px !default;
+$button-left-right-padding: rem(0.600) !default;
 $icon-size: rem(2.400) !default;
-$app-bar-height: 64px;
+$app-bar-height: 64px !default;
 $toast-height: $baseline-grid * 3 !default;
 $toast-margin: $baseline-grid * 1 !default;
-$shadow-key-umbra-opacity:      0.2;
-$shadow-key-penumbra-opacity:   0.14;
-$shadow-ambient-shadow-opacity: 0.12;
+$shadow-key-umbra-opacity:      0.2 !default;
+$shadow-key-penumbra-opacity:   0.14 !default;
+$shadow-ambient-shadow-opacity: 0.12 !default;
 $whiteframe-shadow-1dp: 0px 1px 3px 0px rgba(0, 0, 0, $shadow-key-umbra-opacity), 0px 1px 1px 0px rgba(0, 0, 0, $shadow-key-penumbra-opacity), 0px 2px 1px -1px rgba(0, 0, 0, $shadow-ambient-shadow-opacity) !default;
 $whiteframe-shadow-2dp: 0px 1px 5px 0px rgba(0, 0, 0, $shadow-key-umbra-opacity), 0px 2px 2px 0px rgba(0, 0, 0, $shadow-key-penumbra-opacity), 0px 3px 1px -2px rgba(0, 0, 0, $shadow-ambient-shadow-opacity) !default;
 $whiteframe-shadow-3dp: 0px 1px 8px 0px rgba(0, 0, 0, $shadow-key-umbra-opacity), 0px 3px 4px 0px rgba(0, 0, 0, $shadow-key-penumbra-opacity), 0px 3px 3px -2px rgba(0, 0, 0, $shadow-ambient-shadow-opacity) !default;
@@ -55,10 +56,12 @@ $whiteframe-shadow-24dp: 0px 11px 15px -7px rgba(0, 0, 0, $shadow-key-umbra-opac
 $z-index-toast: 105 !default;
 $z-index-tooltip: 100 !default;
 $z-index-menu: 100 !default;
+$z-index-calendar-pane: 100 !default;
 $z-index-select: 90 !default;
 $z-index-dialog: 80 !default;
 $z-index-bottom-sheet: 70 !default;
-$z-index-scroll-mask: 65 !default;
+$z-index-scroll-mask: 50 !default;
+$z-index-scroll-mask-bar: 65 !default;
 $z-index-sidenav: 60 !default;
 $z-index-backdrop: 50 !default;
 $z-index-fab: 20 !default;
@@ -84,6 +87,10 @@ $material-leave: all $material-leave-duration $material-leave-timing-function;
 $button-fab-width: rem(5.600) !default;
 $button-fab-height: rem(5.600) !default;
 $button-fab-padding: rem(1.60) !default;
+$checkbox-width: 20px !default;
+$checkbox-height: $checkbox-width !default;
+$checkbox-border-radius: 2px !default;
+$checkbox-border-width: 2px !default;
 // Function
 //-- Must be defined before variables
 @function rem($multiplier) {
@@ -100,6 +107,8 @@ $button-fab-padding: rem(1.60) !default;
 // ------------------------------
 
 
+
+// Button
 
 // Icon
 
@@ -128,6 +137,9 @@ $button-fab-padding: rem(1.60) !default;
 // Fab Buttons (shared between buttons.scss and fab*.scss)
 // -------------------------------------------
 
+
+// Shared Checkbox variables
+
 @mixin margin-selectors($before:1em, $after:1em, $start:0px, $end:0px) {
   -webkit-margin-before: $before;
   -webkit-margin-after: $after;
@@ -145,12 +157,16 @@ $button-fab-padding: rem(1.60) !default;
 }
 
 @mixin input-placeholder-color($color) {
-  &::-webkit-input-placeholder,
-    &::-moz-placeholder,
-    &:-moz-placeholder,
-    &:-ms-input-placeholder {
-      color: $color;
+  $pseudos: '::-webkit-input-placeholder', ':-moz-placeholder', '::-moz-placeholder',
+            ':-ms-input-placeholder',  '::-webkit-input-placeholder';
+
+  // It is important to export every pseudo within its own block, because otherwise the placeholder
+  // won't be set on the most browsers.
+  @each $pseudo in $pseudos {
+    &#{$pseudo} {
+      color: unquote($color);
     }
+  }
 }
 
 @mixin pie-clearfix {
@@ -180,7 +196,7 @@ $button-fab-padding: rem(1.60) !default;
   outline: none;
   background: transparent;
 
-  // The the "clear X" that IE adds to input[type="search"]
+  // The "clear X" that IE adds to input[type="search"]
   &::-ms-clear {
     display: none;
   }
@@ -230,32 +246,44 @@ $button-fab-padding: rem(1.60) !default;
   @return $map-str + '}';
 }
 
+// This is a mixin, which fixes IE11's vertical alignment issue, when using `min-height`.
+// See https://connect.microsoft.com/IE/feedback/details/816293/
+@mixin ie11-min-height-flexbug($min-height) {
+  &::before {
+    content: '';
+    min-height: $min-height;
+    visibility: hidden;
+    display: inline-block;
+  }
+}
 
 // mixin definition ; sets LTR and RTL within the same style call
 // @see https://css-tricks.com/almanac/properties/d/direction/
 
-@mixin rtl($prop, $value, $rtl-value) {
-  #{$prop}: $value;
-
-  html[dir=rtl] & {
+@mixin rtl($prop, $ltr-value, $rtl-value) {
+  #{$prop}: $ltr-value;
+  [dir=rtl] & {
     #{$prop}: $rtl-value;
-    unicode-bidi: embed;
   }
-  body[dir=rtl] & {
-    #{$prop}: $rtl-value;
-    unicode-bidi: embed;
-  }
+}
 
-  bdo[dir=rtl] {
-    direction: rtl;
-    unicode-bidi: bidi-override;
+@mixin rtl-prop($ltr-prop, $rtl-prop, $value, $reset-value) {
+  #{$ltr-prop}: $value;
+  [dir=rtl] & {
+    #{$ltr-prop}: $reset-value;
+    #{$rtl-prop}: $value;
   }
-  bdo[dir=ltr] {
-    direction: ltr;
-    unicode-bidi: bidi-override;
+}
+
+// To reverse padding (top left bottom right) -> (top right bottom left)
+@function rtl-value($list) {
+  @if length($list) == 4 {
+    @return nth($list, 1) nth($list, 4) nth($list, 3) nth($list, 2)
   }
-
-
+  @if length($list) == 5 {
+    @return nth($list, 1) nth($list, 4) nth($list, 3) nth($list, 2) nth($list, 5)
+  }
+  @return $list;
 }
 
 // Position a FAB button.
@@ -351,14 +379,14 @@ $button-fab-padding: rem(1.60) !default;
   }
 
   &#{$checkedSelector} .md-icon {
-    border: none;
+    border-color: transparent;
 
     &:after {
       box-sizing: border-box;
       transform: rotate(45deg);
       position: absolute;
-      left: $width / 3;
-      top: $width / 9;
+      left: $width / 3 - $border-width;
+      top: $width / 9 - $border-width;
       display: table;
       width: $width / 3;
       height: $width * 2 / 3;
@@ -394,6 +422,48 @@ $button-fab-padding: rem(1.60) !default;
   }
 }
 
+// Mixin to create a primary checkbox.
+// Used by the checkbox and select component.
+@mixin checkbox-primary($checkedSelector: '.md-checked') {
+  .md-ripple {
+    color: '{{primary-600}}';
+  }
+
+  &#{$checkedSelector} .md-ripple {
+    color: '{{background-600}}';
+  }
+
+  .md-ink-ripple {
+    color: '{{foreground-2}}';
+  }
+
+  &#{$checkedSelector} .md-ink-ripple {
+    color: '{{primary-color-0.87}}';
+  }
+
+  &:not(.md-checked) .md-icon {
+    border-color: '{{foreground-2}}';
+  }
+
+  &#{$checkedSelector} .md-icon {
+    background-color: '{{primary-color-0.87}}';
+  }
+
+  &#{$checkedSelector}.md-focused .md-container:before {
+    background-color: '{{primary-color-0.26}}';
+  }
+
+  &#{$checkedSelector} .md-icon:after {
+    border-color: '{{primary-contrast-0.87}}';
+  }
+
+  & .md-indeterminate[disabled] {
+    .md-container {
+      color: '{{foreground-3}}';
+    }
+  }
+}
+
 /*
 *
 *  Responsive attributes
@@ -407,16 +477,6 @@ $button-fab-padding: rem(1.60) !default;
 *
 *
 */
-
-@-moz-document url-prefix() {
-  .layout-fill {
-    margin: 0;
-    width: 100%;
-    min-height: 100%;
-    height: 100%;
-  }
-}
-
 
 @mixin flex-order-for-name($sizes:null) {
   @if $sizes == null {
@@ -459,7 +519,8 @@ $button-fab-padding: rem(1.60) !default;
     }
 
     #{$offsets} {
-      margin-left: #{$i * 5 + '%'};
+      @if $i != 0 { @include rtl-prop(margin-left, margin-right, #{$i * 5 + '%'}, auto); }
+      @else { @include rtl-prop(margin-left, margin-right, 0, auto); }
     }
   }
 
@@ -491,7 +552,7 @@ $button-fab-padding: rem(1.60) !default;
     }
 
     #{$offsets} {
-      margin-left: calc(200% / 3);
+      @include rtl-prop(margin-left, margin-right, calc(200% / 3), auto);
     }
   }
 }
@@ -523,18 +584,6 @@ $button-fab-padding: rem(1.60) !default;
 
   .#{$flexName}             { flex: 1;         box-sizing: border-box; }  // === flex: 1 1 0%;
 
-  // IE mediaQuery hack for 8,9,10 to set the flex-basis properly for 'flex' values
-  // Details:
-  // Do not use unitless flex-basis values in the flex shorthand because IE 10-11 will error.
-  // Also use 0% instead of 0px since minifiers will often convert 0px to 0 (which is unitless and will have the same problem).
-  // Safari, however, fails with flex-basis : 0% and requires flex-basis : 0px
-  @media screen\0 {
-      .#{$flexName} {
-        flex: 1 1 0%;
-      }
-  }
-
-
   .#{$flexName}-grow        { flex: 1 1 100%;  box-sizing: border-box; }
   .#{$flexName}-initial     { flex: 0 1 auto;  box-sizing: border-box; }
   .#{$flexName}-auto        { flex: 1 1 auto;  box-sizing: border-box; }
@@ -553,7 +602,33 @@ $button-fab-padding: rem(1.60) !default;
       box-sizing: border-box;
     }
 
-    .layout-row > .#{$flexName}-#{$i * 5},
+    .layout-row > .#{$flexName}-#{$i * 5} {
+      flex: 1 1 #{$value};
+      max-width: #{$value};
+      max-height: 100%;
+      box-sizing: border-box;
+
+      // Bug workaround for http://crbug.com/546034 - flex issues on Chrome 48
+      @if $i == 0 {  min-width: 0;  }
+    }
+
+    .layout-column > .#{$flexName}-#{$i * 5} {
+      flex: 1 1 #{$value};
+      max-width: 100%;
+      max-height: #{$value};
+      box-sizing: border-box;
+    }
+
+    .layout-row {
+	    > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 33.33%;  max-width: 33.33%;  max-height: 100%; box-sizing: border-box; }
+	    > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 66.66%;  max-width: 66.66%;  max-height: 100%; box-sizing: border-box; }
+	  }
+
+	  .layout-column {
+	    > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 33.33%;  max-width: 100%;  max-height: 33.33%; box-sizing: border-box; }
+	    > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 66.66%;  max-width: 100%;  max-height: 66.66%; box-sizing: border-box; }
+	  }
+
     .layout#{$name}-row > .#{$flexName}-#{$i * 5} {
       flex: 1 1 #{$value};
       max-width: #{$value};
@@ -564,7 +639,6 @@ $button-fab-padding: rem(1.60) !default;
       @if $i == 0 {  min-width: 0;  }
     }
 
-    .layout-column > .#{$flexName}-#{$i * 5},
     .layout#{$name}-column > .#{$flexName}-#{$i * 5} {
       flex: 1 1 #{$value};
       max-width: 100%;
@@ -573,24 +647,27 @@ $button-fab-padding: rem(1.60) !default;
 
       // Bug workaround for http://crbug.com/546034 - flex issues on Chrome 48
       @if $i == 0 {  min-height: 0;  }
-
     }
+
   }
 
-  .layout-row, .layout#{$name}-row {
+  .layout#{$name}-row {
     > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 33.33%;  max-width: 33.33%;  max-height: 100%; box-sizing: border-box; }
     > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 66.66%;  max-width: 66.66%;  max-height: 100%; box-sizing: border-box; }
 
     // Bug workaround for http://crbug.com/546034 - flex issues on Chrome 48
     > .flex                                       { min-width: 0;   }
+
   }
-  .layout-column, .layout#{$name}-column {
+
+  .layout#{$name}-column {
     > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 33.33%;  max-width: 100%;  max-height: 33.33%; box-sizing: border-box; }
     > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 66.66%;  max-width: 100%;  max-height: 66.66%; box-sizing: border-box; }
 
     // Bug workaround for http://crbug.com/546034 - flex issues on Chrome 48
     > .flex                                       { min-height: 0;   }
   }
+
 }
 
 @mixin layout-align-for-name($suffix: null) {
@@ -825,6 +902,38 @@ $button-fab-padding: rem(1.60) !default;
     @include flex-properties-for-name($name);
     @include layout-for-name($name);
 }
+
+/*
+* Since Layout API uses ng-cloak to hide the dom elements while layouts are adjusted
+*
+*/
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+  display: none !important;
+}
+
+/*
+*
+*  Responsive attributes
+*
+*  References:
+*  1) https://scotch.io/tutorials/a-visual-guide-to-css3-flexbox-properties#flex
+*  2) https://css-tricks.com/almanac/properties/f/flex/
+*  3) https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+*  4) https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
+*  5) http://godban.com.ua/projects/flexgrid
+*
+*
+*/
+
+@-moz-document url-prefix() {
+  .layout-fill {
+    margin: 0;
+    width: 100%;
+    min-height: 100%;
+    height: 100%;
+  }
+}
+
 
 /*
  *  Apply Mixins to create Layout/Flexbox styles
