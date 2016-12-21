@@ -143,15 +143,11 @@ function routerConfig($stateProvider, $urlRouterProvider) {
     })
     .state('apis.admin.general.main', {
       url: '/general',
-      templateUrl: 'app/api/admin/general/apiGeneral.html',
-      controller: 'ApiGeneralController',
-      controllerAs: 'generalCtrl'
+      templateUrl: 'app/api/admin/general/apiGeneral.html'
     })
     .state('apis.admin.general.gateway', {
       url: '/gateway',
-      templateUrl: 'app/api/admin/general/apiGateway.html',
-      controller: 'ApiGeneralController',
-      controllerAs: 'generalCtrl'
+      templateUrl: 'app/api/admin/general/apiGateway.html'
     })
     .state('apis.admin.general.endpoint', {
       url: '/endpoint/:endpointName',

@@ -15,17 +15,25 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="Health-check Assertion">
+<md-dialog aria-label="HTTP provider output">
   <md-dialog-content layout-padding>
-    <h4>How to write assertion</h4>
+    <h4>Expected HTTP provider output</h4>
     <p>
-      Example 1: Check the status of the HTTP response<br>
-      <code>#response.status == 200</code>
-    </p>
-    <br>
-    <p>
-      Example 2: Check the JSON content of the response<br>
-      <code>#jsonPath(#response.content, '$.status') == 'green'</code>
+      <textarea
+        ui-codemirror="{ onLoad : ctrl.codemirrorLoaded }"
+        ui-codemirror-opts="ctrl.codeMirrorOptions"
+        rows="5">
+    [{
+        "key" : 1,
+        "value" : "https://north-europe.company.com/"
+    }, {
+        "key" : 2,
+        "value" : "https://north-europe.company.com/"
+    }, {
+        "key" : 3,
+        "value" : "https://south-asia.company.com/"
+    }]
+      </textarea>
     </p>
   </md-dialog-content>
   <md-dialog-actions layout="row">

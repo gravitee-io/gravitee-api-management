@@ -13,21 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogAddPropertyController($scope, $mdDialog) {
+function DialogDynamicProviderHttpController($scope, $mdDialog) {
   'ngInject';
 
-  this.hide = function () {
-    $mdDialog.hide();
+  this.cancel = $mdDialog.cancel;
+
+  this.codeMirrorOptions = {
+    lineWrapping: true,
+    lineNumbers: true,
+    mode: "javascript",
+    readOnly: true,
+    controller: this
   };
 
-  this.save = function () {
-    var property = {
-      key: $scope.property.name,
-      value: $scope.property.value
-    };
-    
-    $mdDialog.hide(property);
+  this.codemirrorLoaded = function(_editor) {
+    this.controller.editor = _editor;
+
+    // Editor part
+    var _doc = this.controller.editor.getDoc();
+
+    // Options
+    _doc.markClean();
+  };
+
+  $scope.reload = function () {
+    this.ctrl.codeMirrorOptions.controller.editor.setSize("100%", "100%");
+    this.ctrl.codeMirrorOptions.controller.editor.focus();
   };
 }
 
-export default DialogAddPropertyController;
+export default DialogDynamicProviderHttpController;

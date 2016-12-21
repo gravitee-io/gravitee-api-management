@@ -120,6 +120,7 @@ import WidgetChartPieDirective from './components/widget/widget-pie.directive';
 import DashboardDirective from './components/analytics/dashboard.directive';
 import TimeframeDirective from './components/analytics/timeframe.directive';
 import AnalyticsFilterDirective from './components/analytics/filter.directive';
+import DialogDynamicProviderHttpController from './api/admin/properties/dynamic-provider-http-dialog.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -211,6 +212,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('TagsController', TagsController)
   .controller('DeleteTagDialogController', DeleteTagDialogController)
   .controller('DialogConfirmController', DialogConfirmController)
+  .controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)

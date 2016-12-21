@@ -233,7 +233,9 @@ class ApiHistoryController {
       "tags": eventPayloadDefinition.tags,
       "proxy": eventPayloadDefinition.proxy,
       "paths": eventPayloadDefinition.paths,
-      "properties": eventPayloadDefinition.properties
+      "properties": eventPayloadDefinition.properties,
+      "services": eventPayloadDefinition.services,
+      "resources": eventPayloadDefinition.resources
     };
     return reorganizedEvent;
   }

@@ -21,7 +21,7 @@ class ApiAdminController {
     if ('apis.admin.general' === $state.current.name) {
       $state.go('apis.admin.general.main');
     }
-    
+
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.UserService = UserService;
