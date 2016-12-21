@@ -94,8 +94,14 @@
     <md-button class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="formApi.$invalid || formApi.$pristine">
       Reset
     </md-button>
-    <md-button class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(generalCtrl.api.id)" ng-disabled="generalCtrl.api.state === 'started'">
-      Delete
+    <md-button class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(generalCtrl.api.id)"
+               ng-disabled="generalCtrl.api.state === 'started'">
+      <div>
+        Delete
+        <md-tooltip ng-if="generalCtrl.api.state === 'started'" md-direction="bottom">
+          A running API cannot be deleted
+        </md-tooltip>
+      </div>
     </md-button>
   </div>
 </form>
