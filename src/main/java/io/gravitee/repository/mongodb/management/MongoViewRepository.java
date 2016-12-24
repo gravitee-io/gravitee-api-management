@@ -72,14 +72,10 @@ public class MongoViewRepository implements ViewRepository {
 
     @Override
     public View update(View view) throws TechnicalException {
-        if (view == null || view.getName() == null) {
-            throw new IllegalStateException("View to update must have a name");
-        }
-
         ViewMongo viewMongo = internalViewRepo.findOne(view.getId());
 
         if (viewMongo == null) {
-            throw new IllegalStateException(String.format("No view found with name [%s]", view.getId()));
+            return null;
         }
 
         try {
