@@ -78,6 +78,8 @@ public abstract class AbstractRepositoryTest {
     protected PlanRepository planRepository;
     @Inject
     protected TagRepository tagRepository;
+    @Inject
+    protected PageRepository pageRepository;
 
 
     private ObjectMapper mapper = new ObjectMapper();
@@ -138,6 +140,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Tag) {
             tagRepository.create((Tag) object);
+        }
+        else if (object instanceof Page) {
+            pageRepository.create((Page) object);
         }
     }
 

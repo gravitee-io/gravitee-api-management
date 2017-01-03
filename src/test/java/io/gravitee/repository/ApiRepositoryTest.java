@@ -21,8 +21,9 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.internal.util.collections.Sets;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -72,7 +73,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         final Api api = optional.get();
         api.setName("New API name");
         api.setDescription("New description");
-        api.setViews(Sets.newSet("view1", "view2"));
+        api.setViews(new HashSet<>(Arrays.asList("view1", "view2")));
         api.setDefinition("New definition");
         api.setDeployedAt(parse("11/02/2016"));
         api.setGroup("New group");
@@ -94,7 +95,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         final Api apiUpdated = optionalUpdated.get();
         Assert.assertEquals("Invalid saved API name.", "New API name", apiUpdated.getName());
         Assert.assertEquals("Invalid API description.", "New description", apiUpdated.getDescription());
-        Assert.assertEquals("Invalid API views.", Sets.newSet("view1", "view2"), apiUpdated.getViews());
+        Assert.assertEquals("Invalid API views.", new HashSet<>(Arrays.asList("view1", "view2")), apiUpdated.getViews());
         Assert.assertEquals("Invalid API definition.", "New definition", apiUpdated.getDefinition());
         Assert.assertEquals("Invalid API deployment date.", parse("11/02/2016"), apiUpdated.getDeployedAt());
         Assert.assertEquals("Invalid API group.", "New group", apiUpdated.getGroup());

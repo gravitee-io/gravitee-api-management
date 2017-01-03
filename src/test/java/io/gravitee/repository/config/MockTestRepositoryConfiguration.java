@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.config;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -155,13 +154,13 @@ public class MockTestRepositoryConfiguration {
         final Event event4 = mock(Event.class);
         final Event event5 = mock(Event.class);
         final Event event6 = mock(Event.class);
-        final Page<Event> pageEvent = mock(Page.class);
-        final Page<Event> pageEvent2 = mock(Page.class);
-        final Page<Event> pageEvent3 = mock(Page.class);
-        final Page<Event> pageEvent4 = mock(Page.class);
-        final Page<Event> pageEvent5 = mock(Page.class);
-        final Page<Event> pageEvent6 = mock(Page.class);
-        final Page<Event> pageEvent7 = mock(Page.class);
+        final io.gravitee.common.data.domain.Page<Event> pageEvent = mock(io.gravitee.common.data.domain.Page.class);
+        final io.gravitee.common.data.domain.Page<Event> pageEvent2 = mock(io.gravitee.common.data.domain.Page.class);
+        final io.gravitee.common.data.domain.Page<Event> pageEvent3 = mock(io.gravitee.common.data.domain.Page.class);
+        final io.gravitee.common.data.domain.Page<Event> pageEvent4 = mock(io.gravitee.common.data.domain.Page.class);
+        final io.gravitee.common.data.domain.Page<Event> pageEvent5 = mock(io.gravitee.common.data.domain.Page.class);
+        final io.gravitee.common.data.domain.Page<Event> pageEvent6 = mock(io.gravitee.common.data.domain.Page.class);
+        final io.gravitee.common.data.domain.Page<Event> pageEvent7 = mock(io.gravitee.common.data.domain.Page.class);
 
         Map<String, String> eventProperties = new HashMap<>();
         eventProperties.put("api_id", "api-1");
@@ -419,5 +418,34 @@ public class MockTestRepositoryConfiguration {
                 .thenReturn(new HashSet<>(Collections.singletonList(m2)));
 
         return repo;
+    }
+
+    @Bean
+    public PageRepository pageRepository() throws Exception {
+        final PageRepository pageRepository = mock(PageRepository.class);
+
+        final Page page = mock(Page.class);
+        when(page.getName()).thenReturn("Page name");
+        when(page.getContent()).thenReturn("Page content");
+
+        final Page page2 = mock(Page.class);
+        when(page2.getName()).thenReturn("Page 2");
+
+        final Page page2Updated = mock(Page.class);
+        when(page2Updated.getName()).thenReturn("New page");
+        when(page2Updated.getContent()).thenReturn("New content");
+
+        final Set<Page> pages = newSet(page, page2, mock(Page.class));
+        final Set<Page> pagesAfterDelete = newSet(page, page2);
+        final Set<Page> pagesAfterAdd = newSet(page, page2, mock(Page.class), mock(Page.class));
+
+        when(pageRepository.findByApi("my-api")).thenReturn(pages, pagesAfterAdd, pages, pagesAfterDelete, pages);
+
+        when(pageRepository.create(any(Page.class))).thenReturn(page);
+
+        when(pageRepository.findById("new-page")).thenReturn(of(page));
+        when(pageRepository.findById("page2")).thenReturn(of(page2), of(page2Updated));
+
+        return pageRepository;
     }
 }
