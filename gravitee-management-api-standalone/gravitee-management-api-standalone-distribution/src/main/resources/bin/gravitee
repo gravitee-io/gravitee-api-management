@@ -62,6 +62,37 @@ if [ ! -f "$runjar" ]; then
 fi
 GRAVITEE_BOOT_CLASSPATH="$runjar"
 
+if [ "x$GIO_MIN_MEM" = "x" ]; then
+    GIO_MIN_MEM=1024m
+fi
+if [ "x$GIO_MAX_MEM" = "x" ]; then
+    GIO_MAX_MEM=2048m
+fi
+
+# min and max heap sizes should be set to the same value to avoid
+# stop-the-world GC pauses during resize
+JAVA_OPTS="$JAVA_OPTS -Xms${GIO_MIN_MEM}"
+JAVA_OPTS="$JAVA_OPTS -Xmx${GIO_MAX_MEM}"
+
+# set to headless, just in case
+JAVA_OPTS="$JAVA_OPTS -Djava.awt.headless=true"
+
+# Force the JVM to use IPv4 stack
+if [ "x$GIO_USE_IPV4" != "x" ]; then
+  JAVA_OPTS="$JAVA_OPTS -Djava.net.preferIPv4Stack=true"
+fi
+
+# Causes the JVM to dump its heap on OutOfMemory.
+JAVA_OPTS="$JAVA_OPTS -XX:+HeapDumpOnOutOfMemoryError"
+# The path to the heap dump location, note directory must exists and have enough
+# space for a full heap dump.
+#JAVA_OPTS="$JAVA_OPTS -XX:HeapDumpPath=$GRAVITEE_HOME/logs/heapdump.hprof"
+
+# Disables explicit GC
+JAVA_OPTS="$JAVA_OPTS -XX:+DisableExplicitGC"
+
+# Ensure UTF-8 encoding by default (e.g. filenames)
+JAVA_OPTS="$JAVA_OPTS -Dfile.encoding=UTF-8"
 
 # Display our environment
 echo "========================================================================="

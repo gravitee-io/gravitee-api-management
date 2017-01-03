@@ -18,6 +18,37 @@ for /f %%i in ('dir ..\lib\gravitee-management-api-standalone-bootstrap-*.jar /s
 
 set GRAVITEE_BOOT_CLASSPATH=%runjar%
 
+if "%GIO_MIN_MEM%" == "" (
+set GIO_MIN_MEM=1024m
+)
+
+if "%GIO_MAX_MEM%" == "" (
+set GIO_MAX_MEM=2048m
+)
+
+REM min and max heap sizes should be set to the same value to avoid
+REM stop-the-world GC pauses during resize
+set JAVA_OPTS=%JAVA_OPTS% -Xms%GIO_MIN_MEM% -Xmx%GIO_MAX_MEM%
+
+REM set to headless, just in case
+set JAVA_OPTS=%JAVA_OPTS% -Djava.awt.headless=true
+
+REM Force the JVM to use IPv4 stack
+if NOT "%ES_USE_IPV4%" == "" (
+set JAVA_OPTS=%JAVA_OPTS% -Djava.net.preferIPv4Stack=true
+)
+
+REM Causes the JVM to dump its heap on OutOfMemory.
+set JAVA_OPTS=%JAVA_OPTS% -XX:+HeapDumpOnOutOfMemoryError
+REM The path to the heap dump location, note directory must exists and have enough
+REM space for a full heap dump.
+REM set JAVA_OPTS=%JAVA_OPTS% -XX:HeapDumpPath=$GRAVITEE_HOME/logs/heapdump.hprof
+
+REM Disables explicit GC
+set JAVA_OPTS=%JAVA_OPTS% -XX:+DisableExplicitGC
+
+REM Ensure UTF-8 encoding by default (e.g. filenames)
+set JAVA_OPTS=%JAVA_OPTS% -Dfile.encoding=UTF-8
 
 # Display our environment
 echo "========================================================================="
