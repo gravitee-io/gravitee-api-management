@@ -282,6 +282,10 @@ md-sidenav, md-backdrop {
   position: fixed;
 }
 
+md-list-item::before {
+  min-height: 40px;
+}
+
 /**
  *  Do not remove this comments bellow. It's the markers used by gulp-inject to inject
  *  all your sass files automatically
