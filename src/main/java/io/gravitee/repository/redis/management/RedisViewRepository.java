@@ -51,6 +51,11 @@ public class RedisViewRepository implements ViewRepository {
 
     @Override
     public View update(final View view) throws TechnicalException {
+        Optional<View> existingView = findById(view.getId());
+
+        if (!existingView.isPresent()) {
+            return null;
+        }
         final RedisView redisView = viewRedisRepository.saveOrUpdate(convert(view));
         return convert(redisView);
     }
@@ -70,6 +75,9 @@ public class RedisViewRepository implements ViewRepository {
     }
 
     private View convert(final RedisView redisView) {
+        if (redisView == null) {
+            return null;
+        }
         final View view = new View();
         view.setId(redisView.getId());
         view.setName(redisView.getName());
@@ -78,6 +86,9 @@ public class RedisViewRepository implements ViewRepository {
     }
 
     private RedisView convert(final View view) {
+        if (view == null) {
+            return null;
+        }
         final RedisView redisView = new RedisView();
         redisView.setId(view.getId());
         redisView.setName(view.getName());
