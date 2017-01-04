@@ -116,32 +116,34 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private HistogramAnalytics convert(HistogramResponse histogramResponse) {
         final HistogramAnalytics analytics = new HistogramAnalytics();
         final List<Long> timestamps = histogramResponse.timestamps();
-        final long from = timestamps.get(0);
-        final long interval = timestamps.get(1) - from;
-        final long to = timestamps.get(timestamps.size() - 1);
+        if (timestamps != null && timestamps.size() > 1) {
+            final long from = timestamps.get(0);
+            final long interval = timestamps.get(1) - from;
+            final long to = timestamps.get(timestamps.size() - 1);
 
-        analytics.setTimestamp(new Timestamp(from, to, interval));
+            analytics.setTimestamp(new Timestamp(from, to, interval));
 
-        for(io.gravitee.repository.analytics.query.response.histogram.Bucket bucket : histogramResponse.values()) {
-            Bucket analyticsBucket = convertBucket(histogramResponse.timestamps(), from, interval, bucket);
-            analytics.getValues().add(analyticsBucket);
+            for (io.gravitee.repository.analytics.query.response.histogram.Bucket bucket : histogramResponse.values()) {
+                Bucket analyticsBucket = convertBucket(histogramResponse.timestamps(), from, interval, bucket);
+                analytics.getValues().add(analyticsBucket);
 
-            if (analyticsBucket.getName().equals("api-hits-by-application")) {
-                // Prepare metadata
-                Map<String, Map<String, String>> metadata = new HashMap<>();
-                analyticsBucket.getBuckets().stream().map(Bucket::getName).forEach(app -> {
-                    metadata.put(app, getApplicationMetadata(app));
-                });
+                if (analyticsBucket.getName().equals("api-hits-by-application")) {
+                    // Prepare metadata
+                    Map<String, Map<String, String>> metadata = new HashMap<>();
+                    analyticsBucket.getBuckets().stream().map(Bucket::getName).forEach(app -> {
+                        metadata.put(app, getApplicationMetadata(app));
+                    });
 
-                analytics.setMetadata(metadata);
-            } else if (analyticsBucket.getName().equals("application-hits-by-api")) {
-                // Prepare metadata
-                Map<String, Map<String, String>> metadata = new HashMap<>();
-                analyticsBucket.getBuckets().stream().map(Bucket::getName).forEach(api -> {
-                    metadata.put(api, getAPIMetadata(api));
-                });
+                    analytics.setMetadata(metadata);
+                } else if (analyticsBucket.getName().equals("application-hits-by-api")) {
+                    // Prepare metadata
+                    Map<String, Map<String, String>> metadata = new HashMap<>();
+                    analyticsBucket.getBuckets().stream().map(Bucket::getName).forEach(api -> {
+                        metadata.put(api, getAPIMetadata(api));
+                    });
 
-                analytics.setMetadata(metadata);
+                    analytics.setMetadata(metadata);
+                }
             }
         }
         return analytics;
