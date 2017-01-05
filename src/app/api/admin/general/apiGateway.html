@@ -18,7 +18,7 @@
 <form name="formApi" ng-submit="generalCtrl.update(generalCtrl.api)" novalidate>
   <div layout-gt-sm="row">
     <md-input-container class="md-block" flex-gt-sm>
-      <label>Gateway context path *</label>
+      <label>Gateway context path</label>
       <input ng-model="generalCtrl.api.proxy.context_path" type="text"
              ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" ng-disabled="!generalCtrl.contextPathEditable"
              required>
@@ -107,14 +107,14 @@
   <div layout="column" layout-wrap layout-gt-sm="row">
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
-        <label>Max attempts *</label>
+        <label>Max attempts</label>
         <input ng-model="generalCtrl.api.proxy.failover.maxAttempts" type="number" ng-required="generalCtrl.failoverEnabled" min="0" ng-disabled="!generalCtrl.failoverEnabled">
         <div class="hint">Limits the number of possible tries for passing a request to the next server. <br/>The 0 value turns off this limitation.</div>
       </md-input-container>
     </div>
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
-        <label>Timeout (ms) *</label>
+        <label>Timeout (ms)</label>
         <input ng-model="generalCtrl.api.proxy.failover.retryTimeout" type="number" min="0" ng-required="generalCtrl.failoverEnabled" ng-disabled="!generalCtrl.failoverEnabled">
         <div class="hint">Limits the time allowed to pass a request to the next server. <br/>The 0 value turns off this limitation.</div>
       </md-input-container>

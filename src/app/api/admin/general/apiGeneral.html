@@ -18,11 +18,11 @@
 <form name="formApi" ng-submit="generalCtrl.update(generalCtrl.api)" novalidate>
   <div layout="column" layout-wrap layout-gt-sm="row">
     <md-input-container flex="30">
-      <label>Name *</label>
+      <label>Name</label>
       <input ng-model="generalCtrl.api.name" type="text" required>
     </md-input-container>
     <md-input-container flex="30">
-      <label>Version *</label>
+      <label>Version</label>
       <input ng-model="generalCtrl.api.version" type="text" required>
     </md-input-container>
 
@@ -48,7 +48,7 @@
 
   <div layout="" layout-sm="column">
     <md-input-container class="flex">
-      <label>Description *</label>
+      <label>Description</label>
       <textarea ng-model="generalCtrl.api.description" required></textarea>
     </md-input-container>
   </div>

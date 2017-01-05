@@ -30,11 +30,11 @@
     <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
     <div layout="column" layout-wrap layout-gt-sm="row">
       <md-input-container flex="30">
-        <label>Name *</label>
+        <label>Name</label>
         <input ng-model="endpointCtrl.endpoint.name" type="text" required>
       </md-input-container>
       <md-input-container flex="30">
-        <label>Target *</label>
+        <label>Target</label>
         <input ng-model="endpointCtrl.endpoint.target" type="url" required>
       </md-input-container>
     </div>
@@ -83,25 +83,25 @@
     <div layout="column" layout-wrap layout-gt-sm="row">
       <div flex-xs flex="50">
         <md-input-container flex-xs flex="50">
-          <label>Connect timeout (ms)*</label>
+          <label>Connect timeout (ms)</label>
           <input ng-model="endpointCtrl.endpoint.http.connectTimeout" type="number" required min="0">
         </md-input-container>
       </div>
       <div flex-xs flex="50">
         <md-input-container flex-xs flex="50">
-          <label>Read timeout (ms)*</label>
+          <label>Read timeout (ms)</label>
           <input ng-model="endpointCtrl.endpoint.http.readTimeout" type="number" required min="0">
         </md-input-container>
       </div>
       <div flex-xs flex="50">
         <md-input-container flex-xs flex="50">
-          <label>Idle timeout (ms)*</label>
+          <label>Idle timeout (ms)</label>
           <input ng-model="endpointCtrl.endpoint.http.idleTimeout" type="number" required min="0">
         </md-input-container>
       </div>
       <div flex-xs flex="50">
         <md-input-container flex-xs flex="50">
-          <label>Max concurrent connections *</label>
+          <label>Max concurrent connections</label>
           <input ng-model="endpointCtrl.endpoint.http.maxConcurrentConnections" type="number" required min="10">
         </md-input-container>
       </div>
@@ -177,14 +177,14 @@
     <div layout="column" layout-wrap layout-gt-sm="row">
       <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
-          <label>Host *</label>
+          <label>Host</label>
           <input ng-model="endpointCtrl.endpoint.proxy.host" type="string" ng-required="endpointCtrl.endpoint.proxy.enabled" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
           <div class="hint">Proxy host to connect to</div>
         </md-input-container>
       </div>
       <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
-          <label>Port *</label>
+          <label>Port</label>
           <input ng-model="endpointCtrl.endpoint.proxy.port" type="number" min="0" max="65536" ng-required="endpointCtrl.endpoint.proxy.enabled" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
           <div class="hint">Proxy port to connect to</div>
         </md-input-container>

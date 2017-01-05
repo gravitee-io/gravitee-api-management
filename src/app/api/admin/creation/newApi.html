@@ -28,7 +28,7 @@
             <md-content layout-padding>
               <div layout-gt-sm="row">
                 <md-input-container class="md-block" flex-gt-sm>
-                  <label>Name *</label>
+                  <label>Name</label>
                   <input ng-model="newApiCtrl.api.name" type="text" required name="name" minlength="4"
                          md-maxlength="50">
                   <div class="hint" ng-if="apiGeneralForm.name.$valid || apiGeneralForm.name.$pristine">API Name</div>
@@ -40,7 +40,7 @@
                 </md-input-container>
 
                 <md-input-container class="md-block" flex-gt-sm>
-                  <label>Version *</label>
+                  <label>Version</label>
                   <input ng-model="newApiCtrl.api.version" type="text" md-maxlength="32" required name="version">
                   <div class="hint" ng-if="apiGeneralForm.version.$valid || apiGeneralForm.version.$pristine">API
                     Version (ex: 1.0)
@@ -56,7 +56,7 @@
             <md-content layout-padding>
               <div layout-gt-sm="row">
                 <md-input-container class="md-block" flex-gt-sm>
-                  <label>Description *</label>
+                  <label>Description</label>
                   <input ng-model="newApiCtrl.api.description" type="text" required name="description">
                   <div class="hint" ng-if="apiGeneralForm.description.$valid || apiGeneralForm.description.$pristine">
                     Provide a description of your API, what it does, ...
@@ -84,7 +84,7 @@
             <md-content layout-padding>
               <div layout-gt-sm="column">
                 <md-input-container class="md-block" flex-gt-sm>
-                  <label>Context-path *</label>
+                  <label>Context-path</label>
                   <input ng-model="newApiCtrl.api.contextPath" type="text" minlength="3"
                          ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" required name="contextPath">
                   <div class="hint" ng-if="apiGatewayForm.contextPath.$valid || apiGatewayForm.contextPath.$pristine">
@@ -102,7 +102,7 @@
             <md-content layout-padding>
               <div layout-gt-sm="column">
                 <md-input-container class="md-block" flex-gt-sm>
-                  <label>Backend *</label>
+                  <label>Backend</label>
                   <input ng-model="newApiCtrl.api.endpoint" type="url" required name="endpoint">
                   <div class="hint" ng-if="apiGatewayForm.endpoint.$valid || apiGatewayForm.endpoint.$pristine">Target
                     backend when a request is received for above context-path

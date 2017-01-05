@@ -36,7 +36,7 @@
 
           <div layout layout-sm="column">
             <md-input-container>
-              <label>Hour *</label>
+              <label>Hour</label>
               <md-select ng-model="expiration.time.hours" required>
                 <md-option ng-repeat="hour in hours" value="{{hour}}">
                   {{hour}}
@@ -45,7 +45,7 @@
             </md-input-container>
 
             <md-input-container>
-              <label>Minute *</label>
+              <label>Minute</label>
               <md-select ng-model="expiration.time.minutes" required>
                 <md-option ng-repeat="minute in minutes" value="{{minute}}">
                   {{minute}}
