@@ -37,11 +37,11 @@ public class ResponseTimeHandler implements Handler<Response> {
     public void handle(Response response) {
         // Compute response-time and add it to the metrics
         long proxyResponseTimeInMs = System.currentTimeMillis() - serverRequest.metrics().timestamp().toEpochMilli();
+        serverRequest.metrics().setResponseHttpStatus(response.status());
         serverRequest.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
         serverRequest.metrics().setProxyLatencyMs(proxyResponseTimeInMs - serverRequest.metrics().getApiResponseTimeMs());
-        serverRequest.metrics().setResponseContentLength(response.headers().contentLength());
+        serverRequest.metrics().setRequestContentType(serverRequest.headers().contentType());
         serverRequest.metrics().setResponseContentType(response.headers().contentType());
-        serverRequest.metrics().setResponseHttpStatus(response.status());
 
         // Push response to the next handler
         next.handle(response);
