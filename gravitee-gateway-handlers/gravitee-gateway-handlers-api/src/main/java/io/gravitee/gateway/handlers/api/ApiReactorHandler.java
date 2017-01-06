@@ -114,7 +114,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                                 sendPolicyFailure(responsePolicyResult, serverResponse);
                                 handler.handle(serverResponse);
                             } else {
-                                responsePolicyChain.bodyHandler(serverResponse::write);
+                                responsePolicyChain.bodyHandler(chunk -> {
+                                    serverRequest.metrics().setResponseContentLength(serverRequest.metrics().getResponseContentLength() + chunk.length());
+                                    serverResponse.write(chunk);
+                                });
                                 responsePolicyChain.endHandler(responseEndResult -> {
                                     serverResponse.end();
 
@@ -144,7 +147,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
                     // Plug server request stream to request policy chain stream
                     serverRequest
-                            .bodyHandler(requestPolicyChainResult.getPolicyChain()::write)
+                            .bodyHandler(chunk -> {
+                                serverRequest.metrics().setRequestContentLength(serverRequest.metrics().getRequestContentLength() + chunk.length());
+                                requestPolicyChainResult.getPolicyChain().write(chunk);
+                            })
                             .endHandler(aVoid -> requestPolicyChainResult.getPolicyChain().end());
 
                     // Resume request read
