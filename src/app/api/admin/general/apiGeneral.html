@@ -26,24 +26,20 @@
       <input ng-model="generalCtrl.api.version" type="text" required>
     </md-input-container>
 
-    <div layout="column" flex="20">
-      <md-input-container>
-        <md-radio-group ng-model="generalCtrl.api.visibility">
-          <md-radio-button class="gravitee-api-visibility" value="public" aria-label="Public">
-            <md-tooltip md-direction="bottom">Public: API is visible by all</md-tooltip>
-            <ng-md-icon icon="public"></ng-md-icon>
-          </md-radio-button>
-          <md-radio-button class="gravitee-api-visibility" value="private" aria-label="Private">
-            <md-tooltip md-direction="bottom">Private: API is visible only by its members</md-tooltip>
-            <ng-md-icon icon="lock"></ng-md-icon>
-          </md-radio-button>
-        </md-radio-group>
-      </md-input-container>
+    <div layout="column" flex="20" layout-align="start end">
+      <div layout="row" layout-align="start center">
+        <a ng-click="generalCtrl.toggleVisibility()" ng-if="generalCtrl.api.visibility==='public'">Public (visible by all)</a>
+        <a ng-click="generalCtrl.toggleVisibility()" ng-if="generalCtrl.api.visibility==='private'">Private (visible by its members)</a>
+        <ng-md-icon icon="public" ng-if="generalCtrl.api.visibility==='public'" style="fill:grey; top:0;"></ng-md-icon>
+        <ng-md-icon icon="lock" ng-if="generalCtrl.api.visibility==='private'" style="fill:grey; top:0;"></ng-md-icon>
+      </div>
+      <div layout="row" layout-align="start start">
+        <a ng-click="generalCtrl.changeLifecycle(generalCtrl.api.id)" ng-if="apiEnabled" ng-disabled="generalCtrl.api.deployed_at == null">Started</a>
+        <a ng-click="generalCtrl.changeLifecycle(generalCtrl.api.id)" ng-if="!apiEnabled" ng-disabled="generalCtrl.api.deployed_at == null">Stopped</a>
+        <ng-md-icon icon="play_arrow" ng-if="apiEnabled" style="fill:#429f46; top:0;"></ng-md-icon>
+        <ng-md-icon icon="stop" ng-if="!apiEnabled" style="fill:red; top:0;"></ng-md-icon>
+      </div>
     </div>
-    <md-switch ng-model="apiEnabled" ng-disabled="generalCtrl.api.deployed_at == null"
-               ng-change="generalCtrl.changeLifecycle(generalCtrl.api.id)" flex="20" no-dirty-check>
-      Started
-    </md-switch>
   </div>
 
   <div layout="" layout-sm="column">

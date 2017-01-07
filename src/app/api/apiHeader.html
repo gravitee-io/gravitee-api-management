@@ -17,22 +17,23 @@
 -->
 <div layout="column" layout-align="end-start" class="gravitee-api-header" flex>
 	<div class="gravitee-api-header-content">
-		<div ng-switch="apiCtrl.api.visibility" layout="row" layout-align="start center">
-      <div class="gravitee-api-header-image" ng-if="apiReadMode" ng-style="{'background-image':'url({{apiCtrl.api.picture || apiCtrl.api.picture_url}})'}" layout="column" layout-align="center center"></div>
-      <gravitee-image ng-if="apiEditMode" image="apiCtrl.api.picture" image-url="apiCtrl.api.picture_url"></gravitee-image>
-      <div flex="70">
-				<h4>{{apiCtrl.api.name}}
-					<small>( {{apiCtrl.api.version}} )
-						<span ng-switch-when="public" flex="10"><ng-md-icon icon="public"></ng-md-icon><md-tooltip md-direction="right">public</md-tooltip></span>
-						<span ng-switch-when="private" flex="10"><ng-md-icon icon="lock"></ng-md-icon><md-tooltip md-direction="right">private</md-tooltip></span>
-					</small>
-				</h4>
-				<md-content flex class="gravitee-api-header-description">
-					<div class="gravitee-api-header-read-more" read-more ng-model="apiCtrl.api.description" words="false" length="150"></div>
-		  	</md-content>
+		<div ng-switch="apiCtrl.api.visibility" layout="row" layout-align="start stretch">
+			<div class="gravitee-api-header-image" ng-if="apiReadMode" ng-style="{'background-image':'url({{apiCtrl.api.picture || apiCtrl.api.picture_url}})'}" layout="column" layout-align="center center"></div>
+			<gravitee-image ng-if="apiEditMode" image="apiCtrl.api.picture" image-url="apiCtrl.api.picture_url"></gravitee-image>
+			<div flex="70" layout="column"layout-align="start start">
+				<div>
+					<h4>{{apiCtrl.api.name}}
+						<small>( {{apiCtrl.api.version}} )
+							<span ng-switch-when="public" flex="10"><ng-md-icon icon="public"></ng-md-icon><md-tooltip md-direction="right">public</md-tooltip></span>
+							<span ng-switch-when="private" flex="10"><ng-md-icon icon="lock"></ng-md-icon><md-tooltip md-direction="right">private</md-tooltip></span>
+						</small>
+					</h4>
+					<md-content flex class="gravitee-api-header-description">
+						<div class="gravitee-api-header-read-more" read-more ng-model="apiCtrl.api.description" words="false" length="150"></div>
+					</md-content>
+				</div>
 			</div>
-
-			<div flex="30" style="text-align: right">
+			<div flex="30" layout="column" layout-align="center end">
 				<p style="padding: 0; margin: 0;">
 					<span>{{apiCtrl.api.owner.username}}<md-tooltip md-direction="left">Owner</md-tooltip></span>
 					<span><ng-md-icon icon="person"></ng-md-icon></span>
@@ -49,7 +50,7 @@
 					<span>{{apiCtrl.api.proxy.context_path}}<md-tooltip md-direction="left">Context path</md-tooltip></span>
 					<span><ng-md-icon icon="http"></ng-md-icon></span>
 				</p>
-                <p ng-if="apiReadMode" style="padding: 0; margin: 0;">
+				<p ng-if="apiReadMode" style="padding: 0; margin: 0;">
 					<md-button class="md-raised md-primary"
 							   style="margin: 6px 0; background-color: #006CAB"
 							   ui-sref="apis.portal.plans">

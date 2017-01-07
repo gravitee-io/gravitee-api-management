@@ -66,6 +66,15 @@ class ApiAdminController {
     });
   }
 
+  toggleVisibility() {
+    if( this.api.visibility === "public") {
+      this.api.visibility = "private";
+    } else {
+      this.api.visibility = "public";
+    }
+    this.$scope.formApi.$setDirty();
+  }
+
   initState() {
     this.$scope.apiEnabled = (this.$scope.$parent.apiCtrl.api.state === 'started');
 
@@ -105,11 +114,13 @@ class ApiAdminController {
         if (started) {
           that.ApiService.stop(id).then(function () {
             that.api.state = 'stopped';
+            that.$scope.apiEnabled = false;
             that.NotificationService.show('API ' + that.initialApi.name + ' has been stopped!');
           });
         } else {
           that.ApiService.start(id).then(function () {
             that.api.state = 'started';
+            that.$scope.apiEnabled = true;
             that.NotificationService.show('API ' + that.initialApi.name + ' has been started!');
           });
         }
@@ -178,6 +189,7 @@ class ApiAdminController {
 
   reset() {
     this.api = _.cloneDeep(this.initialApi);
+    this.$scope.$parent.apiCtrl.api = this.api;
     this.$scope.formApi.$setPristine();
   }
 
@@ -246,6 +258,7 @@ class ApiAdminController {
       document.body.removeChild(link);
     });
   }
+
 }
 
 export default ApiAdminController;
