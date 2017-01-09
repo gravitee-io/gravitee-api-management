@@ -416,6 +416,10 @@ public class MockTestRepositoryConfiguration {
         when(plan.getApis()).thenReturn(Collections.singleton("my-api"));
         when(plan.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(plan.getUpdatedAt()).thenReturn(parse("12/02/2016"));
+        when(plan.getPublishedAt()).thenReturn(parse("13/02/2016"));
+        when(plan.getClosedAt()).thenReturn(parse("14/02/2016"));
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
 
         final Plan plan2 = mock(Plan.class);
         when(plan2.getId()).thenReturn("my-plan");

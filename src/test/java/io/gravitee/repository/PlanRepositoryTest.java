@@ -73,9 +73,13 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         plan.setDescription("Description for the new plan");
         plan.setValidation(Plan.PlanValidationType.AUTO);
         plan.setType(Plan.PlanType.API);
+        plan.setStatus(Plan.Status.STAGING);
         plan.setApis(Collections.singleton("my-api"));
         plan.setCreatedAt(parse("11/02/2016"));
         plan.setUpdatedAt(parse("12/02/2016"));
+        plan.setPublishedAt(parse("13/02/2016"));
+        plan.setClosedAt(parse("14/02/2016"));
+        plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
 
         planRepository.create(plan);
 
@@ -90,6 +94,10 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid plan APIs.", plan.getApis().size(), createdPlan.getApis().size());
         Assert.assertEquals("Invalid plan created date.", plan.getCreatedAt(), createdPlan.getCreatedAt());
         Assert.assertEquals("Invalid plan updated date.", plan.getUpdatedAt(), createdPlan.getUpdatedAt());
+        Assert.assertEquals("Invalid plan status.", plan.getStatus(), createdPlan.getStatus());
+        Assert.assertEquals("Invalid plan published date.", plan.getPublishedAt(), createdPlan.getPublishedAt());
+        Assert.assertEquals("Invalid plan closed date.", plan.getClosedAt(), createdPlan.getClosedAt());
+        Assert.assertEquals("Invalid plan security.", plan.getSecurity(), createdPlan.getSecurity());
     }
 
     @Test
@@ -99,6 +107,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
 
         final Plan plan = optional.get();
         plan.setName("New plan");
+        plan.setStatus(Plan.Status.CLOSED);
 
         planRepository.update(plan);
 
@@ -108,11 +117,12 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         final Plan planUpdated = optionalUpdated.get();
         Assert.assertEquals("Invalid saved plan name.", "New plan", planUpdated.getName());
         Assert.assertEquals("Invalid plan description.", plan.getDescription(), planUpdated.getDescription());
+        Assert.assertEquals("Invalid plan status.", plan.getStatus(), planUpdated.getStatus());
     }
 
     @Test(expected = Exception.class)
     public void shouldNotUpdateNull() throws Exception {
-        Plan update = planRepository.update(null);
+        planRepository.update(null);
 
         Assert.fail("should not update NULL entity");
     }

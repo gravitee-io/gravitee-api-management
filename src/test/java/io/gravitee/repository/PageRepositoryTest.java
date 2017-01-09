@@ -27,6 +27,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class PageRepositoryTest extends AbstractRepositoryTest {
 
@@ -41,6 +42,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(pages);
         assertEquals(3, pages.size());
+        pages.forEach(page -> assertNull(page.getSource()));
     }
 
     @Test
@@ -68,6 +70,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid saved page name.", page.getName(), pageSaved.getName());
         Assert.assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
         Assert.assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
+        Assert.assertNull("Invalid page source.", page.getSource());
     }
 
     @Test
