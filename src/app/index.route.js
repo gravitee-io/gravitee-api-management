@@ -153,7 +153,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       controllerAs: 'endpointCtrl'
     })
     .state('apis.admin.plans', {
-      url: '/plans',
+      url: '/plans?state',
       templateUrl: 'app/api/admin/plans/apiPlans.html',
       controller: 'ApiPlansController',
       controllerAs: 'apiPlansCtrl',

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogClosePlanController($scope, $mdDialog, ApiService, NotificationService, apiId, plan, subscriptions) {
+function DialogClosePlanController($scope, $rootScope, $mdDialog, ApiService, NotificationService, apiId, plan, subscriptions) {
   'ngInject';
 
   $scope.apiId = apiId;
@@ -35,6 +35,7 @@ function DialogClosePlanController($scope, $mdDialog, ApiService, NotificationSe
     } else {
       ApiService.closePlan($scope.apiId, $scope.plan.id).then(function() {
         NotificationService.show('Plan ' + plan.name + ' has been closed');
+        $rootScope.$broadcast("planChangeSuccess", { state: "closed"});
       }).catch(function (error) {
         NotificationService.show('Error while closing plan ' + plan.name);
         $scope.error = error;

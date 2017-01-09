@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 class ApiPlansController {
-  constructor(resolvedPlans, $mdSidenav, $mdDialog, $scope, ApiService, $stateParams, NotificationService, dragularService) {
+  constructor(resolvedPlans, $mdSidenav, $mdDialog, $scope, ApiService, $state, $stateParams, NotificationService, dragularService) {
     'ngInject';
     this.plans = resolvedPlans.data;
     this.$mdSidenav = $mdSidenav;
     this.$mdDialog = $mdDialog;
     this.$scope = $scope;
     this.ApiService = ApiService;
+    this.$state = $state;
     this.$stateParams = $stateParams;
     this.NotificationService = NotificationService;
     this.DragularService = dragularService;
@@ -40,7 +41,15 @@ class ApiPlansController {
 
     this.countByStatus = {};
     this.resetPlan();
-    this.applyFilters();
+    if ($stateParams.state) {
+      if (_.includes(this.statusFilters, $stateParams.state)) {
+        this.changeFilter($stateParams.state);
+      } else {
+        this.applyFilters();
+      }
+    } else {
+      this.applyFilters();
+    }
 
     var that = this;
     $scope.configure = function (plan) {
@@ -74,6 +83,10 @@ class ApiPlansController {
       if (livePreviewIsOpen === false && $mdSidenav('plan-edit').isOpen()) {
         $mdSidenav('plan-edit').toggle();
       }
+    });
+
+    $scope.$on('planChangeSuccess', function(event, args) {
+      that.changeFilter(args.state);
     });
   }
 
@@ -122,6 +135,7 @@ class ApiPlansController {
     } else {
       this.selectedStatus.push(statusFilter);
     }
+    this.$state.transitionTo('apis.admin.plans', { 'apiId': this.$stateParams.apiId, 'state': statusFilter }, {notify: false});
     this.applyFilters();
   }
 
@@ -198,15 +212,26 @@ class ApiPlansController {
       });
     }
 
-    that.ApiService.savePlan(that.$stateParams.apiId, that.$scope.plan).then(function () {
+    that.ApiService.savePlan(that.$stateParams.apiId, that.$scope.plan).then(function (response) {
+      var createMode = !that.planAlreadyCreated(response.data.id);
       that.$scope.$parent.apiCtrl.checkAPISynchronization({id: that.$stateParams.apiId});
       that.NotificationService.show('The plan ' + that.$scope.plan.name + ' has been saved with success');
       that.ApiService.getApiPlans(that.$stateParams.apiId).then(function (response) {
         that.plans = response.data;
         that.$mdSidenav('plan-edit').toggle();
         that.$mdSidenav('live-preview').toggle();
-        that.applyFilters();
+        if (createMode) {
+          that.changeFilter('staging');
+        } else {
+          that.applyFilters();
+        }
       });
+    });
+  }
+
+  planAlreadyCreated(planId) {
+    return _.some(this.plans, function (plan) {
+      return plan.id === planId;
     });
   }
 

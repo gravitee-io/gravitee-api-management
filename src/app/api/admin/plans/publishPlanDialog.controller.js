@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogPublishPlanController($scope, $mdDialog, ApiService, NotificationService, apiId, plan) {
+function DialogPublishPlanController($scope, $rootScope, $mdDialog, ApiService, NotificationService, apiId, plan) {
   'ngInject';
 
   $scope.apiId = apiId;
@@ -26,6 +26,7 @@ function DialogPublishPlanController($scope, $mdDialog, ApiService, Notification
   $scope.publish = function () {
     ApiService.publishPlan($scope.apiId, $scope.plan.id).then(function() {
       NotificationService.show('Plan ' + plan.name + ' has been published');
+      $rootScope.$broadcast("planChangeSuccess", { state: "published"});
     }).catch(function (error) {
       $scope.error = error;
     });
