@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactor.handler.transaction;
 
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -28,7 +29,7 @@ public class TransactionHandlerFactory {
     @Value("${handlers.request.transaction.header:" + TransactionHandler.DEFAULT_TRANSACTIONAL_ID_HEADER + "}")
     private String transactionHeader = TransactionHandler.DEFAULT_TRANSACTIONAL_ID_HEADER;
 
-    public Handler<Request> create(Handler<Request> next) {
-        return new TransactionHandler(transactionHeader, next);
+    public Handler<Request> create(Handler<Request> next, Response response) {
+        return new TransactionHandler(transactionHeader, next, response);
     }
 }

@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactor.handler.transaction;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 
 /**
@@ -30,16 +31,18 @@ public class TransactionHandler implements Handler<Request> {
     final static String DEFAULT_TRANSACTIONAL_ID_HEADER = "X-Gravitee-Transaction-Id";
 
     private final Handler<Request> next;
+    private final Response response;
 
     private String transactionHeader = DEFAULT_TRANSACTIONAL_ID_HEADER;
 
-    TransactionHandler(final Handler<Request> next) {
+    TransactionHandler(final Handler<Request> next, final Response response) {
         this.next = next;
+        this.response = response;
     }
 
-    TransactionHandler(String transactionHeader, final Handler<Request> next) {
+    TransactionHandler(String transactionHeader, final Handler<Request> next, final Response response) {
+        this(next,response);
         this.transactionHeader = transactionHeader;
-        this.next = next;
     }
 
     @Override
@@ -49,6 +52,7 @@ public class TransactionHandler implements Handler<Request> {
             transactionId = UUID.toString(UUID.random());
             request.headers().set(transactionHeader, transactionId);
         }
+        response.headers().set(transactionHeader,transactionId);
 
         request.metrics().setTransactionId(transactionId);
         next.handle(new TransactionRequest(transactionId, request));
