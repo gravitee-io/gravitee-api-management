@@ -74,6 +74,7 @@ public class ReactorTest {
         Request request = mock(Request.class);
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.headers()).thenReturn(new HttpHeaders());
+        when(request.headers()).thenReturn(new HttpHeaders());
         when(request.path()).thenReturn("/team");
         when(request.metrics()).thenReturn(RequestMetrics.on(System.currentTimeMillis()).build());
 
@@ -119,7 +120,10 @@ public class ReactorTest {
         });
 
         final CountDownLatch lock = new CountDownLatch(1);
-        reactor.route(request, mock(Response.class), response -> {
+        Response proxyResponse = mock(Response.class);
+        when(proxyResponse.headers()).thenReturn(new HttpHeaders());
+
+        reactor.route(request, proxyResponse, response -> {
             Assert.assertEquals(HttpStatusCode.OK_200, response.status());
             lock.countDown();
         });
