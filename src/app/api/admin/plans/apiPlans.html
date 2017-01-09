@@ -24,7 +24,7 @@
       <button class="btn btn-default" ng-class="{'active': apiPlansCtrl.selectedStatus.indexOf(statusFilter) !== -1}"
               ng-click="apiPlansCtrl.changeFilter(statusFilter)" type="button"
               ng-repeat="statusFilter in apiPlansCtrl.statusFilters" style="text-transform: capitalize;">
-        {{statusFilter}} <span ng-if="apiPlansCtrl.countByStatus[statusFilter]">({{apiPlansCtrl.countByStatus[statusFilter]}})</span>q
+        {{statusFilter}} <span ng-if="apiPlansCtrl.countByStatus[statusFilter]">({{apiPlansCtrl.countByStatus[statusFilter]}})</span>
       </button>
     </div>
   </div>
