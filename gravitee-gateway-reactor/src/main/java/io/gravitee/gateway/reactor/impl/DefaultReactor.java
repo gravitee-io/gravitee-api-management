@@ -85,7 +85,7 @@ public class DefaultReactor extends AbstractService implements
                 LOGGER.debug("No handler can be found for request {}, returning NOT_FOUND (404)", request.path());
                 sendNotFound(serverResponse, handler);
             }
-        });
+        },serverResponse);
 
         // And handle the request
         requestHandlerChain.handle(serverRequest);
