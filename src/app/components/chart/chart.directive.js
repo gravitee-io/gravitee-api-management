@@ -69,7 +69,7 @@ class ChartDirective {
 
             _.forEach(newOptions, function (newOption) {
               let child = document.createElement('div');
-              element[0].append(child);
+              element[0].appendChild(child);
 
               let childElement = angular.element(child);
               childElement.css('height', scope.height || childElement.parent().height());
