@@ -29,7 +29,7 @@ import io.gravitee.gateway.security.core.SecurityProvider;
  */
 public class KeylessSecurityProvider implements SecurityProvider {
 
-    private final static SecurityPolicy POLICY = new SecurityPolicy() {
+    private static final SecurityPolicy POLICY = new SecurityPolicy() {
         @Override
         public String policy() {
             return "key-less";

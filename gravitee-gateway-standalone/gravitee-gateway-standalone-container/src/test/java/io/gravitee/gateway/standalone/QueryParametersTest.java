@@ -111,4 +111,23 @@ public class QueryParametersTest extends AbstractGatewayTest {
         String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
         assertEquals(query, responseContent);
     }
+
+    @Test
+    public void call_get_query_with_special_separator() throws Exception {
+        String query = "from:2016-01-01;to:2016-01-31";
+
+        URI target = new URIBuilder("http://localhost:8082/test/my_team")
+                .addParameter("id", "20000047")
+                .addParameter("idType", "1")
+                .addParameter("q", query)
+                .build();
+
+        Response response = Request.Get(target).execute();
+
+        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        assertEquals(query, responseContent);
+    }
 }

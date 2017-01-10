@@ -23,8 +23,6 @@ import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.policy.impl.PolicyChain;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.policy.api.PolicyResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
@@ -35,8 +33,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
-
-    private final Logger logger = LoggerFactory.getLogger(SecurityPolicyChainResolver.class);
 
     @Autowired
     private SecurityManager securityManager;
