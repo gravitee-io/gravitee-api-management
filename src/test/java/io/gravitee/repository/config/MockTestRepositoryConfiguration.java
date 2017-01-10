@@ -459,6 +459,8 @@ public class MockTestRepositoryConfiguration {
 
         when(repo.findById("user1", MembershipReferenceType.API, "api1"))
                 .thenReturn(of(m1));
+        when(repo.findById(null, MembershipReferenceType.API, "api1"))
+                .thenReturn(empty());
         when(repo.findById("userToDelete", MembershipReferenceType.APPLICATION, "app1"))
                 .thenReturn(empty());
         when(repo.findByReferenceAndMembershipType(eq(MembershipReferenceType.API), eq("api1"), any()))

@@ -42,6 +42,12 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldNotFindById() throws TechnicalException {
+        Optional<Membership> membership = membershipRepository.findById(null, MembershipReferenceType.API, "api1");
+        Assert.assertFalse(membership.isPresent());
+    }
+
+    @Test
     public void shouldFindAllApiMembers() throws TechnicalException {
         Set<Membership> memberships = membershipRepository.findByReferenceAndMembershipType(MembershipReferenceType.API, "api1", null);
         Assert.assertNotNull("result must not be null", memberships);
