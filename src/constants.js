@@ -17,7 +17,7 @@
 angular.module('gvConstants', []).constant('Constants', {
   // if the management REST API is on a different domain, put something like: http://demo.gravitee.io/management/
   'baseURL': '/management/',
-  'version': '1.2.0-SNAPSHOT',
+  'version': '1.2.0',
   'portalTitle': 'Gravitee.io Portal',
   'devMode': false,
   'userCreationEnabled': true

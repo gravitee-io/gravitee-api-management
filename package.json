@@ -1,7 +1,7 @@
 {
   "name": "gravitee-management-webui",
-  "version": "1.2.0-SNAPSHOT",
-  "description": "Gravitee IO - API Management - Admin - Web Console",
+  "version": "1.2.0",
+  "description": "Gravitee.io APIM - Portal",
   "dependencies": {},
   "scripts": {
     "test": "gulp test"
