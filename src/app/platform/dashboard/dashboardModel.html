@@ -23,6 +23,6 @@
 </span>
 
 <span ng-if="entity && model === 'application'">
-  <span ng-if="!entity.deleted">{{entity.name}}</span>
+  <a ng-if="!entity.deleted" ui-sref="applications.portal.analytics({applicationId: entity.id})">{{entity.name}}</a>
   <span ng-if="entity.deleted" style="color: grey;" layout="row">{{entity.name}}</span>
 </span>
