@@ -217,10 +217,7 @@
             ng-model="endpointCtrl.endpoint.ssl.enabled"
             aria-label="Enable SSL"
             class="md-align-top-left" flex>
-            Enable client SSL<br/>
-                  <span class="ipsum">
-                    Use a client certificate if server requires it.
-                  </span>
+            Enable client SSL
           </md-checkbox>
         </div>
       </div>
@@ -239,9 +236,10 @@
         </div>
       </div>
       <div flex-xs flex="50">
-        <md-input-container flex="50">
+        <md-input-container class="md-block" flex-gt-sm>
           <label>PEM certificate</label>
-          <textarea ng-model="endpointCtrl.endpoint.ssl.pem"></textarea>
+          <input ng-model="endpointCtrl.endpoint.ssl.pem">
+          <div class="hint">Use a client certificate if server requires it.</div>
         </md-input-container>
       </div>
     </div>
