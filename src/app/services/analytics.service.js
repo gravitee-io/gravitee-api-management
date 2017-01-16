@@ -21,6 +21,23 @@ class AnalyticsService {
     this.analyticsURL = Constants.baseURL + 'platform/analytics';
   }
 
+  /*
+   * Analytics
+   */
+  analytics(request) {
+    var url = this.analyticsURL + '?';
+
+    var keys = Object.keys(request);
+    _.forEach(keys, function (key) {
+      var val = request[key];
+      if (val !== undefined) {
+        url += key + '=' + val + '&';
+      }
+    });
+
+    return this.$http.get(url);
+  }
+
   hitsBy(key, query, field, aggType, from, to, interval) {
     return this.$http.get(this.analyticsURL + '?type=hits_by&key=' + key + '&query=' + query + '&field=' + field + '&aggType=' + aggType + '&interval=' + interval + '&from=' + from + '&to=' + to);
   }

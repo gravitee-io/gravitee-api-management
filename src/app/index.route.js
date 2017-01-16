@@ -24,6 +24,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       devMode: true
     })
     .state('apis', {
+      abstract: true,
       url: '/apis',
       templateUrl: 'app/api/apis.html'
     })
@@ -37,13 +38,20 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       }
     })
     .state('apis.list', {
-      url: '/',
+      url: '/?view',
       templateUrl: 'app/api/apisList.html',
       controller: 'ApisController',
       controllerAs: 'apisCtrl',
       resolve: {
         resolvedApis: function ($stateParams, ApiService) {
+          if ($stateParams.view && $stateParams.view !== 'all') {
+            return ApiService.list($stateParams.view);
+          }
+
           return ApiService.list();
+        },
+        resolvedViews: function ($stateParams, ViewService) {
+          return ViewService.list();
         }
       },
       menu: {
@@ -124,7 +132,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       }
     })
     .state('apis.admin.general', {
-      abtract: true,
+      abstract: true,
       url: '',
       templateUrl: 'app/api/admin/general/api.html',
       controller: 'ApiGeneralController',
@@ -238,7 +246,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       }
     })
     .state('apis.admin.analytics', {
-      url: '/analytics?timeframe&timestamp',
+      url: '/analytics?from&to',
       templateUrl: 'app/api/admin/analytics/analytics.html',
       controller: 'ApiAnalyticsController',
       controllerAs: 'analyticsCtrl',
@@ -378,7 +386,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       devMode: true
     })
     .state('applications.portal.analytics', {
-      url: '/analytics?timeframe&timestamp',
+      url: '/analytics?from&to',
       templateUrl: 'app/application/details/analytics/analytics.html',
       controller: 'ApplicationAnalyticsController',
       controllerAs: 'analyticsCtrl',
@@ -448,7 +456,7 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       }
     })
     .state('platform', {
-      url: '/platform?timeframe&from&to',
+      url: '/platform?from&to',
       templateUrl: 'app/platform/dashboard/dashboard.html',
       controller: 'DashboardController',
       controllerAs: 'dashboardCtrl',

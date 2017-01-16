@@ -95,36 +95,18 @@ class ApiService {
   /*
    * Analytics
    */
-  apiHits(api, from, to, interval) {
-    return this.$http.get(this.apisURL + api + '/analytics?type=hits&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
+  analytics(api, request) {
+    var url = this.apisURL + api + '/analytics?';
 
-  apiHitsByStatus(api, from, to, interval) {
-    return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_status&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
+    var keys = Object.keys(request);
+    _.forEach(keys, function (key) {
+      var val = request[key];
+      if (val !== undefined && val !== '') {
+        url += key + '=' + val + '&';
+      }
+    });
 
-  apiHitsByLatency(api, from, to, interval) {
-    return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_latency&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
-
-  apiHitsByPayloadSize(api, from, to, interval) {
-    return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_payload_size&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
-
-  apiHitsByApplication(api, from, to, interval) {
-    return this.$http.get(this.apisURL + api + '/analytics?type=hits_by_application&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
-
-  apiHitsBy(api, key, query, field, aggType, from, to, interval) {
-    return this.$http.get(this.apisURL + api + '/analytics?type=hits_by&key=' + key + '&query=' + query + '&field=' + field + '&aggType=' + aggType + '&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
-
-  apiGlobalHits(api, from, to, interval, key, query) {
-    return this.$http.get(this.apisURL + api + '/analytics?type=global_hits&key=' + key + '&query=' + query + '&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
-
-  apiTopHits(api, from, to, interval, key, query, field, size) {
-    return this.$http.get(this.apisURL + api + '/analytics?type=top_hits&key=' + key + '&query=' + query + '&field=' + field + '&interval=' + interval + '&from=' + from + '&to=' + to + '&size=' + size);
+    return this.$http.get(url);
   }
 
   /*
@@ -142,7 +124,7 @@ class ApiService {
   }
 
   addOrUpdateMember(api, member) {
-    return this.$http.post(this.apisURL + api + '/members?user=' + member.username + '&type=' + member.type);
+    return this.$http.post(this.apisURL + api + '/members?user=' + member.username + '&type=' + member.type, '');
   }
 
   deleteMember(api, memberUsername) {

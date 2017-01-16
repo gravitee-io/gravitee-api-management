@@ -35,7 +35,8 @@
     "v-accordion": "^1.6.0",
     "angular-ui-tree": "^2.22.1",
     "angular-jwt": "^0.1.5",
-    "highcharts": "^5.0.5"
+    "highcharts": "^5.0.5",
+    "angular-gridster": "^0.13.15"
   },
   "resolutions": {
     "angular-material": "^1.0.0",
@@ -49,7 +50,8 @@
       "main": [
         "./highcharts.js",
         "./highcharts-more.js",
-        "./js/modules/solid-gauge.js"
+        "./js/modules/solid-gauge.js",
+        "./js/modules/no-data-to-display.js"
       ]
     },
     "api-console": {

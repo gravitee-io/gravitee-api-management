@@ -26,65 +26,57 @@ class ChartDirective {
         width: '@'
       },
       link: function (scope, element) {
-        if (scope.type && scope.type.startsWith('area') && _.isArray(scope.options)) {
+        let chartElement = element[0];
+
+        if (scope.type && scope.type.startsWith('area')) {
           initSynchronizedCharts();
         }
 
-        setChartSize();
-
         let lastOptions;
         scope.$watch('options', function (newOptions) {
-          executeDisplayChart(newOptions, element);
+          if (!lastOptions) {
+            setChartSize();
+          }
+          displayChart(newOptions, chartElement);
           lastOptions = newOptions;
         }, true);
 
+        function onWindowResized() {
+          setTimeout(function () {
+            onResize();
+          }, 500);
+        }
+
         $(window).resize(function () {
-          onResize();
+          onWindowResized();
         });
 
         scope.$root.$watch('reducedMode', function (reducedMode) {
-          if (reducedMode !== undefined) {
-            setTimeout(function () {
-              onResize();
-            });
+          if (reducedMode !== undefined && lastOptions) {
+            onWindowResized();
           }
+        });
+
+        scope.$on('onWidgetResize', function () {
+          setTimeout(function () {
+            onResize();
+          });
         });
 
         function onResize() {
           setChartSize();
-          executeDisplayChart(lastOptions, element);
+          displayChart(lastOptions, chartElement);
         }
 
         function setChartSize() {
-          let chartElement = angular.element(element[0]);
-          chartElement.css('height', scope.height || chartElement.parent().height());
-          chartElement.css('width', scope.width || chartElement.parent().width());
-        }
-
-        function executeDisplayChart(newOptions, element) {
-          if (_.isArray(newOptions)) {
-            while (element[0].firstChild) {
-              element[0].removeChild(element[0].firstChild);
-            }
-
-            _.forEach(newOptions, function (newOption) {
-              let child = document.createElement('div');
-              element[0].appendChild(child);
-
-              let childElement = angular.element(child);
-              childElement.css('height', scope.height || childElement.parent().height());
-
-              displayChart(newOption, child);
-            });
-          } else {
-            displayChart(newOptions, element[0]);
-          }
+          let containerElement = element.parent().parent().parent().parent();
+          element.css('height', scope.height || containerElement.height());
+          element.css('width', scope.width || containerElement.width());
         }
 
         function initSynchronizedCharts() {
-          let points = [];
           element.bind('mousemove touchmove touchstart', function (e) {
-            let chart, i, event;
+            let chart, i, event, points;
 
             for (i = 0; i < Highcharts.charts.length; i++) {
               chart = Highcharts.charts[i];
@@ -97,6 +89,7 @@ class ChartDirective {
                   return point;
                 });
 
+                e.points = points;
                 if (points.length && points[0] && points[0].series.area) {
                   points[0].highlight(e);
                 }
@@ -114,30 +107,25 @@ class ChartDirective {
             }
           };
           Highcharts.Point.prototype.highlight = function (event) {
-            if (points.length) {
+            if (event.points.length) {
               this.onMouseOver();
-              this.series.chart.tooltip.refresh(points);
+              this.series.chart.tooltip.refresh(event.points);
               this.series.chart.xAxis[0].drawCrosshair(event, this);
             }
           };
         }
 
-        function syncExtremes(e) {
-          let thisChart = this.chart;
-
-          if (e.trigger !== 'syncExtremes') {
-            Highcharts.each(Highcharts.charts, function (chart) {
-              if (chart && chart !== thisChart) {
-                if (chart.xAxis[0].setExtremes) {
-                  chart.xAxis[0].setExtremes(e.min, e.max, undefined, false, {trigger: 'syncExtremes'});
-                }
+        function displayChart(newOptions, chartElement) {
+          if (newOptions) {
+            newOptions = _.merge(newOptions, {
+              lang: {
+                noData: '<code>No data to display</code>'
+              },
+              noData: {
+                useHTML: true
               }
             });
-          }
-        }
 
-        function displayChart(newOptions, element) {
-          if (newOptions) {
             if (newOptions.title) {
               newOptions.title.style = {
                 'fontWeight': 'bold',
@@ -149,10 +137,11 @@ class ChartDirective {
               newOptions.title = {text: ''};
             }
             newOptions.yAxis = _.merge(newOptions.yAxis, {title: {text: ''}});
-            newOptions.chart = {type: scope.type};
+            newOptions.chart = _.merge(newOptions.chart, {type: scope.type});
             if (scope.zoom) {
               newOptions.chart.zoomType = 'x';
             }
+
             newOptions.credits = {
               enabled: false
             };
@@ -165,7 +154,7 @@ class ChartDirective {
             if (scope.type && scope.type.startsWith('area')) {
               newOptions.tooltip = {
                 formatter: function () {
-                  let s = '<b>' + this.x + '</b>';
+                  let s = '<b>' + Highcharts.dateFormat('%A, %b %d, %H:%M', new Date(this.x)) + '</b>';
                   if (_.filter(this.points, function (point) {
                       return point.y !== 0;
                     }).length) {
@@ -178,6 +167,7 @@ class ChartDirective {
                   }
                   return s;
                 },
+                headerFormat: '<b>{point.key}</b><br/>',
                 shared: true
               };
               newOptions.plotOptions = _.merge(newOptions.plotOptions, {
@@ -188,8 +178,9 @@ class ChartDirective {
                   fillOpacity: 0.1
                 }
               });
-              if (_.isArray(scope.options)) {
-                newOptions.xAxis = _.merge(newOptions.xAxis, {crosshair: true, events: {setExtremes: syncExtremes}});
+
+              if (scope.type && scope.type.startsWith('area')) {
+                newOptions.xAxis = _.merge(newOptions.xAxis, {crosshair: true});
               }
             } else if (scope.type && scope.type === 'solidgauge') {
               newOptions = _.merge(newOptions, {
@@ -248,7 +239,8 @@ class ChartDirective {
                 };
               }
             }
-            Highcharts.chart(element, newOptions);
+
+            Highcharts.chart(chartElement, newOptions);
           }
         }
       }

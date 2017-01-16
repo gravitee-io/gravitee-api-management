@@ -15,10 +15,16 @@
     limitations under the License.
 
 -->
-<span ng-if="!entity.deleted">
-  {{entity.name}} <small>({{entity.version}})</small>
-</span>
+<md-content>
+  <gravitee-timeframe></gravitee-timeframe>
 
-<span ng-if="entity.deleted" style="color: grey;">
-  Deleted API
-</span>
+  <gravitee-analytics-filter></gravitee-analytics-filter>
+
+  <div gridster="dashboardOptions">
+    <ul>
+      <md-card gridster-item="widget" ng-repeat="widget in dashboardCtrl.model">
+        <gravitee-widget widget="widget"></gravitee-widget>
+      </md-card>
+    </ul>
+  </div>
+</md-content>

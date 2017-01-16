@@ -28,13 +28,13 @@
       </md-card-header-text>
     </md-card-header>
     <md-tabs md-selected="apisCtrl.selectedIndex" md-dynamic-height md-border-bottom>
-      <md-tab label="{{view.name}}" ng-repeat="view in apisCtrl.views" ng-if="view.id === 'all' || view.totalApis > 0" ng-click="apisCtrl.goToView(view.id)">
+      <md-tab label="{{view.name}}" ng-repeat="view in apisCtrl.views track by view.id" ng-if="view.id === 'all' || view.totalApis > 0" ui-sref="apis.list({ view: view.id })">
         <h5 ng-if="view.description" class="gravitee-view-description">{{view.description}}</h5>
       </md-tab>
     </md-tabs>
     <md-card-content style="padding: 0px; overflow-y: auto; height: calc(100vh - {{apisCtrl.apisScrollAreaHeight}}px);">
       <div layout="row" layout-wrap class="inset">
-        <div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33" ng-repeat="api in apisCtrl.apis | filter:searchAPIs">
+        <div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33" ng-repeat="api in apisCtrl.apis track by api.id | filter:searchAPIs">
           <a ui-sref="apis.portal.pages.page({apiId: api.id})">
             <md-card class="api-box gravitee-card gravitee-api-card">
               <md-card-header layout="row" layout-align="end start">
@@ -42,7 +42,7 @@
                   <md-button class="md-icon-button" ng-if="apisCtrl.isOwner(api) && !devMode"
                              ng-click="$event.stopPropagation()" ui-sref="apis.admin.general.main({apiId: api.id})">
                     <md-tooltip>Manage this API</md-tooltip>
-                    <ng-md-icon icon="settings" aria-label="{{api.id}}" size="20"
+                    <ng-md-icon icon="settings" aria-label="{{::api.id}}" size="20"
                                 style="fill: #006CAB;"></ng-md-icon>
                   </md-button>
                 </md-card-avatar>
@@ -51,12 +51,12 @@
                 <div class="api-box-description">
                   <div class="api-box-icon" layout="column" layout-align="center center">
                     <div class="api-box-icon-figure">
-                      <img ng-src="{{api.picture_url}}"/>
+                      <img ng-src="{{::api.picture_url}}"/>
                     </div>
                   </div>
                   <div class="api-box-name-version" layout-padding>
-                    {{api.name}}
-                    <small>({{api.version}})</small>
+                    {{::api.name}}
+                    <small>({{::api.version}})</small>
                   </div>
                   <div class="api-box-state">
                     <span ng-if="api.state === 'started'" style="color: #429f46;">Started</span>
@@ -66,7 +66,7 @@
               </md-card-content>
               <md-card-footer>
                 <div class="api-box-footer" layout="row" layout-align="end">
-                  <ng-md-icon ng-if=" apisCtrl.syncStatus[api.id]===undefined?false:!apisCtrl.syncStatus[api.id]"
+                  <ng-md-icon ng-if="apisCtrl.syncStatus[api.id] === undefined?false:!apisCtrl.syncStatus[api.id]"
                               icon="sync_problem" aria-label="async" size="20"
                               style="fill: #e8ac3c;">
                     <md-tooltip>API out of sync</md-tooltip>
@@ -76,10 +76,9 @@
                   </ng-md-icon>
                   <ng-md-icon icon="person" size="20" style="fill: #cdcdcd;">
                     <md-tooltip>
-                      <span
-                              ng-if="api.owner.firstname == null && api.owner.lastname == null">{{api.owner.username}}</span>
-                      {{api.owner.firstname}} {{api.owner.lastname}}
-                      <span ng-if="api.owner.email">({{api.owner.email}})</span>
+                      <span ng-if="api.owner.firstname == null && api.owner.lastname == null">{{::api.owner.username}}</span>
+                      {{::api.owner.firstname}} {{::api.owner.lastname}}
+                      <span ng-if="api.owner.email">({{::api.owner.email}})</span>
                     </md-tooltip>
                   </ng-md-icon>
                 </div>
@@ -105,10 +104,10 @@
 
 <md-fab-speed-dial ng-if="!devMode" gravitee-roles-allowed="ADMIN, API_PUBLISHER"
                    md-direction="{{apisCtrl.apis.length > 0 ? 'left' : 'down'}}"
-                   md-open="false" ng-class="{'md-fab-bottom-right' : apisCtrl.apis.length > 0}" class="md-scale">
+                   md-open ng-class="{'md-fab-bottom-right' : apisCtrl.apis.length > 0}" class="md-scale">
   <md-fab-trigger>
     <md-button aria-label="menu" class="md-fab md-success">
-      <md-tooltip ng-if="apisCtrl.apis.length > 0" md-direction="top" md-visible="false">Create</md-tooltip>
+      <md-tooltip ng-if="apisCtrl.apis.length > 0" md-direction="top" md-visible>Create</md-tooltip>
       <ng-md-icon icon="add"></ng-md-icon>
     </md-button>
   </md-fab-trigger>

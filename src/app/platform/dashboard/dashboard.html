@@ -15,120 +15,55 @@
     limitations under the License.
 
 -->
-<md-content>
-  <div>
-    <md-card flex>
-      <md-card-content>
-        <label>Filtering</label>
-        <div layout="row">
-          <div flex layout="row" style="margin-left: -15px;">
-            <div ng-repeat="timeframe in dashboardCtrl.analyticsData.timeframes">
-              <md-button class="dashboard-timeframe" ng-click="dashboardCtrl.updateTimeframe(timeframe.id)" ng-disabled="fetchData"
-                         ng-class="{'dashboard-timeframe-active' : timeframe === dashboardCtrl.timeframe}">
-                {{timeframe.title}}
-              </md-button>
-            </div>
-          </div>
-          <div layout="row" layout-align="end center" style="margin-right: -10px;">
-            <md-datepicker ng-model="dashboardCtrl.beginDate" md-placeholder="Select begin date" md-max-date="dashboardCtrl.endDate"></md-datepicker>
-            <md-datepicker ng-model="dashboardCtrl.endDate" md-placeholder="Select end date" md-min-date="dashboardCtrl.beginDate" md-max-date="dashboardCtrl.now"></md-datepicker>
-            <md-button class="md-raised" style="min-width: 70px;" ng-click="dashboardCtrl.updateRangeDate()">Apply</md-button>
-          </div>
-        </div>
-        <div layout="row">
-          <md-chips class="events-md-chips" ng-model="dashboardCtrl.selectedAPIs"
-            md-autocomplete-snap md-require-match="true" md-on-remove="dashboardCtrl.undoAPI()" md-on-add="dashboardCtrl.selectAPI()" flex>
-            <md-autocomplete
-              md-selected-item="dashboardCtrl.selectedAPI"
-              md-search-text="dashboardCtrl.searchAPIText"
-              md-items="item in dashboardCtrl.searchAPI(dashboardCtrl.searchAPIText)"
-              md-item-text="item.name"
-              placeholder="Select API">
-            <span md-highlight-text="dashboardCtrl.searchAPIText">{{item.name}} ({{item.version}})</span>
-            </md-autocomplete>
-            <md-chip-template>
-              <span>
-                <strong>{{$chip.name}}</strong>
-                <em>({{$chip.version}})</em>
-              </span>
-            </md-chip-template>
-          </md-chips>
-          <md-chips class="events-md-chips" ng-model="dashboardCtrl.selectedApplications"
-                    md-autocomplete-snap md-require-match="true" md-on-remove="dashboardCtrl.undoApplication()" md-on-add="dashboardCtrl.selectApplication()" flex>
-            <md-autocomplete
-              md-selected-item="dashboardCtrl.selectedApplication"
-              md-search-text="dashboardCtrl.searchApplicationText"
-              md-items="item in dashboardCtrl.searchApplication(dashboardCtrl.searchApplicationText)"
-              md-item-text="item.name"
-              placeholder="Select Application">
-              <span md-highlight-text="dashboardCtrl.searchApplicationText">{{item.name}}</span>
-            </md-autocomplete>
-            <md-chip-template>
-              <span>
-                <strong>{{$chip.name}}</strong>
-              </span>
-            </md-chip-template>
-          </md-chips>
-        </div>
-      </md-card-content>
-    </md-card>
-  </div>
+<gravitee-dashboard model="platformDashboard"></gravitee-dashboard>
 
-  <div layout="row">
-    <md-card class="dashboard-analytics-card" ng-repeat="top in dashboardCtrl.analyticsData.tops | filter: { style: 'big' }" flex
-             ng-include="'app/platform/dashboard/dashboardAnalyticsCard.html'"></md-card>
-  </div>
-
-  <div layout="row">
-    <md-card class="dashboard-analytics-card" ng-repeat="top in dashboardCtrl.analyticsData.tops | filter: { style: 'small' }" flex
-             ng-include="'app/platform/dashboard/dashboardAnalyticsCard.html'"></md-card>
-  </div>
-
-  <div>
-    <md-card flex>
-      <div layout="row" class="dashboard-events-header">
-        <span><strong>API Events</strong></span>
-        <div flex></div>
-        <md-list>
-          <md-list-item class="eventType" ng-class="{eventTypeSelected: selection}" ng-repeat="eventType in dashboardCtrl.eventTypes">
-            <a href="javascript:void(0);" ng-click="selection= !selection; dashboardCtrl.selectEvent(eventType)">
-              <span><strong>{{dashboardCtrl.getEventLabel(eventType.toLowerCase())}}</strong></span>
-            </a>
-          </md-list-item>
-        </md-list>
+<div>
+  <md-card flex>
+    <div layout="row" class="dashboard-events-header">
+      <span><strong>API Events</strong></span>
+      <div flex></div>
+      <md-list>
+        <md-list-item class="eventType" ng-class="{eventTypeSelected: selection}" ng-repeat="eventType in dashboardCtrl.eventTypes">
+          <a href="javascript:void(0);" ng-click="selection= !selection; dashboardCtrl.selectEvent(eventType)">
+            <span><strong>{{dashboardCtrl.getEventLabel(eventType.toLowerCase())}}</strong></span>
+          </a>
+        </md-list-item>
+      </md-list>
+    </div>
+    <md-card-content>
+      <div ng-if="dashboardCtrl.events.content.length > 0">
+        <md-table-container>
+          <table md-table>
+            <thead md-head>
+            <tr md-row>
+              <th md-column>Date</th>
+              <th md-column>Type</th>
+              <th md-column>API</th>
+            </tr>
+            </thead>
+            <tbody md-body>
+            <tr md-row ng-repeat="event in dashboardCtrl.events.content" style="height: 25px;">
+              <td md-cell>{{event.updated_at | humanDatetimeFilter }}</td>
+              <td md-cell>{{dashboardCtrl.getEventLabel(event.type)}}</td>
+              <td md-cell>
+                <a ui-sref="apis.admin.analytics({ apiId: event.properties.api_id, from: dashboardCtrl.$state.params.from, to: dashboardCtrl.$state.params.to} )">
+                  {{event.properties.api_name}} <small>({{event.properties.api_version}})</small>
+                </a>
+              </td>
+            </tr>
+            <tr ng-if="dashboardCtrl.events.content.length === 0">
+              <td md-cell colspan="2">No event</td>
+            </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+        <md-table-pagination md-limit="dashboardCtrl.query.limit" md-limit-options="[10, 25, 50, 75, 100]" md-page="dashboardCtrl.query.page" md-total="{{dashboardCtrl.events.totalElements}}" md-on-limit="dashboardCtrl.searchEvents" md-on-paginate="dashboardCtrl.searchEvents" md-page-select></md-table-pagination>
       </div>
-      <md-card-content>
-        <div ng-if="dashboardCtrl.events.content.length > 0">
-          <md-table-container>
-            <table md-table>
-              <thead md-head>
-              <tr md-row>
-                <th md-column>Date</th>
-                <th md-column>Type</th>
-                <th md-column>API</th>
-              </tr>
-              </thead>
-              <tbody md-body>
-              <tr md-row ng-repeat="event in dashboardCtrl.events.content" style="height: 25px;">
-                <td md-cell>{{event.updated_at | humanDatetimeFilter }}</td>
-                <td md-cell>{{dashboardCtrl.getEventLabel(event.type)}}</td>
-                <td md-cell>
-                  <a ui-sref="apis.admin.analytics({ apiId: event.properties.api_id } )">
-                    {{event.properties.api_name}} <small>({{event.properties.api_version}})</small>
-                  </a>
-                </td>
-              </tr>
-              </tbody>
-            </table>
-          </md-table-container>
-          <md-table-pagination md-limit="dashboardCtrl.query.limit" md-limit-options="[10, 25, 50, 75, 100]" md-page="dashboardCtrl.query.page" md-total="{{dashboardCtrl.events.totalElements}}" md-on-limit="dashboardCtrl.getEvents" md-on-paginate="dashboardCtrl.getEvents" md-page-select></md-table-pagination>
-        </div>
-        <div ng-if="eventsFetchData" layout="column" layout-align="center center" flex><md-progress-circular md-mode="indeterminate"></md-progress-circular></div>
-        <div ng-if="!eventsFetchData && dashboardCtrl.events.content.length == 0" layout="column" layout-align="center center" flex>
-          <p><ng-md-icon icon="block" style="fill: grey"></ng-md-icon></p>
-          <p>No data</p>
-        </div>
-      </md-card-content>
-    </md-card>
-  </div>
-</md-content>
+      <div ng-if="eventsFetchData" layout="column" layout-align="center center" flex><md-progress-circular md-mode="indeterminate"></md-progress-circular></div>
+      <div ng-if="!eventsFetchData && dashboardCtrl.events.content.length == 0" layout="column" layout-align="center center" flex>
+        <p><ng-md-icon icon="block" style="fill: grey"></ng-md-icon></p>
+        <p>No data</p>
+      </div>
+    </md-card-content>
+  </md-card>
+</div>

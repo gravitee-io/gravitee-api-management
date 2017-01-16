@@ -14,85 +14,50 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor($window, ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis, ViewService, $q) {
+  constructor(ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis, resolvedViews, $q) {
     'ngInject';
     this.$q = $q;
-    this.$window = $window;
     this.ApiService = ApiService;
     this.$mdDialog = $mdDialog;
     this.$scope = $scope;
     this.$state = $state;
     this.$rootScope = $rootScope;
     this.graviteeUIVersion = Constants.version;
-    this.resolvedApis = resolvedApis;
+    this.apis = resolvedApis.data;
 
     this.apisScrollAreaHeight = this.$state.current.name === 'apis.list' ? 195 : 90;
     this.isAPIsHome = this.$state.current.name.startsWith('apis') ? true : false;
-    this.goToView(this.$state.params.view || 'all');
+
     this.createMode = !$rootScope.devMode && Object.keys($rootScope.graviteeUser).length > 0;
 
-    var that = this;
-    ViewService.list().then(function (response) {
-      that.views = response.data;
-      that.views.unshift({id: 'all', name: 'All APIs'});
+    this.views = resolvedViews.data;
+    this.views.unshift({id: 'all', name: 'All APIs'});
 
-      if (that.views.length && that.$state.params.view) {
-        that.selectedIndex = _.findIndex(that.views, function (v) {
-          return v.id === that.$state.params.view;
-        });
-      } else {
-        that.selectedIndex = 0;
+    if (this.views.length && this.$state.params.view) {
+      this.$scope.selectedIndex = _.findIndex(this.views, (view) => {
+        return view.id === this.$state.params.view;
+      });
+    } else {
+      this.$scope.selectedIndex = 0;
+    }
+
+    this.reloadSyncState();
+  }
+
+  reloadSyncState() {
+    let promises = _.map(this.apis, (api) => {
+      if (this.isOwner(api) && !this.devMode) {
+        return this.ApiService.isAPISynchronized(api.id)
+          .then((sync) => { return sync; });
       }
     });
-  }
 
-  goToView(view) {
-    this.$state.go(this.$state.current, {view: view}, {notify: false});
-    this.loadApis(view);
-  }
-
-  loadApis(viewId) {
-    var that = this;
-    this.$q.resolve(viewId)
-      .then( (viewId) => {
-        if (viewId && viewId !== 'all') {
-          return that.ApiService
-            .list(viewId)
-            .then( (response) => {
-              return response;
-            });
-        } else {
-          return that.resolvedApis;
-        }
-      })
-      .then( response => {
-        that.apis = response.data;
-        return that.apis;
-      })
-      .then( (apis) => {
-        const promises = _.map(apis, (api) => {
-          if (that.isOwner(api) && !that.devMode) {
-            return that.ApiService.isAPISynchronized(api.id)
-              .then((sync) => {
-                return sync;
-              });
-          }
-        });
-        return this.$q
-          .all( _.filter( promises, ( p ) => { return p!== undefined; } ) )
-          .then((syncList) => {
-              that.syncStatus = _.fromPairs(_.map(syncList, (sync) => {
-                return [sync.data.api_id, sync.data.is_synchronized];
-              }));
-          });
+    this.$q.all( _.filter( promises, ( p ) => { return p !== undefined; } ) )
+      .then((syncList) => {
+        this.syncStatus = _.fromPairs(_.map(syncList, (sync) => {
+          return [sync.data.api_id, sync.data.is_synchronized];
+        }));
       });
-  }
-
-  list() {
-    this.apis = [];
-    this.ApiService.list().then(response => {
-      this.apis = response.data;
-    });
   }
 
   update(api) {
@@ -140,7 +105,6 @@ class ApisController {
   }
 
   showImportDialog() {
-    var that = this;
     this.$mdDialog.show({
       controller: 'DialogApiImportController',
       controllerAs: 'dialogApiImportCtrl',
@@ -149,13 +113,12 @@ class ApisController {
       clickOutsideToClose: true
     }).then(function (response) {
       if (response) {
-        that.list();
+        this.$state.go('apis.admin.general', {apiId: response.data.id}, {reload: true});
       }
     });
   }
 
   showImportSwaggerDialog() {
-    var _that = this;
     this.$mdDialog.show({
       controller: 'DialogApiSwaggerImportController',
       controllerAs: 'dialogApiSwaggerImportCtrl',
@@ -164,7 +127,7 @@ class ApisController {
       clickOutsideToClose: true
     }).then(function (api) {
       if (api) {
-        _that.$state.go('apis.new', {api: api});
+        this.$state.go('apis.new', {api: api});
       }
     });
   }

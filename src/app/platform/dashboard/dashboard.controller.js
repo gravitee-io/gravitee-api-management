@@ -30,30 +30,132 @@ class DashboardController {
     this.selectedAPIs = [];
     this.selectedApplications = [];
     this.selectedEventTypes = [];
+    /*
     this.beginDate = moment().subtract(1, 'weeks').toDate();
     this.endDate = moment().toDate();
     this.now = moment().toDate();
+    */
+
+    this.$scope.platformDashboard = [{
+      col: 0,
+      row: 0,
+      sizeY: 1,
+      sizeX: 3,
+      title: "Top API",
+      subhead: 'Ordered by API calls',
+      chart: {
+        type: 'table',
+        columns: ['API', 'Hits'],
+        paging: 5,
+        request: {
+          type: "group_by",
+          field: "api",
+          size: 10000
+        }
+      }
+    }, {
+      col: 3,
+      row: 0,
+      sizeY: 1,
+      sizeX: 3,
+      title: "Top applications",
+      subhead: 'Ordered by application calls',
+      chart: {
+        type: 'table',
+        columns: ['Application', 'Hits'],
+        paging: 5,
+        request: {
+          type: "group_by",
+          field: "application",
+          size: 10000
+        }
+      }
+    }, {
+      col: 0,
+      row: 1,
+      sizeY: 1,
+      sizeX: 2,
+      title: "Top failed APIs",
+      subhead: 'Order by API 5xx status calls',
+      chart: {
+        type: 'table',
+        columns: ['Application', 'Hits'],
+        paging: 5,
+        request: {
+          type: "group_by",
+          field: "api",
+          query: "status:[500 TO 599]",
+          size: 10000
+        }
+      }
+    }, {
+      col: 2,
+      row: 1,
+      sizeY: 1,
+      sizeX: 2,
+      title: "Top slow APIs",
+      subhead: 'Order by API response time calls',
+      chart: {
+        type: 'table',
+        columns: ['API', 'Latency (in ms)'],
+        paging: 5,
+        request: {
+          type: "group_by",
+          field: "api",
+          order: "-avg:response-time",
+          size: 10000
+        }
+      }
+    }, {
+      col: 4,
+      row: 1,
+      sizeY: 1,
+      sizeX: 2,
+      title: "Top overhead APIs",
+      subhead: 'Order by gateway latency',
+      chart: {
+        type: 'table',
+        columns: ['API', 'Latency (in ms)'],
+        paging: 5,
+        request: {
+          type: "group_by",
+          field: "api",
+          order: "-avg:proxy-latency",
+          size: 10000
+        }
+      }
+    }];
+
+    var _that = this;
+
+    _.forEach(this.$scope.platformDashboard, function (widget) {
+      _.merge(widget, {
+        chart: {
+          service: {
+            caller: _that.AnalyticsService,
+            function: _that.AnalyticsService.analytics
+          }
+        }
+      });
+    });
 
     // init events
-    this.initEventLabels();
-    this.initEventTypes();
+    this.eventLabels.start_api = "Start";
+    this.eventLabels.stop_api = "Stop";
+    this.eventLabels.publish_api = "Deploy";
+    this.eventLabels.unpublish_api = "Undeploy";
+    this.eventTypes = ['START_API', 'STOP_API', 'PUBLISH_API', 'UNPUBLISH_API'];
+
     this.initPagination();
-    this.getEvents = this.getEvents.bind(this);
+    this.searchEvents = this.searchEvents.bind(this);
 
-    // init charts
-    this.$scope.paging = [];
-    this.analyticsData = this.analytics();
-    if ($state.params.from && $state.params.to) {
-      this.setRangeDate($state.params.from, $state.params.to);
-    } else if ($state.params.timeframe) {
-      this.setTimeframe($state.params.timeframe);
-    } else {
-      this.setTimeframe('7d');
-    }
+    // Refresh widget on each timeframe change
+    this.$scope.$on('timeframeChange', function (event, timeframe) {
+      _that.lastFrom = timeframe.from;
+      _that.lastTo = timeframe.to;
 
-    // get data
-    this.updateCharts();
-    this.searchEvents();
+      _that.searchEvents();
+    });
   }
 
   undoAPI() {
@@ -85,16 +187,14 @@ class DashboardController {
     this.searchEvents();
   }
 
-  getEvents() {
-    this.searchEvents();
-  }
-
   searchEvents() {
+/*
     var from = moment(this.beginDate).unix() * 1000;
     var to = moment(this.endDate).unix() * 1000;
     if (from === to) {
       to = moment(this.endDate).add(24, 'hours').unix() * 1000;
     }
+*/
 
     // set apis
     var apis = this.selectedAPIs.map(function(api){ return api.id; }).join(",");
@@ -106,7 +206,7 @@ class DashboardController {
 
     // search
     this.$scope.eventsFetchData = true;
-    this.EventsService.search(types, apis, from, to, this.query.page - 1, this.query.limit).then(response => {
+    this.EventsService.search(types, apis, this.lastFrom, this.lastTo, this.query.page - 1, this.query.limit).then(response => {
       this.events = response.data;
       this.$scope.eventsFetchData = false;
     });
@@ -141,19 +241,8 @@ class DashboardController {
     };
   }
 
-  initEventLabels() {
-    this.eventLabels.start_api = "Start";
-    this.eventLabels.stop_api = "Stop";
-    this.eventLabels.publish_api = "Deploy";
-    this.eventLabels.unpublish_api = "Undeploy";
-  }
-
   getEventLabel(label) {
     return this.eventLabels[label];
-  }
-
-  initEventTypes() {
-    this.eventTypes = ['START_API', 'STOP_API', 'PUBLISH_API', 'UNPUBLISH_API'];
   }
 
   updateCharts() {
@@ -208,161 +297,6 @@ class DashboardController {
         _this.$scope.fetchData = false;
       });
     });
-  }
-
-  updateRangeDate() {
-    var from = moment(this.beginDate).unix() * 1000;
-    var to = moment(this.endDate).unix() * 1000;
-    this.$state.transitionTo(this.$state.current, {timeframe: '', from: from, to: to}, { notify: false });
-    this.setRangeDate(from, to);
-    this.updateCharts();
-    this.searchEvents();
-  }
-
-  setRangeDate(from, to) {
-    this.beginDate = moment.unix(from / 1000).toDate();
-    this.endDate = moment.unix(to / 1000).toDate();
-
-    this.analyticsData.range = {
-      interval: 3600000,
-      from: from,
-      to: to
-    };
-  }
-
-  updateTimeframe(timeframeId) {
-    if (timeframeId) {
-      this.$state.transitionTo(this.$state.current, {timeframe: timeframeId, from: '', to: ''}, { notify: false });
-      this.setTimeframe(timeframeId);
-      this.updateCharts();
-      this.searchEvents();
-    }
-  }
-
-  setTimeframe(timeframeId) {
-    var that = this;
-
-    this.timeframe = _.find(this.analyticsData.timeframes, function (timeframe) {
-      return timeframe.id === timeframeId;
-    });
-
-    var now = Date.now();
-
-    _.assignIn(this.analyticsData, {
-      timeframe: that.timeframe,
-      range: {
-        interval: that.timeframe.interval,
-        from: now - that.timeframe.range,
-        to: now
-      }
-    });
-    this.beginDate = moment(now - this.timeframe.range).toDate();
-    this.endDate = moment(now).toDate();
-  }
-
-  analytics() {
-    return {
-      tops: [
-        {
-          title: 'Top APIs',
-          titleKey: 'API',
-          titleValue: 'Hits',
-          subhead: 'Order by API calls',
-          request: this.AnalyticsService.topHits,
-          key: "top-apis",
-          query: "*:*",
-          field: "api",
-          size: 10000,
-          style: "big"
-        },
-        {
-          title: 'Top applications',
-          titleKey: 'Application',
-          titleValue: 'Hits',
-          subhead: 'Order by API calls',
-          request: this.AnalyticsService.topHits,
-          key: "top-apps",
-          query: "*:*",
-          field: "application",
-          size: 10000,
-          style: "big"
-        },
-        {
-          title: 'Top failed APIs',
-          titleKey: 'API',
-          titleValue: 'Hits',
-          subhead: 'Order by API 5xx status calls',
-          request: this.AnalyticsService.topHits,
-          key: "top-failed-apis",
-          query: "status:[500 TO 599]",
-          field: "api",
-          size: 10000,
-          style: "small"
-        },
-        {
-          title: 'Top slow APIs',
-          titleKey: 'API',
-          titleValue: 'Latency (in ms)',
-          subhead: 'Order by API response time calls',
-          request: this.AnalyticsService.topHits,
-          key: "top-slow-apis",
-          query: "*:*",
-          field: "api",
-          orderField: "response-time",
-          orderDirection: "desc",
-          orderType: "avg",
-          size: 10000,
-          style: "small"
-        },
-        {
-          title: 'Top overhead APIs',
-          titleKey: 'API',
-          titleValue: 'Latency (in ms)',
-          subhead: 'Order by proxy latency',
-          request: this.AnalyticsService.topHits,
-          key: "top-overhead-apis",
-          query: "*:*",
-          field: "api",
-          orderField: "proxy-latency",
-          orderDirection: "desc",
-          orderType: "avg",
-          size: 10000,
-          style: "small"
-        }
-      ],
-      timeframes: [
-        {
-          id: '1h',
-          title: 'Last hour',
-          range: 1000 * 60 * 60,
-          interval: 1000 * 60
-        },
-        {
-          id: '24h',
-          title: 'Last day',
-          range: 1000 * 60 * 60 * 24,
-          interval: 1000 * 60 * 60
-        },
-        {
-          id: '7d',
-          title: 'Last week',
-          range: 1000 * 60 * 60 * 24 * 7,
-          interval: 1000 * 60 * 60 * 3
-        },
-        {
-          id: '30d',
-          title: 'Last month',
-          range: 1000 * 60 * 60 * 24 * 30,
-          interval: 10000000
-        },
-        {
-          id: '1y',
-          title: 'Last year',
-          range: 1000 * 60 * 60 * 24 * 365,
-          interval: 10000000
-        }
-      ]
-    };
   }
 }
 

@@ -106,38 +106,19 @@ class ApplicationService {
   /*
    * Analytics
    */
-  applicationHits(application, from, to, interval) {
-    return this.$http.get(this.applicationsURL + application + '/analytics?type=hits&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
+  analytics(application, request) {
+    var url = this.applicationsURL + application + '/analytics?';
 
-  applicationHitsByStatus(application, from, to, interval) {
-    return this.$http.get(this.applicationsURL + application + '/analytics?type=hits_by_status&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
+    var keys = Object.keys(request);
+    _.forEach(keys, function (key) {
+      var val = request[key];
+      if (val !== undefined && val !== '') {
+        url += key + '=' + val + '&';
+      }
+    });
 
-  applicationHitsByLatency(application, from, to, interval) {
-    return this.$http.get(this.applicationsURL + application + '/analytics?type=hits_by_latency&interval=' + interval + '&from=' + from + '&to=' + to);
+    return this.$http.get(url);
   }
-
-  applicationHitsByPayloadSize(application, from, to, interval) {
-    return this.$http.get(this.applicationsURL + application + '/analytics?type=hits_by_payload_size&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
-
-  applicationHitsByApplication(application, from, to, interval) {
-    return this.$http.get(this.applicationsURL + application + '/analytics?type=hits_by_application&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
-
-  applicationHitsBy(application, key, query, field, aggType, from, to, interval) {
-    return this.$http.get(this.applicationsURL + application + '/analytics?type=hits_by&key=' + key + '&query=' + query + '&field=' + field + '&aggType=' + aggType + '&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
-
-  applicationGlobalHits(application, from, to, interval, key, query) {
-    return this.$http.get(this.applicationsURL + application + '/analytics?type=global_hits&key=' + key + '&query=' + query + '&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
-
-  applicationTopHits(application, from, to, interval, key, query, field, size) {
-    return this.$http.get(this.applicationsURL + application + '/analytics?type=top_hits&key=' + key + '&query=' + query + '&field=' + field + '&interval=' + interval + '&from=' + from + '&to=' + to + '&size=' + size);
-  }
-
 }
 
 export default ApplicationService;

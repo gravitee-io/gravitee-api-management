@@ -57,7 +57,7 @@
         <a ui-sref="login" ng-if="!graviteeUser">
           <ng-md-icon icon="login"></ng-md-icon> <span ng-if="!reducedMode">Login</span>
         </a>
-        <a ng-click="sidenavCtrl.logout()" ng-if="graviteeUser">
+        <a href="javascript:void(0);" ng-click="sidenavCtrl.logout()" ng-if="graviteeUser">
           <ng-md-icon icon="logout"></ng-md-icon> <span ng-if="!reducedMode">Sign out</span>
         </a>
       </md-list-item>
