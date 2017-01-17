@@ -27,15 +27,26 @@ import java.util.Map;
 public class Bucket {
 
     private final String name;
+    private final String field;
     private List<Bucket> buckets;
     private Map<String, List<Data>> data;
 
-    public Bucket(String name) {
+    public Bucket() {
+        this.name = null;
+        this.field = null;
+    }
+
+    public Bucket(String name, String field) {
         this.name = name;
+        this.field = field;
     }
 
     public String name() {
         return name;
+    }
+
+    public String field() {
+        return field;
     }
 
     // Lazy loading to avoid useless structure initialization

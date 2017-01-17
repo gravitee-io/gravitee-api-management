@@ -19,33 +19,8 @@ package io.gravitee.repository.analytics.query;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HitsByApiQueryBuilder extends AbstractQueryBuilder<HitsByApiQuery> {
+public enum Order {
 
-    protected HitsByApiQueryBuilder(HitsByApiQuery query) {
-        super(query);
-    }
-
-    static HitsByApiQueryBuilder query() {
-        return new HitsByApiQueryBuilder(new HitsByApiQuery());
-    }
-
-    public HitsByApiQueryBuilder period(DateRange dateRangeQuery) {
-        query.range(dateRangeQuery);
-        return this;
-    }
-
-    public HitsByApiQueryBuilder interval(Interval intervalQuery) {
-        query.interval(intervalQuery);
-        return this;
-    }
-
-    public HitsByApiQueryBuilder api(String api) {
-        query.api(api);
-        return this;
-    }
-
-    public HitsByApiQueryBuilder type(HitsByApiQuery.Type type) {
-        query.type(type);
-        return this;
-    }
+    ASC,
+    DESC;
 }

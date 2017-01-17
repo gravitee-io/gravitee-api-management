@@ -19,33 +19,23 @@ package io.gravitee.repository.analytics.query;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HitsByApiKeyQueryBuilder extends AbstractQueryBuilder<HitsByApiKeyQuery> {
+public class ValueRange implements Range<Double> {
 
-    protected HitsByApiKeyQueryBuilder(HitsByApiKeyQuery query) {
-        super(query);
+    private Double from;
+    private Double to;
+
+    ValueRange(Double from, Double to) {
+        this.from = from;
+        this.to = to;
     }
 
-    static HitsByApiKeyQueryBuilder query() {
-        return new HitsByApiKeyQueryBuilder(new HitsByApiKeyQuery());
+    @Override
+    public Double from() {
+        return from;
     }
 
-    public HitsByApiKeyQueryBuilder period(DateRange dateRangeQuery) {
-        query.range(dateRangeQuery);
-        return this;
-    }
-
-    public HitsByApiKeyQueryBuilder interval(Interval intervalQuery) {
-        query.interval(intervalQuery);
-        return this;
-    }
-
-    public HitsByApiKeyQueryBuilder apiKey(String apiKey) {
-        query.apiKey(apiKey);
-        return this;
-    }
-
-    public HitsByApiKeyQueryBuilder type(HitsByApiKeyQuery.Type type) {
-        query.type(type);
-        return this;
+    @Override
+    public Double to() {
+        return to;
     }
 }

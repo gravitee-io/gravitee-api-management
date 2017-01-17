@@ -13,29 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query.response.histogram;
+package io.gravitee.repository.analytics.query.count;
 
-import io.gravitee.repository.analytics.query.response.Response;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import io.gravitee.repository.analytics.query.AbstractQuery;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HistogramResponse implements Response {
+public class CountQuery extends AbstractQuery<CountResponse> {
 
-    private final List<Long> timestamps = new ArrayList<>();
-    private final List<Bucket> values = new ArrayList<>();
-
-    public List<Bucket> values() {
-        return values;
-    }
-
-    public List<Long> timestamps() {
-        return timestamps;
+    @Override
+    public Class<CountResponse> responseType() {
+        return CountResponse.class;
     }
 }

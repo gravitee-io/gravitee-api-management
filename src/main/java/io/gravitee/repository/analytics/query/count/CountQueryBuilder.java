@@ -13,41 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query;
+package io.gravitee.repository.analytics.query.count;
+
+import io.gravitee.repository.analytics.query.AbstractQueryBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HitsByApiQuery extends TimeRangedQuery {
+public class CountQueryBuilder extends AbstractQueryBuilder<CountQueryBuilder, CountQuery> {
 
-    private String api;
-    private Type type = Type.HITS;
-
-    void api(String api) {
-        this.api = api;
+    protected CountQueryBuilder(CountQuery query) {
+        super(query);
     }
 
-    public String api() {
-        return this.api;
-    }
-
-    void type(Type type) {
-        this.type = type;
-    }
-
-    public Type type() {
-        return this.type;
-    }
-
-    public enum Type {
-        HITS,
-        HITS_BY_LATENCY,
-        HITS_BY_APIKEY,
-        HITS_BY_STATUS,
-        HITS_BY_PAYLOAD_SIZE,
-        HITS_BY_APPLICATION,
-        TOP_HITS_BY_APPLICATION,
-        TOP_HITS_BY_STATUS
+    public static CountQueryBuilder query() {
+        return new CountQueryBuilder(new CountQuery());
     }
 }

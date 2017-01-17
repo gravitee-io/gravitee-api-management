@@ -15,38 +15,19 @@
  */
 package io.gravitee.repository.analytics.query;
 
-import io.gravitee.repository.analytics.query.response.histogram.HistogramResponse;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class TimeRangedQuery implements Query<HistogramResponse> {
+public class QueryFilter {
 
-    // By default, get data for last day...
-    private DateRange range = DateRangeBuilder.lastDay();
+    private final String filter;
 
-    // ... and use hour interval
-    private Interval interval = IntervalBuilder.hour();
-
-    public DateRange range() {
-        return this.range;
+    public QueryFilter(String filter) {
+        this.filter = filter;
     }
 
-    void range(DateRange range) {
-        this.range = range;
-    }
-
-    public Interval interval() {
-        return this.interval;
-    }
-
-    void interval(Interval interval) {
-        this.interval = interval;
-    }
-
-    @Override
-    public Class<HistogramResponse> responseType() {
-        return HistogramResponse.class;
+    public String filter() {
+        return this.filter;
     }
 }

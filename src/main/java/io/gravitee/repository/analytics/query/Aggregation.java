@@ -19,30 +19,9 @@ package io.gravitee.repository.analytics.query;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HitsByApiKeyQuery extends TimeRangedQuery {
+public interface Aggregation {
 
-    private String apiKey;
-    private Type type = Type.HITS;
+    AggregationType type();
 
-    void apiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
-
-    public String apiKey() {
-        return this.apiKey;
-    }
-
-    void type(Type type) {
-        this.type = type;
-    }
-
-    public Type type() {
-        return this.type;
-    }
-
-    public enum Type {
-        HITS,
-        HITS_BY_LATENCY,
-        HITS_BY_STATUS
-    }
+    String field();
 }

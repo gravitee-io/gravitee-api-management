@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.api;
-
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.query.Query;
-import io.gravitee.repository.analytics.query.response.Response;
+package io.gravitee.repository.analytics.query;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface AnalyticsRepository {
+public class RootFilter {
 
-   <T extends Response> T query(Query<T> query) throws AnalyticsException;
+    private final String field;
+    private final String id;
+
+    public RootFilter(String field, String id) {
+        this.field = field;
+        this.id = id;
+    }
+
+    public String field() {
+        return this.field;
+    }
+
+    public String id() {
+        return this.id;
+    }
 }

@@ -13,33 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query.response;
-
-import java.util.Map;
+package io.gravitee.repository.analytics.query;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthResponse implements Response {
+public class ValueRangeBuilder {
 
-    private long [] timestamps;
-
-    private Map<Boolean, long[]> buckets;
-
-    public long [] timestamps() {
-        return timestamps;
-    }
-
-    public void timestamps(long[] timestamps) {
-        this.timestamps = timestamps;
-    }
-
-    public Map<Boolean, long[]> buckets() {
-        return buckets;
-    }
-
-    public void buckets(Map<Boolean, long[]> buckets) {
-        this.buckets = buckets;
+    public static Range<Double> range(Double from, Double to) {
+        return new ValueRange(from, to);
     }
 }

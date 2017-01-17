@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.api;
+package io.gravitee.repository.analytics.query.response.histogram;
 
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.Response;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface AnalyticsRepository {
+public class DateHistogramResponse implements Response {
 
-   <T extends Response> T query(Query<T> query) throws AnalyticsException;
+    private final List<Long> timestamps = new ArrayList<>();
+    private final List<Bucket> values = new ArrayList<>();
+
+    public List<Bucket> values() {
+        return values;
+    }
+
+    public List<Long> timestamps() {
+        return timestamps;
+    }
 }

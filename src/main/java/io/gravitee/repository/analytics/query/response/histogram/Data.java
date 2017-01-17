@@ -15,8 +15,6 @@
  */
 package io.gravitee.repository.analytics.query.response.histogram;
 
-import java.util.Map;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -27,19 +25,9 @@ public class Data {
 
     private final long count;
 
-    private final Map<String, Long> data;
-
     public Data(long timestamp, long count) {
         this.timestamp = timestamp;
         this.count = count;
-        this.data = null;
-    }
-
-    public Data(long timestamp, Map<String, Long> data) {
-        this.timestamp = timestamp;
-        this.count = 0;
-        this.data = data;
-
     }
 
     public long timestamp() {
@@ -48,9 +36,5 @@ public class Data {
 
     public long count() {
         return count;
-    }
-
-    public Map<String, Long> data() {
-        return data;
     }
 }

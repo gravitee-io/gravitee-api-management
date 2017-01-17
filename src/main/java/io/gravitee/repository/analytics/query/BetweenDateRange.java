@@ -33,12 +33,12 @@ public class BetweenDateRange implements DateRange {
     }
 
     @Override
-    public long start() {
+    public Long from() {
         return start;
     }
 
     @Override
-    public long end() {
+    public Long to() {
         return end;
     }
 }

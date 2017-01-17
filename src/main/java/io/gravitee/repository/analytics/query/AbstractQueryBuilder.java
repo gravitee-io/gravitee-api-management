@@ -19,7 +19,7 @@ package io.gravitee.repository.analytics.query;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractQueryBuilder<Q extends Query> implements QueryBuilder {
+public abstract class AbstractQueryBuilder<QB extends AbstractQueryBuilder, Q extends AbstractQuery> implements QueryBuilder {
 
     protected final Q query;
 
@@ -30,5 +30,26 @@ public abstract class AbstractQueryBuilder<Q extends Query> implements QueryBuil
     @Override
     public Q build() {
         return query;
+    }
+
+    public QB query(String query) {
+        if (query != null) {
+            this.query.query(new QueryFilter(query));
+        }
+
+        return (QB) this;
+    }
+
+    public QB timeRange(DateRange dateRange, Interval interval) {
+        this.query.timeRange(new TimeRangeFilter(dateRange, interval));
+        return (QB) this;
+    }
+
+    public QB root(String field, String id) {
+        if (field != null && id != null) {
+            this.query.root(new RootFilter(field, id));
+        }
+
+        return (QB) this;
     }
 }

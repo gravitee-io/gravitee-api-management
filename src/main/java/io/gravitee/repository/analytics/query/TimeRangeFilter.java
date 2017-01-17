@@ -13,17 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.api;
-
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.query.Query;
-import io.gravitee.repository.analytics.query.response.Response;
+package io.gravitee.repository.analytics.query;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface AnalyticsRepository {
+public class TimeRangeFilter {
 
-   <T extends Response> T query(Query<T> query) throws AnalyticsException;
+    private final DateRange range;
+
+    private final Interval interval;
+
+    public TimeRangeFilter(DateRange dateRange, Interval interval) {
+        this.range = dateRange;
+        this.interval = interval;
+    }
+
+    public DateRange range() {
+        return this.range;
+    }
+
+    public Interval interval() {
+        return this.interval;
+    }
 }

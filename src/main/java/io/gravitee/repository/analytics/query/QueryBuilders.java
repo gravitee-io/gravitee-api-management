@@ -15,25 +15,24 @@
  */
 package io.gravitee.repository.analytics.query;
 
+import io.gravitee.repository.analytics.query.count.CountQueryBuilder;
+import io.gravitee.repository.analytics.query.groupby.GroupByQueryBuilder;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class QueryBuilders {
 
-    public static QueryBuilders query() {
-        return new QueryBuilders();
+    public static DateHistogramQueryBuilder dateHistogram() {
+        return DateHistogramQueryBuilder.query();
     }
 
-    public HitsByApiQueryBuilder hitsByApi(String api) {
-        return HitsByApiQueryBuilder.query().api(api);
+    public static GroupByQueryBuilder groupBy() {
+        return GroupByQueryBuilder.query();
     }
 
-    public HitsByApiQueryBuilder hitsByApi() {
-        return HitsByApiQueryBuilder.query();
-    }
-
-    public HitsByApiKeyQueryBuilder hitsByApiKey(String apiKey) {
-        return HitsByApiKeyQueryBuilder.query().apiKey(apiKey);
+    public static CountQueryBuilder count() {
+        return CountQueryBuilder.query();
     }
 }

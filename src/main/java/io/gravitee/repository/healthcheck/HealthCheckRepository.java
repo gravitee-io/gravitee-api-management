@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.api;
+package io.gravitee.repository.healthcheck;
 
 import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.query.Query;
-import io.gravitee.repository.analytics.query.response.Response;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface AnalyticsRepository {
+public interface HealthCheckRepository {
 
-   <T extends Response> T query(Query<T> query) throws AnalyticsException;
+    HealthResponse query(String api, long interval, long from, long to) throws AnalyticsException;
 }

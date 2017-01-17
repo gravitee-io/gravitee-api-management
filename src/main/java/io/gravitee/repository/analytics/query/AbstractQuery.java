@@ -13,17 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.api;
+package io.gravitee.repository.analytics.query;
 
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.Response;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface AnalyticsRepository {
+public abstract class AbstractQuery<T extends Response> implements Query<T> {
 
-   <T extends Response> T query(Query<T> query) throws AnalyticsException;
+    private RootFilter rootFilter;
+
+    private TimeRangeFilter timeRangeFilter;
+
+    private QueryFilter queryFilter;
+
+    public RootFilter root() {
+        return rootFilter;
+    }
+
+    void root(RootFilter rootFilter) {
+        this.rootFilter = rootFilter;
+    }
+
+    public TimeRangeFilter timeRange() {
+        return timeRangeFilter;
+    }
+
+    void timeRange(TimeRangeFilter timeRangeFilter) {
+        this.timeRangeFilter = timeRangeFilter;
+    }
+
+    public QueryFilter query() {
+        return queryFilter;
+    }
+
+    void query(QueryFilter queryFilter) {
+        this.queryFilter = queryFilter;
+    }
 }

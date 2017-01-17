@@ -13,17 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.api;
-
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.query.Query;
-import io.gravitee.repository.analytics.query.response.Response;
+package io.gravitee.repository.analytics.query;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface AnalyticsRepository {
+public class Sort {
 
-   <T extends Response> T query(Query<T> query) throws AnalyticsException;
+    private String field;
+    private Order order = Order.ASC;
+    private SortType type = SortType.AVG;
+
+    Sort() {
+    }
+
+    public String getField() {
+        return field;
+    }
+
+    public void setField(String field) {
+        this.field = field;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    public SortType getType() {
+        return type;
+    }
+
+    public void setType(SortType type) {
+        this.type = type;
+    }
 }
