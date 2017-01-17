@@ -15,17 +15,14 @@
  */
 package io.gravitee.management.rest.resource.param;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.gravitee.common.data.domain.Order;
-
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class AnalyticsParam {
 
@@ -50,24 +47,17 @@ public class AnalyticsParam {
     @QueryParam("size")
     private int size;
 
-    @QueryParam("aggType")
-    @DefaultValue("terms")
-    private AnalyticsAggTypeParam aggType;
-
     @QueryParam("type")
-    @DefaultValue("HITS")
     private AnalyticsTypeParam type;
 
-    @QueryParam("orderField")
-    private String orderField;
+    @QueryParam("ranges")
+    private RangesParam ranges;
 
-    @QueryParam("orderDirection")
-    @DefaultValue("asc")
-    private DirectionParam orderDirection;
+    @QueryParam("aggs")
+    private AggregationsParam aggs;
 
-    @QueryParam("orderMode")
-    @DefaultValue("avg")
-    private OrderModeParam orderMode;
+    @QueryParam("order")
+    private OrderParam order;
 
     public long getFrom() {
         return from;
@@ -125,14 +115,6 @@ public class AnalyticsParam {
         this.size = size;
     }
 
-    public List<String> getAggType() {
-        return aggType.getAggTypes();
-    }
-
-    public void setAggType(AnalyticsAggTypeParam aggType) {
-        this.aggType = aggType;
-    }
-
     public AnalyticsTypeParam getTypeParam() {
         return type;
     }
@@ -141,38 +123,30 @@ public class AnalyticsParam {
         this.type = type;
     }
 
-    public String getOrderField() {
-        return orderField;
+    public AnalyticsTypeParam.AnalyticsType getType() {
+        return type.getValue();
     }
 
-    public void setOrderField(String orderField) {
-        this.orderField = orderField;
+    public List<Range> getRanges() {
+        return (ranges == null) ? null : ranges.getValue();
     }
 
-    public DirectionParam getOrderDirection() {
-        return orderDirection;
+    public List<Aggregation> getAggregations() {
+        return (aggs == null) ? null : aggs.getValue();
     }
 
-    public void setOrderDirection(DirectionParam orderDirection) {
-        this.orderDirection = orderDirection;
-    }
-
-    public OrderModeParam getOrderMode() {
-        return orderMode;
-    }
-
-    @JsonIgnore
-    public Order getOrder() {
-        if (getOrderField() != null && getOrderDirection() != null && getOrderMode() != null) {
-            return new Order(getOrderField(),
-                    Order.Direction.valueOf(getOrderDirection().getValue().toString()),
-                    Order.Mode.valueOf(getOrderMode().getValue().toString()));
-        } else {
-            return null;
-        }
+    public OrderParam.Order getOrder() {
+        return (order == null) ? null : order.getValue();
     }
 
     public void validate() throws WebApplicationException {
+        if (type.getValue() == null) {
+            throw new WebApplicationException(Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("Query parameter 'type' is not valid")
+                    .build());
+        }
+
         if (from == -1) {
             throw new WebApplicationException(Response
                     .status(Response.Status.BAD_REQUEST)
@@ -194,10 +168,10 @@ public class AnalyticsParam {
                     .build());
         }
 
-        if (interval < 1_000 || interval > 20_000_000) {
+        if (interval < 1_000 || interval > 1_000_000_000) {
             throw new WebApplicationException(Response
                     .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 10000000")
+                    .entity("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000")
                     .build());
         }
 
@@ -206,6 +180,16 @@ public class AnalyticsParam {
                     .status(Response.Status.BAD_REQUEST)
                     .entity("'from' query parameter value must be greater than 'to'")
                     .build());
+        }
+
+        if (type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY) {
+            // we need a field and, optionally, a list of ranges
+            if (field == null || field.trim().isEmpty()) {
+                throw new WebApplicationException(Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity("'field' query parameter is required for 'group_by' request")
+                        .build());
+            }
         }
     }
 }

@@ -16,33 +16,37 @@
 package io.gravitee.management.rest.resource.param;
 
 import javax.ws.rs.WebApplicationException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.AnalyticsType> {
+public class RangesParam extends AbstractParam<List<Range>> {
 
-    public enum AnalyticsType {
-        GROUP_BY,
-        DATE_HISTO,
-        COUNT
-    }
-
-    public AnalyticsTypeParam(String param) throws WebApplicationException {
+    public RangesParam(String param) throws WebApplicationException {
         super(param);
     }
 
     @Override
-    protected AnalyticsType parse(String param) throws Throwable {
+    protected List<Range> parse(String param) throws Throwable {
         try {
             if (param != null) {
-                return AnalyticsType.valueOf(param.toUpperCase());
+                String [] inputRanges = param.split(";");
+                List<Range> ranges = new ArrayList<>(inputRanges.length);
+                for(String inputRange : inputRanges) {
+                    String [] inputRangeValues = inputRange.trim().split(":");
+                    ranges.add(new Range(
+                            Double.parseDouble(inputRangeValues[0]),
+                            Double.parseDouble(inputRangeValues[1])));
+                }
+
+                return ranges;
             }
         } catch (IllegalArgumentException iae) {
         }
 
         return null;
     }
-
 }

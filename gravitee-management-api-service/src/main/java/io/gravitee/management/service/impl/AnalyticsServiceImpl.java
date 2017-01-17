@@ -15,29 +15,36 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.common.data.domain.Order;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.analytics.*;
+import io.gravitee.management.model.analytics.query.CountQuery;
+import io.gravitee.management.model.analytics.query.DateHistogramQuery;
+import io.gravitee.management.model.analytics.query.GroupByQuery;
 import io.gravitee.management.service.AnalyticsService;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.management.service.exceptions.PlanNotFoundException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
-import io.gravitee.repository.analytics.query.response.HealthResponse;
-import io.gravitee.repository.analytics.query.response.HitsResponse;
-import io.gravitee.repository.analytics.query.response.TopHitsResponse;
+import io.gravitee.repository.analytics.query.*;
+import io.gravitee.repository.analytics.query.count.CountResponse;
+import io.gravitee.repository.analytics.query.groupby.GroupByQueryBuilder;
+import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
 import io.gravitee.repository.analytics.query.response.histogram.Data;
-import io.gravitee.repository.analytics.query.response.histogram.HistogramResponse;
+import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -63,59 +70,88 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Autowired
     private ApplicationService applicationService;
 
+    @Autowired
+    private PlanService planService;
+
     @Override
-    public HistogramAnalytics hitsBy(String query, String key, String field, List<String> aggTypes, long from, long to, long interval) {
+    public HitsAnalytics execute(CountQuery query) {
         try {
-            return convert(analyticsRepository.query(query, key, field, aggTypes, from, to, interval));
-        } catch (Exception ex) {
-            logger.error("An unexpected error occurs while searching for api hits by {}.", field, ex);
-            return null;
+            CountResponse response = analyticsRepository.query(
+                    QueryBuilders.count()
+                            .query(query.getQuery())
+                            .timeRange(
+                                    DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                                    IntervalBuilder.interval(query.getInterval())
+                            )
+                            .root(query.getRootField(), query.getRootIdentifier())
+                            .build());
+
+            return convert(response);
+        } catch (AnalyticsException ae) {
+            logger.error("Unable to calculate analytics: ", ae);
+            throw new TechnicalManagementException("Unable to calculate analytics", ae);
         }
     }
 
     @Override
-    public HitsAnalytics globalHits(String query, String key, long from, long to) {
+    public HistogramAnalytics execute(DateHistogramQuery query) {
         try {
-            return convert(analyticsRepository.query(query, key, from, to));
-        } catch (Exception ex) {
-            logger.error("An unexpected error occurs while searching for api global hits.", ex);
-            return null;
+            DateHistogramQueryBuilder queryBuilder = QueryBuilders.dateHistogram()
+                    .query(query.getQuery())
+                    .timeRange(
+                            DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                            IntervalBuilder.interval(query.getInterval())
+                    )
+                    .root(query.getRootField(), query.getRootIdentifier());
+
+            if (query.getAggregations() != null) {
+                query.getAggregations().stream()
+                        .forEach(aggregation ->
+                                queryBuilder.aggregation(
+                                        AggregationType.valueOf(aggregation.type().name()), aggregation.field()));
+            }
+
+            DateHistogramResponse response = analyticsRepository.query(queryBuilder.build());
+            return convert(response);
+        } catch (AnalyticsException ae) {
+            logger.error("Unable to calculate analytics: ", ae);
+            throw new TechnicalManagementException("Unable to calculate analytics", ae);
         }
     }
 
     @Override
-    public TopHitsAnalytics topHits(String query, String key, String field, long from, long to, int size) {
+    public TopHitsAnalytics execute(GroupByQuery query) {
         try {
-            return convert(analyticsRepository.query(query, key, field, (Order) null, from, to, size));
-        } catch (Exception ex) {
-            logger.error("An unexpected error occurs while searching for api top hits.", ex);
-            return null;
+            GroupByQueryBuilder queryBuilder = QueryBuilders.groupBy()
+                    .query(query.getQuery())
+                    .timeRange(
+                            DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                            IntervalBuilder.interval(query.getInterval())
+                    )
+                    .root(query.getRootField(), query.getRootIdentifier())
+                    .field(query.getField());
+
+            if (query.getGroups() != null) {
+                query.getGroups().forEach(queryBuilder::range);
+            }
+
+            if (query.getOrder() != null) {
+                GroupByQuery.Order order = query.getOrder();
+                queryBuilder.sort(SortBuilder.on(
+                        order.getField(),
+                        order.isOrder() ? Order.ASC : Order.DESC,
+                        (order.getType() == null) ? SortType.AVG : SortType.valueOf(order.getType().toUpperCase())));
+            }
+
+            GroupByResponse response = analyticsRepository.query(queryBuilder.build());
+            return convert(response);
+        } catch (AnalyticsException ae) {
+            logger.error("Unable to calculate analytics: ", ae);
+            throw new TechnicalManagementException("Unable to calculate analytics", ae);
         }
     }
 
-    @Override
-    public TopHitsAnalytics topHits(String query, String key, String field, Order order, long from, long to, int size) {
-        try {
-            return convert(analyticsRepository.query(query, key, field, order, from, to, size));
-        } catch (Exception ex) {
-            logger.error("An unexpected error occurs while searching for api top hits.", ex);
-            return null;
-        }
-    }
-
-    @Override
-    public HealthAnalytics health(String api, long from, long to, long interval) {
-        logger.debug("Run health query for API '{}'", api);
-
-        try {
-            return convert(analyticsRepository.query(api, interval, from, to));
-        } catch (Exception ex) {
-            logger.error("An unexpected error occurs while searching for health data.", ex);
-            return null;
-        }
-    }
-
-    private HistogramAnalytics convert(HistogramResponse histogramResponse) {
+    private HistogramAnalytics convert(DateHistogramResponse histogramResponse) {
         final HistogramAnalytics analytics = new HistogramAnalytics();
         final List<Long> timestamps = histogramResponse.timestamps();
         if (timestamps != null && timestamps.size() > 1) {
@@ -125,28 +161,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
             analytics.setTimestamp(new Timestamp(from, to, interval));
 
+            List<Bucket> buckets = new ArrayList<>(histogramResponse.values().size());
             for (io.gravitee.repository.analytics.query.response.histogram.Bucket bucket : histogramResponse.values()) {
                 Bucket analyticsBucket = convertBucket(histogramResponse.timestamps(), from, interval, bucket);
-                analytics.getValues().add(analyticsBucket);
-
-                if (analyticsBucket.getName().equals("api-hits-by-application")) {
-                    // Prepare metadata
-                    Map<String, Map<String, String>> metadata = new HashMap<>();
-                    analyticsBucket.getBuckets().stream().map(Bucket::getName).forEach(app -> {
-                        metadata.put(app, getApplicationMetadata(app));
-                    });
-
-                    analytics.setMetadata(metadata);
-                } else if (analyticsBucket.getName().equals("application-hits-by-api")) {
-                    // Prepare metadata
-                    Map<String, Map<String, String>> metadata = new HashMap<>();
-                    analyticsBucket.getBuckets().stream().map(Bucket::getName).forEach(api -> {
-                        metadata.put(api, getAPIMetadata(api));
-                    });
-
-                    analytics.setMetadata(metadata);
-                }
+                buckets.add(analyticsBucket);
             }
+            analytics.setValues(buckets);
+
         }
         return analytics;
     }
@@ -154,9 +175,30 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private Bucket convertBucket(List<Long> timestamps, long from, long interval, io.gravitee.repository.analytics.query.response.histogram.Bucket bucket) {
         Bucket analyticsBucket = new Bucket();
         analyticsBucket.setName(bucket.name());
+        analyticsBucket.setField(bucket.field());
+
+        List<Bucket> childBuckets = new ArrayList<>();
 
         for (io.gravitee.repository.analytics.query.response.histogram.Bucket childBucket : bucket.buckets()) {
-            analyticsBucket.getBuckets().add(convertBucket(timestamps, from, interval, childBucket));
+            childBuckets.add(convertBucket(timestamps, from, interval, childBucket));
+        }
+
+        if (analyticsBucket.getField().equals("application")) {
+            // Prepare metadata
+            Map<String, Map<String, String>> metadata = new HashMap<>();
+            bucket.data().keySet().stream().forEach(app -> {
+                metadata.put(app, getApplicationMetadata(app));
+            });
+
+            analyticsBucket.setMetadata(metadata);
+        } else if (analyticsBucket.getField().equals("api")) {
+            // Prepare metadata
+            Map<String, Map<String, String>> metadata = new HashMap<>();
+            bucket.data().keySet().stream().forEach(api -> {
+                metadata.put(api, getAPIMetadata(api));
+            });
+
+            analyticsBucket.setMetadata(metadata);
         }
 
         for (Map.Entry<String, List<Data>> dataBucket : bucket.data().entrySet()) {
@@ -169,56 +211,52 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
 
             analyticsDataBucket.setData(values);
-
-            analyticsBucket.getBuckets().add(analyticsDataBucket);
+            childBuckets.add(analyticsDataBucket);
         }
+        analyticsBucket.setBuckets(childBuckets);
 
         return analyticsBucket;
     }
 
-    private HealthAnalytics convert(HealthResponse response) {
-        HealthAnalytics healthAnalytics = new HealthAnalytics();
-
-        healthAnalytics.setTimestamps(response.timestamps());
-        healthAnalytics.setBuckets(response.buckets());
-
-        return healthAnalytics;
-    }
-
-    private HitsAnalytics convert(HitsResponse hitsResponse) {
+    private HitsAnalytics convert(CountResponse countResponse) {
         HitsAnalytics hitsAnalytics = new HitsAnalytics();
-        hitsAnalytics.setName(hitsResponse.getName());
-        hitsAnalytics.setHits(hitsResponse.getHits());
+//        hitsAnalytics.setName(countResponse.getName());
+        hitsAnalytics.setHits(countResponse.getCount());
 
         return  hitsAnalytics;
     }
 
-    private TopHitsAnalytics convert(TopHitsResponse topHitsResponse) {
+    private TopHitsAnalytics convert(GroupByResponse groupByResponse) {
         TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
-        topHitsAnalytics.setName(topHitsResponse.getName());
-        topHitsAnalytics.setValues(topHitsResponse.getValues());
 
-        String queryName = topHitsResponse.getName();
-        boolean api = false;
-        if (queryName.contains("apis")) {
-            api = true;
-        } else if (queryName.contains("apps")) {
-            api = false;
-        }
+        // Set results
+        topHitsAnalytics.setValues(
+            groupByResponse.values()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            GroupByResponse.Bucket::name, GroupByResponse.Bucket::value,
+                            (v1,v2) ->{ throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));},
+                            LinkedHashMap::new)));
 
-        // Prepare metadata
-        Map<String, Map<String, String>> metadata = new HashMap<>();
-        if (topHitsResponse.getValues() != null) {
-            for (String key : topHitsResponse.getValues().keySet()) {
-                if (api) {
-                    metadata.put(key, getAPIMetadata(key));
-                } else {
-                    metadata.put(key, getApplicationMetadata(key));
+        String fieldName = groupByResponse.getField();
+
+        if (fieldName != null &&
+                (fieldName.equals("api") || fieldName.equals("application") || fieldName.equals("plan"))) {
+
+            // Prepare metadata
+            Map<String, Map<String, String>> metadata = new HashMap<>();
+            if (topHitsAnalytics.getValues() != null) {
+                for (String key : topHitsAnalytics.getValues().keySet()) {
+                    switch(fieldName) {
+                        case "api": metadata.put(key, getAPIMetadata(key)); break;
+                        case "application": metadata.put(key, getApplicationMetadata(key)); break;
+                        case "plan": metadata.put(key, getPlanMetadata(key)); break;
+                    }
                 }
             }
-        }
 
-        topHitsAnalytics.setMetadata(metadata);
+            topHitsAnalytics.setMetadata(metadata);
+        }
 
         return  topHitsAnalytics;
     }
@@ -256,4 +294,19 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         return metadata;
     }
+
+    private Map<String, String> getPlanMetadata(String plan) {
+        Map<String, String> metadata = new HashMap<>();
+
+        try {
+            PlanEntity planEntity = planService.findById(plan);
+            metadata.put("name", planEntity.getName());
+        } catch (PlanNotFoundException anfe) {
+            metadata.put("deleted", "true");
+        }
+
+        return metadata;
+    }
+
+
 }

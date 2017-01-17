@@ -15,18 +15,24 @@
  */
 package io.gravitee.management.model.analytics;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class Bucket {
 
     private List<Bucket> buckets;
 
+    private String field;
+
     private String name;
+
     private long [] data;
+
+    private Map<String, Map<String, String>> metadata;
 
     public void setBuckets(List<Bucket> buckets) {
         this.buckets = buckets;
@@ -48,10 +54,23 @@ public class Bucket {
         this.data = data;
     }
 
+    public String getField() {
+        return field;
+    }
+
+    public void setField(String field) {
+        this.field = field;
+    }
+
     public List<Bucket> getBuckets() {
-        if (buckets == null) {
-            buckets = new ArrayList<>();
-        }
         return buckets;
+    }
+
+    public Map<String, Map<String, String>> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Map<String, String>> metadata) {
+        this.metadata = metadata;
     }
 }

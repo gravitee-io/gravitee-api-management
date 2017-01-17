@@ -13,36 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource.param;
+package io.gravitee.management.service;
 
-import javax.ws.rs.WebApplicationException;
+import io.gravitee.management.model.analytics.HealthAnalytics;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.AnalyticsType> {
+public interface HealthCheckService {
 
-    public enum AnalyticsType {
-        GROUP_BY,
-        DATE_HISTO,
-        COUNT
-    }
-
-    public AnalyticsTypeParam(String param) throws WebApplicationException {
-        super(param);
-    }
-
-    @Override
-    protected AnalyticsType parse(String param) throws Throwable {
-        try {
-            if (param != null) {
-                return AnalyticsType.valueOf(param.toUpperCase());
-            }
-        } catch (IllegalArgumentException iae) {
-        }
-
-        return null;
-    }
-
+    HealthAnalytics health(String api, long from, long to, long interval);
 }

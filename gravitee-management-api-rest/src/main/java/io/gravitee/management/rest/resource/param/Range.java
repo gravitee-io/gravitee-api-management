@@ -15,34 +15,34 @@
  */
 package io.gravitee.management.rest.resource.param;
 
-import javax.ws.rs.WebApplicationException;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.AnalyticsType> {
+public class Range {
 
-    public enum AnalyticsType {
-        GROUP_BY,
-        DATE_HISTO,
-        COUNT
+    private double from;
+
+    private double to;
+
+    public Range(double from, double to) {
+        this.from = from;
+        this.to = to;
     }
 
-    public AnalyticsTypeParam(String param) throws WebApplicationException {
-        super(param);
+    public double getFrom() {
+        return from;
     }
 
-    @Override
-    protected AnalyticsType parse(String param) throws Throwable {
-        try {
-            if (param != null) {
-                return AnalyticsType.valueOf(param.toUpperCase());
-            }
-        } catch (IllegalArgumentException iae) {
-        }
-
-        return null;
+    public void setFrom(double from) {
+        this.from = from;
     }
 
+    public double getTo() {
+        return to;
+    }
+
+    public void setTo(double to) {
+        this.to = to;
+    }
 }

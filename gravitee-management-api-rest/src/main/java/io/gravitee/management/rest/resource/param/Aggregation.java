@@ -15,30 +15,28 @@
  */
 package io.gravitee.management.rest.resource.param;
 
-import java.util.ArrayList;
-import java.util.List;
+import io.gravitee.management.model.analytics.query.AggregationType;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AnalyticsAggTypeParam {
+public class Aggregation {
 
-    private static final String SEPARATOR = ",";
-    private List<String> aggTypes;
+    private AggregationType type;
 
-    public AnalyticsAggTypeParam(String param) {
-        aggTypes = new ArrayList<>();
+    private String field;
 
-        if (param != null) {
-            String[] params = param.replaceAll("\\s","").split(SEPARATOR);
-            for (String _param : params) {
-                aggTypes.add(_param);
-            }
-        }
+    public Aggregation(AggregationType type, String field) {
+        this.type = type;
+        this.field = field;
     }
 
-    public List<String> getAggTypes() {
-        return aggTypes;
+    public AggregationType getType() {
+        return type;
+    }
+
+    public String getField() {
+        return field;
     }
 }

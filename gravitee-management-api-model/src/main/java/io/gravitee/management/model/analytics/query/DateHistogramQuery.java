@@ -13,36 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource.param;
+package io.gravitee.management.model.analytics.query;
 
-import javax.ws.rs.WebApplicationException;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.AnalyticsType> {
+public class DateHistogramQuery extends AbstractQuery {
 
-    public enum AnalyticsType {
-        GROUP_BY,
-        DATE_HISTO,
-        COUNT
+    private List<Aggregation> aggregations;
+
+    public List<Aggregation> getAggregations() {
+        return aggregations;
     }
 
-    public AnalyticsTypeParam(String param) throws WebApplicationException {
-        super(param);
+    public void setAggregations(List<Aggregation> aggregations) {
+        this.aggregations = aggregations;
     }
-
-    @Override
-    protected AnalyticsType parse(String param) throws Throwable {
-        try {
-            if (param != null) {
-                return AnalyticsType.valueOf(param.toUpperCase());
-            }
-        } catch (IllegalArgumentException iae) {
-        }
-
-        return null;
-    }
-
 }

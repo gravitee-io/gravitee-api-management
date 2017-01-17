@@ -23,19 +23,9 @@ import java.util.Map;
  */
 public class TopHitsAnalytics implements Analytics {
 
-    private String name;
-
     private Map<String, Long> values;
 
     private Map<String, Map<String, String>> metadata;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public Map<String, Long> getValues() {
         return values;

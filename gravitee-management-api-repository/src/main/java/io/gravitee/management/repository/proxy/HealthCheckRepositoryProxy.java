@@ -13,36 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource.param;
+package io.gravitee.management.repository.proxy;
 
-import javax.ws.rs.WebApplicationException;
+import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.healthcheck.HealthCheckRepository;
+import io.gravitee.repository.healthcheck.HealthResponse;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.AnalyticsType> {
-
-    public enum AnalyticsType {
-        GROUP_BY,
-        DATE_HISTO,
-        COUNT
-    }
-
-    public AnalyticsTypeParam(String param) throws WebApplicationException {
-        super(param);
-    }
+@Component
+public class HealthCheckRepositoryProxy extends AbstractProxy<HealthCheckRepository> implements HealthCheckRepository {
 
     @Override
-    protected AnalyticsType parse(String param) throws Throwable {
-        try {
-            if (param != null) {
-                return AnalyticsType.valueOf(param.toUpperCase());
-            }
-        } catch (IllegalArgumentException iae) {
-        }
-
-        return null;
+    public HealthResponse query(String s, long l, long l1, long l2) throws AnalyticsException {
+        return target.query(s, l, l1, l2);
     }
-
 }

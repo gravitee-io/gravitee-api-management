@@ -23,12 +23,12 @@ public class Timestamp {
 
     private final Long from;
     private final Long to;
-    private final Long gap;
+    private final Long interval;
 
-    public Timestamp(Long from, Long to, Long gap) {
+    public Timestamp(Long from, Long to, Long interval) {
         this.from = from;
         this.to = to;
-        this.gap = gap;
+        this.interval = interval;
     }
 
     public Long getFrom() {
@@ -39,7 +39,7 @@ public class Timestamp {
         return to;
     }
 
-    public Long getGap() {
-        return gap;
+    public Long getInterval() {
+        return interval;
     }
 }

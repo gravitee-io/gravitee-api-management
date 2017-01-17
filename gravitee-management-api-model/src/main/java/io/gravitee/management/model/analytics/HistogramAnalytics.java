@@ -26,8 +26,7 @@ import java.util.*;
 public class HistogramAnalytics implements Analytics {
 
     private Timestamp timestamp;
-    private List<Bucket> values = new ArrayList<>();
-    private Map<String, Map<String, String>> metadata;
+    private List<Bucket> values;
 
     public List<Bucket> getValues() {
         return values;
@@ -43,13 +42,5 @@ public class HistogramAnalytics implements Analytics {
 
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
-    }
-
-    public Map<String, Map<String, String>> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, Map<String, String>> metadata) {
-        this.metadata = metadata;
     }
 }

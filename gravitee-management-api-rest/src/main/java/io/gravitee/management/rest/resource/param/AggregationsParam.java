@@ -15,34 +15,40 @@
  */
 package io.gravitee.management.rest.resource.param;
 
+import io.gravitee.management.model.analytics.query.AggregationType;
+
 import javax.ws.rs.WebApplicationException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.AnalyticsType> {
+public class AggregationsParam extends AbstractParam<List<Aggregation>> {
 
-    public enum AnalyticsType {
-        GROUP_BY,
-        DATE_HISTO,
-        COUNT
-    }
-
-    public AnalyticsTypeParam(String param) throws WebApplicationException {
+    public AggregationsParam(String param) throws WebApplicationException {
         super(param);
     }
 
     @Override
-    protected AnalyticsType parse(String param) throws Throwable {
+    protected List<Aggregation> parse(String param) throws Throwable {
         try {
             if (param != null) {
-                return AnalyticsType.valueOf(param.toUpperCase());
+                String [] inputAggs = param.split(";");
+                List<Aggregation> aggregations = new ArrayList<>(inputAggs.length);
+                for(String inputAgg : inputAggs) {
+                    String [] inputRangeValues = inputAgg.trim().split(":");
+                    aggregations.add(new Aggregation(
+                            AggregationType.valueOf(inputRangeValues[0].toUpperCase()),
+                            inputRangeValues[1]));
+                }
+
+                return aggregations;
             }
         } catch (IllegalArgumentException iae) {
         }
 
         return null;
     }
-
 }
