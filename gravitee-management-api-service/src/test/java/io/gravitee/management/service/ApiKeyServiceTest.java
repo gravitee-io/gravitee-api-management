@@ -77,9 +77,6 @@ public class ApiKeyServiceTest {
     private ApplicationEntity application;
 
     @Mock
-    private PrimaryOwnerEntity primaryOwner;
-
-    @Mock
     private ApiKey apiKey;
 
     @Mock
@@ -87,12 +84,6 @@ public class ApiKeyServiceTest {
 
     @Mock
     private PlanEntity plan;
-
-    @Mock
-    private ApiEntity api;
-
-    @Mock
-    private Date date;
 
     @Test
     public void shouldGenerate() throws TechnicalException {
