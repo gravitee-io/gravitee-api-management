@@ -39,7 +39,7 @@
                       sub-message="Start creating a page"
                       create-mode="true"></gravitee-empty-state>
 
-<md-fab-speed-dial gravitee-roles-allowed="ADMIN, API_PUBLISHER" md-direction="{{documentationCtrl.pages.length > 0 ? 'left' : 'down'}}" md-open="false"
+<md-fab-speed-dial ng-if="documentationCtrl.$state.current.name != 'apis.admin.documentation.new' && listPagesDisplayed" gravitee-roles-allowed="ADMIN, API_PUBLISHER" md-direction="{{documentationCtrl.pages.length > 0 ? 'left' : 'down'}}" md-open="false"
                    ng-class="{'md-fab-bottom-right gravitee-add-button' : documentationCtrl.pages.length > 0}" class="md-scale">
   <md-fab-trigger>
     <md-button aria-label="menu" class="md-fab md-success">
