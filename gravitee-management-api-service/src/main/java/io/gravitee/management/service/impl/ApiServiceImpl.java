@@ -507,8 +507,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public String exportAsJson(final String apiId, io.gravitee.management.model.MembershipType membershipType) {
+    public String exportAsJson(final String apiId, io.gravitee.management.model.MembershipType membershipType, String... filteredFields) {
         final ApiEntity apiEntity = findById(apiId);
+        List<String> filteredFiedsList = Arrays.asList(filteredFields);
 
         apiEntity.setId(null);
         apiEntity.setCreatedAt(null);
@@ -516,35 +517,62 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setDeployedAt(null);
         apiEntity.setPrimaryOwner(null);
         apiEntity.setState(null);
+        // because ApiEntity checks permission before export datas,
+        // we have to set membershipType.
+        // see annotations `MembershipTypesAllowed` ok ApiEntity class.
         apiEntity.setPermission(membershipType);
+        ObjectNode apiJsonNode = objectMapper.valueToTree(apiEntity);
+        String field;
 
-        Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, apiId);
-        if (members != null) {
-            members.forEach(m -> {
-                m.setCreatedAt(null);
-                m.setUpdatedAt(null);
-            });
-        }
-        List<PageListItem> pageListItems = pageService.findByApi(apiId);
-        List<PageEntity> pages = null;
-        if (pageListItems != null) {
-            pages = new ArrayList<>(pageListItems.size());
-            List<PageEntity> finalPages = pages;
-            pageListItems.forEach(f -> {
-                PageEntity pageEntity = pageService.findById(f.getId());
-                pageEntity.setId(null);
-                finalPages.add(pageEntity);
-            });
-        }
-        try {
-            ObjectNode apiJsonNode = objectMapper.valueToTree(apiEntity);
-            apiJsonNode.remove("permission");
-            apiJsonNode.remove("group");
+        field = "group";
+        if (!filteredFiedsList.contains(field)) {
+             apiJsonNode.remove(field);
             if (apiEntity.getGroup() != null) {
-                apiJsonNode.put("group", apiEntity.getGroup().getName());
+                apiJsonNode.put(field, apiEntity.getGroup().getName());
             }
-            apiJsonNode.putPOJO("members", members == null ? Collections.emptyList() : members);
-            apiJsonNode.putPOJO("pages", pages == null ? Collections.emptyList() : pages);
+        }
+
+        field = "members";
+        if (!filteredFiedsList.contains(field)) {
+            Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, apiId);
+            if (members != null) {
+                members.forEach(m -> {
+                    m.setCreatedAt(null);
+                    m.setUpdatedAt(null);
+                });
+            }
+            apiJsonNode.putPOJO(field, members == null ? Collections.emptyList() : members);
+        }
+
+        field = "pages";
+        if (!filteredFiedsList.contains(field)) {
+            List<PageListItem> pageListItems = pageService.findByApi(apiId);
+            List<PageEntity> pages = null;
+            if (pageListItems != null) {
+                pages = new ArrayList<>(pageListItems.size());
+                List<PageEntity> finalPages = pages;
+                pageListItems.forEach(f -> {
+                    PageEntity pageEntity = pageService.findById(f.getId());
+                    pageEntity.setId(null);
+                    finalPages.add(pageEntity);
+                });
+            }
+            apiJsonNode.putPOJO(field, pages == null ? Collections.emptyList() : pages);
+        }
+
+        field = "plans";
+        if (!filteredFiedsList.contains(field)) {
+            Set<PlanEntity> plans = planService.findByApi(apiId);
+            Set<PlanEntity> plansToAdd = plans == null
+                    ? Collections.emptySet()
+                    : plans.stream()
+                    .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
+                    .collect(Collectors.toSet());
+            apiJsonNode.putPOJO(field, plansToAdd);
+        }
+
+        try {
+            apiJsonNode.remove("permission");
             return objectMapper.writeValueAsString(apiJsonNode);
         } catch (final Exception e) {
             LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
@@ -601,6 +629,15 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             if (pagesDefinition != null && pagesDefinition.isArray()) {
                 for (final JsonNode pageNode : pagesDefinition) {
                     pageService.create(createdOrUpdatedApiEntity.getId(), objectMapper.readValue(pageNode.toString(), NewPageEntity.class));
+                }
+            }
+            //Plans
+            final JsonNode plansDefinition = jsonNode.path("plans");
+            if (plansDefinition != null && plansDefinition.isArray()) {
+                for (JsonNode planNode : plansDefinition) {
+                    NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
+                    newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
+                    planService.create(newPlanEntity);
                 }
             }
             return createdOrUpdatedApiEntity;

@@ -7,13 +7,6 @@
     "username" : "johndoe",
     "type" : "PRIMARY_OWNER"
   } ],
-  "pages" : [ {
-    "name" : "My Title",
-    "type" : "MARKDOWN",
-    "content" : "Read the doc",
-    "order" : 1,
-    "published" : false
-  } ],
   "plans" : [ {
     "id" : "plan-id",
     "description" : "free plan",

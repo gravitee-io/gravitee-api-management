@@ -19,10 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.MembershipType;
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -77,6 +74,9 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private PlanService planService;
 
     @Test
     public void shouldUpdateImportApiWithMembersAndPages() throws IOException, TechnicalException {
@@ -364,5 +364,37 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
+    }
+
+    @Test
+    public void shouldCreateImportApiWithPlans() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+plans.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po.setType(MembershipType.PRIMARY_OWNER.name());
+        Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
+        owner.setType(MembershipType.OWNER.name());
+        when(membershipRepository.findById(po.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(po));
+        when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.empty());
+        UserEntity admin = new UserEntity();
+        admin.setUsername(po.getUserId());
+        UserEntity user = new UserEntity();
+        user.setUsername(owner.getUserId());
+        when(userService.findByName(admin.getUsername())).thenReturn(admin);
+        when(userService.findByName(user.getUsername())).thenReturn(user);
+
+        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+
+        verify(planService, times(1)).create(any(NewPlanEntity.class));
+        verify(membershipRepository, times(1)).create(po);
+        verify(apiRepository, never()).update(any());
+        verify(apiRepository, times(1)).create(any());
+
     }
 }
