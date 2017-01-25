@@ -523,19 +523,22 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       url: '/login',
       templateUrl: 'app/login/login.html',
       controller: 'LoginController',
-      controllerAs: 'loginCtrl'
+      controllerAs: 'loginCtrl',
+      devMode: true
     })
     .state('registration', {
       url: '/registration',
       templateUrl: 'app/registration/registration.html',
       controller: 'RegistrationController',
-      controllerAs: 'registrationCtrl'
+      controllerAs: 'registrationCtrl',
+      devMode: true
     })
     .state('confirm', {
       url: '/registration/confirm/:token',
       templateUrl: 'app/registration/confirm/confirm.html',
       controller: 'ConfirmController',
-      controllerAs: 'confirmCtrl'
+      controllerAs: 'confirmCtrl',
+      devMode: true
     });
 
   $urlRouterProvider.otherwise('/');
