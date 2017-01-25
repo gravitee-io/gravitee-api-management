@@ -32,6 +32,8 @@
           <md-card class="gravitee-card gravitee-plan-application-card">
             <md-card-content>
               <h5>{{application.name}}</h5>
+              <span ng-if="application.type" style="color:#cdcdcd;" class="ng-binding ng-scope">{{application.type}}</span>
+              <span ng-if="!application.type">&nbsp;</span>
               <div class="gravitee-plan-application-image"></div>
             </md-card-content>
             <md-card-footer>
