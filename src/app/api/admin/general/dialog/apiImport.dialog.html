@@ -15,32 +15,21 @@
     limitations under the License.
 
 -->
-<md-dialog style="min-width:60%;">
-  <form name="formApiDefinition" ng-submit="dialogApiDefinitionCtrl.import()" novalidate>
-  <md-toolbar>
-    <div class="md-toolbar-tools">
-      <h2>Import an API definition</h2>
-      <span flex></span>
-      <md-button type="button" class="md-icon-button" ng-click="dialogApiDefinitionCtrl.hide()">
-        X
-      </md-button>
-    </div>
-  </md-toolbar>
-  <md-dialog-content style="max-width:800px;max-height:810px; ">
-    <div layout="row">
+<md-dialog>
+  <form name="formApiDefinition" ng-submit="dialogApiImportCtrl.import()" novalidate>
+  <md-dialog-content layout-padding>
+      <h4>Import API definition from file</h4>
       <div flex layout="column" layout-align="center center" class="gravitee-api-definition-dialog">
-        <span>Import APIs definition from file</span>
         <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" />
       </div>
-    </div>
   </md-dialog-content>
-  <div class="md-actions" layout="row">
-    <md-button type="button" md-no-ink class="md-primary" ng-click="dialogApiDefinitionCtrl.hide()" style="margin-right:20px;">
-      Close
+    <md-dialog-actions layout="row">
+    <md-button md-no-ink class="md-primary" ng-click="dialogApiImportCtrl.hide()">
+      Cancel
     </md-button>
-    <md-button class="md-raised" type="submit" ng-disabled="formApiDefinition.$invalid">
+    <md-button class="md-raised md-primary" type="submit" ng-disabled="formApiDefinition.$invalid">
      Import
     </md-button>
-  </div>
+    </md-dialog-actions>
   </form>
 </md-dialog>

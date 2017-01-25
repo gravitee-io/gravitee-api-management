@@ -234,9 +234,10 @@ class ApiAdminController {
   showImportDialog() {
     var that = this;
     this.$mdDialog.show({
-      controller: 'DialogApiDefinitionController',
-      controllerAs: 'dialogApiDefinitionCtrl',
-      templateUrl: 'app/api/admin/general/dialog/apiDefinition.dialog.html',
+      controller: 'DialogApiImportController',
+      controllerAs: 'dialogApiImportCtrl',
+      templateUrl: 'app/api/admin/general/dialog/apiImport.dialog.html',
+      clickOutsideToClose: true,
       apiId: this.$scope.$parent.apiCtrl.api.id
     }).then(function (response) {
       if (response) {
@@ -245,17 +246,13 @@ class ApiAdminController {
     });
   }
 
-  export(id) {
-    var that = this;
-    this.ApiService.export(id).then(function (response) {
-      var link = document.createElement('a');
-      document.body.appendChild(link);
-      link.href = 'data:application/json;charset=utf-8;base64,' + that.base64.encode(JSON.stringify(response.data, null, 2));
-      var contentDispositionHeader = response.headers('content-disposition') || response.headers('Content-Disposition');
-      link.download = contentDispositionHeader ? contentDispositionHeader.split('=')[1] : id;
-      link.target = "_self";
-      link.click();
-      document.body.removeChild(link);
+  showExportDialog() {
+    this.$mdDialog.show({
+      controller: 'DialogApiExportController',
+      controllerAs: 'dialogApiExportCtrl',
+      templateUrl: 'app/api/admin/general/dialog/apiExport.dialog.html',
+      clickOutsideToClose: true,
+      apiId: this.$scope.$parent.apiCtrl.api.id
     });
   }
 

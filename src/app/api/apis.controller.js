@@ -142,9 +142,9 @@ class ApisController {
   showImportDialog() {
     var that = this;
     this.$mdDialog.show({
-      controller: 'DialogApiDefinitionController',
-      controllerAs: 'dialogApiDefinitionCtrl',
-      templateUrl: 'app/api/admin/general/dialog/apiDefinition.dialog.html',
+      controller: 'DialogApiImportController',
+      controllerAs: 'dialogApiImportCtrl',
+      templateUrl: 'app/api/admin/general/dialog/apiImport.dialog.html',
       apiId: ''
     }).then(function (response) {
       if (response) {

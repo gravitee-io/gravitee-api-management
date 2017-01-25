@@ -74,7 +74,8 @@ import PageDirective from './components/documentation/page.directive';
 import LoginController from './login/login.controller';
 import RoleDirective from './components/role/role.directive';
 import DiffDirective from './components/diff/diff.directive';
-import DialogApiDefinitionController from './api/admin/general/dialog/apiDefinitionDialog.controller';
+import DialogApiImportController from './api/admin/general/dialog/apiImportDialog.controller';
+import DialogApiExportController from './api/admin/general/dialog/apiExportDialog.controller';
 import InstancesService from './services/instances.service';
 import InstancesController from './instances/instances.controller';
 import InstanceController from './instances/details/instance.controller';
@@ -174,7 +175,8 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('ApplicationAnalyticsController', ApplicationAnalyticsController)
   .controller('DialogApplicationController', DialogApplicationController)
   .controller('DialogAddMemberController', DialogAddMemberController)
-  .controller('DialogApiDefinitionController', DialogApiDefinitionController)
+  .controller('DialogApiImportController', DialogApiImportController)
+  .controller('DialogApiExportController', DialogApiExportController)
   .controller('DialogEditPolicyController', DialogEditPolicyController)
   .controller('PageController', PageController)
   .controller('LoginController', LoginController)

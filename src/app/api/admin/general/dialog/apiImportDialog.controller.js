@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogApiDefinitionImportController($scope, $mdDialog, ApiService, apiId) {
+function DialogApiImportController($scope, $mdDialog, ApiService, apiId) {
   'ngInject';
 
   $scope.pageContentFile = {content: '', name : ''};
@@ -29,4 +29,4 @@ function DialogApiDefinitionImportController($scope, $mdDialog, ApiService, apiI
   };
 }
 
-export default DialogApiDefinitionImportController;
+export default DialogApiImportController;
