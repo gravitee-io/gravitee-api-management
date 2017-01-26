@@ -21,7 +21,7 @@ describe('The policy view', function () {
   browser.addMockModule('httpBackendMockModule', require('../../mocked-backend').httpBackendMock);
 
   beforeEach(function () {
-    browser.get('#/apis/swapi/settings/policies');
+    browser.get('#!/apis/swapi/settings/policies');
     page = require('./policy.po');
   });
 

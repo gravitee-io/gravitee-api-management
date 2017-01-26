@@ -1,0 +1,64 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-card class="no-box-shadow" ng-if="!isLoading && $ctrl.instances.length > 0">
+  <md-card-header>
+    <md-card-header-text layout="row" layout-align="center">
+      <div class="input-group apis-header-filter" flex="60">
+        <input class="form-control" type="text" ng-model="$ctrl.searchGatewayInstances"
+               placeholder="Search Gateway instances..." autofocus/>
+      </div>
+    </md-card-header-text>
+    <md-switch style="margin: 0 auto;" ng-model="$ctrl.displayAllInstances"
+               ng-change="switchDisplayInstances()">
+      Display all instances
+    </md-switch>
+  </md-card-header>
+  <md-card-content ng-if="!isLoading && !$ctrl._displayEmptyMode"
+                   style="padding: 0; overflow-y: auto; height: calc(100vh - 90px);">
+    <div layout="row" layout-wrap class="inset">
+      <div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33"
+           ng-repeat="instance in $ctrl.instances | filter:displayAllInstances?{}:{state: 'started'}
+             | filter:$ctrl.searchGatewayInstances | orderBy:'-started_at'">
+        <a ui-sref="instances.detail.environment({instanceId: instance.event})">
+          <md-card class="api-box gravitee-card gravitee-api-card">
+            <md-card-header layout="row" layout-align="end start">
+            </md-card-header>
+            <md-card-content>
+              <div class="api-box-description">
+                <ng-md-icon icon="{{$ctrl.getOSIcon(instance.operating_system_name)}}" size="60"></ng-md-icon>
+                <div class="api-box-name-version">
+                  <div>{{instance.hostname}}</div>
+                  <div>{{instance.ip}}:{{instance.port}}</div>
+                </div>
+                <div class="api-box-state" layout-padding>
+                    <span ng-class="{'gravitee-instances-started':instance.state === 'started',
+                    'gravitee-instances-stopped':instance.state === 'stopped'}">{{instance.state}}</span>
+                </div>
+              </div>
+            </md-card-content>
+          </md-card>
+        </a>
+      </div>
+    </div>
+  </md-card-content>
+</md-card>
+
+<gravitee-empty-state ng-if="!isLoading && $ctrl.displayEmptyMode"
+                      icon="developer_dashboard"
+                      model="Instance"
+                      message="There is no Gateway instance running"/>

@@ -1,7 +1,0 @@
-{
-  "name": "angular-material-card",
-  "version": "1.1.2-master-a9ba340",
-  "dependencies": {
-    "angular-material-core": "1.1.2-master-a9ba340"
-  }
-}

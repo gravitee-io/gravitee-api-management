@@ -1,0 +1,372 @@
+@import '~angular-material/angular-material';
+@import '~angular-material-data-table/dist/md-data-table.min';
+@import '~bootstrap/dist/css/bootstrap.min.css';
+@import '~angular-gridster/dist/angular-gridster.min.css';
+@import '~angular-swagger-ui/dist/css/swagger-ui.min.css';
+@import '~dragular/dist/dragular';
+@import '~v-accordion/dist/v-accordion.min.css';
+
+@import '~codemirror/lib/codemirror';
+@import '~codemirror/addon/dialog/dialog';
+@import '~codemirror/addon/lint/lint';
+
+@import '~angular-timeline/dist/angular-timeline.css';
+
+@import '~md-steppers/dist/md-steppers.min.css';
+
+@import 'constants.scss';
+
+@import 'main/_main.scss';
+@import 'user/_user.scss';
+@import 'policy/_policy.scss';
+
+@import 'api/_api.scss';
+@import 'api/admin/analytics/_analytics.scss';
+@import 'api/admin/creation/_apiCreation.scss';
+@import 'api/admin/documentation/_apiDocumentation.scss';
+@import 'api/admin/events/_apiEvents.scss';
+@import 'api/admin/healthcheck/_healthcheck.scss';
+@import 'api/admin/history/_apiHistory.scss';
+@import 'api/admin/members/_members.scss';
+@import 'api/admin/plans/_apiPlans.scss';
+@import 'api/admin/properties/_properties.scss';
+@import 'api/admin/resources/_resources.scss';
+@import 'api/admin/subscriptions/_subscriptions.scss';
+@import 'api/portal/plan/_plan.scss';
+
+@import 'application/applications.scss';
+
+@import 'components/dashboard/dashboard.scss';
+@import 'components/sidenav/_sidenav.scss';
+@import 'components/image/_image.scss';
+@import 'components/widget/_widget.scss';
+
+@import 'instances/_instances.scss';
+
+@import 'platform/dashboard/_dashboard.scss';
+
+
+$backgroundColor: rgb(45,50,62);
+
+html {
+  font-family: 'Roboto Slab', serif;
+}
+
+body {
+  background-color: lightgrey;
+}
+
+[layout=row] {
+  flex-direction: row;
+}
+
+.browsehappy {
+  margin: 0.2em 0;
+  background: #ccc;
+  color: #000;
+  padding: 0.2em 0;
+}
+
+.thumbnail {
+  height: 200px;
+
+  img.pull-right {
+    width: 50px;
+  }
+}
+
+.user-avatar {
+  border-radius: 99%;
+}
+
+.md-toolbar-tools-bottom {
+  font-size: small;
+}
+
+.gravitee-table {
+  width: 100%;
+
+  th {
+    text-align: center;
+  }
+}
+
+.gravitee-logo {
+  height: 200px;
+  padding-right: 10px;
+  vertical-align: middle;
+}
+
+.gravitee-navbar-logo {
+  height: 50px;
+  padding-right: 10px;
+  vertical-align: middle;
+}
+
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+
+.icon-users {
+  width: 1.125em;
+}
+
+.flex {
+  flex: 1;
+}
+
+.face {
+  margin: 0px 16px;
+}
+
+md-toolbar{
+  font-size: 18px;
+  min-height: 49px;
+  .md-tall {
+    min-height: 100px;
+  }
+}
+
+a, tr[ui-sref], .gravitee-link {
+  cursor: pointer;
+}
+
+.gravitee-no-link {
+  cursor: inherit !important;
+}
+
+md-switch {
+  display: inline-flex;
+}
+
+md-progress-linear {
+  position: fixed;
+  z-index: 50;
+  color: #333;
+}
+
+.color3 {
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
+}
+
+md-toolbar:not(.md-hue-1),
+.md-fab {
+  fill: #fff;
+}
+
+ng-md-icon {
+  position: relative;
+  top: 7px;
+
+  &[icon=delete] {
+    svg {
+      width: 100%;
+    }
+  }
+}
+
+table {
+  ng-md-icon {
+    position: relative;
+    top: 0px;
+  }
+  code {
+    position: relative;
+    top: -6px;
+  }
+}
+
+.btn-group ng-md-icon {
+  position: relative;
+  top: 3px;
+}
+
+md-radio-button ng-md-icon {
+  position: relative;
+  top: 2px;
+}
+
+.gravitee-card:hover {
+  box-shadow: 0 7px 8px -4px rgba(0, 0, 0, .2), 0 12px 17px 2px rgba(0, 0, 0, .14), 0 5px 22px 4px rgba(0, 0, 0, .12);
+}
+
+.gravitee-add-button {
+  position: fixed !important;
+}
+
+header {
+  display: flex;
+}
+
+body {
+  background: #fff;
+}
+
+table[md-data-table] {
+  background-color: $backgroundColor;
+}
+
+table {
+  background: #fff;
+  border: solid 1px #ddd;
+  margin-bottom: 1.25rem;
+  table-layout: auto;
+}
+
+table thead {
+  background: #F5F5F5;
+}
+
+table thead tr th, table tfoot tr th, table tfoot tr td, table tbody tr th, table tbody tr td, table tr td {
+  display: table-cell;
+  line-height: 1.125rem;
+}
+table thead tr th, table thead tr td {
+  color: #222;
+  font-weight: bold;
+  padding: 0.5rem 0.625rem 0.625rem;
+}
+table tr th, table tr td {
+  color: #222;
+  padding: 0.5625rem 0.625rem;
+  text-align: left;
+}
+
+table tr.even, table tr.alt, table tr:nth-of-type(even) {
+  background: #F9F9F9;
+}
+
+tbody {
+  display: table-row-group;
+  vertical-align: middle;
+  border-color: inherit;
+}
+
+md-toast {
+  &.md-toast-success-theme .md-toast-content {
+    background-color: #4ea44d;
+  }
+  &.md-toast-error-theme .md-toast-content {
+    background-color: #bd362f;
+  }
+}
+
+gravitee-sidenav {
+  z-index: 20;
+}
+
+.gravitee-pie-chart-container {
+  height: 150px;
+  margin: 0 auto;
+  text-align: center;
+  width: 150px;
+}
+
+.form-control {
+  padding-right: 30px;
+}
+
+.form-control-feedback, .has-feedback label ~ .form-control-feedback {
+  position: relative;
+  float: right;
+  top: -35px;
+}
+
+.gravitee-placeholder {
+  opacity: 0.4;
+}
+
+.md-container {
+  display: inline-block;
+}
+
+.gravitee-no-sidenav-container {
+  background: $backgroundColor;
+  padding-top: 100px;
+}
+
+.gravitee-no-sidenav-content {
+  background-color: #fafafa;
+  border-radius: 7px;
+  width: 400px;
+  margin: 40px auto 10px;
+  overflow: hidden;
+  padding: 10px 30px 30px;
+  position: relative;
+
+  & md-input-container {
+    margin-top: 0px;
+  }
+}
+
+.gravitee-no-sidenav-header {
+   padding-bottom: 30px;
+   text-align: center;
+
+   & a {
+     margin: 10px auto;
+
+     & img {
+       height: 100px;
+     }
+   }
+
+   & label {
+     font-size: 28px;
+     font-weight: 400;
+     margin: 0 auto;
+   }
+ }
+
+md-sidenav, md-backdrop {
+  position: fixed;
+}
+
+md-list-item::before {
+  min-height: 40px;
+}
+
+.md-whiteframe-1dp, .md-whiteframe-z1 {
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12);
+}
+
+.md-whiteframe-z2{
+  box-shadow:0 2px 4px -1px rgba(0,0,0,.2),0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12)
+}
+
+.gravitee-splash-screen {
+  background-color: $backgroundColor;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 99999;
+
+  img, div {
+    color: silver;
+    display: flex;
+    margin: 0 auto;
+    max-width: 200px;
+    position: relative;
+    top: 40%;
+
+    span {
+      margin: 0 auto;
+    }
+  }
+}
+
+.animate-show-hide.ng-hide {
+  opacity: 0;
+}
+
+.animate-show-hide.ng-hide-add,
+.animate-show-hide.ng-hide-remove {
+  transition: all linear 0.5s;
+}

@@ -1,0 +1,62 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-toolbar class="md-table-toolbar md-default">
+  <div class="md-toolbar-tools">
+    <span>Portal views</span>
+    <div flex></div>
+  </div>
+</md-toolbar>
+
+<md-table-container>
+  <table md-table ng-init="order = 'name'">
+    <thead md-head md-order="order">
+    <tr md-row>
+      <th md-column md-order-by="name">Name</th>
+      <th md-column md-order-by="description">Description</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody md-body>
+    <tr md-row ng-repeat="view in $ctrl.views | orderBy: order">
+      <td md-cell ng-click="$ctrl.editName($event, view)"
+          ng-class="{'gravitee-placeholder': !view.name}">
+        {{view.name || 'Add a name'}}
+      </td>
+      <td md-cell ng-click="$ctrl.editDescription($event, view)"
+          ng-class="{'gravitee-placeholder': !view.description}">
+        {{view.description || 'Add a description'}}
+      </td>
+      <td md-cell><ng-md-icon icon="delete" ng-click="$ctrl.deleteView(view)"></ng-md-icon></td>
+    </tr>
+    <tr md-row>
+      <td md-cell ng-click="$ctrl.newView($event)" class="gravitee-placeholder">
+        New view
+      </td>
+      <td md-cell></td>
+      <td md-cell></td>
+    </tr>
+    </tbody>
+  </table>
+</md-table-container>
+<md-card-actions layout="row" layout-align="end center">
+  <md-button ng-click="$ctrl.saveViews()"
+             ng-disabled="!$ctrl.viewsToCreate.length && !$ctrl.viewsToUpdate.length">Save</md-button>
+  <md-button ng-click="$ctrl.reset()"
+             ng-disabled="!$ctrl.viewsToCreate.length && !$ctrl.viewsToUpdate.length">Reset
+  </md-button>
+</md-card-actions>

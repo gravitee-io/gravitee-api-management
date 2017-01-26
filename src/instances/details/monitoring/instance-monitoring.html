@@ -1,0 +1,293 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div ng-if="!$ctrl.instanceStarted" style="text-align:center; color: #424E5A; fill: #424E5A;">
+  <h1><ng-md-icon size="48" icon="error"></ng-md-icon> There is no data for stopped gateway instance</h1>
+</div>
+<div layout="column" ng-if="$ctrl.instanceStarted">
+  <div layout="row">
+    <md-card flex="25">
+      <md-card-content>
+        <div class="gravitee-pie-chart-container">
+          <gravitee-chart height="160" width="160" options="$ctrl.monitoringCpuChartData" type="solidgauge"></gravitee-chart>
+        </div>
+      </md-card-content>
+    </md-card>
+    <md-card flex="25">
+      <md-card-content>
+        <div class="gravitee-pie-chart-container">
+          <gravitee-chart height="160" width="160" options="$ctrl.monitoringHeapChartData" type="solidgauge"></gravitee-chart>
+        </div>
+      </md-card-content>
+    </md-card>
+    <md-card flex="25">
+      <md-card-content>
+        <div class="gravitee-pie-chart-container">
+          <div class="gravitee-pie-chart-title">GC collections</div>
+          <div class="gravitee-monitoring-indicator-value" ng-bind="$ctrl.monitoringData.gc.old_collection_count"></div>
+        </div>
+      </md-card-content>
+    </md-card>
+    <md-card flex="25">
+      <md-card-content>
+        <div class="gravitee-pie-chart-container">
+          <div class="gravitee-pie-chart-title">File Descriptors</div>
+          <div class="gravitee-monitoring-indicator-value" ng-bind="$ctrl.monitoringData.process.open_file_descriptors"></div>
+        </div>
+      </md-card-content>
+    </md-card>
+  </div>
+  <md-card>
+    <md-card-content>
+      <div layout="row">
+        <ng-md-icon class="gravitee-monitoring-icon-title" icon="memory"></ng-md-icon>
+        <h3>JVM</h3>
+      </div>
+      <div layout="row">
+        <div flex="75">
+          <div layout="row">
+            <b flex="50">Date</b>
+            <div flex="50" ng-bind="$ctrl.monitoringData.jvm.timestamp | date:'medium'"></div>
+          </div>
+          <div layout="row">
+            <b flex="50">Uptime</b>
+            <div flex="50"
+                 ng-bind="$ctrl.humanizeDuration($ctrl.monitoringData.jvm.uptime_in_millis)"></div>
+          </div>
+          <div layout="row">
+            <b flex="50">Heap used</b>
+            <div flex="50"
+                 ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.heap_used_in_bytes)"></div>
+          </div>
+          <div layout="row">
+            <b flex="50">Percent of heap used</b>
+            <div flex="50" ng-bind="$ctrl.monitoringData.jvm.heap_used_percent + '%'"></div>
+          </div>
+          <div layout="row">
+            <b flex="50">Heap committed</b>
+            <div flex="50"
+                 ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.heap_committed_in_bytes)"></div>
+          </div>
+          <div layout="row">
+            <b flex="50">Heap max</b>
+            <div flex="50"
+                 ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.heap_max_in_bytes)"></div>
+          </div>
+          <div layout="row">
+            <b flex="50">Non heap used</b>
+            <div flex="50"
+                 ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.non_heap_used_in_bytes)"></div>
+          </div>
+          <div layout="row">
+            <b flex="50">Non heap committed</b>
+            <div flex="50"
+                 ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.non_heap_committed_in_bytes)"></div>
+          </div>
+        </div>
+      </div>
+      <br/>
+      <div layout="row">
+        <md-card layout="column" flex="33">
+          <md-card-content>
+            <div layout="row">
+              <b flex="50">Young pool used</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.young_pool_used_in_bytes)"></div>
+            </div>
+            <div layout="row">
+              <b flex="50">Young pool max</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.young_pool_max_in_bytes)"></div>
+            </div>
+            <div layout="column" layout-align="center center">
+              <b flex="50" ng-bind="$ctrl.ratio($ctrl.monitoringData.jvm.young_pool_used_in_bytes, $ctrl.monitoringData.jvm.young_pool_max_in_bytes) + '%'"></b>
+              <md-progress-linear class="gravitee-monitoring-gauge" md-mode="determinate"
+                                  value="{{$ctrl.ratio($ctrl.monitoringData.jvm.young_pool_used_in_bytes, $ctrl.monitoringData.jvm.young_pool_max_in_bytes)}}"></md-progress-linear>
+            </div>
+            <div layout="row">
+              <b flex="50">Young pool peak used</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.young_pool_peak_used_in_bytes)"></div>
+            </div>
+            <div layout="row">
+              <b flex="50">Young pool peak max</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.young_pool_peak_max_in_bytes)"></div>
+            </div>
+            <div layout="column" layout-align="center center">
+              <b flex="50" ng-bind="$ctrl.ratio($ctrl.monitoringData.jvm.young_pool_peak_used_in_bytes, $ctrl.monitoringData.jvm.young_pool_peak_max_in_bytes) + '%'"></b>
+              <md-progress-linear class="gravitee-monitoring-gauge" md-mode="determinate"
+                                  value="{{$ctrl.ratio($ctrl.monitoringData.jvm.young_pool_peak_used_in_bytes, $ctrl.monitoringData.jvm.young_pool_peak_max_in_bytes)}}"></md-progress-linear>
+            </div>
+          </md-card-content>
+        </md-card>
+
+        <md-card layout="column" flex="33">
+          <md-card-content>
+            <div layout="row">
+              <b flex="50">Survivor pool used</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.survivor_pool_used_in_bytes)"></div>
+            </div>
+            <div layout="row">
+              <b flex="50">Survivor pool max</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.survivor_pool_max_in_bytes)"></div>
+            </div>
+            <div layout="column" layout-align="center center">
+              <b flex="50" ng-bind="$ctrl.ratio($ctrl.monitoringData.jvm.survivor_pool_used_in_bytes, $ctrl.monitoringData.jvm.survivor_pool_max_in_bytes) + '%'"></b>
+              <md-progress-linear class="gravitee-monitoring-gauge" md-mode="determinate"
+                                  value="{{$ctrl.ratio($ctrl.monitoringData.jvm.survivor_pool_used_in_bytes, $ctrl.monitoringData.jvm.survivor_pool_max_in_bytes)}}"></md-progress-linear>
+            </div>
+            <div layout="row">
+              <b flex="50">Survivor pool peak used</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.survivor_pool_peak_used_in_bytes)"></div>
+            </div>
+            <div layout="row">
+              <b flex="50">Survivor pool peak max</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.survivor_pool_peak_max_in_bytes)"></div>
+            </div>
+            <div layout="column" layout-align="center center">
+              <b flex="50" ng-bind="$ctrl.ratio($ctrl.monitoringData.jvm.survivor_pool_peak_used_in_bytes, $ctrl.monitoringData.jvm.survivor_pool_peak_max_in_bytes) + '%'"></b>
+              <md-progress-linear class="gravitee-monitoring-gauge" md-mode="determinate"
+                                  value="{{$ctrl.ratio($ctrl.monitoringData.jvm.survivor_pool_peak_used_in_bytes, $ctrl.monitoringData.jvm.survivor_pool_peak_max_in_bytes)}}"></md-progress-linear>
+            </div>
+          </md-card-content>
+        </md-card>
+
+        <md-card layout="column" flex="33">
+          <md-card-content>
+            <div layout="row">
+              <b flex="50">Old pool used</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.old_pool_used_in_bytes)"></div>
+            </div>
+            <div layout="row">
+              <b flex="50">Old pool max</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.old_pool_max_in_bytes)"></div>
+            </div>
+            <div layout="column" layout-align="center center">
+              <b flex="50" ng-bind="$ctrl.ratio($ctrl.monitoringData.jvm.old_pool_used_in_bytes, $ctrl.monitoringData.jvm.old_pool_max_in_bytes) + '%'"></b>
+              <md-progress-linear class="gravitee-monitoring-gauge" md-mode="determinate"
+                                  value="{{$ctrl.ratio($ctrl.monitoringData.jvm.old_pool_used_in_bytes, $ctrl.monitoringData.jvm.old_pool_max_in_bytes)}}"></md-progress-linear>
+            </div>
+            <div layout="row">
+              <b flex="50">Old pool peak used</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.old_pool_peak_used_in_bytes)"></div>
+            </div>
+            <div layout="row">
+              <b flex="50">Old pool peak max</b>
+              <div flex="50"
+                   ng-bind="$ctrl.humanizeSize($ctrl.monitoringData.jvm.old_pool_peak_max_in_bytes)"></div>
+            </div>
+            <div layout="column" layout-align="center center">
+              <b flex="50" ng-bind="$ctrl.ratio($ctrl.monitoringData.jvm.old_pool_peak_used_in_bytes, $ctrl.monitoringData.jvm.old_pool_peak_max_in_bytes) + '%'"></b>
+              <md-progress-linear class="gravitee-monitoring-gauge" md-mode="determinate"
+                                  value="{{$ctrl.ratio($ctrl.monitoringData.jvm.old_pool_peak_used_in_bytes, $ctrl.monitoringData.jvm.old_pool_peak_max_in_bytes)}}"></md-progress-linear>
+            </div>
+          </md-card-content>
+        </md-card>
+      </div>
+    </md-card-content>
+  </md-card>
+  <div layout="row">
+    <md-card flex="50">
+      <md-card-content layout="column">
+        <div layout="row">
+          <ng-md-icon class="gravitee-monitoring-icon-title" icon="memory"></ng-md-icon>
+          <h3>CPU</h3>
+        </div>
+        <div layout="row">
+          <div flex="75">
+            <div layout="row">
+              <b flex="50">Percent of use</b>
+              <div flex="50" ng-bind="$ctrl.monitoringData.cpu.percent_use + '%'"></div>
+            </div>
+            <b>Load average</b>
+            <div layout="row"
+                 ng-repeat="(loadAverageTime, loadAverageValue) in $ctrl.monitoringData.cpu.load_average">
+              <b style="padding-left: 10px;" flex="50" ng-bind="loadAverageTime"></b>
+              <div flex="50" ng-bind="loadAverageValue"></div>
+            </div>
+          </div>
+        </div>
+      </md-card-content>
+    </md-card>
+    <md-card flex="50">
+      <md-card-content layout="column">
+        <div layout="row">
+          <ng-md-icon class="gravitee-monitoring-icon-title" icon="memory"></ng-md-icon>
+          <h3>Process</h3>
+        </div>
+        <div layout="row">
+          <b flex="33">Open file descriptors</b>
+          <div flex="33" ng-bind="$ctrl.monitoringData.process.open_file_descriptors"></div>
+        </div>
+        <div layout="row">
+          <b flex="33">Max file descriptors</b>
+          <div flex="33" ng-bind="$ctrl.monitoringData.process.max_file_descriptors"></div>
+        </div>
+      </md-card-content>
+    </md-card>
+  </div>
+  <div layout="row">
+    <md-card flex="50">
+      <md-card-content layout="column">
+        <div layout="row">
+          <ng-md-icon class="gravitee-monitoring-icon-title" icon="memory"></ng-md-icon>
+          <h3>Thread</h3>
+        </div>
+        <div layout="row">
+          <b flex="33">Count</b>
+          <div flex="33" ng-bind="$ctrl.monitoringData.thread.count"></div>
+        </div>
+        <div layout="row">
+          <b flex="33">Peak count</b>
+          <div flex="33" ng-bind="$ctrl.monitoringData.thread.peak_count"></div>
+        </div>
+      </md-card-content>
+    </md-card>
+    <md-card flex="50">
+      <md-card-content layout="column">
+        <div layout="row">
+          <ng-md-icon class="gravitee-monitoring-icon-title" icon="memory"></ng-md-icon>
+          <h3>Garbage collector</h3>
+        </div>
+        <div layout="row">
+          <b flex="33">Young collection count</b>
+          <div flex="33" ng-bind="$ctrl.monitoringData.gc.young_collection_count"></div>
+        </div>
+        <div layout="row">
+          <b flex="33">Young collection time</b>
+          <div flex="33" ng-bind="$ctrl.monitoringData.gc.young_collection_time_in_millis + ' ms'"></div>
+        </div>
+        <div layout="row">
+          <b flex="33">Old collection count</b>
+          <div flex="33" ng-bind="$ctrl.monitoringData.gc.old_collection_count"></div>
+        </div>
+        <div layout="row">
+          <b flex="33">Old collection time</b>
+          <div flex="33" ng-bind="$ctrl.monitoringData.gc.old_collection_time_in_millis + ' ms'"></div>
+        </div>
+      </md-card-content>
+    </md-card>
+  </div>
+</div>

@@ -21,11 +21,11 @@ describe('The main view', function () {
   browser.addMockModule('httpBackendMockModule', require('../mocked-backend').httpBackendMock);
 
   beforeEach(function () {
-    browser.get('#/apis/');
+    browser.get('#!/apis/');
     page = require('./main.po');
   });
 
   it('should include home page title', function () {
-    expect(page.h3El.getText()).toContain('{{portalTitle}} version {{apisCtrl.graviteeUIVersion}}');
+    expect(page.h3El.getText()).toContain('Gravitee.io Portal');
   });
 });

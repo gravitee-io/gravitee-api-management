@@ -1,0 +1,166 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div layout="row">
+
+  <div flex="20" layout="column">
+    <div class="inset">
+      <h5>Policies ({{apiPoliciesCtrl.policiesToCopy.length}})</h5>
+      <md-divider></md-divider>
+    </div>
+    <div class="gravitee-policy-draggable gravitee-policy-panel gravitee-policy-panel-left">
+      <md-card ng-repeat="policy in apiPoliciesCtrl.policiesToCopy"
+               class="gravitee-card gravitee-policy-card"
+               id="{{policy.policyId}}"
+               ng-cloak >
+        <md-tooltip md-direction="right">
+          version: {{policy.version}}
+        </md-tooltip>
+        <md-card-content layout="row" layout-align="space-between">
+          <span class="md-subhead">{{policy.name}}</span>
+        </md-card-content>
+      </md-card>
+    </div>
+  </div>
+
+  <div flex="40" layout="column">
+    <form name="editPathForm" novalidate>
+      <div layout="row" layout-align="start center" class="gravitee-policy-filters">
+        <span flex class="badge gravitee-policy-method-badge-filter"
+              ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.httpMethodsFilter)"
+              ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
+              ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.httpMethodsFilter)">
+          {{httpMethod | uppercase}}
+        </span>
+      </div>
+      <md-divider></md-divider>
+      <div class="gravitee-policy-panel gravitee-policy-panel-center">
+        <v-accordion class="vAccordion--default" multiple>
+          <v-pane ng-repeat="path in apiPoliciesCtrl.sortedPaths()" expanded="$first">
+            <v-pane-header>
+              <h3 class="gravitee-policy-path" ng-if='path === "/"'>{{path}}</h3>
+              <div ng-if='path !== "/"' layout="row" layout-align="space-between center">
+                <div flex="90">
+                  <md-input-container style="margin: 0;width: 100%;">
+                    <input ng_model="path"
+                           name="path{{$index}}"
+                           class="gravitee-policy-path"
+                           required
+                           aria-label="path"
+                           ui-validate="{
+                            pathAlreadyExists : 'apiPoliciesCtrl.pathNotExists($value, $index)',
+                            mustStartWithSlash : 'apiPoliciesCtrl.pathStartWithSlash($value)'
+                         }"
+                           ng-keydown="apiPoliciesCtrl.pathKeyPress($event, editPathForm['path'+$index], path, $index)"
+                           ng-blur="apiPoliciesCtrl.restoreOldPath($index, editPathForm['path'+$index])"
+                           ng-click="$event.stopPropagation();">
+                    <div ng-messages="editPathForm['path'+$index].$error"
+                         ng-show="editPathForm['path'+$index].$dirty">
+                      <div ng-message="required">This is required!</div>
+                      <div ng-message="pathAlreadyExists">This path is already configured.</div>
+                      <div ng-message="mustStartWithSlash">The path must start with /</div>
+                    </div>
+                  </md-input-container>
+                </div>
+                <div flex>
+                  <ng-md-icon icon="delete" style="fill: #757575" size="18px" ng-click="apiPoliciesCtrl.removePath(path);$event.stopPropagation();">
+                    <md-tooltip md-direction="right">
+                      Remove path
+                    </md-tooltip>
+                  </ng-md-icon>
+                </div>
+              </div>
+            </v-pane-header>
+            <v-pane-content>
+              <div ng-class="apiPoliciesCtrl.getDropzoneClass(path)" data-path="{{path}}">
+                <md-card ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath[path]"
+                         ng-click="apiPoliciesCtrl.editPolicy($index, path, $event)"
+                         ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
+                         class="gravitee-card gravitee-policy-card"
+                         ng-class="apiPoliciesCtrl.getApiPolicyClass(policy)"
+                         layout="row" layout-align="space-between start">
+                  <md-card-content layout="column" layout-align="start start" layout-fill>
+                    <span class="md-subhead">{{policy.name}}</span>
+                    <span class="gravitee-policy-card-description">{{policy.description}}</span>
+                    <div ng-class="{'gravitee-policy-card-method': policy.description}" layout="row" layout-align="start center" layout-fill>
+                      <div ng-switch="policy.methods.length === apiPoliciesCtrl.httpMethods.length">
+                        <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-GET-selected" ng-switch-when="true">ALL</span>
+                        <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-{{method}}-selected" ng-switch-when="false" ng-repeat="method in policy.methods">{{method | uppercase}}</span>
+                      </div>
+                    </div>
+                  </md-card-content>
+                  <div layout="column">
+                    <ng-md-icon icon="close" style="fill: #757575" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.removePolicy($index, path, $event)">
+                      <md-tooltip md-direction="right">
+                        Remove policy
+                      </md-tooltip>
+                    </ng-md-icon>
+                    <ng-md-icon icon="mode_edit" style="fill: #757575" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.editPolicyDescription($index, path, $event)">
+                      <md-tooltip md-direction="right">
+                        Edit policy description
+                      </md-tooltip>
+                    </ng-md-icon>
+                    <ng-md-icon icon="done" ng-if="policy.enabled" style="fill: #437536" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.switchPolicyEnabled($index, path, $event)">
+                      <md-tooltip md-direction="right">
+                        Policy is enabled. Click to disable it.
+                      </md-tooltip>
+                    </ng-md-icon>
+                    <ng-md-icon icon="pause_circle_outline" ng-if="!policy.enabled" style="fill: #751c16" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.switchPolicyEnabled($index, path, $event)">
+                      <md-tooltip md-direction="right">
+                        Policy is disabled. Click to enable it.
+                      </md-tooltip>
+                    </ng-md-icon>
+                  </div>
+                </md-card>
+              </div>
+              <span ng-if="apiPoliciesCtrl.initDragularDropZone(path)"></span>
+            </v-pane-content>
+          </v-pane>
+        </v-accordion>
+      </div>
+    </form>
+  </div>
+
+  <div flex layout="column">
+    <div ng-if="apiPoliciesCtrl.selectedApiPolicy.policyId">
+      <div class="inset">
+        <div layout="row" layout-align="space-between center">
+          <h5>{{policy.name}}</h5>
+        </div>
+        <md-divider></md-divider>
+      </div>
+      <div layout="row" layout-align="start center" layout-wrap>
+        <span flex="10" class="badge gravitee-policy-method-badge-info"
+              ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)"
+              ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
+              ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)">
+          {{httpMethod | uppercase}}
+        </span>
+      </div>
+      <div class="gravitee-policy-panel gravitee-policy-panel-right">
+        <form name="policyConfigurationForm" sf-schema="policyJsonSchema" sf-form="policyJsonSchemaForm" sf-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId]" sf-options="{ validateOnRender: true }" novalidate></form>
+      </div>
+      <md-divider></md-divider>
+      <md-button class="md-raised" ng-disabled="policyConfigurationForm.$invalid || policyConfigurationForm.$pristine" ng-click="apiPoliciesCtrl.savePaths();">Save</md-button>
+    </div>
+  </div>
+</div>
+
+
+<md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="apiPoliciesCtrl.showAddPathModal($event)">
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

@@ -13,17 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+const gulp = require('gulp');
+const HubRegistry = require('gulp-hub');
+const browserSync = require('browser-sync');
 
-var gulp = require('gulp');
-var wrench = require('wrench');
+const conf = require('./conf/gulp.conf');
 
-wrench.readdirSyncRecursive('./gulp').filter(function(file) {
-  return (/\.(js)$/i).test(file);
-}).map(function(file) {
-  require('./gulp/' + file);
-});
+// Load some files into the registry
+const hub = new HubRegistry([conf.path.tasks('*.js')]);
 
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+// Tell gulp to use the tasks just loaded
+gulp.registry(hub);
+
+gulp.task('build', gulp.series(gulp.parallel('other', 'webpack:dist')));
+gulp.task('test', gulp.series('karma:single-run'));
+gulp.task('test:auto', gulp.series('karma:auto-run'));
+gulp.task('serve', gulp.series('webpack:watch', 'watch', 'browsersync'));
+gulp.task('serve:demo', gulp.series('webpack:watch', 'watch', 'browsersync:demo'));
+gulp.task('serve:dist', gulp.series('default', 'browsersync:dist'));
+gulp.task('default', gulp.series('clean', 'build'));
+gulp.task('watch', watch);
+gulp.task('buildNoReg', gulp.series('serve:dist', 'webdriver-update', 'protractor'));
+
+function reloadBrowserSync(cb) {
+  browserSync.reload();
+  cb();
+}
+
+function watch(done) {
+  gulp.watch(conf.path.tmp('index.html'), reloadBrowserSync);
+  done();
+}

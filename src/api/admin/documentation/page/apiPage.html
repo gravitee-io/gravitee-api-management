@@ -1,0 +1,150 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-card style="box-shadow:none;">
+  <div style="border: 1px solid #e7eaec; border-bottom: 0; padding: 0 20px 10px 20px;">
+    <div layout="row" layout-align="start center" >
+
+      <div layout="row" layout-align="start center" flex="40">
+        <div style="padding: 10px"><md-icon ng-if="pageCtrl.page.type" md-svg-src="assets/logo_{{pageCtrl.page.type | lowercase}}.svg"></md-icon></div>
+        <div>
+          <h3 ng-if="!pageCtrl.editMode" style="color: #676a6c; clear:both;">{{pageCtrl.page.name}}</h3>
+          <md-input-container ng-if="pageCtrl.editMode" class="md-block" flex-gt-sm>
+            <input  style="color: #676a6c; clear:both;" required ng-model="pageCtrl.page.name" autofocus>
+          </md-input-container>
+        </div>
+      </div>
+
+      <div layout="column" layout-align="end center" flex="20">
+        <md-switch ng-model="pageCtrl.page.published" ng-change="pageCtrl.changePublication()" style="margin: 4px 0;">
+          <md-tooltip md-direction="top">Publish modifications</md-tooltip>
+          <span ng-show="pageCtrl.page.published">Published</span>
+          <span ng-show="!pageCtrl.page.published">Not Published</span>
+        </md-switch>
+        <div layout="row" layout-align="center center">
+        <md-tooltip md-direction="top ">
+          Last modification @ {{pageCtrl.page.lastModificationDate | date:'medium'}} by {{pageCtrl.page.lastContributor}}
+        </md-tooltip>
+        <ng-md-icon icon="timer"></ng-md-icon>
+        <span style="top: 5px;position: relative;">{{pageCtrl.page.lastModificationDate | date}}</span>
+      </div></div>
+
+      <div class="documentation-tool-bar" layout="row" layout-align="end center" flex="40">
+
+        <md-button ng-click="pageCtrl.edit()" class="md-icon-button" aria-label="Edit">
+          <md-tooltip md-direction="top">Edit this page</md-tooltip>
+          <ng-md-icon icon="edit"></ng-md-icon>
+        </md-button>
+        <md-button ng-click="pageCtrl.showSettings()" class="md-icon-button" aria-label="Configure">
+          <md-tooltip md-direction="top">Configure this page</md-tooltip>
+          <ng-md-icon icon="settings"></ng-md-icon>
+        </md-button>
+        <md-button ng-click="pageCtrl.delete()" class="md-icon-button" aria-label="Delete">
+          <md-tooltip md-direction="top">Delete this page</md-tooltip>
+          <ng-md-icon icon="delete"></ng-md-icon>
+        </md-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Read Mode -->
+  <md-card-content ng-show="!pageCtrl.editMode" style="border: 1px solid #e7eaec; padding-top: 0" layout="row">
+    <gv-page flex  page="pageCtrl.page"></gv-page>
+  </md-card-content>
+
+  <!-- Edit Mode -->
+  <div ng-show="pageCtrl.editMode">
+    <md-card-content style="border: 1px solid #e7eaec; padding-top: 0" layout="row">
+      <dix layout="column" flex="50">
+        <div>
+          <h4>Edit your page</h4>
+          <md-input-container class="md-block" ng-show="pageCtrl.editMode">
+            <textarea
+              ui-codemirror
+              ui-codemirror-opts="pageCtrl.codeMirrorOptions"
+              ng-model="pageCtrl.page.content"
+              aria-label="page content"
+              rows="20" style="overflow-y: scroll;"
+              ng-disabled="pageCtrl.useFetcher"
+              md-autofocus></textarea>
+          </md-input-container>
+        </div>
+        <div>
+          <h5>Or you could also import a file :</h5>
+          <input type="file" ng-disabled="pageCtrl.useFetcher" filecontent="pageContentFile.content" filename="pageContentFile.name" >
+        </div>
+      </dix>
+      <div flex="50" class="md-padding">
+        <gv-page flex page="pageCtrl.page" enable-try-it="false"></gv-page>
+      </div>
+    </md-card-content>
+    <div class="md-actions gravitee-api-save-button" layout="row" layout-align="end center">
+      <md-button class="md-raised" type="submit" ng-click="pageCtrl.upsert()" ng-disabled="pageCtrl.hasNoTitle()">
+        Save
+      </md-button>
+      <md-button class="md-raised md-primary" type="button" ng-click="pageCtrl.reset()">
+        Cancel
+      </md-button>
+    </div>
+  </div>
+</md-card>
+
+<!-- Setting Panel -->
+<md-sidenav class="md-sidenav-right md-whiteframe-z2 resource" md-component-id="page-settings">
+  <md-toolbar>
+    <div class="md-toolbar-tools">
+      <h2>
+        <ng-md-icon icon="settings"></ng-md-icon>
+        <span>Configuration</span>
+      </h2>
+    </div>
+  </md-toolbar>
+  <md-content layout-padding>
+    <md-subheader class="md-primary" ng-if="pageCtrl.page.type=='SWAGGER'">Configure your page</md-subheader>
+    <div ng-if="pageCtrl.page.type=='SWAGGER'">
+      <md-checkbox ng-model="pageCtrl.page.configuration.tryIt">
+        Enable "Try it!" mode
+      </md-checkbox>
+      <md-input-container class="md-block">
+        <label>Base URL to try the API</label>
+        <input type="text" ng-model="pageCtrl.page.configuration.tryItURL" ng-disabled="!pageCtrl.page.configuration.tryIt">
+      </md-input-container>
+    </div>
+    <md-subheader class="md-primary">Configure page's source</md-subheader>
+    <div>
+      <md-checkbox ng-model="pageCtrl.useFetcher" ng-change="pageCtrl.toggleUseFetcher()">
+        Fetch content from an external resource
+      </md-checkbox>
+
+      <div layout="row" layout-align="space-around center">
+        <md-button ng-repeat="fetcher in pageCtrl.fetchers"
+                   ng-click="pageCtrl.configureFetcher(fetcher)"
+                   ng-disabled="!pageCtrl.useFetcher"
+                   ng-class="{'md-raised': fetcher.id === pageCtrl.page.source.type}"
+                   aria-label="fetcher">
+          <md-icon md-svg-icon="assets/logo_{{fetcher.id | lowercase}}.svg" style="width:80px;height:40px"></md-icon>
+        </md-button>
+      </div>
+      <div layout="column">
+        <form name="PageConfigFetcherForm" sf-schema="fetcherJsonSchema" sf-form="pageCtrl.fetcherJsonSchemaForm" sf-model="pageCtrl.page.source.configuration"></form>
+      </div>
+    </div>
+    <md-button ng-disabled="pageCtrl.hasNoTitle()" class="md-raised" type="submit" ng-click="pageCtrl.upsert()">
+      Save
+    </md-button>
+  </md-content>
+</md-sidenav>
