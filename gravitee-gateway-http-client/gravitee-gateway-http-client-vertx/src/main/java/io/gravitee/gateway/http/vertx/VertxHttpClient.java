@@ -120,7 +120,7 @@ public class VertxHttpClient extends AbstractHttpClient {
 
         // Copy headers to final API
         copyRequestHeaders(headers, clientRequest,
-                (port == 80) ? uri.getHost() : uri.getHost() + ':' + port);
+                (port == 80 || port == 443) ? uri.getHost() : uri.getHost() + ':' + port);
 
         // Check chunk flag on the request if there are some content to push and if transfer_encoding is set
         // with chunk value
