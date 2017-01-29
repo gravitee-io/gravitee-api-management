@@ -15,63 +15,53 @@
     limitations under the License.
 
 -->
-  <md-dialog aria-label="Add member" style="width: 60%">
-    <md-toolbar>
-      <div class="md-toolbar-tools">
-        <h2>Add member</h2>
-        <span flex></span>
-        <md-button class="md-icon-button" ng-click="hide()">
-          <ng-md-icon icon="close"></ng-md-icon>
-        </md-button>
-      </div>
-    </md-toolbar>
-    <md-dialog-content>
-			<div class="md-padding">
-				<form ng-submit="$event.preventDefault()">
-				  <md-autocomplete
-				      md-selected-item="selectedItem"
-				      md-search-text="searchText"
-							md-search-text-change="searchTextChange(searchText)"
-          		md-selected-item-change="selectedItemChange(item)"
-				      md-items="item in searchUser(searchText)"
-				      md-item-text="item.lastname"
-				      md-min-length="1"
-				      placeholder="Search users ..."
-							md-autofocus="true"
-							md-menu-class="autocomplete-custom-template">
-
-						<md-item-template>
-          		<span>
-          		  {{item.firstname}} {{item.lastname}} [{{item.id}}]
-          		</span>
-        		</md-item-template>
-				    <md-not-found>
-				      No users matching "{{searchText}}" were found, or users already selected.
-				    </md-not-found>
-				  </md-autocomplete>
-				</form>
-				<div ng-show="usersFound.length > 0">
-					<span ng-repeat="user in usersFound">
-						<md-checkbox
-							value="{{user.id}}"
-							aria-label="{{user.id}}"
-							ng-click="selectMember(user)"
-							ng-checked="isUserSelected(user)">
-				      <span>
-								{{user.firstname}} {{user.lastname}} [{{user.id}}]
-          		</span>
-				    </md-checkbox>
+<md-dialog aria-label="Add member">
+	<md-dialog-content layout-padding>
+		<h4>Add member</h4>
+		<form ng-submit="$event.preventDefault()">
+			<md-autocomplete
+					md-selected-item="selectedItem"
+					md-search-text="searchText"
+					md-search-text-change="searchTextChange(searchText)"
+					md-selected-item-change="selectedItemChange(item)"
+					md-items="item in searchUser(searchText)"
+					md-item-text="item.lastname"
+					md-min-length="1"
+					placeholder="Search users ..."
+					md-autofocus="true"
+					md-menu-class="autocomplete-custom-template"
+					style="width: 400px;">
+				<md-item-template>
+					<span>
+						{{item.firstname}} {{item.lastname}} [{{item.id}}]
 					</span>
-				</div>
-			</div>
-    </md-dialog-content>
+				</md-item-template>
+				<md-not-found>
+					No users matching "{{searchText}}" were found, or users already selected.
+				</md-not-found>
+			</md-autocomplete>
+		</form>
+		<div ng-show="usersFound.length > 0">
+			<span ng-repeat="user in usersFound">
+				<md-checkbox
+						value="{{user.id}}"
+						aria-label="{{user.id}}"
+						ng-click="selectMember(user)"
+						ng-checked="isUserSelected(user)">
+					<span>
+						{{user.firstname}} {{user.lastname}} [{{user.id}}]
+					</span>
+				</md-checkbox>
+			</span>
+		</div>
+	</md-dialog-content>
 
-    <div class="md-actions" layout="row">
-      <md-button type="button" ng-click="hide()" class="md-primary">
-        Cancel
-      </md-button>
-      <md-button type="submit" class="md-primary" ng-click="addMembers()">
-        Add
-      </md-button>
-    </div>
-  </md-dialog>
+	<div class="md-actions" layout="row">
+		<md-button ng-click="hide()" class="md-primary">
+			Cancel
+		</md-button>
+		<md-button type="submit" class="md-raised md-primary" ng-click="addMembers()">
+			Add
+		</md-button>
+	</div>
+</md-dialog>

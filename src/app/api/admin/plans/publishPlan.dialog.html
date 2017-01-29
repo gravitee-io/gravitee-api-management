@@ -15,30 +15,19 @@
     limitations under the License.
 
 -->
-  <md-dialog aria-label="Publish plan" style="width: 60%">
-    <md-toolbar>
-      <div class="md-toolbar-tools">
-        <h2>Publish plan</h2>
-        <span flex></span>
-        <md-button class="md-icon-button" aria-label="Hide dialog" ng-click="hide()">
-          <ng-md-icon icon="close"></ng-md-icon>
-        </md-button>
-      </div>
-    </md-toolbar>
-    <md-dialog-content>
-      <div class="md-dialog-content">
-        <h5>Would you like to publish plan <code>{{plan.name}}</code> ?</h5>
-        <p>
-          By publishing this plan, users will now be able to subscribe to it.
-        </p>
-      </div>
+  <md-dialog aria-label="Publish plan">
+    <md-dialog-content layout-padding>
+      <h4>Would you like to publish plan <code>{{plan.name}}</code> ?</h4>
+      <p>
+        By publishing this plan, users will now be able to subscribe to it.
+      </p>
     </md-dialog-content>
 
     <md-dialog-actions layout="row">
-      <md-button type="button" ng-click="hide()" class="md-primary" md-autofocus>
+      <md-button ng-click="hide()" class="md-primary" md-autofocus>
         Cancel
       </md-button>
-      <md-button type="submit" class="md-primary" ng-click="publish()">
+      <md-button class="md-raised md-primary" ng-click="publish()">
         Publish
       </md-button>
     </md-dialog-actions>

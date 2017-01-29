@@ -17,32 +17,21 @@
 -->
 <md-dialog aria-label="New Group">
     <form name="formGroup" ng-submit="dialogAddGroupCtrl.save()" novalidate>
-        <md-toolbar>
-            <div class="md-toolbar-tools">
-                <h2>{{action}} group</h2>
-                <span flex></span>
-                <md-button type="button" class="md-icon-button" ng-click="dialogAddGroupCtrl.hide()">
-                    X
-                </md-button>
+        <md-dialog-content layout-padding>
+            <h4>{{action}} group</h4>
+            <div layout="column">
+                <md-input-container>
+                    <label>Name</label>
+                    <input ng-model="name" id="name" required autofocus>
+                </md-input-container>
             </div>
-        </md-toolbar>
-        <md-dialog-content>
-            <md-content class="md-padding">
-                <div layout="column">
-                    <md-input-container>
-                        <label>Name</label>
-                        <input ng-model="name" id="name" required autofocus>
-                    </md-input-container>
-                </div>
-                <md-subheader class="md-warn" ng-bind="error"></md-subheader>
-            </md-content>
         </md-dialog-content>
 
         <div class="md-actions" layout="row">
-            <md-button type="button" ng-click="dialogAddGroupCtrl.hide()" class="md-primary">
+            <md-button ng-click="dialogAddGroupCtrl.hide()" class="md-primary">
                 Cancel
             </md-button>
-            <md-button type="submit" class="md-primary" ng-disabled="formGroup.$invalid">
+            <md-button type="submit" class="md-raised md-primary" ng-disabled="formGroup.$invalid">
                 Save
             </md-button>
         </div>

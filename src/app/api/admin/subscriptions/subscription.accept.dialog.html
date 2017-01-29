@@ -16,29 +16,22 @@
 
 -->
 <md-dialog aria-label="Define dates for the subscription">
-  <md-toolbar>
-    <div class="md-toolbar-tools">
-      <h2>Accept subscription</h2>
-      <span flex></span>
-      <md-button type="button" class="md-icon-button" ng-click="dialogSubscriptionAcceptController.hide()">
-        X
-      </md-button>
-    </div>
-  </md-toolbar>
-
   <md-dialog-content layout-padding>
-    <div layout="column" ng-cloak class="md-inline-form">
-      <h5>Start date</h5>
-      <md-datepicker ng-model="starting_at"></md-datepicker>
-    </div>
-    <div layout="column" ng-cloak class="md-inline-form">
-      <h5>End date</h5>
-      <md-datepicker ng-model="end_at"></md-datepicker>
+    <h4>Accept subscription</h4>
+    <div ng-cloak class="md-inline-form">
+      <md-input-container>
+        <label>Start date</label>
+        <md-datepicker ng-model="starting_at"></md-datepicker>
+      </md-input-container >
+      <md-input-container>
+        <label>End date</label>
+        <md-datepicker ng-model="end_at"></md-datepicker>
+      </md-input-container >
     </div>
   </md-dialog-content>
 
   <md-dialog-actions layout="row">
-    <md-button type="button" ng-click="dialogSubscriptionAcceptController.hide()" class="md-primary">Cancel</md-button>
-    <md-button type="button" class="md-primary" ng-click="dialogSubscriptionAcceptController.save()">Validate</md-button>
+    <md-button ng-click="dialogSubscriptionAcceptController.hide()" class="md-primary">Cancel</md-button>
+    <md-button class="md-raised md-primary" ng-click="dialogSubscriptionAcceptController.save()">Accept</md-button>
   </md-dialog-actions>
 </md-dialog>

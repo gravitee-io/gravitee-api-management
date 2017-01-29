@@ -16,45 +16,36 @@
 
 -->
 <md-dialog aria-label="New application" style="width: 60%;">
-  <form name="formApplication" ng-submit="create(application)" novalidate>
-    <md-toolbar>
-      <div class="md-toolbar-tools">
-        <h2>New application</h2>
-        <span flex></span>
-        <md-button type="button" class="md-icon-button" ng-click="hide()">
-          X
-        </md-button>
-      </div>
-    </md-toolbar>
-    <md-dialog-content>
-			<md-content class="md-padding">
-		    <div layout="row">
-		      <md-input-container flex-gt-xs>
-		        <label>Name</label>
-		        <input ng-model="application.name" required>
-		      </md-input-container>
-					<md-input-container flex-gt-xs>
-		        <label>Type</label>
-		        <input ng-model="application.type">
-		      </md-input-container>
-		    </div>
-		    <div layout="row">
-		      <md-input-container flex>
-		        <label>Description</label>
-		        <input ng-model="application.description" required>
-		      </md-input-container>
-		    </div>
-		    <md-subheader class="md-warn" ng-bind="error"></md-subheader>
-			</md-content>
-    </md-dialog-content>
-
-    <div class="md-actions" layout="row">
-      <md-button type="button" ng-click="hide()" class="md-primary">
-        Cancel
-      </md-button>
-      <md-button type="submit" class="md-primary" ng-disabled="formApplication.$invalid">
-        Create
-      </md-button>
-    </div>
-  </form>
+    <form name="formApplication" ng-submit="create(application)" novalidate>
+        <md-dialog-content layout-padding>
+            <md-content>
+                <h4>New application</h4>
+                <div layout="row">
+                    <md-input-container flex-gt-xs>
+                        <label>Name</label>
+                        <input ng-model="application.name" required>
+                    </md-input-container>
+                    <md-input-container flex-gt-xs>
+                        <label>Type</label>
+                        <input ng-model="application.type">
+                    </md-input-container>
+                </div>
+                <div layout="row">
+                    <md-input-container flex>
+                        <label>Description</label>
+                        <input ng-model="application.description" required>
+                    </md-input-container>
+                </div>
+                <md-subheader class="md-warn" ng-bind="error"></md-subheader>
+            </md-content>
+        </md-dialog-content>
+        <div class="md-actions" layout="row">
+            <md-button ng-click="hide()" class="md-primary">
+                Cancel
+            </md-button>
+            <md-button type="submit" class="md-raised md-primary" ng-disabled="formApplication.$invalid">
+                Create
+            </md-button>
+        </div>
+    </form>
 </md-dialog>

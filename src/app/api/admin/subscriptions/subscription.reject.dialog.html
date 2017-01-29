@@ -16,17 +16,8 @@
 
 -->
 <md-dialog aria-label="Give a reason for the reject of subscription">
-  <md-toolbar>
-    <div class="md-toolbar-tools">
-      <h2>Reject subscription</h2>
-      <span flex></span>
-      <md-button type="button" class="md-icon-button" ng-click="dialogSubscriptionRejectController.hide()">
-        X
-      </md-button>
-    </div>
-  </md-toolbar>
-
   <md-dialog-content layout-padding>
+    <h4>Reject subscription</h4>
     <div layout="column" ng-cloak class="md-inline-form">
       <h5>Explain the reason of the reject</h5>
       <textarea ng-model="reason"></textarea>
@@ -34,7 +25,11 @@
   </md-dialog-content>
 
   <md-dialog-actions layout="row">
-    <md-button type="button" ng-click="dialogSubscriptionRejectController.hide()" class="md-primary">Cancel</md-button>
-    <md-button type="button" class="md-primary" ng-click="dialogSubscriptionRejectController.save()">Validate</md-button>
+    <md-button ng-click="dialogSubscriptionRejectController.hide()" class="md-primary">
+      Cancel
+    </md-button>
+    <md-button class="md-raised md-primary" ng-click="dialogSubscriptionRejectController.save()">
+      Reject Subscription
+    </md-button>
   </md-dialog-actions>
 </md-dialog>

@@ -15,52 +15,39 @@
     limitations under the License.
 
 -->
-  <md-dialog aria-label="Set expiration date for API Key">
-    <form name="formExpireSubscriptionProperty" ng-submit="dialogApiKeyExpirationController.save()" novalidate>
-      <md-toolbar>
-        <div class="md-toolbar-tools">
-          <h2>Expire API Key</h2>
-          <span flex></span>
-          <md-button type="button" class="md-icon-button" ng-click="dialogApiKeyExpirationController.hide()">
-            X
-          </md-button>
-        </div>
-      </md-toolbar>
+<md-dialog aria-label="Set expiration date for API Key">
+  <form name="formExpireSubscriptionProperty" ng-submit="dialogApiKeyExpirationController.save()" novalidate>
+    <md-dialog-content layout-padding>
+      <h4>Expire API Key</h4>
+      <div ng-cloak class="md-inline-form">
+        <md-datepicker ng-model="expiration.date" md-placeholder="Expiration date"
+                       md-min-date="minDate" required></md-datepicker>
 
-      <md-dialog-content layout-padding>
-        <div layout="column" ng-cloak class="md-inline-form">
-          <div layout layout-sm="column">
-                <md-datepicker ng-model="expiration.date" md-placeholder="Expiration date"
-                               md-min-date="minDate" required></md-datepicker>
-          </div>
+        <md-input-container>
+          <label>Hour</label>
+          <md-select ng-model="expiration.time.hours" required>
+            <md-option ng-repeat="hour in hours" value="{{hour}}">
+              {{hour}}
+            </md-option>
+          </md-select>
+        </md-input-container>
 
-          <div layout layout-sm="column">
-            <md-input-container>
-              <label>Hour</label>
-              <md-select ng-model="expiration.time.hours" required>
-                <md-option ng-repeat="hour in hours" value="{{hour}}">
-                  {{hour}}
-                </md-option>
-              </md-select>
-            </md-input-container>
+        <md-input-container>
+          <label>Minute</label>
+          <md-select ng-model="expiration.time.minutes" required>
+            <md-option ng-repeat="minute in minutes" value="{{minute}}">
+              {{minute}}
+            </md-option>
+          </md-select>
+        </md-input-container>
 
-            <md-input-container>
-              <label>Minute</label>
-              <md-select ng-model="expiration.time.minutes" required>
-                <md-option ng-repeat="minute in minutes" value="{{minute}}">
-                  {{minute}}
-                </md-option>
-              </md-select>
-            </md-input-container>
-          </div>
-
-          <md-subheader class="md-warn" ng-bind="error"></md-subheader>
-        </div>
-      </md-dialog-content>
-
-      <div class="md-actions" layout="row">
-        <md-button type="button" ng-click="dialogApiKeyExpirationController.hide()" class="md-primary">Cancel</md-button>
-        <md-button type="submit" class="md-primary" ng-disabled="formExpireSubscriptionProperty.$invalid">Expire</md-button>
+        <md-subheader class="md-warn" ng-bind="error"></md-subheader>
       </div>
-    </form>
-  </md-dialog>
+    </md-dialog-content>
+
+    <div class="md-actions" layout="row">
+      <md-button ng-click="dialogApiKeyExpirationController.hide()" class="md-primary">Cancel</md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="formExpireSubscriptionProperty.$invalid">Expire</md-button>
+    </div>
+  </form>
+</md-dialog>

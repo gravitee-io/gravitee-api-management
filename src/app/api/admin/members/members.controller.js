@@ -95,7 +95,7 @@ class ApiMembersController {
     var confirm = this.$mdDialog.confirm()
       .title('Would you like to remove the member?')
       .ariaLabel('delete-member')
-      .ok('OK')
+      .ok('Remove')
       .cancel('Cancel')
       .targetEvent(ev);
 		var self = this;

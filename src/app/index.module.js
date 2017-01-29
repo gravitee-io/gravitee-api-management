@@ -63,7 +63,6 @@ import ApplicationMembersController from './application/details/members/applicat
 import ApplicationSubscriptionsController from './application/details/subscriptions/applicationSubscriptions.controller';
 import ApplicationAnalyticsController from './application/details/analytics/analytics.controller';
 import DialogApplicationController from './application/dialog/applicationDialog.controller';
-import DialogSubscribeApiController from './application/dialog/subscribeApiDialog.controller';
 import DialogAddMemberController from './application/dialog/addMemberDialog.controller';
 import ApplicationService from './services/applications.service';
 import SideNavDirective from './components/sidenav/sidenav.directive';
@@ -174,7 +173,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController)
   .controller('ApplicationAnalyticsController', ApplicationAnalyticsController)
   .controller('DialogApplicationController', DialogApplicationController)
-  .controller('DialogSubscribeApiController', DialogSubscribeApiController)
   .controller('DialogAddMemberController', DialogAddMemberController)
   .controller('DialogApiDefinitionController', DialogApiDefinitionController)
   .controller('DialogEditPolicyController', DialogEditPolicyController)

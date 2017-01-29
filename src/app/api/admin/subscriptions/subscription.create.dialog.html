@@ -15,42 +15,32 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="Create a subscription" style="width: 30%">
-  <md-toolbar>
-    <div class="md-toolbar-tools">
-      <h2>Create a subscription</h2>
-      <span flex></span>
-      <md-button type="button" class="md-icon-button" ng-click="dialogSubscriptionCreateController.hide()">
-        X
-      </md-button>
-    </div>
-  </md-toolbar>
-
-  <md-dialog-content layout-padding >
-    <div>
-      <h5>Choose an application</h5>
-      <form name="CreateSubscriptionForm" ng-submit="$event.preventDefault()" novalidate>
-        <md-autocomplete
-                md-selected-item="dialogSubscriptionCreateController.selectedApp"
-                md-selected-item-change="dialogSubscriptionCreateController.selectedItemChange()"
-                md-search-text="searchText"
-                md-items="app in dialogSubscriptionCreateController.searchApplication(searchText)"
-                md-item-text="app.name"
-                md-min-length="3"
-                placeholder="Search application ..."
-                md-autofocus="true"
-                required>
-          <md-item-template id="searchedApp">
+<md-dialog aria-label="Create a subscription">
+  <md-dialog-content layout-padding>
+    <h4>Create a subscription</h4>
+    <h5>Choose an application</h5>
+    <form name="CreateSubscriptionForm" ng-submit="$event.preventDefault()" novalidate>
+      <md-autocomplete
+              md-selected-item="dialogSubscriptionCreateController.selectedApp"
+              md-selected-item-change="dialogSubscriptionCreateController.selectedItemChange()"
+              md-search-text="searchText"
+              md-items="app in dialogSubscriptionCreateController.searchApplication(searchText)"
+              md-item-text="app.name"
+              md-min-length="3"
+              placeholder="Search application ..."
+              md-autofocus="true"
+              required
+              style="width: 400px;">
+        <md-item-template id="searchedApp">
             <span md-highlight-text="searchText" md-highlight-flags="i">
               {{app.name}} ({{app.type}}) by {{app.owner.username}}
             </span>
-          </md-item-template>
-          <md-not-found>
-            No application matching "{{searchText}}" were found.
-          </md-not-found>
-        </md-autocomplete>
-      </form>
-    </div>
+        </md-item-template>
+        <md-not-found>
+          No application matching "{{searchText}}" were found.
+        </md-not-found>
+      </md-autocomplete>
+    </form>
     <h5>Select a plan</h5>
     <div layout="column" layout-align="start start" ng-cloak >
       <md-radio-group ng-model="dialogSubscriptionCreateController.selectedPlan">
@@ -60,7 +50,7 @@
           {{plan.name}}
           <md-tooltip md-direction="right"> {{plan.description}} </md-tooltip>
           <div ng-if="dialogSubscriptionCreateController.planAlreadyHaveSubscriptions(plan.id)"
-                style="color:rgba(0, 0, 0, 0.54);font-size: smaller;">
+               style="color:rgba(0, 0, 0, 0.54);font-size: smaller;">
             There is already a <i>pending</i> or <i>accepted</i> subscription for this plan.
           </div>
         </md-radio-button>
@@ -69,8 +59,10 @@
   </md-dialog-content>
 
   <md-dialog-actions layout="row">
-    <md-button type="button" ng-click="dialogSubscriptionCreateController.hide()" class="md-primary">Cancel</md-button>
-    <md-button type="button" class="md-primary"
+    <md-button ng-click="dialogSubscriptionCreateController.hide()" class="md-primary">
+      Cancel
+    </md-button>
+    <md-button class="md-raised md-primary"
                ng-click="dialogSubscriptionCreateController.save()"
                ng-disabled="!dialogSubscriptionCreateController.selectedApp || !dialogSubscriptionCreateController.selectedPlan">
       Create

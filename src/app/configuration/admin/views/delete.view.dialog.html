@@ -15,24 +15,16 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="Delete view '{{view}}'" style="min-width:60%;">
-  <md-toolbar style="background-color: white; border-bottom: 1px solid #f1f1f1;">
-    <div class="md-toolbar-tools">
-      <h2 style="color: grey;">Delete view '{{view}}'</h2>
-      <span flex></span>
-      <md-button style="color: grey;" type="button" class="md-icon-button" aria-label="Close dialog" ng-click="cancel()">X</md-button>
-    </div>
-  </md-toolbar>
-  <md-dialog-content class="md-padding">
-    Are you sure you want to delete the view '{{view}}'?
+<md-dialog aria-label="Delete view '{{view}}'">
+  <md-dialog-content layout-padding>
+    <p>Are you sure you want to delete the view '{{view}}'?</p>
   </md-dialog-content>
   <md-dialog-actions layout="row">
-    <span flex></span>
-    <md-button ng-click="cancel()" md-auto-focus>
+    <md-button ng-click="cancel()" md-auto-focus class="md-primary">
       Cancel
     </md-button>
-    <md-button ng-click="ok()">
-      <span style="color: #ef5350">Delete view</span>
+    <md-button ng-click="ok()" class="md-raised md-warn">
+      Delete view
     </md-button>
   </md-dialog-actions>
 </md-dialog>

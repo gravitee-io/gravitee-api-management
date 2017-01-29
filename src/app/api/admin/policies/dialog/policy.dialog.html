@@ -18,31 +18,18 @@
 <md-dialog aria-label="Edit policy" ng-cloak>
 
     <form name="formApi" ng-submit="editPolicyDialogCtrl.save()" novalidate>
-      <md-toolbar>
-        <div class="md-toolbar-tools">
-          <h2>Edit policy</h2>
-          <span flex></span>
-          <md-button type="button" class="md-icon-button" ng-click="editPolicyDialogCtrl.hide()">
-            X
-          </md-button>
-        </div>
-      </md-toolbar>
-      <md-dialog-content>
-        <div class="md-dialog-content">
-            <div layout="row">
-              <md-input-container>
-                <label>Description</label>
-                <textarea ng-model="description" required md-maxlength="500"></textarea>
-              </md-input-container>
-            </div>
-        </div>
+      <md-dialog-content layout-padding>
+        <h4>Policy Description</h4>
+        <md-input-container class="md-block">
+          <textarea ng-model="description" required md-maxlength="500" rows="2" cols="50"></textarea>
+        </md-input-container>
       </md-dialog-content>
 
       <md-dialog-actions layout="row">
-        <md-button type="button" ng-click="editPolicyDialogCtrl.hide()" class="md-primary">
+        <md-button ng-click="editPolicyDialogCtrl.hide()" class="md-primary">
           Cancel
         </md-button>
-        <md-button type="submit" class="md-primary" ng-disabled="formApi.$invalid">
+        <md-button type="submit" class="md-raised md-primary" ng-disabled="formApi.$invalid">
           Update
         </md-button>
       </md-dialog-actions>

@@ -15,44 +15,41 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="API Permissions Help" style="min-width:60%;">
-  <form>
-    <md-toolbar>
-      <div class="md-toolbar-tools">
-        <h2>Application Permissions</h2>
-        <span flex></span>
-        <md-button type="button" class="md-icon-button" aria-label="Close dialog" ng-click="ctrl.cancel()">X</md-button>
-      </div>
-    </md-toolbar>
-    <md-dialog-content>
-      <md-table-container>
-        <table md-table>
-          <thead md-head md-order="action">
-          <tr md-row>
-            <th md-column order-by="action">Action</th>
-            <th md-column>User</th>
-            <th md-column>Owner</th>
-            <th md-column>Primary Owner</th>
-          </tr>
-          </thead>
-          <tbody md-body>
-          <tr md-row ng-repeat="permission in permissions">
-            <td md-cell>
-              <span>{{permission.action}}</span>
-            </td>
-            <td md-cell>
-              <ng-md-icon ng-if="permission.user" icon="done" style="fill: #b1bdc5;" size="16"></ng-md-icon>
-            </td>
-            <td md-cell>
-              <ng-md-icon ng-if="permission.owner" icon="done" style="fill: #b1bdc5;" size="16"></ng-md-icon>
-            </td>
-            <td md-cell>
-              <ng-md-icon ng-if="permission.primary_owner" icon="done" style="fill: #b1bdc5;" size="16"></ng-md-icon>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </md-table-container>
-    </md-dialog-content>
-  </form>
+<md-dialog aria-label="Application Permissions Help">
+  <h4 layout-padding>Application Permissions</h4>
+  <md-dialog-content>
+    <md-table-container>
+      <table md-table>
+        <thead md-head md-order="action">
+        <tr md-row>
+          <th md-column order-by="action">Action</th>
+          <th md-column>User</th>
+          <th md-column>Owner</th>
+          <th md-column>Primary Owner</th>
+        </tr>
+        </thead>
+        <tbody md-body>
+        <tr md-row ng-repeat="permission in permissions">
+          <td md-cell>
+            <span>{{permission.action}}</span>
+          </td>
+          <td md-cell>
+            <ng-md-icon ng-if="permission.user" icon="done" style="fill: #b1bdc5;" size="16"></ng-md-icon>
+          </td>
+          <td md-cell>
+            <ng-md-icon ng-if="permission.owner" icon="done" style="fill: #b1bdc5;" size="16"></ng-md-icon>
+          </td>
+          <td md-cell>
+            <ng-md-icon ng-if="permission.primary_owner" icon="done" style="fill: #b1bdc5;" size="16"></ng-md-icon>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </md-table-container>
+  </md-dialog-content>
+  <md-dialog-actions layout="row">
+    <md-button ng-click="ctrl.cancel()" class="md-primary">
+      Close
+    </md-button>
+  </md-dialog-actions>
 </md-dialog>

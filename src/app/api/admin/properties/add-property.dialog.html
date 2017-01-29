@@ -15,40 +15,27 @@
     limitations under the License.
 
 -->
-  <md-dialog aria-label="New property">
+<md-dialog aria-label="New property">
     <form name="formApiProperty" ng-submit="dialogAddPropertyCtrl.save()" novalidate>
-      <md-toolbar>
-        <div class="md-toolbar-tools">
-          <h2>New property</h2>
-          <span flex></span>
-          <md-button type="button" class="md-icon-button" ng-click="dialogAddPropertyCtrl.hide()">
-            X
-          </md-button>
-        </div>
-      </md-toolbar>
-      <md-dialog-content>
-				<md-content class="md-padding">
-		      <div layout="">
-		        <md-input-container>
-		          <label>Name</label>
-		          <input ng-model="property.name" id="key" required>
-		        </md-input-container>
-		        <md-input-container>
-		          <label>Value</label>
-		          <input ng-model="property.value" id="value" required>
-		        </md-input-container>
-		      </div>
-		      <md-subheader class="md-warn" ng-bind="error"></md-subheader>
-    		</md-content>
-      </md-dialog-content>
+        <md-dialog-content layout-padding>
+            <h4>New property</h4>
+                <md-input-container>
+                    <label>Name</label>
+                    <input ng-model="property.name" id="key" required>
+                </md-input-container>
+                <md-input-container>
+                    <label>Value</label>
+                    <input ng-model="property.value" id="value" required>
+                </md-input-container>
+        </md-dialog-content>
 
-      <md-dialog-actions layout="row">
-        <md-button type="button" ng-click="dialogAddPropertyCtrl.hide()" class="md-primary">
-          Cancel
-        </md-button>
-        <md-button type="submit" class="md-primary" ng-disabled="formApiProperty.$invalid">
-          Save
-        </md-button>
-      </md-dialog-actions>
+        <md-dialog-actions layout="row">
+            <md-button ng-click="dialogAddPropertyCtrl.hide()" class="md-primary">
+                Cancel
+            </md-button>
+            <md-button type="submit" class="md-raised md-primary" ng-disabled="formApiProperty.$invalid">
+                Add
+            </md-button>
+        </md-dialog-actions>
     </form>
-  </md-dialog>
+</md-dialog>

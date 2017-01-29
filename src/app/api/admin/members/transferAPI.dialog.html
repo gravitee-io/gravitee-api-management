@@ -15,24 +15,19 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="Transfer API" style="min-width:60%;">
-  <md-toolbar style="background-color: white; border-bottom: 1px solid #f1f1f1;">
-    <div class="md-toolbar-tools">
-      <h2 style="color: grey;">Transfer API</h2>
-      <span flex></span>
-      <md-button style="color: grey;" type="button" class="md-icon-button" aria-label="Close dialog" ng-click="cancel()">X</md-button>
-    </div>
-  </md-toolbar>
-  <md-dialog-content class="md-padding">
-    This action cannot be undone. If you are the primary owner of this API, your privilege will be set to <code>owner</code> level.
+<md-dialog aria-label="Transfer API">
+  <md-dialog-content layout-padding>
+    <h4>Transfer API</h4>
+    <p>
+      This action cannot be undone. If you are the primary owner of this API, your privilege will be set to <code>owner</code> level.
+    </p>
   </md-dialog-content>
   <md-dialog-actions layout="row">
-    <span flex></span>
-    <md-button ng-click="cancel()">
+    <md-button ng-click="cancel()" class="md-primary">
       Cancel
     </md-button>
-    <md-button ng-click="transferOwnership()">
-      <span style="color: #ef5350">I understand, transfer this API</span>
+    <md-button ng-click="transferOwnership()" class="md-raised md-warn">
+      I understand, transfer this API
     </md-button>
   </md-dialog-actions>
 </md-dialog>
