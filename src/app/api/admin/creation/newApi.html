@@ -16,119 +16,42 @@
 
 -->
 <section>
-
-  <md-stepper-card-content class="md-no-padding">
-    <md-steppers md-dynamic-height md-disable-tabs-behavior="true" md-stretch-steppers="always"
-                 md-selected="newApiCtrl.vm.selectedStep" md-busy-text="'Processing...'"
-                 md-busy="newApiCtrl.vm.showBusyText">
-      <md-step label="General" md-complete="newApiCtrl.vm.stepData[0].data.completed"
-               ng-disabled="newApiCtrl.vm.stepProgress < 1">
-        <md-step-body>
-          <form name="apiGeneralForm" ng-submit="newApiCtrl.submitCurrentStep(newApiCtrl.vm.stepData[0].data)">
-            <md-content layout-padding>
-              <div layout-gt-sm="row">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Name</label>
-                  <input ng-model="newApiCtrl.api.name" type="text" required name="name" minlength="4"
-                         md-maxlength="50">
-                  <div class="hint" ng-if="apiGeneralForm.name.$valid || apiGeneralForm.name.$pristine">API Name</div>
-                  <div ng-messages="apiGeneralForm.name.$error">
-                    <div ng-message="required">API Name is required.</div>
-                    <div ng-message="minlength">The name has to be more than 4 characters long.</div>
-                    <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
-                  </div>
-                </md-input-container>
-
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Version</label>
-                  <input ng-model="newApiCtrl.api.version" type="text" md-maxlength="32" required name="version">
-                  <div class="hint" ng-if="apiGeneralForm.version.$valid || apiGeneralForm.version.$pristine">API
-                    Version (ex: 1.0)
-                  </div>
-                  <div ng-messages="apiGeneralForm.version.$error">
-                    <div ng-message="required">API Version is required.</div>
-                    <div ng-message="md-maxlength">The version has to be less than 32 characters long.</div>
-                  </div>
-                </md-input-container>
-              </div>
-            </md-content>
-
-            <md-content layout-padding>
-              <div layout-gt-sm="row">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Description</label>
-                  <input ng-model="newApiCtrl.api.description" type="text" required name="description">
-                  <div class="hint" ng-if="apiGeneralForm.description.$valid || apiGeneralForm.description.$pristine">
-                    Provide a description of your API, what it does, ...
-                  </div>
-                  <div ng-messages="apiGeneralForm.description.$error">
-                    <div ng-message="required">API Description is required.</div>
-                  </div>
-                </md-input-container>
-              </div>
-            </md-content>
-
-            <md-step-actions layout="row">
-              <div flex layout="row" layout-align="end top">
-                <md-button type="submit" ng-disabled="apiGeneralForm.$invalid" class="md-primary md-raised">NEXT
-                </md-button>
-              </div>
-            </md-step-actions>
-          </form>
-        </md-step-body>
-      </md-step>
-      <md-step label="Gateway" md-complete="newApiCtrl.vm.stepData[1].data.completed"
-               ng-disabled="newApiCtrl.vm.stepProgress < 2">
-        <md-step-body>
-          <form name="apiGatewayForm">
-            <md-content layout-padding>
-              <div layout-gt-sm="column">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Context-path</label>
-                  <input ng-model="newApiCtrl.api.contextPath" type="text" minlength="3"
-                         ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" required name="contextPath">
-                  <div class="hint" ng-if="apiGatewayForm.contextPath.$valid || apiGatewayForm.contextPath.$pristine">
-                    Path where API is exposed, must start with a '/'
-                  </div>
-                  <div ng-messages="apiGatewayForm.contextPath.$error">
-                    <div ng-message="required">Context path is required.</div>
-                    <div ng-message="minlength">Context path has to be more than 3 characters long.</div>
-                    <div ng-message="pattern">Context path is not valid (must start with a '/')</div>
-                  </div>
-                </md-input-container>
-              </div>
-            </md-content>
-
-            <md-content layout-padding>
-              <div layout-gt-sm="column">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Backend</label>
-                  <input ng-model="newApiCtrl.api.endpoint" type="url" required name="endpoint">
-                  <div class="hint" ng-if="apiGatewayForm.endpoint.$valid || apiGatewayForm.endpoint.$pristine">Target
-                    backend when a request is received for above context-path
-                  </div>
-                  <div ng-messages="apiGatewayForm.endpoint.$error">
-                    <div ng-message="required">Endpoint is required.</div>
-                    <div ng-message="url">Endpoint is not a valid URL.</div>
-                  </div>
-                </md-input-container>
-              </div>
-            </md-content>
-          </form>
-
-          <md-step-actions layout="row">
-            <div flex>
-              <md-button ng-click="newApiCtrl.moveToPreviousStep()">PREVIOUS</md-button>
-            </div>
-            <div flex layout="row" layout-align="end top">
-              <md-button ng-disabled="newApiCtrl.vm.showBusyText || apiGatewayForm.$invalid"
-                         ng-click="newApiCtrl.submitCurrentStep(newApiCtrl.vm.stepData[1].data)"
-                         class="md-primary md-raised">CREATE
-              </md-button>
-            </div>
-          </md-step-actions>
-        </md-step-body>
-      </md-step>
-    </md-steppers>
-  </md-stepper-card-content>
+  <md-toolbar class="md-table-toolbar md-default" style="background-color:#fbfbfc;">
+    <div class="md-toolbar-tools">
+      <span>Create an API</span>
+    </div>
+  </md-toolbar>
+  <div layout="column">
+    <div layout="row" layout-align="center" style="margin-top: 40px;">
+      <div layout="column">
+        <gravitee-empty-state icon="dashboard"
+                              model="API"
+                              message="Create an API from scratch ..."
+                              create-mode="true"></gravitee-empty-state>
+        <md-button ng-href="#/apis/new/create" style="margin: 0 auto;" aria-label="create-api" class="md-success md-fab create-api-button">
+          <ng-md-icon icon="arrow_forward" style="fill: white" size="38"></ng-md-icon>
+        </md-button>
+      </div>
+    </div>
+    <div layout="row" layout-align="center" style="margin-top: 50px;">
+      <div layout="column">
+      <h4>... or import your Gravitee.io API definition or your Swagger descriptor file</h4>
+      <md-tabs md-dynamic-height md-border-bottom>
+        <md-tab label="Import file" ng-click="newApiCtrl.importFileMode= true; newApiCtrl.importURLMode= false;">
+          <div class="import-file-drop-box">
+            <input type="file" filecontent="importAPIFile.content" filename="importAPIFile.name" >
+          </div>
+        </md-tab>
+        <md-tab label="Import from link" ng-click="newApiCtrl.importFileMode= false; newApiCtrl.importURLMode= true;">
+          <div class="input-group import-file-from-url">
+            <input class="form-control" ng-model="newApiCtrl.apiDescriptorURL" required type="url" placeholder="Enter API descriptor URL (only Swagger descriptor)"/>
+          </div>
+        </md-tab>
+      </md-tabs>
+      <div layout="row">
+        <md-button style="margin: 10px auto;" ng-disabled="!newApiCtrl.enableImport()" ng-click="newApiCtrl.importAPI()" class="md-raised import-api-button">Import</md-button>
+      </div>
+      </div>
+    </div>
+  </div>
 </section>

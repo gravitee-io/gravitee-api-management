@@ -92,6 +92,10 @@ class ApiService {
     return this.$http.get(this.apisURL + apiId + '/export?exclude=' + exclude.join(","));
   }
 
+  verify(criteria) {
+    return this.$http.post(this.apisURL + 'verify', criteria);
+  }
+
   /*
    * Analytics
    */
