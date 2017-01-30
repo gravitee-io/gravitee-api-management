@@ -261,6 +261,7 @@ class ApiPoliciesController {
       controller: 'DialogEditPolicyController',
       controllerAs: 'editPolicyDialogCtrl',
       templateUrl: 'app/api/admin/policies/dialog/policy.dialog.html',
+      clickOutsideToClose: true,
       locals: {
         description: policy.description
       }

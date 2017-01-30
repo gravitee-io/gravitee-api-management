@@ -188,7 +188,7 @@ class SubscriptionsController {
         controllerAs: 'dialogSubscriptionCreateController',
         templateUrl: 'app/api/admin/subscriptions/subscription.create.dialog.html',
         plans: plans,
-        clickOutsideToClose: false
+        clickOutsideToClose: true
       }).then( (data) => {
         if(data && data.applicationId && data.planId) {
           _this.ApplicationService.subscribe(data.applicationId, data.planId).then( (response) => {

@@ -15,23 +15,22 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="Edit policy" ng-cloak>
+<md-dialog aria-label="Edit policy">
+  <form name="formApi" ng-submit="editPolicyDialogCtrl.save()" novalidate>
+    <md-dialog-content layout-padding>
+      <h4>Policy Description</h4>
+      <md-input-container class="md-block">
+        <textarea aria-label="Policy description" ng-model="description" required md-maxlength="500" rows="2" cols="50"></textarea>
+      </md-input-container>
+    </md-dialog-content>
 
-    <form name="formApi" ng-submit="editPolicyDialogCtrl.save()" novalidate>
-      <md-dialog-content layout-padding>
-        <h4>Policy Description</h4>
-        <md-input-container class="md-block">
-          <textarea ng-model="description" required md-maxlength="500" rows="2" cols="50"></textarea>
-        </md-input-container>
-      </md-dialog-content>
-
-      <md-dialog-actions layout="row">
-        <md-button ng-click="editPolicyDialogCtrl.hide()" class="md-primary">
-          Cancel
-        </md-button>
-        <md-button type="submit" class="md-raised md-primary" ng-disabled="formApi.$invalid">
-          Update
-        </md-button>
-      </md-dialog-actions>
-    </form>
-  </md-dialog>
+    <md-dialog-actions layout="row">
+      <md-button ng-click="editPolicyDialogCtrl.hide()" class="md-primary">
+        Cancel
+      </md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="formApi.$invalid">
+        Update
+      </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>

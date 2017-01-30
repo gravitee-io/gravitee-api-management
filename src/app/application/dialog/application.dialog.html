@@ -39,13 +39,13 @@
                 <md-subheader class="md-warn" ng-bind="error"></md-subheader>
             </md-content>
         </md-dialog-content>
-        <div class="md-actions" layout="row">
+        <md-dialog-actions layout="row">
             <md-button ng-click="hide()" class="md-primary">
                 Cancel
             </md-button>
             <md-button type="submit" class="md-raised md-primary" ng-disabled="formApplication.$invalid">
                 Create
             </md-button>
-        </div>
+        </md-dialog-actions>
     </form>
 </md-dialog>

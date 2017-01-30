@@ -39,7 +39,8 @@ class ApplicationsController {
       controller: 'DialogApplicationController',
       templateUrl: 'app/application/dialog/application.dialog.html',
       parent: angular.element(document.body),
-			targetEvent: ev
+			targetEvent: ev,
+      clickOutsideToClose: true
     }).then(function (application) {
       if (application) {
         _that.$window.location.href = '#/applications/' + application.data.id + '/general';

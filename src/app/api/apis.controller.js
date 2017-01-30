@@ -145,7 +145,8 @@ class ApisController {
       controller: 'DialogApiImportController',
       controllerAs: 'dialogApiImportCtrl',
       templateUrl: 'app/api/admin/general/dialog/apiImport.dialog.html',
-      apiId: ''
+      apiId: '',
+      clickOutsideToClose: true
     }).then(function (response) {
       if (response) {
         that.list();
@@ -159,7 +160,8 @@ class ApisController {
       controller: 'DialogApiSwaggerImportController',
       controllerAs: 'dialogApiSwaggerImportCtrl',
       templateUrl: 'app/api/admin/creation/swagger/importSwagger.dialog.html',
-      apiId: ''
+      apiId: '',
+      clickOutsideToClose: true
     }).then(function (api) {
       if (api) {
         _that.$state.go('apis.new', {api: api});
