@@ -82,6 +82,7 @@ public class InstanceServiceImpl implements InstanceService {
                             InstanceInfo info = objectMapper.readValue(event.getPayload(), InstanceInfo.class);
                             instance.setHostname(info.getHostname());
                             instance.setIp(info.getIp());
+                            instance.setPort(info.getPort());
                             instance.setVersion(info.getVersion());
                             instance.setTags(info.getTags());
                             instance.setOperatingSystemName(info.getSystemProperties().get("os.name"));
@@ -122,6 +123,7 @@ public class InstanceServiceImpl implements InstanceService {
                 InstanceInfo info = objectMapper.readValue(event.getPayload(), InstanceInfo.class);
                 instance.setHostname(info.getHostname());
                 instance.setIp(info.getIp());
+                instance.setPort(info.getPort());
                 instance.setVersion(info.getVersion());
                 instance.setTags(info.getTags());
                 instance.setSystemProperties(info.getSystemProperties());
@@ -154,6 +156,7 @@ public class InstanceServiceImpl implements InstanceService {
         private Set<PluginEntity> plugins;
         private String hostname;
         private String ip;
+        private String port;
         private Map<String, String> systemProperties;
 
         public String getHostname() {
@@ -178,6 +181,14 @@ public class InstanceServiceImpl implements InstanceService {
 
         public void setIp(String ip) {
             this.ip = ip;
+        }
+
+        public String getPort() {
+            return port;
+        }
+
+        public void setPort(String port) {
+            this.port = port;
         }
 
         public Map<String, String> getSystemProperties() {
