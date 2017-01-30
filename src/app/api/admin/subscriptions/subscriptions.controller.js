@@ -180,7 +180,8 @@ class SubscriptionsController {
   showAddSubscriptionModal() {
     var _this = this;
     this.ApiService.getPublishedApiPlans(this.api.id).then( (response) => {
-      var plans = response.data;
+      // Allow only subscribable plan
+      var plans = _.filter(response.data, (plan) => { return plan.security !== 'key_less'; });
 
       _this.$mdDialog.show({
         controller: 'DialogSubscriptionCreateController',
