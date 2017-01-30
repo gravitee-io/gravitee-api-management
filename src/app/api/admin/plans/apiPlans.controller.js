@@ -158,6 +158,11 @@ class ApiPlansController {
     this.resetRateLimit();
     this.resetQuota();
     this.resetResourceFiltering();
+
+    if (this.$scope.formPlan) {
+      this.$scope.formPlan.$setPristine();
+      this.$scope.formPlan.$setUntouched();
+    }
   }
 
   resetRateLimit() {
