@@ -30,6 +30,7 @@ public class InstanceEventPayload {
     private Set<Plugin> plugins;
     private String hostname;
     private String ip;
+    private String port;
     private Map<String, String> systemProperties;
 
     public String getHostname() {
@@ -54,6 +55,14 @@ public class InstanceEventPayload {
 
     public void setIp(String ip) {
         this.ip = ip;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
     }
 
     public Map<String, String> getSystemProperties() {

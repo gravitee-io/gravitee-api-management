@@ -67,6 +67,9 @@ public class MonitoringService extends AbstractService {
     @Value("${tags:}")
     private String propertyTags;
 
+    @Value("${http.port:8082}")
+    private String port;
+
     @Autowired
     private Node node;
 
@@ -156,6 +159,7 @@ public class MonitoringService extends AbstractService {
         instanceInfo.setTags(tags());
         instanceInfo.setPlugins(plugins());
         instanceInfo.setSystemProperties(new HashMap<>((Map) System.getProperties()));
+        instanceInfo.setPort(port);
 
         try {
             instanceInfo.setHostname(InetAddress.getLocalHost().getHostName());
