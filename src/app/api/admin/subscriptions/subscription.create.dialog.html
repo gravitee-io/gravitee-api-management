@@ -26,21 +26,26 @@
               md-search-text="searchText"
               md-items="app in dialogSubscriptionCreateController.searchApplication(searchText)"
               md-item-text="app.name"
-              md-min-length="3"
+              md-min-length="1"
               placeholder="Search application ..."
               md-autofocus="true"
+              md-menu-class="autocomplete-create-subscription"
               required
               style="width: 400px;">
-        <md-item-template id="searchedApp">
-            <span md-highlight-text="searchText" md-highlight-flags="i">
-              {{app.name}} ({{app.type}}) by {{app.owner.username}}
-            </span>
+        <md-item-template>
+          <span class="item-title">
+            <span> {{app.name}} </span><span ng-if="app.type">({{app.type}}) </span>
+          </span>
+          <span class="item-metadata">
+            By {{app.owner.username}} on {{app.created_at | humanDateFilter}}
+          </span>
         </md-item-template>
         <md-not-found>
           No application matching "{{searchText}}" were found.
         </md-not-found>
       </md-autocomplete>
     </form>
+
     <h5>Select a plan</h5>
     <div layout="column" layout-align="start start" ng-cloak >
       <md-radio-group ng-model="dialogSubscriptionCreateController.selectedPlan">

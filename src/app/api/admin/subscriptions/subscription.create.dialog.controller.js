@@ -56,11 +56,9 @@ function DialogSubscriptionCreateController($scope, $mdDialog, plans, Applicatio
   };
 
   this.searchApplication = function(searchedAppName) {
-    if (searchedAppName) {
       return ApplicationService.search(searchedAppName).then((response) => {
         return response.data;
       });
-    }
   };
 
 }

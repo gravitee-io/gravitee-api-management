@@ -1,0 +1,20 @@
+.autocomplete-create-subscription li {
+  border-bottom: 1px solid #ccc;
+  height: auto;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  white-space: normal;
+}
+.autocomplete-create-subscription li:last-child {
+  border-bottom-width: 0;
+}
+.autocomplete-create-subscription .item-title,
+.autocomplete-create-subscription .item-metadata {
+  display: block;
+  line-height: 2;
+}
+
+.autocomplete-create-subscription .item-metadata {
+  font-size: 11px;
+  color: rgba(0,0,0,0.54);
+}
