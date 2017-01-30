@@ -41,7 +41,7 @@
                   <ng-md-icon icon="{{instancesCtrl.getOSIcon(instance.operating_system_name)}}" size="60"></ng-md-icon>
                   <div class="api-box-name-version">
                     <div>{{instance.hostname}}</div>
-                    <div>{{instance.ip}}</div>
+                    <div>{{instance.ip}}:{{instance.port}}</div>
                   </div>
                   <div class="api-box-state" layout-padding>
                     <span ng-class="{'gravitee-instances-started':instance.state === 'started',

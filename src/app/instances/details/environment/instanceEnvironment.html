@@ -32,6 +32,11 @@
           <td md-cell>{{instanceEnvironmentCtrl.instance.ip}}</td>
         </tr>
         <tr md-row>
+          <td md-cell><ng-md-icon icon="network_wifi"></ng-md-icon></td>
+          <td md-cell>Port</td>
+          <td md-cell>{{instanceEnvironmentCtrl.instance.port}}</td>
+        </tr>
+        <tr md-row>
           <td md-cell><ng-md-icon icon="traffic"></ng-md-icon></td>
           <td md-cell>State</td>
           <td md-cell ng-class="{'gravitee-instances-started':instanceEnvironmentCtrl.instance.state === 'started',
