@@ -1,0 +1,41 @@
+.autocomplete-add-member li {
+  border-bottom: 1px solid #ccc;
+  height: auto;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  white-space: normal;
+}
+.autocomplete-add-member li:last-child {
+  border-bottom-width: 0;
+}
+
+.autocomplete-add-member md-content.autocomplete {
+  min-height: 250px; }
+.autocomplete-add-member md-content.autocomplete input {
+  min-width: 500px; }
+
+.autocomplete-add-member .md-item-text.compact {
+  padding-top: 8px;
+  padding-bottom: 8px; }
+
+.autocomplete-add-member .contact-item {
+  box-sizing: border-box; }
+.autocomplete-add-member .contact-item.selected {
+  opacity: 0.5; }
+.autocomplete-add-member .contact-item.selected h3 {
+  opacity: 0.5; }
+.autocomplete-add-member .contact-item .md-list-item-text {
+  padding: 14px 0;
+  max-width: 250px; }
+.autocomplete-add-member .contact-item .md-list-item-text h3 {
+  margin: 0 !important;
+  padding: 0;
+  line-height: 1.2em !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden; }
+
+@media (min-width: 960px) {
+  .autocomplete-add-member .contact-item {
+    float: left; }
+}

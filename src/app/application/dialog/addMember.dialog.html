@@ -29,12 +29,17 @@
 					md-min-length="1"
 					placeholder="Search users ..."
 					md-autofocus="true"
-					md-menu-class="autocomplete-custom-template"
-					style="width: 400px;">
+          md-menu-class="autocomplete-add-member"
+					style="width: 450px;">
 				<md-item-template>
-						<span>
-							{{item.firstname}} {{item.lastname}} [{{item.id}}]
-						</span>
+          <md-list-item class="md-2-line contact-item">
+            <img ng-src="{{item.id}}" gravitee-user-avatar="{{item.id}}" class="md-avatar" alt="{{item.id}}" />
+            <div class="md-list-item-text compact">
+              <h3>{{item.firstname}} {{item.lastname}}</h3>
+              <p ng-if="item.email">{{item.email}}</p>
+              <p ng-if="!item.email">{{item.id}}</p>
+            </div>
+          </md-list-item>
 				</md-item-template>
 				<md-not-found>
 					No users matching "{{searchText}}" were found, or users already selected.

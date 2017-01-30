@@ -28,6 +28,7 @@
     "window": true,
     "URL": true,
     "location": true,
-    "JsDiff": true
+    "JsDiff": true,
+    "Image": true
   }
 }

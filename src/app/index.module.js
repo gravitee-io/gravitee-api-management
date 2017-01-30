@@ -112,6 +112,7 @@ import TagsController from './configuration/admin/tags/tags.controller';
 import TagService from './services/tag.service';
 import DeleteTagDialogController from './configuration/admin/tags/delete.tag.dialog.controller';
 import ChartDirective from './components/chart/chart.directive';
+import UserAvatarDirective from './components/avatar/user-avatar.directive';
 import DialogConfirmController from './components/dialog/confirmDialog.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
@@ -234,6 +235,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .directive('graviteeAnalyticsApplicationModel', () => new AnalyticsApplicationModelDirective())
   .directive('graviteeEmptyState', () => new EmptyStateDirective())
   .directive('graviteeChart', () => new ChartDirective())
+  .directive('graviteeUserAvatar', () => new UserAvatarDirective())
   .filter('humanDateFilter', function () {
     return function(input) {
       if (!moment().subtract(1, 'weeks').isAfter(input)) {
