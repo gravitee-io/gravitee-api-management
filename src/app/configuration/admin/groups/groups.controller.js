@@ -110,6 +110,7 @@ class GroupsController {
   }
 
   showRenameGroupModal(ev, groupId, name) {
+    ev.stopPropagation();
     var _this = this;
     this.$mdDialog.show({
       controller: 'DialogAddGroupController',
@@ -147,40 +148,46 @@ class GroupsController {
   }
 
   removeGroup(ev, groupId, groupName) {
-    var confirm = this.$mdDialog.confirm()
-      .title('Would you like to remove the group "' + groupName + '" ?')
-      .ariaLabel('delete-group')
-      .ok('OK')
-      .cancel('Cancel')
-      .targetEvent(ev);
+    ev.stopPropagation();
     var _this = this;
-    this.$mdDialog.show(confirm).then( () => {
-      _this.GroupService.remove(groupId).then( () => {
-        _this.listGroups();
-      });
-    }, () => {
-      _this.$mdDialog.cancel();
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Would you like to remove the group "' + groupName + '" ?',
+      msg: "",
+      confirmButton: "Remove"
+    }).then(function (response) {
+      if (response) {
+        _this.GroupService.remove(groupId).then( () => {
+          _this.listGroups();
+        });
+      }
     });
   }
 
   removeMember(ev, username) {
-    var confirm = this.$mdDialog.confirm()
-      .title('Would you like to remove the user "' + username + '" ?')
-      .ariaLabel('delete-member')
-      .ok('OK')
-      .cancel('Cancel')
-      .targetEvent(ev);
+    ev.stopPropagation();
     var _this = this;
-    this.$mdDialog.show(confirm).then( () => {
-      _this.GroupService.deleteMember(_this.selectedGroup.group.id, username).then( () => {
-        _this.NotificationService.show('Member ' + username + ' has been removed from the group');
-        _.remove(_this.selectedGroup.members, (m) => {
-          return m.username === username;
-        });
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Would you like to remove the user "' + username + '" ?',
+      msg: "",
+      confirmButton: "Remove"
+    }).then(function (response) {
+      if (response) {
+        _this.GroupService.deleteMember(_this.selectedGroup.group.id, username).then( () => {
+          _this.NotificationService.show('Member ' + username + ' has been removed from the group');
+          _.remove(_this.selectedGroup.members, (m) => {
+            return m.username === username;
+          });
 
-      });
-    }, () => {
-      _this.$mdDialog.cancel();
+        });
+      }
     });
   }
 

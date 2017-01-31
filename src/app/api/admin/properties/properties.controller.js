@@ -30,20 +30,21 @@ class ApiPropertiesController {
   }
 
   deleteProperty(key) {
-    var alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to remove this property ?',
-      ok: 'OK',
-      cancel: 'Cancel'
-    });
-
-    var that = this;
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
+    let that = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Are you sure you want to remove this property ?',
+      msg: "",
+      confirmButton: "Remove"
+    }).then(function (response) {
+      if (response) {
         delete that.api.properties[key];
         that.update(that.api);
-      });
+      }
+    });
   }
 
   showPropertyModal() {

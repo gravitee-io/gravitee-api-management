@@ -190,17 +190,20 @@ class ApiHistoryController {
   }
 
   showRollbackAPIConfirm(ev, api) {
-    var confirm = this.$mdDialog.confirm()
-      .title('Would you like to rollback your API?')
-      .ariaLabel('rollback-api')
-      .ok('OK')
-      .cancel('Cancel')
-      .targetEvent(ev);
-    var self = this;
-    this.$mdDialog.show(confirm).then(function() {
-      self.rollback(api);
-    }, function() {
-      self.$mdDialog.cancel();
+    ev.stopPropagation();
+    let self = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirm.dialog.html',
+      clickOutsideToClose: true,
+      title: "Would you like to rollback your API ?",
+      msg: "",
+      confirmButton: "Rollback"
+    }).then(function (response) {
+      if (response) {
+        self.rollback(api);
+      }
     });
   }
 

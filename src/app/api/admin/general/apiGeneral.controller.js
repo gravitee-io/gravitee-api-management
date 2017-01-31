@@ -101,16 +101,17 @@ class ApiAdminController {
 
   changeLifecycle(id) {
     var started = this.api.state === 'started';
-    var alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to ' + (started ? 'stop' : 'start') + ' the API?',
-      ok: 'OK',
-      cancel: 'Cancel'
-    });
-    var that = this;
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
+    let that = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Are you sure you want to ' + (started ? 'stop' : 'start') + ' the API ?',
+      msg: "",
+      confirmButton: (started ? 'stop' : 'start')
+    }).then(function (response) {
+      if (response) {
         if (started) {
           that.ApiService.stop(id).then(function () {
             that.api.state = 'stopped';
@@ -124,10 +125,10 @@ class ApiAdminController {
             that.NotificationService.show('API ' + that.initialApi.name + ' has been started!');
           });
         }
-      })
-      .catch(function () {
-        that.initState();
-      });
+      }
+    }).catch(function () {
+      that.initState();
+    });
   }
 
   editWeight(event, endpoint) {
@@ -163,18 +164,17 @@ class ApiAdminController {
 
   removeEndpoints() {
     var _that = this;
-    var alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to delete endpoint(s) ?',
-      ok: 'OK',
-      cancel: 'Cancel'
-    });
-
-    var that = this;
-
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
+    let that = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Are you sure you want to delete endpoint(s) ?',
+      msg: "",
+      confirmButton: "Delete"
+    }).then(function (response) {
+      if (response) {
         _(_that.$scope.selected).forEach(function (endpoint) {
           _(_that.api.proxy.endpoints).forEach(function (endpoint2, index, object) {
             if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
@@ -184,7 +184,8 @@ class ApiAdminController {
         });
 
         that.update(that.api);
-      });
+      }
+    });
   }
 
   reset() {
@@ -194,23 +195,23 @@ class ApiAdminController {
   }
 
   delete(id) {
-    var alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to delete \'' + this.api.name + '\' API ?',
-      ok: 'OK',
-      cancel: 'Cancel'
-    });
-
-    var that = this;
-
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
+    let that = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Are you sure you want to delete \'' + this.api.name + '\' API ?',
+      msg: "",
+      confirmButton: "Delete"
+    }).then(function (response) {
+      if (response) {
         that.ApiService.delete(id).then(() => {
           that.NotificationService.show('API \'' + that.initialApi.name + '\' has been removed');
           that.$state.go('apis.list', {}, {reload: true});
         });
-      });
+      }
+    });
   }
 
   onApiUpdate(updatedApi) {

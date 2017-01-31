@@ -58,17 +58,20 @@ class ApiAdminController {
   }
 
   showDeployAPIConfirm(ev, api) {
-    var confirm = this.$mdDialog.confirm()
-      .title('Would you like to deploy your API?')
-      .ariaLabel('deploy-api')
-      .ok('OK')
-      .cancel('Cancel')
-      .targetEvent(ev);
-    var self = this;
-    this.$mdDialog.show(confirm).then(function() {
-      self.deploy(api);
-    }, function() {
-      self.$mdDialog.cancel();
+    ev.stopPropagation();
+    let self = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirm.dialog.html',
+      clickOutsideToClose: true,
+      title: "Would you like to deploy your API ?",
+      msg: "",
+      confirmButton: "OK"
+    }).then(function (response) {
+      if (response) {
+        self.deploy(api);
+      }
     });
   }
 

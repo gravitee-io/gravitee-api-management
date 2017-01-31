@@ -114,20 +114,21 @@ class ApiResourcesController {
   }
 
   deleteResource(resourceIdx) {
-    var alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to remove this resource ?',
-      ok: 'OK',
-      cancel: 'Cancel'
-    });
-
-    var that = this;
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
+    let that = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Are you sure you want to remove this resource ?',
+      msg: "",
+      confirmButton: "Remove"
+    }).then(function (response) {
+      if (response) {
         that.api.resources.splice(resourceIdx, 1);
         that.updateApi();
-      });
+      }
+    });
   }
 
   saveResource() {

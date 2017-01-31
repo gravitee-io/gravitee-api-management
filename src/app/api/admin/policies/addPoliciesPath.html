@@ -15,44 +15,34 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="Add a new path" style="width: 40%">
+<md-dialog aria-label="Add a new path">
   <form name="newPathForm" ng-submit="addPoliciesPathCtrl.add()" novalidate>
-    <md-toolbar>
-      <div class="md-toolbar-tools">
-        <h2>New path</h2>
-        <span flex></span>
-        <md-button class="md-icon-button" aria-label="close" ng-click="addPoliciesPathCtrl.hide()">
-          <ng-md-icon icon="close"></ng-md-icon>
-        </md-button>
-      </div>
-    </md-toolbar>
-    <md-dialog-content>
-      <div class="md-padding">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>New Path</label>
-          <input required name="path"
-                 ui-validate="{
+    <md-dialog-content layout-padding>
+      <h4>New path</h4>
+      <md-input-container class="md-block" flex-gt-sm>
+        <label>New Path</label>
+        <input required name="path"
+               ui-validate="{
                     pathAlreadyExists : 'addPoliciesPathCtrl.rootCtrl.pathNotExists($value)',
                     mustStartWithSlash : 'addPoliciesPathCtrl.rootCtrl.pathStartWithSlash($value)'
                  }"
-                 ng-model="addPoliciesPathCtrl.newPath.path">
-          <div ng-messages="newPathForm.path.$error" ng-show="newPathForm.path.$dirty">
-            <div ng-message="required">This is required!</div>
-            <div ng-message="pathAlreadyExists">This path is already configured.</div>
-            <div ng-message="mustStartWithSlash">The path must start with /</div>
-          </div>
-        </md-input-container>
-        <md-checkbox ng-model="addPoliciesPathCtrl.newPath.copyFromRootPath" aria-label="Copy from root path">
-          Copy all policies and configuration from the root path ?
-        </md-checkbox>
-      </div>
+               ng-model="addPoliciesPathCtrl.newPath.path">
+        <div ng-messages="newPathForm.path.$error" ng-show="newPathForm.path.$dirty">
+          <div ng-message="required">This is required!</div>
+          <div ng-message="pathAlreadyExists">This path is already configured.</div>
+          <div ng-message="mustStartWithSlash">The path must start with /</div>
+        </div>
+      </md-input-container>
+      <md-checkbox ng-model="addPoliciesPathCtrl.newPath.copyFromRootPath" aria-label="Copy from root path">
+        Copy all policies and configuration from the root path ?
+      </md-checkbox>
     </md-dialog-content>
 
     <md-dialog-actions layout="row">
-      <md-button type="button" ng-click="addPoliciesPathCtrl.hide()" class="md-primary">
+      <md-button ng-click="addPoliciesPathCtrl.hide()" class="md-primary">
         Cancel
       </md-button>
-      <md-button type="submit" class="md-primary" ng-disabled="newPathForm.$invalid">
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="newPathForm.$invalid">
         Add
       </md-button>
     </md-dialog-actions>

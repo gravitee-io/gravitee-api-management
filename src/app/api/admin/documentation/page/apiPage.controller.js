@@ -124,23 +124,23 @@ class PageController {
   }
 
   delete() {
-    var alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to remove the page "' + this.page.name + '"?',
-      ok: 'OK',
-      cancel: 'Cancel'
-    });
-
-    var that = this;
-
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
+	  let that = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Are you sure you want to remove the page "' + this.page.name + '" ?',
+      msg: "",
+      confirmButton: "Remove"
+    }).then(function (response) {
+      if (response) {
         that.DocumentationService.deletePage(that.$scope.$parent.apiCtrl.api.id, that.page.id).then(function () {
           that.preview();
           that.$rootScope.$broadcast('onGraviteePageDeleted');
         });
-      });
+      }
+    });
   }
 
   edit() {

@@ -70,43 +70,43 @@ class ApplicationSubscriptionsController {
   }
 
   generateAPIKey(applicationId, subscription) {
-    var alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to renew your API Key ? Your previous API Key will be no longer valid in 1 hour !',
-      ok: 'Renew',
-      cancel: 'Cancel'
-    });
-
     var _this = this;
-
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Are you sure you want to renew your API Key ?',
+      msg: "Your previous API Key will be no longer valid in 1 hour !",
+      confirmButton: "Renew"
+    }).then(function (response) {
+      if (response) {
         _this.ApplicationService.renewApiKey(applicationId, subscription.id).then(() => {
           _this.NotificationService.show('A new API Key has been generated');
           _this.listApiKeys(subscription);
         });
-      });
+      }
+    });
   }
 
   revoke(subscription, apiKey) {
-    var alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to revoke API Key \'' + apiKey + '\'?',
-      ok: 'Revoke',
-      cancel: 'Cancel'
-    });
-
     var _this = this;
-
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Are you sure you want to revoke API Key \'' + apiKey + '\'?',
+      msg: "",
+      confirmButton: "Revoke"
+    }).then(function (response) {
+      if (response) {
         _this.ApplicationService.revokeApiKey(_this.application.id, subscription.id, apiKey).then(() => {
           _this.NotificationService.show('API Key ' + apiKey + ' has been revoked !');
           _this.listApiKeys(subscription);
         });
-      });
+      }
+    });
   }
 
   onClipboardSuccess(e) {

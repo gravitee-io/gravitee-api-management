@@ -70,17 +70,20 @@ class ApplicationGeneralController {
   }
 
   showDeleteApplicationConfirm(ev) {
-    var confirm = this.$mdDialog.confirm()
-      .title('Would you like to delete your application?')
-      .ariaLabel('delete-application')
-      .ok('OK')
-      .cancel('Cancel')
-      .targetEvent(ev);
+    ev.stopPropagation();
     var self = this;
-    this.$mdDialog.show(confirm).then(function() {
-      self.delete(self.application);
-    }, function() {
-      self.$mdDialog.cancel();
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Would you like to delete your application?',
+      msg: "",
+      confirmButton: "Delete"
+    }).then(function (response) {
+      if (response) {
+        self.delete(self.application);
+      }
     });
   }
 }

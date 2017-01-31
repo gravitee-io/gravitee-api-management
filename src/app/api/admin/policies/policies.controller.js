@@ -228,26 +228,26 @@ class ApiPoliciesController {
     ev.stopPropagation();
     this.selectedApiPolicy = null;
     const hashKey = this.apiPoliciesByPath[path][index].$$hashKey;
-    let alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to remove this policy ?',
-      ok: 'OK',
-      cancel: 'Cancel'
-    });
-
-    const that = this;
-
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
+    let that = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Are you sure you want to remove this policy ?',
+      msg: "",
+      confirmButton: "Remove"
+    }).then(function (response) {
+      if (response) {
         _.forEach(that.apiPoliciesByPath[path], (policy, idx) => {
-          if ( policy.$$hashKey === hashKey ) {
-          that.apiPoliciesByPath[path].splice(idx, 1);
-          return false;
-        }
-      });
+          if (policy.$$hashKey === hashKey) {
+            that.apiPoliciesByPath[path].splice(idx, 1);
+            return false;
+          }
+        });
         that.savePaths();
-      });
+      }
+    });
   }
 
   editPolicyDescription(index, path, ev) {
@@ -321,21 +321,21 @@ class ApiPoliciesController {
 
   removePath(path) {
     this.selectedApiPolicy = {};
-    let alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to remove this path ?',
-      ok: 'OK',
-      cancel: 'Cancel'
-    });
-
-    const that = this;
-
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
+    let that = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirmWarning.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Are you sure you want to remove this path ?',
+      msg: "",
+      confirmButton: "Remove"
+    }).then(function (response) {
+      if (response) {
         delete that.apiPoliciesByPath[path];
         that.savePaths();
-      });
+      }
+    });
   }
 
   pathNotExists(path, index) {

@@ -51,17 +51,20 @@ class ApplicationMembersController {
   }
 
   showDeleteMemberConfirm(ev, member) {
-    var confirm = this.$mdDialog.confirm()
-      .title('Would you like to remove the member?')
-      .ariaLabel('delete-member')
-      .ok('OK')
-      .cancel('Cancel')
-      .targetEvent(ev);
+    ev.stopPropagation();
     var self = this;
-    this.$mdDialog.show(confirm).then(function() {
-      self.deleteMember(member);
-    }, function() {
-      self.$mdDialog.cancel();
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      templateUrl: 'app/components/dialog/confirm.dialog.html',
+      clickOutsideToClose: true,
+      title: 'Would you like to remove the member ?',
+      msg: "",
+      confirmButton: "Remove"
+    }).then(function (response) {
+      if (response) {
+        self.deleteMember(member);
+      }
     });
   }
 
