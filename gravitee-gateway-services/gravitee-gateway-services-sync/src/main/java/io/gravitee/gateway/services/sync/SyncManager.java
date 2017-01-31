@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Path;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -32,7 +33,6 @@ import io.gravitee.repository.management.model.LifecycleState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.text.Collator;
@@ -45,8 +45,6 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 public class SyncManager {
-
-    public static final String TAGS_PROP = "tags";
 
     private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
 
@@ -65,8 +63,8 @@ public class SyncManager {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${tags:}")
-    private String propertyTags;
+    @Autowired
+    private GatewayConfiguration gatewayConfiguration;
 
     public void refresh() {
         logger.debug("Refreshing gateway state...");
@@ -117,13 +115,11 @@ public class SyncManager {
     }
 
     private boolean hasMatchingTags(Api api) {
-        final String systemPropertyTags = System.getProperty(TAGS_PROP);
-        final String tags = systemPropertyTags == null ? propertyTags : systemPropertyTags;
+        final Optional<List<String>> optTagList = gatewayConfiguration.shardingTags();
 
-        if (tags != null && !tags.isEmpty()) {
+        if (optTagList.isPresent()) {
+            List<String> tagList = optTagList.get();
             if (api.getTags() != null) {
-                final List<String> tagList = Arrays.asList(tags.split(","));
-
                 final List<String> inclusionTags = tagList.stream()
                         .map(String::trim)
                         .filter(tag -> !tag.startsWith("!"))
@@ -160,11 +156,11 @@ public class SyncManager {
                                         ));
 
                 if (!hasMatchingTags) {
-                    logger.info("The API {} has been ignored because not in configured tags {}", api.getName(), tags);
+                    logger.info("The API {} has been ignored because not in configured tags {}", api.getName(), tagList);
                 }
                 return hasMatchingTags;
             }
-            logger.info("Tags {} are configured on gateway instance but not found on the API {}", tags, api.getName());
+            logger.info("Tags {} are configured on gateway instance but not found on the API {}", tagList, api.getName());
             return false;
         }
         // no tags configured on this gateway instance

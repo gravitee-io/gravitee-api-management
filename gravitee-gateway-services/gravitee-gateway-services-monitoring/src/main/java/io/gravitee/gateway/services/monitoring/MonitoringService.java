@@ -21,6 +21,7 @@ import io.gravitee.common.node.Node;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.services.monitoring.event.InstanceEventPayload;
 import io.gravitee.gateway.services.monitoring.event.Plugin;
 import io.gravitee.plugin.core.api.PluginRegistry;
@@ -49,9 +50,6 @@ public class MonitoringService extends AbstractService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MonitoringService.class);
 
-    private static final String TAGS_PROP = "tags";
-    private static final String TAGS_DELIMITER = ",";
-
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -63,9 +61,6 @@ public class MonitoringService extends AbstractService {
 
     @Value("${services.monitoring.unit:MILLISECONDS}")
     private TimeUnit unit;
-
-    @Value("${tags:}")
-    private String propertyTags;
 
     @Value("${http.port:8082}")
     private String port;
@@ -82,6 +77,9 @@ public class MonitoringService extends AbstractService {
     private ExecutorService executorService;
 
     private Event heartbeatEvent;
+
+    @Autowired
+    private GatewayConfiguration gatewayConfiguration;
 
     @Override
     protected void doStart() throws Exception {
@@ -156,10 +154,17 @@ public class MonitoringService extends AbstractService {
 
         instanceInfo.setId(node.id());
         instanceInfo.setVersion(Version.RUNTIME_VERSION.toString());
-        instanceInfo.setTags(tags());
+
+        if (gatewayConfiguration.shardingTags().isPresent()) {
+            instanceInfo.setTags(gatewayConfiguration.shardingTags().get());
+        }
         instanceInfo.setPlugins(plugins());
         instanceInfo.setSystemProperties(new HashMap<>((Map) System.getProperties()));
         instanceInfo.setPort(port);
+
+        if (gatewayConfiguration.tenant().isPresent()) {
+            instanceInfo.setTenant(gatewayConfiguration.tenant().get());
+        }
 
         try {
             instanceInfo.setHostname(InetAddress.getLocalHost().getHostName());
@@ -167,14 +172,6 @@ public class MonitoringService extends AbstractService {
         } catch (UnknownHostException uhe) {}
 
         return instanceInfo;
-    }
-
-    public Set<String> tags() {
-        final String systemPropertyTags = System.getProperty(TAGS_PROP);
-        final String tags = systemPropertyTags == null ? propertyTags : systemPropertyTags;
-        return (tags == null || tags.isEmpty()) ?
-                Collections.EMPTY_SET :
-                new HashSet<>(Arrays.asList(tags.trim().split(TAGS_DELIMITER)));
     }
 
     public Set<Plugin> plugins() {

@@ -48,4 +48,10 @@ public class EnvironmentConfiguration {
         // Using this we are now able to use {@link org.springframework.core.env.Environment} in Spring beans
         return new PropertySourceBeanProcessor(graviteeProperties, environment);
     }
+
+    @Bean
+    public static GatewayConfiguration gatewayConfiguration(@Qualifier("graviteeProperties") Properties graviteeProperties,
+                                                            Environment environment) {
+        return new GatewayConfiguration();
+    }
 }

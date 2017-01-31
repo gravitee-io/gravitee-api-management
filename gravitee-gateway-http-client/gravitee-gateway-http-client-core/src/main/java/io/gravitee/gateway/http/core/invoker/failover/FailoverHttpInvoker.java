@@ -81,7 +81,7 @@ public class FailoverHttpInvoker extends DefaultHttpInvoker {
     protected String nextEndpoint(ExecutionContext executionContext) {
         // Use this is to iterate over each defined endpoint
         // How to maintain a list of already attempted endpoints ?
-        return loadBalancer.next();
+        return endpointManager.loadbalancer().next();
     }
 
     private Failover getFailover() {
