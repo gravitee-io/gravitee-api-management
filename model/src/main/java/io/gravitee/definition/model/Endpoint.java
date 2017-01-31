@@ -41,6 +41,8 @@ public class Endpoint {
 
     private HttpClientSslOptions httpClientSslOptions;
 
+    private String tenant;
+
     public Endpoint(String target) {
         this();
         this.target = target;
@@ -120,6 +122,14 @@ public class Endpoint {
 
     public void setHttpClientSslOptions(HttpClientSslOptions httpClientSslOptions) {
         this.httpClientSslOptions = httpClientSslOptions;
+    }
+
+    public String getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(String tenant) {
+        this.tenant = tenant;
     }
 
     @Override

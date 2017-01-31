@@ -96,6 +96,12 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
             endpoint.setHttpClientSslOptions(httpClientSslOptions);
         }
 
+        JsonNode tenantNode = node.get("tenant");
+        if (tenantNode != null) {
+            String tenant = tenantNode.asText();
+            endpoint.setTenant(tenant);
+        }
+
         return endpoint;
     }
 }

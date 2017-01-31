@@ -359,4 +359,19 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertFalse(api.getProxy().getEndpoints().get(0).isBackup());
         Assert.assertTrue(api.getProxy().getEndpoints().get(1).isBackup());
     }
+
+    @Test
+    public void definition_multiTenant() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
+
+        Assert.assertFalse(api.getProxy().isMultiTenant());
+    }
+
+    @Test
+    public void definition_multiTenant_enable() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-multitenant.json", Api.class);
+
+        Assert.assertTrue(api.getProxy().isMultiTenant());
+        Assert.assertEquals("europe", api.getProxy().getEndpoints().get(0).getTenant());
+    }
 }

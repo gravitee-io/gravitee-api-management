@@ -88,6 +88,14 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             proxy.setDumpRequest(Proxy.DEFAULT_DUMP_REQUEST);
         }
 
+        JsonNode multiTenantNode = node.get("multiTenant");
+        if (multiTenantNode != null) {
+            boolean multiTenant = multiTenantNode.asBoolean(Proxy.DEFAULT_MULTI_TENANT);
+            proxy.setMultiTenant(multiTenant);
+        } else {
+            proxy.setMultiTenant(Proxy.DEFAULT_MULTI_TENANT);
+        }
+
         return proxy;
     }
 

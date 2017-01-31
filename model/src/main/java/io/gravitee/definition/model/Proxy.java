@@ -26,6 +26,8 @@ public class Proxy {
 
     public static boolean DEFAULT_DUMP_REQUEST = false;
 
+    public static boolean DEFAULT_MULTI_TENANT = false;
+
     private String contextPath;
 
     private List<Endpoint> endpoints = new ArrayList<>();
@@ -37,6 +39,8 @@ public class Proxy {
     private boolean stripContextPath = false;
 
     private boolean dumpRequest = DEFAULT_DUMP_REQUEST;
+
+    private boolean multiTenant = DEFAULT_MULTI_TENANT;
 
     public String getContextPath() {
         return contextPath;
@@ -88,5 +92,13 @@ public class Proxy {
 
     public void setDumpRequest(boolean dumpRequest) {
         this.dumpRequest = dumpRequest;
+    }
+
+    public boolean isMultiTenant() {
+        return multiTenant;
+    }
+
+    public void setMultiTenant(boolean multiTenant) {
+        this.multiTenant = multiTenant;
     }
 }

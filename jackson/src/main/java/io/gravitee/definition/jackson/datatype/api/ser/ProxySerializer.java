@@ -40,6 +40,7 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
         jgen.writeStringField("context_path", proxy.getContextPath());
         jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
         jgen.writeBooleanField("dumpRequest", proxy.isDumpRequest());
+        jgen.writeBooleanField("multiTenant", proxy.isMultiTenant());
 
         final List<Endpoint> endpoints = proxy.getEndpoints();
 
