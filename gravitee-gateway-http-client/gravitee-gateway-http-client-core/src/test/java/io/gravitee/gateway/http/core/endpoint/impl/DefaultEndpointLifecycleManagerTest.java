@@ -22,6 +22,7 @@ import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
@@ -37,9 +38,10 @@ import static org.mockito.Mockito.*;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointLifecycleManagerImplTest {
+public class DefaultEndpointLifecycleManagerTest {
 
-    private EndpointLifecycleManagerImpl endpointLifecycleManager;
+    @InjectMocks
+    private DefaultEndpointLifecycleManager endpointLifecycleManager;
 
     @Mock
     private Api api;
@@ -53,10 +55,6 @@ public class EndpointLifecycleManagerImplTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        endpointLifecycleManager = new EndpointLifecycleManagerImpl();
-        endpointLifecycleManager.setApi(api);
-        endpointLifecycleManager.setApplicationContext(applicationContext);
-
         when(api.getProxy()).thenReturn(proxy);
     }
 
@@ -77,7 +75,7 @@ public class EndpointLifecycleManagerImplTest {
         when(endpoint.isBackup()).thenReturn(true);
         when(proxy.getEndpoints()).thenReturn(Collections.singletonList(endpoint));
 
-        endpointLifecycleManager.doStart();
+        endpointLifecycleManager.start();
 
         verify(applicationContext, never()).getBean(eq(HttpClient.class), any(Endpoint.class));
 
@@ -93,7 +91,7 @@ public class EndpointLifecycleManagerImplTest {
         when(endpoint.isBackup()).thenReturn(false);
         when(proxy.getEndpoints()).thenReturn(Collections.singletonList(endpoint));
         when(applicationContext.getBean(HttpClient.class, endpoint)).thenReturn(mock(HttpClient.class));
-        endpointLifecycleManager.doStart();
+        endpointLifecycleManager.start();
 
         HttpEndpoint httpClientEndpoint = (HttpEndpoint) endpointLifecycleManager.get("endpoint");
 
@@ -118,7 +116,7 @@ public class EndpointLifecycleManagerImplTest {
         when(endpoint.isBackup()).thenReturn(false);
         when(proxy.getEndpoints()).thenReturn(Collections.singletonList(endpoint));
         when(applicationContext.getBean(HttpClient.class, endpoint)).thenReturn(mock(HttpClient.class));
-        endpointLifecycleManager.doStart();
+        endpointLifecycleManager.start();
 
         assertFalse(endpointLifecycleManager.targetByEndpoint().isEmpty());
         assertFalse(endpointLifecycleManager.endpoints().isEmpty());
@@ -126,7 +124,7 @@ public class EndpointLifecycleManagerImplTest {
         HttpEndpoint httpClientEndpoint = (HttpEndpoint) endpointLifecycleManager.get("endpoint");
 
         // Then, stop endpoint
-        endpointLifecycleManager.doStop();
+        endpointLifecycleManager.stop();
 
         // Verify that the HTTP client is correctly stopped
         verify(httpClientEndpoint.getHttpClient(), times(1)).stop();

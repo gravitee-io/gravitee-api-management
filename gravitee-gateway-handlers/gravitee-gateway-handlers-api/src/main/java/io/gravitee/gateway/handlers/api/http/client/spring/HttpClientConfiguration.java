@@ -15,16 +15,14 @@
  */
 package io.gravitee.gateway.handlers.api.http.client.spring;
 
-import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager;
-import io.gravitee.gateway.http.core.endpoint.impl.EndpointLifecycleManagerImpl;
+import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManagerFactory;
 import io.gravitee.gateway.http.core.invoker.spring.HttpInvokerFactory;
-import io.gravitee.gateway.http.core.loadbalancer.spring.LoadBalancerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
@@ -32,18 +30,13 @@ import org.springframework.context.annotation.Import;
 public class HttpClientConfiguration {
 
     @Bean
-    public LoadBalancerFactory loadBalancerFactory() {
-        return new LoadBalancerFactory();
-    }
-
-    @Bean
     public HttpInvokerFactory httpInvokerFactory() {
         return new HttpInvokerFactory();
     }
 
     @Bean
-    public EndpointLifecycleManager endpointManager() {
-        return new EndpointLifecycleManagerImpl();
+    public EndpointLifecycleManagerFactory endpointLifecycleManagerFactory() {
+        return new EndpointLifecycleManagerFactory();
     }
 
 }

@@ -19,8 +19,10 @@ import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.http.client.HttpClient;
+import io.gravitee.gateway.api.http.loadbalancer.LoadBalancerStrategy;
 import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
+import io.gravitee.gateway.http.core.loadbalancer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,14 +30,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointLifecycleManagerImpl extends AbstractLifecycleComponent<EndpointLifecycleManager> implements EndpointLifecycleManager<HttpClient>, ApplicationContextAware {
+public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<EndpointLifecycleManager> implements EndpointLifecycleManager<HttpClient>, ApplicationContextAware {
 
-    private final Logger logger = LoggerFactory.getLogger(EndpointLifecycleManagerImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(DefaultEndpointLifecycleManager.class);
 
     @Autowired
     private Api api;
@@ -45,11 +49,14 @@ public class EndpointLifecycleManagerImpl extends AbstractLifecycleComponent<End
     private final Map<String, HttpEndpoint> endpoints = new LinkedHashMap<>();
     private final Map<String, String> endpointsTarget = new LinkedHashMap<>();
 
+    private LoadBalancerStrategy loadBalancer;
+
     @Override
     protected void doStart() throws Exception {
+        // Select and init endpoints
         api.getProxy().getEndpoints()
                 .stream()
-                .filter(endpoint -> ! endpoint.isBackup())
+                .filter(filter())
                 .forEach(endpoint -> {
                     try {
                         logger.debug("Preparing a new target endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
@@ -61,6 +68,46 @@ public class EndpointLifecycleManagerImpl extends AbstractLifecycleComponent<End
                         logger.error("Unexpected error while creating endpoint connector", ex);
                     }
                 });
+
+        // Initialize load balancer
+        List<io.gravitee.definition.model.Endpoint> endpoints = this.endpoints
+                .values()
+                .stream()
+                .map(HttpEndpoint::getEndpoint)
+                .collect(Collectors.toList());
+
+        // Use a LB strategy only if more than one endpoint
+        if (endpoints.size() > 1) {
+            io.gravitee.definition.model.LoadBalancer lb = api.getProxy().getLoadBalancer();
+
+            if (lb != null) {
+                switch (lb.getType()) {
+                    case ROUND_ROBIN:
+                        loadBalancer = new RoundRobinLoadBalancerStrategy(endpoints);
+                        break;
+                    case RANDOM:
+                        loadBalancer = new RandomLoadBalancerStrategy(endpoints);
+                        break;
+                    case WEIGHTED_RANDOM:
+                        loadBalancer = new WeightedRandomLoadBalancerStrategy(endpoints);
+                        break;
+                    case WEIGHTED_ROUND_ROBIN:
+                        loadBalancer = new WeightedRoundRobinLoadBalancerStrategy(endpoints);
+                        break;
+                }
+            }
+        } else if (! endpoints.isEmpty()){
+            loadBalancer = new SingleEndpointLoadBalancerStrategy(endpoints.get(0));
+        }
+
+        // Set default LB to round-robin
+        loadBalancer = (loadBalancer != null) ? loadBalancer : new RoundRobinLoadBalancerStrategy(endpoints);
+
+        logger.info("Create a load-balancer instance of type {}", loadBalancer);
+    }
+
+    protected Predicate<io.gravitee.definition.model.Endpoint> filter() {
+        return endpoint -> !endpoint.isBackup();
     }
 
     @Override
@@ -83,10 +130,6 @@ public class EndpointLifecycleManagerImpl extends AbstractLifecycleComponent<End
         this.applicationContext = applicationContext;
     }
 
-    public void setApi(Api api) {
-        this.api = api;
-    }
-
     @Override
     public Endpoint<HttpClient> get(String endpointName) {
         return endpoints.get(endpointName);
@@ -106,5 +149,10 @@ public class EndpointLifecycleManagerImpl extends AbstractLifecycleComponent<End
     @Override
     public Map<String, String> targetByEndpoint() {
         return Collections.unmodifiableMap(endpointsTarget);
+    }
+
+    @Override
+    public LoadBalancerStrategy loadbalancer() {
+        return loadBalancer;
     }
 }

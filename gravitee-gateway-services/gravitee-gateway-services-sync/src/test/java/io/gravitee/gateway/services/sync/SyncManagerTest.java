@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
@@ -69,9 +70,12 @@ public class SyncManagerTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private GatewayConfiguration gatewayConfiguration;
+
     @Before
-    public void init() {
-        System.clearProperty(SyncManager.TAGS_PROP);
+    public void setUp() {
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
     }
 
     @Test
@@ -363,13 +367,12 @@ public class SyncManagerTest {
     }
 
     public void shouldDeployApiWithTags(final String tags, final String[] apiTags) throws Exception {
-        System.setProperty(SyncManager.TAGS_PROP, tags);
-
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
         final Api mockApi = mockApi(api, apiTags);
 
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList(apiTags)));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
         when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
 
@@ -389,13 +392,12 @@ public class SyncManagerTest {
 
     @Test
     public void test_not_deployApiWithTagExclusion() throws Exception {
-        System.setProperty(SyncManager.TAGS_PROP, "!test");
-
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
         final Api mockApi = mockApi(api, new String[]{"test"});
 
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Collections.singletonList("!test")));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
@@ -414,13 +416,12 @@ public class SyncManagerTest {
 
     @Test
     public void test_deployApiWithTagInclusionExclusion() throws Exception {
-        System.setProperty(SyncManager.TAGS_PROP, "!test,toto");
-
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
         final Api mockApi = mockApi(api, new String[]{"test", "toto"});
 
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("!test", "toto")));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
         when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
 
@@ -440,13 +441,12 @@ public class SyncManagerTest {
 
     @Test
     public void test_not_deployApiWithoutTag() throws Exception {
-        System.setProperty(SyncManager.TAGS_PROP, "test,toto");
-
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
         final Api mockApi = mockApi(api);
 
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test", "toto")));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
@@ -465,13 +465,12 @@ public class SyncManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldNotDeployBecauseWrongConfiguration() throws Exception {
-        System.setProperty(SyncManager.TAGS_PROP, "test, !test");
-
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
         final Api mockApi = mockApi(api);
 
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test", "!test")));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
         when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
 

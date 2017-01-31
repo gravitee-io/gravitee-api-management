@@ -26,6 +26,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.ReactorEvent;
@@ -68,6 +69,9 @@ public class DefaultReactor extends AbstractService implements
     @Autowired
     private TransactionHandlerFactory transactionHandlerFactory;
 
+    @Autowired
+    private GatewayConfiguration gatewayConfiguration;
+
     @Override
     public void route(Request serverRequest, Response serverResponse, final Handler<Response> handler) {
         LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
@@ -85,7 +89,10 @@ public class DefaultReactor extends AbstractService implements
                 LOGGER.debug("No handler can be found for request {}, returning NOT_FOUND (404)", request.path());
                 sendNotFound(serverResponse, handler);
             }
-        },serverResponse);
+        }, serverResponse);
+
+        // Set gateway tenant
+        serverRequest.metrics().setTenant(gatewayConfiguration.tenant().orElse(null));
 
         // And handle the request
         requestHandlerChain.handle(serverRequest);

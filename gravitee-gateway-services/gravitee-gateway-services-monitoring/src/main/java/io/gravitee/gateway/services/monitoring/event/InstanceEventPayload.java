@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.monitoring.event;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,11 +27,12 @@ public class InstanceEventPayload {
 
     private String id;
     private String version;
-    private Set<String> tags;
+    private List<String> tags;
     private Set<Plugin> plugins;
     private String hostname;
     private String ip;
     private String port;
+    private String tenant;
     private Map<String, String> systemProperties;
 
     public String getHostname() {
@@ -73,11 +75,11 @@ public class InstanceEventPayload {
         this.systemProperties = systemProperties;
     }
 
-    public Set<String> getTags() {
+    public List<String> getTags() {
         return tags;
     }
 
-    public void setTags(Set<String> tags) {
+    public void setTags(List<String> tags) {
         this.tags = tags;
     }
 
@@ -95,5 +97,13 @@ public class InstanceEventPayload {
 
     public void setPlugins(Set<Plugin> plugins) {
         this.plugins = plugins;
+    }
+
+    public String getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(String tenant) {
+        this.tenant = tenant;
     }
 }

@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
@@ -39,6 +40,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -61,12 +63,16 @@ public class ReactorTest {
     @Mock
     private ReactorHandlerRegistry reactorHandlerRegistry;
 
+    @Mock
+    private GatewayConfiguration gatewayConfiguration;
+
     @Spy
     private TransactionHandlerFactory transactionHandlerFactory = new TransactionHandlerFactory();
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        when(gatewayConfiguration.tenant()).thenReturn(Optional.empty());
     }
 
     @Test

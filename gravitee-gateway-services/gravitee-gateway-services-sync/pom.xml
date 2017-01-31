@@ -53,6 +53,13 @@
 
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-env</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-reactor</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>

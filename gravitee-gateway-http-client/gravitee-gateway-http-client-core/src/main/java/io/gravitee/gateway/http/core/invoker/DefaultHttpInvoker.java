@@ -26,8 +26,7 @@ import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.endpoint.EndpointManager;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
-import io.gravitee.gateway.api.http.loadbalancer.LoadBalancerStrategy;
-import io.gravitee.gateway.http.core.endpoint.impl.EndpointLifecycleManagerImpl;
+import io.gravitee.gateway.http.core.endpoint.impl.DefaultEndpointLifecycleManager;
 import io.gravitee.gateway.http.core.logger.HttpDump;
 import io.gravitee.gateway.http.core.logger.LoggableClientRequest;
 import io.gravitee.gateway.http.core.logger.LoggableClientResponse;
@@ -50,7 +49,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultHttpInvoker implements Invoker {
 
-    private final Logger logger = LoggerFactory.getLogger(EndpointLifecycleManagerImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(DefaultEndpointLifecycleManager.class);
 
 	// Pattern reuse for duplicate slash removal
 	private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
@@ -60,9 +59,6 @@ public class DefaultHttpInvoker implements Invoker {
 
     @Autowired
     protected EndpointManager<HttpClient> endpointManager;
-
-    @Autowired
-    protected LoadBalancerStrategy loadBalancer;
 
     @Override
     public ClientRequest invoke(ExecutionContext executionContext, Request serverRequest, Handler<ClientResponse> result) {
@@ -136,7 +132,7 @@ public class DefaultHttpInvoker implements Invoker {
     }
 
     protected String nextEndpoint(ExecutionContext executionContext) {
-        return loadBalancer.next();
+        return endpointManager.loadbalancer().next();
     }
 
     protected ClientRequest invoke0(HttpClient httpClient, HttpMethod method, URI uri, Request request,

@@ -31,6 +31,14 @@
     <name>Gravitee.io APIM - Gateway - HTTP Client - Core</name>
 
     <dependencies>
+        <!-- Gravitee dependencies -->
+        <dependency>
+            <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-env</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
