@@ -42,6 +42,8 @@ public class InstanceEntity {
 
     private String port;
 
+    private String tenant;
+
     private String version;
 
     private List<String> tags;
@@ -153,6 +155,14 @@ public class InstanceEntity {
 
     public void setPlugins(Set<PluginEntity> plugins) {
         this.plugins = plugins;
+    }
+
+    public String getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(String tenant) {
+        this.tenant = tenant;
     }
 
     @Override

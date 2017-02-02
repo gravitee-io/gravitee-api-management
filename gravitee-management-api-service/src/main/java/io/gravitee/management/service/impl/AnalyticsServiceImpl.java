@@ -18,18 +18,13 @@ package io.gravitee.management.service.impl;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.PlanEntity;
+import io.gravitee.management.model.TenantEntity;
 import io.gravitee.management.model.analytics.*;
 import io.gravitee.management.model.analytics.query.CountQuery;
 import io.gravitee.management.model.analytics.query.DateHistogramQuery;
 import io.gravitee.management.model.analytics.query.GroupByQuery;
-import io.gravitee.management.service.AnalyticsService;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.PlanService;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.management.service.exceptions.PlanNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.*;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.*;
@@ -72,6 +67,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     @Autowired
     private PlanService planService;
+
+    @Autowired
+    private TenantService tenantService;
 
     @Override
     public HitsAnalytics execute(CountQuery query) {
@@ -199,6 +197,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             });
 
             analyticsBucket.setMetadata(metadata);
+        } else if (analyticsBucket.getField().equals("tenant")) {
+            // Prepare metadata
+            Map<String, Map<String, String>> metadata = new HashMap<>();
+            bucket.data().keySet().stream().forEach(tenant -> {
+                metadata.put(tenant, getTenantMetadata(tenant));
+            });
+
+            analyticsBucket.setMetadata(metadata);
         }
 
         for (Map.Entry<String, List<Data>> dataBucket : bucket.data().entrySet()) {
@@ -241,7 +247,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         String fieldName = groupByResponse.getField();
 
         if (fieldName != null &&
-                (fieldName.equals("api") || fieldName.equals("application") || fieldName.equals("plan"))) {
+                (fieldName.equals("api") || fieldName.equals("application") || fieldName.equals("plan") ||
+                fieldName.equals("tenant"))) {
 
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
@@ -251,6 +258,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                         case "api": metadata.put(key, getAPIMetadata(key)); break;
                         case "application": metadata.put(key, getApplicationMetadata(key)); break;
                         case "plan": metadata.put(key, getPlanMetadata(key)); break;
+                        case "tenant": metadata.put(key, getTenantMetadata(key)); break;
                     }
                 }
             }
@@ -302,6 +310,19 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             PlanEntity planEntity = planService.findById(plan);
             metadata.put("name", planEntity.getName());
         } catch (PlanNotFoundException anfe) {
+            metadata.put("deleted", "true");
+        }
+
+        return metadata;
+    }
+
+    private Map<String, String> getTenantMetadata(String tenant) {
+        Map<String, String> metadata = new HashMap<>();
+
+        try {
+            TenantEntity tenantEntity = tenantService.findById(tenant);
+            metadata.put("name", tenantEntity.getName());
+        } catch (TenantNotFoundException tnfe) {
             metadata.put("deleted", "true");
         }
 

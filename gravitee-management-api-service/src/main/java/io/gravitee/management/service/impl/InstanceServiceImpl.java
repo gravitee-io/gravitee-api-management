@@ -85,6 +85,7 @@ public class InstanceServiceImpl implements InstanceService {
                             instance.setPort(info.getPort());
                             instance.setVersion(info.getVersion());
                             instance.setTags(info.getTags());
+                            instance.setTenant(info.getTenant());
                             instance.setOperatingSystemName(info.getSystemProperties().get("os.name"));
                         } catch (IOException ioe) {
                             LOGGER.error("Unexpected error while getting instance informations from event payload", ioe);
@@ -124,6 +125,7 @@ public class InstanceServiceImpl implements InstanceService {
                 instance.setHostname(info.getHostname());
                 instance.setIp(info.getIp());
                 instance.setPort(info.getPort());
+                instance.setTenant(info.getTenant());
                 instance.setVersion(info.getVersion());
                 instance.setTags(info.getTags());
                 instance.setSystemProperties(info.getSystemProperties());
@@ -157,6 +159,7 @@ public class InstanceServiceImpl implements InstanceService {
         private String hostname;
         private String ip;
         private String port;
+        private String tenant;
         private Map<String, String> systemProperties;
 
         public String getHostname() {
@@ -221,6 +224,14 @@ public class InstanceServiceImpl implements InstanceService {
 
         public void setPlugins(Set<PluginEntity> plugins) {
             this.plugins = plugins;
+        }
+
+        public String getTenant() {
+            return tenant;
+        }
+
+        public void setTenant(String tenant) {
+            this.tenant = tenant;
         }
     }
 }

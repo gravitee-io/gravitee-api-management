@@ -205,6 +205,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     // Configuration Tags
                     .antMatchers(HttpMethod.GET, "/configuration/tags/**").permitAll()
 
+                    // Configuration Tenants
+                    .antMatchers(HttpMethod.GET, "/configuration/tenants/**").permitAll()
+
                     // Configuration
                     .antMatchers("/configuration/**").hasAuthority("ADMIN")
 

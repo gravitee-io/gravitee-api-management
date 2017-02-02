@@ -47,4 +47,9 @@ public class ConfigurationResource {
     public TagsResource getTagResource() {
         return resourceContext.getResource(TagsResource.class);
     }
+
+    @Path("tenants")
+    public TenantsResource getTenantsResource() {
+        return resourceContext.getResource(TenantsResource.class);
+    }
 }

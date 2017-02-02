@@ -50,6 +50,8 @@ public class InstanceListItem {
 
     private List<String> tags;
 
+    private String tenant;
+
     private InstanceState state = InstanceState.UNKNOWN;
 
     @JsonProperty("operating_system_name")
@@ -156,6 +158,14 @@ public class InstanceListItem {
 
     public void setOperatingSystemName(String operatingSystemName) {
         this.operatingSystemName = operatingSystemName;
+    }
+
+    public String getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(String tenant) {
+        this.tenant = tenant;
     }
 
     @Override
