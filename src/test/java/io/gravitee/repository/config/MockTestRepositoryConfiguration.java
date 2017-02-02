@@ -532,4 +532,33 @@ public class MockTestRepositoryConfiguration {
         when(subscriptionRepository.update(sub1)).thenReturn(sub1);
         return subscriptionRepository;
     }
+
+    @Bean
+    public TenantRepository tenantRepository() throws Exception {
+        final TenantRepository tenantRepository = mock(TenantRepository.class);
+
+        final Tenant tenant = mock(Tenant.class);
+        when(tenant.getName()).thenReturn("Tenant name");
+        when(tenant.getDescription()).thenReturn("Description for the new tenant");
+
+        final Tenant tenant2 = mock(Tenant.class);
+        when(tenant2.getName()).thenReturn("Asia");
+
+        final Tenant tenant2Updated = mock(Tenant.class);
+        when(tenant2Updated.getName()).thenReturn("New tenant");
+        when(tenant2Updated.getDescription()).thenReturn("New description");
+
+        final Set<Tenant> tenants = newSet(tenant, tenant2, mock(Tenant.class));
+        final Set<Tenant> tenantsAfterDelete = newSet(tenant, tenant2);
+        final Set<Tenant> tenantsAfterAdd = newSet(tenant, tenant2, mock(Tenant.class), mock(Tenant.class));
+
+        when(tenantRepository.findAll()).thenReturn(tenants, tenantsAfterAdd, tenants, tenantsAfterDelete, tenants);
+
+        when(tenantRepository.create(any(Tenant.class))).thenReturn(tenant);
+
+        when(tenantRepository.findById("new-tenant")).thenReturn(of(tenant));
+        when(tenantRepository.findById("asia")).thenReturn(of(tenant2), of(tenant2Updated));
+
+        return tenantRepository;
+    }
 }
