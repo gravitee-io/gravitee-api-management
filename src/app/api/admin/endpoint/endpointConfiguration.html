@@ -38,6 +38,17 @@
         <input ng-model="endpointCtrl.endpoint.target" type="url" required>
       </md-input-container>
     </div>
+
+    <div layout="column">
+      <md-input-container class="flex">
+        <label>Tenant</label>
+        <md-select ng-model="endpointCtrl.endpoint.tenant" ng-disabled="!endpointCtrl.api.proxy.multiTenant" ng-required="endpointCtrl.api.proxy.multiTenant">
+          <md-option ng-repeat="tenant in endpointCtrl.tenants" ng-value="tenant.id">
+            {{tenant.name}}<span ng-if="tenant.description" class="gravitee-general-description"> - {{tenant.description}}</span>
+          </md-option>
+        </md-select>
+      </md-input-container>
+    </div>
   </section>
 
   <br />
@@ -68,7 +79,7 @@
             Backup endpoint<br/>
                   <span class="ipsum">
                     A "backup" endpoint is not included in the load-balancing algorithm, meaning that an incoming HTTP
-                    request is never transmitted to this kind of endpoint.
+                    request is never transmitted to the endpoint.
                   </span>
           </md-checkbox>
         </div>

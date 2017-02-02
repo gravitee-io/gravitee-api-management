@@ -121,6 +121,9 @@ import DashboardDirective from './components/analytics/dashboard.directive';
 import TimeframeDirective from './components/analytics/timeframe.directive';
 import AnalyticsFilterDirective from './components/analytics/filter.directive';
 import DialogDynamicProviderHttpController from './api/admin/properties/dynamic-provider-http-dialog.controller';
+import TenantsController from './configuration/admin/tenants/tenants.controller';
+import TenantService from './services/tenant.service';
+import DeleteTenantDialogController from './configuration/admin/tenants/delete.tenant.dialog.controller';
 
 angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -195,7 +198,9 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('InstanceMonitoringController', InstanceMonitoringController)
   .controller('DashboardController', DashboardController)
   .controller('ViewsController', ViewsController)
+  .controller('TenantsController', TenantsController)
   .controller('DeleteViewDialogController', DeleteViewDialogController)
+  .controller('DeleteTenantDialogController', DeleteTenantDialogController)
   .controller('GroupsController', GroupsController)
   .controller('DialogAddGroupController', DialogAddGroupController)
   .controller('DialogAddGroupMemberController', DialogAddGroupMemberController)
@@ -230,6 +235,7 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .service('GroupService', GroupService)
   .service('SubscriptionService', SubscriptionService)
   .service('TagService', TagService)
+  .service('TenantService', TenantService)
   .directive('filecontent', () => new DocumentationDirective())
   .directive('graviteeSidenav', () => new SideNavDirective())
   .directive('graviteePage', () => new PageDirective())

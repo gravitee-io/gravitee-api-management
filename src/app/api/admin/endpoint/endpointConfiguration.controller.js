@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApiEndpointController {
-  constructor(ApiService, NotificationService, $scope, $rootScope, $state, $stateParams, resolvedApi) {
+  constructor(ApiService, NotificationService, $scope, $rootScope, $state, $stateParams, resolvedApi, TenantService) {
     'ngInject';
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
@@ -62,6 +62,11 @@ class ApiEndpointController {
         name: 'SOCKS5 tcp proxy',
         value: 'SOCKS5'
       }];
+
+    var that = this;
+    TenantService.list().then(function(response) {
+      that.tenants = response.data;
+    });
   }
 
   update(api) {

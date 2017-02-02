@@ -47,10 +47,15 @@
           <td md-cell>Version</td>
           <td md-cell>{{instanceEnvironmentCtrl.instance.version}}</td>
         </tr>
-        <tr md-row>
+        <tr md-row ng-if="instanceEnvironmentCtrl.instance.tags">
           <td md-cell><ng-md-icon icon="label"></ng-md-icon></td>
           <td md-cell>Sharding tags</td>
-          <td md-cell>{{instanceEnvironmentCtrl.instance.tags.length === 0? '-':instanceEnvironmentCtrl.instance.tags}}</td>
+          <td md-cell>{{instanceEnvironmentCtrl.instance.tags}}</td>
+        </tr>
+        <tr md-row ng-if="instanceEnvironmentCtrl.instance.tenant">
+          <td md-cell><ng-md-icon icon="shuffle"></ng-md-icon></td>
+          <td md-cell>Tenant</td>
+          <td md-cell>{{instanceEnvironmentCtrl.instance.tenant}}</td>
         </tr>
         <tr md-row>
           <td md-cell><ng-md-icon icon="timer"></ng-md-icon></td>

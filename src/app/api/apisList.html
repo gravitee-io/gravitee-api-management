@@ -34,7 +34,7 @@
     </md-tabs>
     <md-card-content style="padding: 0px; overflow-y: auto; height: calc(100vh - {{apisCtrl.apisScrollAreaHeight}}px);">
       <div layout="row" layout-wrap class="inset">
-        <div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33" ng-repeat="api in apisCtrl.apis track by api.id | filter:searchAPIs">
+        <div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33" ng-repeat="api in apisCtrl.apis | filter:searchAPIs track by api.id">
           <a ui-sref="apis.portal.pages.page({apiId: api.id})">
             <md-card class="api-box gravitee-card gravitee-api-card">
               <md-card-header layout="row" layout-align="end start">

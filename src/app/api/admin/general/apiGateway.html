@@ -32,6 +32,7 @@
       <tr md-row>
         <th md-column md-order-by="name"><span>Name</span></th>
         <th md-column md-order-by="target"><span>Target</span></th>
+        <th ng-if="generalCtrl.api.proxy.multiTenant" md-column md-order-by="tenant" hide-gt-xs show-gt-sm><span>Tenant</span></th>
         <th md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
         <th md-column md-order-by="backup" hide-gt-xs show-gt-sm><span>Backup</span></th>
         <th md-column md-order-by="healthcheck" hide-gt-xs show-gt-sm><span>Health-check</span></th>
@@ -53,6 +54,7 @@
       <tr md-row md-select="endpoint" md-auto-select="false" ng-repeat="endpoint in generalCtrl.api.proxy.endpoints">
         <td md-cell>{{endpoint.name}}</td>
         <td md-cell>{{endpoint.target}}</td>
+        <td ng-if="generalCtrl.api.proxy.multiTenant" md-cell hide-gt-xs show-gt-sm>{{endpoint.tenant}}</td>
         <td md-cell hide-gt-xs show-gt-sm ng-click="generalCtrl.editWeight($event, endpoint)" ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
         <td md-cell hide-gt-xs show-gt-sm>
           <ng-md-icon ng-show="endpoint.backup" icon="done" style="fill: #107F20"></ng-md-icon>
@@ -120,6 +122,28 @@
       </md-input-container>
     </div>
   </div>
+
+  <br />
+
+  <section>
+    <md-subheader class="md-primary" style="background-color: #fafafa">
+      <span>Multi-tenant</span>
+      <div class="hints">Use multi-tenant to route incoming HTTP requests to relative endpoints.</div>
+    </md-subheader>
+    <div layout="column" layout-wrap layout-gt-sm="row">
+      <div flex-xs flex="50">
+        <div layout-xs="column" flex-xs="50">
+          <md-checkbox
+            ng-model="generalCtrl.api.proxy.multiTenant"
+            aria-label="Enable multi-tenant" flex>
+            Enable multi-tenant<br/>
+          </md-checkbox>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <br />
 
   <section>
     <md-subheader class="md-primary" style="background-color: #fafafa">

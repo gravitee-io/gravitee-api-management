@@ -55,28 +55,12 @@ class ApiAnalyticsController {
         colors: ['#42a5f5', '#66bb6a', '#ffee58', '#ef5350', '#8d6e63']
       }
     }, {
-      col: 3,
-      row: 1,
-      sizeY: 1,
-      sizeX: 3,
-      title: 'Top slow applications',
-      chart: {
-        type: 'table',
-        columns: ['Application', 'Latency (in ms)'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'application',
-          order: '-avg:response-time',
-          size: 20
-        }
-      }
-    }, {
       col: 0,
       row: 1,
       sizeY: 1,
       sizeX: 3,
       title: 'Top plan',
+      subhead: 'Hits repartition by API plan',
       chart: {
         type: 'table',
         selectable: true,
@@ -137,6 +121,48 @@ class ApiAnalyticsController {
         }
       }
     }];
+
+    if (!this.api.proxy.multiTenant) {
+      this.$scope.apiDashboard.push({
+        col: 3,
+        row: 1,
+        sizeY: 1,
+        sizeX: 3,
+        title: 'Top slow applications',
+        subhead: 'Applications ordered by the latency',
+        chart: {
+          type: 'table',
+          columns: ['Application', 'Latency (in ms)'],
+          paging: 5,
+          request: {
+            type: 'group_by',
+            field: 'application',
+            order: '-avg:response-time',
+            size: 20
+          }
+        }
+      });
+    } else {
+      this.$scope.apiDashboard.push({
+        col: 3,
+        row: 1,
+        sizeY: 1,
+        sizeX: 3,
+        title: 'Tenant repartition',
+        subhead: 'Hits repartition by tenant',
+        chart: {
+          type: 'table',
+          selectable: true,
+          columns: ['Tenant', 'Hits'],
+          paging: 5,
+          request: {
+            type: 'group_by',
+            field: 'tenant',
+            size: 20
+          }
+        }
+      });
+    }
 
     var _that = this;
 

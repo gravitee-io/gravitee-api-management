@@ -17,7 +17,7 @@
 -->
 <div>
   <md-card class="no-box-shadow">
-    <md-card-header layout="column" ng-if="!isLoading && instancesCtrl.instances.length > 0">
+    <md-card-header layout="column" ng-show="!isLoading && instancesCtrl.instances.length > 0">
       <md-card-header-text layout="row" layout-align="center">
         <div class="input-group apis-header-filter" flex="60">
           <input class="form-control" type="text" ng-model="searchGatewayInstances" placeholder="Search Gateway instances..." autofocus/>
