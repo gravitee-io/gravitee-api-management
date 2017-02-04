@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.*;
+import io.gravitee.repository.exceptions.TechnicalException;
 
 import java.util.Set;
 
@@ -69,4 +70,6 @@ public interface ApiService {
     void deleteViewFromAPIs(String viewId);
 
     void deleteTagFromAPIs(String tagId);
+
+    void checkContextPath(String newContextPath) throws TechnicalException;
 }

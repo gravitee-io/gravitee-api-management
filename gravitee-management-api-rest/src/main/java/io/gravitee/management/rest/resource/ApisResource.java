@@ -18,8 +18,10 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
+import io.gravitee.management.rest.resource.param.VerifyApiParam;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.swagger.annotations.*;
 
@@ -33,9 +35,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -148,6 +148,23 @@ public class ApisResource extends AbstractResource {
     public NewApiEntity importSwagger(
             @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
         return swaggerService.prepare(swaggerDescriptor);
+    }
+
+    @POST
+    @Path("verify")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Check if an API match the following criteria")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "No API match the following criteria"),
+            @ApiResponse(code = 400, message = "API already exist with the following criteria")})
+    public Response verify(@Valid VerifyApiParam verifyApiParam) {
+        try {
+            // TODO : create verify service to query repository with criteria
+            apiService.checkContextPath(verifyApiParam.getContextPath());
+            return Response.ok().entity("API context [" + verifyApiParam.getContextPath() + "] is available").build();
+        } catch (TechnicalException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("The api context path [" + verifyApiParam.getContextPath() + "] already exists.").build();
+        }
     }
 
     @Path("{api}")

@@ -44,6 +44,9 @@ public class NewPlanEntity {
     @NotNull
     private PlanType type = PlanType.API;
 
+    @NotNull
+    private PlanStatus status = PlanStatus.STAGING;
+
     private String api;
 
     @JsonProperty(value = "paths", required = true)
@@ -81,6 +84,14 @@ public class NewPlanEntity {
 
     public void setType(PlanType type) {
         this.type = type;
+    }
+
+    public PlanStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PlanStatus status) {
+        this.status = status;
     }
 
     public String getApi() {

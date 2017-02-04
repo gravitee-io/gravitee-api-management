@@ -111,7 +111,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setUpdatedAt(plan.getCreatedAt());
             plan.setType(Plan.PlanType.valueOf(newPlan.getType().name()));
             plan.setSecurity(Plan.PlanSecurityType.valueOf(newPlan.getSecurity().name()));
-            plan.setStatus(Plan.Status.STAGING);
+            plan.setStatus(Plan.Status.valueOf(newPlan.getStatus().name()));
 
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // There is no need for a validation when authentication is KEY_LESS, force to AUTO

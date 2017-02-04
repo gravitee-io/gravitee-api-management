@@ -34,6 +34,8 @@ public class NewPageEntity {
 	private String content;
 	
 	private int order;
+
+	private boolean published;
 	
 	private String lastContributor;
 
@@ -71,6 +73,14 @@ public class NewPageEntity {
 
 	public void setOrder(int order) {
 		this.order = order;
+	}
+
+	public boolean isPublished() {
+		return published;
+	}
+
+	public void setPublished(boolean published) {
+		this.published = published;
 	}
 
 	public String getLastContributor() {

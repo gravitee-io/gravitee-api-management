@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.Visibility;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -72,4 +73,5 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     public Set<Api> findByGroups(List<String> groupIds) throws TechnicalException {
         return target.findByGroups(groupIds);
     }
+
 }

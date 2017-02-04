@@ -171,7 +171,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
-    private void checkContextPath(final String newContextPath) throws TechnicalException {
+    public void checkContextPath(final String newContextPath) throws TechnicalException {
         checkContextPath(newContextPath, null);
     }
 

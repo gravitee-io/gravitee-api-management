@@ -55,7 +55,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Titouan COMPIEGNE (titouan.compiegne [at] graviteesource [dot] com)
  * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
  * @author GraviteeSource Team
  */
@@ -341,6 +341,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setContent(newPageEntity.getContent());
 		page.setLastContributor(newPageEntity.getLastContributor());
 		page.setOrder(newPageEntity.getOrder());
+		page.setPublished(newPageEntity.isPublished());
 		page.setSource(convert(newPageEntity.getSource()));
 		page.setConfiguration(convert(newPageEntity.getConfiguration()));
 

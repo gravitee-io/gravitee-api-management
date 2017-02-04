@@ -13,34 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.rest.resource.param;
 
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.PageListItem;
-import io.gravitee.management.model.UpdatePageEntity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PageService {
+public class VerifyApiParam {
 
-	List<PageListItem> findByApi(String apiId);
-	
-	PageEntity findById(String pageId);
+    @NotNull
+    @JsonProperty("context_path")
+    private String contextPath;
 
-	PageEntity findById(String pageId, boolean transform);
-	
-	PageEntity create(String apiId, NewPageEntity page);
-	
-	PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
-	
-	void delete(String pageId);
-	
-	int findMaxPageOrderByApi(String apiId);
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
+    }
 }
