@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApplicationGeneralController {
-  constructor(resolvedApplication, ApplicationService, NotificationService, GroupService, UserService, $state, $scope, $mdDialog) {
+  constructor(resolvedApplication, ApplicationService, NotificationService, GroupService, UserService, $state, $scope, $mdDialog, $rootScope) {
     'ngInject';
     this.application = resolvedApplication.data;
 
@@ -28,6 +28,7 @@ class ApplicationGeneralController {
     this.GroupService = GroupService;
     this.UserService = UserService;
     this.$scope = $scope;
+    this.$rootScope = $rootScope;
     this.$state = $state;
     this.$mdDialog = $mdDialog;
   }
@@ -44,6 +45,7 @@ class ApplicationGeneralController {
       this.initialApplication = _.cloneDeep(application);
       this.$scope.formApplication.$setPristine();
       this.NotificationService.show('Application ' + application.name + ' has been updated');
+      this.$rootScope.currentResource = this.application.name;
     });
   }
 

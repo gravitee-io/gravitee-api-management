@@ -220,6 +220,7 @@ class ApiAdminController {
     this.$scope.formApi.$setPristine();
     this.$rootScope.$broadcast("apiChangeSuccess");
     this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
+    this.$rootScope.currentResource = this.api.name;
   }
 
   update(api) {
