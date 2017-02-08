@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.1.1
+ * v1.1.3
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -13,8 +13,8 @@
  * @description
  * BottomSheet
  */
-MdBottomSheetDirective.$inject = ["$mdBottomSheet"];
-MdBottomSheetProvider.$inject = ["$$interimElementProvider"];
+MdBottomSheetDirective['$inject'] = ["$mdBottomSheet"];
+MdBottomSheetProvider['$inject'] = ["$$interimElementProvider"];
 angular
   .module('material.components.bottomSheet', [
     'material.core',
@@ -98,6 +98,7 @@ function MdBottomSheetDirective($mdBottomSheet) {
  *   of 3.
  *   - `clickOutsideToClose` - `{boolean=}`: Whether the user can click outside the bottom sheet to
  *     close it. Default true.
+ *   - `bindToController` - `{boolean=}`: When set to true, the locals will be bound to the controller instance.
  *   - `disableBackdrop` - `{boolean=}`: When set to true, the bottomsheet will not show a backdrop.
  *   - `escapeToClose` - `{boolean=}`: Whether the user can press escape to close the bottom sheet.
  *     Default true.
@@ -140,7 +141,7 @@ function MdBottomSheetDirective($mdBottomSheet) {
 
 function MdBottomSheetProvider($$interimElementProvider) {
   // how fast we need to flick down to close the sheet, pixels/ms
-  bottomSheetDefaults.$inject = ["$animate", "$mdConstant", "$mdUtil", "$mdTheming", "$mdBottomSheet", "$rootElement", "$mdGesture", "$log"];
+  bottomSheetDefaults['$inject'] = ["$animate", "$mdConstant", "$mdUtil", "$mdTheming", "$mdBottomSheet", "$rootElement", "$mdGesture", "$log"];
   var CLOSING_VELOCITY = 0.5;
   var PADDING = 80; // same as css
 

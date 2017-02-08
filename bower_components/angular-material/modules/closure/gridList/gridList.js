@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.1.1
+ * v1.1.3
  */
 goog.provide('ngmaterial.components.gridList');
 goog.require('ngmaterial.core');
@@ -10,10 +10,10 @@ goog.require('ngmaterial.core');
  * @ngdoc module
  * @name material.components.gridList
  */
-GridListController.$inject = ["$mdUtil"];
-GridLayoutFactory.$inject = ["$mdUtil"];
-GridListDirective.$inject = ["$interpolate", "$mdConstant", "$mdGridLayout", "$mdMedia"];
-GridTileDirective.$inject = ["$mdMedia"];
+GridListController['$inject'] = ["$mdUtil"];
+GridLayoutFactory['$inject'] = ["$mdUtil"];
+GridListDirective['$inject'] = ["$interpolate", "$mdConstant", "$mdGridLayout", "$mdMedia"];
+GridTileDirective['$inject'] = ["$mdMedia"];
 angular.module('material.components.gridList', ['material.core'])
        .directive('mdGridList', GridListDirective)
        .directive('mdGridTile', GridTileDirective)

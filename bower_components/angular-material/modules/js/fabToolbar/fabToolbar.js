@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.1.1
+ * v1.1.3
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -40,7 +40,7 @@
    *
    * @description
    *
-   * The `<md-fab-toolbar>` directive is used present a toolbar of elements (usually `<md-button>`s)
+   * The `<md-fab-toolbar>` directive is used to present a toolbar of elements (usually `<md-button>`s)
    * for quick access to common actions when a floating action button is activated (via click or
    * keyboard navigation).
    *
@@ -59,17 +59,17 @@
    * <hljs lang="html">
    * <md-fab-toolbar md-direction='left'>
    *   <md-fab-trigger>
-   *     <md-button aria-label="Add..."><md-icon icon="/img/icons/plus.svg"></md-icon></md-button>
+   *     <md-button aria-label="Add..."><md-icon md-svg-src="/img/icons/plus.svg"></md-icon></md-button>
    *   </md-fab-trigger>
    *
    *   <md-toolbar>
    *    <md-fab-actions>
    *      <md-button aria-label="Add User">
-   *        <md-icon icon="/img/icons/user.svg"></md-icon>
+   *        <md-icon md-svg-src="/img/icons/user.svg"></md-icon>
    *      </md-button>
    *
    *      <md-button aria-label="Add Group">
-   *        <md-icon icon="/img/icons/group.svg"></md-icon>
+   *        <md-icon md-svg-src="/img/icons/group.svg"></md-icon>
    *      </md-button>
    *    </md-fab-actions>
    *   </md-toolbar>
@@ -201,7 +201,7 @@
         runAnimation(element, className, done);
         done();
       }
-    }
+    };
   }
 })();
 

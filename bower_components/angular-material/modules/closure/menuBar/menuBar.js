@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.1.1
+ * v1.1.3
  */
 goog.provide('ngmaterial.components.menuBar');
 goog.require('ngmaterial.components.icon');
@@ -10,7 +10,7 @@ goog.require('ngmaterial.components.menu');
 goog.require('ngmaterial.core');
 /**
  * @ngdoc module
- * @name material.components.menu-bar
+ * @name material.components.menuBar
  */
 
 angular.module('material.components.menuBar', [
@@ -20,7 +20,7 @@ angular.module('material.components.menuBar', [
 ]);
 
 
-MenuBarController.$inject = ["$scope", "$rootScope", "$element", "$attrs", "$mdConstant", "$document", "$mdUtil", "$timeout"];
+MenuBarController['$inject'] = ["$scope", "$rootScope", "$element", "$attrs", "$mdConstant", "$document", "$mdUtil", "$timeout"];
 angular
   .module('material.components.menuBar')
   .controller('MenuBarController', MenuBarController);
@@ -271,20 +271,16 @@ MenuBarController.prototype.handleParentClick = function(event) {
   var openMenu = this.querySelector('md-menu.md-open');
 
   if (openMenu && !openMenu.contains(event.target)) {
-    angular.element(openMenu).controller('mdMenu').close();
+    angular.element(openMenu).controller('mdMenu').close(true, {
+      closeAll: true
+    });
   }
 };
-
-
-
-
-
-
 
 /**
  * @ngdoc directive
  * @name mdMenuBar
- * @module material.components.menu-bar
+ * @module material.components.menuBar
  * @restrict E
  * @description
  *
@@ -295,7 +291,7 @@ MenuBarController.prototype.handleParentClick = function(event) {
  * <hljs lang="html">
  * <md-menu-bar>
  *   <md-menu>
- *     <button ng-click="$mdOpenMenu()">
+ *     <button ng-click="$mdMenu.open()">
  *       File
  *     </button>
  *     <md-menu-content>
@@ -308,7 +304,7 @@ MenuBarController.prototype.handleParentClick = function(event) {
  *       <md-menu-item>
  *       <md-menu-item>
  *         <md-menu>
- *           <md-button ng-click="$mdOpenMenu()">New</md-button>
+ *           <md-button ng-click="$mdMenu.open()">New</md-button>
  *           <md-menu-content>
  *             <md-menu-item><md-button ng-click="ctrl.sampleAction('New Document', $event)">Document</md-button></md-menu-item>
  *             <md-menu-item><md-button ng-click="ctrl.sampleAction('New Spreadsheet', $event)">Spreadsheet</md-button></md-menu-item>
@@ -335,7 +331,7 @@ MenuBarController.prototype.handleParentClick = function(event) {
  * <hljs lang="html">
  * <md-menu-bar>
  *  <md-menu>
- *    <button ng-click="$mdOpenMenu()">
+ *    <button ng-click="$mdMenu.open()">
  *      Sample Menu
  *    </button>
  *    <md-menu-content>
@@ -357,7 +353,7 @@ MenuBarController.prototype.handleParentClick = function(event) {
  * <hljs lang="html">
  * <md-menu-item>
  *   <md-menu>
- *     <button ng-click="$mdOpenMenu()">New</md-button>
+ *     <button ng-click="$mdMenu.open()">New</md-button>
  *     <md-menu-content>
  *       <md-menu-item><md-button ng-click="ctrl.sampleAction('New Document', $event)">Document</md-button></md-menu-item>
  *       <md-menu-item><md-button ng-click="ctrl.sampleAction('New Spreadsheet', $event)">Spreadsheet</md-button></md-menu-item>
@@ -371,7 +367,7 @@ MenuBarController.prototype.handleParentClick = function(event) {
  *
  */
 
-MenuBarDirective.$inject = ["$mdUtil", "$mdTheming"];
+MenuBarDirective['$inject'] = ["$mdUtil", "$mdTheming"];
 angular
   .module('material.components.menuBar')
   .directive('mdMenuBar', MenuBarDirective);
@@ -442,7 +438,7 @@ function MenuDividerDirective() {
 }
 
 
-MenuItemController.$inject = ["$scope", "$element", "$attrs"];
+MenuItemController['$inject'] = ["$scope", "$element", "$attrs"];
 angular
   .module('material.components.menuBar')
   .controller('MenuItemController', MenuItemController);
@@ -548,17 +544,17 @@ MenuItemController.prototype.handleClick = function(e) {
 };
 
 
-MenuItemDirective.$inject = ["$mdUtil", "$$mdSvgRegistry"];
+MenuItemDirective['$inject'] = ["$mdUtil", "$mdConstant", "$$mdSvgRegistry"];
 angular
   .module('material.components.menuBar')
   .directive('mdMenuItem', MenuItemDirective);
 
  /* ngInject */
-function MenuItemDirective($mdUtil, $$mdSvgRegistry) {
+function MenuItemDirective($mdUtil, $mdConstant, $$mdSvgRegistry) {
   return {
     controller: 'MenuItemController',
     require: ['mdMenuItem', '?ngModel'],
-    priority: 210, // ensure that our post link runs after ngAria
+    priority: $mdConstant.BEFORE_NG_ARIA,
     compile: function(templateEl, templateAttrs) {
       var type = templateAttrs.type;
       var inMenuBarClass = 'md-in-menu-bar';

@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.1.1
+ * v1.1.3
  */
 goog.provide('ngmaterial.components.sticky');
 goog.require('ngmaterial.components.content');
@@ -14,7 +14,7 @@ goog.require('ngmaterial.core');
  * Sticky effects for md
  *
  */
-MdSticky.$inject = ["$mdConstant", "$$rAF", "$mdUtil", "$compile"];
+MdSticky['$inject'] = ["$mdConstant", "$$rAF", "$mdUtil", "$compile"];
 angular
   .module('material.components.sticky', [
     'material.core',

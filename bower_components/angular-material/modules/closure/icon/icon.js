@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.1.1
+ * v1.1.3
  */
 goog.provide('ngmaterial.components.icon');
 goog.require('ngmaterial.core');
@@ -56,7 +56,7 @@ angular
  * like `"social:cake"`.
  *
  * When using SVGs, both external SVGs (via URLs) or sets of SVGs [from icon sets] can be
- * easily loaded and used.When use font-icons, developers must following three (3) simple steps:
+ * easily loaded and used. When using font-icons, developers must follow three (3) simple steps:
  *
  * <ol>
  * <li>Load the font library. e.g.<br/>
@@ -64,13 +64,18 @@ angular
  *    rel="stylesheet">`
  * </li>
  * <li>
- *   Use either (a) font-icon class names or (b) font ligatures to render the font glyph by using
- *   its textual name
+ *   Use either (a) font-icon class names or (b) a fontset and a font ligature to render the font glyph by
+ *   using its textual name _or_ numerical character reference. Note that `material-icons` is the default fontset when
+ *   none is specified.
  * </li>
- * <li>
- *   Use `<md-icon md-font-icon="classname" />` or <br/>
- *   use `<md-icon md-font-set="font library classname or alias"> textual_name </md-icon>` or <br/>
- *   use `<md-icon md-font-set="font library classname or alias"> numerical_character_reference </md-icon>`
+ * <li> Use any of the following templates: <br/>
+ *   <ul>
+ *     <li>`<md-icon md-font-icon="classname"></md-icon>`</li>
+ *     <li>`<md-icon md-font-set="font library classname or alias">textual_name</md-icon>`</li>
+ *     <li>`<md-icon> numerical_character_reference </md-icon>`</li>
+ *     <li>`<md-icon ng_bind="'textual_name'"></md-icon>`</li>
+ *     <li>`<md-icon ng-bind="scopeVariable"></md-icon>`</li>
+ *   </ul>
  * </li>
  * </ol>
  *
@@ -87,6 +92,19 @@ angular
  * <ul>
  * <li>https://design.google.com/icons/</li>
  * <li>https://design.google.com/icons/#ic_accessibility</li>
+ * </ul>
+ *
+ * ### Localization
+ *
+ * Because an `md-icon` element's text content is not intended to translated, it is recommended to declare the text
+ * content for an `md-icon` element in its start tag. Instead of using the HTML text content, consider using `ng-bind`
+ * with a scope variable or literal string.
+ *
+ * Examples:
+ *
+ * <ul>
+ *   <li>`<md-icon ng-bind="myIconVariable"></md-icon>`</li>
+ *   <li>`<md-icon ng-bind="'menu'"></md-icon>`
  * </ul>
  *
  * <h2 id="material_design_icons">Material Design Icons</h2>
@@ -293,7 +311,7 @@ function mdIconDirective($mdIcon, $mdTheming, $mdAria, $sce) {
 }
 
   
-MdIconService.$inject = ["config", "$templateRequest", "$q", "$log", "$mdUtil", "$sce"];angular
+MdIconService['$inject'] = ["config", "$templateRequest", "$q", "$log", "$mdUtil", "$sce"];angular
     .module('material.components.icon')
     .constant('$$mdSvgRegistry', {
         'mdTabsArrow':   'data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxnPjxwb2x5Z29uIHBvaW50cz0iMTUuNCw3LjQgMTQsNiA4LDEyIDE0LDE4IDE1LjQsMTYuNiAxMC44LDEyICIvPjwvZz48L3N2Zz4=',

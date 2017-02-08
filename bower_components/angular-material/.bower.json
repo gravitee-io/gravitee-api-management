@@ -1,6 +1,6 @@
 {
   "name": "angular-material",
-  "version": "1.1.1",
+  "version": "1.1.3",
   "license": "MIT",
   "ignore": [],
   "dependencies": {
@@ -14,13 +14,13 @@
     "angular-material.css"
   ],
   "homepage": "https://github.com/angular/bower-material",
-  "_release": "1.1.1",
+  "_release": "1.1.3",
   "_resolution": {
     "type": "version",
-    "tag": "v1.1.1",
-    "commit": "ec9b476051eef167c9b1522e1943f10545119bbe"
+    "tag": "v1.1.3",
+    "commit": "db8bbe834d0f96fbd9a3187e23b7ba6af4c084c4"
   },
   "_source": "https://github.com/angular/bower-material.git",
-  "_target": "^1.0.9",
+  "_target": "^1.0.0",
   "_originalSource": "angular-material"
 }

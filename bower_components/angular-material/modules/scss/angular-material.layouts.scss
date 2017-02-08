@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.1.0-master-2b98560
+ * v1.1.2-master-a9ba340
  */
 $font-family: Roboto, 'Helvetica Neue', sans-serif !default;
 $font-size:   10px !default;
@@ -91,15 +91,13 @@ $checkbox-width: 20px !default;
 $checkbox-height: $checkbox-width !default;
 $checkbox-border-radius: 2px !default;
 $checkbox-border-width: 2px !default;
-// Function
-//-- Must be defined before variables
-@function rem($multiplier) {
-  $font-size: 10px;
-  @return $multiplier * $font-size;
-}
-
 // Typography
 // ------------------------------
+
+//-- Must be defined before $font-size.
+@function rem($multiplier) {
+  @return $multiplier * $font-size;
+}
 
 
 
@@ -464,6 +462,22 @@ $checkbox-border-width: 2px !default;
   }
 }
 
+@mixin dense($prop, $normal, $dense) {
+  #{$prop}: $normal;
+  .md-dense > &:not(.md-dense-disabled),
+  .md-dense :not(.md-dense-disabled) &:not(.md-dense-disabled) {
+    #{$prop}: $dense;
+  }
+}
+
+@mixin dense-rtl($prop, $ltr-normal, $rtl-normal, $ltr-dense, $rtl-dense) {
+  @include rtl($prop, $ltr-normal, $rtl-normal);
+  .md-dense > &:not(.md-dense-disabled),
+  .md-dense :not(.md-dense-disabled) &:not(.md-dense-disabled) {
+    @include rtl($prop, $ltr-dense, $rtl-dense);
+  }
+}
+
 /*
 *
 *  Responsive attributes
@@ -596,14 +610,14 @@ $checkbox-border-width: 2px !default;
     $value : #{$i * 5 + '%'};
 
     .#{$flexName}-#{$i * 5} {
-      flex: 1 1 #{$value};
+      flex: 1 1 100%;
       max-width: #{$value};
       max-height: 100%;
       box-sizing: border-box;
     }
 
     .layout-row > .#{$flexName}-#{$i * 5} {
-      flex: 1 1 #{$value};
+      flex: 1 1 100%;
       max-width: #{$value};
       max-height: 100%;
       box-sizing: border-box;
@@ -613,7 +627,7 @@ $checkbox-border-width: 2px !default;
     }
 
     .layout-column > .#{$flexName}-#{$i * 5} {
-      flex: 1 1 #{$value};
+      flex: 1 1 100%;
       max-width: 100%;
       max-height: #{$value};
       box-sizing: border-box;
@@ -630,7 +644,7 @@ $checkbox-border-width: 2px !default;
 	  }
 
     .layout#{$name}-row > .#{$flexName}-#{$i * 5} {
-      flex: 1 1 #{$value};
+      flex: 1 1 100%;
       max-width: #{$value};
       max-height: 100%;
       box-sizing: border-box;
@@ -640,7 +654,7 @@ $checkbox-border-width: 2px !default;
     }
 
     .layout#{$name}-column > .#{$flexName}-#{$i * 5} {
-      flex: 1 1 #{$value};
+      flex: 1 1 100%;
       max-width: 100%;
       max-height: #{$value};
       box-sizing: border-box;
@@ -652,8 +666,8 @@ $checkbox-border-width: 2px !default;
   }
 
   .layout#{$name}-row {
-    > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 33.33%;  max-width: 33.33%;  max-height: 100%; box-sizing: border-box; }
-    > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 66.66%;  max-width: 66.66%;  max-height: 100%; box-sizing: border-box; }
+    > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 100%;  max-width: 33.33%;  max-height: 100%; box-sizing: border-box; }
+    > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 100%;  max-width: 66.66%;  max-height: 100%; box-sizing: border-box; }
 
     // Bug workaround for http://crbug.com/546034 - flex issues on Chrome 48
     > .flex                                       { min-width: 0;   }
@@ -661,8 +675,8 @@ $checkbox-border-width: 2px !default;
   }
 
   .layout#{$name}-column {
-    > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 33.33%;  max-width: 100%;  max-height: 33.33%; box-sizing: border-box; }
-    > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 66.66%;  max-width: 100%;  max-height: 66.66%; box-sizing: border-box; }
+    > .#{$flexName}-33   , > .#{$flexName}-33     {  flex: 1 1 100%;  max-width: 100%;  max-height: 33.33%; box-sizing: border-box; }
+    > .#{$flexName}-66   , > .#{$flexName}-66     {  flex: 1 1 100%;  max-width: 100%;  max-height: 66.66%; box-sizing: border-box; }
 
     // Bug workaround for http://crbug.com/546034 - flex issues on Chrome 48
     > .flex                                       { min-height: 0;   }
