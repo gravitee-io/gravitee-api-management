@@ -20,6 +20,13 @@ class WidgetDirective {
       templateUrl: 'app/components/widget/widget.html',
       scope: {
         widget: '='
+      },
+      controller: function ($scope) {
+        'ngInject';
+
+        $scope.$on('gridster-resized', function () {
+          $scope.$broadcast('onWidgetResize');
+        });
       }
     };
   }

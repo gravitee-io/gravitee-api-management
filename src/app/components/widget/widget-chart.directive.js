@@ -22,9 +22,8 @@ class WidgetChartDirective {
     this.templateUrl = 'app/components/widget/widget-chart.html';
   }
 
-  controller($scope, $http, $compile) {
-    $scope.$http = $http;
-    $scope.$compile = $compile;
+  controller($scope) {
+    'ngInject';
 
     $scope.refresh = function() {
       // Call the analytics service

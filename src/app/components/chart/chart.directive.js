@@ -34,12 +34,12 @@ class ChartDirective {
 
         let lastOptions;
         scope.$watch('options', function (newOptions) {
-          if (!lastOptions) {
+          setTimeout(function () {
             setChartSize();
-          }
-          displayChart(newOptions, chartElement);
-          lastOptions = newOptions;
-        }, true);
+            displayChart(newOptions, chartElement);
+            lastOptions = newOptions;
+          });
+        });
 
         function onWindowResized() {
           setTimeout(function () {
@@ -70,8 +70,9 @@ class ChartDirective {
 
         function setChartSize() {
           let containerElement = element.parent().parent().parent().parent();
-          element.css('height', scope.height || containerElement.height());
-          element.css('width', scope.width || containerElement.width());
+          let parentElement = element.parent();
+          element.css('height', scope.height || parentElement.height() || containerElement.height());
+          element.css('width', scope.width || parentElement.width() || containerElement.width());
         }
 
         function initSynchronizedCharts() {

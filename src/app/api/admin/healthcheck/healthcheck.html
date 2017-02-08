@@ -70,7 +70,7 @@
   <div layout="row" ng-if="hasData">
       <md-card flex="70">
         <md-card-content>
-          <gravitee-chart options="chartData" type="column" stacked="true" zoom="true"></gravitee-chart>
+          <gravitee-chart options="chartData" type="column" stacked="true" zoom="true" height="400"></gravitee-chart>
         </md-card-content>
       </md-card>
 
@@ -119,7 +119,7 @@
         <md-input-container class="md-block" flex-gt-xs>
           <label>Time Unit</label>
           <md-select ng-model="healthCheckCtrl.healthcheck.unit" placeholder="Time unit" required ng-required="true">
-            <md-option ng-repeat="timeUnit in healthCheckCtrl.timeUnits">{{timeUnit}}</md-option>
+            <md-option ng-value="timeUnit" ng-repeat="timeUnit in healthCheckCtrl.timeUnits">{{timeUnit}}</md-option>
           </md-select>
         </md-input-container>
       </div>
@@ -140,7 +140,7 @@
         <md-input-container class="md-block" flex-gt-xs>
           <label>HTTP Method</label>
           <md-select ng-model="healthCheckCtrl.healthcheck.request.method" placeholder="HTTP Method" ng-required="true">
-            <md-option ng-repeat="httpMethod in healthCheckCtrl.httpMethods">{{httpMethod}}</md-option>
+            <md-option ng-value="httpMethod" ng-repeat="httpMethod in healthCheckCtrl.httpMethods">{{httpMethod}}</md-option>
           </md-select>
         </md-input-container>
       </div>

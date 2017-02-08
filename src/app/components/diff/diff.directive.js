@@ -27,7 +27,7 @@ class DiffDirective {
       var oldValue = scope.oldValue;
       var newValue = scope.newValue;
 
-      if (oldValue !== null && newValue !== null) {
+      if (oldValue && newValue) {
         elem.html('');
         var diff = JsDiff.diffJson(oldValue, newValue);
         diff.forEach(function(part){

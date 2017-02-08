@@ -23,6 +23,8 @@ class WidgetChartLineDirective {
   }
 
   controller($scope, $rootScope) {
+    'ngInject';
+
     //from https://material.google.com/style/color.html#color-color-palette
     //shade 500 & 900
     //

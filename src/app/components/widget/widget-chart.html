@@ -15,17 +15,17 @@
     limitations under the License.
 
 -->
-<div ng-show="fetchData" layout="column" layout-align="center center" flex>
+<div ng-if="fetchData" layout="column" layout-align="center center" flex>
   <md-progress-circular md-mode="indeterminate" class="md-accent md-hue-1" md-diameter="50"></md-progress-circular>
 </div>
 
-<div ng-show="!fetchData && results" ng-switch on="chart.type">
+<div ng-if="!fetchData && results" ng-switch on="chart.type">
   <gravitee-chart-table ng-switch-when="table" data="results"></gravitee-chart-table>
   <gravitee-chart-pie ng-switch-when="pie" data="results"></gravitee-chart-pie>
   <gravitee-chart-line ng-switch-when="line" data="results"></gravitee-chart-line>
 </div>
 
-<div ng-show="!fetchData && !results" layout="column" layout-align="center center" flex>
+<div ng-if="!fetchData && !results" layout="column" layout-align="center center" flex>
   <p><ng-md-icon icon="block" style="fill: grey"></ng-md-icon></p>
   <p>No data</p>
 </div>

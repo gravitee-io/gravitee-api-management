@@ -20,6 +20,7 @@ exports.httpBackendMock = function() {
       $httpBackend.whenGET('/management/apis/').respond([]);
       $httpBackend.whenGET('/management/user/').respond({username: 'MockedUser'});
       $httpBackend.whenGET('/management/user/MockedUser/picture').respond('pic');
+      $httpBackend.whenGET('/management/configuration/views/').respond([]);
 
       $httpBackend.whenGET('/management/policies/').respond([{
         "id" : "rate-limit",

@@ -265,7 +265,7 @@ class ApiHealthCheckController {
         };
 
         var okCounter = 0;
-        if (response.data.buckets.true) {
+        if (response.data.buckets && response.data.buckets.true) {
           _this.$scope.chartData.series.push({
             data: response.data.buckets.true,
             name: "OK",
@@ -280,7 +280,7 @@ class ApiHealthCheckController {
         }
 
         var koCounter = 0;
-        if (response.data.buckets.false) {
+        if (response.data.buckets && response.data.buckets.false) {
           _this.$scope.chartData.series.push({
             data: response.data.buckets.false,
             name: "KO",

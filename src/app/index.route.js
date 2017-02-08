@@ -132,7 +132,6 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       }
     })
     .state('apis.admin.general', {
-      abstract: true,
       url: '',
       templateUrl: 'app/api/admin/general/api.html',
       controller: 'ApiGeneralController',

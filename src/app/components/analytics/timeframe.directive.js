@@ -204,6 +204,7 @@ class TimeframeController {
       tf = that.timeframes[0];
     }
 
+    // timeframeChange event is dynamically initialized, so we have to define a timeout to correctly fired it
     this.$timeout(function () {
       that.$scope.$broadcast('timeframeChange', {
         interval: tf.interval,
@@ -215,7 +216,7 @@ class TimeframeController {
         from: timeframe.from,
         to: timeframe.to
       });
-    });
+    }, 200);
 
     this.$scope.current = {
       interval: tf.interval,

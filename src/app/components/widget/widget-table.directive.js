@@ -17,12 +17,14 @@ class WidgetChartTableDirective {
   constructor() {
     this.restrict = 'E';
     this.scope = {
-      data: "=data"
+      data: '=data'
     };
     this.templateUrl = 'app/components/widget/widget-table.html';
   }
 
   controller($scope) {
+    'ngInject';
+
     this.$scope = $scope;
     this.$scope.selected = [];
 
