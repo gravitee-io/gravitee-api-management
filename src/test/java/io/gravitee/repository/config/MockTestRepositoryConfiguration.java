@@ -266,6 +266,11 @@ public class MockTestRepositoryConfiguration {
                         .property(Event.EventProperties.API_ID.getValue(), Arrays.asList("api-1", "api-3"))
                         .build())).thenReturn(Arrays.asList(event4, event2, event1));
 
+        when(eventRepository.search(
+                new EventCriteria.Builder().types(EventType.GATEWAY_STARTED).build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(
+                        new io.gravitee.common.data.domain.Page<>(Collections.emptyList(), 0, 0, 0));
+
         return eventRepository;
     }
 

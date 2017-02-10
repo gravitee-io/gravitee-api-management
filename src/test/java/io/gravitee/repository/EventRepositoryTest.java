@@ -104,6 +104,16 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void searchByMissingType() throws Exception {
+        Page<Event> eventPage = eventRepository.search(
+                new EventCriteria.Builder().types(EventType.GATEWAY_STARTED).build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build());
+
+        assertEquals(0, eventPage.getTotalElements());
+        assertTrue(eventPage.getContent().isEmpty());
+    }
+
+    @Test
     public void searchByAPIId() throws Exception {
         Page<Event> eventPage = eventRepository.search(
                 new EventCriteria.Builder()
