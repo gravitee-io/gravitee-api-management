@@ -89,7 +89,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
             executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
             executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
-            executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.getProperties());
+            executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.properties());
             executionContext.getTemplateEngine().getTemplateContext().setVariable("endpoints", endpointLifecycleManager.targetByEndpoint());
 
             // Apply request policies

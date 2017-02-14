@@ -141,7 +141,7 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
     @Override
     public Map<String, Object> properties() {
         io.gravitee.definition.model.Properties properties = getProperties();
-        if (properties != null && properties.getProperties() != null) {
+        if (properties != null && properties.getProperties() != null && !properties.getProperties().isEmpty()) {
             return properties.getProperties().stream().collect(
                     Collectors.toMap(Property::getKey, Property::getValue));
         }
