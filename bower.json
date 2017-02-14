@@ -8,7 +8,7 @@
     "angular": "~1.4.9",
     "angular-mocks": "~1.4.9",
     "angular-drag-and-drop-lists": "~1.3.0",
-    "angular-swagger-ui": "^0.3.2",
+    "angular-swagger-ui": "^0.4.1",
     "angular-cookies": "~1.4.9",
     "jquery": "~2.2.0",
     "bootstrap-sass": "3.3.6",
@@ -68,7 +68,8 @@
     "angular-swagger-ui": {
       "main": [
         "./dist/scripts/swagger-ui.js",
-        "./dist/css/swagger-ui.min.css",
+        "./dist/css/swagger-ui.css",
+        "./dist/scripts/modules/swagger-markdown.min.js",
         "./dist/scripts/modules/swagger-yaml-parser.min.js"
       ]
     },

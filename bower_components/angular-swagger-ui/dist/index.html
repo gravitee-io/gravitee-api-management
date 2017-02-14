@@ -5,13 +5,13 @@
     <title swagger-translate="appTitle"></title>
     <meta name="viewport" content="width=device-width">
     <link rel="icon" href="favicon.ico">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/swagger-ui.min.css">
     <link rel="stylesheet" href="css/demo.css">
 </head>
 <body>
     <div ng-controller="MyCtrl" class="container my-ctrl">
-        <h1 swagger-translate="appTitle"></h1>
+        <h1><span swagger-translate="appTitle"></span> <span class="version">v0.4.1</span></h1>
         <form name="urlForm" ng-submit="swaggerUrl=url" class="form-inline">
             <input type="text" placeholder="swagger URL" class="form-control" id="url" name="url" ng-model="url" required>
             <button type="submit" class="btn btn-primary" swagger-translate="explore"></button>
@@ -28,24 +28,27 @@
         <div swagger-ui url="swaggerUrl" loading="isLoading" api-explorer="true" trusted-sources="true" error-handler="myErrorHandler" permalinks="true"></div>
     </div>
     <!-- dependencies -->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-sanitize.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.5.4/js-yaml.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular-sanitize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.6.1/js-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js"></script>
     <!-- angular-swagger-ui -->
     <script src="scripts/swagger-ui.min.js"></script>
     <script src="scripts/modules/swagger-external-references.min.js"></script>
     <script src="scripts/modules/swagger1-to-swagger2-converter.min.js"></script>
     <script src="scripts/modules/swagger-xml-formatter.min.js"></script>
     <script src="scripts/modules/swagger-yaml-parser.min.js"></script>
+    <script src="scripts/modules/swagger-markdown.min.js"></script>
+    <script src="scripts/modules/swagger-auth.min.js"></script>
     <script src="scripts/i18n/fr.min.js"></script>
     <script type="text/javascript">
         angular
-            .module('myApp', ['ngSanitize', 'swaggerUi'])
+            .module('myApp', ['ngSanitize', 'swaggerUi', 'swaggerUiAuthorization'])
             .config(function(swaggerTranslatorProvider) {
                 swaggerTranslatorProvider
                     .setLanguage('en')
                     .addTranslations('en', {
-                        appTitle: 'angular-swagger-ui sample',
+                        appTitle: 'angular-swagger-ui',
                         explore: 'Explore',
                         loading: 'loading...',
                         error: 'Failed to generate Swagger-UI: {{code}} {{message}}',
@@ -54,7 +57,7 @@
                         japanese: 'japanese'
                     })
                     .addTranslations('fr', {
-                        appTitle: 'Exemple angular-swagger-ui',
+                        appTitle: 'angular-swagger-ui',
                         explore: 'Explorer',
                         loading: 'Chargement ...',
                         error: 'Impossible de générer Swagger-UI: {{code}} {{message}}',
@@ -68,10 +71,10 @@
                 $scope.isLoading = false;
                 $scope.url = $scope.swaggerUrl = 'http://petstore.swagger.io/v2/swagger.json';
                 // error management
-                $scope.myErrorHandler = function(data, status){
+                $scope.myErrorHandler = function(message, code){
                     alert(swaggerTranslator.translate('error', {
-                        message: data,
-                        code: status
+                        code: code,
+                        message: message
                     }));
                 };
                 $scope.setFr = function() {

@@ -7,11 +7,12 @@ Swagger helps you documenting your RESTful API.
 Swagger UI helps developers discovering your RESTful API by providing an online documentation with an integrated API explorer.
 
 ### Warning 
-> By default, only JSON Swagger 2.0 is supported. 
-To handle Swagger 1.2 please add module `swagger1-to-swagger2-converter` (beta) see [enable Swagger 1.2](#enable-swagger-12)
-To handle YAML please add module `swagger-yaml-parser` see [enable YAML](#enable-yaml)
+> By default, only JSON Swagger 2.0 is supported.
+To handle Swagger 1.2 please add module `swagger1-to-swagger2-converter` see [Enable Swagger 1.2](#enable-swagger-12).
+To handle YAML please add module `swagger-yaml-parser` see [Enable YAML](#enable-yaml)
 
-> Authentication is not implemented, please use modules to customize API calls
+> By default, Authorization is not supported.
+To handle authorization (oauth2 is not implemented) please add module `swagger-auth` see [Enable authorization](#enable-authorization)
 
 ## Demo
 
@@ -29,6 +30,7 @@ http://orange-opensource.github.io/angular-swagger-ui
 
 1. [angularJS](https://angularjs.org)
 2. [bootstrap CSS](http://getbootstrap.com)
+3. [angular-ui-bootstrap](https://angular-ui.github.io/bootstrap/)
 
 ## License
 
@@ -229,6 +231,24 @@ You can also use `swaggerTranslator` to internationalize your app by using a ser
 
 ## Customization
 
+#### Enable authorization
+`oauth` is not implemented, only `basic` and `API key` authorizations are implemented.
+Add `swagger-auth.min.js` at the end of the body
+```html
+<body>
+ 	...
+ 	<script src="yourPathToAngularJS/angular.min.js"></script>
+ 	<script src="yourPathToAngularSwaggerUI/dist/scripts/swagger-ui.min.js"></script>
+ 	<script src="yourPathToAngularSwaggerUI/dist/scripts/modules/swagger-auth.min.js"></script>
+ 	...
+	<script type="text/javascript">
+		angular
+			.module('yourApp', ['swaggerUi', 'swaggerUiAuthorization'])
+			...
+	</script>
+</body>
+```
+
 #### Enable Swagger 1.2
 Add `swagger1-to-swagger2-converter.min.js` at the end of the body
 ```html
@@ -241,7 +261,7 @@ Add `swagger1-to-swagger2-converter.min.js` at the end of the body
 ```
 
 #### Enable Swagger external references
-See [Swagger 2.0 spec](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#relative-schema-file-example)
+See [Swagger 2.0 spec](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#relative-schema-file-example).
 Add `swagger-external-references.min.js` at the end of the body
 ```html
 <body>
@@ -264,7 +284,7 @@ Add `swagger-xml-formatter.min.js` at the end of the body
 ```
 
 #### Enable YAML
-Add [js-yaml library](https://cdnjs.com/libraries/js-yaml)
+Add [js-yaml library](https://cdnjs.com/libraries/js-yaml).
 Add `swagger-yaml-parser.min.js` at the end of the body
 ```html
 <body>
@@ -273,6 +293,19 @@ Add `swagger-yaml-parser.min.js` at the end of the body
  	<script src="yourPathToJsYaml/js-yaml.min.js"></script>
  	<script src="yourPathToAngularSwaggerUI/dist/scripts/swagger-ui.min.js"></script>
  	<script src="yourPathToAngularSwaggerUI/dist/scripts/modules/swagger-yaml-parser.min.js"></script>
+</body>
+```
+
+#### Enable markdown
+Add [marked library](https://cdnjs.com/libraries/marked).
+Add `swagger-markdown.min.js` at the end of the body
+```html
+<body>
+ 	...
+ 	<script src="yourPathToAngularJS/angular.min.js"></script>
+ 	<script src="yourPathToMarked/marked.min.js"></script>
+ 	<script src="yourPathToAngularSwaggerUI/dist/scripts/swagger-ui.min.js"></script>
+ 	<script src="yourPathToAngularSwaggerUI/dist/scripts/modules/swagger-markdown.min.js"></script>
 </body>
 ```
 

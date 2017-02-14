@@ -1,5 +1,5 @@
 /*
- * Orange angular-swagger-ui - v0.3.2
+ * Orange angular-swagger-ui - v0.4.1
  *
  * (C) 2015 Orange, all right reserved
  * MIT Licensed
@@ -31,6 +31,10 @@
 
 .swagger-ui{
 
+    a{
+        cursor: pointer;
+    }
+
     .api-description{
         margin-bottom: 20px;
     }
@@ -40,7 +44,6 @@
     }
 
     .external-docs{
-        color: #000;
     }
 
     .endpoint{
@@ -63,7 +66,9 @@
             }
         }
 
-        a{
+        h4 a,
+        .endpoint-actions a,
+        .schema a{
 
             text-decoration: none;
             color: #999;
@@ -129,6 +134,25 @@
 
         .content-type label{
             margin-right: 5px;
+        }
+
+        .auth-required{
+            background: @btn-danger-bg;
+            color: #fff;
+            float: right;
+            width: 20px;
+            height: 20px;
+            padding: 6px;
+            border: 0;
+            border-radius: 10px;
+            line-height: 5px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+
+            &.valid{
+                background: @btn-primary-bg;
+            }
         }
 
         .content{
@@ -308,4 +332,40 @@
         font-weight: bold !important;
     }
 
+}
+
+.swagger-auth-modal{
+    padding: 0 20px 20px;
+
+    span.form-control{
+        border: 0;
+        box-shadow: none;
+    }
+
+    .buttons{
+        text-align: center;
+    }
+
+    .form-group{
+        margin-bottom: 5px;
+        &:last-child {
+            margin-bottom: 15px;
+        }
+    }
+
+    li a{
+        cursor: pointer;
+        color: #999;
+        font-size: 1.2em;
+    }
+
+    li.active a{
+        color: @btn-primary-bg;
+    }
+
+    .scope-desc{
+        font-style: italic;
+        padding-left: 20px;
+        color: #999;
+    }
 }

@@ -1,7 +1,7 @@
 {
   "name": "angular-swagger-ui",
   "license": "MIT",
-  "version": "0.3.2",
+  "version": "0.4.1",
   "description": "AngularJS implementation of Swagger UI",
   "homepage": "https://github.com/Orange-OpenSource/angular-swagger-ui",
   "keywords": [
@@ -29,17 +29,19 @@
     "dist/css/swagger-ui.min.css"
   ],
   "dependencies": {
-    "angular": "~1",
-    "angular-sanitize": "~1",
+    "angular": ">=1.5.0 <2",
+    "angular-sanitize": ">=1.5.0 <2",
+    "angular-ui-bootstrap": "~1.3",
     "bootstrap-less-only": "~3.3"
   },
-  "_release": "0.3.2",
+  "_release": "0.4.1",
   "_resolution": {
     "type": "version",
-    "tag": "0.3.2",
-    "commit": "8c14a1e3acc80a7216d31d2809348004dded012f"
+    "tag": "0.4.1",
+    "commit": "f773c67b6d3f66e7abc4e8a4c5f14622db827be5"
   },
   "_source": "https://github.com/Orange-OpenSource/angular-swagger-ui.git",
-  "_target": "^0.3.2",
-  "_originalSource": "angular-swagger-ui"
+  "_target": "^0.4.1",
+  "_originalSource": "angular-swagger-ui",
+  "_direct": true
 }

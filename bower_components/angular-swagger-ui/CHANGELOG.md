@@ -1,3 +1,31 @@
+### 0.4.1 (2017-01-18)
+
+ * Fix overriting security definitions (#69)
+ * Fix swagger1-to-swagger2-converter when using angular 1.6
+
+### 0.4.0 (2016-12-20)
+
+ * Support angularJS 1.6 (#66)
+ * Support Swagger external documentation (#68)
+
+### 0.3.5 (2016-12-15)
+
+ * Fix basePath issue (#46)
+ * Fix secondary tags (#61)
+ * Create module to allow authorizations by API key or Basic auth for Swagger 2.0 specifications (#38)
+
+### 0.3.4 (2016-11-21)
+
+ * Fix Swagger 1.2 converter
+ * Add CSS classes to ease customization
+ * Create module to allow rendering markdown (#57)
+
+### 0.3.3 (2016-10-04)
+
+ * Display resources in same order as tags are declared in Swagger specification or alphabetically if no tag defined (#56)
+ * Fix `allOf` implementation (#55)
+ * CSP compliant templates (#54)
+
 ### 0.3.2 (2016-06-30)
 
  * Fix Swagger model generation (float properties not displayed in samples)

@@ -1,17 +1,17 @@
 /*
- * Orange angular-swagger-ui - v0.3.2
+ * Orange angular-swagger-ui - v0.4.1
  *
  * (C) 2015 Orange, all right reserved
  * MIT Licensed
  */
+.swagger-ui a {
+  cursor: pointer;
+}
 .swagger-ui .api-description {
   margin-bottom: 20px;
 }
 .swagger-ui .api-version {
   color: #999;
-}
-.swagger-ui .external-docs {
-  color: #000;
 }
 .swagger-ui .endpoint {
   border-bottom: 1px solid #ddd;
@@ -27,11 +27,15 @@
 .swagger-ui .endpoint:hover .endpoint-actions li a {
   color: #555;
 }
-.swagger-ui .endpoint a {
+.swagger-ui .endpoint h4 a,
+.swagger-ui .endpoint .endpoint-actions a,
+.swagger-ui .endpoint .schema a {
   text-decoration: none;
   color: #999;
 }
-.swagger-ui .endpoint a:hover {
+.swagger-ui .endpoint h4 a:hover,
+.swagger-ui .endpoint .endpoint-actions a:hover,
+.swagger-ui .endpoint .schema a:hover {
   color: #000;
   text-decoration: underline;
 }
@@ -76,6 +80,23 @@
 }
 .swagger-ui .operation .content-type label {
   margin-right: 5px;
+}
+.swagger-ui .operation .auth-required {
+  background: #d9534f;
+  color: #fff;
+  float: right;
+  width: 20px;
+  height: 20px;
+  padding: 6px;
+  border: 0;
+  border-radius: 10px;
+  line-height: 5px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+}
+.swagger-ui .operation .auth-required.valid {
+  background: #337ab7;
 }
 .swagger-ui .operation .content {
   padding: 10px;
@@ -293,6 +314,35 @@
 .swagger-ui .bold label {
   font-weight: bold !important;
 }
+.swagger-auth-modal {
+  padding: 0 20px 20px;
+}
+.swagger-auth-modal span.form-control {
+  border: 0;
+  box-shadow: none;
+}
+.swagger-auth-modal .buttons {
+  text-align: center;
+}
+.swagger-auth-modal .form-group {
+  margin-bottom: 5px;
+}
+.swagger-auth-modal .form-group:last-child {
+  margin-bottom: 15px;
+}
+.swagger-auth-modal li a {
+  cursor: pointer;
+  color: #999;
+  font-size: 1.2em;
+}
+.swagger-auth-modal li.active a {
+  color: #337ab7;
+}
+.swagger-auth-modal .scope-desc {
+  font-style: italic;
+  padding-left: 20px;
+  color: #999;
+}
 [dir='rtl'] .swagger-ui th {
   text-align: right;
 }
@@ -313,6 +363,10 @@
 }
 [dir='rtl'] .swagger-ui .endpoint-actions li:last-child {
   border-left: 0;
+}
+[dir='rtl'] .swagger-ui .operation .path {
+  padding-left: 0;
+  padding-right: 10px;
 }
 [dir='rtl'] .swagger-ui .operation .description {
   margin: 2px 0 0 10px;
