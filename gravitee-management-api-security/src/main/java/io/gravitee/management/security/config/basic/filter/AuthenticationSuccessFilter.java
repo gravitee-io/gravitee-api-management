@@ -67,6 +67,7 @@ public class AuthenticationSuccessFilter extends GenericFilterBean {
         } else {
             optionalStringToken = Arrays.stream(req.getCookies())
                     .filter(cookie -> HttpHeaders.AUTHORIZATION.equals(cookie.getName()))
+                    .filter(cookie -> cookie.getValue() != null && ! cookie.getValue().isEmpty())
                     .findAny();
         }
 
