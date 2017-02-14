@@ -48,6 +48,12 @@
             <version>${jackson.version}</version>
         </dependency>
 
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
         <!-- Tests -->
         <dependency>
             <groupId>org.skyscreamer</groupId>
