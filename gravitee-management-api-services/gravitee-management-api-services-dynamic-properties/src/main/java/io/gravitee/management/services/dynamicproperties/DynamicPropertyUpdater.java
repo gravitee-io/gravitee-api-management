@@ -90,11 +90,13 @@ public class DynamicPropertyUpdater implements Runnable {
         apiProperties.setProperties(updatedProperties);
         latestApi.setProperties(apiProperties);
 
+        boolean isSync = apiService.isSynchronized(api.getId());
+
         // Update API
         apiService.update(latestApi.getId(), convert(latestApi));
 
         // Do not deploy if there are manual changes to push
-        if (apiService.isSynchronized(api.getId())) {
+        if (isSync) {
             // Publish API only in case of changes
             if (!updatedProperties.containsAll(properties) || !properties.containsAll(updatedProperties)) {
                 apiService.deploy(latestApi.getId(), "dynamic-property-updater", EventType.PUBLISH_API);
