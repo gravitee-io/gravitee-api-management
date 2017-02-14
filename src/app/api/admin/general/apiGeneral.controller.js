@@ -72,7 +72,7 @@ class ApiAdminController {
     } else {
       this.api.visibility = "public";
     }
-    this.$scope.formApi.$setDirty();
+    this.formApi.$setDirty();
   }
 
   initState() {
@@ -140,7 +140,7 @@ class ApiAdminController {
       placeholder: 'Weight',
       save: function (input) {
         endpoint.weight = input.$modelValue;
-        _that.$scope.formApi.$setDirty();
+        _that.formApi.$setDirty();
       },
       targetEvent: event,
       title: 'Endpoint weight',
@@ -191,7 +191,8 @@ class ApiAdminController {
   reset() {
     this.api = _.cloneDeep(this.initialApi);
     this.$scope.$parent.apiCtrl.api = this.api;
-    this.$scope.formApi.$setPristine();
+    this.formApi.$setPristine();
+    this.formApi.$setUntouched();
   }
 
   delete(id) {
@@ -217,7 +218,7 @@ class ApiAdminController {
   onApiUpdate(updatedApi) {
     this.api = updatedApi;
     this.initState();
-    this.$scope.formApi.$setPristine();
+    this.formApi.$setPristine();
     this.$rootScope.$broadcast("apiChangeSuccess");
     this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
     this.$rootScope.currentResource = this.api.name;
