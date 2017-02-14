@@ -142,7 +142,7 @@ class NewApiController {
   createAPI(deployAndStart) {
     var alert = this.$mdDialog.confirm({
       title: 'Create API ?',
-      content: 'The API ' + this.api.name + ' in version ' + this.api.version + ' will be create' + ((deployAndStart) ? ' and deploy.' : '.'),
+      content: 'The API ' + this.api.name + ' in version ' + this.api.version + ' will be created' + ((deployAndStart) ? ' and deployed.' : '.'),
       ok: 'CREATE',
       cancel: 'CANCEL'
     });
