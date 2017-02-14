@@ -37,7 +37,6 @@ import AddPoliciesPathController from './api/admin/policies/addPoliciesPath.cont
 import ApiHealthCheckController from './api/admin/healthcheck/healthcheck.controller';
 import ApiResourcesController from './api/admin/resources/resources.controller';
 import NewApiController from './api/admin/creation/newApi.controller';
-import DialogApiSwaggerImportController from './api/admin/creation/swagger/importSwaggerDialog.controller';
 import DialogAssertionInformationController from './api/admin/healthcheck/healthcheck-assertion-dialog.controller';
 import DialogApiPermissionsHelpController from './api/admin/members/api-permissions-dialog.controller';
 import DialogApplicationPermissionsHelpController from './application/details/members/application-permissions-dialog.controller';
@@ -172,7 +171,6 @@ angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-sho
   .controller('ApiHistoryController', ApiHistoryController)
   .controller('ApiResourcesController', ApiResourcesController)
   .controller('NewApiController', NewApiController)
-  .controller('DialogApiSwaggerImportController', DialogApiSwaggerImportController)
   .controller('DialogAddPropertyController', DialogAddPropertyController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
   .controller('DialogTransferApiController', DialogTransferApiController)
