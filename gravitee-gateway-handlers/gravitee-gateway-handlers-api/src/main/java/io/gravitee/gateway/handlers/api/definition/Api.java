@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api.definition;
 
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.Reactable;
@@ -139,6 +140,12 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
 
     @Override
     public Map<String, Object> properties() {
-        return (getProperties() != null) ? Collections.unmodifiableMap(getProperties()) : Collections.emptyMap();
+        io.gravitee.definition.model.Properties properties = getProperties();
+        if (properties != null && properties.getProperties() != null) {
+            return properties.getProperties().stream().collect(
+                    Collectors.toMap(Property::getKey, Property::getValue));
+        }
+
+        return Collections.emptyMap();
     }
 }
