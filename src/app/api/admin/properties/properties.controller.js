@@ -140,7 +140,9 @@ class ApiPropertiesController {
     this.$mdSidenav('dynamic-properties-config')
       .open()
       .then(function() {
-        that.editor.setSize("100%", "100%");
+        if (that.editor) {
+          that.editor.setSize("100%", "100%");
+        }
       });
   }
 
