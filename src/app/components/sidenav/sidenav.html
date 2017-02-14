@@ -19,7 +19,8 @@
   ng-class="{'md-sidenav-min': reducedMode}" style="overflow: inherit;" ng-if="sidenavCtrl.isDisplayed()">
     <md-toolbar class="navigation-header md-whiteframe-1dp" layout="row" layout-align="space-between center">
       <div class="logo" layout="row" layout-align="center center">
-        <img class="logo-image" ng-click="sidenavCtrl.goToUserPage()" ng-src="{{graviteeUser.picture || 'app/images/GRAVITEE_LOGO1-01.png'}}" />
+        <img class="logo-image" ng-class="{'reduce-mode': reducedMode}"
+             ng-click="sidenavCtrl.goToUserPage()" ng-src="{{graviteeUser.picture || 'app/images/GRAVITEE_LOGO1-01.png'}}" />
 				<span class="logo-text" ng-if="!reducedMode">
           <strong>{{graviteeUser.firstname}} {{graviteeUser.lastname}}</strong>
           <strong ng-if="!(graviteeUser.firstname && graviteeUser.lastname)">{{graviteeUser.username}}</strong>

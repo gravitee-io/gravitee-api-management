@@ -102,8 +102,12 @@ class ChartDirective {
             for (let i = 0; i < Highcharts.charts.length; i++) {
               chart = Highcharts.charts[i];
               if (chart) {
-                chart.tooltip.hide(this);
-                chart.xAxis[0].hideCrosshair();
+                if (chart.tooltip) {
+                  chart.tooltip.hide(this);
+                }
+                if (chart.xAxis[0]) {
+                  chart.xAxis[0].hideCrosshair();
+                }
               }
             }
           };

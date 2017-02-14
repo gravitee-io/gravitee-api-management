@@ -7,7 +7,6 @@
 .navigation-header {
   height: $sidenavHeaderHeight;
   min-height: 64px;
-  padding: 0 24px 0 24px;
   background-color: rgba(255,255,255,.05);
   .logo-image {
     display: block;
@@ -24,8 +23,11 @@
 
   .logo-text {
     color: #FFF;
-    margin-left: 16px;
-    font-size: 16px;
+    font-size: 14px;
+  }
+
+  .reduce-mode {
+    margin-left: 5px;
   }
 }
 
