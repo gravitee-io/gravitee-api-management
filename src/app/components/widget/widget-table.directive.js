@@ -38,7 +38,7 @@ class WidgetChartTableDirective {
 
     $scope.updateQuery = function(item, add) {
       $scope.$emit('filterItemChange', {
-        widget: $scope.$parent.$parent.$parent.widget.$uid,
+        widget: $scope.$parent.$parent.$parent.$parent.widget.$uid,
         field: $scope.$parent.chart.request.field,
         key: item.key,
         name: item.metadata.name,
