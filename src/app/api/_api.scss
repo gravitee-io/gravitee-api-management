@@ -81,6 +81,7 @@
   height: $graviteeHeader;
   background: #fff;
   border-bottom: 1px solid #f1f1f1;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12);
 }
 
 .gravitee-api-header-content {
@@ -92,6 +93,12 @@
 
 .gravitee-api-header-content ng-md-icon {
   fill: grey;
+}
+
+.api-box-footer {
+  margin-top: 5px;
+  border-top: 1px solid rgba(0,0,0,.12);
+  padding: 2px;
 }
 
 .gravitee-api-header-description {
@@ -182,12 +189,12 @@
 }
 
 .gravitee-api-card {
-  box-shadow: none;
   background:#f7f7f7;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12)
 }
 
 .gravitee-api-card:hover {
-  box-shadow:0 1px 6px 1px rgba(0,0,0,.17);
+  box-shadow:0 1px 6px 1px rgba(0,0,0,.37);
 }
 
 .apis-view-mode {

@@ -15,7 +15,7 @@
  */
 /* global setInterval:false, clearInterval:false, screen:false */
 function runBlock($rootScope, $window, $http, $mdSidenav, UserService, swaggerModules, PageSwaggerConfigurationService,
-                  PageSwaggerHttpClientService) {
+                  PageSwaggerHttpClientService, $timeout) {
   'ngInject';
 
   function configureScreenSize(user) {
@@ -75,6 +75,12 @@ function runBlock($rootScope, $window, $http, $mdSidenav, UserService, swaggerMo
   swaggerModules.add(swaggerModules.BEFORE_PARSE, PageSwaggerConfigurationService);
   swaggerModules.add(swaggerModules.BEFORE_EXPLORER_LOAD, PageSwaggerHttpClientService);
 
+  $rootScope.displayLoader = true;
+
+  // force displayLoader value to change on a new digest cycle
+  $timeout(function () {
+    $rootScope.displayLoader = false;
+  });
 }
 
 export default runBlock;

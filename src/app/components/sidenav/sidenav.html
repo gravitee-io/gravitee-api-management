@@ -17,17 +17,16 @@
 -->
 <md-sidenav class="md-sidenav-left md-whiteframe-z2 md-sidenav-theme" md-component-id="left" md-is-locked-open="true"
   ng-class="{'md-sidenav-min': reducedMode}" style="overflow: inherit;" ng-if="sidenavCtrl.isDisplayed()">
-	<div>
-		<div class="sidenav-user-contents">
-			<a ng-click="sidenavCtrl.goToUserPage()">
-				<img ng-src="{{graviteeUser.picture || 'app/images/GRAVITEE_LOGO1-01.png'}}" />
-				<span id="sidenav-user-name" ng-if="!reducedMode">
+    <md-toolbar class="navigation-header md-whiteframe-1dp" layout="row" layout-align="space-between center">
+      <div class="logo" layout="row" layout-align="center center">
+        <img class="logo-image" ng-click="sidenavCtrl.goToUserPage()" ng-src="{{graviteeUser.picture || 'app/images/GRAVITEE_LOGO1-01.png'}}" />
+				<span class="logo-text" ng-if="!reducedMode">
           <strong>{{graviteeUser.firstname}} {{graviteeUser.lastname}}</strong>
           <strong ng-if="!(graviteeUser.firstname && graviteeUser.lastname)">{{graviteeUser.username}}</strong>
         </span>
-			</a>
-			<md-divider></md-divider>
-		</div>
+      </div>
+    </md-toolbar>
+
 		<md-list class="sidenav-list">
       <md-list-item ng-repeat="menuItem in menuItems" ng-if="graviteeUser || menuItem.name === 'apis.list'">
         <a ui-sref="{{menuItem.name}}" ui-sref-opts="{reload: true}" title="{{menuItem.menu.label}}"
@@ -62,5 +61,4 @@
         </a>
       </md-list-item>
 		</md-list>
-	</div>
 </md-sidenav>

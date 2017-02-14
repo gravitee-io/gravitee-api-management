@@ -36,10 +36,14 @@
     <!-- endinject -->
     <!-- endbuild -->
   </head>
-  <body ng-cloak layout="column">
+  <body layout="column">
     <!--[if lt IE 10]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
+
+    <div ng-show="displayLoader" class="gravitee-splash-screen animate-show-hide">
+      <img src="app/images/gravitee_logo_anim.gif" />
+    </div>
 
     <md-progress-linear ng-show="isLoading" md-mode="buffer" value="{{progressValue}}" md-buffer-value="{{progressValue}}"></md-progress-linear>
 

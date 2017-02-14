@@ -5,7 +5,7 @@
 // bower:scss
 // endbower
 
-$backgroundColor: #fafafa;
+$backgroundColor: rgb(45,50,62);
 
 html {
   font-family: 'Roboto Slab', serif;
@@ -241,7 +241,7 @@ gravitee-sidenav {
 }
 
 .gravitee-no-sidenav-container {
-  background: #333;
+  background: $backgroundColor;
   padding-top: 100px;
 }
 
@@ -284,6 +284,46 @@ md-sidenav, md-backdrop {
 
 md-list-item::before {
   min-height: 40px;
+}
+
+.md-whiteframe-1dp, .md-whiteframe-z1 {
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12);
+}
+
+.md-whiteframe-z2{
+  box-shadow:0 2px 4px -1px rgba(0,0,0,.2),0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12)
+}
+
+.gravitee-splash-screen {
+  background-color: $backgroundColor;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 99999;
+
+  img, div {
+    color: silver;
+    display: flex;
+    margin: 0 auto;
+    max-width: 200px;
+    position: relative;
+    top: 40%;
+
+    span {
+      margin: 0 auto;
+    }
+  }
+}
+
+.animate-show-hide.ng-hide {
+  opacity: 0;
+}
+
+.animate-show-hide.ng-hide-add,
+.animate-show-hide.ng-hide-remove {
+  transition: all linear 0.5s;
 }
 
 /**

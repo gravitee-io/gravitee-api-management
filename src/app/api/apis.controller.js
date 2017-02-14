@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ApisController {
-  constructor(ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis, resolvedViews, $q) {
+  constructor(ApiService, $mdDialog, $scope, $state, $rootScope, Constants, resolvedApis, resolvedViews, $q, $timeout) {
     'ngInject';
     this.$q = $q;
     this.ApiService = ApiService;
@@ -33,15 +33,22 @@ class ApisController {
     this.views = resolvedViews.data;
     this.views.unshift({id: 'all', name: 'All APIs'});
 
-    if (this.views.length && this.$state.params.view) {
-      this.$scope.selectedIndex = _.findIndex(this.views, (view) => {
-        return view.id === this.$state.params.view;
-      });
-    } else {
-      this.$scope.selectedIndex = 0;
-    }
+    let that = this;
+    $timeout(function () {
+      if (that.views.length && that.$state.params.view) {
+        that.selectedIndex = _.findIndex(that.views, (view) => {
+          return view.id === that.$state.params.view;
+        });
+      } else {
+        that.selectedIndex = 0;
+      }
+    });
 
     this.reloadSyncState();
+
+    $scope.$on('$stateChangeStart', function() {
+      $scope.hideApis = true;
+    });
   }
 
   reloadSyncState() {
@@ -105,6 +112,7 @@ class ApisController {
   }
 
   showImportDialog() {
+    var that = this;
     this.$mdDialog.show({
       controller: 'DialogApiImportController',
       controllerAs: 'dialogApiImportCtrl',
@@ -113,7 +121,7 @@ class ApisController {
       clickOutsideToClose: true
     }).then(function (response) {
       if (response) {
-        this.$state.go('apis.admin.general', {apiId: response.data.id}, {reload: true});
+        that.$state.go('apis.admin.general', {apiId: response.data.id}, {reload: true});
       }
     });
   }

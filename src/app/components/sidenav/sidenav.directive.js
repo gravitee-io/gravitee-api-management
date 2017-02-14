@@ -61,6 +61,7 @@ class SideNavController {
 
       if ((fromStates[0] + '.' + fromStates[1]) !== (toStates[0] + '.' + toStates[1])) {
         delete $scope.currentResource;
+        delete $scope.subMenuItems;
       }
     });
 
