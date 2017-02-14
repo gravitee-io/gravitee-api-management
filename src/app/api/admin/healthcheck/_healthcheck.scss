@@ -9,5 +9,8 @@ $healthcheckSidenavWidth: 500px;
 
 md-sidenav.healthcheck {
   @include min-max-width($healthcheckSidenavWidth);
-  background-color: $fontColor;
+  background-color: #fafafa;
+  md-content {
+    background-color: #fafafa;
+  }
 }
