@@ -54,6 +54,8 @@ public class VertxHttpClient extends AbstractHttpClient {
 
     private final Logger LOGGER = LoggerFactory.getLogger(VertxHttpClient.class);
 
+    private static final String HTTPS_SCHEME = "https";
+
     @Resource
     private Vertx vertx;
 
@@ -73,7 +75,7 @@ public class VertxHttpClient extends AbstractHttpClient {
         HttpClient httpClient = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
 
         final int port = uri.getPort() != -1 ? uri.getPort() :
-                (uri.getScheme().equals("https") ? 443 : 80);
+                (HTTPS_SCHEME.equals(uri.getScheme()) ? 443 : 80);
 
         String relativeUri = (uri.getRawQuery() == null) ? uri.getRawPath() : uri.getRawPath() + '?' + uri.getRawQuery();
 
@@ -237,7 +239,7 @@ public class VertxHttpClient extends AbstractHttpClient {
                         new PemTrustOptions().addCertValue(
                                 io.vertx.core.buffer.Buffer.buffer(sslOptions.getPem())));
             }
-        } else if(target.getScheme().equals("https")) {
+        } else if(HTTPS_SCHEME.equalsIgnoreCase(target.getScheme())) {
             // SSL is not configured but the endpoint scheme is HTTPS so let's enable the SSL on Vert.x HTTP client
             // automatically
             httpClientOptions.setSsl(true).setTrustAll(true);

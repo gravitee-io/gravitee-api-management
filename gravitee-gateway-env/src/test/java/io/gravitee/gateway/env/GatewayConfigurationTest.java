@@ -55,7 +55,26 @@ public class GatewayConfigurationTest {
     }
 
     @Test
+    public void shouldReturnEmptyShardingTags2() {
+        System.setProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY, "");
+        gatewayConfiguration.afterPropertiesSet();
+
+        Optional<List<String>> shardingTags = gatewayConfiguration.shardingTags();
+        Assert.assertFalse(shardingTags.isPresent());
+    }
+
+    @Test
     public void shouldReturnEmptyTenant() {
+        gatewayConfiguration.afterPropertiesSet();
+
+        Optional<String> tenant = gatewayConfiguration.tenant();
+        Assert.assertFalse(tenant.isPresent());
+    }
+
+    @Test
+    public void shouldReturnEmptyTenant2() {
+        System.setProperty(GatewayConfiguration.MULTI_TENANT_SYSTEM_PROPERTY, "");
+
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenant = gatewayConfiguration.tenant();

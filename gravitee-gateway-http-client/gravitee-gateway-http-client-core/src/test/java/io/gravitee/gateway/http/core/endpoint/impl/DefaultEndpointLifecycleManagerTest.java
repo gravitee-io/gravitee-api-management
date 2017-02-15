@@ -19,7 +19,9 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.http.client.HttpClient;
+import io.gravitee.gateway.api.http.loadbalancer.LoadBalancerStrategy;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
+import io.gravitee.gateway.http.core.loadbalancer.SingleEndpointLoadBalancerStrategy;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -131,5 +133,20 @@ public class DefaultEndpointLifecycleManagerTest {
 
         assertTrue(endpointLifecycleManager.targetByEndpoint().isEmpty());
         assertTrue(endpointLifecycleManager.endpoints().isEmpty());
+    }
+
+    @Test
+    public void shouldCreateSingleEndpointLoadBalancer() throws Exception {
+        io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.Endpoint.class);
+
+        when(endpoint.getName()).thenReturn("endpoint");
+        when(endpoint.isBackup()).thenReturn(false);
+        when(proxy.getEndpoints()).thenReturn(Collections.singletonList(endpoint));
+        when(applicationContext.getBean(HttpClient.class, endpoint)).thenReturn(mock(HttpClient.class));
+        endpointLifecycleManager.start();
+
+        LoadBalancerStrategy loadbalancer = endpointLifecycleManager.loadbalancer();
+        assertNotNull(loadbalancer);
+        assertEquals(SingleEndpointLoadBalancerStrategy.class, loadbalancer.getClass());
     }
 }
