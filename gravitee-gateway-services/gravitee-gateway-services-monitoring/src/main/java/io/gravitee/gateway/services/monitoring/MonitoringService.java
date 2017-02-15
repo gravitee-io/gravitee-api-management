@@ -155,21 +155,22 @@ public class MonitoringService extends AbstractService {
         instanceInfo.setId(node.id());
         instanceInfo.setVersion(Version.RUNTIME_VERSION.toString());
 
-        if (gatewayConfiguration.shardingTags().isPresent()) {
-            instanceInfo.setTags(gatewayConfiguration.shardingTags().get());
-        }
+        Optional<List<String>> shardingTags = gatewayConfiguration.shardingTags();
+        instanceInfo.setTags(shardingTags.isPresent() ? shardingTags.get() : null);
+
         instanceInfo.setPlugins(plugins());
         instanceInfo.setSystemProperties(new HashMap<>((Map) System.getProperties()));
         instanceInfo.setPort(port);
 
-        if (gatewayConfiguration.tenant().isPresent()) {
-            instanceInfo.setTenant(gatewayConfiguration.tenant().get());
-        }
+        Optional<String> tenant = gatewayConfiguration.tenant();
+        instanceInfo.setTenant(tenant.isPresent() ? tenant.get() : null);
 
         try {
             instanceInfo.setHostname(InetAddress.getLocalHost().getHostName());
             instanceInfo.setIp(InetAddress.getLocalHost().getHostAddress());
-        } catch (UnknownHostException uhe) {}
+        } catch (UnknownHostException uhe) {
+            LOGGER.warn("Could not get hostname / IP", uhe);
+        }
 
         return instanceInfo;
     }

@@ -20,8 +20,6 @@ import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,15 +32,13 @@ import java.util.concurrent.ConcurrentMap;
 public class DefaultReactorHandlerRegistry extends SpringFactoriesLoader<ReactorHandlerFactory>
         implements ReactorHandlerRegistry {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(DefaultReactorHandlerRegistry.class);
-
     private Collection<ReactorHandlerFactory> reactorHandlerFactories;
 
     private final ConcurrentMap<String, ReactorHandler> handlers = new ConcurrentHashMap<>();
     private final ConcurrentMap<Object, String> contextPaths = new ConcurrentHashMap<>();
 
     public void create(Reactable reactable) {
-        LOGGER.info("Register a new handler for {} on path {}", reactable.item(), reactable.contextPath());
+        logger.info("Register a new handler for {} on path {}", reactable.item(), reactable.contextPath());
 
         ReactorHandler handler = create0(reactable);
         if (handler != null) {
@@ -51,7 +47,7 @@ public class DefaultReactorHandlerRegistry extends SpringFactoriesLoader<Reactor
                 handlers.putIfAbsent(handler.contextPath(), handler);
                 contextPaths.putIfAbsent(reactable, handler.contextPath());
             } catch (Exception ex) {
-                LOGGER.error("Unable to register handler", ex);
+                logger.error("Unable to register handler", ex);
             }
         }
     }
@@ -80,9 +76,9 @@ public class DefaultReactorHandlerRegistry extends SpringFactoriesLoader<Reactor
                 try {
                     handler.stop();
                     handlers.remove(handler.contextPath());
-                    LOGGER.info("API has been unregistered");
+                    logger.info("API has been unregistered");
                 } catch (Exception e) {
-                    LOGGER.error("Unable to un-register handler", e);
+                    logger.error("Unable to un-register handler", e);
                 }
             }
         }
@@ -95,7 +91,7 @@ public class DefaultReactorHandlerRegistry extends SpringFactoriesLoader<Reactor
                 handler.stop();
                 handlers.remove(handler.contextPath());
             } catch (Exception e) {
-                LOGGER.error("Unable to un-register handler", e);
+                logger.error("Unable to un-register handler", e);
             }
         });
         contextPaths.clear();

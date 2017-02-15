@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.policy;
+package io.gravitee.gateway.policy;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.PolicyMetadata;
-import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
 import io.gravitee.gateway.policy.impl.PolicyImpl;
 import io.gravitee.policy.api.PolicyChain;
@@ -27,6 +24,7 @@ import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnResponse;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.reflections.ReflectionUtils;
 
@@ -57,7 +55,7 @@ public class PolicyTest {
         PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
         when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
-        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(DummyPolicy.class, OnRequest.class);
 
         when(policyDefinition.method(OnRequest.class)).thenReturn(onRequestMethod);
@@ -74,7 +72,7 @@ public class PolicyTest {
         PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
         when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
-        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(DummyPolicy.class, OnResponse.class);
 
         when(policyDefinition.method(OnResponse.class)).thenReturn(onResponseMethod);
@@ -91,7 +89,7 @@ public class PolicyTest {
         PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
         when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
-        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(DummyPolicy.class, OnRequest.class);
 
         when(policyDefinition.method(OnRequest.class)).thenReturn(onRequestMethod);
@@ -107,7 +105,7 @@ public class PolicyTest {
         PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
         when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
-        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(DummyPolicy.class, OnResponse.class);
 
         when(policyDefinition.method(OnResponse.class)).thenReturn(onResponseMethod);
@@ -123,7 +121,7 @@ public class PolicyTest {
         PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
         when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
-        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onRequestMethod = resolvePolicyMethod(DummyPolicy.class, OnRequest.class);
 
         when(policyDefinition.method(OnRequest.class)).thenReturn(onRequestMethod);
@@ -142,7 +140,7 @@ public class PolicyTest {
         PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
         when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
 
-        DummyPolicy policyInst = spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
         Method onResponseMethod = resolvePolicyMethod(DummyPolicy.class, OnResponse.class);
 
         when(policyDefinition.method(OnResponse.class)).thenReturn(onResponseMethod);

@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.policy;
+package io.gravitee.gateway.policy;
 
-import io.gravitee.gateway.policy.PolicyMetadata;
-import io.gravitee.gateway.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
 import io.gravitee.policy.api.PolicyConfiguration;
 import org.junit.Assert;

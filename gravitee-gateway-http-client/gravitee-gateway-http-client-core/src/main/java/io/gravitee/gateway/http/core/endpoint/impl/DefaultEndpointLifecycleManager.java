@@ -70,38 +70,38 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
                 });
 
         // Initialize load balancer
-        List<io.gravitee.definition.model.Endpoint> endpoints = this.endpoints
+        List<io.gravitee.definition.model.Endpoint> filteredEndpoints = this.endpoints
                 .values()
                 .stream()
                 .map(HttpEndpoint::getEndpoint)
                 .collect(Collectors.toList());
 
         // Use a LB strategy only if more than one endpoint
-        if (endpoints.size() > 1) {
+        if (filteredEndpoints.size() > 1) {
             io.gravitee.definition.model.LoadBalancer lb = api.getProxy().getLoadBalancer();
 
             if (lb != null) {
                 switch (lb.getType()) {
                     case ROUND_ROBIN:
-                        loadBalancer = new RoundRobinLoadBalancerStrategy(endpoints);
+                        loadBalancer = new RoundRobinLoadBalancerStrategy(filteredEndpoints);
                         break;
                     case RANDOM:
-                        loadBalancer = new RandomLoadBalancerStrategy(endpoints);
+                        loadBalancer = new RandomLoadBalancerStrategy(filteredEndpoints);
                         break;
                     case WEIGHTED_RANDOM:
-                        loadBalancer = new WeightedRandomLoadBalancerStrategy(endpoints);
+                        loadBalancer = new WeightedRandomLoadBalancerStrategy(filteredEndpoints);
                         break;
                     case WEIGHTED_ROUND_ROBIN:
-                        loadBalancer = new WeightedRoundRobinLoadBalancerStrategy(endpoints);
+                        loadBalancer = new WeightedRoundRobinLoadBalancerStrategy(filteredEndpoints);
                         break;
                 }
             }
-        } else if (! endpoints.isEmpty()){
-            loadBalancer = new SingleEndpointLoadBalancerStrategy(endpoints.get(0));
+        } else if (! filteredEndpoints.isEmpty()){
+            loadBalancer = new SingleEndpointLoadBalancerStrategy(filteredEndpoints.get(0));
         }
 
         // Set default LB to round-robin
-        loadBalancer = (loadBalancer != null) ? loadBalancer : new RoundRobinLoadBalancerStrategy(endpoints);
+        loadBalancer = (loadBalancer != null) ? loadBalancer : new RoundRobinLoadBalancerStrategy(filteredEndpoints);
 
         logger.info("Create a load-balancer instance of type {}", loadBalancer);
     }

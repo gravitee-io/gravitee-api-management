@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.policy;
+package io.gravitee.gateway.policy;
 
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Mockito.inOrder;
@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.policy.Policy;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;

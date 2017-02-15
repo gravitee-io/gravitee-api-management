@@ -18,12 +18,10 @@ package io.gravitee.gateway.policy;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.impl.PolicyChain;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * A no-op policy chain used to chain an empty policy collection.

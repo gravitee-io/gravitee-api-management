@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.policy;
+package io.gravitee.gateway.policy;
 
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
+import io.gravitee.policy.api.PolicyChain;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class FailurePolicy implements Policy {
+public class StreamablePolicy implements Policy {
 
     @Override
     public void onRequest(Object... args) throws Exception {
@@ -30,17 +32,17 @@ public class FailurePolicy implements Policy {
 
     @Override
     public void onResponse(Object... args) throws Exception {
-        throw new RuntimeException();
+        ((PolicyChain)args[2]).doNext(null, null);
     }
 
     @Override
-    public ReadWriteStream<?> onRequestContent(Object... args) throws Exception {
-        throw new RuntimeException();
+    public ReadWriteStream<Buffer> onRequestContent(Object... args) throws Exception {
+        return null;
     }
 
     @Override
     public ReadWriteStream<?> onResponseContent(Object... args) throws Exception {
-        throw new RuntimeException();
+        return null;
     }
 
     @Override

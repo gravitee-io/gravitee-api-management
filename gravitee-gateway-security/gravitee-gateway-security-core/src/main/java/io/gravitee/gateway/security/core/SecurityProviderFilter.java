@@ -21,6 +21,7 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@FunctionalInterface
 public interface SecurityProviderFilter {
 
     List<SecurityProvider> filter(List<SecurityProvider> securityProviders);

@@ -49,11 +49,11 @@ public class LmaxReporterService extends ReporterServiceImpl implements Initiali
 
         disruptor = new Disruptor<>(factory, bufferSize, new ThreadFactory() {
             private int counter = 0;
-            private static final String prefix = "reporter-disruptor";
+            private static final String THREAD_PREFIX = "reporter-disruptor";
 
             @Override
             public Thread newThread(Runnable r) {
-                return new Thread(r, prefix + '-' + counter++);
+                return new Thread(r, THREAD_PREFIX + '-' + counter++);
             }
         }, ProducerType.MULTI, new BlockingWaitStrategy());
     }

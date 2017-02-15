@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.policy;
+package io.gravitee.gateway.policy;
 
-import io.gravitee.gateway.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
+import io.gravitee.gateway.policy.impl.PolicyConfigurationFactoryImpl;
 import io.gravitee.policy.api.PolicyConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -29,48 +28,50 @@ import java.io.InputStream;
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-public class CachedPolicyConfigurationFactoryTest {
+public class PolicyConfigurationFactoryTest {
 
     private PolicyConfigurationFactory policyConfigurationFactory;
 
     @Before
     public void setUp() {
-        policyConfigurationFactory = new CachedPolicyConfigurationFactory();
+        policyConfigurationFactory = new PolicyConfigurationFactoryImpl();
     }
 
     @Test
-    public void createPolicyConfigurationFromCache() {
+    public void createPolicyWithConfigurationAndWithoutConfigurationData() {
+        PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, null);
+
+        Assert.assertNull(policyConfiguration);
+    }
+
+    @Test
+    public void createPolicyWithConfigurationAndEmptyConfigurationData() {
+        PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, "");
+
+        Assert.assertNull(policyConfiguration);
+    }
+
+    @Test
+    public void createPolicyWithConfigurationAndConfigurationData01() {
         try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-01.json")) {
             String configuration = IOUtils.toString(is, "UTF-8");
             DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
-            DummyPolicyConfiguration policyConfiguration2 = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
 
             Assert.assertNotNull(policyConfiguration);
-            Assert.assertNotNull(policyConfiguration2);
-
-            Assert.assertEquals(policyConfiguration, policyConfiguration2);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Test
-    public void createNullPolicyConfigurationFromCache() {
-        try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-01.json")) {
+    public void createPolicyWithConfigurationAndConfigurationData02() {
+        try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-02.json")) {
             String configuration = IOUtils.toString(is, "UTF-8");
-            DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, null);
-            DummyPolicyConfiguration policyConfiguration2 = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
+            DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
 
             Assert.assertNull(policyConfiguration);
-            Assert.assertNotNull(policyConfiguration2);
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @Test
-    public void createNullPolicyClassFromCache() {
-        PolicyConfiguration policyConfiguration1 = policyConfigurationFactory.create(null, null);
-        Assert.assertNull(policyConfiguration1);
     }
 }
