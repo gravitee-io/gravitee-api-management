@@ -141,7 +141,6 @@ function routerConfig($stateProvider, $urlRouterProvider) {
       }
     })
     .state('apis.admin.general', {
-      url: '',
       templateUrl: 'app/api/admin/general/api.html',
       controller: 'ApiGeneralController',
       controllerAs: 'generalCtrl',
@@ -152,11 +151,15 @@ function routerConfig($stateProvider, $urlRouterProvider) {
     })
     .state('apis.admin.general.main', {
       url: '/general',
-      templateUrl: 'app/api/admin/general/apiGeneral.html'
+      templateUrl: 'app/api/admin/general/apiGeneral.html',
+      controller: 'ApiGeneralController',
+      controllerAs: 'generalCtrl'
     })
     .state('apis.admin.general.gateway', {
       url: '/gateway',
-      templateUrl: 'app/api/admin/general/apiGateway.html'
+      templateUrl: 'app/api/admin/general/apiGateway.html',
+      controller: 'ApiGeneralController',
+      controllerAs: 'generalCtrl'
     })
     .state('apis.admin.general.endpoint', {
       url: '/endpoint/:endpointName',

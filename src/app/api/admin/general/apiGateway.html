@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form name="formApi" ng-submit="generalCtrl.update(generalCtrl.api)" novalidate>
+<form name="generalCtrl.formApi" ng-submit="generalCtrl.update(generalCtrl.api)" novalidate>
   <div layout-gt-sm="row">
     <md-input-container class="md-block" flex-gt-sm>
       <label>Gateway context path</label>
@@ -170,10 +170,10 @@
   <br />
 
   <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button class="md-raised" type="submit" ng-disabled="formApi.$invalid || formApi.$pristine">
+    <md-button class="md-raised" type="submit" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
       Save
     </md-button>
-    <md-button class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="formApi.$invalid || formApi.$pristine">
+    <md-button class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
       Reset
     </md-button>
     <md-button class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(generalCtrl.api.id)" ng-disabled="generalCtrl.api.state === 'started'">
