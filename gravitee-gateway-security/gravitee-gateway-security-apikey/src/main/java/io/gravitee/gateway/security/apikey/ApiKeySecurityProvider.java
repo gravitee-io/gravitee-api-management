@@ -33,11 +33,11 @@ public class ApiKeySecurityProvider implements SecurityProvider {
 
     private final Logger logger = LoggerFactory.getLogger(ApiKeySecurityProvider.class);
 
-    private static final String API_KEY_POLICY = "api-key";
-    private static final String API_KEY_QUERY_PARAMETER = "api-key";
-    private static final String API_KEY_POLICY_CONFIGURATION = "{}";
+    static final String API_KEY_POLICY = "api-key";
+    static final String API_KEY_QUERY_PARAMETER = "api-key";
+    static final String API_KEY_POLICY_CONFIGURATION = "{}";
 
-    private static final SecurityPolicy POLICY = new SecurityPolicy() {
+    static final SecurityPolicy POLICY = new SecurityPolicy() {
         @Override
         public String policy() {
             return API_KEY_POLICY;

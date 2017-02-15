@@ -16,7 +16,9 @@
 package io.gravitee.gateway.security.apikey;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.security.core.SecurityPolicy;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,5 +77,29 @@ public class ApiKeySecurityProviderTest {
 
         boolean handle = securityProvider.canHandle(request);
         Assert.assertTrue(handle);
+    }
+
+    @Test
+    public void shouldReturnSingletonSecurityPolicy() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+
+        SecurityPolicy securityPolicy1 = securityProvider.create(executionContext);
+        SecurityPolicy securityPolicy2 = securityProvider.create(executionContext);
+
+        Assert.assertEquals(ApiKeySecurityProvider.POLICY, securityPolicy1);
+        Assert.assertEquals(ApiKeySecurityProvider.POLICY, securityPolicy2);
+
+        Assert.assertEquals(ApiKeySecurityProvider.POLICY.policy(), ApiKeySecurityProvider.API_KEY_POLICY);
+        Assert.assertEquals(ApiKeySecurityProvider.POLICY.configuration(), ApiKeySecurityProvider.API_KEY_POLICY_CONFIGURATION);
+    }
+
+    @Test
+    public void shouldReturnName() {
+        Assert.assertEquals("api_key", securityProvider.name());
+    }
+
+    @Test
+    public void shouldReturnOrder() {
+        Assert.assertEquals(500, securityProvider.order());
     }
 }

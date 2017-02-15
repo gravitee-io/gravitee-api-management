@@ -29,11 +29,11 @@ import java.util.Optional;
  */
 public class GatewayConfiguration {
 
-    private static final String SHARDING_TAGS_SYSTEM_PROPERTY = "tags";
+    static final String SHARDING_TAGS_SYSTEM_PROPERTY = "tags";
     private static final String SHARDING_TAGS_SEPARATOR = ",";
 
-    private static final String MULTI_TENANT_CONFIGURATION = "tenant";
-    private static final String MULTI_TENANT_SYSTEM_PROPERTY = "gravitee." + MULTI_TENANT_CONFIGURATION;
+    static final String MULTI_TENANT_CONFIGURATION = "tenant";
+    static final String MULTI_TENANT_SYSTEM_PROPERTY = "gravitee." + MULTI_TENANT_CONFIGURATION;
 
     private Optional<List<String>> shardingTags;
 
@@ -52,7 +52,7 @@ public class GatewayConfiguration {
         String systemPropertyTags = System.getProperty(SHARDING_TAGS_SYSTEM_PROPERTY);
         String tags = systemPropertyTags == null ?
                 environment.getProperty(SHARDING_TAGS_SYSTEM_PROPERTY) : systemPropertyTags;
-        if (tags != null && tags.isEmpty()) {
+        if (tags != null && ! tags.isEmpty()) {
             shardingTags = Optional.of(Arrays.asList(tags.split(SHARDING_TAGS_SEPARATOR)));
         } else {
             shardingTags = Optional.empty();

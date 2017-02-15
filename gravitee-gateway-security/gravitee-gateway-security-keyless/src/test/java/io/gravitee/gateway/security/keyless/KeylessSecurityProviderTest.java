@@ -16,7 +16,9 @@
 package io.gravitee.gateway.security.keyless;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.security.core.SecurityPolicy;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,5 +40,29 @@ public class KeylessSecurityProviderTest {
 
         boolean handle = securityProvider.canHandle(request);
         Assert.assertTrue(handle);
+    }
+
+    @Test
+    public void shouldReturnSingletonSecurityPolicy() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+
+        SecurityPolicy securityPolicy1 = securityProvider.create(executionContext);
+        SecurityPolicy securityPolicy2 = securityProvider.create(executionContext);
+
+        Assert.assertEquals(KeylessSecurityProvider.POLICY, securityPolicy1);
+        Assert.assertEquals(KeylessSecurityProvider.POLICY, securityPolicy2);
+
+        Assert.assertEquals(KeylessSecurityProvider.POLICY.policy(), KeylessSecurityProvider.KEYLESS_POLICY);
+        Assert.assertNull(KeylessSecurityProvider.POLICY.configuration(), null);
+    }
+
+    @Test
+    public void shouldReturnName() {
+        Assert.assertEquals("key_less", securityProvider.name());
+    }
+
+    @Test
+    public void shouldReturnOrder() {
+        Assert.assertEquals(1000, securityProvider.order());
     }
 }
