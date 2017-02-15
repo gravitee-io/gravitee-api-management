@@ -588,6 +588,20 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                     .readValue(apiDefinition, UpdateApiEntity.class);
 
+            List<String> declaredPaths = (importedApi.getPaths() != null) ? new ArrayList<>(importedApi.getPaths().keySet()) : new ArrayList<>();
+            if (!declaredPaths.contains("/")) {
+                declaredPaths.add(0, "/");
+            }
+
+            // Initialize with a default path and provided paths
+            Map<String, Path> paths = declaredPaths.stream().map(sPath -> {
+                Path path = new Path();
+                path.setPath(sPath);
+                return path;
+            }).collect(Collectors.toMap(Path::getPath, path -> path));
+
+            importedApi.setPaths(paths);
+
             //create group if not exist
             if (importedApi.getGroup() != null && importedApi.getGroup() != null) {
                 List<GroupEntity> groupEntities = groupService.findByTypeAndName(GroupEntityType.API, importedApi.getGroup());
