@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.gateway.security</groupId>
         <artifactId>gravitee-gateway-security</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.3.1</version>
     </parent>
 
     <artifactId>gravitee-gateway-security-keyless</artifactId>
