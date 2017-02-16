@@ -79,7 +79,7 @@ public class SwaggerServiceImpl implements SwaggerService {
         apiEntity.setDescription(swagger.getInfo().getDescription());
         apiEntity.setVersion(swagger.getInfo().getVersion());
 
-        String scheme = (swagger.getSchemes().isEmpty()) ? defaultScheme :
+        String scheme = (swagger.getSchemes() == null || swagger.getSchemes().isEmpty()) ? defaultScheme :
                 swagger.getSchemes().iterator().next().toValue();
 
         apiEntity.setEndpoint(scheme + "://" + swagger.getHost() + swagger.getBasePath());
