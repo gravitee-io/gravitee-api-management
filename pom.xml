@@ -29,7 +29,7 @@
 
     <groupId>io.gravitee.management</groupId>
     <artifactId>gravitee-management-webui</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.3.3</version>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Portal</name>
 
