@@ -25,6 +25,8 @@ import io.gravitee.definition.model.LoadBalancer;
 import io.gravitee.definition.model.Proxy;
 
 import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,14 +55,15 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         final JsonNode nodeEndpoints = node.get("endpoints");
 
         if (nodeEndpoints != null && nodeEndpoints.isArray()) {
-            nodeEndpoints.elements().forEachRemaining(jsonNode -> {
-                try {
-                    Endpoint endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(Endpoint.class);
-                    proxy.getEndpoints().add(endpoint);
-                } catch (IOException e) {
-                    e.printStackTrace();
+            Set<Endpoint> endpoints = new LinkedHashSet<>(nodeEndpoints.size());
+            for (JsonNode jsonNode : nodeEndpoints) {
+                Endpoint endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(Endpoint.class);
+                boolean added = endpoints.add(endpoint);
+                if(!added) {
+                    throw ctxt.mappingException("[api] API must have single endpoint names");
                 }
-            });
+            }
+            proxy.setEndpoints(endpoints);
         }
 
         JsonNode stripContextNode = node.get("strip_context_path");

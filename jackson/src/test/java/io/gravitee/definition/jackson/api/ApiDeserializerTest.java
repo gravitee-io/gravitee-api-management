@@ -230,7 +230,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_singleEndpoint_backup() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-singleendpoint.json", Api.class);
         Assert.assertEquals(1, api.getProxy().getEndpoints().size());
-        Assert.assertFalse(api.getProxy().getEndpoints().get(0).isBackup());
+        Assert.assertFalse(api.getProxy().getEndpoints().iterator().next().isBackup());
     }
 
     @Test
@@ -249,7 +249,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_singleEndpoint_inArray_backup() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-singleendpoint-inarray.json", Api.class);
         Assert.assertEquals(1, api.getProxy().getEndpoints().size());
-        Assert.assertFalse(api.getProxy().getEndpoints().get(0).isBackup());
+        Assert.assertFalse(api.getProxy().getEndpoints().iterator().next().isBackup());
     }
 
     @Test
@@ -356,8 +356,13 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_failover_singlecase_backup() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-failover-singlecase.json", Api.class);
 
-        Assert.assertFalse(api.getProxy().getEndpoints().get(0).isBackup());
-        Assert.assertTrue(api.getProxy().getEndpoints().get(1).isBackup());
+        api.getProxy().getEndpoints().forEach(endpoint -> {
+            if ("endpoint_0".equals(endpoint.getName())) {
+                Assert.assertFalse(endpoint.isBackup());
+            } else {
+                Assert.assertTrue(endpoint.isBackup());
+            }
+        });
     }
 
     @Test
@@ -372,6 +377,12 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-multitenant.json", Api.class);
 
         Assert.assertTrue(api.getProxy().isMultiTenant());
-        Assert.assertEquals("europe", api.getProxy().getEndpoints().get(0).getTenant());
+        Assert.assertEquals("europe", api.getProxy().getEndpoints().iterator().next().getTenant());
+    }
+
+    @Test(expected = JsonMappingException.class)
+    public void shouldFailWithSameEndpointNames() throws Exception {
+        load("/io/gravitee/definition/jackson/api-multiplesameendpoints.json", Api.class);
+        Assert.fail("should throw deser exception");
     }
 }

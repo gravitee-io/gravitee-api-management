@@ -43,8 +43,9 @@ public class Endpoint {
 
     private String tenant;
 
-    public Endpoint(String target) {
+    public Endpoint(String name, String target) {
         this();
+        this.name = name;
         this.target = target;
     }
 

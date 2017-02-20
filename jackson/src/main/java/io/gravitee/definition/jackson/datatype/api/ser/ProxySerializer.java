@@ -23,6 +23,7 @@ import io.gravitee.definition.model.Proxy;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -42,17 +43,19 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
         jgen.writeBooleanField("dumpRequest", proxy.isDumpRequest());
         jgen.writeBooleanField("multiTenant", proxy.isMultiTenant());
 
-        final List<Endpoint> endpoints = proxy.getEndpoints();
+        final Set<Endpoint> endpoints = proxy.getEndpoints();
 
-        jgen.writeArrayFieldStart("endpoints");
-        endpoints.forEach(endpoint -> {
-            try {
-                jgen.writeObject(endpoint);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        jgen.writeEndArray();
+        if (endpoints != null) {
+            jgen.writeArrayFieldStart("endpoints");
+            endpoints.forEach(endpoint -> {
+                try {
+                    jgen.writeObject(endpoint);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            jgen.writeEndArray();
+        }
 
         if (proxy.getLoadBalancer() != null) {
             jgen.writeObjectField("load_balancing", proxy.getLoadBalancer());

@@ -15,8 +15,8 @@
  */
 package io.gravitee.definition.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,7 +30,7 @@ public class Proxy {
 
     private String contextPath;
 
-    private List<Endpoint> endpoints = new ArrayList<>();
+    private Set<Endpoint> endpoints;
 
     private LoadBalancer loadBalancer = new LoadBalancer();
 
@@ -50,11 +50,11 @@ public class Proxy {
         this.contextPath = contextPath;
     }
 
-    public List<Endpoint> getEndpoints() {
+    public Set<Endpoint> getEndpoints() {
         return endpoints;
     }
 
-    public void setEndpoints(List<Endpoint> endpoints) {
+    public void setEndpoints(Set<Endpoint> endpoints) {
         this.endpoints = endpoints;
     }
 
