@@ -102,9 +102,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         Proxy proxy = new Proxy();
         proxy.setContextPath(newApiEntity.getContextPath());
-        Endpoint defaultEdp = new Endpoint(newApiEntity.getEndpoint());
-        defaultEdp.setName("default");
-        proxy.setEndpoints(Collections.singletonList(defaultEdp));
+        proxy.setEndpoints(new LinkedHashSet<>());
+        proxy.getEndpoints().add(new Endpoint("default", newApiEntity.getEndpoint()));
         apiEntity.setProxy(proxy);
 
         List<String> declaredPaths = (newApiEntity.getPaths() != null) ? newApiEntity.getPaths() : new ArrayList<>();
