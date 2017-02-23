@@ -54,20 +54,22 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
     @Override
     protected void doStart() throws Exception {
         // Select and init endpoints
-        api.getProxy().getEndpoints()
-                .stream()
-                .filter(filter())
-                .forEach(endpoint -> {
-                    try {
-                        logger.debug("Preparing a new target endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
-                        HttpClient httpClient = applicationContext.getBean(HttpClient.class, endpoint);
-                        httpClient.start();
-                        endpoints.put(endpoint.getName(), new HttpEndpoint(endpoint, httpClient));
-                        endpointsTarget.put(endpoint.getName(), endpoint.getTarget());
-                    } catch (Exception ex) {
-                        logger.error("Unexpected error while creating endpoint connector", ex);
-                    }
-                });
+        if(api.getProxy().getEndpoints() != null) {
+            api.getProxy().getEndpoints()
+                    .stream()
+                    .filter(filter())
+                    .forEach(endpoint -> {
+                        try {
+                            logger.debug("Preparing a new target endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
+                            HttpClient httpClient = applicationContext.getBean(HttpClient.class, endpoint);
+                            httpClient.start();
+                            endpoints.put(endpoint.getName(), new HttpEndpoint(endpoint, httpClient));
+                            endpointsTarget.put(endpoint.getName(), endpoint.getTarget());
+                        } catch (Exception ex) {
+                            logger.error("Unexpected error while creating endpoint connector", ex);
+                        }
+                    });
+        }
 
         // Initialize load balancer
         List<io.gravitee.definition.model.Endpoint> filteredEndpoints = this.endpoints

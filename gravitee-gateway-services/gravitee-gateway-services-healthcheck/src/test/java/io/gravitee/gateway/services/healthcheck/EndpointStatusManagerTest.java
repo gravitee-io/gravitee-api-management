@@ -153,8 +153,7 @@ public class EndpointStatusManagerTest {
     }
 
     private Endpoint createEndpoint() {
-        Endpoint endpoint = new Endpoint("http://localhost:9099");
-        endpoint.setName("default");
+        Endpoint endpoint = new Endpoint("default", "http://localhost:9099");
 
         return endpoint;
     }

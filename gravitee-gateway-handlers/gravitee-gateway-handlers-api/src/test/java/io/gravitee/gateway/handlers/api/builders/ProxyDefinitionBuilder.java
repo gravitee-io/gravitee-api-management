@@ -18,6 +18,8 @@ package io.gravitee.gateway.handlers.api.builders;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.Proxy;
 
+import java.util.LinkedHashSet;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -30,8 +32,11 @@ public class ProxyDefinitionBuilder {
         return this;
     }
 
-    public ProxyDefinitionBuilder target(String target) {
-        this.proxyDefinition.getEndpoints().add(new Endpoint(target));
+    public ProxyDefinitionBuilder target(String name, String target) {
+        if (this.proxyDefinition.getEndpoints() == null) {
+            this.proxyDefinition.setEndpoints(new LinkedHashSet<>());
+        }
+        this.proxyDefinition.getEndpoints().add(new Endpoint(name, target));
         return this;
     }
 

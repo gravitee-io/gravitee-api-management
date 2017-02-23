@@ -20,6 +20,10 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import org.junit.Test;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -54,7 +58,8 @@ public class ProxyValidatorTest {
     public void validate_proxy_correctContextPathAndTarget() {
         Proxy proxyDefinition = new Proxy();
         proxyDefinition.setContextPath("/context-path");
-        proxyDefinition.getEndpoints().add(new Endpoint("http://localhost"));
+        proxyDefinition.setEndpoints(new LinkedHashSet<>());
+        proxyDefinition.getEndpoints().add(new Endpoint("name", "http://localhost"));
 
         Api definition = new Api();
         definition.setProxy(proxyDefinition);

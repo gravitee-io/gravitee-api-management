@@ -49,7 +49,7 @@ public class DynamicRoutingGatewayTest extends AbstractGatewayTest {
 
     @Test
     public void call_dynamic_api() throws Exception {
-        String initialTarget = api.getProxy().getEndpoints().get(0).getTarget();
+        String initialTarget = api.getProxy().getEndpoints().iterator().next().getTarget();
         String dynamicTarget = create(URI.create("http://localhost:8080/team"), new URL(initialTarget).getPort()).toString();
 
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Get("http://localhost:8082/test/my_team");

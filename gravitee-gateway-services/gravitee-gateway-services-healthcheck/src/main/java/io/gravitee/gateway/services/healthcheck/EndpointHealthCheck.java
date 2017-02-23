@@ -74,51 +74,53 @@ class EndpointHealthCheck implements Runnable {
                     httpHeader -> requestBuilder.setHeader(httpHeader.getName(), httpHeader.getValue()));
         }
 
-        if (healthCheck.getRequest().getBody() != null && ! healthCheck.getRequest().getBody().isEmpty()) {
+        if (healthCheck.getRequest().getBody() != null && !healthCheck.getRequest().getBody().isEmpty()) {
             requestBuilder.setBody(healthCheck.getRequest().getBody());
         }
 
         // Run request for each endpoint
-        for (Endpoint endpoint : api.getProxy().getEndpoints()) {
-            if (endpoint.isHealthcheck()) {
-                String requestUri = endpoint.getTarget() + healthCheck.getRequest().getUri();
-                requestBuilder.setUri(Uri.create(requestUri));
+        if (api.getProxy().getEndpoints() != null) {
+            for (Endpoint endpoint : api.getProxy().getEndpoints()) {
+                if (endpoint.isHealthcheck()) {
+                    String requestUri = endpoint.getTarget() + healthCheck.getRequest().getUri();
+                    requestBuilder.setUri(Uri.create(requestUri));
 
-                Request request = requestBuilder.build();
-                LOGGER.debug("Execute health-check request: {}", request);
+                    Request request = requestBuilder.build();
+                    LOGGER.debug("Execute health-check request: {}", request);
 
-                final HealthStatus.Builder healthBuilder = HealthStatus
-                        .forApi(api.getId())
-                        .on(System.currentTimeMillis())
-                        .method(healthCheck.getRequest().getMethod())
-                        .url(requestUri);
+                    final HealthStatus.Builder healthBuilder = HealthStatus
+                            .forApi(api.getId())
+                            .on(System.currentTimeMillis())
+                            .method(healthCheck.getRequest().getMethod())
+                            .url(requestUri);
 
-                asyncHttpClient.prepareRequest(requestBuilder.build()).execute(new AsyncCompletionHandler<Void>() {
-                    @Override
-                    public Void onCompleted(Response response) throws Exception {
-                        validateAssertions(healthBuilder, new HealthCheckResponse(response));
-                        report(endpoint, healthBuilder);
-                        return null;
-                    }
-
-                    @Override
-                    public void onThrowable(Throwable t) {
-                        LOGGER.debug("An error occurs while executing request {}: {}", request, t.getMessage());
-                        healthBuilder.fail().message(t.getMessage());
-
-                        if (t instanceof SpelEvaluationException) {
-                            healthBuilder.message(t.getMessage());
-                            healthBuilder.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-                        } else if (t instanceof SocketTimeoutException) {
-                            healthBuilder.message(t.getMessage());
-                            healthBuilder.status(HttpStatusCode.REQUEST_TIMEOUT_408);
-                        } else {
-                            healthBuilder.status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+                    asyncHttpClient.prepareRequest(requestBuilder.build()).execute(new AsyncCompletionHandler<Void>() {
+                        @Override
+                        public Void onCompleted(Response response) throws Exception {
+                            validateAssertions(healthBuilder, new HealthCheckResponse(response));
+                            report(endpoint, healthBuilder);
+                            return null;
                         }
 
-                        report(endpoint, healthBuilder);
-                    }
-                });
+                        @Override
+                        public void onThrowable(Throwable t) {
+                            LOGGER.debug("An error occurs while executing request {}: {}", request, t.getMessage());
+                            healthBuilder.fail().message(t.getMessage());
+
+                            if (t instanceof SpelEvaluationException) {
+                                healthBuilder.message(t.getMessage());
+                                healthBuilder.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                            } else if (t instanceof SocketTimeoutException) {
+                                healthBuilder.message(t.getMessage());
+                                healthBuilder.status(HttpStatusCode.REQUEST_TIMEOUT_408);
+                            } else {
+                                healthBuilder.status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+                            }
+
+                            report(endpoint, healthBuilder);
+                        }
+                    });
+                }
             }
         }
     }

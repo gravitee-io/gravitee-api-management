@@ -30,7 +30,10 @@ import org.junit.runners.model.Statement;
 
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -87,7 +90,7 @@ public class ApiDeployerStatement extends Statement {
         boolean enhanceHttpPort = target.getClass().getAnnotation(ApiDescriptor.class).enhanceHttpPort();
 
         if (enhanceHttpPort) {
-            List<Endpoint> endpoints = api.getProxy().getEndpoints();
+            List<Endpoint> endpoints = new ArrayList<>(api.getProxy().getEndpoints());
             List<Integer> bindPorts = SocketUtils.getBindPorts();
 
             for(int i = 0 ; i < bindPorts.size() ; i++) {
@@ -103,8 +106,7 @@ public class ApiDeployerStatement extends Statement {
                     Endpoint first = endpoints.get(0);
                     URL target = new URL(first.getTarget());
                     URL newTarget = new URL(target.getProtocol(), target.getHost(), port, target.getFile());
-                    Endpoint edpt = new Endpoint(newTarget.toString());
-                    edpt.setName(UUID.random().toString());
+                    Endpoint edpt = new Endpoint(UUID.random().toString(), newTarget.toString());
                     edpt.setHttpClientOptions(first.getHttpClientOptions());
                     api.getProxy().getEndpoints().add(edpt);
                 }

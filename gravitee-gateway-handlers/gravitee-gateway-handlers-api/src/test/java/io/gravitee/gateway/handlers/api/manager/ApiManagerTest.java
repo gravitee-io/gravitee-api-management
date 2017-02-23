@@ -55,7 +55,7 @@ public class ApiManagerTest {
     @Test
     public void add_simpleApi() {
         Api api = new ApiDefinitionBuilder().name("api-test")
-                .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("http://localhost/target").build()).build();
+                .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("default", "http://localhost/target").build()).build();
 
         apiManager.deploy(api);
 
@@ -65,7 +65,7 @@ public class ApiManagerTest {
     @Test
     public void add_simpleApi_validationError() {
         Api api = new ApiDefinitionBuilder().name("api-test")
-                .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("http://localhost/target").build()).build();
+                .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("default", "http://localhost/target").build()).build();
 
         doThrow(new ValidationException()).when(validator).validate(api);
 
