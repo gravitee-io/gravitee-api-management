@@ -22,11 +22,14 @@ import java.util.Collection;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface PageRepository extends CrudRepository<Page, String> {
 
-	Collection<Page> findByApi(String apiId) throws TechnicalException;
+	Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException;
 
-	Integer findMaxPageOrderByApi(String apiId) throws TechnicalException;
+	Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException;
+
+	Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException;
 }

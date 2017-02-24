@@ -46,6 +46,8 @@ public class Page {
 
 	private PageConfiguration configuration;
 
+	private boolean homepage;
+
 	/**
 	 * The api ID.
 	 */
@@ -151,6 +153,14 @@ public class Page {
 		this.configuration = configuration;
 	}
 
+	public boolean isHomepage() {
+		return homepage;
+	}
+
+	public void setHomepage(boolean homepage) {
+		this.homepage = homepage;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -176,6 +186,7 @@ public class Page {
 				", api='" + api + '\'' +
 				", source=" + source +
 				", configuration=" + configuration +
+				", homepage=" + homepage +
 				", createdAt=" + createdAt +
 				", updatedAt=" + updatedAt +
 				'}';
