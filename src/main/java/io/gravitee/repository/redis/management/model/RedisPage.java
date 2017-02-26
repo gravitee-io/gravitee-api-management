@@ -37,6 +37,7 @@ public class RedisPage {
     private String sourceConfiguration;
     private boolean configurationTryIt;
     private String configurationTryItURL;
+    private boolean homepage;
 
     public String getApi() {
         return api;
@@ -148,6 +149,14 @@ public class RedisPage {
 
     public void setConfigurationTryItURL(String configurationTryItURL) {
         this.configurationTryItURL = configurationTryItURL;
+    }
+
+    public boolean isHomepage() {
+        return homepage;
+    }
+
+    public void setHomepage(boolean homepage) {
+        this.homepage = homepage;
     }
 
     @Override

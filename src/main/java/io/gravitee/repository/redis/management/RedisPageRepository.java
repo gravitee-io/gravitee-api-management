@@ -42,7 +42,7 @@ public class RedisPageRepository implements PageRepository {
     private PageRedisRepository pageRedisRepository;
 
     @Override
-    public Collection<Page> findByApi(String apiId) throws TechnicalException {
+    public Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException {
         return pageRedisRepository.findByApi(apiId)
                 .stream()
                 .map(this::convert)
@@ -50,8 +50,8 @@ public class RedisPageRepository implements PageRepository {
     }
 
     @Override
-    public Integer findMaxPageOrderByApi(String apiId) throws TechnicalException {
-        return findByApi(apiId).stream().mapToInt(Page::getOrder).max().orElse(0);
+    public Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException {
+        return findApiPageByApiId(apiId).stream().mapToInt(Page::getOrder).max().orElse(0);
     }
 
     @Override
@@ -68,6 +68,14 @@ public class RedisPageRepository implements PageRepository {
 
     @Override
     public Page update(Page page) throws TechnicalException {
+        if(page == null){
+            throw new IllegalArgumentException("Page must not be null");
+        }
+
+        RedisPage oldRedisPage = pageRedisRepository.find(page.getId());
+        if(oldRedisPage == null){
+            throw new IllegalArgumentException(String.format("No page found with id [%s]", page.getId()));
+        }
         RedisPage redisPage = pageRedisRepository.saveOrUpdate(convert(page));
         return convert(redisPage);
     }
@@ -75,6 +83,12 @@ public class RedisPageRepository implements PageRepository {
     @Override
     public void delete(String pageId) throws TechnicalException {
         pageRedisRepository.delete(pageId);
+    }
+
+    @Override
+    public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException {
+        Collection<Page> pages = findApiPageByApiId(apiId);
+        return pages.stream().filter(page -> page.isHomepage() == isHomepage).collect(Collectors.toList());
     }
 
     private Page convert(RedisPage redisPage) {
@@ -93,6 +107,7 @@ public class RedisPageRepository implements PageRepository {
         page.setOrder(redisPage.getOrder());
         page.setPublished(redisPage.isPublished());
         page.setType(PageType.valueOf(redisPage.getType()));
+        page.setHomepage(redisPage.isHomepage());
 
         if (redisPage.getSourceType() != null) {
             PageSource pageSource = new PageSource();
@@ -121,6 +136,7 @@ public class RedisPageRepository implements PageRepository {
         redisPage.setOrder(page.getOrder());
         redisPage.setPublished(page.isPublished());
         redisPage.setType(page.getType().name());
+        redisPage.setHomepage(page.isHomepage());
 
         if (page.getSource() != null) {
             redisPage.setSourceType(page.getSource().getType());
