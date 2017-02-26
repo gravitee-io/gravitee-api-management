@@ -37,6 +37,7 @@ import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -51,7 +52,7 @@ public class MongoPageRepository implements PageRepository {
 	private GraviteeMapper mapper;
 
 	@Override
-	public Collection<Page> findByApi(String apiId) throws TechnicalException {
+	public Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException {
 		logger.debug("Find pages by api {}", apiId);
 
 		List<PageMongo> pages = internalPageRepo.findByApi(apiId);
@@ -88,15 +89,13 @@ public class MongoPageRepository implements PageRepository {
 
 	@Override
 	public Page update(Page page) throws TechnicalException {
-		if(page == null || page.getName() == null){
-			throw new IllegalStateException("Page to update must have a name");
+		if(page == null){
+			throw new IllegalArgumentException("Page must not be null");
 		}
 		
-		// Search team by name
 		PageMongo pageMongo = internalPageRepo.findOne(page.getId());
-		
 		if(pageMongo == null){
-			throw new IllegalStateException(String.format("No page found with name [%s]", page.getId()));
+			throw new IllegalArgumentException(String.format("No page found with id [%s]", page.getId()));
 		}
 		
 		try{
@@ -107,6 +106,7 @@ public class MongoPageRepository implements PageRepository {
 			pageMongo.setUpdatedAt(page.getUpdatedAt());
 			pageMongo.setOrder(page.getOrder());
 			pageMongo.setPublished(page.isPublished());
+			pageMongo.setHomepage(page.isHomepage());
 			if(page.getSource() != null) {
 				pageMongo.setSource(convert(page.getSource()));
 			} else {
@@ -139,7 +139,7 @@ public class MongoPageRepository implements PageRepository {
 	}
 
 	@Override
-	public Integer findMaxPageOrderByApi(String apiId) throws TechnicalException {
+	public Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException {
 		try{
 			return internalPageRepo.findMaxPageOrderByApi(apiId);
 		}catch(Exception e){
@@ -161,4 +161,10 @@ public class MongoPageRepository implements PageRepository {
 		pageConfigurationMongo.setTryItURL(pageConfiguration.getTryItURL());
         return pageConfigurationMongo;
 	}
+
+	@Override
+	public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException {
+		return mapper.collection2list(internalPageRepo.findByHomepage(apiId, isHomepage), PageMongo.class, Page.class);
+	}
+
 }

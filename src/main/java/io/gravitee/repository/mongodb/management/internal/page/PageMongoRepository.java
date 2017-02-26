@@ -20,6 +20,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -30,5 +31,8 @@ import java.util.List;
 public interface PageMongoRepository extends MongoRepository<PageMongo, String>, PageMongoRepositoryCustom {
 
 	@Query("{ 'api' : ?0}")
-	List<PageMongo> findByApi(String apiName);
+	List<PageMongo> findByApi(String apiId);
+
+	@Query("{ 'api': ?0, 'homepage': ?1}")
+	List<PageMongo> findByHomepage(String apiId, boolean isHomepage);
 }

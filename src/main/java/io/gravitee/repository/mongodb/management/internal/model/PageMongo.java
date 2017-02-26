@@ -48,6 +48,8 @@ public class PageMongo extends Auditable {
 
 	private PageConfigurationMongo configuration;
 
+	private boolean homepage;
+
 	public String getId() {
 		return id;
 	}
@@ -136,6 +138,14 @@ public class PageMongo extends Auditable {
 		this.configuration = configuration;
 	}
 
+	public boolean isHomepage() {
+		return homepage;
+	}
+
+	public void setHomepage(boolean homepage) {
+		this.homepage = homepage;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -160,6 +170,7 @@ public class PageMongo extends Auditable {
 		sb.append(", order='").append(order).append('\'');
 		sb.append(", lastContributor='").append(lastContributor).append('\'');
 		sb.append(", api='").append(api).append('\'');
+		sb.append(", homepage='").append(homepage).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}
