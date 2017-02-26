@@ -25,5 +25,15 @@
       "type": "MARKDOWN",
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
+   },
+   {
+      "id":"home",
+      "name":"HOME",
+      "homepage": true,
+      "content": "HOME Content",
+      "api": "my-api",
+      "type": "MARKDOWN",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
    }
 ]

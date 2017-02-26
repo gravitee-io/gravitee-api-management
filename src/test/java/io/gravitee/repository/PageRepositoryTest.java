@@ -18,16 +18,13 @@ package io.gravitee.repository;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageType;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class PageRepositoryTest extends AbstractRepositoryTest {
 
@@ -37,11 +34,11 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldFindByApi() throws Exception {
-        final Collection<Page> pages = pageRepository.findByApi("my-api");
+    public void shouldFindApiPageByApiId() throws Exception {
+        final Collection<Page> pages = pageRepository.findApiPageByApiId("my-api");
 
         assertNotNull(pages);
-        assertEquals(3, pages.size());
+        assertEquals(4, pages.size());
         pages.forEach(page -> assertNull(page.getSource()));
     }
 
@@ -57,52 +54,81 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
 
-        int nbPagesBeforeCreation = pageRepository.findByApi("my-api").size();
+        int nbPagesBeforeCreation = pageRepository.findApiPageByApiId("my-api").size();
         pageRepository.create(page);
-        int nbPagesAfterCreation = pageRepository.findByApi("my-api").size();
+        int nbPagesAfterCreation = pageRepository.findApiPageByApiId("my-api").size();
 
-        Assert.assertEquals(nbPagesBeforeCreation + 1, nbPagesAfterCreation);
+        assertEquals(nbPagesBeforeCreation + 1, nbPagesAfterCreation);
 
         Optional<Page> optional = pageRepository.findById("new-page");
-        Assert.assertTrue("Page saved not found", optional.isPresent());
+        assertTrue("Page saved not found", optional.isPresent());
 
         final Page pageSaved = optional.get();
-        Assert.assertEquals("Invalid saved page name.", page.getName(), pageSaved.getName());
-        Assert.assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
-        Assert.assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
-        Assert.assertNull("Invalid page source.", page.getSource());
+        assertEquals("Invalid saved page name.", page.getName(), pageSaved.getName());
+        assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
+        assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
+        assertNull("Invalid page source.", page.getSource());
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Page> optional = pageRepository.findById("page2");
-        Assert.assertTrue("Page to update not found", optional.isPresent());
-        Assert.assertEquals("Invalid saved page name.", "Page 2", optional.get().getName());
+        assertTrue("Page to update not found", optional.isPresent());
+        assertEquals("Invalid saved page name.", "Page 2", optional.get().getName());
 
         final Page page = optional.get();
         page.setName("New page");
         page.setContent("New content");
 
-        int nbPagesBeforeUpdate = pageRepository.findByApi("my-api").size();
+        int nbPagesBeforeUpdate = pageRepository.findApiPageByApiId("my-api").size();
         pageRepository.update(page);
-        int nbPagesAfterUpdate = pageRepository.findByApi("my-api").size();
+        int nbPagesAfterUpdate = pageRepository.findApiPageByApiId("my-api").size();
 
-        Assert.assertEquals(nbPagesBeforeUpdate, nbPagesAfterUpdate);
+        assertEquals(nbPagesBeforeUpdate, nbPagesAfterUpdate);
 
         Optional<Page> optionalUpdated = pageRepository.findById("page2");
-        Assert.assertTrue("Page to update not found", optionalUpdated.isPresent());
+        assertTrue("Page to update not found", optionalUpdated.isPresent());
 
         final Page pageUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved page name.", "New page", pageUpdated.getName());
-        Assert.assertEquals("Invalid page content.", "New content", pageUpdated.getContent());
+        assertEquals("Invalid saved page name.", "New page", pageUpdated.getName());
+        assertEquals("Invalid page content.", "New content", pageUpdated.getContent());
     }
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbPagesBeforeDeletion = pageRepository.findByApi("my-api").size();
+        int nbPagesBeforeDeletion = pageRepository.findApiPageByApiId("my-api").size();
         pageRepository.delete("page1");
-        int nbPagesAfterDeletion = pageRepository.findByApi("my-api").size();
+        int nbPagesAfterDeletion = pageRepository.findApiPageByApiId("my-api").size();
 
-        Assert.assertEquals(nbPagesBeforeDeletion - 1, nbPagesAfterDeletion);
+        assertEquals(nbPagesBeforeDeletion - 1, nbPagesAfterDeletion);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotUpdateUnknownPage() throws Exception {
+        Page unknownPage = new Page();
+        unknownPage.setId("unknown");
+        pageRepository.update(unknownPage);
+        fail("An unknown page should not be updated");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        pageRepository.update(null);
+        fail("A null page should not be updated");
+    }
+
+    @Test
+    public void shouldFindApiPageByApiIdAndHomepageFalse() throws Exception {
+        Collection<Page> pages = pageRepository.findApiPageByApiIdAndHomepage("my-api", false);
+        assertNotNull(pages);
+        assertEquals(3, pages.size());
+    }
+
+    @Test
+    public void shouldFindApiPageByApiIdAndHomepageTrue() throws Exception {
+        Collection<Page> pages = pageRepository.findApiPageByApiIdAndHomepage("my-api", true);
+        assertNotNull(pages);
+        assertEquals(1, pages.size());
+        assertEquals("home", pages.iterator().next().getId());
     }
 }

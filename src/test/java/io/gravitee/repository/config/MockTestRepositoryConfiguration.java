@@ -510,23 +510,35 @@ public class MockTestRepositoryConfiguration {
         when(page.getContent()).thenReturn("Page content");
 
         final Page page2 = mock(Page.class);
+        when(page2.getId()).thenReturn("page2");
         when(page2.getName()).thenReturn("Page 2");
 
         final Page page2Updated = mock(Page.class);
         when(page2Updated.getName()).thenReturn("New page");
         when(page2Updated.getContent()).thenReturn("New content");
 
-        final Set<Page> pages = newSet(page, page2, mock(Page.class));
-        final Set<Page> pagesAfterDelete = newSet(page, page2);
-        final Set<Page> pagesAfterAdd = newSet(page, page2, mock(Page.class), mock(Page.class));
+        final Set<Page> pages = newSet(page, page2, mock(Page.class), mock(Page.class));
+        final Set<Page> pagesAfterDelete = newSet(page, page2, mock(Page.class));
+        final Set<Page> pagesAfterAdd = newSet(page, page2, mock(Page.class), mock(Page.class), mock(Page.class));
 
-        when(pageRepository.findByApi("my-api")).thenReturn(pages, pagesAfterAdd, pages, pagesAfterDelete, pages);
+        when(pageRepository.findApiPageByApiId("my-api")).thenReturn(pages, pagesAfterAdd, pages, pagesAfterDelete, pages);
 
         when(pageRepository.create(any(Page.class))).thenReturn(page);
 
         when(pageRepository.findById("new-page")).thenReturn(of(page));
         when(pageRepository.findById("page2")).thenReturn(of(page2), of(page2Updated));
 
+        when(pageRepository.update(argThat(new ArgumentMatcher<Page>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Page && ((Page)o).getId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalArgumentException());
+
+        final Page homepage = mock(Page.class);
+        when(homepage.getId()).thenReturn("home");
+        when(pageRepository.findApiPageByApiIdAndHomepage("my-api", true)).thenReturn(Collections.singleton(homepage));
+        when(pageRepository.findApiPageByApiIdAndHomepage("my-api", false)).thenReturn(newSet(page, page2, mock(Page.class)));
         return pageRepository;
     }
 
