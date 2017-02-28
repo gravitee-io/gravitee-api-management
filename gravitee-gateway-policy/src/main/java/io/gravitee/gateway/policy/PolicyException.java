@@ -15,41 +15,25 @@
  */
 package io.gravitee.gateway.policy;
 
-import io.gravitee.gateway.api.stream.ReadWriteStream;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FailurePolicy implements Policy {
+public class PolicyException extends Exception {
 
-    @Override
-    public void onRequest(Object... args) throws PolicyException {
-        throw new RuntimeException();
+    public PolicyException() {
+        super();
     }
 
-    @Override
-    public void onResponse(Object... args) throws PolicyException {
-        throw new RuntimeException();
+    public PolicyException(String message) {
+        super(message);
     }
 
-    @Override
-    public ReadWriteStream<?> onRequestContent(Object... args) throws PolicyException {
-        throw new RuntimeException();
+    public PolicyException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    @Override
-    public ReadWriteStream<?> onResponseContent(Object... args) throws PolicyException {
-        throw new RuntimeException();
-    }
-
-    @Override
-    public boolean isStreamable() {
-        return true;
-    }
-
-    @Override
-    public boolean isRunnable() {
-        return true;
+    public PolicyException(Throwable cause) {
+        super(cause);
     }
 }

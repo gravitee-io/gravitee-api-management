@@ -18,17 +18,18 @@ package io.gravitee.gateway.policy;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public interface Policy {
 
-    void onRequest(Object ... args) throws Exception;
+    void onRequest(Object ... args) throws PolicyException;
 
-    void onResponse(Object ... args) throws Exception;
+    void onResponse(Object ... args) throws PolicyException;
 
-    ReadWriteStream<?> onRequestContent(Object ... args) throws Exception;
+    ReadWriteStream<?> onRequestContent(Object ... args) throws PolicyException;
 
-    ReadWriteStream<?> onResponseContent(Object ... args) throws Exception;
+    ReadWriteStream<?> onResponseContent(Object ... args) throws PolicyException;
 
     boolean isStreamable();
 

@@ -16,14 +16,13 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.api.stream.ReadWriteStream;
-import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.PolicyException;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponse;
 import io.gravitee.policy.api.annotations.OnResponseContent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 
@@ -41,17 +40,17 @@ public class PolicyImpl implements Policy {
     }
 
     @Override
-    public void onRequest(Object ... args) throws Exception {
+    public void onRequest(Object ... args) throws PolicyException {
         invoke(policyMetadata.method(OnRequest.class), args);
     }
 
     @Override
-    public void onResponse(Object ... args) throws Exception {
+    public void onResponse(Object ... args) throws PolicyException {
         invoke(policyMetadata.method(OnResponse.class), args);
     }
 
     @Override
-    public ReadWriteStream<?> onResponseContent(Object ... args) throws Exception {
+    public ReadWriteStream<?> onResponseContent(Object ... args) throws PolicyException {
         Object stream = invoke(policyMetadata.method(OnResponseContent.class), args);
         return (stream != null) ? (ReadWriteStream) stream : null;
     }
@@ -69,12 +68,12 @@ public class PolicyImpl implements Policy {
     }
 
     @Override
-    public ReadWriteStream<?> onRequestContent(Object ... args) throws Exception {
+    public ReadWriteStream<?> onRequestContent(Object ... args) throws PolicyException {
         Object stream = invoke(policyMetadata.method(OnRequestContent.class), args);
         return (stream != null) ? (ReadWriteStream) stream : null;
     }
 
-    private Object invoke(Method invokedMethod, Object ... args) throws Exception {
+    private Object invoke(Method invokedMethod, Object ... args) throws PolicyException {
         if (invokedMethod != null) {
             Class<?>[] parametersType = invokedMethod.getParameterTypes();
             Object[] parameters = new Object[parametersType.length];
@@ -86,7 +85,11 @@ public class PolicyImpl implements Policy {
                 parameters[idx++] = getParameterAssignableTo(paramType, args);
             }
 
-            return invokedMethod.invoke(policyInst, parameters);
+            try {
+                return invokedMethod.invoke(policyInst, parameters);
+            } catch (Exception ex) {
+                throw new PolicyException(ex);
+            }
         }
 
         return null;

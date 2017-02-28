@@ -18,12 +18,15 @@ package io.gravitee.gateway.policy.impl;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.PolicyChainException;
+import io.gravitee.gateway.policy.PolicyException;
 
 import java.util.Iterator;
 import java.util.List;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class RequestPolicyChain extends StreamablePolicyChain {
 
@@ -36,8 +39,12 @@ public class RequestPolicyChain extends StreamablePolicyChain {
     }
 
     @Override
-    protected void execute(Policy policy, Object... args) throws Exception {
-        policy.onRequest(args);
+    protected void execute(Policy policy, Object... args) throws PolicyChainException {
+        try {
+            policy.onRequest(args);
+        } catch (PolicyException pe) {
+            throw new PolicyChainException(pe);
+        }
     }
 
     @Override

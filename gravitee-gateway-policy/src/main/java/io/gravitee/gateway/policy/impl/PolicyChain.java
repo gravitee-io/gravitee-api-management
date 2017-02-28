@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.PolicyChainException;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +96,6 @@ public abstract class PolicyChain extends BufferedReadWriteStream implements io.
         return sw.getBuffer().toString();
     }
 
-    protected abstract void execute(Policy policy, Object ... args) throws Exception;
+    protected abstract void execute(Policy policy, Object ... args) throws PolicyChainException;
     protected abstract Iterator<Policy> iterator();
 }

@@ -22,6 +22,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -134,5 +138,23 @@ public class SpelTemplateEngineTest {
         content = "{#jsonPath(#request.content, '$.age') + 20}";
         value = engine.convert(content);
         Assert.assertEquals("55", value);
+    }
+
+    @Test
+    public void shouldCheckRequestContentFunction() {
+        EvaluableRequest req = Mockito.mock(EvaluableRequest.class);
+        when(req.getContent()).thenReturn("pong\n");
+
+        String assertion = "#response.content.startsWith('pong')";
+
+        ExpressionParser parser = new SpelExpressionParser();
+        Expression expr = parser.parseExpression(assertion);
+
+        StandardEvaluationContext context = new StandardEvaluationContext();
+        context.setVariable("response", req);
+
+        boolean success = expr.getValue(context, boolean.class);
+
+        Assert.assertTrue(success);
     }
 }

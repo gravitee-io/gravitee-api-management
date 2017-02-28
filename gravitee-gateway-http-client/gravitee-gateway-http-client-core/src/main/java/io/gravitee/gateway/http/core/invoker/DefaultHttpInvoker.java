@@ -26,6 +26,7 @@ import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.endpoint.EndpointManager;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
+import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import io.gravitee.gateway.http.core.endpoint.impl.DefaultEndpointLifecycleManager;
 import io.gravitee.gateway.http.core.logger.HttpDump;
 import io.gravitee.gateway.http.core.logger.LoggableClientRequest;
