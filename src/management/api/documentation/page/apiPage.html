@@ -29,22 +29,31 @@
         </div>
       </div>
 
-      <div layout="column" layout-align="end center" flex="20">
+      <div layout="column" layout-align="end center" flex="20" ng-if="pageCtrl.page.id">
+        <div layout="row" layout-align="center center">
+          <md-tooltip md-direction="top ">
+            Last modification @ {{pageCtrl.page.lastModificationDate | date:'medium'}} by {{pageCtrl.page.lastContributor}}
+          </md-tooltip>
+          <ng-md-icon icon="timer"></ng-md-icon>
+          <span style="top: 5px;position: relative;">{{pageCtrl.page.lastModificationDate | date}}</span>
+        </div>
         <md-switch ng-model="pageCtrl.page.published" ng-change="pageCtrl.changePublication()" style="margin: 4px 0;">
           <md-tooltip md-direction="top">Publish modifications</md-tooltip>
           <span ng-show="pageCtrl.page.published">Published</span>
           <span ng-show="!pageCtrl.page.published">Not Published</span>
         </md-switch>
-        <div layout="row" layout-align="center center">
-        <md-tooltip md-direction="top ">
-          Last modification @ {{pageCtrl.page.lastModificationDate | date:'medium'}} by {{pageCtrl.page.lastContributor}}
-        </md-tooltip>
-        <ng-md-icon icon="timer"></ng-md-icon>
-        <span style="top: 5px;position: relative;">{{pageCtrl.page.lastModificationDate | date}}</span>
-      </div></div>
+      </div>
 
-      <div class="documentation-tool-bar" layout="row" layout-align="end center" flex="40">
+      <div class="documentation-tool-bar" layout="row" layout-align="end center" flex="{{ pageCtrl.page.id ? 40 : 60 }}">
 
+        <md-button ng-click="pageCtrl.toggleHomepage()"
+                   class="md-icon-button" ng-class="{'icon-button-homepage': pageCtrl.page.homepage, 'icon-button-nothomepage': !pageCtrl.page.homepage}"
+                   aria-label="Homepage"
+                   ng-if="pageCtrl.page.id">
+          <md-tooltip md-direction="top" ng-if="pageCtrl.page.homepage">This page is your homepage. Click to convert to a documentation page</md-tooltip>
+          <md-tooltip md-direction="top" ng-if="!pageCtrl.page.homepage">This page is a documentation page. Click to convert to the api homepage</md-tooltip>
+          <ng-md-icon icon="home"></ng-md-icon>
+        </md-button>
         <md-button ng-click="pageCtrl.edit()" class="md-icon-button" aria-label="Edit">
           <md-tooltip md-direction="top">Edit this page</md-tooltip>
           <ng-md-icon icon="edit"></ng-md-icon>
@@ -53,7 +62,7 @@
           <md-tooltip md-direction="top">Configure this page</md-tooltip>
           <ng-md-icon icon="settings"></ng-md-icon>
         </md-button>
-        <md-button ng-click="pageCtrl.delete()" class="md-icon-button" aria-label="Delete">
+        <md-button ng-click="pageCtrl.remove()" class="md-icon-button" aria-label="Delete">
           <md-tooltip md-direction="top">Delete this page</md-tooltip>
           <ng-md-icon icon="delete"></ng-md-icon>
         </md-button>

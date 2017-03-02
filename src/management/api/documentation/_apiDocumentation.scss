@@ -18,3 +18,15 @@ a.md-button:not([disabled]).selected, .md-button:not([disabled]).selected {
   padding-left: 4px;
   font-weight: 300;
 }
+
+.icon-button-nothomepage {
+  fill: #676a6c;
+}
+
+.icon-button-homepage {
+  fill: rgb(68,138,255);
+}
+
+sup.icon-button-homepage, sup.icon-button-nothomepage {
+  top: -1em;
+}

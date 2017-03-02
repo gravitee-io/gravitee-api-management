@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import DialogEditPolicyController from "../api/admin/policies/dialog/policyDialog.controller";
 
 class DocumentationService {
   private swaggerConfigurationCache: any;
@@ -56,6 +57,7 @@ class DocumentationService {
         published: editPage.published,
         content: editPage.content || '',
         source: editPage.source,
+        homepage: editPage.homepage,
         configuration: editPage.configuration
       }
     );

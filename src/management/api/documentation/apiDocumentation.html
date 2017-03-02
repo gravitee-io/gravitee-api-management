@@ -23,7 +23,11 @@
                      ng-class="{'selected' : page.id === documentationCtrl.$state.params.pageId }">
             <div class="inset">
               <md-icon md-svg-src="assets/logo_{{page.type | lowercase}}.svg"></md-icon>
-              <span ng-style="page.published?'':{'font-style': 'italic', 'color': 'grey'}">{{page.name}}</span>
+              <span ng-style="page.published?'':{'font-style': 'italic', 'color': 'grey'}">{{page.name}}
+                <sup ng-if="page.homepage" class="icon-button-homepage">
+                  <ng-md-icon icon="home" size="12"></ng-md-icon>
+                </sup>
+              </span>
             </div>
           </md-button>
         </md-item-content>

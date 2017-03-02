@@ -134,8 +134,8 @@ class PageController {
     }
   }
 
-  delete() {
-	  let that = this;
+  remove() {
+    let that = this;
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
@@ -176,6 +176,11 @@ class PageController {
     }
   }
 
+  toggleHomepage(){
+      this.page.homepage = !this.page.homepage;
+      this.upsert();
+  }
+
   showSettings() {
     this.$mdSidenav('page-settings').toggle();
   }
@@ -186,9 +191,9 @@ class PageController {
   }
 
   changePublication() {
-    var editPage = _.clone(this.initialPage);
+    let editPage = _.clone(this.initialPage);
     editPage.published = this.page.published;
-    var that = this;
+    let that = this;
     this.DocumentationService.editPage(this.$scope.$parent.apiCtrl.api.id, this.page.id, editPage).then(function () {
       that.$scope.$parent.documentationCtrl.list();
       that.NotificationService.show('Page ' + editPage.name + ' has been ' + (editPage.published ? '':'un') + 'published with success');
