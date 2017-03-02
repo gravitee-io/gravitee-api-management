@@ -55,8 +55,8 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne [at] graviteesource [dot] com)
- * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -81,16 +81,25 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Override
 	public List<PageListItem> findByApi(String apiId) {
-		try {
-			final Collection<Page> pages = pageRepository.findByApi(apiId);
+	    return findByApiAndHomepage(apiId, null);
+    }
 
+	@Override
+	public List<PageListItem> findByApiAndHomepage(String apiId, Boolean homepage) {
+		try {
+			final Collection<Page> pages;
+			if (homepage == null) {
+				pages = pageRepository.findApiPageByApiId(apiId);
+			} else {
+				pages = pageRepository.findApiPageByApiIdAndHomepage(apiId, homepage);
+			}
 			if (pages == null) {
 				return emptyList();
 			}
 
 			return pages.stream()
 					.map(this::reduce)
-					.sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
+					.sorted(Comparator.comparingInt(PageListItem::getOrder))
 					.collect(Collectors.toList());
 
 		} catch (TechnicalException ex) {
@@ -174,10 +183,29 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			page.setUpdatedAt(page.getCreatedAt());
 
 			Page createdPage = pageRepository.create(page);
+
+			//only one homepage is allowed
+			onlyOneHomepage(page);
 			return convert(createdPage);
 		} catch (TechnicalException | FetcherException ex) {
 			LOGGER.error("An error occurs while trying to create {}", newPageEntity, ex);
 			throw new TechnicalManagementException("An error occurs while trying create " + newPageEntity, ex);
+		}
+	}
+
+	private void onlyOneHomepage(Page page) throws TechnicalException {
+		if(page.isHomepage()) {
+			Collection<Page> pages = pageRepository.findApiPageByApiIdAndHomepage(page.getApi(), true);
+			pages.stream().
+					filter(i -> !i.getId().equals(page.getId())).
+					forEach(i -> {
+						try {
+							i.setHomepage(false);
+							pageRepository.update(i);
+						} catch (TechnicalException e) {
+							LOGGER.error("An error occurs while trying update homepage attribute from {}", page, e);
+						}
+					});
 		}
 	}
 
@@ -213,6 +241,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			page.setType(pageToUpdate.getType());
 			page.setApi(pageToUpdate.getApi());
 
+			onlyOneHomepage(page);
 			// if order change, reorder all pages
 			if (page.getOrder() != pageToUpdate.getOrder()) {
 				reorderAndSavePages(page);
@@ -254,7 +283,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	}
 
     private void reorderAndSavePages(final Page pageToReorder) throws TechnicalException {
-		final Collection<Page> pages = pageRepository.findByApi(pageToReorder.getApi());
+		final Collection<Page> pages = pageRepository.findApiPageByApiId(pageToReorder.getApi());
         final List<Boolean> increment = asList(true);
         pages.stream()
             .sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
@@ -307,7 +336,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	public int findMaxPageOrderByApi(String apiName) {
 		try {
 			LOGGER.debug("Find Max Order Page for api name : {}", apiName);
-			final Integer maxPageOrder = pageRepository.findMaxPageOrderByApi(apiName);
+			final Integer maxPageOrder = pageRepository.findMaxApiPageOrderByApiId(apiName);
 			return maxPageOrder == null ? 0 : maxPageOrder;
 		} catch (TechnicalException ex) {
 			LOGGER.error("An error occured when searching max order page for api name [{}]", apiName, ex);
@@ -324,6 +353,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		pageItem.setOrder(page.getOrder());
 		pageItem.setLastContributor(page.getLastContributor());
 		pageItem.setPublished(page.isPublished());
+		pageItem.setHomepage(page.isHomepage());
 		pageItem.setSource(convert(page.getSource()));
 		pageItem.setConfiguration(convert(page.getConfiguration()));
 
@@ -342,6 +372,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setLastContributor(newPageEntity.getLastContributor());
 		page.setOrder(newPageEntity.getOrder());
 		page.setPublished(newPageEntity.isPublished());
+		page.setHomepage(newPageEntity.isHomepage());
 		page.setSource(convert(newPageEntity.getSource()));
 		page.setConfiguration(convert(newPageEntity.getConfiguration()));
 
@@ -353,6 +384,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 		pageEntity.setId(page.getId());
 		pageEntity.setName(page.getName());
+		pageEntity.setHomepage(page.isHomepage());
 		if (page.getType() != null) {
 			pageEntity.setType(page.getType().toString());
 		}
@@ -389,6 +421,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setPublished(updatePageEntity.isPublished());
 		page.setSource(convert(updatePageEntity.getSource()));
         page.setConfiguration(convert(updatePageEntity.getConfiguration()));
+        page.setHomepage(updatePageEntity.isHomepage());
 		return page;
 	}
 

@@ -31,7 +31,9 @@ import java.util.Optional;
 public interface PageService {
 
 	List<PageListItem> findByApi(String apiId);
-	
+
+	List<PageListItem> findByApiAndHomepage(String apiId, Boolean homepage);
+
 	PageEntity findById(String pageId);
 
 	PageEntity findById(String pageId, boolean transform);

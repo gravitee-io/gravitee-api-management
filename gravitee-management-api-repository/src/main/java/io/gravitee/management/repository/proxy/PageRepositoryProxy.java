@@ -25,19 +25,25 @@ import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class PageRepositoryProxy extends AbstractProxy<PageRepository> implements PageRepository {
 
     @Override
-    public Collection<Page> findByApi(String s) throws TechnicalException {
-        return target.findByApi(s);
+    public Collection<Page> findApiPageByApiId(String s) throws TechnicalException {
+        return target.findApiPageByApiId(s);
     }
 
     @Override
-    public Integer findMaxPageOrderByApi(String s) throws TechnicalException {
-        return target.findMaxPageOrderByApi(s);
+    public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException {
+        return target.findApiPageByApiIdAndHomepage(apiId, isHomepage);
+    }
+
+    @Override
+    public Integer findMaxApiPageOrderByApiId(String s) throws TechnicalException {
+        return target.findMaxApiPageOrderByApiId(s);
     }
 
     @Override

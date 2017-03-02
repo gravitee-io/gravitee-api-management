@@ -8,7 +8,8 @@
     "type" : "MARKDOWN",
     "content" : "Read the doc",
     "order" : 1,
-    "published" : false
+    "published" : false,
+    "homepage" : false
   } ],
   "plans" : [ {
     "id" : "plan-id",

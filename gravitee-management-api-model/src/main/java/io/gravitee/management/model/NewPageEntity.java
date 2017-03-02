@@ -43,6 +43,8 @@ public class NewPageEntity {
 
 	private PageConfigurationEntity configuration;
 
+	private boolean homepage;
+
 	public String getName() {
 		return name;
 	}
@@ -107,12 +109,21 @@ public class NewPageEntity {
 		this.configuration = configuration;
 	}
 
+	public boolean isHomepage() {
+		return homepage;
+	}
+
+	public void setHomepage(boolean homepage) {
+		this.homepage = homepage;
+	}
+
 	@Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Page{");
         sb.append("name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
         sb.append(", order='").append(order).append('\'');
+		sb.append(", homepage='").append(homepage).append('\'');
         sb.append(", lastContributor='").append(lastContributor).append('\'');
         sb.append('}');
         return sb.toString();

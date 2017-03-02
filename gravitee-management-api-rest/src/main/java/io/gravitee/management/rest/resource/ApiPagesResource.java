@@ -89,10 +89,11 @@ public class ApiPagesResource extends AbstractResource {
             @ApiResponse(code = 200, message = "List of pages", response = PageListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<PageListItem> listPages(
-            @PathParam("api") String api) {
+            @PathParam("api") String api,
+            @QueryParam("homepage") Boolean homepage) {
         final ApiEntity apiEntity = apiService.findById(api);
 
-        final List<PageListItem> pages = pageService.findByApi(api);
+        final List<PageListItem> pages = pageService.findByApiAndHomepage(api, homepage);
 
         final List<PageListItem> filteredPages = pages.stream()
             .filter(page -> {

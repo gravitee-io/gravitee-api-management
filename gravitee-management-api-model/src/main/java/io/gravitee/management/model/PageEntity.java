@@ -45,6 +45,8 @@ public class PageEntity {
 
 	private PageConfigurationEntity configuration;
 
+	private boolean homepage;
+
 	public String getId() {
 		return id;
 	}
@@ -133,6 +135,14 @@ public class PageEntity {
 		this.configuration = configuration;
 	}
 
+	public boolean isHomepage() {
+		return homepage;
+	}
+
+	public void setHomepage(boolean homepage) {
+		this.homepage = homepage;
+	}
+
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -155,6 +165,7 @@ public class PageEntity {
 		sb.append(", name='").append(name).append('\'');
 		sb.append(", type='").append(type).append('\'');
 		sb.append(", order='").append(order).append('\'');
+		sb.append(", homepage='").append(homepage).append('\'');
 		sb.append(", lastContributor='").append(lastContributor).append('\'');
 		sb.append(", published='").append(published).append('\'');
 		sb.append(", lastModificationDate='").append(lastModificationDate).append('\'');

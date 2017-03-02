@@ -38,6 +38,8 @@ public class PageListItem {
 
     private PageConfigurationEntity configuration;
 
+    private boolean homepage;
+
     public String getId() {
         return id;
     }
@@ -100,6 +102,14 @@ public class PageListItem {
 
     public void setConfiguration(PageConfigurationEntity configuration) {
         this.configuration = configuration;
+    }
+
+    public boolean isHomepage() {
+        return homepage;
+    }
+
+    public void setHomepage(boolean homepage) {
+        this.homepage = homepage;
     }
 
     @Override

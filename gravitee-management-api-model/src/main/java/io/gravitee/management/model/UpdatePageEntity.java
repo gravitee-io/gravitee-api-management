@@ -39,6 +39,8 @@ public class UpdatePageEntity {
 
 	private PageConfigurationEntity configuration;
 
+	private boolean homepage;
+
 	public String getName() {
 		return name;
 	}
@@ -93,5 +95,13 @@ public class UpdatePageEntity {
 
 	public void setConfiguration(PageConfigurationEntity configuration) {
 		this.configuration = configuration;
+	}
+
+	public boolean isHomepage() {
+		return homepage;
+	}
+
+	public void setHomepage(boolean homepage) {
+		this.homepage = homepage;
 	}
 }
