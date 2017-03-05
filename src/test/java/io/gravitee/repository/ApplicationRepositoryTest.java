@@ -17,6 +17,7 @@ package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,7 +44,16 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Set<Application> applications = applicationRepository.findAll();
 
         Assert.assertNotNull(applications);
-        Assert.assertEquals("Fail to resolve application in findAll", 6, applications.size());
+        Assert.assertEquals("Fail to resolve application in findAll", 7, applications.size());
+    }
+
+    @Test
+    public void findAllArchivedTest() throws Exception {
+        Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ARCHIVED);
+
+        Assert.assertNotNull(applications);
+        Assert.assertEquals("Fail to resolve application in findAll with application status", 1, applications.size());
+        Assert.assertEquals("grouped-app2", applications.iterator().next().getId());
     }
 
     @Test
@@ -56,6 +66,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         application.setName(name);
         application.setDescription("Application description");
         application.setType("type");
+        application.setStatus(ApplicationStatus.ACTIVE);
         application.setCreatedAt(parse("11/02/2016"));
         application.setUpdatedAt(parse("12/02/2016"));
 
@@ -71,6 +82,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid application name.", application.getName(), appSaved.getName());
         Assert.assertEquals("Invalid application description.", application.getDescription(), appSaved.getDescription());
         Assert.assertEquals("Invalid application type.", application.getType(), appSaved.getType());
+        Assert.assertEquals("Invalid application status.", application.getStatus(), appSaved.getStatus());
         Assert.assertEquals("Invalid application createdAt.", application.getCreatedAt(), appSaved.getCreatedAt());
         Assert.assertEquals("Invalid application updateAt.", application.getUpdatedAt(), appSaved.getUpdatedAt());
     }
@@ -84,6 +96,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         application.setName(applicationName);
         application.setDescription("Updated description");
         application.setType("update-type");
+        application.setStatus(ApplicationStatus.ARCHIVED);
         application.setCreatedAt(parse("11/02/2016"));
         application.setUpdatedAt(parse("22/02/2016"));
 
@@ -97,6 +110,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid updated application name.", application.getName(), appUpdated.getName());
         Assert.assertEquals("Invalid updated application description.", application.getDescription(), appUpdated.getDescription());
         Assert.assertEquals("Invalid updated application type.", application.getType(), appUpdated.getType());
+        Assert.assertEquals("Invalid updated application status.", application.getStatus(), appUpdated.getStatus());
         Assert.assertEquals("Invalid updated application updateAt.", application.getUpdatedAt(), appUpdated.getUpdatedAt());
         //Check invariant field
         Assert.assertNotEquals("Invalid updated application createdAt.", application.getCreatedAt(), appUpdated.getCreatedAt());
@@ -131,7 +145,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindApplicationWithGroup() throws Exception {
-        Optional<Application> application = applicationRepository.findById("grouped-app");
+        Optional<Application> application = applicationRepository.findById("grouped-app1");
         Assert.assertTrue(application.isPresent());
         Assert.assertNotNull(application.get().getGroup());
         Assert.assertEquals("application-group", application.get().getGroup());
@@ -171,7 +185,15 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Set<Application> apps = applicationRepository.findByGroups(Arrays.asList("application-group"));
 
         Assert.assertNotNull(apps);
+        Assert.assertEquals(2, apps.size());
+    }
+
+    @Test
+    public void shouldFindByGroupsAndStatus() throws Exception {
+        Set<Application> apps = applicationRepository.findByGroups(Arrays.asList("application-group"), ApplicationStatus.ARCHIVED);
+
+        Assert.assertNotNull(apps);
         Assert.assertEquals(1, apps.size());
-        Assert.assertEquals("grouped-app", apps.iterator().next().getId());
+        Assert.assertEquals("grouped-app2", apps.iterator().next().getId());
     }
 }

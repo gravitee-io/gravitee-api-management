@@ -106,15 +106,23 @@ public class MockTestRepositoryConfiguration {
         final Application application = mock(Application.class);
         when(applicationRepository.findById("application-sample")).thenReturn(of(application));
 
-        final Set<Application> applications = newSet(application, mock(Application.class), mock(Application.class), mock(Application.class), mock(Application.class), mock(Application.class));
-        when(applicationRepository.findAll()).thenReturn(applications);
-        doAnswer(invocation -> applications.remove(application)).when(applicationRepository).delete("deleted-app");
+        final Set<Application> allApplications = newSet(
+                application,
+                mock(Application.class),
+                mock(Application.class),
+                mock(Application.class),
+                mock(Application.class),
+                mock(Application.class),
+                mock(Application.class));
+        when(applicationRepository.findAll()).thenReturn(allApplications);
+        doAnswer(invocation -> allApplications.remove(application)).when(applicationRepository).delete("deleted-app");
         when(applicationRepository.findById("deleted-app")).thenReturn(empty());
 
         final Application newApplication = mock(Application.class);
         when(newApplication.getName()).thenReturn("created-app");
         when(newApplication.getDescription()).thenReturn("Application description");
         when(newApplication.getType()).thenReturn("type");
+        when(newApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(newApplication.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(newApplication.getUpdatedAt()).thenReturn(parse("12/02/2016"));
 
@@ -124,15 +132,24 @@ public class MockTestRepositoryConfiguration {
         when(updatedApplication.getName()).thenReturn("updated-app");
         when(updatedApplication.getDescription()).thenReturn("Updated description");
         when(updatedApplication.getType()).thenReturn("update-type");
+        when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);
         when(updatedApplication.getCreatedAt()).thenReturn(null);
         when(updatedApplication.getUpdatedAt()).thenReturn(parse("22/02/2016"));
 
         when(applicationRepository.findById("updated-app")).thenReturn(of(updatedApplication));
 
-        final Application groupedApplication = mock(Application.class);
-        when(groupedApplication.getId()).thenReturn("grouped-app");
-        when(groupedApplication.getGroup()).thenReturn("application-group");
-        when(applicationRepository.findById("grouped-app")).thenReturn(of(groupedApplication));
+        final Application groupedApplication1 = mock(Application.class);
+        when(groupedApplication1.getId()).thenReturn("grouped-app1");
+        when(groupedApplication1.getGroup()).thenReturn("application-group");
+        when(applicationRepository.findById("grouped-app1")).thenReturn(of(groupedApplication1));
+
+        final Application groupedApplication2 = mock(Application.class);
+        when(groupedApplication2.getId()).thenReturn("grouped-app2");
+        when(groupedApplication2.getGroup()).thenReturn("application-group");
+        when(applicationRepository.findById("grouped-app2")).thenReturn(of(groupedApplication2));
+
+        final Set<Application> allArchivedApplications = newSet(groupedApplication2);
+        when(applicationRepository.findAll(ApplicationStatus.ARCHIVED)).thenReturn(allArchivedApplications);
 
         final Application searchedApp1 = mock(Application.class);
         final Application searchedApp2 = mock(Application.class);
@@ -145,7 +162,8 @@ public class MockTestRepositoryConfiguration {
         when(applicationRepository.findByName("aRcHEd")).thenReturn(newSet(searchedApp1, searchedApp2));
 
         when(applicationRepository.findByIds(Arrays.asList("searched-app1", "searched-app2"))).thenReturn(newSet(searchedApp1, searchedApp2));
-        when(applicationRepository.findByGroups(Arrays.asList("application-group"))).thenReturn(newSet(groupedApplication));
+        when(applicationRepository.findByGroups(Collections.singletonList("application-group"))).thenReturn(newSet(groupedApplication1, groupedApplication2));
+        when(applicationRepository.findByGroups(Collections.singletonList("application-group"), ApplicationStatus.ARCHIVED)).thenReturn(newSet(groupedApplication2));
         return applicationRepository;
     }
 

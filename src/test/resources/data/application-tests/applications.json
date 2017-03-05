@@ -4,6 +4,7 @@
     "name": "application-sample",
     "description": "Sample application description",
     "type": "Web",
+    "status": "ACTIVE",
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
   },
@@ -12,6 +13,7 @@
     "name": "updated-app",
     "description": "Sample updated-app description",
     "type": "Web",
+    "status": "ACTIVE",
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
   },
@@ -20,14 +22,26 @@
     "name": "deleted-app",
     "description": "Sample deleted-app description",
     "type": "Web",
+    "status": "ACTIVE",
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
   },
   {
-    "id": "grouped-app",
+    "id": "grouped-app1",
     "name": "grouped-app",
     "description": "Sample grouped-app description",
     "type": "Web",
+    "status": "ACTIVE",
+    "group": "application-group",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883"
+  },
+  {
+    "id": "grouped-app2",
+    "name": "grouped-app",
+    "description": "Sample grouped-app description",
+    "type": "Web",
+    "status": "ARCHIVED",
     "group": "application-group",
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
@@ -37,6 +51,7 @@
     "name": "searched-app1",
     "description": "Sample searched app",
     "type": "Web",
+    "status": "ACTIVE",
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
   },
@@ -45,6 +60,7 @@
     "name": "searched-app2",
     "description": "Sample searched app",
     "type": "Web",
+    "status": "ACTIVE",
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
   }

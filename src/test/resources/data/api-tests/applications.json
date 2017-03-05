@@ -3,6 +3,7 @@
 	   	"id":"application-sample",
 		"name":"application-sample",
 	   	"description":"Sample application1 description",
+		"status": "ACTIVE",
 		"createdAt": 1439022010883,
 		"updatedAt": 1439022010883
 	}	
