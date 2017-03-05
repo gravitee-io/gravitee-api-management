@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.redis.management.internal.impl;
 
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.redis.management.internal.ApplicationRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApplication;
 import org.springframework.dao.DataAccessException;
@@ -55,13 +56,21 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
     }
 
     @Override
-    public Set<RedisApplication> findAll() {
+    public Set<RedisApplication> findAll(ApplicationStatus... statuses) {
         Map<Object, Object> applications = redisTemplate.opsForHash().entries(REDIS_KEY);
 
-        return applications.values()
-                .stream()
-                .map(object -> convert(object, RedisApplication.class))
-                .collect(Collectors.toSet());
+        Set<RedisApplication> applicationSet = applications.values().stream().
+                map(object -> convert(object, RedisApplication.class)).
+                collect(Collectors.toSet());
+        if (statuses != null && statuses.length > 0) {
+            List<ApplicationStatus> applicationStatuses = Arrays.asList(statuses);
+            return applicationSet.stream().
+                    filter(app ->
+                            applicationStatuses.contains(ApplicationStatus.valueOf(app.getStatus()))).
+                    collect(Collectors.toSet());
+        } else {
+            return applicationSet;
+        }
     }
 
     @Override
@@ -83,32 +92,39 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
 
 
     @Override
-    public Set<RedisApplication> findByGroups(List<String> groups) {
+    public Set<RedisApplication> findByGroups(List<String> groups, ApplicationStatus... statuses) {
         Set<Object> keys = new HashSet<>();
         groups.forEach(group->keys.addAll(redisTemplate.opsForSet().members(REDIS_KEY + ":group:" + group)));
         List<Object> apiObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
 
-        return apiObjects.stream()
-                .map(event -> convert(event, RedisApplication.class))
-                .collect(Collectors.toSet());
+        Set<RedisApplication> applications = apiObjects.stream().
+                map(event -> convert(event, RedisApplication.class)).
+                collect(Collectors.toSet());
+
+        if (statuses != null && statuses.length > 0) {
+            List<ApplicationStatus> applicationStatuses = Arrays.asList(statuses);
+            return applications.stream().
+                    filter(app ->
+                            applicationStatuses.contains(ApplicationStatus.valueOf(app.getStatus()))).
+                    collect(Collectors.toSet());
+        } else {
+            return applications;
+        }
     }
 
     @Override
     public Set<RedisApplication> findByName(final String partialName) {
 
-        List<String> matchedNames = redisTemplate.execute(new RedisCallback<List<String>>() {
-            @Override
-            public List<String> doInRedis(RedisConnection redisConnection) throws DataAccessException {
-                ScanOptions options = ScanOptions.scanOptions().match(REDIS_KEY + ":search-by:name:*" + partialName.toUpperCase() + "*").build();
-                Cursor<byte[]> cursor = redisConnection.scan(options);
-                List<String> result = new ArrayList<>();
-                if (cursor != null) {
-                    while (cursor.hasNext()) {
-                        result.add(new String(cursor.next()));
-                    }
+        List<String> matchedNames = redisTemplate.execute((RedisCallback<List<String>>) redisConnection -> {
+            ScanOptions options = ScanOptions.scanOptions().match(REDIS_KEY + ":search-by:name:*" + partialName.toUpperCase() + "*").build();
+            Cursor<byte[]> cursor = redisConnection.scan(options);
+            List<String> result = new ArrayList<>();
+            if (cursor != null) {
+                while (cursor.hasNext()) {
+                    result.add(new String(cursor.next()));
                 }
-                return result;
             }
+            return result;
         });
 
         if (matchedNames == null || matchedNames.isEmpty() ) {

@@ -18,6 +18,7 @@ package io.gravitee.repository.redis.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.redis.management.internal.ApplicationRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApplication;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +39,15 @@ public class RedisApplicationRepository implements ApplicationRepository {
     private ApplicationRedisRepository applicationRedisRepository;
 
     @Override
-    public Set<Application> findAll() throws TechnicalException {
+    public Set<Application> findAll(ApplicationStatus... statuses) throws TechnicalException {
         Set<RedisApplication> applications = applicationRedisRepository.findAll();
+        if(statuses != null && statuses.length > 0) {
+            List<ApplicationStatus> applicationStatuses = Arrays.asList(statuses);
+            applications = applications.stream().
+                    filter(app ->
+                            applicationStatuses.contains(ApplicationStatus.valueOf(app.getStatus()))).
+                    collect(Collectors.toSet());
+        }
 
         return applications.stream()
                 .map(this::convert)
@@ -54,8 +62,16 @@ public class RedisApplicationRepository implements ApplicationRepository {
     }
 
     @Override
-    public Set<Application> findByGroups(List<String> groupIds) throws TechnicalException {
-        return applicationRedisRepository.findByGroups(groupIds)
+    public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus ... statuses) throws TechnicalException {
+        Set<RedisApplication> applications = applicationRedisRepository.findByGroups(groupIds);
+        if(statuses != null && statuses.length > 0) {
+            List<ApplicationStatus> applicationStatuses = Arrays.asList(statuses);
+            applications = applications.stream().
+                    filter(app ->
+                            applicationStatuses.contains(ApplicationStatus.valueOf(app.getStatus()))).
+                    collect(Collectors.toSet());
+        }
+        return applications
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
@@ -91,6 +107,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
         redisApplication.setUpdatedAt(application.getUpdatedAt().getTime());
         redisApplication.setType(application.getType());
         redisApplication.setGroup(application.getGroup());
+        redisApplication.setStatus(application.getStatus().toString());
 
         applicationRedisRepository.saveOrUpdate(redisApplication);
         return convert(redisApplication);
@@ -115,6 +132,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
         application.setDescription(redisApplication.getDescription());
         application.setType(redisApplication.getType());
         application.setGroup(redisApplication.getGroup());
+        application.setStatus(ApplicationStatus.valueOf(redisApplication.getStatus()));
         return application;
     }
 
@@ -128,6 +146,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
         redisApplication.setDescription(application.getDescription());
         redisApplication.setType(application.getType());
         redisApplication.setGroup(application.getGroup());
+        redisApplication.setStatus(application.getStatus().toString());
 
         return redisApplication;
     }

@@ -29,6 +29,7 @@ public class RedisApplication {
     private String description;
     private String type;
     private String group;
+    private String status;
 
     private long createdAt;
     private long updatedAt;
@@ -87,6 +88,14 @@ public class RedisApplication {
 
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override

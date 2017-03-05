@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.redis.management.model.RedisApplication;
 
 import java.util.List;
@@ -31,9 +32,9 @@ public interface ApplicationRedisRepository {
 
     Set<RedisApplication> find(List<String> applications);
 
-    Set<RedisApplication> findAll();
+    Set<RedisApplication> findAll(ApplicationStatus ... statuses);
 
-    Set<RedisApplication> findByGroups(List<String> groupIds);
+    Set<RedisApplication> findByGroups(List<String> groupIds, ApplicationStatus ... statuses);
 
     Set<RedisApplication> findByName(String partialName);
 
