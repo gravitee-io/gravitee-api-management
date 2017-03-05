@@ -21,6 +21,7 @@ import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Application {
@@ -59,6 +60,8 @@ public class Application {
      * the application group
      */
     private String group;
+
+    private ApplicationStatus status;
 
     public Date getCreatedAt() {
         return createdAt;
@@ -116,6 +119,14 @@ public class Application {
         this.group = group;
     }
 
+    public ApplicationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ApplicationStatus status) {
+        this.status = status;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -136,6 +147,7 @@ public class Application {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", type='" + type + '\'' +
+                ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

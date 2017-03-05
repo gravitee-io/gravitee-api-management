@@ -33,7 +33,7 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      *
      * @return All public applications.
      */
-    Set<Application> findAll() throws TechnicalException;
+    Set<Application> findAll(ApplicationStatus ... statuses) throws TechnicalException;
 
     /**
      * find a list of Applications via their ids.
@@ -47,7 +47,7 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @param groupIds a list of group ids
      * @return applications
      */
-    Set<Application> findByGroups(List<String> groupIds) throws TechnicalException;
+    Set<Application> findByGroups(List<String> groupIds, ApplicationStatus ... statuses) throws TechnicalException;
 
     /**
      * find applications by name. Support partial name (works like `contains`)
