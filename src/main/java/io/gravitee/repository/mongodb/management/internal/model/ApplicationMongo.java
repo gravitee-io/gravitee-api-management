@@ -45,6 +45,8 @@ public class ApplicationMongo extends Auditable {
 
     private String group;
 
+    private String status;
+
     public String getId() {
         return id;
     }
@@ -85,6 +87,14 @@ public class ApplicationMongo extends Auditable {
         this.group = group;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -104,6 +114,7 @@ public class ApplicationMongo extends Auditable {
         sb.append("id='").append(id).append('\'');
         sb.append("name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
+        sb.append(", status='").append(status).append('\'');
         sb.append('}');
         return sb.toString();
     }

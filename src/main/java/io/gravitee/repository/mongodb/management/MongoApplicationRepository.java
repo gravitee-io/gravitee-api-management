@@ -15,14 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import io.gravitee.repository.management.model.ApplicationStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,8 +44,13 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	private GraviteeMapper mapper;
 
 	@Override
-	public Set<Application> findAll() throws TechnicalException {
-		List<ApplicationMongo> applications = internalApplicationRepo.findAll();
+	public Set<Application> findAll(ApplicationStatus... statuses) throws TechnicalException {
+		List<ApplicationMongo> applications;
+		if(statuses != null && statuses.length > 0) {
+			applications = internalApplicationRepo.findAll(Arrays.asList(statuses));
+		} else {
+			applications = internalApplicationRepo.findAll();
+        }
 		return mapApplications(applications);
 	}
 
@@ -70,6 +71,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 		applicationMongo.setUpdatedAt(application.getUpdatedAt());
 		applicationMongo.setType(application.getType());
 		applicationMongo.setGroup(application.getGroup());
+		applicationMongo.setStatus(application.getStatus().toString());
 
 		ApplicationMongo applicationMongoUpdated = internalApplicationRepo.save(applicationMongo);
 		return mapApplication(applicationMongoUpdated);
@@ -87,8 +89,12 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
-	public Set<Application> findByGroups(List<String> groupIds) throws TechnicalException {
-		return mapApplications(internalApplicationRepo.findByGroups(groupIds));
+	public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus ... statuses) throws TechnicalException {
+		if (statuses != null && statuses.length>0) {
+			return mapApplications(internalApplicationRepo.findByGroups(groupIds, Arrays.asList(statuses)));
+		} else {
+			return mapApplications(internalApplicationRepo.findByGroups(groupIds));
+		}
 	}
 
 	@Override

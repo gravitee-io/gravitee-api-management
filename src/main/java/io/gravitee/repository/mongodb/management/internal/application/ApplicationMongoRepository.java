@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.application;
 
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -25,6 +26,7 @@ import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
@@ -36,8 +38,14 @@ public interface ApplicationMongoRepository extends MongoRepository<ApplicationM
     @Query("{ group: {$in: ?0} }")
     Set<ApplicationMongo> findByGroups(List<String> ids);
 
+    @Query("{ group: {$in: ?0}, status: {$in: ?1} }")
+    Set<ApplicationMongo> findByGroups(List<String> ids, List<ApplicationStatus> statuses);
+
     @Query("{ name: { $regex: ?0, $options: 'i'}}")
     Set<ApplicationMongo> findByName(String name);
+
+    @Query("{ status: {$in: ?0} }")
+    List<ApplicationMongo> findAll(List<ApplicationStatus> statuses);
 }
 
 
