@@ -25,6 +25,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import org.slf4j.Logger;
@@ -102,12 +103,15 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             //find applications where the user is a member
             List<String> appIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.APPLICATION).stream()
                     .map(Membership::getReferenceId).collect(Collectors.toList());
-            final Set<Application> applications = applicationRepository.findByIds(appIds);
+            final Set<Application> applications =
+                    applicationRepository.findByIds(appIds).stream().
+                            filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus())).
+                            collect(Collectors.toSet());
 
-            //find applications wihch be part of the same group as the user
+            //find applications which be part of the same group as the user
             List<String> groupIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.APPLICATION_GROUP).stream()
                     .map(Membership::getReferenceId).collect(Collectors.toList());
-            applications.addAll(applicationRepository.findByGroups(groupIds));
+            applications.addAll(applicationRepository.findByGroups(groupIds, ApplicationStatus.ACTIVE));
 
             if (applications.isEmpty()) {
                 return emptySet();
@@ -127,7 +131,11 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             if (name == null || name.trim().isEmpty()) {
                 return emptySet();
             }
-            return convert(applicationRepository.findByName(name.trim()));
+            Set<Application> applications = applicationRepository.
+                    findByName(name.trim()).stream().
+                    filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus())).
+                    collect(Collectors.toSet());
+            return convert(applications);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for name {}", name, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for name " + name, ex);
@@ -138,7 +146,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     public Set<ApplicationEntity> findByGroup(String groupId) {
         LOGGER.debug("Find applications by group {}", groupId);
         try {
-            return convert(applicationRepository.findByGroups(Collections.singletonList(groupId)));
+            return convert(applicationRepository.findByGroups(Collections.singletonList(groupId), ApplicationStatus.ACTIVE));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for group {}", groupId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for group " + groupId, ex);
@@ -150,7 +158,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Find all applications");
 
-            final Set<Application> applications = applicationRepository.findAll();
+            final Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ACTIVE);
 
             if (applications == null || applications.isEmpty()) {
                 return emptySet();
@@ -182,6 +190,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             Application application = convert(newApplicationEntity);
 
             application.setId(id);
+            application.setStatus(ApplicationStatus.ACTIVE);
 
             // Set date fields
             application.setCreatedAt(new Date());
@@ -218,6 +227,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
             Application application = convert(updateApplicationEntity);
             application.setId(applicationId);
+            application.setStatus(ApplicationStatus.ACTIVE);
             application.setUpdatedAt(new Date());
 
             Application updatedApplication =  applicationRepository.update(application);
@@ -230,9 +240,15 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     }
 
     @Override
-    public void delete(String applicationId) {
+    public void archive(String applicationId) {
         try {
             LOGGER.debug("Delete application {}", applicationId);
+            Optional<Application> optApplication = applicationRepository.findById(applicationId);
+
+            if(!optApplication.isPresent()) {
+                throw new ApplicationNotFoundException(applicationId);
+            }
+            Application application = optApplication.get();
             Set<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(applicationId, null);
 
             subscriptions.forEach(subscription -> {
@@ -244,9 +260,13 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
                         LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), tme);
                     }
                 });
+                subscriptionService.close(subscription.getId());
             });
 
-            applicationRepository.delete(applicationId);
+            // Archive the application
+            application.setUpdatedAt(new Date());
+            application.setStatus(ApplicationStatus.ARCHIVED);
+            applicationRepository.update(application);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete application {}", applicationId, ex);
             throw new TechnicalManagementException(String.format(
@@ -294,6 +314,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         applicationEntity.setName(application.getName());
         applicationEntity.setDescription(application.getDescription());
         applicationEntity.setType(application.getType());
+        applicationEntity.setStatus(application.getStatus().toString());
         if (application.getGroup() != null) {
             applicationEntity.setGroup(groupService.findById(application.getGroup()));
         }

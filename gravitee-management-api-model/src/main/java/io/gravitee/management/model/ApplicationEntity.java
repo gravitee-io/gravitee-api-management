@@ -32,6 +32,7 @@ public class ApplicationEntity {
     private String description;
     private String type;
     private GroupEntity group;
+    private String status;
 
     @JsonProperty("created_at")
     private Date createdAt;
@@ -125,6 +126,14 @@ public class ApplicationEntity {
 
     public void setGroup(GroupEntity group) {
         this.group = group;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override

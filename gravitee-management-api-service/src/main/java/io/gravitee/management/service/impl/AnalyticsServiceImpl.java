@@ -33,6 +33,7 @@ import io.gravitee.repository.analytics.query.groupby.GroupByQueryBuilder;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
 import io.gravitee.repository.analytics.query.response.histogram.Data;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -290,13 +291,15 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         try {
             ApplicationEntity applicationEntity = applicationService.findById(application);
             metadata.put("name", applicationEntity.getName());
+            if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
+                metadata.put("deleted", "true");
+            }
         } catch (ApplicationNotFoundException anfe) {
             metadata.put("deleted", "true");
             if (application.equals(APPLICATION_KEYLESS)) {
                 metadata.put("name", "Unknown application (keyless)");
             } else {
                 metadata.put("name", "Deleted application");
-
             }
         }
 

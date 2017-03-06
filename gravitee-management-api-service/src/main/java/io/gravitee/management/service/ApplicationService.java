@@ -21,6 +21,7 @@ import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ApplicationService {
@@ -39,5 +40,5 @@ public interface ApplicationService {
 
     ApplicationEntity update(String applicationId, UpdateApplicationEntity application);
 
-    void delete(String applicationId);
+    void archive(String applicationId);
 }

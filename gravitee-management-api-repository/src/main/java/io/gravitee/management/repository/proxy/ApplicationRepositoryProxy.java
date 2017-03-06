@@ -18,6 +18,7 @@ package io.gravitee.management.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -33,8 +34,8 @@ import java.util.Set;
 public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationRepository> implements ApplicationRepository {
 
     @Override
-    public Set<Application> findAll() throws TechnicalException {
-        return target.findAll();
+    public Set<Application> findAll(ApplicationStatus... statuses) throws TechnicalException {
+        return target.findAll(statuses);
     }
 
     @Override
@@ -63,8 +64,8 @@ public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationReposit
     }
 
     @Override
-    public Set<Application> findByGroups(List<String> groupIds) throws TechnicalException {
-        return target.findByGroups(groupIds);
+    public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus ... statuses) throws TechnicalException {
+        return target.findByGroups(groupIds, statuses);
     }
 
     @Override

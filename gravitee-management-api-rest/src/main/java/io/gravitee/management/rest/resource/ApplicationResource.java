@@ -89,7 +89,7 @@ public class ApplicationResource extends AbstractResource {
             @ApiResponse(code = 204, message = "Application successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response deleteApplication(@PathParam("application") String application) {
-        applicationService.delete(application);
+        applicationService.archive(application);
         return Response.noContent().build();
     }
 
