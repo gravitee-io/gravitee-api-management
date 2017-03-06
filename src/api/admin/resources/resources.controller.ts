@@ -102,6 +102,8 @@ class ApiResourcesController {
   }
 
   onTypeChange() {
+    this.resource.configuration = {};
+
     this.ResourceService.getSchema(this.resource.type).then( ({data}) => {
         this.resourceJsonSchema = data;
         return {
