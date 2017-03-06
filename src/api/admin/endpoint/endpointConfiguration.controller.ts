@@ -24,10 +24,19 @@ class ApiEndpointController {
   private initialEndpoint: any;
   private tenants: any;
 
-  constructor(private ApiService, private NotificationService, private $scope, private $rootScope, private $state, private $stateParams, private resolvedApi, private TenantService) {
+  constructor(
+    private ApiService,
+    private NotificationService,
+    private $scope,
+    private $rootScope,
+    private $state,
+    private $stateParams,
+    private resolvedApi,
+    private resolvedTenants) {
     'ngInject';
 
     this.api = resolvedApi.data;
+    this.tenants = resolvedTenants.data;
 
     this.endpoint = _.find(this.api.proxy.endpoints, { 'name': $stateParams.endpointName});
     this.initialEndpoints = _.cloneDeep(this.api.proxy.endpoints);
@@ -65,11 +74,6 @@ class ApiEndpointController {
         name: 'SOCKS5 tcp proxy',
         value: 'SOCKS5'
       }];
-
-    var that = this;
-    TenantService.list().then(function(response) {
-      that.tenants = response.data;
-    });
   }
 
   update(api) {

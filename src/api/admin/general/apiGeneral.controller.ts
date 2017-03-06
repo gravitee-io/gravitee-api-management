@@ -22,6 +22,7 @@ class ApiAdminController {
   private groups: any;
   private views: any;
   private tags: any;
+  private tenants: any;
   private failoverEnabled: boolean;
   private contextPathEditable: boolean;
   private formApi: any;
@@ -35,6 +36,7 @@ class ApiAdminController {
     private $mdEditDialog,
     private $rootScope,
     private resolvedApi,
+    private resolvedTenants,
     private base64,
     private $state,
     private ViewService,
@@ -58,6 +60,7 @@ class ApiAdminController {
     this.$mdDialog = $mdDialog;
     this.initialApi = _.cloneDeep(resolvedApi.data);
     this.api = resolvedApi.data;
+    this.tenants = resolvedTenants.data;
     this.$scope.selected = [];
     if (!this.api.group) {
       this.api.group = GroupService.getEmptyGroup();
@@ -292,6 +295,9 @@ class ApiAdminController {
     });
   }
 
+  getTenant(tenantId) {
+    return _.find(this.tenants, { 'id': tenantId });
+  }
 }
 
 export default ApiAdminController;

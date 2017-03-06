@@ -18,6 +18,7 @@ import DocumentationService from "./services/apiDocumentation.service";
 import ViewService from "./services/view.service";
 import InstancesService from "./services/instances.service";
 import UserService from './services/user.service';
+import TenantService from './services/tenant.service';
 import LoginController from "./login/login.controller";
 import { User } from "./entities/user";
 import SidenavService from "./components/sidenav/sidenav.service";
@@ -163,6 +164,9 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
       template: require('./api/admin/general/api.html'),
       controller: 'ApiGeneralController',
       controllerAs: 'generalCtrl',
+      resolve: {
+        resolvedTenants: (TenantService: TenantService) => TenantService.list()
+      },
       data: {
         menu: {
           label: 'Global settings',
@@ -189,6 +193,9 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
       template: require('./api/admin/endpoint/endpointConfiguration.html'),
       controller: 'ApiEndpointController',
       controllerAs: 'endpointCtrl',
+      resolve: {
+        resolvedTenants: (TenantService: TenantService) => TenantService.list()
+      },
       data: {menu: null}
     })
     .state('apis.admin.plans', {
