@@ -22,16 +22,14 @@ import io.gravitee.management.security.JWTCookieGenerator;
 import io.gravitee.management.security.config.basic.filter.AuthenticationSuccessFilter;
 import io.gravitee.management.security.config.basic.filter.CORSFilter;
 import io.gravitee.management.security.config.basic.filter.JWTAuthenticationFilter;
+import io.gravitee.management.service.utils.EnvironmentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.core.env.PropertySource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.SecurityConfigurer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -109,7 +107,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     private Map<String, Object> identityProviderProperties(int idx) {
         String prefix = "security.providers[" + (idx++) + "].";
-        Map<String, Object> properties = getPropertiesStartingWith(environment, prefix);
+        Map<String, Object> properties = EnvironmentUtils.getPropertiesStartingWith(environment, prefix);
         Map<String, Object> unprefixedProperties = new HashMap<>(properties.size());
         properties.entrySet().stream().forEach(propEntry -> unprefixedProperties.put(
                 propEntry.getKey().substring(prefix.length()), propEntry.getValue()));
@@ -220,59 +218,5 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
             .addFilterAfter(new AuthenticationSuccessFilter(jwtCookieGenerator, jwtSecret, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER),
                             environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)),
                     BasicAuthenticationFilter.class);
-    }
-
-    public static Map<String, Object> getPropertiesStartingWith(ConfigurableEnvironment aEnv, String aKeyPrefix) {
-        Map<String,Object> result = new HashMap<>();
-        Map<String,Object> map = getAllProperties( aEnv );
-
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            String key = entry.getKey();
-
-            if (key.startsWith(aKeyPrefix)) {
-                result.put(key, entry.getValue());
-            }
-        }
-
-        return result;
-    }
-
-    public static Map<String,Object> getAllProperties(ConfigurableEnvironment aEnv) {
-        Map<String,Object> result = new HashMap<>();
-        aEnv.getPropertySources().forEach(ps -> addAll(result, getAllProperties(ps)));
-        return result;
-    }
-
-    public static Map<String,Object> getAllProperties(PropertySource<?> aPropSource) {
-        Map<String,Object> result = new HashMap<>();
-
-        if (aPropSource instanceof CompositePropertySource) {
-            CompositePropertySource cps = (CompositePropertySource) aPropSource;
-            cps.getPropertySources().forEach(ps -> addAll(result, getAllProperties(ps)));
-            return result;
-        }
-
-        if (aPropSource instanceof EnumerablePropertySource<?>) {
-            EnumerablePropertySource<?> ps = (EnumerablePropertySource<?>) aPropSource;
-            Arrays.asList(ps.getPropertyNames()).forEach(key -> result.put(key, ps.getProperty(key)));
-            return result;
-        }
-
-        // note: Most descendants of PropertySource are EnumerablePropertySource. There are some
-        // few others like JndiPropertySource or StubPropertySource
-        LOGGER.debug( "Given PropertySource is instanceof " + aPropSource.getClass().getName()
-                + " and cannot be iterated" );
-
-        return result;
-    }
-
-    private static void addAll(Map<String, Object> aBase, Map<String, Object> aToBeAdded) {
-        for (Map.Entry<String, Object> entry : aToBeAdded.entrySet()) {
-            if (aBase.containsKey(entry.getKey())) {
-                continue;
-            }
-
-            aBase.put(entry.getKey(), entry.getValue());
-        }
     }
 }

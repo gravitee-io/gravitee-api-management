@@ -167,6 +167,10 @@ email:
   from: noreply@my.domain
   username: user@my.domain
   password: password
+#  properties:
+#    auth: true
+#    starttls.enable: true
+#    ssl.trust: smtp.gmail.com
 
 # Mail templates
 #templates:

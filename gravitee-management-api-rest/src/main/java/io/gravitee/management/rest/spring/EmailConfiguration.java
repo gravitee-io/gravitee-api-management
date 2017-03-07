@@ -16,12 +16,15 @@
 package io.gravitee.management.rest.spring;
 
 import freemarker.cache.FileTemplateLoader;
+import io.gravitee.management.service.utils.EnvironmentUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -29,6 +32,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import javax.mail.MessagingException;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -38,6 +43,9 @@ import java.io.IOException;
 public class EmailConfiguration {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(EmailConfiguration.class);
+
+    private final static String EMAIL_PROPERTIES_PREFIX = "email.properties";
+    private final static String MAILAPI_PROPERTIES_PREFIX = "mail.smtp.";
 
     @Value("${email.host}")
     private String host;
@@ -54,8 +62,14 @@ public class EmailConfiguration {
     @Value("${email.password}")
     private String password;
 
+    @Value("${email.protocol:smtp}")
+    private String protocol;
+
     @Value("${templates.path:${gravitee.home}/templates}")
     private String templatesPath;
+
+    @Autowired
+    private ConfigurableEnvironment environment;
 
     @Bean
     public JavaMailSenderImpl mailSender() {
@@ -66,7 +80,20 @@ public class EmailConfiguration {
         }
         javaMailSender.setUsername(username);
         javaMailSender.setPassword(password);
+        javaMailSender.setProtocol(protocol);
+        javaMailSender.setJavaMailProperties(loadProperties());
         return javaMailSender;
+    }
+
+    private Properties loadProperties() {
+        Map<String, Object> envProperties = EnvironmentUtils.getPropertiesStartingWith(environment, EMAIL_PROPERTIES_PREFIX);
+
+        Properties properties = new Properties();
+        envProperties.forEach((key, value) -> properties.setProperty(
+                MAILAPI_PROPERTIES_PREFIX + key.substring(EMAIL_PROPERTIES_PREFIX.length() + 1),
+                value.toString()));
+
+        return properties;
     }
 
     @Bean
