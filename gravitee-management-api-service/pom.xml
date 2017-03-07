@@ -19,10 +19,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<properties>
 		<jsoup.version>1.10.1</jsoup.version>
 		<swagger.version>1.5.10</swagger.version>
-		<jolt.version>0.0.24</jolt.version>
 	</properties>
 
 	<parent>
@@ -114,13 +114,6 @@
 			<version>${freemarker.version}</version>
 		</dependency>
 
-		<!-- AsyncHttpClient -->
-		<dependency>
-			<groupId>org.asynchttpclient</groupId>
-			<artifactId>async-http-client</artifactId>
-			<version>2.0.15</version>
-		</dependency>
-
 		<!-- HTML Parser -->
 		<dependency>
 			<groupId>org.jsoup</groupId>
@@ -133,31 +126,6 @@
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>2.7</version>
-		</dependency>
-
-		<!-- Json transformer (jolt) -->
-		<dependency>
-			<groupId>com.bazaarvoice.jolt</groupId>
-			<artifactId>jolt-core</artifactId>
-			<version>${jolt.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.bazaarvoice.jolt</groupId>
-			<artifactId>json-utils</artifactId>
-			<version>${jolt.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>*</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<!-- Json schema validator -->
-		<dependency>
-			<groupId>com.github.fge</groupId>
-			<artifactId>json-schema-validator</artifactId>
-			<version>2.2.6</version>
 		</dependency>
 
 		<!-- Swagger parser -->

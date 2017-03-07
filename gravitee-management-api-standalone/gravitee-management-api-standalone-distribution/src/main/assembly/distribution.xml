@@ -88,9 +88,11 @@
             <excludes>
                 <exclude>io.gravitee.*:*:*</exclude>
                 <exclude>commons-logging:commons-logging:*</exclude>
+                <exclude>javax.mail:mailapi:*</exclude>
             </excludes>
             <!-- Used to not include transitive dependencies for runtime dependency (IDP plugins) -->
             <scope>compile</scope>
+            <useProjectArtifact>false</useProjectArtifact>
         </dependencySet>
     </dependencySets>
 </assembly>

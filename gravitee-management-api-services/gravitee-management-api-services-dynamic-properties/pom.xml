@@ -30,6 +30,12 @@
     <artifactId>gravitee-management-api-services-dynamic-properties</artifactId>
     <name>Gravitee.io APIM - Management - Services - Dynamic Properties</name>
 
+    <properties>
+        <jolt.version>0.0.24</jolt.version>
+        <json-schema-validator.version>2.2.6</json-schema-validator.version>
+        <async-http-client.version>2.0.15</async-http-client.version>
+    </properties>
+
     <dependencies>
         <!-- Gravitee.io dependencies -->
         <dependency>
@@ -42,6 +48,39 @@
             <artifactId>gravitee-management-api-service</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- Plugin dependencies -->
+        <!-- AsyncHttpClient -->
+        <dependency>
+            <groupId>org.asynchttpclient</groupId>
+            <artifactId>async-http-client</artifactId>
+            <version>${async-http-client.version}</version>
+        </dependency>
+
+        <!-- Json transformer (jolt) -->
+        <dependency>
+            <groupId>com.bazaarvoice.jolt</groupId>
+            <artifactId>jolt-core</artifactId>
+            <version>${jolt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bazaarvoice.jolt</groupId>
+            <artifactId>json-utils</artifactId>
+            <version>${jolt.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Json schema validator -->
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>${json-schema-validator.version}</version>
         </dependency>
 
         <!-- Spring dependencies -->
