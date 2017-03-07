@@ -259,13 +259,24 @@ public class UserServiceImpl extends TransactionalService implements UserService
         if (jwtSecret == null || jwtSecret.isEmpty()) {
             throw new IllegalStateException("JWT secret is mandatory");
         }
+
         final String token = new JWTSigner(jwtSecret).sign(claims, options);
+        String portalUrl = environment.getProperty("portalURL");
+
+        if (portalUrl.endsWith("/")) {
+            portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
+        }
+
+        String registrationUrl = portalUrl + "/#!/registration/confirm/" + token;
 
         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                 .to(userEntity.getEmail())
-                .subject("Gravitee.io portal - User registration - " + userEntity.getUsername())
+                .subject("User registration - " + userEntity.getUsername())
                 .template(EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION)
-                .params(ImmutableMap.of("username", userEntity.getUsername(), "token", token, "portalURL", environment.getProperty("portalURL")))
+                .params(ImmutableMap.of(
+                        "username", userEntity.getUsername(),
+                        "token", token,
+                        "registrationUrl", registrationUrl))
                 .build()
         );
 
