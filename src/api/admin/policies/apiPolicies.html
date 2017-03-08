@@ -153,9 +153,12 @@
       </div>
       <div class="gravitee-policy-panel gravitee-policy-panel-right">
         <form name="policyConfigurationForm" sf-schema="policyJsonSchema" sf-form="policyJsonSchemaForm" sf-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId]" sf-options="{ validateOnRender: true }" novalidate></form>
+
+        <div ng-if="apiPoliciesCtrl.hasProperties(apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId])">
+          <md-divider></md-divider>
+          <md-button class="md-raised" ng-disabled="policyConfigurationForm.$invalid || policyConfigurationForm.$pristine" ng-click="apiPoliciesCtrl.savePaths();">Save</md-button>
+        </div>
       </div>
-      <md-divider></md-divider>
-      <md-button class="md-raised" ng-disabled="policyConfigurationForm.$invalid || policyConfigurationForm.$pristine" ng-click="apiPoliciesCtrl.savePaths();">Save</md-button>
     </div>
   </div>
 </div>

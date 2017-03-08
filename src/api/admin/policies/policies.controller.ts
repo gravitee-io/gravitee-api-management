@@ -421,6 +421,10 @@ class ApiPoliciesController {
     // TODO: check editPathForm on form
     (document.forms as any).editPathForm['path'+index].value = this.sortedPaths()[index];
   }
+
+  hasProperties(apiPolicy) {
+    return _.keys(apiPolicy).length;
+  }
 }
 
 export default ApiPoliciesController;
