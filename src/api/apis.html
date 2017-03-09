@@ -94,14 +94,14 @@
     </md-card>
   </div>
 
-  <gravitee-empty-state ng-if="!isLoading && $ctrl.apis.length == 0"
+  <gravitee-empty-state ng-if="$ctrl.apis.length == 0"
                         icon="dashboard"
                         model="API"
                         message="Hmmm, there is no API for you here :("
-                        sub-message="{{!graviteeUser ? 'Login to get access to more APIs' : 'Start creating an API'}}"
+                        sub-message="{{$ctrl.getSubMessage()}}"
                         create-mode="$ctrl.createMode"></gravitee-empty-state>
 
-  <div ng-if="!isLoading && $ctrl.apis.length == 0" style="text-align: center;">
+  <div ng-if="$ctrl.apis.length == 0" style="text-align: center;">
     <md-button ng-if="!$ctrl.graviteeUser.username" class="md-raised" ui-sref="login" aria-label="login">Login</md-button>
   </div>
 

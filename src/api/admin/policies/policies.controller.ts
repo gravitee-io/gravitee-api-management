@@ -58,15 +58,19 @@ class ApiPoliciesController {
   });
 
     const that = this;
-    this.$scope.$on('dragulardrop', function(event, element, dropzoneElt , draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
+    this.$scope.$on('dragulardrop', function(event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
 
-      var policy = dropzoneObjList[dropzoneIndex];
+      if (dropzoneObjList !== null) {
+        var policy = dropzoneObjList[dropzoneIndex];
 
-      // Automatically display the configuration associated to the dragged policy
-      that.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value, event);
+        // Automatically display the configuration associated to the dragged policy
+        that.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value, event);
 
-      // Automatically save if there is no json schema configuration attached to the dragged policy.
-      if (policy.schema === undefined || policy.schema === '') {
+        // Automatically save if there is no json schema configuration attached to the dragged policy.
+        if (policy.schema === undefined || policy.schema === '') {
+          that.savePaths();
+        }
+      } else {
         that.savePaths();
       }
     });
@@ -245,8 +249,8 @@ class ApiPoliciesController {
       controllerAs: 'ctrl',
       templateUrl: 'components/dialog/confirmWarning.dialog.html',
       clickOutsideToClose: true,
-      title: 'Are you sure you want to remove this policy ?',
       locals: {
+        title: 'Are you sure you want to remove this policy ?',
         confirmButton: 'Remove'
       }
     }).then(function (response) {

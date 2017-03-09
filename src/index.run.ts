@@ -21,7 +21,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, SidenavS
                   PageSwaggerHttpClientService, $timeout, UserService: UserService, Constants) {
   'ngInject';
 
-  $transitions.onBefore({ }, function(trans) {
+  $transitions.onEnter({ }, function(trans) {
     let fromState = trans.from();
     let toState = trans.to();
 
@@ -34,7 +34,6 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, SidenavS
     } else if (toState.data && toState.data.roles && !UserService.isUserInRoles(toState.data.roles)) {
       return trans.router.stateService.target(UserService.isAuthenticated() ? 'home' : 'login');
     }
-//    SidenavService.set(undefined);
   });
 
   function configureScreenSize(user) {

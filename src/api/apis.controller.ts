@@ -16,6 +16,8 @@
 
 import * as _ from 'lodash';
 
+import UserService from "../services/user.service";
+
 export class ApisController {
 
   private apis: any;
@@ -37,6 +39,7 @@ export class ApisController {
     private Constants,
     private Build,
     private resolvedApis,
+    private UserService: UserService,
     private graviteeUser,
     private $q: ng.IQService,
     resolvedViews: any[]
@@ -131,6 +134,16 @@ export class ApisController {
         that.$state.go('apis.admin.general', {apiId: response.data.id}, {reload: true});
       }
     });
+  }
+
+  getSubMessage() {
+    if (! this.graviteeUser.username) {
+      return 'Login to get access to more APIs';
+    } else if (this.UserService.isUserInRoles(["ADMIN", "API_PUBLISHER"])) {
+      return 'Start creating an API';
+    } else {
+      return '';
+    }
   }
 
   // TODO : template not found !?

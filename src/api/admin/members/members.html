@@ -17,7 +17,7 @@
 -->
 <section layout="column" flex>
   <md-content flex layout-padding>
-    <div layout="column" ng-if="apiMembersCtrl.api.group">
+    <div layout="column" ng-if="apiMembersCtrl.api.group && apiMembersCtrl.api.group.id !== null">
       <h4>Members inherited from group "{{apiMembersCtrl.api.group.name}}"</h4>
       <md-content style="background: none">
         <md-table-container ng-show="apiMembersCtrl.members.length > 0">
