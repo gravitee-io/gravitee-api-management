@@ -72,12 +72,10 @@ public class LdapAuthenticationProvider implements AuthenticationProvider<Securi
 
         ldapAuthenticationProviderConfigurer.ldapAuthoritiesPopulator(populator).contextSource(contextSource);
 
-        // set up roles mapper
-        if (environment.getProperty("role-mapping", Boolean.class, false)) {
-            UserDetailsContextPropertiesMapper userDetailsContextPropertiesMapper = new UserDetailsContextPropertiesMapper();
-            userDetailsContextPropertiesMapper.setEnvironment(environment);
-            ldapAuthenticationProviderConfigurer.userDetailsContextMapper(userDetailsContextPropertiesMapper);
-        }
+        // set up LDAP mapper
+        UserDetailsContextPropertiesMapper userDetailsContextPropertiesMapper = new UserDetailsContextPropertiesMapper();
+        userDetailsContextPropertiesMapper.setEnvironment(environment);
+        ldapAuthenticationProviderConfigurer.userDetailsContextMapper(userDetailsContextPropertiesMapper);
 
         return ldapAuthenticationProviderConfigurer;
     }

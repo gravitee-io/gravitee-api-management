@@ -149,9 +149,7 @@ security:
 #      group-search-filter: "member={0}"
       # Specifies the attribute name which contains the role name. Default is "cn".
 #      group-role-attribute: "cn"
-      # If role-mapping is equals to true (default to false)
       #   Use role-mapper to map LDAP role with internal Gravitee role (syntax { "user_ldap_role" : "user_new_added_ldap_role"})
-#      role-mapping: true
 #      role-mapper: {
 #        GRAVITEE-CONSUMERS: API_CONSUMER,
 #        GRAVITEE-PUBLISHERS: API_PUBLISHER,
