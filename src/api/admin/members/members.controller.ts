@@ -43,7 +43,7 @@ class ApiMembersController {
     this.newPrimaryOwner = null;
     this.$scope.searchText = "";
 
-    if (this.api.group) {
+    if (this.api.group && this.api.group.id != null) {
       GroupService.getMembers(this.api.group.id).then((members) => {
         this.groupMembers = members.data;
       });
