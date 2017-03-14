@@ -155,7 +155,7 @@ public class ApiMongo extends Auditable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(id);
     }
 
     @Override
