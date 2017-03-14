@@ -236,6 +236,7 @@ public class SyncManager {
 
         plan.setId(repoPlan.getId());
         plan.setName(repoPlan.getName());
+        plan.setApis(repoPlan.getApis());
 
         if (repoPlan.getSecurity() != null) {
             plan.setSecurity(repoPlan.getSecurity().name());

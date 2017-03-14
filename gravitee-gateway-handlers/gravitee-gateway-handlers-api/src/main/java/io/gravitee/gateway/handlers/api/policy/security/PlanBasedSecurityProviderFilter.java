@@ -54,7 +54,7 @@ public class PlanBasedSecurityProviderFilter implements SecurityProviderFilter {
                     .findFirst();
             if (first.isPresent()) {
                 logger.debug("Security provider [{}] is required by, at least, one plan. Installing...", provider.name());
-                providers.add(new PlanBasedSecurityProvider(provider, first.get().getId()));
+                providers.add(new PlanBasedSecurityProvider(provider, first.get()));
             }
         });
 

@@ -15,14 +15,18 @@
  */
 package io.gravitee.gateway.handlers.api.policy.plan;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Path;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.policy.AbstractPolicyChainResolver;
-import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.gateway.handlers.api.definition.Plan;
+import io.gravitee.gateway.policy.*;
+import io.gravitee.gateway.policy.impl.PolicyChain;
+import io.gravitee.gateway.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
+import io.gravitee.policy.api.PolicyResult;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
@@ -45,6 +49,25 @@ public class PlanPolicyChainResolver extends AbstractPolicyChainResolver {
     protected Api api;
 
     @Override
+    public PolicyChain resolve(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
+        // Calculate the list of policies to apply under this policy chain
+        List<Policy> policies = calculate(streamType, request, response, executionContext);
+
+        // No policies has been calculated on the ON_REQUEST phase
+        // Returning a 401 because no plan is associated to the incoming secured request
+        if (streamType == StreamType.ON_REQUEST && policies == null) {
+            return new DirectPolicyChain(
+                    PolicyResult.failure(HttpStatusCode.UNAUTHORIZED_401, "Unauthorized"), executionContext);
+        } else if (policies.isEmpty()) {
+            return new NoOpPolicyChain(executionContext);
+        }
+
+        return (streamType == StreamType.ON_REQUEST) ?
+                RequestPolicyChain.create(policies, executionContext) :
+                ResponsePolicyChain.create(policies, executionContext);
+    }
+
+    @Override
     protected List<Policy> calculate(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
         if (streamType == StreamType.ON_REQUEST) {
             String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
@@ -55,9 +78,10 @@ public class PlanPolicyChainResolver extends AbstractPolicyChainResolver {
             request.metrics().setPlan(plan);
             request.metrics().setApplication(application);
 
-            if (plan != null) {
-                // FIXME: it seems that, for some case, api.getPlan() returns null
-                // In this case, we must send an Unauthorized chain
+            Plan apiPlan = api.getPlan(plan);
+            // No plan is matching the plan associated to the secured request
+            // The call is probably not relative to the same API.
+            if (plan != null && apiPlan != null) {
                 Map<String, Path> paths = api.getPlan(plan).getPaths();
 
                 if (paths != null && ! paths.isEmpty()) {
@@ -71,7 +95,8 @@ public class PlanPolicyChainResolver extends AbstractPolicyChainResolver {
                             .collect(Collectors.toList());
                 }
             } else {
-                logger.warn("No plan has been selected to process request {}. Returning a forbidden status (403)", request.id());
+                logger.warn("No plan has been selected to process request {}. Returning an unauthorized HTTP status (401)", request.id());
+                return null;
             }
         }
 
