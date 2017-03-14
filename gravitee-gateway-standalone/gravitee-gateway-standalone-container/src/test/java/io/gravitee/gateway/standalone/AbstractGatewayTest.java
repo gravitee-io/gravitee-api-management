@@ -55,6 +55,7 @@ public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderIn
     public void before(Api api) {
         // By default, add a keyless plan to the API
         Plan plan = new Plan();
+        plan.setId("default_plan");
         plan.setName("Default plan");
         plan.setSecurity("key_less");
 

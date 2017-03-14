@@ -20,6 +20,7 @@ import io.gravitee.definition.model.Path;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,6 +35,8 @@ public class Plan {
 
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
+
+    private Set<String> apis;
 
     public String getId() {
         return id;
@@ -65,6 +68,14 @@ public class Plan {
 
     public void setSecurity(String security) {
         this.security = security;
+    }
+
+    public Set<String> getApis() {
+        return apis;
+    }
+
+    public void setApis(Set<String> apis) {
+        this.apis = apis;
     }
 
     @Override

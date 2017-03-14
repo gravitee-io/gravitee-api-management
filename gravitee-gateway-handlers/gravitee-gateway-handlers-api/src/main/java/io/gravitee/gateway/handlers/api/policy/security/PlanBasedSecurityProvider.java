@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.policy.security;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.security.core.SecurityPolicy;
 import io.gravitee.gateway.security.core.SecurityProvider;
 
@@ -27,9 +28,9 @@ import io.gravitee.gateway.security.core.SecurityProvider;
 public class PlanBasedSecurityProvider implements SecurityProvider {
 
     private final SecurityProvider wrapper;
-    private final String plan;
+    private final Plan plan;
 
-    public PlanBasedSecurityProvider(final SecurityProvider wrapper, final String plan) {
+    public PlanBasedSecurityProvider(final SecurityProvider wrapper, final Plan plan) {
         this.wrapper = wrapper;
         this.plan = plan;
     }
@@ -51,7 +52,7 @@ public class PlanBasedSecurityProvider implements SecurityProvider {
 
     @Override
     public SecurityPolicy create(ExecutionContext executionContext) {
-        executionContext.setAttribute(ExecutionContext.ATTR_PLAN, plan);
+        executionContext.setAttribute(ExecutionContext.ATTR_PLAN, plan.getId());
         return wrapper.create(executionContext);
     }
 }
