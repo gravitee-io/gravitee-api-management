@@ -71,7 +71,7 @@ class SubscriptionsController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Are you sure you want to revoke API Key \'' + apiKey + '\' ?',
@@ -96,7 +96,7 @@ class SubscriptionsController {
     this.$mdDialog.show({
       controller: 'DialogApiKeyExpirationController',
       controllerAs: 'dialogApiKeyExpirationController',
-      templateUrl: 'api/admin/subscriptions/apikey.expiration.dialog.html',
+      template: require('./apikey.expiration.dialog.html'),
       clickOutsideToClose: true
     }).then(expirationDate =>{
       apiKey.expire_at = expirationDate;
@@ -121,7 +121,7 @@ class SubscriptionsController {
       this.$mdDialog.show({
         controller: 'DialogSubscriptionAcceptController',
         controllerAs: 'dialogSubscriptionAcceptController',
-        templateUrl: 'api/admin/subscriptions/subscription.accept.dialog.html',
+        template: require('./subscription.accept.dialog.html'),
         clickOutsideToClose: true
       }).then(function (processSubscription) {
         processSubscription.accepted = accepted;
@@ -131,7 +131,7 @@ class SubscriptionsController {
       this.$mdDialog.show({
         controller: 'DialogSubscriptionRejectController',
         controllerAs: 'dialogSubscriptionRejectController',
-        templateUrl: 'api/admin/subscriptions/subscription.reject.dialog.html',
+        template: require('./subscription.reject.dialog.html'),
         clickOutsideToClose: true
       }).then(function (reason) {
         that.doProcessSubscription(subscription, {accepted: accepted, reason: reason});
@@ -165,7 +165,7 @@ class SubscriptionsController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Are you sure you want to renew your API Key ?',
@@ -191,7 +191,7 @@ class SubscriptionsController {
       _this.$mdDialog.show({
         controller: 'DialogSubscriptionCreateController',
         controllerAs: 'dialogSubscriptionCreateController',
-        templateUrl: 'api/admin/subscriptions/subscription.create.dialog.html',
+        template: require('./subscription.create.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           plans: plans,

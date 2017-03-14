@@ -73,24 +73,13 @@ class ApplicationGeneralController {
     this.$scope.formApplication.$setPristine();
   }
 
-  // TODO : get user
-  loadApplicationGroups() {
-    // if (this.UserService.isUserInRoles(['ADMIN'])) {
-    //   this.GroupService.list("APPLICATION").then((groups) => {
-    //     this.groups = _.union(
-    //       [this.GroupService.getEmptyGroup()],
-    //       groups.data);
-    //   });
-    // }
-  }
-
   showDeleteApplicationConfirm(ev) {
     ev.stopPropagation();
     let that = this;
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         msg: '',

@@ -130,7 +130,7 @@ class TagsController {
     var that = this;
     this.$mdDialog.show({
       controller: 'DeleteTagDialogController',
-      templateUrl: 'configuration/admin/tags/delete.tag.dialog.html',
+      template: require('./delete.tag.dialog.html'),
       locals: {
         tag: tag
       }

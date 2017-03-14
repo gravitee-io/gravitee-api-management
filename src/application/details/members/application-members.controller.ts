@@ -54,7 +54,7 @@ class ApplicationMembersController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirm.dialog.html',
+      template: require('../../../components/dialog/confirm.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Would you like to remove the member ?',
@@ -72,7 +72,7 @@ class ApplicationMembersController {
     let that = this;
     this.$mdDialog.show({
       controller: 'DialogAddMemberController',
-      templateUrl: 'application/details/members/addMember.dialog.html',
+      template: require('./addMember.dialog.html'),
       parent: angular.element(document.body),
       targetEvent: ev,
       clickOutsideToClose: true,
@@ -93,7 +93,7 @@ class ApplicationMembersController {
     this.$mdDialog.show({
       controller: 'DialogApplicationPermissionsHelpController',
       controllerAs: 'ctrl',
-      templateUrl: 'application/details/members/permissions.dialog.html',
+      template: require('./permissions.dialog.html'),
       parent: angular.element(document.body),
       clickOutsideToClose:true
     });

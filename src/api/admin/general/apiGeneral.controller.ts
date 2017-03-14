@@ -131,7 +131,7 @@ class ApiAdminController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: `Are you sure you want to ${started ? "stop" : "start"} the API ?`,
@@ -196,7 +196,7 @@ class ApiAdminController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Are you sure you want to delete endpoint(s) ?',
@@ -230,7 +230,7 @@ class ApiAdminController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Are you sure you want to delete \'' + this.api.name + '\' API ?',
@@ -271,7 +271,7 @@ class ApiAdminController {
     this.$mdDialog.show({
       controller: 'DialogApiImportController',
       controllerAs: 'dialogApiImportCtrl',
-      templateUrl: 'api/admin/general/dialog/apiImport.dialog.html',
+      template: require('./dialog/apiImport.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         apiId: this.$scope.$parent.apiCtrl.api.id
@@ -287,7 +287,7 @@ class ApiAdminController {
     this.$mdDialog.show({
       controller: 'DialogApiExportController',
       controllerAs: 'dialogApiExportCtrl',
-      templateUrl: 'api/admin/general/dialog/apiExport.dialog.html',
+      template: require('./dialog/apiExport.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         apiId: this.$scope.$parent.apiCtrl.api.id

@@ -128,7 +128,7 @@ class ApiResourcesController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Are you sure you want to remove this resource ?',

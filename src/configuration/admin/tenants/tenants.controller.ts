@@ -131,7 +131,7 @@ class TenantsController {
     var that = this;
     this.$mdDialog.show({
       controller: 'DeleteTenantDialogController',
-      templateUrl: 'configuration/admin/tenants/delete.tenant.dialog.html',
+      template: require('./delete.tenant.dialog.html'),
       locals: {
         tenant: tenant
       }

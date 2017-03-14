@@ -223,7 +223,7 @@ class ApiHealthCheckController {
     this.$mdDialog.show({
         controller: 'DialogAssertionInformationController',
         controllerAs: 'ctrl',
-        templateUrl: 'api/admin/healthcheck/assertion.dialog.html',
+        template: require('./assertion.dialog.html'),
         parent: angular.element(document.body),
         clickOutsideToClose:true
       });

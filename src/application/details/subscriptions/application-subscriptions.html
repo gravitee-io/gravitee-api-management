@@ -29,7 +29,7 @@
   <div layout-padding ui-tree data-empty-placeholder-enabled="false"
        ng-repeat="(api, subscriptions) in $ctrl.subscriptionsByApi">
     <div ui-tree-nodes ng-model="$ctrl.data">
-      <h5>[ <a ui-sref="apis.portal.pages.page({ apiId: api } )"><b>{{$ctrl.apiNameById[api]}}</b></a> ]</h5>
+      <h5>[ <a ui-sref="apis.portal.pages({apiId: api})"><b>{{$ctrl.apiNameById[api]}}</b></a> ]</h5>
       <table md-table>
         <thead md-head>
         <tr md-row>

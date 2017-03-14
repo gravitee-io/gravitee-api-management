@@ -86,7 +86,7 @@ class ApiPropertiesController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Are you sure you want to remove property [' + key + '] ?',
@@ -109,7 +109,7 @@ class ApiPropertiesController {
     this.$mdDialog.show({
       controller: 'DialogAddPropertyController',
       controllerAs: 'dialogAddPropertyCtrl',
-      templateUrl: 'api/admin/properties/add-property.dialog.html',
+      template: require('./add-property.dialog.html'),
       clickOutsideToClose: true
     }).then(function (property) {
       if (that.api.properties === undefined) {
@@ -189,7 +189,7 @@ class ApiPropertiesController {
     this.$mdDialog.show({
       controller: 'DialogDynamicProviderHttpController',
       controllerAs: 'ctrl',
-      templateUrl: 'api/admin/properties/dynamic-provider-http.dialog.html',
+      template: require('./dynamic-provider-http.dialog.html'),
       parent: angular.element(document.body),
       clickOutsideToClose: true
     });

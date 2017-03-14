@@ -247,7 +247,7 @@ class ApiPoliciesController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Are you sure you want to remove this policy ?',
@@ -276,7 +276,7 @@ class ApiPoliciesController {
     this.$mdDialog.show({
       controller: 'DialogEditPolicyController',
       controllerAs: 'editPolicyDialogCtrl',
-      templateUrl: 'api/admin/policies/dialog/policy.dialog.html',
+      template: require('./dialog/policy.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         description: policy.description
@@ -333,7 +333,7 @@ class ApiPoliciesController {
     this.$mdDialog.show({
       controller: 'AddPoliciesPathController',
       controllerAs: 'addPoliciesPathCtrl',
-      templateUrl: 'api/admin/policies/addPoliciesPath.html',
+      template: require('./addPoliciesPath.html'),
       parent: angular.element(document.body),
       targetEvent: event,
       clickOutsideToClose: true,
@@ -353,7 +353,7 @@ class ApiPoliciesController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Are you sure you want to remove this path ?',

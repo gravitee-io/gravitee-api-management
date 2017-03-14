@@ -75,7 +75,7 @@ class ApiMembersController {
   showAddMemberModal(ev) {
     this.$mdDialog.show({
       controller: 'DialogAddMemberApiController',
-      templateUrl: 'api/admin/members/addMember.dialog.html',
+      template: require('./addMember.dialog.html'),
       parent: angular.element(document.body),
       targetEvent: ev,
       clickOutsideToClose: true,
@@ -98,7 +98,7 @@ class ApiMembersController {
     this.$mdDialog.show({
       controller: 'DialogApiPermissionsHelpController',
       controllerAs: 'ctrl',
-      templateUrl: 'api/admin/members/permissions.dialog.html',
+      template: require('./permissions.dialog.html'),
       parent: angular.element(document.body),
       clickOutsideToClose:true
     });
@@ -110,7 +110,7 @@ class ApiMembersController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirm.dialog.html',
+      template: require('../../../components/dialog/confirm.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Would you like to remove the member ?',
@@ -155,7 +155,7 @@ class ApiMembersController {
   showTransferOwnershipConfirm(ev) {
     this.$mdDialog.show({
       controller: 'DialogTransferApiController',
-      templateUrl: 'api/admin/members/transferAPI.dialog.html',
+      template: require('./transferAPI.dialog.html'),
       parent: angular.element(document.body),
       targetEvent: ev,
       clickOutsideToClose:true

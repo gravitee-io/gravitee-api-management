@@ -262,7 +262,7 @@ class ApiPlansController {
     this.ApiService.getPlanSubscriptions(this.$stateParams.apiId, plan.id).then(function(response) {
       _this.$mdDialog.show({
         controller: 'DialogClosePlanController',
-        templateUrl: 'api/admin/plans/closePlan.dialog.html',
+        template: require('./closePlan.dialog.html'),
         parent: angular.element(document.body),
         targetEvent: ev,
         clickOutsideToClose: true,
@@ -284,7 +284,7 @@ class ApiPlansController {
 
     this.$mdDialog.show({
         controller: 'DialogPublishPlanController',
-        templateUrl: 'api/admin/plans/publishPlan.dialog.html',
+        template: require('./publishPlan.dialog.html'),
         parent: angular.element(document.body),
         targetEvent: ev,
         clickOutsideToClose: true,

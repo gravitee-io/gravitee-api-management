@@ -88,7 +88,7 @@ class ApplicationSubscriptionsController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Are you sure you want to renew your API Key ?',
@@ -110,7 +110,7 @@ class ApplicationSubscriptionsController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Are you sure you want to revoke API Key \'' + apiKey + '\'?',
@@ -131,6 +131,7 @@ class ApplicationSubscriptionsController {
     e.clearSelection();
   }
 
+  /*
   showSubscribeApiModal(ev) {
     this.$mdDialog.show({
       controller: 'DialogSubscribeApiController',
@@ -149,12 +150,13 @@ class ApplicationSubscriptionsController {
       }
     });
   }
+  */
 
   showExpirationModal(apiId, apiKey) {
     this.$mdDialog.show({
       controller: 'DialogApiKeyExpirationController',
       controllerAs: 'dialogApiKeyExpirationController',
-      templateUrl: 'api/admin/subscriptions/apikey.expiration.dialog.html',
+      template: require('../../../api/admin/subscriptions/apikey.expiration.dialog.html'),
       clickOutsideToClose: true
     }).then(expirationDate =>{
       apiKey.expire_at = expirationDate;

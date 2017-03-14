@@ -213,7 +213,7 @@ class ApiHistoryController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirm.dialog.html',
+      template: require('../../../components/dialog/confirm.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Would you like to rollback your API ?',

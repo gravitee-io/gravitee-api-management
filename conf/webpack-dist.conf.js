@@ -62,9 +62,12 @@ module.exports = {
       },
       {
         test: /\.html$/,
-        loaders: [
-          'html-loader'
-        ]
+        loader: 'html-loader',
+        options: {
+          minimize: true,
+          removeComments: true,
+          collapseWhitespace: false
+        }
       },
       {
         test: /\.(jpe?g|png|gif|svg)$/i,
@@ -103,7 +106,8 @@ module.exports = {
       template: conf.path.src('index.html')
     }),
     new webpack.optimize.UglifyJsPlugin({
-      compress: {unused: true, dead_code: true, warnings: false} // eslint-disable-line camelcase
+      output: {comments: false},
+      compress: {unused: true, dead_code: true, warnings: false, drop_console: true} // eslint-disable-line camelcase
     }),
     new ExtractTextPlugin('index-[contenthash].css'),
     new webpack.optimize.CommonsChunkPlugin({name: 'vendor'}),

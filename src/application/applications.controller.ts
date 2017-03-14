@@ -44,7 +44,7 @@ class ApplicationsController {
     let that = this;
     this.$mdDialog.show({
       controller: 'DialogApplicationController',
-      templateUrl: 'application/dialog/application.dialog.html',
+      template: require('./dialog/application.dialog.html'),
       parent: angular.element(document.body),
 			targetEvent: ev,
       clickOutsideToClose: true

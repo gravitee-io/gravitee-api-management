@@ -58,7 +58,7 @@
   </md-card-content>
 </md-card>
 
-<gravitee-empty-state ng-if="!isLoading && $ctrl.displayEmptyMode"
+<gravitee-empty-state ng-if="$ctrl._displayEmptyMode"
                       icon="developer_dashboard"
                       model="Instance"
                       message="There is no Gateway instance running"/>

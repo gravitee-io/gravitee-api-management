@@ -101,7 +101,7 @@ class GroupsController {
     this.$mdDialog.show({
       controller: 'DialogAddGroupController',
       controllerAs: 'dialogAddGroupCtrl',
-      templateUrl: 'configuration/admin/groups/dialog/add-group.dialog.html',
+      template: require('./dialog/add-group.dialog.html'),
       currentName: "",
       action: "Add",
       clickOutsideToClose: true
@@ -123,7 +123,7 @@ class GroupsController {
     this.$mdDialog.show({
       controller: 'DialogAddGroupController',
       controllerAs: 'dialogAddGroupCtrl',
-      templateUrl: 'configuration/admin/groups/dialog/add-group.dialog.html',
+      template: require('./dialog/add-group.dialog.html'),
       currentName: name,
       action: "Edit",
       clickOutsideToClose: true
@@ -141,7 +141,7 @@ class GroupsController {
     var _this = this;
     this.$mdDialog.show({
       controller: 'DialogAddGroupMemberController',
-      templateUrl: 'configuration/admin/groups/dialog/addMember.dialog.html',
+      template: require('./dialog/addMember.dialog.html'),
       parent: angular.element(document.body),
       targetEvent: ev,
       clickOutsideToClose: true,
@@ -161,7 +161,7 @@ class GroupsController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Would you like to remove the group "' + groupName + '" ?',
@@ -182,7 +182,7 @@ class GroupsController {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
-      templateUrl: 'components/dialog/confirmWarning.dialog.html',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         msg: '',

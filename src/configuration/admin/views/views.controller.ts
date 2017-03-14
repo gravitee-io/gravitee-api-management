@@ -128,7 +128,7 @@ class ViewsController {
     var that = this;
     this.$mdDialog.show({
       controller: 'DeleteViewDialogController',
-      templateUrl: 'configuration/admin/views/delete.view.dialog.html',
+      template: require('./delete.view.dialog.html'),
       locals: {
         view: view
       }

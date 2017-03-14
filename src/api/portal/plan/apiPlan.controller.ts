@@ -34,7 +34,7 @@ class ApiPortalPlanController {
     $scope.subscribe = function(plan) {
       $mdDialog.show({
         controller: 'DialogSubscribePlanController',
-        templateUrl: 'api/portal/plan/subscribePlan.dialog.html',
+        template: require('./subscribePlan.dialog.html'),
         clickOutsideToClose: true,
         // TODO: plan is not a valid option key
         plan: plan,

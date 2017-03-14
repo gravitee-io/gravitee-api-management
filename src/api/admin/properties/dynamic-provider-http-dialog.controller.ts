@@ -16,9 +16,9 @@
 function DialogDynamicProviderHttpController($scope, $mdDialog: angular.material.IDialogService) {
   'ngInject';
 
-  $scope.cancel = $mdDialog.cancel;
+  this.cancel = $mdDialog.cancel;
 
-  $scope.codeMirrorOptions = {
+  this.codeMirrorOptions = {
     lineWrapping: true,
     lineNumbers: true,
     mode: "javascript",
@@ -36,7 +36,7 @@ function DialogDynamicProviderHttpController($scope, $mdDialog: angular.material
     _doc.markClean();
   };
 
-  $scope.reload = function () {
+  this.reload = function () {
     this.ctrl.codeMirrorOptions.controller.editor.setSize("100%", "100%");
     this.ctrl.codeMirrorOptions.controller.editor.focus();
   };
