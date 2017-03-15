@@ -87,7 +87,11 @@ class ChartDirective {
             for (i = 0; i < Highcharts.charts.length; i++) {
               chart = Highcharts.charts[i];
               if (chart) {
-                event = chart.pointer.normalize(e.originalEvent);
+                if (e.originalEvent) {
+                  event = chart.pointer.normalize(e.originalEvent);
+                } else {
+                  event = chart.pointer.normalize(e);
+                }
                 points = _.map(chart.series, (serie: any) => {
                   return serie.searchPoint(event, true);
                 });
