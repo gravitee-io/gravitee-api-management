@@ -32,4 +32,10 @@ public interface PageRepository extends CrudRepository<Page, String> {
 	Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException;
 
 	Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException;
+
+	Collection<Page> findPortalPageByHomepage(boolean isHomepage) throws TechnicalException;
+
+	Collection<Page> findPortalPages() throws TechnicalException;
+
+	Integer findMaxPortalPageOrder() throws TechnicalException;
 }
