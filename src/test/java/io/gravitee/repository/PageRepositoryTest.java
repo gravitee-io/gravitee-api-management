@@ -16,6 +16,7 @@
 package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
@@ -23,6 +24,8 @@ import org.junit.Test;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -38,69 +41,108 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         final Collection<Page> pages = pageRepository.findApiPageByApiId("my-api");
 
         assertNotNull(pages);
-        assertEquals(4, pages.size());
-        pages.forEach(page -> assertNull(page.getSource()));
+        assertEquals(1, pages.size());
+        assertFindPage(pages.iterator().next());
     }
 
     @Test
-    public void shouldCreate() throws Exception {
+    public void shouldFindApiPageById() throws Exception {
+        final Optional<Page> page = pageRepository.findById("FindApiPage");
+
+        assertNotNull(page);
+        assertTrue(page.isPresent());
+        assertFindPage(page.get());
+    }
+
+    private void assertFindPage(Page page) {
+        assertEquals("id", "FindApiPage", page.getId());
+        assertEquals("name", "Find apiPage by apiId or Id", page.getName());
+        assertEquals("content", "Content of the page", page.getContent());
+        assertEquals("api", "my-api", page.getApi());
+        assertEquals("type", PageType.MARKDOWN, page.getType());
+        assertNull("source", page.getSource());
+    }
+
+    @Test
+    public void shouldCreateApiPage() throws Exception {
         final Page page = new Page();
         page.setId("new-page");
         page.setName("Page name");
         page.setContent("Page content");
-        page.setOrder(0);
+        page.setOrder(3);
         page.setApi("my-api");
+        page.setHomepage(true);
         page.setType(PageType.MARKDOWN);
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
 
-        int nbPagesBeforeCreation = pageRepository.findApiPageByApiId("my-api").size();
+        Optional<Page> optionalBefore = pageRepository.findById("new-page");
         pageRepository.create(page);
-        int nbPagesAfterCreation = pageRepository.findApiPageByApiId("my-api").size();
+        Optional<Page> optionalAfter = pageRepository.findById("new-page");
+        assertFalse("Page not found before", optionalBefore.isPresent());
+        assertTrue("Page saved not found", optionalAfter.isPresent());
 
-        assertEquals(nbPagesBeforeCreation + 1, nbPagesAfterCreation);
-
-        Optional<Page> optional = pageRepository.findById("new-page");
-        assertTrue("Page saved not found", optional.isPresent());
-
-        final Page pageSaved = optional.get();
+        final Page pageSaved = optionalAfter.get();
         assertEquals("Invalid saved page name.", page.getName(), pageSaved.getName());
         assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
         assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
+        assertEquals("Invalid page type.", page.getType(), pageSaved.getType());
+        assertEquals("Invalid homepage flag.", page.isHomepage(), pageSaved.isHomepage());
+        assertNull("Invalid page source.", page.getSource());
+    }
+
+    @Test
+    public void shouldCreatePortalPage() throws Exception {
+        final Page page = new Page();
+        page.setId("new-portal-page");
+        page.setName("Page name");
+        page.setContent("Page content");
+        page.setOrder(3);
+        page.setType(PageType.MARKDOWN);
+        page.setCreatedAt(new Date());
+        page.setUpdatedAt(new Date());
+
+        Optional<Page> optionalBefore = pageRepository.findById("new-portal-page");
+        pageRepository.create(page);
+        Optional<Page> optionalAfter = pageRepository.findById("new-portal-page");
+        assertFalse("Page not found before", optionalBefore.isPresent());
+        assertTrue("Page saved not found", optionalAfter.isPresent());
+
+        final Page pageSaved = optionalAfter.get();
+        assertEquals("Invalid saved page name.", page.getName(), pageSaved.getName());
+        assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
+        assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
+        assertEquals("Invalid page type.", page.getType(), pageSaved.getType());
+        assertEquals("Invalid homepage flag.", page.isHomepage(), pageSaved.isHomepage());
         assertNull("Invalid page source.", page.getSource());
     }
 
     @Test
     public void shouldUpdate() throws Exception {
-        Optional<Page> optional = pageRepository.findById("page2");
-        assertTrue("Page to update not found", optional.isPresent());
-        assertEquals("Invalid saved page name.", "Page 2", optional.get().getName());
-
-        final Page page = optional.get();
-        page.setName("New page");
+        Optional<Page> optionalBefore = pageRepository.findById("updatePage");
+        assertTrue("Page to update not found", optionalBefore.isPresent());
+        assertEquals("Invalid page name.", "Update Page", optionalBefore.get().getName());
+        assertEquals("Invalid page content.", "Content of the update page", optionalBefore.get().getContent());
+        final Page page = optionalBefore.get();
+        page.setName("New name");
         page.setContent("New content");
 
-        int nbPagesBeforeUpdate = pageRepository.findApiPageByApiId("my-api").size();
         pageRepository.update(page);
-        int nbPagesAfterUpdate = pageRepository.findApiPageByApiId("my-api").size();
 
-        assertEquals(nbPagesBeforeUpdate, nbPagesAfterUpdate);
-
-        Optional<Page> optionalUpdated = pageRepository.findById("page2");
+        Optional<Page> optionalUpdated = pageRepository.findById("updatePage");
         assertTrue("Page to update not found", optionalUpdated.isPresent());
-
-        final Page pageUpdated = optionalUpdated.get();
-        assertEquals("Invalid saved page name.", "New page", pageUpdated.getName());
-        assertEquals("Invalid page content.", "New content", pageUpdated.getContent());
+        assertEquals("Invalid saved page name.", "New name", optionalUpdated.get().getName());
+        assertEquals("Invalid page content.", "New content", optionalUpdated.get().getContent());
     }
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbPagesBeforeDeletion = pageRepository.findApiPageByApiId("my-api").size();
-        pageRepository.delete("page1");
-        int nbPagesAfterDeletion = pageRepository.findApiPageByApiId("my-api").size();
+        Optional<Page> pageShouldExists = pageRepository.findById("page-to-be-deleted");
+        pageRepository.delete("page-to-be-deleted");
+        Optional<Page> pageShouldNotExists = pageRepository.findById("page-to-be-deleted");
 
-        assertEquals(nbPagesBeforeDeletion - 1, nbPagesAfterDeletion);
+        assertTrue("should exists before delete", pageShouldExists.isPresent());
+        assertFalse("should not exists after delete", pageShouldNotExists.isPresent());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -119,16 +161,61 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindApiPageByApiIdAndHomepageFalse() throws Exception {
-        Collection<Page> pages = pageRepository.findApiPageByApiIdAndHomepage("my-api", false);
+        Collection<Page> pages = pageRepository.findApiPageByApiIdAndHomepage("my-api-2", false);
         assertNotNull(pages);
-        assertEquals(3, pages.size());
+        assertEquals(2, pages.size());
     }
 
     @Test
     public void shouldFindApiPageByApiIdAndHomepageTrue() throws Exception {
-        Collection<Page> pages = pageRepository.findApiPageByApiIdAndHomepage("my-api", true);
+        Collection<Page> pages = pageRepository.findApiPageByApiIdAndHomepage("my-api-2", true);
         assertNotNull(pages);
         assertEquals(1, pages.size());
         assertEquals("home", pages.iterator().next().getId());
+    }
+
+
+    @Test
+    public void shouldFindPortalPages() throws Exception {
+        Collection<Page> pages = pageRepository.findPortalPages();
+        assertNotNull(pages);
+        assertEquals(2, pages.size());
+        Set<String> ids = pages.stream().map(Page::getId).collect(Collectors.toSet());
+        assertTrue(ids.contains("FindPortalPage-homepage"));
+        assertTrue(ids.contains("FindPortalPage-nothomepage"));
+    }
+
+    @Test
+    public void shouldFindPortalPageByHomepageFalse() throws Exception {
+        Collection<Page> pages = pageRepository.findPortalPageByHomepage(false);
+        assertNotNull(pages);
+        assertEquals(1, pages.size());
+        assertEquals("FindPortalPage-nothomepage", pages.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindPortalPageByHomepageTrue() throws Exception {
+        Collection<Page> pages = pageRepository.findPortalPageByHomepage(true);
+        assertNotNull(pages);
+        assertEquals(1, pages.size());
+        assertEquals("FindPortalPage-homepage", pages.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindMaxApiPageOrderByApiId() throws TechnicalException {
+        Integer maxApiPageOrderByApiId = pageRepository.findMaxApiPageOrderByApiId("my-api-2");
+        assertEquals(Integer.valueOf(2), maxApiPageOrderByApiId);
+    }
+
+    @Test
+    public void shouldFindDefaultMaxApiPageOrderByApiId() throws TechnicalException {
+        Integer maxApiPageOrderByApiId = pageRepository.findMaxApiPageOrderByApiId("unknown api id");
+        assertEquals(Integer.valueOf(0), maxApiPageOrderByApiId);
+    }
+
+    @Test
+    public void shouldFindMaxPortalPageOrder() throws TechnicalException {
+        Integer maxPortalPageOrder = pageRepository.findMaxPortalPageOrder();
+        assertEquals(Integer.valueOf(20), maxPortalPageOrder);
     }
 }

@@ -505,29 +505,52 @@ public class MockTestRepositoryConfiguration {
     public PageRepository pageRepository() throws Exception {
         final PageRepository pageRepository = mock(PageRepository.class);
 
-        final Page page = mock(Page.class);
-        when(page.getName()).thenReturn("Page name");
-        when(page.getContent()).thenReturn("Page content");
+        Page findApiPage = mock(Page.class);
+        when(findApiPage.getId()).thenReturn("FindApiPage");
+        when(findApiPage.getName()).thenReturn("Find apiPage by apiId or Id");
+        when(findApiPage.getContent()).thenReturn("Content of the page");
+        when(findApiPage.getApi()).thenReturn("my-api");
+        when(findApiPage.getType()).thenReturn(PageType.MARKDOWN);
 
-        final Page page2 = mock(Page.class);
-        when(page2.getId()).thenReturn("page2");
-        when(page2.getName()).thenReturn("Page 2");
+        // shouldFindApiPageByApiId
+        when(pageRepository.findApiPageByApiId("my-api")).thenReturn(newSet(findApiPage));
 
-        final Page page2Updated = mock(Page.class);
-        when(page2Updated.getName()).thenReturn("New page");
-        when(page2Updated.getContent()).thenReturn("New content");
+        // shouldFindApiPageById
+        when(pageRepository.findById("FindApiPage")).thenReturn(of(findApiPage));
 
-        final Set<Page> pages = newSet(page, page2, mock(Page.class), mock(Page.class));
-        final Set<Page> pagesAfterDelete = newSet(page, page2, mock(Page.class));
-        final Set<Page> pagesAfterAdd = newSet(page, page2, mock(Page.class), mock(Page.class), mock(Page.class));
+        // shouldCreateApiPage
+        final Page createPage = mock(Page.class);
+        when(createPage.getName()).thenReturn("Page name");
+        when(createPage.getContent()).thenReturn("Page content");
+        when(createPage.getOrder()).thenReturn(3);
+        when(createPage.getType()).thenReturn(PageType.MARKDOWN);
+        when(createPage.isHomepage()).thenReturn(true);
+        when(pageRepository.findById("new-page")).thenReturn(empty(), of(createPage));
 
-        when(pageRepository.findApiPageByApiId("my-api")).thenReturn(pages, pagesAfterAdd, pages, pagesAfterDelete, pages);
+        // shouldCreatePortalPage
+        final Page createPortalPage = mock(Page.class);
+        when(createPortalPage.getName()).thenReturn("Page name");
+        when(createPortalPage.getContent()).thenReturn("Page content");
+        when(createPortalPage.getOrder()).thenReturn(3);
+        when(createPortalPage.getType()).thenReturn(PageType.MARKDOWN);
+        when(createPortalPage.isHomepage()).thenReturn(false);
+        when(pageRepository.findById("new-portal-page")).thenReturn(empty(), of(createPortalPage));
 
-        when(pageRepository.create(any(Page.class))).thenReturn(page);
+        // shouldDelete
+        when(pageRepository.findById("page-to-be-deleted")).thenReturn(of(mock(Page.class)), empty());
 
-        when(pageRepository.findById("new-page")).thenReturn(of(page));
-        when(pageRepository.findById("page2")).thenReturn(of(page2), of(page2Updated));
+        // should Update
+        Page updatePageBefore = mock(Page.class);
+        when(updatePageBefore.getId()).thenReturn("updatePage");
+        when(updatePageBefore.getName()).thenReturn("Update Page");
+        when(updatePageBefore.getContent()).thenReturn("Content of the update page");
+        Page updatePageAfter = mock(Page.class);
+        when(updatePageAfter.getId()).thenReturn("updatePage");
+        when(updatePageAfter.getName()).thenReturn("New name");
+        when(updatePageAfter.getContent()).thenReturn("New content");
+        when(pageRepository.findById("updatePage")).thenReturn(of(updatePageBefore), of(updatePageAfter));
 
+        // shouldNotUpdateUnknownPage && shouldNotUpdateNull
         when(pageRepository.update(argThat(new ArgumentMatcher<Page>() {
             @Override
             public boolean matches(Object o) {
@@ -535,10 +558,28 @@ public class MockTestRepositoryConfiguration {
             }
         }))).thenThrow(new IllegalArgumentException());
 
+        //Find api pages
         final Page homepage = mock(Page.class);
         when(homepage.getId()).thenReturn("home");
-        when(pageRepository.findApiPageByApiIdAndHomepage("my-api", true)).thenReturn(Collections.singleton(homepage));
-        when(pageRepository.findApiPageByApiIdAndHomepage("my-api", false)).thenReturn(newSet(page, page2, mock(Page.class)));
+        when(pageRepository.findApiPageByApiIdAndHomepage("my-api-2", true)).thenReturn(Collections.singleton(homepage));
+        when(pageRepository.findApiPageByApiIdAndHomepage("my-api-2", false)).thenReturn(newSet(mock(Page.class), mock(Page.class)));
+
+        //Find portal pages
+        final Page portalHomepage = mock(Page.class);
+        when(portalHomepage.getId()).thenReturn("FindPortalPage-homepage");
+        final Page portalNotHomepage = mock(Page.class);
+        when(portalNotHomepage.getId()).thenReturn("FindPortalPage-nothomepage");
+        when(pageRepository.findPortalPages()).thenReturn(newSet(portalHomepage, portalNotHomepage));
+        when(pageRepository.findPortalPageByHomepage(true)).thenReturn(newSet(portalHomepage));
+        when(pageRepository.findPortalPageByHomepage(false)).thenReturn(newSet(portalNotHomepage));
+
+        // Find max api page order
+        when(pageRepository.findMaxApiPageOrderByApiId("my-api-2")).thenReturn(2);
+        when(pageRepository.findMaxApiPageOrderByApiId("unknown api id")).thenReturn(0);
+        when(pageRepository.findMaxPortalPageOrder()).thenReturn(20);
+
+
+
         return pageRepository;
     }
 
