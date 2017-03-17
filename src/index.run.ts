@@ -68,6 +68,13 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, SidenavS
   //swagger-ui
   swaggerModules.add(swaggerModules.BEFORE_PARSE, PageSwaggerConfigurationService);
   swaggerModules.add(swaggerModules.BEFORE_EXPLORER_LOAD, PageSwaggerHttpClientService);
+
+  $rootScope.displayLoader = true;
+
+  // force displayLoader value to change on a new digest cycle
+  $timeout(function () {
+    $rootScope.displayLoader = false;
+  });
 }
 
 export default runBlock;
