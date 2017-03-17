@@ -29,20 +29,48 @@
     .ng-hide:not(.ng-hide-animate) {
       display: none !important;
     }
+
+    .gravitee-splash-screen {
+      background-color: rgb(45, 50, 62);
+      bottom: 0;
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      z-index: 99999;
+    }
+
+    img.gravitee-splash-screen {
+      color: silver;
+      display: flex;
+      margin: 0 auto;
+      max-width: 200px;
+      position: relative;
+      top: 40%;
+    }
+
+    .animate-show-hide.ng-hide {
+      opacity: 0;
+    }
+
+    .animate-show-hide.ng-hide-add,
+    .animate-show-hide.ng-hide-remove {
+      transition: all linear 0.5s;
+    }
   </style>
 </head>
 
-<body ng-cloak layout="column">
+<body layout="column">
   <!--[if lt IE 10]>
   <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
   <![endif]-->
 
   <div ng-show="displayLoader" class="gravitee-splash-screen animate-show-hide">
-    <img src="./assets/gravitee_logo_anim.gif" />
+    <img class="gravitee-splash-screen" src="./assets/gravitee_logo_anim.gif" />
   </div>
 
   <md-progress-linear ng-show="isLoading" md-mode="buffer" value="{{progressValue}}" md-buffer-value="{{progressValue}}"></md-progress-linear>
 
-  <div layout="row" flex ui-view></div>
+  <div ng-cloak layout="row" flex ui-view></div>
 </body>
 </html>

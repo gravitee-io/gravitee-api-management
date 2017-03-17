@@ -36,34 +36,6 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, SidenavS
     }
   });
 
-  function configureScreenSize(user) {
-    /*
-    if (screen.width < 500) {
-      $rootScope.percentWidth = 100;
-    } else if (screen.width < 770) {
-      $rootScope.percentWidth = 50;
-    } else {
-      $rootScope.percentWidth = 33;
-    }
-    $rootScope.reducedMode = $rootScope.percentWidth > 33 || !user;
-    */
-  }
-
-  /*
-  UserService.current().then(function (user) {
-    $rootScope.graviteeUser = user.data;
-    $rootScope.$broadcast('userLoginSuccessful');
-
-  //  configureScreenSize($rootScope.graviteeUser);
-
-    if ($rootScope.graviteeUser) {
-      UserService.currentUserPicture().then(function (response) {
-        $rootScope.graviteeUser.picture = response.data;
-      });
-    }
-  });
-  */
-
   $rootScope.$on('graviteeLogout', function () {
     $mdSidenav('left').close();
     $window.location.href = $window.location.pathname;
@@ -96,13 +68,6 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, SidenavS
   //swagger-ui
   swaggerModules.add(swaggerModules.BEFORE_PARSE, PageSwaggerConfigurationService);
   swaggerModules.add(swaggerModules.BEFORE_EXPLORER_LOAD, PageSwaggerHttpClientService);
-
-  $rootScope.displayLoader = true;
-
-  // force displayLoader value to change on a new digest cycle
-  $timeout(function () {
-    $rootScope.displayLoader = false;
-  });
 }
 
 export default runBlock;
