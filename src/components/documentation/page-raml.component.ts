@@ -26,7 +26,9 @@ const PageRamlComponent: ng.IComponentOptions = {
       if (this.page === undefined) {
         this.url = Constants.baseURL + 'apis/' + $state.params['apiId'] + '/pages/' + $state.params['pageId'] + '/content';
       } else {
-        this.url = Constants.baseURL + 'apis/' + $state.params['apiId'] + '/pages/' + this.page.id + '/content';
+        if (this.page.id) {
+          this.url = Constants.baseURL + 'apis/' + $state.params['apiId'] + '/pages/' + this.page.id + '/content';
+        }
       }
     };
   }

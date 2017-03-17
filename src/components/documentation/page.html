@@ -16,26 +16,7 @@
 
 -->
 <div class="layout-padding" ng-switch="$ctrl.page.type">
-
     <gv-page-swagger page="$ctrl.page" ng-switch-when="SWAGGER"></gv-page-swagger>
     <gv-page-raml page="$ctrl.page" ng-switch-when="RAML"></gv-page-raml>
     <gv-page-markdown page="$ctrl.page" ng-switch-when="MARKDOWN"></gv-page-markdown>
-
-  <!--
-  <div ng-if="pageCtrl.markdownType()" markdown-to-html="page.content">
-  </div>
-
-  <raml-console ng-if="pageCtrl.ramlType() && page.content && enableTryIt" src="{{pageCtrl.url}}" resources-collapsed
-                disable-title disable-theme-switcher disable-raml-client-generator>
-  </raml-console>
-
-  <raml-console ng-if="pageCtrl.ramlType() && page.content && !enableTryIt" src="{{pageCtrl.url}}" resources-collapsed
-                disable-try-it
-                disable-title disable-theme-switcher disable-raml-client-generator>
-  </raml-console>
-
-  <div ng-if="pageCtrl.swaggerType() && page.content" swagger-ui url="pageCtrl.url"
-       api-explorer="pageCtrl.enableTryIt()" trusted-sources="true" permalinks="true" validator-url="false">
-  </div>
-  -->
 </div>

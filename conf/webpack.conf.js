@@ -68,23 +68,11 @@ module.exports = {
         ]
       },
       {
-        test: /\.woff$/,
+        test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
         loader: 'url-loader?limit=10000&minetype=application/font-woff'
       },
       {
-        test: /\.woff2?$/,
-        loader: 'url-loader?limit=5000&minetype=application/font-woff'
-      },
-      {
-        test: /\.ttf$/,
-        loader: 'file-loader'
-      },
-      {
-        test: /\.eot$/,
-        loader: 'file-loader'
-      },
-      {
-        test: /\.svg$/,
+        test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
         loader: 'file-loader'
       }
     ]
@@ -126,8 +114,7 @@ module.exports = {
   },
   resolve: {
     alias: {
-        "read-more": "read-more/js/directives/readmore.js",
-        "api-console": "api-console/dist/scripts/api-console.js",
+      'read-more': 'read-more/js/directives/readmore.js'
     },
     extensions: [
       '.webpack.js',
@@ -136,5 +123,8 @@ module.exports = {
       '.ts'
     ]
   },
-  entry: `./${conf.path.src('index')}`
+  entry: `./${conf.path.src('index')}`,
+  node: {
+    fs: 'empty'
+  }
 };

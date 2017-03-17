@@ -13,23 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as jQuery from 'jquery';
+(<any>window).jQuery = jQuery;
+
 import angular = require('angular');
 import 'angular-aria';
 import 'angular-animate';
 import 'angular-material';
 import 'angular-sanitize';
 
-// require('raml-parser');
-// require('api-console/dist/scripts/api-console');
-//require('api-console/dist/scripts/api-console-vendor');
-require('angular-material-icons');
-require('angular-material-data-table');
-require('angular-cookies');
-require('angular-messages');
+import * as traverse from 'traverse';
+(<any>window).traverse = traverse;
+
+import * as RAML from 'raml-1-parser/browser_version/index.js';
+(<any>window).RAML = {Parser: RAML};
+
+import * as marked from 'marked';
+(<any>window).marked = marked;
+
+import * as hljs from 'highlight.js';
+(<any>window).hljs = hljs;
 
 // Codemirror
 import * as CodeMirror from 'codemirror';
 (<any>window).CodeMirror = CodeMirror;
+
+require('angular-marked');
+require('angular-highlightjs');
 
 require('codemirror/mode/xml/xml.js');
 require('codemirror/addon/edit/closetag.js');
@@ -45,6 +55,17 @@ require('codemirror/addon/lint/lint.js');
 require('codemirror/addon/lint/json-lint.js');
 require('codemirror/addon/lint/yaml-lint.js');
 require('codemirror/addon/display/placeholder.js');
+
+(<any>window).resolveUrl = function (url) {
+  return url.startsWith('http') ? url : (<any>window).location.origin + url;
+};
+
+require('api-console/dist/scripts/api-console.js');
+
+require('angular-material-icons');
+require('angular-material-data-table');
+require('angular-cookies');
+require('angular-messages');
 
 require('dragular');
 require('v-accordion');
@@ -85,9 +106,6 @@ NoDataToDisplay(Highcharts);
 
 import * as jsyaml from 'js-yaml';
 (<any>window).jsyaml = jsyaml;
-
-import * as marked from 'marked';
-(<any>window).marked = marked;
 
 import * as moment from 'moment';
 
@@ -252,7 +270,7 @@ import PageSwaggerComponent from './components/documentation/page-swagger.compon
 import PageRamlComponent from './components/documentation/page-raml.component';
 import PageMarkdownComponent from './components/documentation/page-markdown.component';
 
-angular.module('gravitee', ['ui.router', 'ngMaterial', /*'ramlConsoleApp',*/ 'ng-showdown', 'swaggerUi',
+angular.module('gravitee', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
   'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster'])

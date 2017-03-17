@@ -21,6 +21,12 @@ const filter = require('gulp-filter');
 
 const conf = require('../conf/gulp.conf');
 
+const replace = require('gulp-replace');
+
+gulp.src(['node_modules/api-console/dist/styles/api-console-light-theme.css'])
+  .pipe(replace('../fonts/Lato-HairlineItalic', '../fonts/Lato-Hairline-Italic'))
+  .pipe(gulp.dest('node_modules/api-console/dist/styles'));
+
 gulp.task('clean', clean);
 gulp.task('other', other);
 

@@ -15,11 +15,10 @@
     limitations under the License.
 
 -->
-<raml-console ng-if="$ctrl.age.content && enableTryIt" src="{{$ctrl.url}}" resources-collapsed
-              disable-title disable-theme-switcher disable-raml-client-generator>
-</raml-console>
+<raml-console-loader ng-if="$ctrl.url && enableTryIt" src="{{$ctrl.url}}"
+         options="{resourcesCollapsed: true, disableTitle: true, disableThemeSwitcher: true, disableRamlClientGenerator: true}">
+</raml-console-loader>
 
-<raml-console ng-if="$ctrl.page.content && !enableTryIt" src="{{$ctrl.url}}" resources-collapsed
-              disable-try-it
-              disable-title disable-theme-switcher disable-raml-client-generator>
-</raml-console>
+<raml-console-loader ng-if="$ctrl.url && !enableTryIt" src="{{$ctrl.url}}"
+         options="{resourcesCollapsed: true, disableTryIt: true, disableTitle: true, disableThemeSwitcher: true, disableRamlClientGenerator: true}">
+</raml-console-loader>

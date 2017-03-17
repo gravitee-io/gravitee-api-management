@@ -32,6 +32,13 @@ packages.splice(packages.indexOf('angular-swagger-ui'), 1);
 module.exports = {
   module: {
     loaders: [
+      {
+        test: /\.json$/,
+        exclude: /constants\.json/,
+        loaders: [
+          'json-loader'
+        ]
+      },
         {
             test: /constants\.json$/,
             exclude: /constants\.json/,
@@ -76,29 +83,20 @@ module.exports = {
         ]
       },
       {
-        test: /\.woff$/,
+        test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
         loader: 'url-loader?limit=10000&minetype=application/font-woff'
       },
       {
-        test: /\.woff2?$/,
-        loader: 'url-loader?limit=5000&minetype=application/font-woff'
-      },
-      {
-        test: /\.ttf$/,
-        loader: 'file-loader'
-      },
-      {
-        test: /\.eot$/,
-        loader: 'file-loader'
-      },
-      {
-        test: /\.svg$/,
+        test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
         loader: 'file-loader'
       }
-
     ]
   },
   plugins: [
+    new webpack.ProvidePlugin({
+      $: 'jquery',
+      jQuery: 'jquery'
+    }),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.NoErrorsPlugin(),
     FailPlugin,
@@ -106,6 +104,7 @@ module.exports = {
       template: conf.path.src('index.html')
     }),
     new webpack.optimize.UglifyJsPlugin({
+      mangle: {except: ['$window', '$scope', 'ramlParser']},
       output: {comments: false},
       compress: {unused: true, dead_code: true, warnings: false, drop_console: true} // eslint-disable-line camelcase
     }),
@@ -139,8 +138,8 @@ module.exports = {
   },
   resolve: {
     alias: {
-        "read-more": "read-more/js/directives/readmore.js",
-        "api-console": "api-console/dist/scripts/api-console.js",
+      'read-more': 'read-more/js/directives/readmore.js',
+      'raml-1-parser': 'raml-1-parser/browser_version/index.js'
     },
     extensions: [
       '.webpack.js',
@@ -151,9 +150,10 @@ module.exports = {
   },
   entry: {
     vendor: packages,
-    app: `./${conf.path.src('index')}`,
+    app: `./${conf.path.src('index')}`
   },
   node: {
-    fs: "empty"
-  }
+    fs: 'empty'
+  },
+  externals: [ { 'api-console': {}, 'unicode': {} } ]
 };
