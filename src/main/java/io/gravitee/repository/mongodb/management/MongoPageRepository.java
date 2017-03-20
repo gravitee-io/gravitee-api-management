@@ -43,7 +43,7 @@ import java.util.Set;
 @Component
 public class MongoPageRepository implements PageRepository {
 
-	private final static Logger logger = LoggerFactory.getLogger(MongoPageRepository.class);
+	private static final Logger logger = LoggerFactory.getLogger(MongoPageRepository.class);
 
 	@Autowired
 	private PageMongoRepository internalPageRepo;
@@ -148,6 +148,16 @@ public class MongoPageRepository implements PageRepository {
 		}
 	}
 
+	@Override
+	public Integer findMaxPortalPageOrder() throws TechnicalException {
+		try{
+			return internalPageRepo.findMaxPortalPageOrder();
+		}catch(Exception e){
+			logger.error("An error occured when searching max order portal page ", e);
+			throw new TechnicalException("An error occured when searching max order portal page");
+		}
+	}
+
 	private PageSourceMongo convert(PageSource pageSource) {
 		PageSourceMongo pageSourceMongo = new PageSourceMongo();
 		pageSourceMongo.setType(pageSource.getType());
@@ -167,4 +177,19 @@ public class MongoPageRepository implements PageRepository {
 		return mapper.collection2list(internalPageRepo.findByHomepage(apiId, isHomepage), PageMongo.class, Page.class);
 	}
 
+	@Override
+	public Collection<Page> findPortalPageByHomepage(boolean isHomepage) throws TechnicalException {
+		return mapper.collection2list(internalPageRepo.findByHomepage(isHomepage), PageMongo.class, Page.class);
+	}
+
+	@Override
+	public Collection<Page> findPortalPages() throws TechnicalException {
+		logger.debug("Find portal pages");
+
+		List<PageMongo> pages = internalPageRepo.findPortalPages();
+		Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
+
+		logger.debug("Find portal pages - Done");
+		return res;
+	}
 }

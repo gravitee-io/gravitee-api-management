@@ -25,6 +25,7 @@ import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
@@ -37,6 +38,16 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
 		query.limit(1);
 		query.with(new Sort(Sort.Direction.DESC, "order"));
 		query.addCriteria(Criteria.where("api").is(apiId));
+
+		PageMongo page = mongoTemplate.findOne(query, PageMongo.class);
+		return (page != null) ? page.getOrder() : 0;
+	}
+
+	public int findMaxPortalPageOrder() {
+		Query query = new Query();
+		query.limit(1);
+		query.with(new Sort(Sort.Direction.DESC, "order"));
+		query.addCriteria(Criteria.where("api").exists(false));
 
 		PageMongo page = mongoTemplate.findOne(query, PageMongo.class);
 		return (page != null) ? page.getOrder() : 0;
