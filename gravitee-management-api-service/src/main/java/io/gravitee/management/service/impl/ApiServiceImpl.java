@@ -471,6 +471,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Map<String, String> properties = new HashMap<>();
             properties.put(Event.EventProperties.API_ID.getValue(), apiValue.getId());
             properties.put(Event.EventProperties.USERNAME.getValue(), username);
+
+            // Clear useless field for history
+            apiValue.setPicture(null);
+
+            // And create event
             eventService.create(eventType, objectMapper.writeValueAsString(apiValue), properties);
 
             return convert(Collections.singleton(apiValue), true).iterator().next();
@@ -494,6 +499,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.API_ID.getValue(), lastPublishedAPI.getId());
                 properties.put(Event.EventProperties.USERNAME.getValue(), username);
+
+                // Clear useless field for history
+                lastPublishedAPI.setPicture(null);
+
+                // And create event
                 eventService.create(eventType, objectMapper.writeValueAsString(lastPublishedAPI), properties);
                 return convert(Collections.singleton(lastPublishedAPI), true).iterator().next();
             } else {
