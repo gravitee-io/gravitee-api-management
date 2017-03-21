@@ -101,7 +101,7 @@
                   <goals>
                     <goal>yarn</goal>
                   </goals>
-                  <phase>generate-resources</phase>
+                  <phase>process-resources</phase>
                   <configuration>
                     <arguments>run buildNoReg</arguments>
                   </configuration>
@@ -133,7 +133,7 @@
                 <version>1.5.3</version>
                 <executions>
                     <execution>
-                        <phase>process-resources</phase>
+                        <phase>generate-resources</phase>
                         <goals>
                             <goal>replace</goal>
                         </goals>
