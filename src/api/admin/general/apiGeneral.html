@@ -90,6 +90,16 @@
     <md-button class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
       Reset
     </md-button>
+
+    <md-button aria-label="Export definition" ng-click="generalCtrl.showExportDialog()">
+      <ng-md-icon icon="file_upload"></ng-md-icon>
+      Export
+    </md-button>
+    <md-button aria-label="Import definition" ng-click="generalCtrl.showImportDialog()">
+      <ng-md-icon icon="file_download"></ng-md-icon>
+      Import
+    </md-button>
+
     <md-button class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(generalCtrl.api.id)"
                ng-disabled="generalCtrl.api.state === 'started'">
       <div>

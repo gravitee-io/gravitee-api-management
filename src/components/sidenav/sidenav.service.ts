@@ -17,11 +17,11 @@
 class SidenavService {
   private currentResource: string;
 
-	get(): string {
+	getCurrentResource(): string {
     return this.currentResource;
   }
 
-  set(resource: string): void {
+  setCurrentResource(resource: string): void {
     this.currentResource = resource;
   }
 

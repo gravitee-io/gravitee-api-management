@@ -30,7 +30,7 @@ export class ApisController {
   private syncStatus: any;
   private NotificationService: any;
   private portalTitle: string;
-
+  
   constructor(
     private ApiService,
     private $mdDialog,
@@ -47,8 +47,8 @@ export class ApisController {
     'ngInject';
 
     this.graviteeUser = graviteeUser;
-    this.portalTitle = Constants.portalTitle;
     this.graviteeUIVersion = Build.version;
+    this.portalTitle = Constants.portalTitle;
     this.apis = resolvedApis.data;
 
     this.apisScrollAreaHeight = this.$state.current.name === 'apis.list' ? 195 : 90;
@@ -87,13 +87,6 @@ export class ApisController {
       this.NotificationService.show('Api updated with success');
     });
   }
-
-  // backToPreviousState() {
-  //   if (!this.$scope.previousState) {
-  //     this.$scope.previousState = 'apis.list';
-  //   }
-  //   this.$state.go(this.$scope.previousState, {}, {reload: true});
-  // }
 
   getVisibilityIcon(api) {
     switch (api.visibility) {

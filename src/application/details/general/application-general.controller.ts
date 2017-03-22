@@ -57,7 +57,7 @@ class ApplicationGeneralController {
       this.initialApplication = _.cloneDeep(this.application);
       this.$scope.formApplication.$setPristine();
       this.NotificationService.show('Application ' + this.application.name + ' has been updated');
-      this.SidenavService.set(this.application.name);
+      this.SidenavService.setCurrentResource(this.application.name);
     });
   }
 

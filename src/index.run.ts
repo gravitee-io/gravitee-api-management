@@ -17,7 +17,7 @@
 
 import UserService from "./services/user.service";
 
-function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, SidenavService, swaggerModules, PageSwaggerConfigurationService,
+function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerModules, PageSwaggerConfigurationService,
                   PageSwaggerHttpClientService, $timeout, UserService: UserService, Constants) {
   'ngInject';
 
@@ -30,7 +30,6 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, SidenavS
 
     if (notEligibleForDevMode || notEligibleForUserCreation) {
       return trans.router.stateService.target('login');
-      //this.$state.go(redirectionState && redirectionState.name ? redirectionState.name : 'home');
     } else if (toState.data && toState.data.roles && !UserService.isUserInRoles(toState.data.roles)) {
       return trans.router.stateService.target(UserService.isAuthenticated() ? 'home' : 'login');
     }

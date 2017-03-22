@@ -36,10 +36,8 @@
 
   <md-list class="sidenav-list">
     <md-list-item ng-repeat="menuItem in $ctrl.menuItems|orderBy:'data.menu.order' track by menuItem.name">
-                  <!--ng-if="$ctrl.graviteeUser || menuItem.name === 'apis.list'">-->
       <a ui-sref="{{ :: menuItem.name}}" title="{{ :: menuItem.data.menu.label}}"
          ui-sref-active="sidenav-active">
-         <!--ng-class="{'sidenav-active':$ctrl.$state.is(menuItem.name)}">-->
         <ng-md-icon icon="{{ :: menuItem.data.menu.icon }}"></ng-md-icon>
         <span ng-if="!$ctrl.reducedMode">{{ :: menuItem.data.menu.label }}</span>
       </a>

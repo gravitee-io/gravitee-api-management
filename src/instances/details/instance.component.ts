@@ -21,9 +21,9 @@ const InstanceComponent: ng.IComponentOptions = {
   },
   controller: function($rootScope, SidenavService: SidenavService) {
     'ngInject';
-    
+
     this.$onInit = function() {
-      SidenavService.set(this.instance.hostname);
+      SidenavService.setCurrentResource(this.instance.hostname);
     };
   },
   template: require('./instance.html')

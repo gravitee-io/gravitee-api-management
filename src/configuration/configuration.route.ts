@@ -32,7 +32,7 @@ function configurationConfig($stateProvider: ng.ui.IStateProvider) {
     .state('configuration.admin', {
       url: '/admin',
       controller: function ($state, SidenavService: SidenavService) {
-        SidenavService.set('CONFIGURATION');
+        SidenavService.setCurrentResource('CONFIGURATION');
         if ('configuration.admin' === $state.current.name) {
           $state.go('configuration.admin.views');
         }

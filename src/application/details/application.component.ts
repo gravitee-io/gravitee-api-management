@@ -22,9 +22,9 @@ const ApplicationComponent: ng.IComponentOptions = {
   },
   controller: function(SidenavService : SidenavService) {
     'ngInject';
-    
+
     this.$onInit = function() {
-      SidenavService.set(this.application.name);
+      SidenavService.setCurrentResource(this.application.name);
     };
   },
   template: require('./application.html')

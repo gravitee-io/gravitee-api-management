@@ -23,7 +23,7 @@ class ApiPortalController {
     'ngInject';
     this.api = api;
 
-    SidenavService.set(this.api.name);
+    SidenavService.setCurrentResource(this.api.name);
   }
 }
 

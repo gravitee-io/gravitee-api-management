@@ -37,7 +37,7 @@ class ApiAdminController {
     this.$rootScope = $rootScope;
     this.api = resolvedApi.data;
 
-    SidenavService.set(this.api.name);
+    SidenavService.setCurrentResource(this.api.name);
 
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;

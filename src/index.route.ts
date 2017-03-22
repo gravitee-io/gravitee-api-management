@@ -15,13 +15,11 @@
  */
 import ApiService from "./services/api.service";
 import DocumentationService from "./services/apiDocumentation.service";
-import ViewService from "./services/view.service";
 import InstancesService from "./services/instances.service";
 import UserService from './services/user.service';
 import TenantService from './services/tenant.service';
 import LoginController from "./login/login.controller";
 import { User } from "./entities/user";
-import SidenavService from "./components/sidenav/sidenav.service";
 
 function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: ng.ui.IUrlRouterProvider) {
   'ngInject';
@@ -163,30 +161,34 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
     .state('apis.admin.general', {
       template: require('./api/admin/general/api.html'),
       controller: 'ApiGeneralController',
-      controllerAs: 'generalCtrl',
-      resolve: {
-        resolvedTenants: (TenantService: TenantService) => TenantService.list()
-      },
-      data: {
-        menu: {
-          label: 'Global settings',
-          icon: 'blur_on'
-        }
-      }
+      controllerAs: 'generalCtrl'
     })
     .state('apis.admin.general.main', {
       url: '/general',
       template: require('./api/admin/general/apiGeneral.html'),
       controller: 'ApiGeneralController',
       controllerAs: 'generalCtrl',
-      data: {menu: null}
+      data: {
+        menu: {
+          label: 'General',
+          icon: 'blur_on'
+        }
+      }
     })
     .state('apis.admin.general.gateway', {
       url: '/gateway',
       template: require('./api/admin/general/apiGateway.html'),
       controller: 'ApiGeneralController',
       controllerAs: 'generalCtrl',
-      data: {menu: null}
+      resolve: {
+        resolvedTenants: (TenantService: TenantService) => TenantService.list()
+      },
+      data: {
+        menu: {
+          label: 'Gateway',
+          icon: 'device_hub'
+        }
+      }
     })
     .state('apis.admin.general.endpoint', {
       url: '/endpoint/:endpointName',
@@ -195,8 +197,7 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
       controllerAs: 'endpointCtrl',
       resolve: {
         resolvedTenants: (TenantService: TenantService) => TenantService.list()
-      },
-      data: {menu: null}
+      }
     })
     .state('apis.admin.plans', {
       url: '/plans?state',

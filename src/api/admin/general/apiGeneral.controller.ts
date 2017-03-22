@@ -36,7 +36,6 @@ class ApiAdminController {
     private $mdEditDialog,
     private $rootScope,
     private resolvedApi,
-    private resolvedTenants,
     private base64,
     private $state,
     private ViewService,
@@ -60,7 +59,6 @@ class ApiAdminController {
     this.$mdDialog = $mdDialog;
     this.initialApi = _.cloneDeep(resolvedApi.data);
     this.api = resolvedApi.data;
-    this.tenants = resolvedTenants.data;
     this.$scope.selected = [];
     if (!this.api.group) {
       this.api.group = GroupService.getEmptyGroup();
@@ -253,7 +251,7 @@ class ApiAdminController {
     this.formApi.$setPristine();
     this.$rootScope.$broadcast("apiChangeSuccess");
     this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
-    this.SidenavService.set(this.api.name);
+    this.SidenavService.setCurrentResource(this.api.name);
   }
 
   update(api) {

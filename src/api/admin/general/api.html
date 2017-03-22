@@ -15,40 +15,6 @@
     limitations under the License.
 
 -->
-
-<div style="position:relative;">
-  <md-menu class="gravitee-api-menu-action" style="top: -12px">
-    <md-button aria-label="API actions" class="md-icon-button" ng-click="$mdOpenMenu($event)">
-      <ng-md-icon md-menu-origin="" icon="more_vert"></ng-md-icon>
-    </md-button>
-    <md-menu-content width="2">
-      <md-menu-item>
-        <md-button aria-label="Export definition" ng-click="generalCtrl.showExportDialog()">
-          <ng-md-icon icon="file_upload"></ng-md-icon>
-          Export
-        </md-button>
-      </md-menu-item>
-      <md-menu-item>
-        <md-button aria-label="Import definition" ng-click="generalCtrl.showImportDialog()">
-          <ng-md-icon icon="file_download"></ng-md-icon>
-          Import
-        </md-button>
-      </md-menu-item>
-    </md-menu-content>
-  </md-menu>
-</div>
-
-<md-tabs class="gravitee-api-general-tabs" md-dynamic-height md-no-select-click md-border-bottom md-stretch-tabs>
-  <md-tab data-ui-sref="apis.admin.general.main" md-active="generalCtrl.$state.current.name === 'apis.admin.general.main'">
-    <md-tab-label>General</md-tab-label>
-    <md-tab-body></md-tab-body>
-  </md-tab>
-  <md-tab data-ui-sref="apis.admin.general.gateway" md-active="generalCtrl.$state.current.name === 'apis.admin.general.gateway'">
-    <md-tab-label>Gateway</md-tab-label>
-    <md-tab-body></md-tab-body>
-  </md-tab>
-</md-tabs>
-
 <div layout-padding>
   <ui-view></ui-view>
 </div>

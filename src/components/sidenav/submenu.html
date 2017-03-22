@@ -18,7 +18,7 @@
 <hr ng-if="$ctrl.reducedMode"/>
 
 <md-list-item ng-if="!$ctrl.reducedMode && $ctrl.submenuItems.length > 0">
-  <h4>{{$ctrl.sidenavService.get()}}</h4>
+  <h4>{{$ctrl.sidenavService.getCurrentResource()}}</h4>
 </md-list-item>
 
 <md-list-item ng-repeat="menuItem in $ctrl.submenuItems track by menuItem.name">
