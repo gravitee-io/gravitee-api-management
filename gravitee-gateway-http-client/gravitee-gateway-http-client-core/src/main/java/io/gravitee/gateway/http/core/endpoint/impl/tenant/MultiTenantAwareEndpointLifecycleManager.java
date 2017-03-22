@@ -43,6 +43,8 @@ public class MultiTenantAwareEndpointLifecycleManager extends DefaultEndpointLif
             throw new IllegalStateException("API is configured with multi-tenant support but the gateway is not linked to any tenant");
         }
 
+        logger.info("Prepare API endpoints for tenant: {}", gatewayConfiguration.tenant().get());
+
         super.doStart();
     }
 
