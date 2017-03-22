@@ -60,7 +60,7 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
                     .filter(filter())
                     .forEach(endpoint -> {
                         try {
-                            logger.debug("Preparing a new target endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
+                            logger.info("Create new target endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
                             HttpClient httpClient = applicationContext.getBean(HttpClient.class, endpoint);
                             httpClient.start();
                             endpoints.put(endpoint.getName(), new HttpEndpoint(endpoint, httpClient));
@@ -117,7 +117,7 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
         for(Iterator<Map.Entry<String, HttpEndpoint>> it = endpoints.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<String, HttpEndpoint> endpoint = it.next();
             try {
-                logger.debug("Closing target endpoint: {}", endpoint.getKey());
+                logger.info("Close target endpoint: {}", endpoint.getKey());
                 endpoint.getValue().getHttpClient().stop();
                 it.remove();
                 endpointsTarget.remove(endpoint.getKey());
