@@ -25,12 +25,15 @@ import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class PageRedisRepositoryImpl extends AbstractRedisRepository implements PageRedisRepository {
 
     private final static String REDIS_KEY = "page";
+    private final static String REDIS_KEY_API = REDIS_KEY + ":api" ;
+    private final static String REDIS_KEY_PORTAL = REDIS_KEY + ":portal";
 
     @Override
     public RedisPage find(String pageId) {
@@ -45,7 +48,11 @@ public class PageRedisRepositoryImpl extends AbstractRedisRepository implements 
     @Override
     public RedisPage saveOrUpdate(RedisPage page) {
         redisTemplate.opsForHash().put(REDIS_KEY, page.getId(), page);
-        redisTemplate.opsForSet().add(REDIS_KEY + ":api:" + page.getApi(), page.getId());
+        if (page.getApi() != null) {
+            redisTemplate.opsForSet().add(REDIS_KEY_API + ":" + page.getApi(), page.getId());
+        } else {
+            redisTemplate.opsForSet().add(REDIS_KEY_PORTAL, page.getId());
+        }
         return page;
     }
 
@@ -53,12 +60,26 @@ public class PageRedisRepositoryImpl extends AbstractRedisRepository implements 
     public void delete(String pageId) {
         RedisPage page = find(pageId);
         redisTemplate.opsForHash().delete(REDIS_KEY, pageId);
-        redisTemplate.opsForSet().remove(REDIS_KEY + ":api:" + page.getApi(), pageId);
+        Long remove = redisTemplate.opsForSet().remove(REDIS_KEY_API + ":" + page.getApi(), pageId);
+        if (remove < 1) {
+            redisTemplate.opsForSet().remove(REDIS_KEY_PORTAL, pageId);
+
+        }
     }
 
     @Override
     public Set<RedisPage> findByApi(String api) {
-        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":api:" + api);
+        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY_API + ":" + api);
+        List<Object> pageObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
+
+        return pageObjects.stream()
+                .map(event -> convert(event, RedisPage.class))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<RedisPage> findPortalPages() {
+        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY_PORTAL);
         List<Object> pageObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
 
         return pageObjects.stream()

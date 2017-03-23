@@ -21,6 +21,7 @@ import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface PageRedisRepository {
@@ -32,4 +33,6 @@ public interface PageRedisRepository {
     void delete(String page);
 
     Set<RedisPage> findByApi(String api);
+
+    Set<RedisPage> findPortalPages();
 }

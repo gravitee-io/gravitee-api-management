@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -89,6 +90,28 @@ public class RedisPageRepository implements PageRepository {
     public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException {
         Collection<Page> pages = findApiPageByApiId(apiId);
         return pages.stream().filter(page -> page.isHomepage() == isHomepage).collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<Page> findPortalPageByHomepage(boolean isHomepage) throws TechnicalException {
+        return pageRedisRepository.findPortalPages()
+                .stream()
+                .filter(p-> p.isHomepage() == isHomepage)
+                .map(this::convert)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Collection<Page> findPortalPages() throws TechnicalException {
+        return pageRedisRepository.findPortalPages()
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Integer findMaxPortalPageOrder() throws TechnicalException {
+        return findPortalPages().stream().mapToInt(Page::getOrder).max().orElse(0);
     }
 
     private Page convert(RedisPage redisPage) {
