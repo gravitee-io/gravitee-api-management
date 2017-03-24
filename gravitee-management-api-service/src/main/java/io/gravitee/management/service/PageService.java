@@ -30,19 +30,27 @@ import java.util.Optional;
  */
 public interface PageService {
 
-	List<PageListItem> findByApi(String apiId);
+	List<PageListItem> findApiPagesByApi(String apiId);
 
-	List<PageListItem> findByApiAndHomepage(String apiId, Boolean homepage);
+	List<PageListItem> findPortalPages();
+
+	List<PageListItem> findApiPagesByApiAndHomepage(String apiId, Boolean homepage);
+
+	List<PageListItem> findPortalPagesByHomepage(Boolean homepage);
 
 	PageEntity findById(String pageId);
 
 	PageEntity findById(String pageId, boolean transform);
-	
-	PageEntity create(String apiId, NewPageEntity page);
+
+	PageEntity createApiPage(String apiId, NewPageEntity page);
+
+	PageEntity createPortalPage(NewPageEntity page);
 	
 	PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
 	
 	void delete(String pageId);
 	
-	int findMaxPageOrderByApi(String apiId);
+	int findMaxApiPageOrderByApi(String apiId);
+
+	int findMaxPortalPageOrder();
 }

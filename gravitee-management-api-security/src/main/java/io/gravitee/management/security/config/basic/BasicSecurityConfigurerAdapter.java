@@ -209,6 +209,12 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     // Configuration
                     .antMatchers("/configuration/**").hasAuthority("ADMIN")
 
+                    // Portal
+                    .antMatchers(HttpMethod.GET, "/portal/**").permitAll()
+                    .antMatchers(HttpMethod.POST, "/portal/**").hasAnyAuthority("ADMIN")
+                    .antMatchers(HttpMethod.PUT, "/portal/**").hasAnyAuthority("ADMIN")
+                    .antMatchers(HttpMethod.DELETE, "/portal/**").hasAnyAuthority("ADMIN")
+
                     .anyRequest().authenticated()
             .and()
                 .csrf()

@@ -96,7 +96,7 @@ public class PageServiceTest_Create {
         when(newPage.getLastContributor()).thenReturn(contrib);
         when(newPage.getType()).thenReturn(io.gravitee.management.model.PageType.SWAGGER);
 
-        final PageEntity createdPage = pageService.create(API_ID, newPage);
+        final PageEntity createdPage = pageService.createApiPage(API_ID, newPage);
 
         verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
             public boolean matches(Object argument) {
@@ -126,7 +126,7 @@ public class PageServiceTest_Create {
         when(newPage.getName()).thenReturn(name);
         when(pageRepository.findById(anyString())).thenReturn(Optional.of(new Page()));
 
-        pageService.create(API_ID, newPage);
+        pageService.createApiPage(API_ID, newPage);
 
         verify(pageRepository, never()).create(any());
     }
@@ -139,7 +139,7 @@ public class PageServiceTest_Create {
         when(pageRepository.findById(anyString())).thenReturn(Optional.empty());
         when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
 
-        pageService.create(API_ID, newPage);
+        pageService.createApiPage(API_ID, newPage);
 
         verify(pageRepository, never()).create(any());
     }

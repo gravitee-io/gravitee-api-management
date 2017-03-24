@@ -49,20 +49,20 @@ public class PageServiceTest_FindMaxPageOrderByApi {
     public void shouldFindMaxPageOrderByApiName() throws TechnicalException {
         when(pageRepository.findMaxApiPageOrderByApiId(API_ID)).thenReturn(10);
 
-        assertEquals(10, pageService.findMaxPageOrderByApi(API_ID));
+        assertEquals(10, pageService.findMaxApiPageOrderByApi(API_ID));
     }
 
     @Test
     public void shouldFindMaxPageOrderByApiNameWhenNull() throws TechnicalException {
         when(pageRepository.findMaxApiPageOrderByApiId(API_ID)).thenReturn(null);
 
-        assertEquals(0, pageService.findMaxPageOrderByApi(API_ID));
+        assertEquals(0, pageService.findMaxApiPageOrderByApi(API_ID));
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindMaxPageOrderByApiNameBecauseTechnicalException() throws TechnicalException {
         doThrow(TechnicalException.class).when(pageRepository).findMaxApiPageOrderByApiId(API_ID);
 
-        pageService.findMaxPageOrderByApi(API_ID);
+        pageService.findMaxApiPageOrderByApi(API_ID);
     }
 }

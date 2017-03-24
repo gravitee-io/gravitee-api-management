@@ -66,4 +66,18 @@ public class PageRepositoryProxy extends AbstractProxy<PageRepository> implement
         return target.update(page);
     }
 
+    @Override
+    public Collection<Page> findPortalPageByHomepage(boolean isHomepage) throws TechnicalException {
+        return target.findPortalPageByHomepage(isHomepage);
+    }
+
+    @Override
+    public Collection<Page> findPortalPages() throws TechnicalException {
+        return target.findPortalPages();
+    }
+
+    @Override
+    public Integer findMaxPortalPageOrder() throws TechnicalException {
+        return target.findMaxPortalPageOrder();
+    }
 }

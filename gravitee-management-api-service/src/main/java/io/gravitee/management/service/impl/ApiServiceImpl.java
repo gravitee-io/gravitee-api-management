@@ -555,7 +555,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         field = "pages";
         if (!filteredFiedsList.contains(field)) {
-            List<PageListItem> pageListItems = pageService.findByApi(apiId);
+            List<PageListItem> pageListItems = pageService.findApiPagesByApi(apiId);
             List<PageEntity> pages = null;
             if (pageListItems != null) {
                 pages = new ArrayList<>(pageListItems.size());
@@ -644,7 +644,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             final JsonNode pagesDefinition = jsonNode.path("pages");
             if (pagesDefinition != null && pagesDefinition.isArray()) {
                 for (final JsonNode pageNode : pagesDefinition) {
-                    pageService.create(createdOrUpdatedApiEntity.getId(), objectMapper.readValue(pageNode.toString(), NewPageEntity.class));
+                    pageService.createApiPage(createdOrUpdatedApiEntity.getId(), objectMapper.readValue(pageNode.toString(), NewPageEntity.class));
                 }
             }
             //Plans

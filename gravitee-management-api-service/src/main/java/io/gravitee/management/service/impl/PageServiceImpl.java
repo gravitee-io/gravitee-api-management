@@ -62,7 +62,9 @@ import static java.util.Collections.emptyList;
 @Component
 public class PageServiceImpl extends TransactionalService implements PageService {
 
-	private final Logger LOGGER = LoggerFactory.getLogger(PageServiceImpl.class);
+	private static final Gson gson = new Gson();
+
+	private static final Logger logger = LoggerFactory.getLogger(PageServiceImpl.class);
 
 	@Autowired
 	private PageRepository pageRepository;
@@ -80,12 +82,17 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	private Configuration freemarkerConfiguration;
 
 	@Override
-	public List<PageListItem> findByApi(String apiId) {
-	    return findByApiAndHomepage(apiId, null);
+	public List<PageListItem> findApiPagesByApi(String apiId) {
+	    return findApiPagesByApiAndHomepage(apiId, null);
     }
 
 	@Override
-	public List<PageListItem> findByApiAndHomepage(String apiId, Boolean homepage) {
+	public List<PageListItem> findPortalPages() {
+	    return findPortalPagesByHomepage(null);
+    }
+
+	@Override
+	public List<PageListItem> findApiPagesByApiAndHomepage(String apiId, Boolean homepage) {
 		try {
 			final Collection<Page> pages;
 			if (homepage == null) {
@@ -103,9 +110,34 @@ public class PageServiceImpl extends TransactionalService implements PageService
 					.collect(Collectors.toList());
 
 		} catch (TechnicalException ex) {
-			LOGGER.error("An error occurs while trying to get API pages using api ID {}", apiId, ex);
+			logger.error("An error occurs while trying to get API pages using api ID {}", apiId, ex);
 			throw new TechnicalManagementException(
 					"An error occurs while trying to get API pages using api ID " + apiId, ex);
+		}
+	}
+
+	@Override
+	public List<PageListItem> findPortalPagesByHomepage(Boolean homepage) {
+		try {
+			final Collection<Page> pages;
+			if (homepage == null) {
+				pages = pageRepository.findPortalPages();
+			} else {
+				pages = pageRepository.findPortalPageByHomepage(homepage);
+			}
+			if (pages == null) {
+				return emptyList();
+			}
+
+			return pages.stream()
+					.map(this::reduce)
+					.sorted(Comparator.comparingInt(PageListItem::getOrder))
+					.collect(Collectors.toList());
+
+		} catch (TechnicalException ex) {
+			logger.error("An error occurs while trying to get Portal pages", ex);
+			throw new TechnicalManagementException(
+					"An error occurs while trying to get Portal pages", ex);
 		}
 	}
 
@@ -117,7 +149,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	@Override
 	public PageEntity findById(String pageId, boolean transform) {
 		try {
-			LOGGER.debug("Find page by ID: {}", pageId);
+			logger.debug("Find page by ID: {}", pageId);
 
 			Optional<Page> page = pageRepository.findById(pageId);
 
@@ -132,7 +164,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			throw new PageNotFoundException(pageId);
 		} catch (TechnicalException ex) {
-			LOGGER.error("An error occurs while trying to find a page using its ID {}", pageId, ex);
+			logger.error("An error occurs while trying to find a page using its ID {}", pageId, ex);
 			throw new TechnicalManagementException(
 					"An error occurs while trying to find a page using its ID " + pageId, ex);
 		}
@@ -151,14 +183,14 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			pageEntity.setContent(content);
 		} catch (IOException | TemplateException ex) {
-			LOGGER.error("An error occurs while transforming page content for {}", pageEntity.getId(), ex);
+			logger.error("An error occurs while transforming page content for {}", pageEntity.getId(), ex);
 		}
 	}
 
 	@Override
-	public PageEntity create(String apiId, NewPageEntity newPageEntity) {
+	public PageEntity createApiPage(String apiId, NewPageEntity newPageEntity) {
 		try {
-			LOGGER.debug("Create page {} for API {}", newPageEntity, apiId);
+			logger.debug("Create page {} for API {}", newPageEntity, apiId);
 
 			String id = UUID.toString(UUID.random());
 			Optional<Page> checkPage = pageRepository.findById(id);
@@ -188,14 +220,54 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			onlyOneHomepage(page);
 			return convert(createdPage);
 		} catch (TechnicalException | FetcherException ex) {
-			LOGGER.error("An error occurs while trying to create {}", newPageEntity, ex);
+			logger.error("An error occurs while trying to create {}", newPageEntity, ex);
+			throw new TechnicalManagementException("An error occurs while trying create " + newPageEntity, ex);
+		}
+	}
+
+	@Override
+	public PageEntity createPortalPage(NewPageEntity newPageEntity) {
+		try {
+			logger.debug("Create portal page {}", newPageEntity);
+
+			String id = UUID.toString(UUID.random());
+			Optional<Page> checkPage = pageRepository.findById(id);
+			if (checkPage.isPresent()) {
+				throw new PageAlreadyExistsException(id);
+			}
+
+			Page page = convert(newPageEntity);
+
+			if (page.getSource() != null) {
+				String fetchedContent = this.getContentFromFetcher(page.getSource());
+				if (fetchedContent != null && !fetchedContent.isEmpty()) {
+					page.setContent(fetchedContent);
+				}
+			}
+
+			page.setId(id);
+
+			// Set date fields
+			page.setCreatedAt(new Date());
+			page.setUpdatedAt(page.getCreatedAt());
+
+			Page createdPage = pageRepository.create(page);
+
+			//only one homepage is allowed
+			onlyOneHomepage(page);
+			return convert(createdPage);
+		} catch (TechnicalException | FetcherException ex) {
+			logger.error("An error occurs while trying to create {}", newPageEntity, ex);
 			throw new TechnicalManagementException("An error occurs while trying create " + newPageEntity, ex);
 		}
 	}
 
 	private void onlyOneHomepage(Page page) throws TechnicalException {
 		if(page.isHomepage()) {
-			Collection<Page> pages = pageRepository.findApiPageByApiIdAndHomepage(page.getApi(), true);
+			Collection<Page> pages =
+					page.getApi() != null ?
+					pageRepository.findApiPageByApiIdAndHomepage(page.getApi(), true) :
+					pageRepository.findPortalPageByHomepage(true);
 			pages.stream().
 					filter(i -> !i.getId().equals(page.getId())).
 					forEach(i -> {
@@ -203,7 +275,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 							i.setHomepage(false);
 							pageRepository.update(i);
 						} catch (TechnicalException e) {
-							LOGGER.error("An error occurs while trying update homepage attribute from {}", page, e);
+							logger.error("An error occurs while trying update homepage attribute from {}", page, e);
 						}
 					});
 		}
@@ -212,7 +284,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	@Override
 	public PageEntity update(String pageId, UpdatePageEntity updatePageEntity) {
 		try {
-			LOGGER.debug("Update Page {}", pageId);
+			logger.debug("Update Page {}", pageId);
 
 			Optional<Page> optPageToUpdate = pageRepository.findById(pageId);
 			if (!optPageToUpdate.isPresent()) {
@@ -277,7 +349,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			}
 			return sb.toString();
 		} catch (Exception e) {
-		    LOGGER.error(e.getMessage(), e);
+		    logger.error(e.getMessage(), e);
             throw new FetcherException(e.getMessage(), e);
 		}
 	}
@@ -312,35 +384,47 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	}
 
 	private TechnicalManagementException onUpdateFail(String pageId, TechnicalException ex) {
-		LOGGER.error("An error occurs while trying to update page {}", pageId, ex);
+		logger.error("An error occurs while trying to update page {}", pageId, ex);
 		return new TechnicalManagementException("An error occurs while trying to update page " + pageId, ex);
 	}
 
 	private TechnicalManagementException onUpdateFail(String pageId, FetcherException ex) {
-		LOGGER.error("An error occurs while trying to update page {}", pageId, ex);
+		logger.error("An error occurs while trying to update page {}", pageId, ex);
 		return new TechnicalManagementException("An error occurs while trying to update page " + pageId, ex);
 	}
 
     @Override
 	public void delete(String pageName) {
 		try {
-			LOGGER.debug("Delete PAGE : {}", pageName);
+			logger.debug("Delete PAGE : {}", pageName);
 			pageRepository.delete(pageName);
 		} catch (TechnicalException ex) {
-			LOGGER.error("An error occurs while trying to delete PAGE {}", pageName, ex);
+			logger.error("An error occurs while trying to delete PAGE {}", pageName, ex);
 			throw new TechnicalManagementException("An error occurs while trying to delete PAGE " + pageName, ex);
 		}
 	}
 
 	@Override
-	public int findMaxPageOrderByApi(String apiName) {
+	public int findMaxApiPageOrderByApi(String apiName) {
 		try {
-			LOGGER.debug("Find Max Order Page for api name : {}", apiName);
+			logger.debug("Find Max Order Page for api name : {}", apiName);
 			final Integer maxPageOrder = pageRepository.findMaxApiPageOrderByApiId(apiName);
 			return maxPageOrder == null ? 0 : maxPageOrder;
 		} catch (TechnicalException ex) {
-			LOGGER.error("An error occured when searching max order page for api name [{}]", apiName, ex);
+			logger.error("An error occured when searching max order page for api name [{}]", apiName, ex);
 			throw new TechnicalManagementException("An error occured when searching max order page for api name " + apiName, ex);
+		}
+	}
+
+	@Override
+	public int findMaxPortalPageOrder() {
+		try {
+			logger.debug("Find Max Order Portal Page");
+			final Integer maxPageOrder = pageRepository.findMaxPortalPageOrder();
+			return maxPageOrder == null ? 0 : maxPageOrder;
+		} catch (TechnicalException ex) {
+			logger.error("An error occured when searching max order portal page", ex);
+			throw new TechnicalManagementException("An error occured when searching max order portal ", ex);
 		}
 	}
 
@@ -443,7 +527,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			try {
 				entity.setConfiguration((new ObjectMapper()).readTree(pageSource.getConfiguration()));
 			} catch (IOException e) {
-				e.printStackTrace();
+			    logger.error(e.getMessage(), e);
 			}
 		}
 		return entity;
@@ -469,9 +553,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return configurationEntity;
 	}
 
-	private static final Gson gson = new Gson();
-
-	public static boolean isJson(String content) {
+	@SuppressWarnings("squid:S1166")
+	private static boolean isJson(String content) {
 		try {
 			gson.fromJson(content, Object.class);
 			return true;

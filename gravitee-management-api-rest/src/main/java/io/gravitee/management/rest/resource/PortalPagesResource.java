@@ -16,13 +16,11 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.*;
-import io.gravitee.management.model.permissions.ApiPermission;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.MembershipService;
+import io.gravitee.management.model.NewPageEntity;
+import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.PageListItem;
+import io.gravitee.management.model.UpdatePageEntity;
 import io.gravitee.management.service.PageService;
-import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -32,21 +30,13 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
-public class ApiPagesResource extends AbstractResource {
-
-    @Inject
-    private ApiService apiService;
-
-    @Inject
-    private MembershipService membershipService;
+@Api(tags = {"Portal"})
+public class PortalPagesResource extends AbstractResource {
 
     @Inject
     private PageService pageService;
@@ -54,89 +44,58 @@ public class ApiPagesResource extends AbstractResource {
     @GET
     @Path("/{page}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.READ)
     @ApiOperation(value = "Get a page",
-            notes = "User must have the READ permission to use this service")
+            notes = "Every users can use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Page"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public PageEntity getPage(
-                @PathParam("api") String api,
                 @PathParam("page") String page) {
         return pageService.findById(page);
     }
 
     @GET
     @Path("/{page}/content")
-    @ApiPermissionsRequired(ApiPermission.READ)
     @ApiOperation(value = "Get the page's content",
-            notes = "User must have the READ permission to use this service")
+            notes = "Every users can use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Page's content"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response getPageContent(
-            @PathParam("api") String api,
             @PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page, true);
         return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
     }
 
     @GET
-    @ApiPermissionsRequired(ApiPermission.READ)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List pages",
-            notes = "User must have the READ permission to use this service")
+            notes = "Every users can use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of pages", response = PageListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<PageListItem> listPages(
-            @PathParam("api") String api,
             @QueryParam("homepage") Boolean homepage) {
-        final ApiEntity apiEntity = apiService.findById(api);
-
-        final List<PageListItem> pages = pageService.findApiPagesByApiAndHomepage(api, homepage);
-
-        return pages.stream()
-            .filter(page -> {
-                if (isAuthenticated()) {
-                    MemberEntity member = membershipService.getMember(MembershipReferenceType.API, apiEntity.getId(), getAuthenticatedUsername());
-                    if (member == null && apiEntity.getGroup() != null && apiEntity.getGroup().getId() != null) {
-                        member = membershipService.getMember(MembershipReferenceType.API_GROUP, apiEntity.getGroup().getId(), getAuthenticatedUsername());
-                    }
-                    if (member != null) {
-                        return (MembershipType.USER == member.getType() && page.isPublished()) ||
-                                MembershipType.USER != member.getType();
-                    }
-                }
-
-                if (apiEntity.getVisibility() == Visibility.PUBLIC) {
-                    return page.isPublished();
-                } else {
-                    return false;
-                }
-            })
-            .collect(Collectors.toList());
+        return pageService.findPortalPagesByHomepage(homepage);
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
     @ApiOperation(value = "Create a page",
-            notes = "User must have the MANAGE_PAGES permission to use this service")
+            notes = "User must be ADMIN to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response createPage(
-            @PathParam("api") String api,
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
-        int order = pageService.findMaxApiPageOrderByApi(api) + 1;
+        int order = pageService.findMaxPortalPageOrder() + 1;
         newPageEntity.setOrder(order);
         newPageEntity.setLastContributor(getAuthenticatedUsername());
-        PageEntity newPage = pageService.createApiPage(api, newPageEntity);
+        PageEntity newPage = pageService.createPortalPage(newPageEntity);
         if (newPage != null) {
             return Response
-                    .created(URI.create("/apis/" + api + "/pages/" + newPage.getId()))
+                    .created(URI.create("/portal/pages/" + newPage.getId()))
                     .entity(newPage)
                     .build();
         }
@@ -148,14 +107,12 @@ public class ApiPagesResource extends AbstractResource {
     @Path("/{page}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
     @ApiOperation(value = "Update a page",
-            notes = "User must have the MANAGE_PAGES permission to use this service")
+            notes = "User must be ADMIN to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     public PageEntity updatePage(
-            @PathParam("api") String api,
             @PathParam("page") String page,
             @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         pageService.findById(page);
@@ -166,14 +123,12 @@ public class ApiPagesResource extends AbstractResource {
 
     @DELETE
     @Path("/{page}")
-    @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
     @ApiOperation(value = "Delete a page",
-            notes = "User must have the MANAGE_PAGES permission to use this service")
+            notes = "User must be ADMIN to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Page successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public void deletePage(
-            @PathParam("api") String api,
             @PathParam("page") String page) {
         pageService.findById(page);
 

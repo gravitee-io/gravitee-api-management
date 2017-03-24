@@ -70,7 +70,7 @@ public class PageServiceTest_FindByApi {
         when(page2.getType()).thenReturn(PageType.RAML);
         when(pageRepository.findApiPageByApiId(API_ID)).thenReturn(pages);
 
-        final List<PageListItem> pageEntities = pageService.findByApi(API_ID);
+        final List<PageListItem> pageEntities = pageService.findApiPagesByApi(API_ID);
 
         assertNotNull(pageEntities);
         assertEquals(2, pageEntities.size());
@@ -81,7 +81,7 @@ public class PageServiceTest_FindByApi {
     public void shouldNotFindByApiBecauseNotFound() throws TechnicalException {
         when(pageRepository.findApiPageByApiId(API_ID)).thenReturn(null);
 
-        final List<PageListItem> pageEntities = pageService.findByApi(API_ID);
+        final List<PageListItem> pageEntities = pageService.findApiPagesByApi(API_ID);
 
         assertNotNull(pageEntities);
         assertTrue(pageEntities.isEmpty());
@@ -91,6 +91,6 @@ public class PageServiceTest_FindByApi {
     public void shouldNotFindByApiNameBecauseTechnicalException() throws TechnicalException {
         when(pageRepository.findApiPageByApiId(API_ID)).thenThrow(TechnicalException.class);
 
-        pageService.findByApi(API_ID);
+        pageService.findApiPagesByApi(API_ID);
     }
 }
