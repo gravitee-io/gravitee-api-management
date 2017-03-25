@@ -1,0 +1,65 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-content>
+  <div ui-view></div>
+
+  <section id="footer">
+    <footer layout="row" flex layout-align="center center">
+      <div>
+        <ul class="footer-links">
+          <li class="footer-links-section">
+            <h3>First category</h3>
+            <ul>
+              <li><a href="#">Link 1</a></li>
+              <li><a href="#">Link 2</a></li>
+              <li><a href="#">Link 3</a></li>
+              <li><a href="#">Link 4</a></li>
+            </ul>
+          </li>
+          <li class="footer-links-section">
+            <h3>Second category</h3>
+            <ul>
+              <li><a href="#">Link 1</a></li>
+              <li><a href="#">Link 2</a></li>
+              <li><a href="#">Link 3</a></li>
+              <li><a href="#">Link 4</a></li>
+            </ul>
+          </li>
+          <li class="footer-links-section">
+            <h3>Third category</h3>
+            <ul>
+              <li><a href="#">Link 1</a></li>
+              <li><a href="#">Link 2</a></li>
+              <li><a href="#">Link 3</a></li>
+              <li><a href="#">Link 4</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div class="footer-brand" layout="column" layout-align="center center">
+        <div layout="row">
+          <span>
+            <img style="vertical-align: middle;" width="32" height="32" ng-src="assets/GRAVITEE_LOGO1-01.png"/>
+            <span><b translate="home.title"></b> {{'home.subtitle' | translate}}</span>
+            <small translate="home.version" translate-values="{version: indexCtrl.graviteeVersion}"></small>
+          </span>
+        </div>
+      </div>
+    </footer>
+  </section>
+</md-content>

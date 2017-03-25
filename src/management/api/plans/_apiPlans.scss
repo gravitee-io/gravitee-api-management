@@ -1,0 +1,113 @@
+.gravitee-fixed-button {
+  bottom: 0;
+  position: fixed;
+  margin: 0;
+  width: 97%;
+  z-index: 1;
+
+  &:disabled {
+    background-color: silver !important;
+  }
+}
+
+.gravitee-api-plans-container {
+  height: calc(100% - 100px);
+  overflow: scroll;
+}
+
+.gravitee-api-plans-remove-button {
+  float: right;
+  z-index: 1;
+}
+
+.gravitee-api-plans-add-button {
+  margin-bottom: 40px;
+}
+
+.strike {
+  text-decoration: line-through;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.plans .md-toolbar-tools {
+  background: #fafafa;
+  color: grey;
+  padding: 0 0;
+}
+
+.plans .md-button.md-fab {
+  box-shadow: none;
+  background: none;
+}
+
+.plans a.md-button.md-default-theme.md-fab:not([disabled]):hover, .plans a.md-button.md-fab:not([disabled]):hover, .plans .md-button.md-default-theme.md-fab:not([disabled]):hover, .plans .md-button.md-fab:not([disabled]):hover {
+  background-color: #ccdae3;
+}
+
+.plans {
+  md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent > .md-button, md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent .md-menu > .md-button {
+    padding: 0 0 0 10px;
+  }
+  md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent > .md-button, md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent .md-menu > .md-button {
+    padding: 0 0 0 10px;
+    background-color: #00A000;
+  }
+
+  md-menu-bar {
+    padding: 0 0;
+  }
+
+  .md-menu-bar md-menu button ng-md-icon {
+    top: 10px;
+  }
+}
+
+$border-radius: 10px;
+
+.gravitee-plan-box {
+  border-radius: $border-radius;
+  margin: 20px;
+  width: 90%;
+
+  md-card-header {
+    background-color: #fafafa;
+    border-radius: $border-radius $border-radius 0 0;
+    h3 {
+      margin-right: 10px;
+    }
+  }
+
+  md-card-content {
+    height: 300px;
+    overflow: auto;
+  }
+
+  md-card-footer {
+    padding: 16px 0;
+  }
+
+  button {
+    width: 100%;
+  }
+}
+
+.gravitee-plan-content {
+  color: #79848d;
+  line-height: 30px;
+  text-align: center;
+}
+
+.gravitee-plan-application-card {
+  text-align: center;
+}
+
+.gravitee-plan-application-image {
+  height: 80px;
+  background-image: url('assets/GRAVITEE_LOGOsstxtclair-05.png');
+  background-size: auto 100%;
+  background-position: center center;
+  background-repeat: no-repeat;
+}

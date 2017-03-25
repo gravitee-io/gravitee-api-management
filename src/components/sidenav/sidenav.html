@@ -20,19 +20,7 @@
   md-component-id="left"
   md-is-locked-open="true"
   ng-class="{'md-sidenav-min': $ctrl.reducedMode}"
-  style="overflow: inherit;"
->
-  <md-toolbar class="navigation-header md-whiteframe-1dp" layout="row" layout-align="space-between center">
-    <div class="logo" layout="row" layout-align="center center" style="cursor: pointer" ui-sref="user" ui-sref-opts="{reload: true}">
-      <img class="logo-image" ng-class="{'reduce-mode': $ctrl.reducedMode}"
-           ng-src="{{$ctrl.graviteeUser.picture || 'assets/GRAVITEE_LOGO1-01.png'}}"/>
-      <span class="logo-text" ng-if="!$ctrl.reducedMode">
-          <strong>{{$ctrl.graviteeUser.firstname}} {{$ctrl.graviteeUser.lastname}}</strong>
-          <strong
-            ng-if="!($ctrl.graviteeUser.firstname && $ctrl.graviteeUser.lastname)">{{$ctrl.graviteeUser.username}}</strong>
-        </span>
-    </div>
-  </md-toolbar>
+  style="overflow: inherit;">
 
   <md-list class="sidenav-list">
     <md-list-item ng-repeat="menuItem in $ctrl.menuItems|orderBy:'data.menu.order' track by menuItem.name">

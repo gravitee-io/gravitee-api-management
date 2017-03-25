@@ -1,0 +1,19 @@
+{
+  "home": {
+    "title": "Gravitee.io",
+    "subtitle": "Portail développeur",
+    "version": "Version: {{version}}",
+    "apis": {
+      "more": "Voir plus",
+      "search": "Filtrer APIs...",
+      "top": "APIs mises en avant",
+      "all": "Voir toutes les APIs"
+    }
+  },
+  "apis": {
+    "all": "Toutes les APIs",
+    "filter": "Filtrer...",
+    "views": "Filtres rapide : ",
+    "more": "Explorer"
+  }
+}

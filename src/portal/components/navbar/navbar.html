@@ -1,0 +1,54 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-toolbar class="topnavbar" layout="row" layout-align="left center">
+  <div class="topnavbar-brand navigation-header">
+    <a ui-sref="management" style="text-decoration: none; color: #fff;">
+      <img style="vertical-align: middle;" width="50" height="50" ng-src="assets/GRAVITEE_LOGOclair-04.png" alt="logo"/>
+    </a>
+
+    <span class="logo-text" ng-show="!reducedMode && vm.graviteeUser.username">
+      <strong>{{vm.graviteeUser.firstname}} {{vm.graviteeUser.lastname}}</strong>
+      <strong
+        ng-if="!(vm.graviteeUser.firstname && vm.graviteeUser.lastname)">{{vm.graviteeUser.username}}</strong>
+    </span>
+  </div>
+  <span flex></span>
+  <md-button ng-if="!vm.graviteeUser.username" ui-sref="login">LOGIN</md-button>
+  <md-menu ng-if="vm.graviteeUser.username">
+    <md-button ng-click="$mdMenu.open($event)" aria-label="Open user menu">
+      <img style="vertical-align: middle;" width="50" height="50" ng-src="assets/GRAVITEE_LOGOclair-04.png" alt="logo"/>
+      <span>Administrator</span>
+    </md-button>
+    <md-menu-content width="6" style="padding-bottom: 0px;">
+      <div layout="row">
+        <div>
+          <img width="120" height="120" ng-src="assets/GRAVITEE_LOGOclair-04.png" alt="logo"/>
+        </div>
+        <div layout="column">
+          <h5 style="margin-bottom: 0px;">Administrator</h5>
+          <small>administrator@mail.com</small>
+          <md-button style="background-color: #34A0D4; padding: 0; margin-left: 0px; margin-top: 15px; width: 110px;" class="md-raised md-primary">My Account</md-button>
+        </div>
+      </div>
+      <md-divider></md-divider>
+      <div layout="row" layout-align="end end" style="background-color: #F5F5F5;">
+        <md-button ng-click="vm.logout()" style="border: 1px solid grey; font-size: 12px;">Sign out</md-button>
+      </div>
+    </md-menu-content>
+  </md-menu>
+</md-toolbar>

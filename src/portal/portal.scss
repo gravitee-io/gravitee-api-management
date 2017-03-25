@@ -1,0 +1,96 @@
+@import 'home/_home';
+
+@import 'api/portal/apis';
+@import 'api/portal/docs/apiDocs';
+@import 'api/portal/general/apiGeneral';
+
+@import 'application/_applications';
+
+@import 'components/navbar/_navbar';
+
+.browsehappy {
+  margin: 0.2em 0;
+  background: #ccc;
+  color: #000;
+  padding: 0.2em 0;
+}
+
+#header {
+  background-color: rgb(45,50,62);
+  padding-top: 70px;
+  padding-bottom: 50px;
+}
+
+#main-content {
+  min-height: calc(100vh - 226px);
+}
+
+#footer {
+  min-height: 226px;
+  background-color: #EFEFEF;
+  div.footer-brand {
+    border-left: 1px solid rgb(45,50,62);
+    color: rgb(45,50,62);
+    padding: 0px 60px 0px 60px;
+    min-height: 120px;
+  }
+}
+
+#plans {
+  md-card-content {
+    width: 100%;
+    min-height: 250px;
+    text-align: center;
+  }
+}
+
+section, #main-content {
+  &.small {
+    min-height: 250px;
+    padding: 20px 0px 20px 0px;
+    i.main-logo {
+      font-size: 180px;
+      margin-right: 70px;
+    }
+  }
+  &.tall {
+    min-height: 450px;
+    padding: 50px 0px 50px 0px;
+    i {
+      font-size: 200px;
+      margin-right: 120px;
+    }
+    h2 {
+      font: 400 24px/32px Roboto,sans-serif;
+    }
+  }
+  &.dark-theme {
+    background-color: #34A0D4;
+    color: rgba(255, 255, 255, .8);
+    i, h2 {
+      color: #fff;
+    }
+  }
+  &.light-theme {
+    background-color: #ebeff2;
+    i, h2 {
+      color: #757575;
+    }
+    h2 {
+      font: 300 24px/32px Roboto,sans-serif;
+    }
+  }
+}
+
+h2.section-title {
+  text-align: center;
+  color: #757575;
+  font: 300 24px/32px Roboto,sans-serif;
+}
+
+/**
+ *  Do not remove the comment below. It's the markers used by gulp-inject to inject
+ *  all your sass files automatically
+ */
+// injector
+// endinjector

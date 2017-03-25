@@ -18,34 +18,32 @@
 
 @import 'constants.scss';
 
-@import 'main/_main.scss';
+@import 'portal/portal.scss';
+
 @import 'user/_user.scss';
-@import 'policy/_policy.scss';
+@import 'management/api/policies/_policy.scss';
 
-@import 'api/_api.scss';
-@import 'api/admin/analytics/_analytics.scss';
-@import 'api/admin/creation/_apiCreation.scss';
-@import 'api/admin/documentation/_apiDocumentation.scss';
-@import 'api/admin/events/_apiEvents.scss';
-@import 'api/admin/healthcheck/_healthcheck.scss';
-@import 'api/admin/history/_apiHistory.scss';
-@import 'api/admin/members/_members.scss';
-@import 'api/admin/plans/_apiPlans.scss';
-@import 'api/admin/properties/_properties.scss';
-@import 'api/admin/resources/_resources.scss';
-@import 'api/admin/subscriptions/_subscriptions.scss';
-@import 'api/portal/plan/_plan.scss';
-
-@import 'application/applications.scss';
+@import 'management/api/_api.scss';
+@import 'management/api/analytics/_analytics.scss';
+@import 'management/api/creation/_apiCreation.scss';
+@import 'management/api/documentation/_apiDocumentation.scss';
+@import 'management/api/events/_apiEvents.scss';
+@import 'management/api/healthcheck/_healthcheck.scss';
+@import 'management/api/history/_apiHistory.scss';
+@import 'management/api/members/_members.scss';
+@import 'management/api/plans/_apiPlans.scss';
+@import 'management/api/properties/_properties.scss';
+@import 'management/api/resources/_resources.scss';
+@import 'management/api/subscriptions/_subscriptions.scss';
 
 @import 'components/dashboard/dashboard.scss';
 @import 'components/sidenav/_sidenav.scss';
 @import 'components/image/_image.scss';
 @import 'components/widget/_widget.scss';
 
-@import 'instances/_instances.scss';
+@import 'management/instances/_instances.scss';
 
-@import 'platform/dashboard/_dashboard.scss';
+@import 'management/platform/dashboard/_dashboard.scss';
 
 @import 'components/documentation/page.scss';
 
@@ -291,6 +289,7 @@ gravitee-sidenav {
 .gravitee-no-sidenav-container {
   background: $backgroundColor;
   padding-top: 100px;
+  height: 100%;
 }
 
 .gravitee-no-sidenav-content {
@@ -340,4 +339,130 @@ md-list-item::before {
 
 .md-whiteframe-z2{
   box-shadow:0 2px 4px -1px rgba(0,0,0,.2),0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12)
+}
+.landing-header {
+  padding: 0px 16px 0px 16px;
+
+  h3 {
+    color: #006CAB;
+    font-size: 32px;
+
+    small {
+      font-size: 40%;
+    }
+  }
+
+  p {
+    color: #707070;
+    font-size: 16px;
+    margin: 0 0 20px;
+  }
+}
+
+.apis-box {
+  a, a:link, a:visited, a:hover, a:active {
+    text-decoration: none;
+    color: black;
+  }
+
+  .api-box {
+    md-card-header {
+      padding: 0px 0px 20px 0px;
+    }
+    md-card-avatar {
+      width: 35px;
+      height: 20px;
+    }
+    md-card-content {
+      padding: 0px;
+    }
+    md-card-footer {
+      padding: 0px 5px 5px 5px;
+    }
+    .api-box-description {
+      text-align: center;
+    }
+    .api-box-icon {
+      height: 80px;
+      &.api-box-icon-figure {
+        width: 150px;
+      }
+      img {
+        display: block;
+        max-width: 150px;
+        max-height: 80px;
+        width: auto;
+        height: auto;
+      }
+      &.default {
+        background: url('assets/GRAVITEE_LOGOsstxtclair-05.png') no-repeat center center;
+        background-size: auto 100%;
+      }
+    }
+    .api-box-name-version {
+      font-size: 14px;
+      font-weight: 700;
+      color: grey;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      small {
+        padding: 0px;
+      }
+    }
+    .api-box-state {
+      font-size: 12px;
+    }
+    .api-box-footer {
+      color: #cdcdcd;
+    }
+  }
+}
+
+.icon-circle {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+  line-height: 80px;
+  border: 2px solid #45aed6;
+  border-radius: 100px;
+  position: relative;
+}
+
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+  display: none !important;
+}
+
+md-content, .main-content {
+  background: #fff;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #333;
+  font-size: 12px;
+}
+
+table[md-data-table]>thead:not([md-table-progress])>tr>th>div {
+  height: 30px;
+}
+
+v-pane-header {
+  legend {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  ng-md-icon {
+    top: 4px;
+  }
+}
+
+md-card.no-box-shadow {
+  box-shadow: none;
+}
+
+.gravitee-detail-header {
+  height: $graviteeHeader;
+  background: #fff;
+  border-bottom: 1px solid #f1f1f1;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12)
 }

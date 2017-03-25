@@ -5,9 +5,6 @@
 }
 
 .navigation-header {
-  height: $sidenavHeaderHeight;
-  min-height: 64px;
-  background-color: rgba(255,255,255,.05);
   .logo-image {
     display: block;
     width: 48px;
@@ -31,7 +28,6 @@
 
 md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolbar) {
   background-color: rgba(255,255,255,.05);
-  color: inherit;
 }
 
 md-sidenav {
@@ -177,5 +173,7 @@ md-sidenav:not(._md-locked-open) {
 }
 
 .gravitee-sidenav {
+  background-color: $bgColor;
+  padding-top: 64px;
   z-index: 1;
 }

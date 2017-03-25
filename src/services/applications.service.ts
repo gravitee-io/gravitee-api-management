@@ -24,7 +24,7 @@ interface IMember {
 class ApplicationService {
   private applicationsURL: string;
 
-  constructor(private $http: ng.IHttpService, Constants, private $q: ng.IQService) {
+  constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
     this.applicationsURL = `${Constants.baseURL}applications/`;
   }

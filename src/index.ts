@@ -13,16 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import 'angular';
+import angular = require('angular');
+
 import 'angular-ui-router';
-// import routesConfig from './routes';
 
 import './index.scss';
 
-// export const app: string = 'app';
-//
-// angular
-//   .module(app, ['ui.router'])
-//   .config(routesConfig);
+import './portal/portal.module';
+import './management/management.module';
 
-import './index.module';
+fetchData().then(bootstrapApplication);
+
+function fetchData() {
+  let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
+  let $http: ng.IHttpService = initInjector.get('$http');
+  let $q: ng.IQService = initInjector.get('$q');
+
+  return $q.all([$http.get('constants.json'), $http.get('build.json')]).then(function (responses: any) {
+    angular.module('gravitee-management').constant('Constants', responses[0].data);
+    angular.module('gravitee-management').constant('Build', responses[1].data);
+
+    angular.module('gravitee-portal').constant('Build', responses[1].data);
+  });
+}
+
+function bootstrapApplication() {
+  angular.element(document).ready(function() {
+    angular.bootstrap(document, ['gravitee-portal', 'gravitee-management']);
+  });
+}
