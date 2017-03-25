@@ -13,21 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApiPagesComponent: ng.IComponentOptions = {
+const ApiComponent: ng.IComponentOptions = {
   bindings: {
-    pages: '<',
     api: '<'
   },
-  template: require('./api-pages.html'),
-  controller: function($stateParams, $location) {
-    'ngInject';
-
-    this.$onInit = function() {
-      if (this.pages.length && !$stateParams.pageId) {
-        $location.url(`/apis/${$stateParams.apiId}/pages/${this.pages[0].id}`);
-      }
-    };
-  }
+  template: require('./api.html')
 };
 
-export default ApiPagesComponent;
+export default ApiComponent;

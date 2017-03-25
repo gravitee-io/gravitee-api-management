@@ -15,18 +15,25 @@
     limitations under the License.
 
 -->
+<api-portal-header api="$ctrl.api"></api-portal-header>
+
 <gravitee-empty-state ng-if="$ctrl.pages.length == 0"
                       icon="insert_drive_file"
                       model="Plan"
                       message="No documentation for this API"
                       sub-message="Come back soon, the API will be completed shortly."></gravitee-empty-state>
 
-<md-tabs md-stretch-tabs md-dynamic-height md-border-bottom ng-if="$ctrl.pages.length > 0">
-  <md-tab label="{{page.name}}"
-          ui-sref="portal.apis.pages.page({pageId: page.id})"
-          ng-repeat="page in $ctrl.pages track by page.id"
-          md-active="page.id == $resolve.$stateParams.pageId">
-  </md-tab>
-</md-tabs>
-
-<div ui-view flex class="inset"></div>
+<md-content ng-if="$ctrl.pages.length > 0">
+  <div id="main-content" layout="row" style="padding-top: 10px">
+    <div class="doc-nav" flex="15" layout="column">
+      <h2>Documentation</h2>
+      <md-divider></md-divider>
+      <md-list style="color: #34A0D4;">
+        <md-list-item ui-sref="portal.api.pages.page({pageId: page.id})" ng-repeat="page in $ctrl.pages">{{page.name}}</md-list-item>
+      </md-list>
+    </div>
+    <div class="doc-content" flex="85">
+      <div ui-view class="inset"></div>
+    </div>
+  </div>
+</md-content>

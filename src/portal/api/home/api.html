@@ -15,7 +15,13 @@
     limitations under the License.
 
 -->
-<h2 style="color: #34A0D4;">{{$ctrl.page.name}}</h2>
-<section>
-  <gv-page page="$ctrl.page" sidenav="true"></gv-page>
-</section>
+<md-content>
+  <div id="main-content">
+
+    <div ui-view="header"></div>
+
+    <div ui-view="homepage"></div>
+
+    <div ui-view="plans"></div>
+  </div>
+</md-content>

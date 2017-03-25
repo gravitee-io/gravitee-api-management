@@ -15,7 +15,10 @@
     limitations under the License.
 
 -->
-<h2 style="color: #34A0D4;">{{$ctrl.page.name}}</h2>
-<section>
-  <gv-page page="$ctrl.page" sidenav="true"></gv-page>
-</section>
+<div id="sidenav" hide-xs layout-padding>
+  <ul>
+    <li class="sidenav_item" ng-repeat="anchor in anchors" href="#{{::anchor.id}}" ng-click="scrollTo(anchor.id)" du-smooth-scroll du-scrollspy>
+      <span>{{::anchor.title}}</span>
+    </li>
+  </ul>
+</div>

@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 import ViewService from "../services/view.service";
+import ApiService from "../services/api.service";
+import DocumentationService from "../services/apiDocumentation.service";
+
 function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
   'ngInject';
 
@@ -68,27 +71,55 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
-    .state('portal.apis.detail', {
+    .state('portal.api', {
       abstract: true,
-      url: '/:apiId',
-      template: require('./api/portal/api.html'),
+      url: '/apis/:apiId',
       resolve: {
-        resolvedApi: function ($stateParams, ApiService) {
-          return ApiService.get($stateParams.apiId);
-        }
+        api: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.get($stateParams['apiId']).then(response => response.data)
       }
     })
-    .state('portal.apis.detail.general', {
+    .state('portal.api.detail', {
+      abstract: true,
       url: '',
-      template: require('./api/portal/general/apiGeneral.html'),
-      controller: 'ApiController',
-      controllerAs: 'apiCtrl'
+      component: 'api'
     })
-    .state('portal.apis.detail.docs', {
-      url: '/docs',
-      template: require('./api/portal/docs/apiDocs.html'),
-      controller: 'ApiDocsController',
-      controllerAs: 'apiDocsCtrl'
+    .state('portal.api.detail.general', {
+      url: '',
+      views: {
+        'header': { component: 'apiPortalHeader' },
+        'homepage': { component: 'apiHomepage' },
+        'plans': { component: 'apiPlans' }
+      },
+      resolve: {
+        plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getPublishedApiPlans($stateParams['apiId']).then(response => response.data),
+        homepage: ($stateParams: ng.ui.IStateParamsService, DocumentationService: DocumentationService) =>
+          DocumentationService.getApiHomepage($stateParams['apiId']).then(response => response.data)
+      }
+    })
+    .state('portal.api.pages', {
+      url: '/pages',
+      component: 'apiPages',
+      resolve: {
+        pages: ($stateParams: ng.ui.IStateParamsService, DocumentationService: DocumentationService) =>
+          DocumentationService.listApiPages($stateParams['apiId']).then(response => response.data)
+      },
+    })
+    .state('portal.api.pages.page', {
+      url: '/:pageId',
+      component: 'apiPage',
+      resolve: {
+        page: ($stateParams: ng.ui.IStateParamsService, DocumentationService: DocumentationService) =>
+          DocumentationService.get($stateParams['apiId'], $stateParams['pageId']).then(response => response.data)
+      },
+      params: {
+        pageId: {
+          type: 'string',
+          value: '',
+          squash: true
+        }
+      }
     });
 }
 

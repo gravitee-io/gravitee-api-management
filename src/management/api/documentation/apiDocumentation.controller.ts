@@ -40,7 +40,7 @@ class DocumentationController {
     }
 
     $scope.$on('onGraviteePageDeleted', () => {
-      this.$state.go('apis.admin.documentation');
+      this.$state.go('management.apis.detail.documentation');
     });
   }
 
@@ -63,7 +63,7 @@ class DocumentationController {
         }
         that.pages = dragularList;
         that.DocumentationService.editPage(that.$state.params.apiId, movedPage.id, movedPage).then( () => {
-          that.$state.go("apis.admin.documentation.page", {apiId: that.$state.params.apiId, pageId: movedPage.id});
+          that.$state.go("management.apis.detail.documentation.page", {apiId: that.$state.params.apiId, pageId: movedPage.id});
         });
       });
     });
@@ -76,9 +76,9 @@ class DocumentationController {
     }).then( response => {
       if(response.pages && response.pages.length > 0) {
         if (this.$state.params.pageId !== undefined) {
-          this.$state.go("apis.admin.documentation.page", {pageId: this.$state.params.pageId});
+          this.$state.go("management.apis.detail.documentation.page", {pageId: this.$state.params.pageId});
         } else {
-          this.$state.go("apis.admin.documentation.page", {pageId: response.pages[0].id});
+          this.$state.go("management.apis.detail.documentation.page", {pageId: response.pages[0].id});
         }
       }
       return response;
@@ -86,7 +86,7 @@ class DocumentationController {
   }
 
   showNewPageDialog(pageType) {
-    this.$state.go('apis.admin.documentation.new', {type: pageType});
+    this.$state.go('management.apis.detail.documentation.new', {type: pageType});
   }
 }
 

@@ -20,27 +20,24 @@
     <a ui-sref="management" style="text-decoration: none; color: #fff;">
       <img style="vertical-align: middle;" width="50" height="50" ng-src="assets/GRAVITEE_LOGOclair-04.png" alt="logo"/>
     </a>
-
-    <span class="logo-text" ng-show="!reducedMode && vm.graviteeUser.username">
-      <strong>{{vm.graviteeUser.firstname}} {{vm.graviteeUser.lastname}}</strong>
-      <strong
-        ng-if="!(vm.graviteeUser.firstname && vm.graviteeUser.lastname)">{{vm.graviteeUser.username}}</strong>
-    </span>
   </div>
   <span flex></span>
   <md-button ng-if="!vm.graviteeUser.username" ui-sref="login">LOGIN</md-button>
   <md-menu ng-if="vm.graviteeUser.username">
     <md-button ng-click="$mdMenu.open($event)" aria-label="Open user menu">
-      <img style="vertical-align: middle;" width="50" height="50" ng-src="assets/GRAVITEE_LOGOclair-04.png" alt="logo"/>
+      <img style="vertical-align: middle;" width="50" height="50"
+           ng-src="{{vm.graviteeUser.picture || 'assets/GRAVITEE_LOGO1-01.png'}}" alt="user-picture"/>
       <span>Administrator</span>
     </md-button>
     <md-menu-content width="6" style="padding-bottom: 0px;">
       <div layout="row">
         <div>
-          <img width="120" height="120" ng-src="assets/GRAVITEE_LOGOclair-04.png" alt="logo"/>
+          <img width="120" height="120" ng-src="{{vm.graviteeUser.picture || 'assets/GRAVITEE_LOGO1-01.png'}}" alt="user-picture" />
         </div>
         <div layout="column">
-          <h5 style="margin-bottom: 0px;">Administrator</h5>
+          <h5 style="margin-bottom: 0px;">{{vm.graviteeUser.firstname}} {{vm.graviteeUser.lastname}}</h5>
+          <h5
+            ng-if="!(vm.graviteeUser.firstname && vm.graviteeUser.lastname)">{{vm.graviteeUser.username}}</h5>
           <small>administrator@mail.com</small>
           <md-button style="background-color: #34A0D4; padding: 0; margin-left: 0px; margin-top: 15px; width: 110px;" class="md-raised md-primary">My Account</md-button>
         </div>

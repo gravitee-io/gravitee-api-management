@@ -27,8 +27,17 @@ import portali18nConfig from './portal.i18n';
 
 import { HomeController } from './home/home.controller';
 import { PortalApisController } from './api/apis.controller';
-import { ApiController } from './api/portal/general/apiGeneral.controller';
-import { ApiDocsController } from './api/portal/docs/apiDocs.controller';
+
+// API
+import ApiComponent from './api/home/api.component';
+import ApiHeaderComponent from './api/home/api-header.component';
+import ApiHomepageComponent from './api/home/api-homepage.component';
+import ApiPlansComponent from './api/home/api-plans.component';
+
+// API documentation
+import ApiPagesComponent from './api/documentation/api-pages.component';
+import ApiPageComponent from './api/documentation/api-page.component';
+
 import { NavbarDirective } from './components/navbar/navbar.directive';
 
 angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.translate'])
@@ -36,8 +45,12 @@ angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.tran
   .config(portali18nConfig)
   .controller('HomeController', HomeController)
   .controller('PortalApisController', PortalApisController)
-  .controller('ApiController', ApiController)
-  .controller('ApiDocsController', ApiDocsController)
+  .component('api', ApiComponent)
+  .component('apiPortalHeader', ApiHeaderComponent) // apiHeader already used in management.... :(
+  .component('apiHomepage', ApiHomepageComponent)
+  .component('apiPlans', ApiPlansComponent)
+  .component('apiPages', ApiPagesComponent)
+  .component('apiPage', ApiPageComponent)
   .directive('graviteeNavbar', NavbarDirective)
   .filter('humanDateFilter', function () {
     return function(input) {

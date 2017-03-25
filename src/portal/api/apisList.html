@@ -27,19 +27,19 @@
           <md-card flex="45" ng-repeat="api in apisCtrl.apis">
             <md-card-title style="padding-top: 15px; padding-bottom: 0px;">
               <md-card-title-text>
-                <span class="md-headline">{{api.name}} <span class="md-subhead">{{api.version}}</span></span>
+                <span class="md-headline">{{::api.name}} <span class="md-subhead">{{::api.version}}</span></span>
               </md-card-title-text>
               <md-card-title-media>
                 <div class="md-media-sm card-media">
-                  <img ng-src="assets/GRAVITEE_LOGOsstxtclair-05.png" alt="api-logo" />
+                  <img ng-src="{{::api.picture_url}}" alt="api-logo" />
                 </div>
               </md-card-title-media>
             </md-card-title>
             <md-card-content>
-              <small>{{api.description}}</small>
+              <small>{{::api.description}}</small>
             </md-card-content>
             <md-card-actions layout="row" layout-align="end center">
-              <md-button ui-sref="portal.apis.detail.general({apiId: api.id})" translate="apis.more" aria-label="more"></md-button>
+              <md-button ui-sref="portal.api.detail.general({apiId: api.id})" translate="apis.more" aria-label="more"></md-button>
             </md-card-actions>
           </md-card>
         </div>

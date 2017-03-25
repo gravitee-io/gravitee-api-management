@@ -58,7 +58,7 @@ class PageController {
     this.$scope.fetcherJsonSchemaForm = ["*"];
     FetcherService.list().then(response => {
       this.fetchers = response.data;
-      if ( $state.current.name === 'apis.admin.documentation.new' ) {
+      if ( $state.current.name === 'management.apis.detail.documentation.new' ) {
         if (['SWAGGER', 'RAML', 'MARKDOWN'].indexOf($state.params.type) === -1) {
           $state.go('apis.admin.documentation');
         }
@@ -110,7 +110,7 @@ class PageController {
       this.DocumentationService.createPage(this.$state.params.apiId, this.page)
         .then((page) => {
           this.onPageUpdate();
-          this.$state.go('apis.admin.documentation.page', {apiId: this.$state.params.apiId,pageId: page.data.id}, {reload: true});
+          this.$state.go('management.apis.detail.documentation.page', {apiId: this.$state.params.apiId,pageId: page.data.id}, {reload: true});
         })
         .catch((error) => {
           this.$scope.error = error;

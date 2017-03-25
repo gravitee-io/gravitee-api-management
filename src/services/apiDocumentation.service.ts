@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import DialogEditPolicyController from "../api/admin/policies/dialog/policyDialog.controller";
 
 class DocumentationService {
   private swaggerConfigurationCache: any;
   private documentationURL: (apiId: string) => string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private $q, Constants) {
     'ngInject';
     this.swaggerConfigurationCache = {};
     this.documentationURL = apiId => `${Constants.baseURL}apis/${apiId}/pages/`;
@@ -30,10 +29,34 @@ class DocumentationService {
     return this.$http.get(this.documentationURL(apiId));
   }
 
-  get(apiId, pageId) {
+  get(apiId: string, pageId?: string) {
     if (pageId) {
       return this.$http.get(this.documentationURL(apiId) + pageId);
     }
+  }
+
+  getApiHomepage(apiId: string) {
+    let deferred = this.$q.defer();
+    let that = this;
+    this.$http
+      .get(this.documentationURL(apiId), {params:{"homepage": true}})
+      .then(function(response) {
+        if (response.data.length > 0) {
+          that
+            .get(apiId, response.data[0].id)
+            .then(response => deferred.resolve(response));
+        } else {
+          deferred.resolve({});
+        }
+      })
+      .catch( msg => deferred.reject(msg) );
+
+    return deferred.promise;
+  }
+
+  listApiPages(apiId: string) {
+    return this.$http
+      .get(this.documentationURL(apiId), {params:{"homepage": false}})
   }
 
   getContentUrl(apiId, pageId) {

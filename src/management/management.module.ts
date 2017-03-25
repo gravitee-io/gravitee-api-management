@@ -91,6 +91,7 @@ require('../../node_modules/angular-swagger-ui/dist/scripts/modules/swagger-yaml
 require('../../node_modules/angular-swagger-ui/dist/scripts/modules/swagger-xml-formatter.min.js');
 require('../../node_modules/angular-swagger-ui/dist/scripts/modules/swagger1-to-swagger2-converter.min.js');
 require('angular-gridster');
+require('angular-scroll');
 require('diff/dist/diff.min.js');
 
 // Highcharts
@@ -242,6 +243,7 @@ import PageComponent from '../components/documentation/page.component';
 import PageSwaggerComponent from '../components/documentation/page-swagger.component';
 import PageRamlComponent from '../components/documentation/page-raml.component';
 import PageMarkdownComponent from '../components/documentation/page-markdown.component';
+import PageSidenavDirective from '../components/documentation/page-sidenav.directive';
 
 import config from './management.config';
 import routerConfig from '../index.route';
@@ -253,7 +255,7 @@ import runBlock from './management.run';
 angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
-  'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster'])
+  'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'duScroll'])
   .config(config)
   .config(routerConfig)
   .config(managementRouterConfig)
@@ -394,6 +396,7 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .component('gvPageMarkdown', PageMarkdownComponent)
   .component('gvPageSwagger', PageSwaggerComponent)
   .component('gvPageRaml', PageRamlComponent)
+  .directive('gvPageSidenav',  () => PageSidenavDirective)
 
   .component('gvSidenav', SidenavComponent)
   .component('gvSubmenu', SubmenuComponent)
