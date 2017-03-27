@@ -85,10 +85,10 @@ public class DefaultHttpInvoker implements Invoker {
                     .entrySet()
                     .stream()
                     .filter(endpointEntry -> finalTargetUri.startsWith(endpointEntry.getValue()))
-                    .map(Map.Entry::getValue)
+                    .map(Map.Entry::getKey)
                     .findFirst();
 
-            endpoint = endpointManager.getOrDefault(endpointName.isPresent() ? endpointName.get() : null);
+            endpoint = endpointManager.getOrDefault(endpointName.orElse(null));
         }
 
         // No endpoint has been selected by load-balancer strategy nor overridden value
