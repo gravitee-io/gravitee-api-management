@@ -39,6 +39,10 @@ import ApiSubscribeComponent from './api/subscribe/api-subscribe.component';
 import ApiPagesComponent from './api/documentation/api-pages.component';
 import ApiPageComponent from './api/documentation/api-page.component';
 
+// Portal Pages
+import PagesComponent from './pages/pages.component';
+import PageComponent from './pages/page.component';
+
 import { NavbarComponent } from './components/navbar/navbar.component';
 
 angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.translate'])
@@ -52,6 +56,8 @@ angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.tran
   .component('apiPlans', ApiPlansComponent)
   .component('apiPages', ApiPagesComponent)
   .component('apiPage', ApiPageComponent)
+  .component('pages', PagesComponent)
+  .component('page', PageComponent)
   .component('apiSubscribe', ApiSubscribeComponent)
   .component('graviteeNavbar', NavbarComponent)
   .filter('humanDateFilter', function () {

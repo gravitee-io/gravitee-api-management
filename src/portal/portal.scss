@@ -21,20 +21,20 @@
 }
 
 .main-container {
-  min-height: calc(100vh - 226px);
+  min-height: calc(100vh - 120px);
 }
 
 #main-content {
-  min-height: calc(100vh - 226px);
+  min-height: calc(100vh - 120px);
 }
 
 #footer {
-  min-height: 226px;
+  min-height: 120px;
   background-color: #EFEFEF;
   div.footer-brand {
     border-left: 1px solid rgb(45,50,62);
     color: rgb(45,50,62);
-    padding: 0px 60px 0px 60px;
+    padding: 30px 60px;
     min-height: 120px;
   }
 }

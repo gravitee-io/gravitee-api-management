@@ -244,6 +244,12 @@ import ViewsComponent from '../management/configuration/views/views.component';
 import TenantsComponent from '../management/configuration/tenants/tenants.component';
 import TagsComponent from '../management/configuration/tags/tags.component';
 
+
+import PortalPagesComponent from '../management/configuration/pages/portalPages.component';
+import PortalPagesController from '../management/configuration/pages/portalPages.controller';
+import NewPageController from '../management/configuration/pages/page/newPage.controller';
+import PortalPagesService from '../services/portalPages.service';
+
 import applicationRouterConfig from './application/applications.route';
 import apisRouterConfig from './api/apis.route';
 import configurationRouterConfig from './configuration/configuration.route';
@@ -349,6 +355,8 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .controller('DeleteTagDialogController', DeleteTagDialogController)
   .controller('DialogConfirmController', DialogConfirmController)
   .controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController)
+  .controller('PortalPagesController', PortalPagesController)
+  .controller('NewPageController', NewPageController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
@@ -367,6 +375,7 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .service('SubscriptionService', SubscriptionService)
   .service('TagService', TagService)
   .service('TenantService', TenantService)
+  .service('PortalPagesService', PortalPagesService)
   .directive('filecontent', () => DocumentationDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())
@@ -385,6 +394,7 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .component('views', ViewsComponent)
   .component('tenants', TenantsComponent)
   .component('tags', TagsComponent)
+  .component('portalPages', PortalPagesComponent)
 
   .component('instances', InstancesComponent)
   .component('instance', InstanceComponent)

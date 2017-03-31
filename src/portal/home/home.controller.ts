@@ -17,10 +17,12 @@ import angular = require('angular');
 
 export class HomeController {
   private apis: any[];
+  private homepage: any;
 
-  constructor (private resolvedApis, private $state) {
+  constructor (private resolvedApis, private $state, private resolvedHomepage) {
     'ngInject';
     this.apis = resolvedApis.data;
+    this.homepage = resolvedHomepage;
     this.$state = $state;
   }
 

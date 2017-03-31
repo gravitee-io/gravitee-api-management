@@ -16,6 +16,7 @@
 import ViewService from "../services/view.service";
 import ApiService from "../services/api.service";
 import DocumentationService from "../services/apiDocumentation.service";
+import PortalPagesService from "../services/portalPages.service";
 import ApplicationService from "../services/applications.service";
 import SubscriptionService from "../services/subscription.service";
 
@@ -26,11 +27,15 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
     .state('portal', {
       abstract: true,
       template: require('./index.html'),
-      controller: function (Build, $rootScope, Constants) {
+      controller: function (Build, $rootScope, Constants, resolvedDocumentation) {
         this.graviteeVersion = Build.version;
         $rootScope.portalTitle = Constants.portalTitle;
+        this.pages = resolvedDocumentation;
       },
-      controllerAs: 'indexCtrl'
+      controllerAs: 'indexCtrl',
+      resolve: {
+        resolvedDocumentation: (PortalPagesService: PortalPagesService) => PortalPagesService.listPortalDocumentation().then(response => response.data)
+      }
     })
     .state('portal.home', {
       url: '/',
@@ -43,7 +48,8 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
             return ApiService.list($stateParams.view);
           }
           return ApiService.list();
-        }
+        },
+        resolvedHomepage: (PortalPagesService: PortalPagesService) => PortalPagesService.getHomepage().then(response => response.data)
       }
     })
     .state('portal.apis', {
@@ -115,6 +121,29 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       resolve: {
         page: ($stateParams: ng.ui.IStateParamsService, DocumentationService: DocumentationService) =>
           DocumentationService.get($stateParams['apiId'], $stateParams['pageId']).then(response => response.data)
+      },
+      params: {
+        pageId: {
+          type: 'string',
+          value: '',
+          squash: true
+        }
+      }
+    })
+    .state('portal.pages', {
+      url: '/pages',
+      component: 'pages',
+      resolve: {
+        pages: ($stateParams: ng.ui.IStateParamsService, PortalPagesService: PortalPagesService) =>
+          PortalPagesService.listPortalDocumentation().then(response => response.data)
+      },
+    })
+    .state('portal.pages.page', {
+      url: '/:pageId',
+      component: 'page',
+      resolve: {
+        page: ($stateParams: ng.ui.IStateParamsService, PortalPagesService: PortalPagesService) =>
+          PortalPagesService.get($stateParams['pageId']).then(response => response.data)
       },
       params: {
         pageId: {

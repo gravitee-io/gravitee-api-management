@@ -32,7 +32,7 @@ md-card {
 }
 
 .footer-links-section {
-  padding: 0px 60px 0px 60px;
+  padding: 0 60px;
   h3 {
     font: 500 14px/16px Roboto,sans-serif;
   }
@@ -40,11 +40,11 @@ md-card {
     padding: 0;
     list-style-type: none;
     li {
-      margin: 16px 0;
+      margin: 6px 0;
       a {
         text-decoration: none;
-        color: rgb(45,50,62);
-        font: 14px/16px Roboto,sans-serif;
+        //color: rgb(45,50,62);
+        font: 12px/14px Roboto,sans-serif;
       }
     }
   }
@@ -57,4 +57,9 @@ a.views-links {
   i {
     font-size: 32px;
   }
+}
+
+#portal-homepage {
+  background-color: white;
+  color: black;
 }

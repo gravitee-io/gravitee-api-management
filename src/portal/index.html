@@ -19,45 +19,24 @@
   <div ui-view class="main-container"></div>
 
   <section id="footer">
-    <footer layout="row" flex layout-align="center center">
+    <footer layout="row" layout-align="space-around center">
       <div>
-        <ul class="footer-links">
+        <ul class="footer-links" layout="column">
           <li class="footer-links-section">
-            <h3>First category</h3>
+            <h3>{{'home.pages.title' | translate}}</h3>
             <ul>
-              <li><a href="#">Link 1</a></li>
-              <li><a href="#">Link 2</a></li>
-              <li><a href="#">Link 3</a></li>
-              <li><a href="#">Link 4</a></li>
-            </ul>
-          </li>
-          <li class="footer-links-section">
-            <h3>Second category</h3>
-            <ul>
-              <li><a href="#">Link 1</a></li>
-              <li><a href="#">Link 2</a></li>
-              <li><a href="#">Link 3</a></li>
-              <li><a href="#">Link 4</a></li>
-            </ul>
-          </li>
-          <li class="footer-links-section">
-            <h3>Third category</h3>
-            <ul>
-              <li><a href="#">Link 1</a></li>
-              <li><a href="#">Link 2</a></li>
-              <li><a href="#">Link 3</a></li>
-              <li><a href="#">Link 4</a></li>
+              <li data-ng-repeat="page in indexCtrl.pages"><a ui-sref="portal.pages.page({pageId: page.id})">{{page.name}}</a></li>
             </ul>
           </li>
         </ul>
       </div>
-      <div class="footer-brand" layout="column" layout-align="center center">
-        <div layout="row">
-          <span>
-            <img style="vertical-align: middle;" width="32" height="32" ng-src="assets/GRAVITEE_LOGO1-01.png"/>
-            <span><b translate="home.title"></b> {{'home.subtitle' | translate}}</span>
-            <small translate="home.version" translate-values="{version: indexCtrl.graviteeVersion}"></small>
-          </span>
+      <div class="footer-brand" layout="row" layout-align="center center">
+        <div>
+          <img style="vertical-align: middle;" width="32" height="32" ng-src="assets/GRAVITEE_LOGO1-01.png"/>
+        </div>
+        <div layout="column">
+          <span><b translate="home.title"></b> {{'home.subtitle' | translate}}</span>
+          <small translate="home.version" translate-values="{version: indexCtrl.graviteeVersion}"></small>
         </div>
       </div>
     </footer>

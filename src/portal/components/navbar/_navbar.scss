@@ -8,6 +8,14 @@ md-toolbar.topnavbar {
 
 .topnavbar-brand {
   margin-left: 4px;
+  a {
+    text-decoration: none;
+    color: #fff;
+    img {
+      width: 50px;
+      height: 50px;
+    }
+  }
 }
 
 .gv-navbar-link:hover, .gv-navbar-link:focus {
@@ -17,4 +25,37 @@ md-toolbar.topnavbar {
 .gv-navbar-user-link {
   padding-top: 2px;
   margin-top: 2px;
+  font-size: 12px;
+  text-transform: none;
+  img {
+    vertical-align: middle;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.gv-menu-content {
+  padding-bottom: 0;
+
+  h5 {
+    margin-bottom: 0;
+  }
+
+  .gv-menu-content-main {
+    padding-bottom: 8px;
+
+    img{
+      width: 54px;
+      height: 54px;
+    }
+
+    .gv-menu-content-links {
+      padding: 10px 8px;
+      border-left: 1px solid rgb(45,50,62);
+    }
+  }
+
+  .gv-menu-content-footer {
+    background-color: #F5F5F5;
+  }
 }

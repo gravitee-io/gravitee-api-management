@@ -13,6 +13,9 @@
     "title": "Gravitee.io",
     "subtitle": "Portail développeur",
     "version": "Version: {{version}}",
+    "pages": {
+      "title": "Documentation"
+    },
     "apis": {
       "more": "Voir plus",
       "search": "Filtrer APIs...",
@@ -24,8 +27,8 @@
     "login": "Connexion",
     "gallery": "Galerie d'APIs",
     "profile": "Mon compte",
-    "management": "Back office",
-    "applications": "Applications",
+    "management": "Administration",
+    "applications": "Mes applications",
     "logout": "Déconnexion"
   },
   "apis": {

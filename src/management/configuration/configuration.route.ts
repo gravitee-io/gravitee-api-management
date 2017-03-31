@@ -15,8 +15,9 @@
  */
 import ViewService from '../../services/view.service';
 import TenantService from '../../services/tenant.service';
-import TagService from '../../services/tenant.service';
+import TagService from '../../services/tag.service';
 import SidenavService from '../../components/sidenav/sidenav.service';
+import PortalPagesService from '../../services/portalPages.service';
 
 export default configurationRouterConfig;
 
@@ -100,5 +101,40 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         roles: ['ADMIN']
       }
+    })
+    .state('management.configuration.admin.pages', {
+      url: '/pages',
+      component: 'portalPages',
+      resolve: {
+        pages: (PortalPagesService: PortalPagesService) => PortalPagesService.list().then(response => response.data)
+      },
+      data: {
+        menu: {
+          label: 'Portal pages',
+          icon: 'insert_drive_file'
+        },
+        roles: ['ADMIN']
+      }
+    })
+    .state('management.configuration.admin.pages.new', {
+      url: '/new',
+      template: require('./pages/page/page.html'),
+      controller: 'NewPageController',
+      controllerAs: 'pageCtrl',
+      data: {menu: null},
+      params: {
+        type: {
+          type: 'string',
+          value: '',
+          squash: false
+        }
+      }
+    })
+    .state('management.configuration.admin.pages.page', {
+      url: '/:pageId',
+      template: require('./pages/page/page.html'),
+      controller: 'NewPageController',
+      controllerAs: 'pageCtrl',
+      data: {menu: null}
     });
 }
