@@ -162,6 +162,10 @@ class ApiService {
     return this.$http.get(this.apisURL + apiId + '/plans?status=staging,published,closed');
   }
 
+  getApiPlan(apiId, planId) {
+    return this.$http.get(this.apisURL + apiId + '/plans/' + planId);
+  }
+
   getPublishedApiPlans(apiId) {
     return this.$http.get(this.apisURL + apiId + '/plans?status=published');
   }

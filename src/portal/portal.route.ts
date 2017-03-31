@@ -16,6 +16,8 @@
 import ViewService from "../services/view.service";
 import ApiService from "../services/api.service";
 import DocumentationService from "../services/apiDocumentation.service";
+import ApplicationService from "../services/applications.service";
+import SubscriptionService from "../services/subscription.service";
 
 function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
   'ngInject';
@@ -119,6 +121,18 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
           value: '',
           squash: true
         }
+      }
+    })
+    .state('portal.api.subscribe', {
+      url: '/subscribe/:planId',
+      component: 'apiSubscribe',
+      resolve: {
+        applications: (ApplicationService: ApplicationService) =>
+          ApplicationService.list().then(response => response.data),
+        plan: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getApiPlan($stateParams['apiId'], $stateParams['planId']).then(response => response.data),
+        subscriptions: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getPlanSubscriptions($stateParams['apiId'], $stateParams['planId']).then(response => response.data)
       }
     });
 }

@@ -1,0 +1,55 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-dialog aria-label="Application Permissions Help">
+  <h4 layout-padding>Application Permissions</h4>
+  <md-dialog-content>
+    <md-table-container>
+      <table md-table>
+        <thead md-head md-order="action">
+        <tr md-row>
+          <th md-column order-by="action">Action</th>
+          <th md-column>User</th>
+          <th md-column>Owner</th>
+          <th md-column>Primary Owner</th>
+        </tr>
+        </thead>
+        <tbody md-body>
+        <tr md-row ng-repeat="permission in permissions">
+          <td md-cell>
+            <span>{{permission.action}}</span>
+          </td>
+          <td md-cell>
+            <ng-md-icon ng-if="permission.user" icon="done" style="fill: #b1bdc5;" size="16"></ng-md-icon>
+          </td>
+          <td md-cell>
+            <ng-md-icon ng-if="permission.owner" icon="done" style="fill: #b1bdc5;" size="16"></ng-md-icon>
+          </td>
+          <td md-cell>
+            <ng-md-icon ng-if="permission.primary_owner" icon="done" style="fill: #b1bdc5;" size="16"></ng-md-icon>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </md-table-container>
+  </md-dialog-content>
+  <md-dialog-actions layout="row">
+    <md-button ng-click="ctrl.cancel()" class="md-primary">
+      Close
+    </md-button>
+  </md-dialog-actions>
+</md-dialog>

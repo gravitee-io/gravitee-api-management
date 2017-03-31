@@ -168,6 +168,21 @@ import ApiPlanComponent from '../management/api/api-plan.component';
 
 // Applications
 import ApplicationService from '../services/applications.service';
+import ApplicationsComponent from './application/applications.component';
+import ApplicationsController from './application/applications.controller';
+import ApplicationComponent from './application/details/application.component';
+import ApplicationHeaderComponent from './application/details/header/application-header.component';
+import ApplicationGeneralController from './application/details/general/application-general.controller';
+import ApplicationGeneralComponent from './application/details/general/application-general.component';
+import ApplicationMembersController from './application/details/members/application-members.controller';
+import ApplicationMembersComponent from './application/details/members/application-members.component';
+import ApplicationSubscriptionsController from './application/details/subscriptions/application-subscriptions.controller';
+import ApplicationSubscriptionsComponent from './application/details/subscriptions/application-subscriptions.component';
+import ApplicationAnalyticsController from './application/details/analytics/application-analytics.controller';
+import ApplicationAnalyticsComponent from './application/details/analytics/application-analytics.component';
+import DialogApplicationController from './application/dialog/applicationDialog.controller';
+import DialogAddMemberController from './application/details/members/addMemberDialog.controller';
+import DialogApplicationPermissionsHelpController from './application/details/members/application-permissions-dialog.controller';
 
 // Instances
 import InstancesService from '../services/instances.service';
@@ -229,6 +244,7 @@ import ViewsComponent from '../management/configuration/views/views.component';
 import TenantsComponent from '../management/configuration/tenants/tenants.component';
 import TagsComponent from '../management/configuration/tags/tags.component';
 
+import applicationRouterConfig from './application/applications.route';
 import apisRouterConfig from './api/apis.route';
 import configurationRouterConfig from './configuration/configuration.route';
 
@@ -259,6 +275,7 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .config(config)
   .config(routerConfig)
   .config(managementRouterConfig)
+  .config(applicationRouterConfig)
   .config(apisRouterConfig)
   .config(configurationRouterConfig)
   .config(interceptorConfig)
@@ -389,6 +406,22 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .controller('DashboardFilterController', DashboardFilterController)
   .component('gvDashboardTimeframe', DashboardTimeframeComponent)
   .controller('DashboardTimeframeController', DashboardTimeframeController)
+
+  .component('applications', ApplicationsComponent)
+  .component('application', ApplicationComponent)
+  .component('applicationHeader', ApplicationHeaderComponent)
+  .component('applicationGeneral', ApplicationGeneralComponent)
+  .component('applicationSubscriptions', ApplicationSubscriptionsComponent)
+  .component('applicationMembers', ApplicationMembersComponent)
+  .component('applicationAnalytics', ApplicationAnalyticsComponent)
+  .controller('DialogApplicationController', DialogApplicationController)
+  .controller('DialogAddMemberController', DialogAddMemberController)
+  .controller('DialogApplicationPermissionsHelpController', DialogApplicationPermissionsHelpController)
+  .controller('ApplicationsController', ApplicationsController)
+  .controller('ApplicationGeneralController', ApplicationGeneralController)
+  .controller('ApplicationMembersController', ApplicationMembersController)
+  .controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController)
+  .controller('ApplicationAnalyticsController', ApplicationAnalyticsController)
 
   .component('user', UserComponent)
 

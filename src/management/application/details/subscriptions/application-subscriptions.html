@@ -15,24 +15,21 @@
     limitations under the License.
 
 -->
-<div ng-if="subscriptionsCtrl.hasKeysDefined()">
+<div ng-if="$ctrl.hasKeysDefined()">
   <span class="md-headline" style="padding: 24px 16px 16px;">Subscriptions</span>
 
   <span class="btn-group pull-right">
-    <button class="btn btn-default" ng-class="{'active': subscriptionsCtrl.selectedStatus.indexOf(statusFilter) !== -1}"
-            ng-click="subscriptionsCtrl.changeFilter(statusFilter)" type="button"
-            ng-repeat="statusFilter in subscriptionsCtrl.statusFilters" style="text-transform: capitalize;">
+    <button class="btn btn-default" ng-class="{'active': $ctrl.selectedStatus.indexOf(statusFilter) !== -1}"
+            ng-click="$ctrl.changeFilter(statusFilter)" type="button"
+            ng-repeat="statusFilter in $ctrl.statusFilters" style="text-transform: capitalize;">
       {{statusFilter}}
     </button>
   </span>
 
   <div layout-padding ui-tree data-empty-placeholder-enabled="false"
-       ng-repeat="subscriptions in subscriptionsCtrl.subscriptionsByApplication">
-    <div ui-tree-nodes ng-model="data">
-      <h4><b>{{subscriptions[0].application.name}} </b>
-        <span style="font-size: small;" ng-if="subscriptions[0].application.type">( {{subscriptions[0].application.type}} )</span>
-        <span style="color:rgba(0, 0, 0, 0.54);font-size: small;">by {{subscriptions[0].application.owner.username}}</span>
-      </h4>
+       ng-repeat="(api, subscriptions) in $ctrl.subscriptionsByApi">
+    <div ui-tree-nodes ng-model="$ctrl.data">
+      <h5>[ <a ui-sref="apis.portal.pages({apiId: api})"><b>{{$ctrl.apiNameById[api]}}</b></a> ]</h5>
       <table md-table>
         <thead md-head>
         <tr md-row>
@@ -43,18 +40,17 @@
           <th md-column>End Date</th>
           <th md-column>Status</th>
           <th md-column width="10%">
-            <md-checkbox md-no-ink aria-label="Show all API keys" ng-model="showRevokedKeys" class="md-primary">
+            <md-checkbox md-no-ink aria-label="Show all API keys" ng-model="$ctrl.showRevokedKeys" class="md-primary">
               Show revoked
             </md-checkbox>
           </th>
         </tr>
         </thead>
         <tbody md-body ui-tree-node ng-repeat="subscription in subscriptions">
-        <tr md-row style="font-weight: bold"
-            ng-class="{'gravitee-no-link': 'accepted' !== subscription.status}"
-            ng-click="subscriptionsCtrl.toggleSubscription(this, subscription)">
+        <tr md-row style="font-weight: bold">
           <td md-cell style="line-height: 30px;">
-            <a style="text-decoration: none" ng-show="'accepted' === subscription.status">
+            <a style="text-decoration: none" ng-if="'accepted' === subscription.status"
+               ng-click="$ctrl.toggleSubscription(this, subscription)">
               <ng-md-icon style="top: 7px;" icon="{{collapsed? 'expand_less' : 'expand_more'}}"></ng-md-icon>
             </a>
             {{subscription.plan.name}}
@@ -68,35 +64,21 @@
             {{subscription.status}}
           </td>
           <td md-cell>
-            <div ng-if="'pending' === subscription.status">
-              <span>
-                <md-tooltip md-direction="left">Accept subscription</md-tooltip>
-                <ng-md-icon icon="done" style="top: 0;fill: green"
-                            ng-click="subscriptionsCtrl.process(subscription, true)"></ng-md-icon>
-              </span>
-              <span>
-                <md-tooltip md-direction="left">Refuse subscription</md-tooltip>
-                <ng-md-icon icon="block" style="top: 0;fill: red"
-                            ng-click="subscriptionsCtrl.process(subscription, false)"></ng-md-icon>
-              </span>
-            </div>
             <div ng-if="'accepted' === subscription.status">
-              <span>
-                <md-tooltip ng-if="apiCtrl.isOwner()" md-direction="left">Renew your API Key</md-tooltip>
-                <ng-md-icon ng-if="apiCtrl.isOwner()" icon="autorenew" style="top: 0;"
-                            ng-click="subscriptionsCtrl.generateAPIKey(subscriptionsCtrl.api.id, subscription)"></ng-md-icon>
-              </span>
+              <md-tooltip ng-if="applicationCtrl.isOwner()" md-direction="left">Renew your API Key</md-tooltip>
+              <ng-md-icon ng-if="applicationCtrl.isOwner()" icon="autorenew" style="top: 0;"
+                          ng-click="$ctrl.generateAPIKey($ctrl.application.id, subscription)"></ng-md-icon>
             </div>
           </td>
         </tr>
-        <tr md-row ng-if="collapsed" ng-repeat="apiKey in subscription.apiKeys | filter: showRevokedKeys" ng-mouseover="hovered = true" ng-mouseout="hovered = false">
+        <tr md-row ng-if="collapsed" ng-repeat="apiKey in subscription.apiKeys | filter: $ctrl.showRevokedKeys" ng-mouseover="hovered = true" ng-mouseout="hovered = false">
           <td md-cell colspan="4" style="line-height: 30px;">
             <ng-md-icon icon="{{apiKey.revoked?'clear':'done'}}" ng-style="{'fill': apiKey.revoked ? '#BE2628':'#107F20'}"></ng-md-icon>
             <code>{{apiKey.key}}</code>
             <span style="position: absolute">
             <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
             <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"  ngclipboard data-clipboard-text="{{apiKey.key}}"
-                        ngclipboard-success="subscriptionsCtrl.onClipboardSuccess(e);" role="button" ></ng-md-icon>
+                        ngclipboard-success="$ctrl.onClipboardSuccess(e);" role="button" ></ng-md-icon>
           </span>
           </td>
           <td md-cell>{{apiKey.revoked_at || apiKey.expire_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
@@ -104,13 +86,13 @@
           <td md-cell>
             <span ng-if="!apiKey.revoked">
               <md-tooltip md-direction="left">Revoke this API Key</md-tooltip>
-              <ng-md-icon ng-if="apiCtrl.isOwner()" style="top: 0;" icon="not_interested"
-                          ng-click="subscriptionsCtrl.revoke(subscription, apiKey.key)"></ng-md-icon>
+              <ng-md-icon ng-if="applicationCtrl.isOwner()" style="top: 0;" icon="not_interested"
+                          ng-click="$ctrl.revoke(subscription, apiKey.key)"></ng-md-icon>
             </span>
             <span ng-if="!apiKey.revoked">
               <md-tooltip md-direction="left">Set expiration for this API Key</md-tooltip>
-              <ng-md-icon ng-if="apiCtrl.isOwner()" style="top: 0;" icon="schedule"
-                          ng-click="subscriptionsCtrl.showExpirationModal(apiKey)"></ng-md-icon>
+              <ng-md-icon ng-if="applicationCtrl.isOwner()" style="top: 0;" icon="schedule"
+                          ng-click="$ctrl.showExpirationModal(api, apiKey)"></ng-md-icon>
             </span>
           </td>
         </tr>
@@ -119,12 +101,9 @@
     </div>
   </div>
 </div>
-<gravitee-empty-state ng-if="!subscriptionsCtrl.hasKeysDefined()"
+
+<gravitee-empty-state ng-if="!$ctrl.hasKeysDefined()"
                       icon="vpn_key"
                       model="Subscription"
-                      message="Your API Subscriptions will appear here"
-                      create-mode="true"></gravitee-empty-state>
-
-<md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="subscriptionsCtrl.showAddSubscriptionModal()">
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
+                      message="Your Application Subscriptions will appear here"
+                      sub-message="Start playing with APIs"></gravitee-empty-state>

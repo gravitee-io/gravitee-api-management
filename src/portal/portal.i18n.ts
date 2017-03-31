@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function portali18nConfig($translateProvider, $windowProvider) {
+function portalI18nConfig($translateProvider, $windowProvider) {
   'ngInject';
 
   $translateProvider.useStaticFilesLoader({
@@ -28,4 +28,4 @@ function portali18nConfig($translateProvider, $windowProvider) {
   $translateProvider.useSanitizeValueStrategy('escape');
 }
 
-export default portali18nConfig;
+export default portalI18nConfig;

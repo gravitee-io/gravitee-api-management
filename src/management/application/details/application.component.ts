@@ -13,9 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApiCreationComponent: ng.IComponentOptions = {
-  template: require('./api-creation.html'),
-  controller: 'ApiCreationController'
+
+import SidenavService from '../../../components/sidenav/sidenav.service';
+
+const ApplicationComponent: ng.IComponentOptions = {
+  bindings: {
+    application: '<'
+  },
+  controller: function(SidenavService : SidenavService) {
+    'ngInject';
+
+    this.$onInit = function() {
+      SidenavService.setCurrentResource(this.application.name);
+    };
+  },
+  template: require('./application.html')
 };
 
-export default ApiCreationComponent;
+export default ApplicationComponent;

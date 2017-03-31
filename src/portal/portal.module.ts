@@ -23,7 +23,7 @@ import * as moment from 'moment';
 
 import portalRouterConfig from './portal.route';
 
-import portali18nConfig from './portal.i18n';
+import portalI18nConfig from './portal.i18n';
 
 import { HomeController } from './home/home.controller';
 import { PortalApisController } from './api/apis.controller';
@@ -32,7 +32,8 @@ import { PortalApisController } from './api/apis.controller';
 import ApiComponent from './api/home/api.component';
 import ApiHeaderComponent from './api/home/api-header.component';
 import ApiHomepageComponent from './api/home/api-homepage.component';
-import ApiPlansComponent from './api/home/api-plans.component';
+import ApiPlansComponent from './api/plan/api-plans.component';
+import ApiSubscribeComponent from './api/subscribe/api-subscribe.component';
 
 // API documentation
 import ApiPagesComponent from './api/documentation/api-pages.component';
@@ -42,7 +43,7 @@ import { NavbarDirective } from './components/navbar/navbar.directive';
 
 angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.translate'])
   .config(portalRouterConfig)
-  .config(portali18nConfig)
+  .config(portalI18nConfig)
   .controller('HomeController', HomeController)
   .controller('PortalApisController', PortalApisController)
   .component('api', ApiComponent)
@@ -51,6 +52,7 @@ angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.tran
   .component('apiPlans', ApiPlansComponent)
   .component('apiPages', ApiPagesComponent)
   .component('apiPage', ApiPageComponent)
+  .component('apiSubscribe', ApiSubscribeComponent)
   .directive('graviteeNavbar', NavbarDirective)
   .filter('humanDateFilter', function () {
     return function(input) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import DocumentationService from "../../../services/apiDocumentation.service";
+import DocumentationService from '../../../services/apiDocumentation.service';
 
 const ApiPageComponent: ng.IComponentOptions = {
   bindings: {

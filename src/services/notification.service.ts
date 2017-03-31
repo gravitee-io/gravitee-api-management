@@ -15,30 +15,38 @@
  */
 
 class NotificationService {
-  constructor (
-    private $mdToast: ng.material.IToastService) {
+  constructor(private $mdToast: ng.material.IToastService,
+              private $translate: any) {
     'ngInject';
   }
 
-  show(message: any, isError?: boolean) {
-      this.$mdToast.show(
-        this.$mdToast.simple()
-          .textContent(message.statusText || message)
+  show(message: any, isError?: boolean, params?: any) {
+    const vm = this;
+    let msg;
+    vm.$translate(message.statusText || message, params).then(function (translatedMessage) {
+      msg = translatedMessage;
+    }).catch(function (translatedMessage) {
+      msg = translatedMessage;
+    }).finally(function () {
+      vm.$mdToast.show(
+        vm.$mdToast.simple()
+          .textContent(msg)
           .position('bottom right')
           .hideDelay(3000)
           .theme(isError ? 'toast-error' : 'toast-success')
       );
-    }
+    });
+  }
 
   showError(error: any, message?: string) {
-      this.show(message || (
+    this.show(message || (
         error.data ?
           Array.isArray(error.data) ?
             error.data[0].message
             : (error.data.message || error.data)
           : error
-        ), true);
-    }
+      ), true);
+  }
 }
 
 export default NotificationService;

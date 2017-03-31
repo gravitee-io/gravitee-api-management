@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApiCreationComponent: ng.IComponentOptions = {
-  template: require('./api-creation.html'),
-  controller: 'ApiCreationController'
+const ApplicationMembersComponent: ng.IComponentOptions = {
+  bindings: {
+    application: '<',
+    members: '<',
+    groupMembers: '<'
+  },
+  controller: 'ApplicationMembersController',
+  template: require('./application-members.html')
 };
 
-export default ApiCreationComponent;
+export default ApplicationMembersComponent;

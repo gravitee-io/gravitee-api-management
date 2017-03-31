@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -15,9 +13,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var Authority = (function () {
-    function Authority() {
-    }
-    return Authority;
-}());
-exports.Authority = Authority;
+const ApplicationGeneralComponent: ng.IComponentOptions = {
+  bindings: {
+    application: '<'
+  },
+  controller: 'ApplicationGeneralController',
+  template: require('./application-general.html')
+};
+
+export default ApplicationGeneralComponent;

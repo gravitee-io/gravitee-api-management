@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApiCreationComponent: ng.IComponentOptions = {
-  template: require('./api-creation.html'),
-  controller: 'ApiCreationController'
+import ApiSubscribeController from './api-subscribe';
+
+const ApiSubscribeComponent: ng.IComponentOptions = {
+  bindings: {
+    api: '<',
+    plan: '<',
+    applications: '<',
+    subscriptions: '<'
+  },
+  template: require('./api-subscribe.html'),
+  controller: ApiSubscribeController
 };
 
-export default ApiCreationComponent;
+export default ApiSubscribeComponent;

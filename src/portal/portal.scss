@@ -20,6 +20,10 @@
   padding-bottom: 50px;
 }
 
+.main-container {
+  min-height: calc(100vh - 226px);
+}
+
 #main-content {
   min-height: calc(100vh - 226px);
 }

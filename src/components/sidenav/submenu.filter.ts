@@ -13,11 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as _ from 'lodash';
+
 export const submenuFilter = function($state: ng.ui.IStateService) {
   'ngInject';
   return function(menuItems: ng.ui.IState[]) {
     let universeLevels: string[] = $state.current.name.split('.').splice(0, 2);
-    if (universeLevels.indexOf('configuration') !== -1 || $state.params.apiId || $state.params.instanceId) {
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    let hasId = false;
+
+    _.forEach(_.values($state.params), function (param) {
+      if (uuidPattern.test(param)) {
+        hasId = true;
+      }
+    });
+
+    if (universeLevels.indexOf('configuration') !== -1 || hasId) {
       let universe: string = `${universeLevels.join('.')}.`;
       return menuItems.filter((cState) => (
         !cState.abstract &&

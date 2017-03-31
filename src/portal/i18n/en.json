@@ -1,4 +1,14 @@
 {
+  "common": {
+    "copyToClipboard": "Copy to clipboard",
+    "NANOSECONDS": "nanoseconds",
+    "MICROSECONDS": "microseconds",
+    "MILLISECONDS": "milliseconds",
+    "SECONDS": "seconds",
+    "MINUTES": "minuts",
+    "HOURS": "hours",
+    "DAYS": "days"
+  },
   "home": {
     "title": "Gravitee.io",
     "subtitle": "Developers portal",
@@ -15,5 +25,28 @@
     "filter": "Filter...",
     "views": "Quick filters: ",
     "more": "Explore"
+  },
+  "api": {
+    "subscription": {
+      "title": "Select an application to subscribe",
+      "subtitle": "You are subscribing to plan {{planName}} {{planInformation}}",
+      "placeholder": "Select an application...",
+      "action": "Subscribe for the application {{applicationName}}",
+      "keyless": "This plan is keyless. You can already use it without subscription.",
+      "success": "Let's start to use the API \"{{apiName}}\" with the application \"{{applicationName}}\"!",
+      "sample": "You can access the API with the following api-key",
+      "validationInProgress": "Waiting for validation for the application \"{{applicationName}}\"!",
+      "sampleNotValidated": "Once validated, you will be able to access your API with the given api-key as below:",
+      "successful": "Application has successfully subscribed to plan {{planName}}",
+      "apiKeyCopySuccess": "API Key has been copied to clipboard",
+      "planInformation": "with a quota of {{quotaLimit}} requests per {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
+    }
+  },
+  "applications": {
+    "empty": "You do not have any application!",
+    "start": "Let's start by creating your first application."
+  },
+  "application": {
+    "notFound": "No applications matching \"{{applicationName}}\" were found."
   }
 }
