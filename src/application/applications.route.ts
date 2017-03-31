@@ -15,6 +15,8 @@
  */
 import ApplicationService from "../services/applications.service";
 import GroupService from "../services/group.service";
+import UserService from '../services/user.service';
+import * as _ from 'lodash';
 
 export default applicationsConfig;
 
@@ -64,8 +66,15 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         devMode: true
       },
       resolve: {
-        application: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
-          ApplicationService.get($stateParams['applicationId']).then(response => response.data)
+        groups: (UserService: UserService, GroupService: GroupService) => {
+          if (UserService.isUserInRoles(['ADMIN'])) {
+            return GroupService.list("APPLICATION").then((groups) => {
+              return _.unionBy([GroupService.getEmptyGroup()], groups.data, "id");
+            });
+          } else {
+            return [GroupService.getEmptyGroup()];
+          }
+        }
       }
     })
     .state('applications.portal.subscriptions', {
