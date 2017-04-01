@@ -18,6 +18,7 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.UpdateUserEntity;
+import io.gravitee.management.model.permissions.Role;
 import io.gravitee.management.security.JWTCookieGenerator;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
@@ -27,6 +28,8 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.http.HttpServletResponse;
@@ -35,6 +38,8 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Azize Elamrani (azize at gravitee.io)
@@ -61,14 +66,19 @@ public class UserResource extends AbstractResource {
     public Response getCurrentUser() {
         final Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetails) {
-            final String username = ((UserDetails) principal).getUsername();
+            final UserDetails details = ((UserDetails) principal);
+            final String username = details.getUsername();
             try {
                 userService.findByName(username);
             } catch (final UserNotFoundException unfe) {
                 LOG.info("User '{}' no longer exists.", username, unfe);
                 return logout();
             }
-            return Response.ok(principal, MediaType.APPLICATION_JSON).build();
+            List<GrantedAuthority> authorities = new ArrayList<>(details.getAuthorities());
+            authorities.add(new SimpleGrantedAuthority(Role.API_CONSUMER.name()));
+            return Response.ok(
+                    new UserDetails(details.getUsername(), details.getPassword(), authorities),
+                    MediaType.APPLICATION_JSON).build();
         }
         return Response.ok().build();
     }
