@@ -42,6 +42,7 @@ import io.gravitee.gateway.security.core.SecurityPolicyChainResolver;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -81,6 +82,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     @Override
     protected void doHandle(Request serverRequest, Response serverResponse, Handler<Response> handler,
                             ExecutionContext executionContext) {
+        MDC.put("api", api.getId());
+
         try {
             serverRequest.pause();
 
@@ -119,10 +122,12 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                                 handler.handle(serverResponse);
                             } else {
                                 responsePolicyChain.bodyHandler(chunk -> {
+                                    MDC.put("api", api.getId());
                                     serverRequest.metrics().setResponseContentLength(serverRequest.metrics().getResponseContentLength() + chunk.length());
                                     serverResponse.write(chunk);
                                 });
                                 responsePolicyChain.endHandler(responseEndResult -> {
+                                    MDC.put("api", api.getId());
                                     serverResponse.end();
 
                                     serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
@@ -152,10 +157,14 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                     // Plug server request stream to request policy chain stream
                     serverRequest
                             .bodyHandler(chunk -> {
+                                MDC.put("api", api.getId());
                                 serverRequest.metrics().setRequestContentLength(serverRequest.metrics().getRequestContentLength() + chunk.length());
                                 requestPolicyChainResult.getPolicyChain().write(chunk);
                             })
-                            .endHandler(aVoid -> requestPolicyChainResult.getPolicyChain().end());
+                            .endHandler(aVoid -> {
+                                MDC.put("api", api.getId());
+                                requestPolicyChainResult.getPolicyChain().end();
+                            });
 
                     // Resume request read
                     serverRequest.resume();
@@ -172,6 +181,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
             serverResponse.end();
 
             handler.handle(serverResponse);
+        } finally {
+            MDC.remove("api");
         }
     }
 
