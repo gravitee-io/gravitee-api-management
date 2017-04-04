@@ -129,6 +129,7 @@ md-toolbar{
   .md-tall {
     min-height: 100px;
   }
+  z-index: 10;
 }
 
 a, tr[ui-sref], .gravitee-link {

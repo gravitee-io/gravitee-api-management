@@ -17,23 +17,32 @@
 -->
 <section id="plans" class="tall dark-theme" layout="column" layout-align="center center" layout-padding>
   <h2>Plans</h2>
-  <div layout="row">
-    <md-card ng-repeat="plan in $ctrl.plans" layout-align="center center">
-      <md-card-header>
-        <md-card-title-text layout="column" layout-align="center center">
-          <span class="md-headline">{{::plan.name}}</span>
-          <span class="md-subhead">{{::plan.description}}</span>
-        </md-card-title-text>
-      </md-card-header>
-      <md-card-content layout="column">
-        <div ng-repeat="characteristic in plan.characteristics">
-          <h5>{{::characteristic}}</h5>
-          <md-divider></md-divider>
-        </div>
-      </md-card-content>
-      <md-card-actions>
-        <md-button class="md-raised" ui-sref="portal.api.subscribe({planId: plan.id})">Subscribe</md-button>
-      </md-card-actions>
-    </md-card>
+  <div class="pricing-container">
+    <ul class="pricing-list">
+      <li ng-repeat="plan in $ctrl.plans">
+        <ul class="pricing-wrapper">
+          <li class="is-visible">
+            <h2>{{::plan.name}}</h2>
+            <div class="pricing-validation">{{plan.validation === 'manual'? ('api.plan.manual' | translate): '&nbsp;'}}</div>
+            <header class="pricing-header">
+              <div class="price">
+                <span class="md-headline pricing-description">
+                  <md-tooltip>{{::plan.description}}</md-tooltip>
+                  {{::plan.description}}
+                </span>
+              </div>
+            </header>
+            <div class="pricing-body">
+              <ul class="pricing-features">
+                <li ng-repeat="i in [0, 1, 2, 3, 4, 5]">{{plan.characteristics[i]? plan.characteristics[i] : '&nbsp;'}}</li>
+              </ul>
+            </div>
+            <footer class="pricing-footer">
+              <a class="select" ui-sref="portal.api.subscribe({planId: plan.id})">{{'api.plan.subscribe' | translate}}</a>
+            </footer>
+          </li>
+        </ul>
+      </li>
+    </ul>
   </div>
 </section>

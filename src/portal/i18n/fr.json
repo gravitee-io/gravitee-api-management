@@ -40,6 +40,10 @@
       "successful": "L'application a souscrite au plan {{planName}} avec succés",
       "apiKeyCopySuccess": "La clé d'API a bien été copié dans le presse-papier",
       "planInformation": "avec un quota de {{quotaLimit}} requêtes par {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
+    },
+    "plan": {
+      "subscribe": "Souscrire",
+      "manual": "Souscription soumise à validation"
     }
   },
   "applications": {

@@ -1,7 +1,7 @@
 @import 'home/_home';
 
-@import 'api/api';
-@import 'api/documentation/documentation';
+@import 'api/_api';
+@import 'api/documentation/_documentation';
 
 @import 'application/_applications';
 
@@ -89,6 +89,10 @@ h2.section-title {
   text-align: center;
   color: #757575;
   font: 300 24px/32px Roboto,sans-serif;
+}
+
+ol, ul {
+  list-style: none;
 }
 
 /**

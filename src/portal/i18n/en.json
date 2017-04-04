@@ -40,6 +40,10 @@
       "successful": "Application has successfully subscribed to plan {{planName}}",
       "apiKeyCopySuccess": "API Key has been copied to clipboard",
       "planInformation": "with a quota of {{quotaLimit}} requests per {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
+    },
+    "plan": {
+      "subscribe": "Subscribe",
+      "manual": "Subscription subject to validation"
     }
   },
   "applications": {
