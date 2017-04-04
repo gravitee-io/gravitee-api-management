@@ -16,6 +16,7 @@
 import UserService from './services/user.service';
 import LoginController from './user/login/login.controller';
 import { User } from './entities/user';
+import {IScope} from 'angular';
 
 function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: ng.ui.IUrlRouterProvider) {
   'ngInject';
@@ -43,7 +44,7 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
             component: 'gvSidenav',
           },
           '': {
-            template: '<div ui-view layout="column" flex></div>'
+            template: '<div ui-view layout="column" style="padding-top: 50px;" flex></div>'
           }
         },
         resolve: {
@@ -100,9 +101,9 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
       }
     })
     .state('logout', {
-      controller: (UserService, $state: ng.ui.IStateService) => {
+      controller: (UserService: UserService, $state: ng.ui.IStateService, $rootScope: IScope) => {
         UserService.logout().then(
-          () => { $state.go('home'); }
+          () => { $rootScope.$broadcast('graviteeUserRefresh');$state.go('portal.home'); }
         );
       }
     });

@@ -20,6 +20,14 @@
       "all": "Voir toutes les APIs"
     }
   },
+  "menu": {
+    "login": "Connexion",
+    "gallery": "Galerie d'APIs",
+    "profile": "Mon compte",
+    "management": "Back office",
+    "applications": "Applications",
+    "logout": "Déconnexion"
+  },
   "apis": {
     "all": "Toutes les APIs",
     "filter": "Filtrer...",

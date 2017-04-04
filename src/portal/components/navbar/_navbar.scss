@@ -9,3 +9,12 @@ md-toolbar.topnavbar {
 .topnavbar-brand {
   margin-left: 4px;
 }
+
+.gv-navbar-link:hover, .gv-navbar-link:focus {
+  color: inherit;
+}
+
+.gv-navbar-user-link {
+  padding-top: 2px;
+  margin-top: 2px;
+}

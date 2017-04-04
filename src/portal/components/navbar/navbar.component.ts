@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export function NavbarDirective() {
-  'ngInject';
+import UserService from "../../../services/user.service";
+import {IScope} from "angular";
+export const NavbarComponent: ng.IComponentOptions = {
+  template: require('./navbar.html'),
+  controller: function(UserService: UserService, $scope: IScope) {
+    const vm = this;
 
-  let directive = {
-    restrict: 'E',
-    template: require('./navbar.html'),
-    scope: {
-      reducedMode: '='
-    },
-    controller: function (UserService) {
-      const vm = this;
+    $scope.$on('graviteeUserRefresh', function () {
+      UserService.current().then(function (user) {
+        vm.graviteeUser = user;
+      });
+    });
 
-      vm.$onInit = function() {
-        UserService.current().then(function (user) {
-          vm.graviteeUser = user;
-        });
-      };
-    },
-    controllerAs: 'vm',
-    bindToController: true
-  };
+    vm.$onInit = function () {
+      $scope.$emit('graviteeUserRefresh');
+    }
 
-  return directive;
-}
+    vm.hasRoles = function (roles) {
+      return UserService.isUserInRoles(roles);
+    }
+  }
+};

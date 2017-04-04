@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 import UserService from '../../services/user.service';
+import {IScope} from 'angular';
 
 class LoginController {
   user = {};
   userCreationEnabled: boolean;
 
-  constructor(private UserService: UserService, private $state: ng.ui.IStateService, Constants) {
+  constructor(private UserService: UserService, private $state: ng.ui.IStateService, Constants, private $rootScope: IScope) {
     'ngInject';
     this.userCreationEnabled = Constants.userCreationEnabled;
     this.$state = $state;
+    this.$rootScope = $rootScope;
   }
 
   login($event: Event) {
     $event.preventDefault();
     const that = this;
     this.UserService.login(this.user).then(() => {
-      that.$state.go('management');
+      that.$rootScope.$broadcast('graviteeUserRefresh');
+      that.$state.go('portal.home');
     });
   }
 }

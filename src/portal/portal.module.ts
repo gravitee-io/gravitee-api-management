@@ -39,7 +39,7 @@ import ApiSubscribeComponent from './api/subscribe/api-subscribe.component';
 import ApiPagesComponent from './api/documentation/api-pages.component';
 import ApiPageComponent from './api/documentation/api-page.component';
 
-import { NavbarDirective } from './components/navbar/navbar.directive';
+import { NavbarComponent } from './components/navbar/navbar.component';
 
 angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.translate'])
   .config(portalRouterConfig)
@@ -53,7 +53,7 @@ angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.tran
   .component('apiPages', ApiPagesComponent)
   .component('apiPage', ApiPageComponent)
   .component('apiSubscribe', ApiSubscribeComponent)
-  .directive('graviteeNavbar', NavbarDirective)
+  .component('graviteeNavbar', NavbarComponent)
   .filter('humanDateFilter', function () {
     return function(input) {
       if (!moment().subtract(1, 'weeks').isAfter(input)) {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import SidenavService from "./sidenav.service";
+import SidenavService from './sidenav.service';
 
 export const SubmenuComponent: ng.IComponentOptions = {
   template: require('./submenu.html'),

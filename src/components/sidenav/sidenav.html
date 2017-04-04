@@ -46,15 +46,5 @@
                     icon="{{$ctrl.reducedMode?'chevron_right':'chevron_left'}}"></ng-md-icon>
       </md-button>
     </md-list-item>
-    <md-list-item>
-      <a ui-sref="login" ng-if="!$ctrl.graviteeUser.enabled">
-        <ng-md-icon icon="login"></ng-md-icon>
-        <span ng-if="!$ctrl.reducedMode">Login</span>
-      </a>
-      <a ui-sref="logout" ng-if="$ctrl.graviteeUser.enabled">
-        <ng-md-icon icon="logout"></ng-md-icon>
-        <span ng-if="!$ctrl.reducedMode">Sign out</span>
-      </a>
-    </md-list-item>
   </md-list>
 </md-sidenav>
