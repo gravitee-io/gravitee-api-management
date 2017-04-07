@@ -18,9 +18,10 @@ import angular = require('angular');
 export class HomeController {
   private apis: any[];
 
-  constructor (private resolvedApis) {
+  constructor (private resolvedApis, private $state) {
     'ngInject';
     this.apis = resolvedApis.data;
+    this.$state = $state;
   }
 
   querySearch(query) {
@@ -33,5 +34,11 @@ export class HomeController {
     return function filterFn(item) {
       return (item.value.indexOf(lowercaseQuery) === 0);
     };
+  }
+
+  selectedItemChange(api) {
+    if (api) {
+      this.$state.go('portal.api.detail.general', {'apiId': api.id});
+    }
   }
 }

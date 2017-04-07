@@ -24,11 +24,9 @@
     </div>
     <div layout="row" layout-align="center center" style="margin-top: 10px;">
       <md-autocomplete flex="50"
-                       md-selected-item="homeCtrl.selectedItem"
-                       md-search-text-change="homeCtrl.searchTextChange(homeCtrl.searchText)"
                        md-search-text="homeCtrl.searchText"
                        md-selected-item-change="homeCtrl.selectedItemChange(item)"
-                       md-items="item in homeCtrl.querySearch(ctrl.searchText)"
+                       md-items="item in homeCtrl.querySearch(ctrl.searchText) | filter:homeCtrl.searchText"
                        md-item-text="item.name"
                        md-min-length="0"
                        placeholder="{{'home.apis.search' | translate}}"
