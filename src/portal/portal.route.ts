@@ -26,8 +26,9 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
     .state('portal', {
       abstract: true,
       template: require('./index.html'),
-      controller: function (Build) {
+      controller: function (Build, $rootScope, Constants) {
         this.graviteeVersion = Build.version;
+        $rootScope.portalTitle = Constants.portalTitle;
       },
       controllerAs: 'indexCtrl'
     })

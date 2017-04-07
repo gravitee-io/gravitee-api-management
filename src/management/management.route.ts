@@ -21,7 +21,10 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
     .state('management', {
       url: '/management',
       redirectTo: 'management.apis.list',
-      parent: 'withSidenav'
+      parent: 'withSidenav',
+      controller: function ($rootScope, Constants) {
+        $rootScope.portalTitle = Constants.managementTitle;
+      }
     })
     .state('management.instances', {
       abstract: true,

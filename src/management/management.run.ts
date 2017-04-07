@@ -21,8 +21,6 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
                   PageSwaggerHttpClientService, $timeout, UserService: UserService, Constants) {
   'ngInject';
 
-  $rootScope.portalTitle = Constants.portalTitle;
-
   $transitions.onEnter({ }, function(trans) {
     let fromState = trans.from();
     let toState = trans.to();
