@@ -36,4 +36,9 @@ public class SuccessPolicyResult implements PolicyResult {
     public String message() {
         return null;
     }
+
+    @Override
+    public String contentType() {
+        return null;
+    }
 }
