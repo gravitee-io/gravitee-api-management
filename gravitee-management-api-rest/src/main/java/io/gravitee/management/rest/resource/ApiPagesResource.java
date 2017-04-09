@@ -22,7 +22,9 @@ import io.gravitee.management.rest.security.ApiPermissionsRequired;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.PageService;
+import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.Page;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -63,7 +65,13 @@ public class ApiPagesResource extends AbstractResource {
     public PageEntity getPage(
                 @PathParam("api") String api,
                 @PathParam("page") String page) {
-        return pageService.findById(page);
+        PageEntity pageEntity = pageService.findById(page);
+        final ApiEntity apiEntity = apiService.findById(api);
+        if (isDisplayable(apiEntity, pageEntity.isPublished())) {
+            return pageEntity;
+        } else {
+            throw new UnauthorizedAccessException();
+        }
     }
 
     @GET
@@ -78,7 +86,12 @@ public class ApiPagesResource extends AbstractResource {
             @PathParam("api") String api,
             @PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page, true);
-        return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
+        final ApiEntity apiEntity = apiService.findById(api);
+        if (isDisplayable(apiEntity, pageEntity.isPublished())) {
+            return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
+        } else {
+            throw new UnauthorizedAccessException();
+        }
     }
 
     @GET
@@ -97,24 +110,7 @@ public class ApiPagesResource extends AbstractResource {
         final List<PageListItem> pages = pageService.findApiPagesByApiAndHomepage(api, homepage);
 
         return pages.stream()
-            .filter(page -> {
-                if (isAuthenticated()) {
-                    MemberEntity member = membershipService.getMember(MembershipReferenceType.API, apiEntity.getId(), getAuthenticatedUsername());
-                    if (member == null && apiEntity.getGroup() != null && apiEntity.getGroup().getId() != null) {
-                        member = membershipService.getMember(MembershipReferenceType.API_GROUP, apiEntity.getGroup().getId(), getAuthenticatedUsername());
-                    }
-                    if (member != null) {
-                        return (MembershipType.USER == member.getType() && page.isPublished()) ||
-                                MembershipType.USER != member.getType();
-                    }
-                }
-
-                if (apiEntity.getVisibility() == Visibility.PUBLIC) {
-                    return page.isPublished();
-                } else {
-                    return false;
-                }
-            })
+            .filter(page -> this.isDisplayable(apiEntity, page.isPublished()))
             .collect(Collectors.toList());
     }
 
@@ -178,5 +174,20 @@ public class ApiPagesResource extends AbstractResource {
         pageService.findById(page);
 
         pageService.delete(page);
+    }
+
+    private boolean isDisplayable(ApiEntity apiEntity, boolean isPublished) {
+        if (isAuthenticated()) {
+            MemberEntity member = membershipService.getMember(MembershipReferenceType.API, apiEntity.getId(), getAuthenticatedUsername());
+            if (member == null && apiEntity.getGroup() != null && apiEntity.getGroup().getId() != null) {
+                member = membershipService.getMember(MembershipReferenceType.API_GROUP, apiEntity.getGroup().getId(), getAuthenticatedUsername());
+            }
+            if (member != null) {
+                return (MembershipType.USER == member.getType() && isPublished) ||
+                        MembershipType.USER != member.getType();
+            }
+        }
+
+        return apiEntity.getVisibility() == Visibility.PUBLIC && isPublished;
     }
 }

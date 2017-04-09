@@ -21,6 +21,7 @@ import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.UpdatePageEntity;
 import io.gravitee.management.service.PageService;
+import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -30,6 +31,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -51,7 +53,12 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     public PageEntity getPage(
                 @PathParam("page") String page) {
-        return pageService.findById(page);
+        PageEntity pageEntity = pageService.findById(page);
+        if (isDisplayable(pageEntity.isPublished())) {
+            return pageEntity;
+        } else {
+            throw new UnauthorizedAccessException();
+        }
     }
 
     @GET
@@ -64,7 +71,11 @@ public class PortalPagesResource extends AbstractResource {
     public Response getPageContent(
             @PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page, true);
-        return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
+        if (isDisplayable(pageEntity.isPublished())) {
+            return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
+        } else {
+            throw new UnauthorizedAccessException();
+        }
     }
 
     @GET
@@ -76,7 +87,10 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<PageListItem> listPages(
             @QueryParam("homepage") Boolean homepage) {
-        return pageService.findPortalPagesByHomepage(homepage);
+        return pageService.findPortalPagesByHomepage(homepage).
+                stream().
+                filter(page -> isDisplayable(page.isPublished())).
+                collect(Collectors.toList());
     }
 
     @POST
@@ -133,5 +147,9 @@ public class PortalPagesResource extends AbstractResource {
         pageService.findById(page);
 
         pageService.delete(page);
+    }
+
+    private boolean isDisplayable(boolean isPublished) {
+        return isAuthenticated() && isAdmin() || isPublished;
     }
 }
