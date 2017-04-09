@@ -17,26 +17,29 @@
 -->
 <md-content>
   <div ui-view class="main-container"></div>
-
   <section id="footer">
-    <footer layout="row" layout-align="space-around center">
-      <div>
-        <ul class="footer-links" layout="column">
-          <li class="footer-links-section">
-            <h3>{{'home.pages.title' | translate}}</h3>
-            <ul>
-              <li data-ng-repeat="page in indexCtrl.pages"><a ui-sref="portal.pages.page({pageId: page.id})">{{page.name}}</a></li>
-            </ul>
-          </li>
-        </ul>
-      </div>
-      <div class="footer-brand" layout="row" layout-align="center center">
-        <div>
-          <img style="vertical-align: middle;" width="32" height="32" ng-src="assets/GRAVITEE_LOGO1-01.png"/>
+    <footer layout="row" layout-align="center start">
+      <div layout="row" flex="90">
+        <div flex="70">
+          <ul class="footer-links" layout="column">
+            <li class="footer-links-section">
+              <h3>{{'home.pages.title' | translate}}</h3>
+              <ul>
+                <li data-ng-repeat="page in indexCtrl.pages"><a ui-sref="portal.pages.page({pageId: page.id})">{{page.name}}</a></li>
+              </ul>
+            </li>
+          </ul>
         </div>
-        <div layout="column">
-          <span><b translate="home.title"></b> {{'home.subtitle' | translate}}</span>
-          <small translate="home.version" translate-values="{version: indexCtrl.graviteeVersion}"></small>
+        <div flex="30" class="footer-brand" layout="row" layout-align="center center">
+          <div flex="100" class="footer-brand-content" layout="row" layout-align="center center" layout-wrap>
+            <div flex="15">
+              <img ng-src="assets/GRAVITEE_LOGO1-01.png"/>
+            </div>
+            <div layout="column">
+              <span><b translate="home.title"></b> {{'home.subtitle' | translate}}</span>
+              <small translate="home.version" translate-values="{version: indexCtrl.graviteeVersion}"></small>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

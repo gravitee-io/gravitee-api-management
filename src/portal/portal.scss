@@ -32,10 +32,16 @@
   min-height: 120px;
   background-color: #EFEFEF;
   div.footer-brand {
-    border-left: 1px solid rgb(45,50,62);
     color: rgb(45,50,62);
-    padding: 30px 60px;
     min-height: 120px;
+  }
+  .footer-brand-content {
+    height: 80%; border-left: 1px solid rgb(45,50,62);
+    img {
+      vertical-align: middle;
+      width: 32px;
+      height: 32px;
+    }
   }
 }
 
