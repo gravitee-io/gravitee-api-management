@@ -17,7 +17,6 @@
       "title": "Documentation"
     },
     "apis": {
-      "more": "Voir plus",
       "search": "Filtrer APIs...",
       "top": "APIs mises en avant",
       "all": "Voir toutes les APIs"
@@ -33,9 +32,8 @@
   },
   "apis": {
     "all": "Toutes les APIs",
-    "filter": "Filtrer...",
-    "views": "Filtres rapide : ",
-    "more": "Explorer"
+    "filter": "Filtrer",
+    "views": "Filtres rapide : "
   },
   "api": {
     "subscription": {
@@ -48,11 +46,12 @@
       "sample": "Vous pouvez accéder à l'API avec la clé d'API suivante",
       "validationInProgress": "En attente de validation pour l'application \"{{applicationName}}\"!",
       "sampleNotValidated": "Une fois validé, vous pourrez accéder à votre API avec la clé d'API donnée ci-dessous :",
-      "successful": "L'application a souscrite au plan {{planName}} avec succés",
+      "successful": "L'application a souscrit au plan {{planName}} avec succés",
       "apiKeyCopySuccess": "La clé d'API a bien été copié dans le presse-papier",
       "planInformation": "avec un quota de {{quotaLimit}} requêtes par {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
     },
     "plan": {
+      "title": "Plans",
       "subscribe": "Souscrire",
       "manual": "Souscription soumise à validation"
     }
@@ -62,6 +61,6 @@
     "start": "Commençons par créer votre première application."
   },
   "application": {
-    "notFound": "Aucune application trouvé pour \"{{applicationName}}\"."
+    "notFound": "Aucune application trouvée pour \"{{applicationName}}\"."
   }
 }

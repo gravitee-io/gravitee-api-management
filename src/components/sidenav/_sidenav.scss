@@ -81,13 +81,12 @@ md-sidenav:not(._md-locked-open) {
 
 .sidenav-list {
   overflow-y: auto;
-  height: calc(100vh - #{$sidenavFooterHeight} - #{$sidenavHeaderHeight});
-  padding: .5rem 0 1rem 0;
+  height: calc(100vh - #{$sidenavHeaderHeight});
+  padding: 0;
 
   & md-list-item {
     min-height: 40px;
     padding: 0;
-    position: inherit;
   }
 
   ng-md-icon {
@@ -130,8 +129,7 @@ md-sidenav:not(._md-locked-open) {
 }
 
 .sidenav-footer {
-  height: $sidenavFooterHeight;
-  width: 100%;
+  padding: 0;
 
   ng-md-icon {
     fill: $fontColor;
@@ -168,12 +166,12 @@ md-sidenav:not(._md-locked-open) {
   }
 
   md-list-item:last-child {
-    margin-top: -10px;
+    margin-top: -100px;
   }
 }
 
 .gravitee-sidenav {
   background-color: $bgColor;
-  padding-top: 64px;
+  padding-top: 54px;
   z-index: 1;
 }

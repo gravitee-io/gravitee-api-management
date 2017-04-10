@@ -52,7 +52,8 @@
     <div layout="column" flex>
       <h2 class="section-title" translate="home.apis.top"></h2>
       <div layout="row" layout-align="center center">
-        <md-card ng-repeat="api in homeCtrl.apis | limitTo: 3" flex="20" ng-class="api.background_color">
+        <md-card class="api-box gravitee-card gravitee-api-card" ng-repeat="api in homeCtrl.apis | limitTo: 3 track by api.id"
+                 ui-sref="portal.apis.list" flex="20">
           <md-card-title>
             <md-card-title-text>
               <span class="md-headline">{{api.name}} <span class="md-subhead">{{api.version}}</span></span>
@@ -66,9 +67,6 @@
           <md-card-content>
             <small>{{api.description}}</small>
           </md-card-content>
-          <md-card-actions layout="row" layout-align="end center">
-            <md-button ui-sref="portal.api.detail.general({apiId: api.id})">{{'home.apis.more' | translate}}</md-button>
-          </md-card-actions>
         </md-card>
       </div>
       <div layout="row" layout-align="center center">

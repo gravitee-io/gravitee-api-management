@@ -17,7 +17,6 @@
       "title": "Documentation"
     },
     "apis": {
-      "more": "Show more",
       "search": "Search for APIs...",
       "top": "Top APIs",
       "all": "See all APIs"
@@ -33,9 +32,8 @@
   },
   "apis": {
     "all": "All APIs",
-    "filter": "Filter...",
-    "views": "Quick filters: ",
-    "more": "Explore"
+    "filter": "Filter",
+    "views": "Quick filters: "
   },
   "api": {
     "subscription": {
@@ -53,6 +51,7 @@
       "planInformation": "with a quota of {{quotaLimit}} requests per {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
     },
     "plan": {
+      "title": "Plans",
       "subscribe": "Subscribe",
       "manual": "Subscription subject to validation"
     }

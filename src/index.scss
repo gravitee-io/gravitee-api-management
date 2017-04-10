@@ -5,24 +5,16 @@
 @import '~angular-swagger-ui/dist/css/swagger-ui.min.css';
 @import '~dragular/dist/dragular';
 @import '~v-accordion/dist/v-accordion.min.css';
-
 @import '~codemirror/lib/codemirror';
 @import '~codemirror/addon/dialog/dialog';
 @import '~codemirror/addon/lint/lint';
-
 @import '~angular-timeline/dist/angular-timeline.css';
-
 @import '~md-steppers/dist/md-steppers.min.css';
-
 @import '~api-console/dist/styles/api-console-light-theme.css';
-
 @import 'constants.scss';
-
 @import 'portal/portal.scss';
-
 @import 'user/_user.scss';
 @import 'management/api/policies/_policy.scss';
-
 @import 'management/api/_api.scss';
 @import 'management/api/analytics/_analytics.scss';
 @import 'management/api/creation/_apiCreation.scss';
@@ -35,19 +27,15 @@
 @import 'management/api/properties/_properties.scss';
 @import 'management/api/resources/_resources.scss';
 @import 'management/api/subscriptions/_subscriptions.scss';
-
 @import 'components/dashboard/dashboard.scss';
 @import 'components/sidenav/_sidenav.scss';
 @import 'components/image/_image.scss';
 @import 'components/widget/_widget.scss';
-
 @import 'management/instances/_instances.scss';
-
 @import 'management/platform/dashboard/_dashboard.scss';
-
 @import 'components/documentation/page.scss';
 
-$backgroundColor: rgb(45,50,62);
+$backgroundColor: rgb(45, 50, 62);
 
 html {
   font-family: 'Roboto Slab', serif;
@@ -124,7 +112,7 @@ body {
   margin: 0px 16px;
 }
 
-md-toolbar{
+md-toolbar {
   font-size: 18px;
   min-height: 49px;
   .md-tall {
@@ -133,7 +121,7 @@ md-toolbar{
   z-index: 10;
 }
 
-a, tr[ui-sref], .gravitee-link {
+a, [ui-sref], .gravitee-link {
   cursor: pointer;
 }
 
@@ -229,11 +217,13 @@ table thead tr th, table tfoot tr th, table tfoot tr td, table tbody tr th, tabl
   display: table-cell;
   line-height: 1.125rem;
 }
+
 table thead tr th, table thead tr td {
   color: #222;
   font-weight: bold;
   padding: 0.5rem 0.625rem 0.625rem;
 }
+
 table tr th, table tr td {
   color: #222;
   padding: 0.5625rem 0.625rem;
@@ -309,23 +299,23 @@ gravitee-sidenav {
 }
 
 .gravitee-no-sidenav-header {
-   padding-bottom: 30px;
-   text-align: center;
+  padding-bottom: 30px;
+  text-align: center;
 
-   & a {
-     margin: 10px auto;
+  & a {
+    margin: 10px auto;
 
-     & img {
-       height: 100px;
-     }
-   }
+    & img {
+      height: 100px;
+    }
+  }
 
-   & label {
-     font-size: 28px;
-     font-weight: 400;
-     margin: 0 auto;
-   }
- }
+  & label {
+    font-size: 28px;
+    font-weight: 400;
+    margin: 0 auto;
+  }
+}
 
 md-sidenav, md-backdrop {
   position: fixed;
@@ -336,12 +326,13 @@ md-list-item::before {
 }
 
 .md-whiteframe-1dp, .md-whiteframe-z1 {
-  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .2), 0 1px 1px 0 rgba(0, 0, 0, .14), 0 2px 1px -1px rgba(0, 0, 0, .12);
 }
 
-.md-whiteframe-z2{
-  box-shadow:0 2px 4px -1px rgba(0,0,0,.2),0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12)
+.md-whiteframe-z2 {
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, .2), 0 4px 5px 0 rgba(0, 0, 0, .14), 0 1px 10px 0 rgba(0, 0, 0, .12)
 }
+
 .landing-header {
   padding: 0px 16px 0px 16px;
 
@@ -443,7 +434,7 @@ md-content, .main-content {
   font-size: 12px;
 }
 
-table[md-data-table]>thead:not([md-table-progress])>tr>th>div {
+table[md-data-table] > thead:not([md-table-progress]) > tr > th > div {
   height: 30px;
 }
 
@@ -463,8 +454,18 @@ md-card.no-box-shadow {
 }
 
 .gravitee-detail-header {
-  height: $graviteeHeader;
   background: #fff;
   border-bottom: 1px solid #f1f1f1;
-  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12)
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .2), 0 1px 1px 0 rgba(0, 0, 0, .14), 0 2px 1px -1px rgba(0, 0, 0, .12);
+  height: $graviteeHeader;
+}
+
+.gv-main-container {
+  height: calc(100vh - #{$sidenavHeaderHeight});
+  overflow-y: auto;
+  padding-top: $sidenavHeaderHeight;
+}
+
+.gv-button-toggled {
+  background-color: rgba(158,158,158,0.2);
 }

@@ -58,7 +58,7 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       template: require('./api/apis.html')
     })
     .state('portal.apis.list', {
-      url: '',
+      url: '?view',
       template: require('./api/apisList.html'),
       controller: 'PortalApisController',
       controllerAs: 'apisCtrl',
@@ -78,6 +78,9 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
             return views;
           });
         }
+      },
+      params: {
+        view: 'all',
       }
     })
     .state('portal.api', {

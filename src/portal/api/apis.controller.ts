@@ -13,14 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {IScope} from 'angular';
+import * as _ from 'lodash';
+
 export class PortalApisController {
 
   private apis: any[];
   private views: any[];
+  private view: any;
 
-  constructor (private resolvedApis, private resolvedViews) {
+  constructor (private resolvedApis,
+               private resolvedViews,
+               private $scope: IScope,
+               private $stateParams) {
     'ngInject';
     this.apis = resolvedApis.data;
     this.views = resolvedViews;
+
+    this.view = _.find(this.views, function (view) {
+      return $stateParams.view === view.id;
+    });
+
+    $scope.$on('$stateChangeStart', function() {
+      this.hideApis = true;
+    });
   }
 }
