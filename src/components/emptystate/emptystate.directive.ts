@@ -15,6 +15,8 @@
  */
 class EmptyStateDirective {
   constructor() {
+    'ngInject';
+
     let directive = {
       restrict: 'E',
       scope: {

@@ -25,7 +25,9 @@ export class User {
     private credentialsNonExpired?: boolean,
     private enabled?: boolean,
     public picture?: string
-  ) {}
+  ) {
+    'ngInject';
+  }
 
   allowedTo(roles: string[]): boolean {
     if (!roles || !this.authorities) {

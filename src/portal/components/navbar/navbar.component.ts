@@ -18,6 +18,8 @@ import {IScope} from "angular";
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),
   controller: function(UserService: UserService, $scope: IScope) {
+    'ngInject';
+
     const vm = this;
 
     $scope.$on('graviteeUserRefresh', function () {
@@ -28,7 +30,7 @@ export const NavbarComponent: ng.IComponentOptions = {
 
     vm.$onInit = function () {
       $scope.$emit('graviteeUserRefresh');
-    }
+    };
 
     vm.hasRoles = function (roles) {
       return UserService.isUserInRoles(roles);

@@ -15,6 +15,8 @@
  */
 class ImageDirective {
   constructor() {
+    'ngInject';
+
     let directive = {
       restrict: 'E',
       scope: {
