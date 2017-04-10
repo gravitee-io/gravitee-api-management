@@ -22,7 +22,7 @@
       <div layout="row" flex="90">
         <div flex="70">
           <ul class="footer-links" layout="column">
-            <li class="footer-links-section">
+            <li class="footer-links-section" ng-if="indexCtrl.pages && indexCtrl.pages.length > 0">
               <h3>{{'home.pages.title' | translate}}</h3>
               <ul>
                 <li data-ng-repeat="page in indexCtrl.pages"><a ui-sref="portal.pages.page({pageId: page.id})">{{page.name}}</a></li>
