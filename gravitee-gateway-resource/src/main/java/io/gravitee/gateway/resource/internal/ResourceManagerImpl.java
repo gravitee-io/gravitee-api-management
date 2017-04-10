@@ -161,11 +161,11 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
             return null;
         }
 
-            if (resource.getClass().isAssignableFrom(requiredType)) {
-                return (T) resource;
-            } else {
-                throw new IllegalArgumentException("Required type parameter does not match the resource type");
-            }
+        if (requiredType.isAssignableFrom(resource.getClass())) {
+            return (T) resource;
+        } else {
+            throw new IllegalArgumentException("Required type parameter does not match the resource type");
+        }
     }
 
     @Override
