@@ -27,8 +27,10 @@ import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.management.fetcher.FetcherConfigurationFactory;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.PageType;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
+import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -36,9 +38,7 @@ import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.plugin.fetcher.FetcherPluginManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageConfiguration;
-import io.gravitee.repository.management.model.PageSource;
+import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +71,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Autowired
 	private ApiService apiService;
+
+	@Autowired
+	private SwaggerService swaggerService;
 
 	@Autowired
 	private FetcherPluginManager fetcherPluginManager;
@@ -156,6 +159,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			if (page.isPresent()) {
 				PageEntity pageEntity = convert(page.get());
 				if (transform) {
+					transformUsingConfiguration(pageEntity);
 					transformWithTemplate(pageEntity, page.get().getApi());
 				}
 
@@ -167,6 +171,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			logger.error("An error occurs while trying to find a page using its ID {}", pageId, ex);
 			throw new TechnicalManagementException(
 					"An error occurs while trying to find a page using its ID " + pageId, ex);
+		}
+	}
+
+	private void transformUsingConfiguration(PageEntity pageEntity) {
+		if (io.gravitee.repository.management.model.PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
+			swaggerService.transform(pageEntity);
 		}
 	}
 

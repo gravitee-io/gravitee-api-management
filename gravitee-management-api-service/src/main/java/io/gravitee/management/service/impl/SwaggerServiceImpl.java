@@ -15,20 +15,31 @@
  */
 package io.gravitee.management.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.exceptions.SwaggerDescriptorException;
+import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerCompatConverter;
 import io.swagger.parser.SwaggerParser;
+import io.swagger.util.Json;
+import io.swagger.util.Yaml;
 import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
@@ -41,7 +52,7 @@ public class SwaggerServiceImpl implements SwaggerService {
     /**
      * Logger.
      */
-    private final Logger LOGGER = LoggerFactory.getLogger(SwaggerServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(SwaggerServiceImpl.class);
 
     @Value("${swagger.scheme:https}")
     private String defaultScheme;
@@ -52,20 +63,20 @@ public class SwaggerServiceImpl implements SwaggerService {
         switch (swaggerDescriptor.getVersion()) {
             case VERSION_1_0:
                 try {
-                    LOGGER.info("Loading an old Swagger descriptor from {}", swaggerDescriptor.getPayload());
+                    logger.info("Loading an old Swagger descriptor from {}", swaggerDescriptor.getPayload());
 
                     // For spec < 2.0, only read by url is possible
                     swagger = new SwaggerCompatConverter().read(swaggerDescriptor.getPayload());
                 } catch (IOException ioe) {
-                    LOGGER.error("Can not read old Swagger specification", ioe);
+                    logger.error("Can not read old Swagger specification", ioe);
                     throw new SwaggerDescriptorException();
                 }
             case VERSION_2_0:
                 if (swaggerDescriptor.getType() == ImportSwaggerDescriptorEntity.Type.INLINE) {
-                    LOGGER.info("Loading an inline Swagger descriptor");
+                    logger.info("Loading an inline Swagger descriptor");
                     swagger = new SwaggerParser().parse(swaggerDescriptor.getPayload());
                 } else if (swaggerDescriptor.getType() == ImportSwaggerDescriptorEntity.Type.URL) {
-                    LOGGER.info("Loading a Swagger descriptor from URL: ", swaggerDescriptor.getPayload());
+                    logger.info("Loading a Swagger descriptor from URL: ", swaggerDescriptor.getPayload());
                     swagger = new SwaggerParser().read(swaggerDescriptor.getPayload());
                 }
         }
@@ -90,5 +101,75 @@ public class SwaggerServiceImpl implements SwaggerService {
                         .collect(Collectors.toList())));
 
         return apiEntity;
+    }
+
+    @Override
+    public void transform(PageEntity page) {
+        Swagger swagger;
+
+        // Create temporary file for Swagger parser (only for descriptor version < 2.x)
+        File temp = null;
+        String fileName = "gio_swagger_" + System.currentTimeMillis();
+        BufferedWriter bw = null;
+        FileWriter out = null;
+
+        try {
+            temp = File.createTempFile(fileName, ".tmp");
+            out = new FileWriter(temp);
+            bw = new BufferedWriter(out);
+            bw.write(page.getContent());
+            bw.close();
+
+            swagger = new SwaggerCompatConverter().read(temp.getAbsolutePath());
+            if (swagger == null) {
+                swagger = new SwaggerParser().parse(page.getContent());
+            }
+        } catch (IOException ioe) {
+            // Fallback to the new parser
+            swagger = new SwaggerParser().parse(page.getContent());
+        } finally {
+            if (bw != null) {
+                try {
+                    bw.close();
+                } catch (IOException e) {
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                }
+            }
+            if (temp != null) {
+                temp.delete();
+            }
+        }
+
+        if (swagger == null) {
+            throw new SwaggerDescriptorException();
+        }
+
+        if (page.getConfiguration() != null &&
+                page.getConfiguration().getTryItURL() != null) {
+            URI newURI = URI.create(page.getConfiguration().getTryItURL());
+
+            swagger.setSchemes(Collections.singletonList(Scheme.forValue(newURI.getScheme())));
+            swagger.setHost((newURI.getPort() != -1) ? newURI.getHost() + ':' + newURI.getPort() : newURI.getHost());
+            swagger.setBasePath((newURI.getRawPath().isEmpty()) ? "/" : newURI.getRawPath());
+        }
+
+        if (page.getContentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
+            try {
+                page.setContent(Json.pretty().writeValueAsString(swagger));
+            } catch (JsonProcessingException e) {
+                logger.error("Unexpected error", e);
+            }
+        } else {
+            try {
+                page.setContent(Yaml.pretty().writeValueAsString(swagger));
+            } catch (JsonProcessingException e) {
+                logger.error("Unexpected error", e);
+            }
+        }
     }
 }

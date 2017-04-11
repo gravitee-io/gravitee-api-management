@@ -129,6 +129,7 @@
 		</dependency>
 
 		<!-- Swagger parser -->
+		<!--
 		<dependency>
 			<groupId>io.swagger</groupId>
 			<artifactId>swagger-parser</artifactId>
@@ -140,11 +141,12 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		-->
 
 		<dependency>
 			<groupId>io.swagger</groupId>
 			<artifactId>swagger-compat-spec-parser</artifactId>
-			<version>1.0.22</version>
+			<version>1.0.28</version>
 			<exclusions>
 				<exclusion>
 					<groupId>io.swagger</groupId>
