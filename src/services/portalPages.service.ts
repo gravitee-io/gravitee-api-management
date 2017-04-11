@@ -16,12 +16,10 @@
 import * as _ from 'lodash';
 
 class PortalPagesService {
-  private swaggerConfigurationCache: any;
   private pagesURL: () => string;
 
   constructor(private $http, private $q, Constants) {
     'ngInject';
-    this.swaggerConfigurationCache = {};
     this.pagesURL = () => `${Constants.baseURL}portal/pages/`;
   }
 
@@ -86,25 +84,6 @@ class PortalPagesService {
         configuration: editPage.configuration
       }
     );
-  }
-
-  cachePageConfiguration(page) {
-    if (!_.isNil(page) && page.type === 'SWAGGER' && !_.isNil(page.configuration)) {
-      let contentUrl = this.getContentUrl(page.id);
-      let url;
-
-      try {
-        url = new URL(contentUrl);
-      } catch (error) {
-        url = new URL(location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '') + this.getContentUrl(page.id));
-      }
-
-      this.swaggerConfigurationCache[url.pathname] = page.configuration;
-    }
-  }
-
-  getPageConfigurationFromCache(pageContentUrl) {
-    return this.swaggerConfigurationCache[pageContentUrl];
   }
 }
 

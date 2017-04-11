@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-import DocumentationService from '../../../services/apiDocumentation.service';
-
 const ApiPageComponent: ng.IComponentOptions = {
   bindings: {
     page: '<',
     api: '<'
   },
-  template: require('./api-page.html'),
-  controller: function(DocumentationService: DocumentationService) {
-    'ngInject';
-
-    this.$onInit = function() {
-      DocumentationService.cachePageConfiguration(this.api.id, this.page);
-    };
-  }
+  template: require('./api-page.html')
 };
 
 export default ApiPageComponent;

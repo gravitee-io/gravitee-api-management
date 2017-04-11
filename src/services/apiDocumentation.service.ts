@@ -16,12 +16,10 @@
 import * as _ from 'lodash';
 
 class DocumentationService {
-  private swaggerConfigurationCache: any;
   private documentationURL: (apiId: string) => string;
 
   constructor(private $http, private $q, Constants) {
     'ngInject';
-    this.swaggerConfigurationCache = {};
     this.documentationURL = apiId => `${Constants.baseURL}apis/${apiId}/pages/`;
   }
 
@@ -84,25 +82,6 @@ class DocumentationService {
         configuration: editPage.configuration
       }
     );
-  }
-
-  cachePageConfiguration(apiId, page) {
-    if (!_.isNil(page) && page.type === 'SWAGGER' && !_.isNil(page.configuration)) {
-      var contentUrl = this.getContentUrl(apiId, page.id);
-      var url;
-
-      try {
-        url = new URL(contentUrl);
-      } catch (error) {
-        url = new URL(location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '') + this.getContentUrl(apiId, page.id));
-      }
-
-      this.swaggerConfigurationCache[url.pathname] = page.configuration;
-    }
-  }
-
-  getPageConfigurationFromCache(pageContentUrl) {
-    return this.swaggerConfigurationCache[pageContentUrl];
   }
 }
 

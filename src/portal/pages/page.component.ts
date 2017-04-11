@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-import PortalPagesService from "../../services/portalPages.service";
-
 const PageComponent: ng.IComponentOptions = {
   bindings: {
     page: '<'
   },
-  template: require('./page.html'),
-  controller: function(PortalPagesService: PortalPagesService) {
-    'ngInject';
-
-    this.$onInit = function() {
-      PortalPagesService.cachePageConfiguration(this.page);
-    };
-  }
+  template: require('./page.html')
 };
 
 export default PageComponent;

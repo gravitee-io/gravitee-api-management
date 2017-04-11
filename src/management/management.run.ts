@@ -17,7 +17,7 @@
 
 import UserService from '../services/user.service';
 
-function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerModules, PageSwaggerConfigurationService,
+function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerModules,
                   PageSwaggerHttpClientService, $timeout, UserService: UserService, Constants) {
   'ngInject';
 
@@ -65,7 +65,6 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
   });
 
   //swagger-ui
-  swaggerModules.add(swaggerModules.BEFORE_PARSE, PageSwaggerConfigurationService);
   swaggerModules.add(swaggerModules.BEFORE_EXPLORER_LOAD, PageSwaggerHttpClientService);
 
   $rootScope.displayLoader = true;

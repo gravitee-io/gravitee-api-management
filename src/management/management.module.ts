@@ -210,7 +210,6 @@ import ImageDirective from '../components/image/image.directive';
 import EventsService from '../services/events.service';
 import AnalyticsService from '../services/analytics.service';
 import DashboardController from '../management/platform/dashboard/dashboard.controller';
-import PageSwaggerConfigurationService from '../services/pageSwaggerConfiguration.service';
 import PageSwaggerHttpClientService from '../services/pageSwaggerHttpClient.service';
 import ViewsController from '../management/configuration/views/views.controller';
 import ViewService from '../services/view.service';
@@ -368,7 +367,6 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .service('FetcherService', FetcherService)
   .service('EventsService', EventsService)
   .service('AnalyticsService', AnalyticsService)
-  .service('PageSwaggerConfigurationService', PageSwaggerConfigurationService)
   .service('PageSwaggerHttpClientService', PageSwaggerHttpClientService)
   .service('ViewService', ViewService)
   .service('GroupService', GroupService)
