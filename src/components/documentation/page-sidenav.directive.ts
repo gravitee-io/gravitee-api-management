@@ -25,33 +25,70 @@ class PageSidenavController {
 
 const PageSidenavDirective: ng.IDirective = ({
   restrict: 'E',
+  scope: {
+    page: '='
+  },
   template: require('./page-sidenav.html'),
   link: function (scope, elem, attr, ctr: {$timeout: ng.ITimeoutService, $window, $document}) {
     ctr.$timeout(function () {
       let sidenav = angular.element(document.getElementById('sidenav'));
       let page = document.getElementById('page-content');
 
-//      let h1Elements = page.querySelectorAll('h1');
-      let h2Elements = page.querySelectorAll('h2');
+      let content:Element = undefined;
+      if(scope.page.type === 'SWAGGER') {
+        content = page.getElementsByClassName("api-description")[0];
+      } else if (scope.page.type === 'MARKDOWN') {
+        content = page;
+      }
 
-      scope.anchors = _.map(h2Elements, function(elt) {
-        return {id: elt.id, title: elt.textContent};
-      });
+      if (content !== undefined) {
+        let h1Elements = content.querySelectorAll('h1');
+        let h2Elements = content.querySelectorAll('h2');
 
-      scope.scrollTo = function(anchor) {
-        let scrollElt = document.getElementById(anchor);
-        ctr.$document
-          .scrollToElementAnimated(scrollElt)
-          .catch(function() {});
-      };
+        /*
+        //TODO: create an intermediate section to activate sidenav item
+        // Create section
+        let sections:any[] = [];
+        let currentSection = undefined;
+        _.each(content.children, function (child) {
+          let h1Elt = _.find(h1Elements, function(elt) { return elt === child; });
+          let h2Elt = _.find(h2Elements, function(elt) { return elt === child; });
 
-      angular.element(ctr.$window).bind("scroll", function() {
-        if (this.pageYOffset > 280) {
-          sidenav.addClass('sidenav-fixed');
-        } else {
-          sidenav.removeClass('sidenav-fixed');
-        }
-      });
+          if (h1Elt !== undefined && h2Elt !== undefined) {
+            // New section
+            sections.push(currentSection);
+            currentSection = undefined;
+          } else if (child !== undefined) {
+            if (currentSection === undefined) {
+              currentSection = document.createElement('section');
+              if (h1Elt !== undefined) { document.appendChild(h1Elt); }
+              if (h2Elt !== undefined) { document.appendChild(h2Elt); }
+            }
+            currentSection.appendChild(child);
+          }
+        });
+        */
+
+        scope.anchors = _.map(h2Elements, function (elt) {
+          return {id: elt.id, title: elt.textContent};
+        });
+
+        scope.scrollTo = function (anchor) {
+          let scrollElt = document.getElementById(anchor);
+          ctr.$document
+            .scrollToElementAnimated(scrollElt)
+            .catch(function () {
+            });
+        };
+
+        angular.element(ctr.$window).bind("scroll", function () {
+          if (this.pageYOffset > 280) {
+            sidenav.addClass('sidenav-fixed');
+          } else {
+            sidenav.removeClass('sidenav-fixed');
+          }
+        });
+      }
 
     }, 200);
   },

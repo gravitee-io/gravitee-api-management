@@ -1,8 +1,47 @@
-
+/*
 .doc-nav {
   margin-left: 30px;
 }
 
 .doc-content {
   margin-left: 40px;
+}
+*/
+
+.doc-sidenav {
+  margin-left: 30px;
+
+  ul {
+    list-style-type: none;
+
+    li {
+      outline: none;
+    }
+
+    li.sidenav_item {
+      display: list-item;
+      position: relative;
+      margin-bottom: 0;
+      padding: 1px 0;
+
+      span {
+        line-height: 1.2;
+        color: #000000;
+        display: block;
+        margin: 10px;
+        padding-left: 8px;
+        text-decoration: none;
+        font-size: 12px;
+      }
+    }
+
+    li.active {
+      border-left: 2px solid #11939A;
+    }
+
+    li.active span, li.sidenav_item:hover span {
+      -webkit-transition: all .4s ease!important;
+      color: #11939A;
+    }
+  }
 }

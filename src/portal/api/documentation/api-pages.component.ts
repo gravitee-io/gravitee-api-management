@@ -13,20 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as _ from 'lodash';
+
 const ApiPagesComponent: ng.IComponentOptions = {
   bindings: {
     pages: '<',
     api: '<'
   },
   template: require('./api-pages.html'),
-  controller: function($stateParams, $location) {
+  controller: function($state, $stateParams, $location) {
     'ngInject';
 
     this.$onInit = function() {
       if (this.pages.length && !$stateParams.pageId) {
+        this.pages[0].selected = true;
         $location.url(`/apis/${$stateParams.apiId}/pages/${this.pages[0].id}`);
+      } else {
+        _.each(this.pages, function(p) { if (p.id === $stateParams.pageId) {p.selected = false; }});
       }
     };
+
+    this.selectPage = function (page) {
+      _.each(this.pages, function(p) { p.selected = false; });
+      page.selected = true;
+      $state.go('portal.api.pages.page', {pageId: page.id});
+    }
   }
 };
 

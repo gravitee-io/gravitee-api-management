@@ -16,11 +16,11 @@
 
 -->
 <div layout="row">
-  <div id="page-content" layout-padding ng-switch="$ctrl.page.type" flex>
+  <div id="page-content" layout-padding ng-switch="$ctrl.page.type" flex="75">
     <gv-page-swagger page="$ctrl.page" ng-switch-when="SWAGGER"></gv-page-swagger>
     <gv-page-raml page="$ctrl.page" ng-switch-when="RAML"></gv-page-raml>
     <gv-page-markdown page="$ctrl.page" ng-switch-when="MARKDOWN"></gv-page-markdown>
   </div>
 
-  <gv-page-sidenav ng-if="$ctrl.sidenav" flex="25"></gv-page-sidenav>
+  <gv-page-sidenav ng-if="$ctrl.sidenav" page="$ctrl.page" flex="25" hide-xs></gv-page-sidenav>
 </div>
