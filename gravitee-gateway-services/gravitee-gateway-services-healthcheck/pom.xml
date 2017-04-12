@@ -86,11 +86,12 @@
             </exclusions>
         </dependency>
 
-        <!-- HttpClient -->
+        <!-- Vertx.io HTTP client -->
         <dependency>
-            <groupId>org.asynchttpclient</groupId>
-            <artifactId>async-http-client</artifactId>
-            <version>2.0.15</version>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>${vertx.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
