@@ -15,30 +15,37 @@
  */
 package io.gravitee.gateway.services.healthcheck.el;
 
-import io.netty.handler.codec.http.HttpHeaders;
-import org.asynchttpclient.Response;
+import io.gravitee.common.http.HttpHeaders;
+import io.vertx.core.http.HttpClientResponse;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public final class HealthCheckResponse {
 
-    private final Response response;
+    private final int statusCode;
+    private final String content;
+    private final HttpHeaders httpHeaders = new HttpHeaders();
 
-    public HealthCheckResponse(final Response response) {
-        this.response = response;
+    public HealthCheckResponse(final HttpClientResponse response, final String content) {
+        this.statusCode = response.statusCode();
+        this.content = content;
+
+        // Copy HTTP headers
+        response.headers().names().forEach(headerName ->
+                httpHeaders.put(headerName, response.headers().getAll(headerName)));
     }
 
     public int getStatus() {
-        return response.getStatusCode();
+        return statusCode;
     }
 
     public String getContent() {
-        return response.getResponseBody();
+        return content;
     }
 
     public HttpHeaders getHeaders() {
-        return response.getHeaders();
+        return httpHeaders;
     }
 }

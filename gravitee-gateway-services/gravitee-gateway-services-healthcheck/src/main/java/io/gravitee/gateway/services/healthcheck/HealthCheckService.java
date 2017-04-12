@@ -24,6 +24,9 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.report.ReporterService;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +57,8 @@ public class HealthCheckService extends AbstractService implements EventListener
 
     private final Map<Api, ScheduledFuture> scheduledTasks = new HashMap<>();
 
+    private final Vertx vertx = Vertx.vertx();
+
     @Override
     protected void doStart() throws Exception {
         super.doStart();
@@ -77,6 +82,8 @@ public class HealthCheckService extends AbstractService implements EventListener
         if (executorService != null) {
             executorService.shutdown();
         }
+
+        vertx.close(event -> LOGGER.info("Health-check HTTP client has been closed."));
     }
 
     @Override
@@ -106,7 +113,7 @@ public class HealthCheckService extends AbstractService implements EventListener
         if (api.isEnabled()) {
             HealthCheck healthCheck = api.getServices().get(HealthCheck.class);
             if (healthCheck != null && healthCheck.isEnabled()) {
-                EndpointHealthCheck monitor = new EndpointHealthCheck(api);
+                EndpointHealthCheck monitor = new EndpointHealthCheck(vertx, api);
                 monitor.setReporterService(reporterService);
 
                 LOGGER.info("Add a scheduled task to health-check endpoints each {} {} ", healthCheck.getInterval(), healthCheck.getUnit());
