@@ -29,8 +29,8 @@ import { HomeController } from './home/home.controller';
 import { PortalApisController } from './api/apis.controller';
 
 // API
-import ApiComponent from './api/home/api.component';
-import ApiHeaderComponent from './api/home/api-header.component';
+import ApiComponent from './api/api.component';
+import ApiHeaderComponent from './api/header/api-header.component';
 import ApiHomepageComponent from './api/home/api-homepage.component';
 import ApiPlansComponent from './api/plan/api-plans.component';
 import ApiSubscribeComponent from './api/subscribe/api-subscribe.component';
@@ -45,7 +45,8 @@ import PageComponent from './pages/page.component';
 
 import { NavbarComponent } from './components/navbar/navbar.component';
 
-angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.translate'])
+angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.translate', 'duScroll'])
+  .value('duScrollOffset', 54)
   .config(portalRouterConfig)
   .config(portalI18nConfig)
   .controller('HomeController', HomeController)

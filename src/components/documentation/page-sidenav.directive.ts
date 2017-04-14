@@ -76,7 +76,7 @@ const PageSidenavDirective: ng.IDirective = ({
         scope.scrollTo = function (anchor) {
           let scrollElt = document.getElementById(anchor);
           ctr.$document
-            .scrollToElementAnimated(scrollElt)
+            .scrollToElementAnimated(scrollElt, 54)
             .catch(function () {
             });
         };

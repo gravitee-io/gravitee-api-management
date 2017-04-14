@@ -15,15 +15,13 @@
     limitations under the License.
 
 -->
-<api-portal-header api="$ctrl.api"></api-portal-header>
+<div ng-if="$ctrl.pages && !$ctrl.pages.length" style="padding-top: 100px;">
+  <gravitee-empty-state icon="insert_drive_file"
+      message="{{'api.documentation.empty.title' | translate}}" sub-message="{{'api.documentation.empty.message' | translate}}">
+  </gravitee-empty-state>
+</div>
 
-<gravitee-empty-state ng-if="$ctrl.pages.length == 0"
-                      icon="insert_drive_file"
-                      model="Plan"
-                      message="No documentation for this API"
-                      sub-message="Come back soon, the API will be completed shortly."></gravitee-empty-state>
-
-<md-content ng-if="$ctrl.pages.length > 0" layout="row" layout-xs="column" layout-padding layout-margin>
+<md-content ng-if="$ctrl.pages && $ctrl.pages.length" layout="row" layout-xs="column" layout-padding layout-margin>
   <div flex="15" layout="column" class="doc-sidenav" layout-padding>
     <ul>
       <li class="sidenav_item" ng-class="{'active': page.selected}" ng-repeat="page in $ctrl.pages" ng-click="$ctrl.selectPage(page)">

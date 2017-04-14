@@ -40,7 +40,7 @@ export class HomeController {
 
   selectedItemChange(api) {
     if (api) {
-      this.$state.go('portal.api.detail.general', {'apiId': api.id});
+      this.$state.go('portal.api.plans', {'apiId': api.id});
     }
   }
 }

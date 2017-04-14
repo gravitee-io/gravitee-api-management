@@ -17,6 +17,7 @@ import ViewService from '../../services/view.service';
 import ApisController from './apis.controller';
 import DocumentationService from '../../services/apiDocumentation.service';
 import TenantService from '../../services/tenant.service';
+import TagService from "../../services/tag.service";
 
 export default apisRouterConfig;
 
@@ -39,6 +40,16 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         resolvedApi: function ($stateParams, ApiService) {
           return ApiService.get($stateParams.apiId);
+        },
+        resolvedViews: (ViewService: ViewService) => {
+          return ViewService.list().then(response => {
+            return response.data;
+          });
+        },
+        resolvedTags: (TagService: TagService) => {
+          return TagService.list().then(response => {
+            return response.data;
+          });
         }
       }
     })

@@ -15,4 +15,13 @@
     limitations under the License.
 
 -->
-<gv-dashboard model="$ctrl.applicationDashboard"></gv-dashboard>
+<md-content>
+  <div id="main-content">
+
+    <div ui-view="header"></div>
+
+    <div ui-view="content"></div>
+
+    <div ui-view="subContent"></div>
+  </div>
+</md-content>

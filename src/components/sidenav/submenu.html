@@ -24,7 +24,6 @@
 <md-list-item ng-repeat="menuItem in $ctrl.submenuItems track by menuItem.name">
   <a
     ui-sref="{{ :: menuItem.name }}"
-    ui-sref-opts="{reload: true}"
     ui-sref-active="sidenav-active"
     title="{{ :: menuItem.data.menu.label }}">
     <ng-md-icon icon="{{ :: menuItem.data.menu.icon }}"></ng-md-icon>

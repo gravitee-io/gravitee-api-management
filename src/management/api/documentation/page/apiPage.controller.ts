@@ -70,7 +70,6 @@ class PageController {
         this.preview();
         DocumentationService.get($state.params.apiId, $state.params.pageId).then( response => {
           this.page = response.data;
-          DocumentationService.cachePageConfiguration($state.params.apiId, this.page);
           this.initialPage = _.clone(response.data);
           if(!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
             this.useFetcher = true;

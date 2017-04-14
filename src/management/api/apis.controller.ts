@@ -29,6 +29,7 @@ export class ApisController {
   private syncStatus: any;
   private NotificationService: any;
   private portalTitle: string;
+  private selectedApis: any[];
 
   constructor(
     private ApiService,
@@ -58,6 +59,8 @@ export class ApisController {
     this.views = resolvedViews;
 
     this.reloadSyncState();
+
+    this.selectedApis = [];
 
     $scope.$on('$stateChangeStart', function() {
       $scope.hideApis = true;

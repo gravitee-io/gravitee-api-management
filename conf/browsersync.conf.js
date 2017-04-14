@@ -16,7 +16,7 @@
 const conf = require('./gulp.conf');
 const proxyMiddleware = require('http-proxy-middleware');
 
-module.exports = function (demo) {
+module.exports = function (env) {
   return {
     server: {
       baseDir: [
@@ -26,8 +26,8 @@ module.exports = function (demo) {
     },
     open: false,
     middleware: proxyMiddleware(
-      demo? 'https://demo.gravitee.io/management' : 'http://localhost:8083/management',
-      {changeOrigin: demo, secure: false}
+      env ? `https://${env}.gravitee.io/management` : 'http://localhost:8083/management',
+      {changeOrigin: !!env, secure: false}
     )
   };
 };

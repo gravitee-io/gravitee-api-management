@@ -3,8 +3,6 @@
 @import 'api/_api';
 @import 'api/documentation/_documentation';
 
-@import 'application/_applications';
-
 @import 'components/navbar/_navbar';
 
 .browsehappy {
@@ -43,9 +41,34 @@
       height: 32px;
     }
   }
+
+  .footer-links {
+    display: flex;
+    list-style-type: none;
+  }
+
+  .footer-links-section {
+    //padding: 0 60px;
+    h3 {
+      font: 500 14px/16px Roboto,sans-serif;
+    }
+    ul {
+      padding: 0;
+      list-style-type: none;
+      li {
+        margin: 6px 0;
+        a {
+          text-decoration: none;
+          //color: rgb(45,50,62);
+          font: 12px/14px Roboto,sans-serif;
+        }
+      }
+    }
+  }
 }
 
 #plans {
+  min-height: calc(100vh - 440px);
   md-card-content {
     width: 100%;
     min-height: 250px;

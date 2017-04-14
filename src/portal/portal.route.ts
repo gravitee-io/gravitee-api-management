@@ -89,19 +89,15 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       resolve: {
         api: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
           ApiService.get($stateParams['apiId']).then(response => response.data)
-      }
-    })
-    .state('portal.api.detail', {
-      abstract: true,
-      url: '',
+      },
       component: 'api'
     })
-    .state('portal.api.detail.general', {
-      url: '',
+    .state('portal.api.plans', {
+      url: '/plans',
       views: {
         'header': { component: 'apiPortalHeader' },
-        'homepage': { component: 'apiHomepage' },
-        'plans': { component: 'apiPlans' }
+        'content': { component: 'apiHomepage' },
+        'subContent': { component: 'apiPlans' }
       },
       resolve: {
         plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
@@ -112,7 +108,10 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
     })
     .state('portal.api.pages', {
       url: '/pages',
-      component: 'apiPages',
+      views: {
+        'header': { component: 'apiPortalHeader' },
+        'content': { component: 'apiPages' }
+      },
       resolve: {
         pages: ($stateParams: ng.ui.IStateParamsService, DocumentationService: DocumentationService) =>
           DocumentationService.listApiPages($stateParams['apiId']).then(response => response.data)
@@ -158,7 +157,10 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
     })
     .state('portal.api.subscribe', {
       url: '/subscribe/:planId',
-      component: 'apiSubscribe',
+      views: {
+        'header': { component: 'apiPortalHeader' },
+        'content': { component: 'apiSubscribe' }
+      },
       resolve: {
         applications: (ApplicationService: ApplicationService) =>
           ApplicationService.list().then(response => response.data),

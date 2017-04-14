@@ -138,8 +138,7 @@ module.exports = {
   },
   resolve: {
     alias: {
-      'read-more': 'read-more/js/directives/readmore.js',
-      'raml-1-parser': 'raml-1-parser/browser_version/index.js'
+      'read-more': 'read-more/js/directives/readmore.js'
     },
     extensions: [
       '.webpack.js',

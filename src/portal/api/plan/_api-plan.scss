@@ -17,7 +17,7 @@
   margin: 2em 0 0;
 }
 
-.pricing-list > li {
+.pricing-list > div {
   position: relative;
   margin-bottom: 1em;
 }
@@ -31,23 +31,22 @@
     display: table;
     clear: both;
   }
-  .pricing-list > li {
-    width: 25%;
-    float: left;
+  .pricing-list > div {
+    width: 24%;
     padding-left: 5px;
     padding-right: 5px;
   }
-  .has-margins .pricing-list > li {
-    width: 25%;
-    float: left;
+  .has-margins .pricing-list > div {
+    width: 24%;
     margin-right: 1.5%;
   }
-  .has-margins .pricing-list > li:last-of-type {
+  .has-margins .pricing-list > div:last-of-type {
     margin-right: 0;
   }
 }
 
 .pricing-wrapper {
+  padding: 0 10px;
   position: relative;
 
   h2 {
@@ -58,14 +57,14 @@
   }
 }
 
-.pricing-wrapper > li {
+.pricing-wrapper > div {
   background-color: #ffffff;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   outline: 1px solid transparent;
 }
 
-.pricing-wrapper > li::after {
+.pricing-wrapper > div::after {
   content: '';
   position: absolute;
   top: 0;
@@ -77,11 +76,13 @@
   background: linear-gradient(to left, #ffffff, rgba(255, 255, 255, 0));
 }
 
-.pricing-wrapper > li.is-ended::after {
+.pricing-wrapper > div.is-ended::after {
   display: none;
 }
 
 .pricing-wrapper .is-visible {
+  background-color: #fff;
+  border-radius: 3px;
   position: relative;
   z-index: 5;
 }
@@ -91,7 +92,7 @@
 }
 
 @media only screen and (min-width: 768px) {
-  .pricing-wrapper > li::before {
+  .pricing-wrapper > div::before {
     content: '';
     position: absolute;
     z-index: 6;
@@ -107,25 +108,25 @@
     width: 1px;
     background-color: #b1d6e8;
   }
-  .pricing-wrapper > li::after {
+  .pricing-wrapper > div::after {
     display: none;
   }
-  .has-margins .pricing-wrapper > li {
+  .has-margins .pricing-wrapper > div {
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
   }
-  :nth-of-type(1) > .pricing-wrapper > li::before {
+  :nth-of-type(1) > .pricing-wrapper > div::before {
     display: none;
   }
-  .has-margins .pricing-wrapper > li {
+  .has-margins .pricing-wrapper > div {
     border-radius: 4px 4px 6px 6px;
   }
-  .has-margins .pricing-wrapper > li::before {
+  .has-margins .pricing-wrapper > div::before {
     display: none;
   }
 }
 
 @media only screen and (min-width: 1500px) {
-  .full-width .pricing-wrapper > li {
+  .full-width .pricing-wrapper > div {
     padding: 2.5em 0;
   }
 }
@@ -149,7 +150,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  width: 210px;
+  margin: 0 auto;
+  max-width: 210px;
 }
 
 .pricing-body {
@@ -244,7 +246,6 @@
   text-transform: uppercase;
   letter-spacing: 2px;
   transition: all .6s;
-  width: 70%;
 
   &:hover {
     background-color: #1bbc9d;

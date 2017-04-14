@@ -183,7 +183,7 @@ md-radio-button ng-md-icon {
 }
 
 .gravitee-card:hover {
-  box-shadow: 0 7px 8px -4px rgba(0, 0, 0, .2), 0 12px 17px 2px rgba(0, 0, 0, .14), 0 5px 22px 4px rgba(0, 0, 0, .12);
+  box-shadow: 0 1px 6px 1px rgba(0, 0, 0, 0.37);
 }
 
 .gravitee-add-button {
@@ -241,6 +241,7 @@ tbody {
 }
 
 md-toast {
+  position: fixed;
   &.md-toast-success-theme .md-toast-content {
     background-color: #4ea44d;
   }
@@ -352,6 +353,32 @@ md-list-item::before {
   }
 }
 
+.api-box-icon {
+  height: 50px;
+  &.api-box-icon-figure {
+    width: 150px;
+  }
+  img {
+    display: block;
+    max-width: 150px;
+    max-height: 80px;
+    width: auto;
+    height: auto;
+  }
+  &.default {
+    background: url('assets/GRAVITEE_LOGOsstxtclair-05.png') no-repeat center center;
+    background-size: auto 100%;
+  }
+}
+
+
+.api-box {
+  width: 98%;
+  min-width: 320px;
+  max-width: 480px;
+  margin: 14px;
+}
+
 .apis-box {
   a, a:link, a:visited, a:hover, a:active {
     text-decoration: none;
@@ -374,23 +401,6 @@ md-list-item::before {
     }
     .api-box-description {
       text-align: center;
-    }
-    .api-box-icon {
-      height: 80px;
-      &.api-box-icon-figure {
-        width: 150px;
-      }
-      img {
-        display: block;
-        max-width: 150px;
-        max-height: 80px;
-        width: auto;
-        height: auto;
-      }
-      &.default {
-        background: url('assets/GRAVITEE_LOGOsstxtclair-05.png') no-repeat center center;
-        background-size: auto 100%;
-      }
     }
     .api-box-name-version {
       font-size: 14px;

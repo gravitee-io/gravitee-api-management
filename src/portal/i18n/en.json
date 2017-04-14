@@ -36,6 +36,10 @@
     "views": "Quick filters: "
   },
   "api": {
+    "version": "Version",
+    "contextPath": "Context path",
+    "owner": "Owner",
+    "lastDeployment": "Last update",
     "subscription": {
       "title": "Select an application to subscribe",
       "subtitle": "You are subscribing to plan {{planName}} {{planInformation}}",
@@ -53,7 +57,18 @@
     "plan": {
       "title": "Plans",
       "subscribe": "Subscribe",
-      "manual": "Subscription subject to validation"
+      "manual": "Subscription subject to validation",
+      "empty": {
+        "title": "No plan for this API",
+        "message": "Once a plan has been created, you can subscribe to this API"
+      }
+    },
+    "documentation": {
+      "title": "Documentation",
+      "empty": {
+        "title": "No documentation for this API",
+        "message": "Come back soon, the API will be completed shortly"
+      }
     }
   },
   "applications": {

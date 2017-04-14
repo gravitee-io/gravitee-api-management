@@ -20,29 +20,27 @@
     <div layout="column" style="min-width: 540px;">
       <div class="api-general">
         <h1>{{::$ctrl.api.name}}</h1>
+        <span>{{'api.version' | translate}} {{::$ctrl.api.version}}</span>
         <p>{{::$ctrl.api.description}}</p>
       </div>
       <div class="api-description" layout="row">
-        <p ng-if="$ctrl.api.version">
-          <span>Version</span>
-          <span>{{::$ctrl.api.version}}<md-tooltip md-direction="bottom">Version</md-tooltip></span>
-        </p>
         <p ng-if="$ctrl.api.proxy.context_path">
-          <span><i class="material-icons">http</i></span>
-          <span>{{::$ctrl.api.proxy.context_path}}<md-tooltip md-direction="bottom">Context path</md-tooltip></span>
+          <ng-md-icon icon="http" style="fill: silver"></ng-md-icon>
+          <span>{{::$ctrl.api.proxy.context_path}}<md-tooltip md-direction="bottom">{{'api.contextPath' | translate}}</md-tooltip></span>
         </p>
         <p>
-          <span><i class="material-icons">person</i></span>
-          <span>{{::$ctrl.api.owner.username}}<md-tooltip md-direction="bottom">Owner</md-tooltip></span>
+          <ng-md-icon icon="person" style="fill: silver"></ng-md-icon>
+          <span>{{::$ctrl.api.owner.username}}<md-tooltip md-direction="bottom">{{'api.owner' | translate}}</md-tooltip></span>
         </p>
         <p ng-if="::$ctrl.api.deployed_at">
-          <span><i class="material-icons">schedule</i></span>
-          <span>{{::$ctrl.api.deployed_at | humanDateFilter}}<md-tooltip md-direction="bottom">Last deployment</md-tooltip></span>
+          <ng-md-icon icon="schedule" style="fill: silver"></ng-md-icon>
+          <span>{{::$ctrl.api.deployed_at | humanDateFilter}}<md-tooltip md-direction="bottom">{{'api.lastDeployment' | translate}}</md-tooltip></span>
         </p>
       </div>
       <div class="api-actions" layout="row">
-        <md-button class="md-raised" ui-sref="portal.api.detail.general({apiId: $ctrl.api.id})">Pricing and Plans</md-button>
-        <md-button class="md-raised" ui-sref="portal.api.pages({apiId: $ctrl.api.id})">Documentation</md-button>
+        <md-button class="md-raised" ui-sref="portal.api.pages({apiId: $ctrl.api.id})">{{'api.documentation.title' | translate}}</md-button>
+        <md-button class="md-raised md-primary" style="margin: 6px 0; background-color: #006CAB"
+                   ui-sref="portal.api.plans({apiId: $ctrl.api.id, '#': 'plans'})">{{'api.plan.subscribe' | translate}}</md-button>
       </div>
     </div>
     <div class="api-logo">

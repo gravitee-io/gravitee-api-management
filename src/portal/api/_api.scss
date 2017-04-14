@@ -11,7 +11,7 @@
   p {
     font-size: 20px;
     line-height: 28px;
-    margin: 16px 0 32px;
+    margin: 16px 0 0;
     max-width: 440px;
   }
 }
@@ -22,5 +22,16 @@
     i {
       float: left;
     }
+  }
+}
+
+.api-gallery {
+  max-width: 508px;
+  min-width: 508px;
+  width: 508px;
+  @media screen and (min-width: 1016px) {
+    max-width: 1016px;
+    min-width: 1016px;
+    width: 1016px;
   }
 }

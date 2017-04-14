@@ -42,7 +42,7 @@
     "ng-file-upload": "^12.2.13",
     "ng-showdown": "^1.1.0",
     "ngclipboard": "^1.1.1",
-    "raml-1-parser": "https://github.com/raml-org/raml-js-parser-2.git#1.1.17",
+    "raml-1-parser": "^1.1.19 ",
     "read-more": "0.0.0",
     "showdown-prettify": "^1.3.0",
     "traverse": "^0.6.6",
@@ -170,6 +170,7 @@
     "test": "gulp test",
     "serve": "gulp serve",
     "serve:demo": "gulp serve:demo",
+    "serve:nightly": "gulp serve:nightly",
     "serve:dist": "gulp serve:dist",
     "test:auto": "gulp test:auto",
     "buildNoReg": "gulp buildNoReg"

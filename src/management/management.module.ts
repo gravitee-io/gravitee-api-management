@@ -25,7 +25,7 @@ import 'angular-sanitize';
 import * as traverse from 'traverse';
 (<any>window).traverse = traverse;
 
-import * as RAML from 'raml-1-parser/browser_version/index.js';
+import * as RAML from 'raml-1-parser';
 (<any>window).RAML = {Parser: RAML};
 
 import * as marked from 'marked';
@@ -276,7 +276,7 @@ import runBlock from './management.run';
 angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
-  'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'duScroll'])
+  'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster'])
   .config(config)
   .config(routerConfig)
   .config(managementRouterConfig)

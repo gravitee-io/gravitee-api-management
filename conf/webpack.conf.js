@@ -94,8 +94,7 @@ module.exports = {
         tslint: {
           configuration: require('../tslint.json')
         }
-      },
-      debug: true
+      }
     }),
     new CopyWebpackPlugin([{
       from: './constants.json',
@@ -104,7 +103,7 @@ module.exports = {
       from: './build.json',
       to: ''
     }], {
-      copyUnmodified: true,
+      copyUnmodified: true
     })
   ],
   devtool: 'source-map',
@@ -120,7 +119,8 @@ module.exports = {
       '.webpack.js',
       '.web.js',
       '.js',
-      '.ts'
+      '.ts',
+      '.json'
     ]
   },
   entry: `./${conf.path.src('index')}`,

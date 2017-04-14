@@ -16,11 +16,11 @@
 
 -->
 <md-content>
-  <div ui-view class="main-container"></div>
+  <div ui-view class="main-container" autoscroll="true"></div>
   <section id="footer">
     <footer layout="row" layout-align="center start">
-      <div layout="row" flex="90">
-        <div flex="70">
+      <div flex="100" flex-gt-xs="90" layout="column" layout-gt-xs="row">
+        <div flex="100" flex-gt-xs="70" layout-wrap>
           <ul class="footer-links" layout="column">
             <li class="footer-links-section" ng-if="indexCtrl.pages && indexCtrl.pages.length > 0">
               <h3>{{'home.pages.title' | translate}}</h3>
@@ -30,8 +30,8 @@
             </li>
           </ul>
         </div>
-        <div flex="30" class="footer-brand" layout="row" layout-align="center center">
-          <div flex="100" class="footer-brand-content" layout="row" layout-align="center center" layout-wrap>
+        <div flex="100" flex-gt-xs="30" class="footer-brand" layout="row" layout-align="center center">
+          <div flex class="footer-brand-content" layout="row" layout-align="center center" layout-wrap>
             <div flex="15">
               <img ng-src="assets/GRAVITEE_LOGO1-01.png"/>
             </div>

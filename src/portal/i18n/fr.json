@@ -36,6 +36,10 @@
     "views": "Filtres rapide : "
   },
   "api": {
+    "version": "Version",
+    "contextPath": "Chemin",
+    "owner": "Propriétaire",
+    "lastDeployment": "Dernière mise à jour",
     "subscription": {
       "title": "Sélectionner une application pour souscrire",
       "subtitle": "Vous êtes sur le point de souscrire au plan {{planName}} {{planInformation}}",
@@ -53,7 +57,18 @@
     "plan": {
       "title": "Plans",
       "subscribe": "Souscrire",
-      "manual": "Souscription soumise à validation"
+      "manual": "Souscription soumise à validation",
+      "empty": {
+        "title": "Aucun plan sur cette API",
+        "message": "Une fois qu'un plan aura été créé, vous pourrez souscrire à cette API"
+      }
+    },
+    "documentation": {
+      "title": "Documentation",
+      "empty": {
+        "title": "Aucune documentation sur cette API",
+        "message": "Revenez vite, l'API sera complétée rapidement"
+      }
     }
   },
   "applications": {

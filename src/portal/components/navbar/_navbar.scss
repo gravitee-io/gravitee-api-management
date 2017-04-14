@@ -4,6 +4,7 @@ md-toolbar.topnavbar {
   min-height: 54px;
   position: fixed;
   background-color: rgb(45,50,62);
+  z-index: 100;
 }
 
 .topnavbar-brand {

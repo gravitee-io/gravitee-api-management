@@ -25,35 +25,43 @@
   </md-card-header>
   <md-card-content style="padding: 0px; overflow-y: auto; height: calc(100vh - 90px);">
     <div layout="row" layout-wrap class="inset">
-      <div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33" ng-repeat="application in $ctrl.applications | filter:searchApplications">
-        <a ui-sref="management.applications.portal.general({applicationId: application.id})">
-          <md-card class="api-box gravitee-card gravitee-api-card">
-            <md-card-header layout="row" layout-align="end start">
-              <md-card-avatar>
-              </md-card-avatar>
-            </md-card-header>
-            <md-card-content>
-              <div class="api-box-description">
-                <div class="api-box-icon default">
-                </div>
-                <div class="api-box-name-version" layout-padding>
-                  {{application.name}}
-                </div>
-                <div class="api-box-state">
-                  <span ng-if="application.type" style="color:#cdcdcd;">{{application.type}}</span>
-                  <span ng-if="!application.type">&nbsp;</span>
-                </div>
-              </div>
-            </md-card-content>
-            <md-card-footer>
-              <div class="api-box-footer" layout="row" layout-align="end">
-                <span><span style="top: 2px; position: relative;">{{application.apis_size}}</span><ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;"><md-tooltip>{{application.apis_size}} API(s)</md-tooltip></ng-md-icon></span>
-                <span><span style="top: 2px; position: relative;">{{application.members_size}}</span><ng-md-icon icon="people" size="20" style="fill: #cdcdcd;"><md-tooltip>{{application.members_size}} member(s)</md-tooltip></ng-md-icon></span>
-              </div>
-            </md-card-footer>
-          </md-card>
-        </a>
-      </div>
+      <md-table-container style="width: 100%">
+        <table md-table md-row-select="true" ng-model="$ctrl.selectedApplications" ng-init="query.order = 'name'">
+          <thead md-head md-order="query.order">
+          <tr md-row>
+            <th md-column></th>
+            <th md-column md-order-by="name"><span>Name</span></th>
+            <th md-column md-order-by="type">Type</th>
+            <th md-column md-numeric md-order-by="apis_size">APIs</th>
+            <th md-column md-numeric md-order-by="members_size">Members</th>
+          </tr>
+          </thead>
+          <tbody md-body>
+          <tr md-row ui-sref="management.applications.portal.general({applicationId: application.id})"
+              ng-repeat="application in $ctrl.applications | filter:searchApplications | orderBy:query.order track by application.id">
+            <td md-cell class="api-box-icon default"></td>
+            <td md-cell>{{application.name}}</td>
+            <td md-cell>{{application.type}}</td>
+            <td md-cell>
+              <span>
+                <span>{{application.apis_size}}</span>
+                <ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;">
+                  <md-tooltip>{{application.apis_size}} API(s)</md-tooltip>
+                </ng-md-icon>
+              </span>
+            </td>
+            <td md-cell>
+              <span>
+                <span>{{application.members_size}}</span>
+                <ng-md-icon icon="people" size="20" style="fill: #cdcdcd;">
+                  <md-tooltip>{{application.members_size}} member(s)</md-tooltip>
+                </ng-md-icon>
+              </span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
     </div>
   </md-card-content>
 </md-card>

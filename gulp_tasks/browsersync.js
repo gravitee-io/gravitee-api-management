@@ -24,6 +24,7 @@ browserSync.use(spa());
 
 gulp.task('browsersync', browserSyncServe);
 gulp.task('browsersync:demo', browserSyncDemo);
+gulp.task('browsersync:nightly', browserSyncNightly);
 gulp.task('browsersync:dist', browserSyncDist);
 
 function browserSyncServe(done) {
@@ -32,7 +33,12 @@ function browserSyncServe(done) {
 }
 
 function browserSyncDemo(done) {
-  browserSync.init(browserSyncConf(true));
+  browserSync.init(browserSyncConf('demo'));
+  done();
+}
+
+function browserSyncNightly(done) {
+  browserSync.init(browserSyncConf('nightly'));
   done();
 }
 

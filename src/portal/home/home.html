@@ -23,7 +23,7 @@
       <h1 style="color: white;"><span translate="home.title"></span> <span translate="home.subtitle" style="font-weight: 100;"></span></h1>
     </div>
     <div layout="row" layout-align="center center" style="margin-top: 10px;">
-      <md-autocomplete flex="50"
+      <md-autocomplete flex="90" flex-sm="70" flex-gt-xs="50"
                        md-search-text="homeCtrl.searchText"
                        md-selected-item-change="homeCtrl.selectedItemChange(item)"
                        md-items="item in homeCtrl.querySearch(ctrl.searchText) | filter:homeCtrl.searchText"
@@ -33,27 +33,29 @@
                        md-menu-class="autocomplete-custom-template">
         <md-item-template>
             <span class="item-title">
-              <i class="material-icons md-24">face</i>
-              <span> {{item.name}} </span>
+              <ng-md-icon icon="share"></ng-md-icon>
+              <span>{{item.name}}</span>
             </span>
           <span class="item-metadata">
               <span>
-                <strong>{{item.version}}</strong> version
+                <strong>{{'api.version' | translate}} {{item.version}}</strong>
               </span>
             </span>
         </md-item-template>
       </md-autocomplete>
     </div>
   </section>
-  <section id="portal-homepage" ng-if="homeCtrl.homepage">
-    <gv-page page="homeCtrl.homepage"></gv-page>
+  <section id="portal-homepage" ng-if="homeCtrl.homepage" layout="row" layout-align="center center">
+    <div flex="100" flex-gt-xs="70">
+      <gv-page page="homeCtrl.homepage"></gv-page>
+    </div>
   </section>
   <section id="top-apis" class="tall" layout="row" layout-align="center start" flex>
-    <div layout="column" flex>
+    <div layout="column" flex="100" flex-gt-xs="80" flex-gt-lg="70">
       <h2 class="section-title" translate="home.apis.top"></h2>
-      <div layout="row" layout-align="center center">
-        <md-card class="api-box gravitee-card gravitee-api-card" ng-repeat="api in homeCtrl.apis | limitTo: 3 track by api.id"
-                 ui-sref="portal.apis.list" flex="20">
+      <md-content style="background-color: inherit" layout="column" layout-gt-sm="row" layout-align="center center" layout-wrap>
+        <md-card class="api-box gravitee-card gravitee-api-card" ng-repeat="api in homeCtrl.apis | limitTo: 4 track by api.id"
+                 ui-sref="portal.api.plans({apiId: api.id})" layout-wrap>
           <md-card-title>
             <md-card-title-text>
               <span class="md-headline">{{api.name}} <span class="md-subhead">{{api.version}}</span></span>
@@ -68,8 +70,8 @@
             <small>{{api.description}}</small>
           </md-card-content>
         </md-card>
-      </div>
-      <div layout="row" layout-align="center center">
+      </md-content>
+      <div layout="row" layout-align="center center" style="margin-top: 20px;">
         <md-button ui-sref="portal.apis.list" class="md-raised">{{'home.apis.all' | translate}}</md-button>
       </div>
     </div>

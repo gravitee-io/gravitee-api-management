@@ -24,7 +24,7 @@ function portalI18nConfig($translateProvider, $windowProvider) {
   const $window = $windowProvider.$get();
   const lang = $window.navigator.language || $window.navigator.userLanguage;
 
-  $translateProvider.preferredLanguage(lang);
+  $translateProvider.preferredLanguage(lang.substring(0, 2));
   $translateProvider.useSanitizeValueStrategy('escape');
 }
 

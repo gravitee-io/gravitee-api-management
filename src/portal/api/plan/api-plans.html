@@ -15,13 +15,19 @@
     limitations under the License.
 
 -->
-<section id="plans" class="tall dark-theme" layout="column" layout-align="center center" layout-padding>
+<div ng-if="$ctrl.plans && !$ctrl.plans.length" style="padding-top: 100px;">
+  <gravitee-empty-state icon="insert_drive_file"
+      message="{{'api.plan.empty.title' | translate}}" sub-message="{{'api.plan.empty.message' | translate}}">
+  </gravitee-empty-state>
+</div>
+<section id="plans" class="tall dark-theme" layout="column" layout-align="center center" layout-padding
+  ng-if="$ctrl.plans && $ctrl.plans.length">
   <h2 class="section-title" translate="api.plan.title">Plans</h2>
   <div class="pricing-container">
-    <ul class="pricing-list">
-      <li ng-repeat="plan in $ctrl.plans">
+    <div class="pricing-list" layout="row" layout-wrap layout-align="center center">
+      <div ng-repeat="plan in $ctrl.plans">
         <ul class="pricing-wrapper">
-          <li class="is-visible">
+          <li class="is-visible gravitee-card">
             <h2>{{::plan.name}}</h2>
             <div class="pricing-validation">{{plan.validation === 'manual'? ('api.plan.manual' | translate): '&nbsp;'}}</div>
             <header class="pricing-header">
@@ -42,7 +48,7 @@
             </footer>
           </li>
         </ul>
-      </li>
-    </ul>
+      </div>
+    </div>
   </div>
 </section>

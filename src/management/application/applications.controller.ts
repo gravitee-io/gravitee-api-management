@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 import * as angular from 'angular';
-import ApplicationService from '../../services/applications.service';
-import NotificationService from '../../services/notification.service';
 
 class ApplicationsController {
   private applications: any;
+  private selectedApplications: any;
 
   constructor(
     private $mdDialog: ng.material.IDialogService,
     private $state: ng.ui.IStateService,
-    //TODO: should be typed
-    // private $rootScope: ng.IRootScopeService,
-    private $rootScope,
-    private ApplicationService: ApplicationService,
-    private NotificationService: NotificationService
+    private $rootScope
   ) {
 		'ngInject';
+
+		this.selectedApplications = [];
 	}
 
 	createInitApplication() {

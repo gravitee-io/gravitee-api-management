@@ -70,7 +70,6 @@ class NewPageController {
         this.preview();
         PortalPagesService.get($state.params.pageId).then( response => {
           this.page = response.data;
-          PortalPagesService.cachePageConfiguration(this.page);
           this.initialPage = _.clone(response.data);
           if(!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
             this.useFetcher = true;

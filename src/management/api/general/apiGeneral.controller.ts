@@ -36,12 +36,13 @@ class ApiAdminController {
     private $mdEditDialog,
     private $rootScope,
     private resolvedApi,
-    private base64,
     private $state,
     private ViewService,
     private GroupService,
     private TagService,
-    private SidenavService: SidenavService
+    private SidenavService: SidenavService,
+    private resolvedViews,
+    private resolvedTags
   ) {
     'ngInject';
 
@@ -78,12 +79,8 @@ class ApiAdminController {
 
     this.initState();
 
-    ViewService.list().then(response => {
-      this.views = response.data;
-    });
-    TagService.list().then(response => {
-      this.tags = response.data;
-    });
+    this.views = resolvedViews;
+    this.tags = resolvedTags;
   }
 
   toggleVisibility() {

@@ -16,8 +16,8 @@
 
 -->
 <md-content>
-  <div id="main-content" layout="row" layout-align="center" style="padding-top: 70px; padding-bottom: 50px;">
-    <div flex="80">
+  <div id="main-content" layout="row" layout-align="center start" style="padding-top: 70px; padding-bottom: 50px;">
+    <div flex="100" flex-gt-xs="80" flex-gt-lg="70">
       <div layout="row">
         <md-input-container style="margin: 0">
           <input type="text" placeholder="{{'apis.filter' | translate}}" ng-model="$ctrl.apiFilter" />
@@ -33,10 +33,15 @@
       <h5 class="gravitee-view-description" ng-if="apisCtrl.view && apisCtrl.view.description && !apisCtrl.hideApis">
         {{apisCtrl.view.description}}
       </h5>
-      <md-content ng-show="!apisCtrl.hideApis" layout="column">
-        <div layout="row" layout-wrap>
-          <md-card class="api-box gravitee-card gravitee-api-card" ng-repeat="api in apisCtrl.apis | filter:$ctrl.apiFilter track by api.id"
-                   ui-sref="portal.api.detail.general({apiId: api.id})" flex="45">
+      <div layout="row" layout-align="center center">
+        <md-content ng-show="!apisCtrl.hideApis"
+                    layout="row" layout-align="start start"
+                    layout-wrap
+                    class="api-gallery">
+          <md-card class="api-box gravitee-card gravitee-api-card"
+                   ng-repeat="api in apisCtrl.apis | filter:$ctrl.apiFilter track by api.id"
+                   ui-sref="portal.api.plans({apiId: api.id})"
+                   layout-wrap>
             <md-card-title style="padding-top: 15px; padding-bottom: 0px;">
               <md-card-title-text>
                 <span class="md-headline">{{::api.name}} <span class="md-subhead">{{::api.version}}</span></span>
@@ -51,8 +56,8 @@
               <small>{{::api.description}}</small>
             </md-card-content>
           </md-card>
-        </div>
-      </md-content>
+        </md-content>
+          </div>
     </div>
   </div>
 </md-content>

@@ -30,6 +30,7 @@ gulp.task('test', gulp.series('karma:single-run'));
 gulp.task('test:auto', gulp.series('karma:auto-run'));
 gulp.task('serve', gulp.series('webpack:watch', 'watch', 'browsersync'));
 gulp.task('serve:demo', gulp.series('webpack:watch', 'watch', 'browsersync:demo'));
+gulp.task('serve:nightly', gulp.series('webpack:watch', 'watch', 'browsersync:nightly'));
 gulp.task('serve:dist', gulp.series('default', 'browsersync:dist'));
 gulp.task('default', gulp.series('clean', 'build'));
 gulp.task('watch', watch);

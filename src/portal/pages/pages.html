@@ -15,13 +15,13 @@
     limitations under the License.
 
 -->
-
-<gravitee-empty-state ng-if="$ctrl.pages.length == 0"
-                      icon="insert_drive_file"
-                      model="Plan"
-                      message="No documentation"
-                      sub-message="Come back soon."></gravitee-empty-state>
-
+<div ng-if="$ctrl.pages.length == 0" style="padding-top: 100px;">
+  <gravitee-empty-state
+                        icon="insert_drive_file"
+                        model="Plan"
+                        message="No documentation"
+                        sub-message="Come back soon."></gravitee-empty-state>
+</div>
 <md-content ng-if="$ctrl.pages.length > 0">
   <div id="main-content" layout="row" style="padding-top: 70px">
     <div class="doc-nav" flex="15" layout="column">

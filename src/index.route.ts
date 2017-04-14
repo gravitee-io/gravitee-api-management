@@ -41,7 +41,7 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
         abstract: true,
         views: {
           'sidenav': {
-            component: 'gvSidenav',
+            component: 'gvSidenav'
           },
           '': {
             template: '<div class="gv-main-container" ui-view layout="column" flex></div>'

@@ -78,7 +78,7 @@ function ApiSubscribeController($state,
 
   vm.select = function (application) {
     ApplicationService.subscribe(application.id, vm.plan.id).then(function () {
-      NotificationService.show('api.subscription.successful', {planName: vm.plan.name});
+      NotificationService.show('api.subscription.successful', false, {planName: vm.plan.name});
 
       ApiService.getPlanSubscriptions(vm.api.id, vm.plan.id).then(function (subscriptions) {
         vm.subscriptions = subscriptions.data;
