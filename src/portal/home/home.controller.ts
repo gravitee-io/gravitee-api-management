@@ -19,7 +19,7 @@ export class HomeController {
   private apis: any[];
   private homepage: any;
 
-  constructor (private resolvedApis, private $state, private resolvedHomepage) {
+  constructor (private resolvedApis, private $state, private resolvedHomepage, private Constants) {
     'ngInject';
     this.apis = resolvedApis.data;
     this.homepage = resolvedHomepage;
@@ -42,5 +42,9 @@ export class HomeController {
     if (api) {
       this.$state.go('portal.api.plans', {'apiId': api.id});
     }
+  }
+
+  getLogo() {
+    return this.Constants.logo;
   }
 }

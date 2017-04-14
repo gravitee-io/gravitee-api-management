@@ -17,7 +17,7 @@ import UserService from "../../../services/user.service";
 import {IScope} from "angular";
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),
-  controller: function(UserService: UserService, $scope: IScope) {
+  controller: function(UserService: UserService, $scope: IScope, Constants) {
     'ngInject';
 
     const vm = this;
@@ -40,6 +40,10 @@ export const NavbarComponent: ng.IComponentOptions = {
 
     vm.hasRoles = function (roles) {
       return UserService.isUserInRoles(roles);
+    }
+
+    vm.getLogo = function() {
+      return Constants.logo;
     }
   }
 };

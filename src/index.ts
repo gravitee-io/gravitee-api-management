@@ -35,6 +35,10 @@ function fetchData() {
 
     angular.module('gravitee-portal').constant('Constants', responses[0].data);
     angular.module('gravitee-portal').constant('Build', responses[1].data);
+    return $q.all([$http.get(`./themes/${responses[0].data.theme}-theme.json`)])
+      .then((responses: any) => {
+        angular.module('gravitee-portal').constant('Theme', responses[0].data);
+      });
   });
 }
 

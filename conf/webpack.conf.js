@@ -96,13 +96,19 @@ module.exports = {
         }
       }
     }),
-    new CopyWebpackPlugin([{
-      from: './constants.json',
-      to: ''
-    },{
-      from: './build.json',
-      to: ''
-    }], {
+    new CopyWebpackPlugin([
+      {
+        from: './constants.json',
+        to: ''
+      }, {
+        from: './build.json',
+        to: ''
+      },
+      {
+        from: './themes',
+        to: './themes'
+      }
+    ], {
       copyUnmodified: true
     })
   ],

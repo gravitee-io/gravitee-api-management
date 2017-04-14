@@ -39,13 +39,13 @@ module.exports = {
           'json-loader'
         ]
       },
-        {
-            test: /constants\.json$/,
-            exclude: /constants\.json/,
-            loaders: [
-                'url-loader'
-            ]
-        },
+      {
+        test: /constants\.json$/,
+        exclude: /constants\.json/,
+        loaders: [
+          'url-loader'
+        ]
+      },
       {
         test: /\.ts$/,
         exclude: /node_modules/,
@@ -122,13 +122,19 @@ module.exports = {
         }
       }
     }),
-    new CopyWebpackPlugin([{
-      from: './constants.json',
-      to: ''
-    },{
-      from: './build.json',
-      to: ''
-    }], {
+    new CopyWebpackPlugin([
+      {
+        from: './constants.json',
+        to: ''
+      }, {
+        from: './build.json',
+        to: ''
+      },
+      {
+        from: './themes',
+        to: './themes'
+      }
+    ], {
       copyUnmodified: true,
     })
   ],
@@ -155,5 +161,5 @@ module.exports = {
   node: {
     fs: 'empty'
   },
-  externals: [ { 'api-console': {}, 'unicode': {} } ]
+  externals: [{'api-console': {}, 'unicode': {}}]
 };

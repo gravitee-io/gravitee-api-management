@@ -44,6 +44,7 @@ import PagesComponent from './pages/pages.component';
 import PageComponent from './pages/page.component';
 
 import { NavbarComponent } from './components/navbar/navbar.component';
+import ThemeElementDirective from './components/theme/theme-element.directive';
 
 angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.translate', 'duScroll', 'satellizer'])
   .value('duScrollOffset', 54)
@@ -62,6 +63,7 @@ angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.tran
   .component('page', PageComponent)
   .component('apiSubscribe', ApiSubscribeComponent)
   .component('graviteeNavbar', NavbarComponent)
+  .directive('gvThemeElement', () => ThemeElementDirective)
   .filter('humanDateFilter', function () {
     return function(input) {
       if (!moment().subtract(1, 'weeks').isAfter(input)) {

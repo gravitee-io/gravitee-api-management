@@ -20,9 +20,9 @@
       message="{{'api.plan.empty.title' | translate}}" sub-message="{{'api.plan.empty.message' | translate}}">
   </gravitee-empty-state>
 </div>
-<section id="plans" class="tall dark-theme" layout="column" layout-align="center center" layout-padding
-  ng-if="$ctrl.plans && $ctrl.plans.length">
-  <h2 class="section-title" translate="api.plan.title">Plans</h2>
+<section id="plans" class="tall" layout="column" layout-align="center center" layout-padding
+  ng-if="$ctrl.plans && $ctrl.plans.length" gv-theme-element="portal.api.plans">
+  <h2 class="section-title color-white" translate="api.plan.title">Plans</h2>
   <div class="pricing-container">
     <div class="pricing-list" layout="row" layout-wrap layout-align="center center">
       <div ng-repeat="plan in $ctrl.plans">

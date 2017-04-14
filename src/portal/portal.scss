@@ -12,6 +12,11 @@
   padding: 0.2em 0;
 }
 
+#header {
+  padding-top: 70px;
+  padding-bottom: 50px;
+}
+
 .main-container {
   min-height: calc(100vh - 120px);
 }
@@ -23,7 +28,6 @@
 #footer {
   color: #E1E2E1;
   min-height: 120px;
-  background-color: rgb(45,50,62);
   div.footer-brand {
     min-height: 120px;
   }
@@ -90,27 +94,16 @@ section, #main-content {
       font: 400 24px/32px Roboto,sans-serif;
     }
   }
-  &.dark-theme {
-    background-color: #34A0D4;
-    .section-title {
-      color: #fff;
-    }
-  }
-  &.light-theme {
-    background-color: #ebeff2;
-    i, h2 {
-      color: #757575;
-    }
-    h2 {
-      font: 300 24px/32px Roboto,sans-serif;
-    }
-  }
 }
 
 h2.section-title {
   text-align: center;
   color: #757575;
   font: 300 24px/32px Roboto,sans-serif;
+}
+
+h2.color-white {
+  color: #FFF;
 }
 
 ol, ul {
