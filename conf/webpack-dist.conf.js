@@ -144,7 +144,8 @@ module.exports = {
       '.webpack.js',
       '.web.js',
       '.js',
-      '.ts'
+      '.ts',
+      '.json'
     ]
   },
   entry: {
