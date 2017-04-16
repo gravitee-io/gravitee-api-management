@@ -43,7 +43,7 @@
                 <li ng-repeat="i in [0, 1, 2, 3, 4, 5]">{{plan.characteristics[i]? plan.characteristics[i] : '&nbsp;'}}</li>
               </ul>
             </div>
-            <footer class="pricing-footer">
+            <footer class="pricing-footer" ng-if="$ctrl.isAuthenticated">
               <a class="select" ui-sref="portal.api.subscribe({planId: plan.id})">{{'api.plan.subscribe' | translate}}</a>
             </footer>
           </li>

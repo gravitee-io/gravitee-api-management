@@ -15,7 +15,8 @@
  */
 const ApiPlansComponent: ng.IComponentOptions = {
   bindings: {
-    plans: '<'
+    plans: '<',
+    isAuthenticated: '<'
   },
   template: require('./api-plans.html')
 };

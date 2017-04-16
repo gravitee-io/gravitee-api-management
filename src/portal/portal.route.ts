@@ -18,7 +18,7 @@ import ApiService from "../services/api.service";
 import DocumentationService from "../services/apiDocumentation.service";
 import PortalPagesService from "../services/portalPages.service";
 import ApplicationService from "../services/applications.service";
-import SubscriptionService from "../services/subscription.service";
+import UserService from '../services/user.service';
 
 function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
   'ngInject';
@@ -103,7 +103,9 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
         plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
           ApiService.getPublishedApiPlans($stateParams['apiId']).then(response => response.data),
         homepage: ($stateParams: ng.ui.IStateParamsService, DocumentationService: DocumentationService) =>
-          DocumentationService.getApiHomepage($stateParams['apiId']).then(response => response.data)
+          DocumentationService.getApiHomepage($stateParams['apiId']).then(response => response.data),
+        isAuthenticated: ($stateParams: ng.ui.IStateParamsService, UserService: UserService) =>
+          UserService.isAuthenticated()
       }
     })
     .state('portal.api.pages', {
