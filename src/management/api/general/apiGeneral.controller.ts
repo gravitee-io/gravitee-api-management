@@ -232,7 +232,7 @@ class ApiAdminController {
       if (response) {
         that.ApiService.delete(id).then(() => {
           that.NotificationService.show('API \'' + that.initialApi.name + '\' has been removed');
-          that.$state.go('apis.list', {}, {reload: true});
+          that.$state.go('management.apis.list', {}, {reload: true});
         });
       }
     });

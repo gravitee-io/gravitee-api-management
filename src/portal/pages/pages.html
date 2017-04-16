@@ -22,17 +22,14 @@
                         message="No documentation"
                         sub-message="Come back soon."></gravitee-empty-state>
 </div>
-<md-content ng-if="$ctrl.pages.length > 0">
-  <div id="main-content" layout="row" style="padding-top: 70px">
-    <div class="doc-nav" flex="15" layout="column">
-      <h2>Documentation</h2>
-      <md-divider></md-divider>
-      <md-list style="color: #34A0D4;">
-        <md-list-item ui-sref="portal.pages.page({pageId: page.id})" ng-repeat="page in $ctrl.pages">{{page.name}}</md-list-item>
-      </md-list>
-    </div>
-    <div class="doc-content" flex="85">
-      <div ui-view class="inset"></div>
-    </div>
+
+<md-content ng-if="$ctrl.pages && $ctrl.pages.length > 0" layout="row" layout-xs="column" layout-padding layout-margin style="padding-top: 50px;">
+  <div flex="15" layout="column" class="doc-sidenav" layout-padding>
+    <ul>
+      <li class="sidenav_item" ng-class="{'active': page.selected}" ng-repeat="page in $ctrl.pages" ng-click="$ctrl.selectPage(page)">
+        <span>{{::page.name}}</span>
+      </li>
+    </ul>
   </div>
+  <div flex="85" ui-view></div>
 </md-content>

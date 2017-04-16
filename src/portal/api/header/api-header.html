@@ -19,7 +19,7 @@
   <div layout="row" layout-align="center" flex>
     <div layout="column" style="min-width: 540px;">
       <div class="api-general">
-        <h1>{{::$ctrl.api.name}}</h1>
+        <h1 ui-sref="portal.api.plans({apiId: $ctrl.api.id})">{{::$ctrl.api.name}}</h1>
         <span>{{'api.version' | translate}} {{::$ctrl.api.version}}</span>
         <p>{{::$ctrl.api.description}}</p>
       </div>

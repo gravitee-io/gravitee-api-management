@@ -40,7 +40,7 @@ class DocumentationController {
     }
 
     $scope.$on('onGraviteePageDeleted', () => {
-      this.$state.go('management.apis.detail.documentation');
+      this.$state.go('management.apis.detail.documentation', {}, {reload: true});
     });
   }
 

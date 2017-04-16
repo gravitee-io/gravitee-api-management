@@ -61,7 +61,7 @@ class NewApiController {
   private rateLimit: any;
   private quota: any;
 
-  constructor(private $scope, private $timeout, private $mdDialog, private $stateParams, private $window, private ApiService, private NotificationService) {
+  constructor(private $scope, private $timeout, private $mdDialog, private $stateParams, private $window, private ApiService, private NotificationService, private $state) {
     'ngInject';
 
     this.api = _.clone(this.$stateParams.api) !== null ? _.clone(this.$stateParams.api) : {};
@@ -222,12 +222,12 @@ class NewApiController {
         _this.ApiService.deploy(api.data.id).then(function() {
           _this.ApiService.start(api.data.id).then(function() {
             _this.NotificationService.show('API created, deployed and started');
-            _this.$window.location.href = '#/apis/' + api.data.id + '/settings/general';
+            _this.$window.location.href = '#/management/apis/' + api.data.id + '/settings/general';
           });
         });
       } else {
         _this.NotificationService.show('API created');
-        _this.$window.location.href = '#/apis/' + api.data.id + '/settings/general';
+        _this.$state.go('management.apis.detail.general.main', {apiId: api.data.id});
       }
     }).catch(function () {
       _this.vm.showBusyText = false;
@@ -279,7 +279,7 @@ class NewApiController {
     var _this = this;
     this.ApiService.import(null, this.$scope.importAPIFile.content).then(function (api) {
       _this.NotificationService.show('API created');
-      _this.$window.location.href = '#/apis/' + api.data.id + '/settings/general';
+      _this.$state.go('management.apis.detail.general.main', {apiId: api.data.id});
     });
   }
 
@@ -307,7 +307,7 @@ class NewApiController {
       importedAPI.description = (importedAPI.description) ? importedAPI.description : "Default API description";
       _this.ApiService.create(importedAPI).then(function(api) {
         _this.NotificationService.show('API created');
-        _this.$window.location.href = '#/apis/' + api.data.id + '/settings/general';
+        _this.$state.go('management.apis.detail.general.main', {apiId: api.data.id});
       });
     });
   }

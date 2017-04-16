@@ -33,7 +33,7 @@ class PortalPagesController {
     $scope.listPagesDisplayed = true;
 
     $scope.$on('onGraviteePageDeleted', () => {
-      this.$state.go('management.configuration.admin.pages');
+      this.$state.go('management.configuration.admin.pages', {}, {reload: true});
     });
   }
 

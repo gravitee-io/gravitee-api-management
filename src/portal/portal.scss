@@ -27,14 +27,14 @@
 }
 
 #footer {
+  color: #E1E2E1;
   min-height: 120px;
-  background-color: #EFEFEF;
+  background-color: rgb(45,50,62);
   div.footer-brand {
-    color: rgb(45,50,62);
     min-height: 120px;
   }
   .footer-brand-content {
-    height: 80%; border-left: 1px solid rgb(45,50,62);
+    height: 80%; border-left: 1px solid #020817;
     img {
       vertical-align: middle;
       width: 32px;
@@ -50,7 +50,7 @@
   .footer-links-section {
     //padding: 0 60px;
     h3 {
-      font: 500 14px/16px Roboto,sans-serif;
+      font: 800 14px/16px Roboto,sans-serif;
     }
     ul {
       padding: 0;
@@ -59,7 +59,7 @@
         margin: 6px 0;
         a {
           text-decoration: none;
-          //color: rgb(45,50,62);
+          color: #F5F5F6;
           font: 12px/14px Roboto,sans-serif;
         }
       }

@@ -26,6 +26,7 @@
 }
 
 .api-gallery {
+  background-color: inherit;
   max-width: 508px;
   min-width: 508px;
   width: 508px;
@@ -34,4 +35,8 @@
     min-width: 1016px;
     width: 1016px;
   }
+}
+
+.main-content-api-gallery {
+  background: #F5F5F6;
 }

@@ -207,15 +207,10 @@
 }
 
 .pricing-footer {
-  position: absolute;
   z-index: 1;
   top: 0;
   left: 0;
-  height: 80px;
   width: 100%;
-}
-
-.pricing-footer {
   position: relative;
   height: auto;
   padding: 1.8em 0;
@@ -238,9 +233,9 @@
   display: inline-block;
   height: auto;
   padding: 1.3em 2em;
-  color: #1bbc9d;
+  color: #34A0D4;
   border-radius: 8px;
-  border: 2px solid #1bbc9d;
+  border: 2px solid #34A0D4;
   font-size: 1.4rem;
   text-indent: 0;
   text-transform: uppercase;
@@ -248,7 +243,7 @@
   transition: all .6s;
 
   &:hover {
-    background-color: #1bbc9d;
+    background-color: #34A0D4;
     color: #ffffff;
     text-decoration: none;
   }
