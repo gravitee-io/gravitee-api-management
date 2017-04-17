@@ -16,11 +16,14 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.ProcessSubscriptionEntity;
 import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.model.UpdateSubscriptionEntity;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.SubscriptionService;
 import io.swagger.annotations.*;
 
@@ -29,7 +32,10 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,9 +47,12 @@ public class ApiPlanSubscriptionsResource extends AbstractResource {
     @Inject
     private SubscriptionService subscriptionService;
 
+    @Inject
+    private ApplicationService applicationService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_API_KEYS)
+    @ApiPermissionsRequired(ApiPermission.READ)
     @ApiOperation(value = "List subscriptions for an API",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({
@@ -52,7 +61,20 @@ public class ApiPlanSubscriptionsResource extends AbstractResource {
     public Set<SubscriptionEntity> listApiSubscriptions(
             @PathParam("api") String api,
             @PathParam("plan") String plan) {
-        return subscriptionService.findByPlan(plan);
+        Set<SubscriptionEntity> subscriptions = subscriptionService.findByPlan(plan);
+        if (isAdmin()) {
+            return subscriptions;
+        } else if (isAuthenticated()) {
+            Set<String> userApps = applicationService.findByUser(getAuthenticatedUsername()).
+                    stream().
+                    map(ApplicationEntity::getId).
+                    collect(Collectors.toSet());
+            return subscriptions.
+                    stream().
+                    filter(subscription -> userApps.contains(subscription.getApplication())).
+                    collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
     }
 
     @GET
