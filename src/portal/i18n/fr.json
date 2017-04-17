@@ -51,7 +51,7 @@
       "validationInProgress": "En attente de validation pour l'application \"{{applicationName}}\"!",
       "sampleNotValidated": "Une fois validé, vous pourrez accéder à votre API avec la clé d'API donnée ci-dessous :",
       "successful": "L'application a souscrit au plan {{planName}} avec succés",
-      "apiKeyCopySuccess": "La clé d'API a bien été copié dans le presse-papier",
+      "apiKeyCopySuccess": "La clé d'API a bien été copiée dans le presse-papier",
       "planInformation": "avec un quota de {{quotaLimit}} requêtes par {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
     },
     "plan": {
