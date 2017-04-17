@@ -17,6 +17,7 @@ import ViewService from '../../services/view.service';
 import ApisController from './apis.controller';
 import DocumentationService from '../../services/apiDocumentation.service';
 import TenantService from '../../services/tenant.service';
+import ResourceService from '../../services/resource.service';
 import TagService from "../../services/tag.service";
 
 export default apisRouterConfig;
@@ -199,6 +200,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       template: require('./resources/resources.html'),
       controller: 'ApiResourcesController',
       controllerAs: 'apiResourcesCtrl',
+      resolve: {
+        resolvedResources: (ResourceService: ResourceService) => ResourceService.list()
+      },
       data: {
         menu: {
           label: 'Resources',

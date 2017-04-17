@@ -22,7 +22,7 @@
         <table md-table>
           <thead md-head md-order="order">
           <tr md-row>
-            <th md-column order-by="name">Resource</th>
+            <th md-column order-by="name">Name</th>
             <th md-column order-by="type">Type</th>
             <th md-column>Enabled</th>
             <th md-column></th>
@@ -30,8 +30,8 @@
           </thead>
           <tbody md-body>
           <tr md-row ng-repeat="resource in apiResourcesCtrl.api.resources | orderBy: order">
-            <td md-cell>{{resource.name}}</td>
-            <td md-cell><span><b>{{resource.type}}</b></span></td>
+            <td md-cell><span><b>{{resource.name}}</b></span></td>
+            <td md-cell>{{apiResourcesCtrl.getResourceTypeName(resource.type)}}</td>
             <td md-cell>
               <ng-md-icon ng-if="resource.enabled" icon="play_circle_outline" style="fill: green;"></ng-md-icon>
               <ng-md-icon ng-if="!resource.enabled" icon="pause_circle_outline" style="fill: red;"></ng-md-icon>

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as _ from 'lodash';
+
 class ApiResourcesController {
   private api: any;
   private creation: boolean;
@@ -29,17 +31,15 @@ class ApiResourcesController {
     private ResourceService,
     private NotificationService,
     private $scope,
-    private $rootScope
+    private $rootScope,
+    private resolvedResources
   ) {
     'ngInject';
     this.api = resolvedApi.data;
     this.creation = true;
     this.resourceJsonSchemaForm = ["*"];
 
-    this.types = [];
-    this.ResourceService.list().then( ( {data} ) => {
-      this.types = data;
-    });
+    this.types = resolvedResources.data;
   }
 
   initState() {
@@ -162,6 +162,10 @@ class ApiResourcesController {
       that.$rootScope.$broadcast('apiChangeSuccess');
       that.NotificationService.show('API \'' + that.$scope.$parent.apiCtrl.api.name + '\' saved');
     });
+  }
+
+  getResourceTypeName(resourceTypeId) {
+    return _.find(this.types, { 'id': resourceTypeId }).name;
   }
 }
 
