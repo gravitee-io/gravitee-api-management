@@ -269,6 +269,8 @@ class ApiHistoryController {
     delete this.api.owner;
     delete this.api.picture_url;
     delete this.api.views;
+    delete this.api.group;
+    delete this.api.tags;
   }
 }
 
