@@ -173,3 +173,9 @@ ds:
 # Multi-tenant configuration
 # Allow only a single-value
 #tenant: europe
+
+#policy:
+# Customize the api-key header and / or query parameter
+#  api-key:
+#    header: X-Gravitee-Api-Key
+#    param: api-key

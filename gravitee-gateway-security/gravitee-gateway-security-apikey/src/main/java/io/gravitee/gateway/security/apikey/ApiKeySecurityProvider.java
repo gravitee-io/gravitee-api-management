@@ -22,6 +22,7 @@ import io.gravitee.gateway.security.core.SecurityPolicy;
 import io.gravitee.gateway.security.core.SecurityProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * An api-key based {@link SecurityProvider}.
@@ -34,8 +35,13 @@ public class ApiKeySecurityProvider implements SecurityProvider {
     private final Logger logger = LoggerFactory.getLogger(ApiKeySecurityProvider.class);
 
     static final String API_KEY_POLICY = "api-key";
-    static final String API_KEY_QUERY_PARAMETER = "api-key";
     static final String API_KEY_POLICY_CONFIGURATION = "{}";
+
+    @Value("${policy.api-key.header:" + GraviteeHttpHeader.X_GRAVITEE_API_KEY + "}")
+    private String apiKeyHeader = GraviteeHttpHeader.X_GRAVITEE_API_KEY;
+
+    @Value("${policy.api-key.param:api-key}")
+    private String apiKeyQueryParameter = "api-key";
 
     static final SecurityPolicy POLICY = new SecurityPolicy() {
         @Override
@@ -77,14 +83,14 @@ public class ApiKeySecurityProvider implements SecurityProvider {
     }
 
     private String lookForApiKey(Request request) {
-        logger.debug("Looking for an API Key from request headers");
+        logger.debug("Looking for an API Key from request header: {}", apiKeyHeader);
         // 1_ First, search in HTTP headers
-        String apiKey = request.headers().getFirst(GraviteeHttpHeader.X_GRAVITEE_API_KEY);
+        String apiKey = request.headers().getFirst(apiKeyHeader);
 
         if (apiKey == null || apiKey.isEmpty()) {
-            logger.debug("Looking for an API Key from request query parameters");
+            logger.debug("Looking for an API Key from request query parameter: {}", apiKeyQueryParameter);
             // 2_ If not found, search in query parameters
-            apiKey = request.parameters().getOrDefault(API_KEY_QUERY_PARAMETER, null);
+            apiKey = request.parameters().getOrDefault(apiKeyQueryParameter, null);
         }
 
         return apiKey;
