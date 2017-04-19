@@ -110,7 +110,7 @@ function ApiSubscribeController($state,
 
   vm.getSampleCall = function () {
     return 'curl -X GET "' + $location.protocol() + '://' + $location.host() + vm.api.proxy.context_path +
-      '" -H "Gravitee-ApiKey: ' + (vm.apiKey ? vm.apiKey : 'given_api_key') + '"';
+      '" -H "X-Gravitee-Api-Key: ' + (vm.apiKey ? vm.apiKey : 'given_api_key') + '"';
   }
 }
 
