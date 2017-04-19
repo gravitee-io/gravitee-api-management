@@ -144,9 +144,9 @@ md-sidenav:not(._md-locked-open) {
   }
 
   .md-button.sidenav-toggle {
+    bottom: 20px;
     position: absolute;
     right: -15px;
-    top: 20px;
     width: 18px !important;
     height: 18px !important;
     min-height: 18px !important;

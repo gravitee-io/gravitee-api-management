@@ -34,8 +34,7 @@
     <gv-submenu all-menu-items="$ctrl.allMenuItems" reduced-mode="$ctrl.reducedMode"></gv-submenu>
   </md-list>
 
-  <md-list class="sidenav-footer">
-    <md-list-item style="cursor: auto;">
+  <div class="sidenav-footer">
       <md-button
         class="md-fab md-mini sidenav-toggle"
         md-no-ink
@@ -45,6 +44,5 @@
         <ng-md-icon class="sidenav-toggle-icon" size="16"
                     icon="{{$ctrl.reducedMode?'chevron_right':'chevron_left'}}"></ng-md-icon>
       </md-button>
-    </md-list-item>
-  </md-list>
+  </div>
 </md-sidenav>
