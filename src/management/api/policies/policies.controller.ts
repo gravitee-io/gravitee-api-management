@@ -322,13 +322,15 @@ class ApiPoliciesController {
       });
     });
 
-    return this.ApiService.update(this.$scope.$parent.apiCtrl.api).then( ( {data} ) => {
-      this.$rootScope.$broadcast('apiChangeSuccess');
-      this.NotificationService.show('API \'' + this.$scope.$parent.apiCtrl.api.name + '\' saved');
-      this.pathsToCompare = this.generatePathsToCompare();
+    const that = this;
 
-      this.$timeout(function () {
-        this.$scope.$parent.apiCtrl.api = data;
+    return this.ApiService.update(this.$scope.$parent.apiCtrl.api).then( ( {data} ) => {
+      that.$rootScope.$broadcast('apiChangeSuccess');
+      that.NotificationService.show('API \'' + this.$scope.$parent.apiCtrl.api.name + '\' saved');
+      that.pathsToCompare = this.generatePathsToCompare();
+
+      that.$timeout(function () {
+        that.$scope.$parent.apiCtrl.api = data;
       });
     });
   }
