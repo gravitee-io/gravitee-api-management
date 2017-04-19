@@ -38,7 +38,8 @@ class ApiHistoryController {
     private $state: ng.ui.IStateService,
     private ApiService,
     private NotificationService,
-    private resolvedEvents
+    private resolvedEvents,
+    private $timeout
   ) {
     'ngInject';
     this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
@@ -201,9 +202,17 @@ class ApiHistoryController {
     _apiDefinition.description = _apiPayload.description;
     _apiDefinition.visibility = _apiPayload.visibility;
 
-    this.ApiService.rollback(this.api.id, _apiDefinition).then(() => {
-      this.NotificationService.show('Api rollback !');
-      this.$rootScope.$broadcast("apiChangeSuccess");
+    const that = this;
+
+    that.ApiService.rollback(this.api.id, _apiDefinition).then( () => {
+      that.NotificationService.show('Api rollback !');
+      that.$rootScope.$broadcast("apiChangeSuccess");
+
+      that.ApiService.get(that.api.id).then(function (data) {
+        that.$timeout(function () {
+          that.$scope.$parent.apiCtrl.api = data;
+        });
+      });
     });
   }
 
