@@ -8,6 +8,7 @@ $resourceSidenavWidth: 500px;
 }
 
 md-sidenav.resource {
+  padding-top: 54px;
   @include min-max-width($resourceSidenavWidth);
   background-color: #fafafa;
   md-content {
