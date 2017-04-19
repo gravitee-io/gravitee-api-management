@@ -95,7 +95,7 @@ class ApiEndpointController {
 
   backToGatewayConfiguration() {
     this.api.proxy.endpoints = _.cloneDeep(this.initialEndpoints);
-    this.$state.go('apis.admin.general.gateway');
+    this.$state.go('management.apis.detail.general.gateway');
   }
 }
 
