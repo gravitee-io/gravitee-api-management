@@ -93,6 +93,8 @@ require('../../node_modules/angular-swagger-ui/dist/scripts/modules/swagger1-to-
 require('angular-gridster');
 require('angular-scroll');
 require('diff/dist/diff.min.js');
+require('angular-loading-bar');
+require('angular-loading-bar/build/loading-bar.css');
 
 // Highcharts
 
@@ -276,7 +278,10 @@ import runBlock from './management.run';
 angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
-  'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster'])
+  'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar', 'ngAnimate'])
+  .config(['cfpLoadingBarProvider', function(cfpLoadingBarProvider) {
+    cfpLoadingBarProvider.includeSpinner = false;
+  }])
   .config(config)
   .config(routerConfig)
   .config(managementRouterConfig)

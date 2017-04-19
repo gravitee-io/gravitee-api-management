@@ -11,6 +11,7 @@
     "angular-gridster": "^0.13.14",
     "angular-highlightjs": "^0.7.1",
     "angular-jwt": "^0.1.9",
+    "angular-loading-bar": "^0.9.0",
     "angular-marked": "^1.2.2",
     "angular-material": "^1.1.1",
     "angular-material-data-table": "^0.10.10",

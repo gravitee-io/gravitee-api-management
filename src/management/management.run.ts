@@ -21,7 +21,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
                   PageSwaggerHttpClientService, $timeout, UserService: UserService, Constants) {
   'ngInject';
 
-  $transitions.onEnter({ }, function(trans) {
+  $transitions.onEnter({}, function (trans) {
     let fromState = trans.from();
     let toState = trans.to();
 
@@ -40,28 +40,10 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
     $window.location.href = $window.location.pathname;
   });
 
-  // Progress Bar
-  var interval, intervalTimeInMs = 500;
   $rootScope.$watch(function () {
     return $http.pendingRequests.length > 0;
   }, function (hasPendingRequests) {
-    if (hasPendingRequests) {
-      $rootScope.isLoading = true;
-      $rootScope.progressValue = 0;
-      interval = setInterval(function () {
-        $rootScope.$apply(function () {
-          if ($rootScope.progressValue === 100) {
-            $rootScope.progressValue = 0;
-          } else {
-            $rootScope.progressValue += 10;
-          }
-        });
-      }, intervalTimeInMs);
-    } else {
-      clearInterval(interval);
-      $rootScope.progressValue = 100;
-      $rootScope.isLoading = false;
-    }
+    $rootScope.isLoading = hasPendingRequests;
   });
 
   //swagger-ui
