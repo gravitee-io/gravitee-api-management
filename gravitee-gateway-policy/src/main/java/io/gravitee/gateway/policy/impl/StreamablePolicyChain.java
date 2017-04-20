@@ -32,7 +32,7 @@ import java.util.List;
  */
 public abstract class StreamablePolicyChain extends PolicyChain {
 
-    private final Logger logger = LoggerFactory.getLogger(ResponsePolicyChain.class);
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private ReadWriteStream<Buffer> streamablePolicyHandlerChain;
     private boolean initialized;
