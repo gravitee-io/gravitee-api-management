@@ -204,11 +204,11 @@ public class SyncManager {
                                         ));
 
                 if (!hasMatchingTags) {
-                    logger.info("The API {} has been ignored because not in configured tags {}", api.getName(), tagList);
+                    logger.debug("The API {} has been ignored because not in configured tags {}", api.getName(), tagList);
                 }
                 return hasMatchingTags;
             }
-            logger.info("Tags {} are configured on gateway instance but not found on the API {}", tagList, api.getName());
+            logger.debug("Tags {} are configured on gateway instance but not found on the API {}", tagList, api.getName());
             return false;
         }
         // no tags configured on this gateway instance
