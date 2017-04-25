@@ -241,7 +241,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public Set<ApiEntity> findAll() {
         try {
             LOGGER.debug("Find all APIs");
-            return convert(apiRepository.findAll(), false);
+            return convert(apiRepository.findAll(), true);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);

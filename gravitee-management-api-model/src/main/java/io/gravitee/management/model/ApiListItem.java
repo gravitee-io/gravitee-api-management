@@ -52,6 +52,9 @@ public class ApiListItem {
     @JsonProperty(value = "picture_url")
     private String pictureUrl;
 
+    @JsonProperty(value = "context_path")
+    private String contextPath;
+
     public String getId() {
         return id;
     }
@@ -138,6 +141,14 @@ public class ApiListItem {
 
     public void setPictureUrl(String pictureUrl) {
         this.pictureUrl = pictureUrl;
+    }
+
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
     }
 
     @Override

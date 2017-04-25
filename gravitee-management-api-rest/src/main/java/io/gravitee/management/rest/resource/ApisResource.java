@@ -199,6 +199,10 @@ public class ApisResource extends AbstractResource {
             apiItem.setState(Lifecycle.State.valueOf(api.getState().toString()));
         }
 
+        if (api.getProxy() != null) {
+            apiItem.setContextPath(api.getProxy().getContextPath());
+        }
+
         // Add primary owner
         Collection<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, api.getId(), MembershipType.PRIMARY_OWNER);
         if (! members.isEmpty()) {
