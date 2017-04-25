@@ -44,6 +44,7 @@
             <a ui-sref="user">{{'menu.profile' | translate}}</a>
             <a ui-sref="management.applications.list">{{'menu.applications' | translate}}</a>
             <a ui-sref="management" ng-if="$ctrl.hasRoles(['API_PUBLISHER', 'ADMIN'])">{{'menu.management' | translate}}</a>
+            <a ui-sref="management.apis.list" ng-if="!$ctrl.hasRoles(['API_PUBLISHER', 'ADMIN'])">{{'menu.apis' | translate}}</a>
           </div>
         </div>
       </div>

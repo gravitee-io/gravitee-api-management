@@ -28,6 +28,7 @@
     "profile": "Mon compte",
     "management": "Administration",
     "applications": "Mes applications",
+    "apis": "Mes APIs",
     "logout": "Déconnexion"
   },
   "apis": {

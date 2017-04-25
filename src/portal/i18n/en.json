@@ -28,6 +28,7 @@
     "profile": "My account",
     "management": "Administration",
     "applications": "My applications",
+    "apis": "My APIs",
     "logout": "Sign out"
   },
   "apis": {
