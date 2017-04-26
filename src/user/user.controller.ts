@@ -16,6 +16,7 @@
 import UserService from '../services/user.service';
 import NotificationService from '../services/notification.service';
 import { User } from "../entities/user";
+import {IScope} from 'angular';
 
 interface IUserScope extends ng.IScope {
   formUser: any;
@@ -29,27 +30,37 @@ class UserController {
     private UserService: UserService,
     private NotificationService: NotificationService,
     private $state: ng.ui.IStateService,
-    private $scope: IUserScope) {
+    private $scope: IUserScope,
+    private $rootScope: IScope) {
     'ngInject';
   }
 
   $onInit() {
     if (! this.user || (this.user && this.user.username === undefined)) {
       this.$state.go('login', {}, {reload: true, inherit: false});
+    } else {
+      let that = this;
+      this.UserService.currentUserPicture().then((picture) => {
+        that.user.picture = picture;
+        that.originalPicture = picture;
+      })
     }
   }
 
   save() {
-    this.UserService.save(this.user).then(() => {
-      this.$scope.formUser.$setPristine();
-      this.originalPicture = this.user.picture;
-      this.NotificationService.show("User has been updated successfully");
+    let that = this;
+    this.UserService.save(this.user).then((response) => {
+      that.$rootScope.$broadcast('graviteeUserRefresh');
+      that.$scope.formUser.$setPristine();
+      that.originalPicture = response.data["picture"];
+      that.user.picture = response.data["picture"];
+      that.NotificationService.show("User has been updated successfully");
     });
   }
 
   cancel() {
+    this.$scope.formUser.$setPristine();
     this.user.picture = this.originalPicture;
-    delete this.originalPicture;
   }
 }
 

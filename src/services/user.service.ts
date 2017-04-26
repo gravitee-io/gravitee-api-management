@@ -106,8 +106,18 @@ class UserService {
       .then(function() {that.currentUser = new User();});
   }
 
-  currentUserPicture() {
-    return this.$http.get(`${this.userURL + this.$rootScope.graviteeUser.username}/picture`);
+  currentUserPicture(): ng.IPromise<string> {
+    if (! this.currentUser || !this.currentUser.picture) {
+      let that = this;
+      return this.current().then((user) => {
+        return that.$http.get(`${that.userURL + user.username}/picture`).then( (response) => {
+          this.currentUser.picture = response.data.toString();
+          return this.$q.resolve<string>(this.currentUser.picture);
+        });
+      });
+    } else {
+      return this.$q.resolve<string>(this.currentUser.picture);
+    }
   }
 
   save(user) {
