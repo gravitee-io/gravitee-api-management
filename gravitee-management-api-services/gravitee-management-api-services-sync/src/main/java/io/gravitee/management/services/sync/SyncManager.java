@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -68,17 +67,6 @@ public class SyncManager {
             Map<String, io.gravitee.repository.management.model.Api> apis = apiRepository.findAll()
                     .stream()
                     .collect(Collectors.toMap(io.gravitee.repository.management.model.Api::getId, api -> api));
-
-            // Determine APIs to undeploy because of deployment tags
-            Set<String> apisToRemove = apiManager.apis().stream()
-                    .map(ApiEntity::getId)
-                    .collect(Collectors.toSet());
-
-            // Undeploy APIs not relative to this gateway instance (different deployment tags)
-            apisToRemove.forEach(apiId -> {
-                apiManager.undeploy(apiId);
-                apis.remove(apiId);
-            });
 
             // Get last event for each API
             Map<String, Event> events = new HashMap<>();
