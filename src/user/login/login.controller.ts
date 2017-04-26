@@ -13,19 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import AuthenticationService from '../../services/authentication.service';
 import UserService from '../../services/user.service';
 import {IScope} from 'angular';
 
 class LoginController {
-  user = {};
+  user: any = {};
   userCreationEnabled: boolean;
 
-  constructor(private UserService: UserService, private $state: ng.ui.IStateService, Constants, private $rootScope: IScope) {
+  private providers: {
+    id: string;
+    name: string;
+    icon: string
+  }[];
+
+  constructor(
+    private UserService: UserService,
+    private $state: ng.ui.IStateService,
+    Constants,
+    private $rootScope: IScope,
+    private AuthenticationService: AuthenticationService
+  ) {
     'ngInject';
     this.userCreationEnabled = Constants.userCreationEnabled;
     this.$state = $state;
     this.$rootScope = $rootScope;
+    this.providers = AuthenticationService.getProviders();
   }
+
+  authenticate(provider: string) {
+    const that = this;
+
+    this.AuthenticationService.authenticate(provider)
+      .then(function() {
+        that.$rootScope.$broadcast('graviteeUserRefresh');
+        that.$state.go('portal.home');
+      })
+      .catch(function() {
+      });
+  };
 
   login($event: Event) {
     $event.preventDefault();
@@ -33,6 +59,9 @@ class LoginController {
     this.UserService.login(this.user).then(() => {
       that.$rootScope.$broadcast('graviteeUserRefresh');
       that.$state.go('portal.home');
+    }).catch(() => {
+      this.user.username = '';
+      this.user.password = '';
     });
   }
 }

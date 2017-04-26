@@ -1,0 +1,329 @@
+.login-page {
+  width: 360px;
+  padding: 8% 0 0;
+  margin: auto;
+
+  md-input-container {
+    margin: 0;
+  }
+
+  .small, small {
+    font-size: 10px;
+  }
+
+  .md-button {
+    margin: 0;
+    text-transform: none;
+  }
+
+  .form {
+    position: relative;
+    z-index: 1;
+    background: #FFFFFF;
+    max-width: 360px;
+    margin: 0 auto 100px;
+    padding: 45px;
+    box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+  }
+  /*
+  .form input {
+    outline: 0;
+    background: #f2f2f2;
+    width: 100%;
+    border: 0;
+    margin: 0 0 15px;
+    padding: 15px;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+  .form button {
+    text-transform: uppercase;
+    outline: 0;
+    background: #34A0D4;
+    width: 100%;
+    border: 0;
+    padding: 15px;
+    color: #FFFFFF;
+    font-size: 14px;
+    -webkit-transition: all 0.3 ease;
+    transition: all 0.3 ease;
+    cursor: pointer;
+  }
+  .form button:hover, .form button:active, .form button:focus {
+    background: #1B87BB;
+  }
+  .form .message {
+    margin: 15px 0 0;
+    color: #b3b3b3;
+    font-size: 12px;
+  }
+  .form .message a {
+    color: #34A0D4;
+    text-decoration: none;
+  }
+  */
+  .form .register-form {
+    display: none;
+  }
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  .container:before, .container:after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+  .container .info {
+    margin: 50px auto;
+    text-align: center;
+  }
+  .container .info h1 {
+    margin: 0 0 15px;
+    padding: 0;
+    font-size: 36px;
+    font-weight: 300;
+    color: #1a1a1a;
+  }
+  .container .info span {
+    color: #4d4d4d;
+    font-size: 12px;
+  }
+  .container .info span a {
+    color: #000000;
+    text-decoration: none;
+  }
+  .container .info span .fa {
+    color: #EF3B3A;
+  }
+  .error {
+    font-weight: bold;
+    color: #EF3B3A;
+  }
+
+  .text-muted {
+    color: #90939a;
+  }
+
+  .signup-or-separator {
+    position: relative;
+    height: 34px;
+    text-align: center;
+    background: none;
+  }
+
+  .signup-or-separator hr {
+    width: 90%;
+    margin: -16px auto 10px auto;
+    border-top: 1px solid #dce0e0;
+  }
+
+  .signup-or-separator .text {
+    display: inline-block;
+    padding: 8px;
+    margin: 0;
+    background-color: #fff;
+  }
+
+  .btn {
+    font-weight: bold;
+    border-radius: 2px;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .26);
+  }
+
+  .btn-primary {
+    background-color: #4285f4;
+  }
+
+  .btn-primary:hover {
+    background-color: #3367d6;
+  }
+
+  .btn-success {
+    background-color: #0f9d58;
+  }
+
+  .btn-success:hover {
+    background-color: #196c4a;
+  }
+
+  .btn-danger {
+    background-color: #db4437;
+  }
+
+  .btn-danger:hover {
+    background-color: #b04c3b;
+  }
+
+  .btn-group-vertical .btn {
+    margin-bottom: 10px;
+  }
+
+  .btn-group-vertical > .btn:first-child:not(:last-child) {
+    border-radius: 2px;
+  }
+
+  .btn-group-vertical > .btn:not(:first-child):not(:last-child) {
+    border-radius: 2px;
+  }
+
+  .btn-group-vertical > .btn:last-child:not(:first-child) {
+    border-radius: 2px;
+  }
+
+  .btn-lg {
+    font-size: 14px;
+  }
+
+  .btn [class^='ion-'] {
+    margin-right: 5px;
+  }
+
+  .btn .fa {
+    margin-right: 5px;
+  }
+
+  /*********************
+  * Social Buttons
+  *********************/
+
+  .btn-google-plus {
+    color: #fff;
+    background-color: #dd4b39;
+    border: 1px solid #d54331;
+  }
+
+  .btn-google-plus:hover,
+  .btn-google-plus:focus {
+    color: #fff;
+    background-color: #cb3927;
+  }
+
+  .btn-facebook {
+    color: #fff;
+    background-color: #3b5998;
+    border: 1px solid #335190;
+  }
+
+  .btn-facebook:hover,
+  .btn-facebook:focus {
+    color: #fff;
+    background-color: #294786;
+  }
+
+  .btn-linkedin {
+    color: #fff;
+    background-color: #007bb6;
+    border: 1px solid #0073ae;
+  }
+
+  .btn-linkedin:hover,
+  .btn-linkedin:focus {
+    color: #fff;
+    background-color: #0069a4;
+  }
+
+  .btn-twitter {
+    color: #fff;
+    background-color: #00aced;
+    border: 1px solid #009fdb;
+  }
+
+  .btn-twitter:hover,
+  .btn-twitter:focus {
+    color: #fff;
+    background-color: #0090c7;
+  }
+
+  .btn-foursquare {
+    color: #fff;
+    background-color: #f94877;
+    border: 1px solid #f8215a;
+  }
+
+  .btn-foursquare:hover,
+  .btn-foursquare:focus {
+    color: #fff;
+    background-color: #f71752;
+  }
+
+  .btn-github-circle {
+    color: #fff;
+    background-color: #444;
+    border: 1px solid #3b3b3b;
+  }
+
+  .btn-github-circle:hover,
+  .btn-github-circle:focus {
+    color: #fff;
+    background-color: #303030;
+  }
+
+  .btn-instagram {
+    color: #fff;
+    background-color: #3f729b;
+  }
+
+  .btn-instagram:hover,
+  .btn-instagram:focus {
+    color: #fff;
+    background-color: #305777;
+  }
+
+  .btn-yahoo {
+    color: #fff;
+    background-color: #720e9e;
+  }
+
+  .btn-yahoo:hover,
+  .btn-yahoo:focus {
+    color: #fff;
+    background-color: #600e85;
+  }
+
+  .btn-live {
+    color: #fff;
+    background-color: #2672ec;
+  }
+
+  .btn-live:hover,
+  .btn-live:focus {
+    color: #fff;
+    background-color: #125acd;
+  }
+
+  .btn-twitch {
+    color: #fff;
+    background-color: #6441a5;
+  }
+
+  .btn-twitch:hover,
+  .btn-twitch:focus {
+    color: #fff;
+    background-color: #7550ba;
+  }
+
+  .btn-bitbucket {
+    color: #fff;
+    background-color: #10375e;
+  }
+
+  .btn-bitbucket:hover,
+  .btn-bitbucket:focus {
+    color: #fff;
+    background-color: #0d2c4a;
+  }
+
+  .btn-spotify {
+    color: #fff;
+    background-color: #2ebd59;
+  }
+
+  .btn-spotify:hover,
+  .btn-spotify:focus {
+    color: #fff;
+    background-color: #29a34e;
+  }
+}

@@ -33,6 +33,7 @@ function fetchData() {
     angular.module('gravitee-management').constant('Constants', responses[0].data);
     angular.module('gravitee-management').constant('Build', responses[1].data);
 
+    angular.module('gravitee-portal').constant('Constants', responses[0].data);
     angular.module('gravitee-portal').constant('Build', responses[1].data);
   });
 }

@@ -16,33 +16,38 @@
 
 -->
 <md-content class="gravitee-no-sidenav-container" flex>
-  <div class="gravitee-no-sidenav-content">
-    <div class="gravitee-no-sidenav-header" layout="column">
-      <a ng-click="goToHome()"><img src="../../assets/GRAVITEE_LOGOsstxtclair-05.png" /></a>
-      <label>Gravitee.io Portal Registration</label>
+  <div class="login-page">
+    <div class="form">
+      <div class="gravitee-no-sidenav-header" layout="column">
+        <label>Sign Up</label>
+      </div>
+      <form name="formRegistration" ng-submit="register()" layout="column">
+        <md-input-container class="md-icon-float">
+          <label>First name</label>
+          <input ng-model="user.firstname" type="text" ng-required="true" autofocus>
+        </md-input-container>
+
+        <md-input-container class="md-icon-float">
+          <label>Last name</label>
+          <input ng-model="user.lastname" type="text" ng-required="true">
+        </md-input-container>
+
+        <md-input-container class="md-icon-float">
+          <label>Email</label>
+          <input ng-model="user.email" type="email" ng-required="true">
+        </md-input-container>
+
+        <md-button type="submit" class="md-raised md-primary"
+                   ng-disabled="formRegistration.$invalid || formRegistration.$pristine || isLoading">
+          Sign up
+        </md-button>
+
+        <br>
+
+        <p class="text-center text-muted">
+          <small>I have already an account! <a ui-sref="login">Log in</a></small>
+        </p>
+      </form>
     </div>
-    <form name="formRegistration" ng-submit="register()" layout="column">
-      <md-input-container class="md-icon-float">
-        <label>First name</label>
-        <input ng-model="user.firstname" type="text" ng-required="true" autofocus>
-      </md-input-container>
-
-      <md-input-container class="md-icon-float">
-        <label>Last name</label>
-        <input ng-model="user.lastname" type="text" ng-required="true">
-      </md-input-container>
-
-      <md-input-container class="md-icon-float">
-        <label>Email</label>
-        <input ng-model="user.email" type="email" ng-required="true">
-      </md-input-container>
-
-      <md-button type="submit" class="md-raised md-primary"
-                 ng-disabled="formRegistration.$invalid || formRegistration.$pristine || isLoading">
-        Register
-      </md-button>
-
-      <a ui-sref="login" class="text-right">Back to login</a>
-    </form>
   </div>
 </md-content>

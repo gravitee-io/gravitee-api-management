@@ -21,6 +21,7 @@ import 'angular-aria';
 import 'angular-animate';
 import 'angular-material';
 import 'angular-sanitize';
+import 'angular-local-storage';
 
 import * as traverse from 'traverse';
 (<any>window).traverse = traverse;
@@ -37,6 +38,8 @@ import * as hljs from 'highlight.js';
 // Codemirror
 import * as CodeMirror from 'codemirror';
 (<any>window).CodeMirror = CodeMirror;
+
+require('satellizer');
 
 require('angular-marked');
 require('angular-highlightjs');
@@ -290,7 +293,9 @@ import PageRamlComponent from '../components/documentation/page-raml.component';
 import PageMarkdownComponent from '../components/documentation/page-markdown.component';
 import PageSidenavDirective from '../components/documentation/page-sidenav.directive';
 
+// Others
 import StringService from '../services/string.service';
+import AuthenticationService from '../services/authentication.service';
 
 import config from './management.config';
 import routerConfig from '../index.route';
@@ -302,10 +307,15 @@ import runBlock from './management.run';
 angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
-  'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar', 'ngAnimate'])
+  'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
+  'ngAnimate', 'LocalStorageModule', 'satellizer'])
   .config(['cfpLoadingBarProvider', function(cfpLoadingBarProvider) {
     cfpLoadingBarProvider.includeSpinner = false;
   }])
+  .config((localStorageServiceProvider: angular.local.storage.ILocalStorageServiceProvider) => {
+    'ngInject';
+    localStorageServiceProvider.setPrefix('gravitee');
+  })
   .config(config)
   .config(routerConfig)
   .config(managementRouterConfig)
@@ -314,7 +324,7 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .config(configurationRouterConfig)
   .config(interceptorConfig)
   .config(delegatorConfig)
-  .config(function ($mdThemingProvider: ng.material.IThemingProvider) {
+  .config(function ($mdThemingProvider: angular.material.IThemingProvider) {
     $mdThemingProvider.theme('default')
       .primaryPalette('blue-grey')
       .accentPalette('blue');
@@ -413,6 +423,7 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .service('TenantService', TenantService)
   .service('PortalPagesService', PortalPagesService)
   .service('StringService', StringService)
+  .service('AuthenticationService', AuthenticationService)
   .directive('filecontent', () => DocumentationDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())

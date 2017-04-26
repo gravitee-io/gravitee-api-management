@@ -16,29 +16,52 @@
 
 -->
 <md-content class="gravitee-no-sidenav-container" flex>
-  <div class="gravitee-no-sidenav-content">
-    <div class="gravitee-no-sidenav-header" layout="column">
-      <a ui-sref="home"><img src="../../assets/GRAVITEE_LOGOsstxtclair-05.png" /></a>
-      <label>Gravitee.io Portal</label>
+    <div class="login-page">
+      <div class="form">
+
+        <div class="gravitee-no-sidenav-header" layout="column">
+          <label>Log In</label>
+        </div>
+
+        <form name="formUser" ng-submit="$ctrl.login($event)" layout="column">
+
+          <div layout="row">
+            <ng-md-icon icon="person" style="fill: #555"></ng-md-icon>
+            <md-input-container class="md-icon-float md-block" flex>
+              <label>Username</label>
+              <input ng-model="$ctrl.user.username" type="text" required autofocus>
+            </md-input-container>
+          </div>
+
+          <div layout="row">
+            <ng-md-icon icon="vpn_key" style="fill: #555"></ng-md-icon>
+            <md-input-container class="md-icon-float md-block" flex>
+              <label>Password</label>
+              <input ng-model="$ctrl.user.password" type="password" required>
+            </md-input-container>
+          </div>
+
+          <md-button type="submit" class="md-raised md-primary"
+                     ng-disabled="formUser.$invalid || formUser.$pristine">Log in</md-button>
+
+
+          <br>
+          <p class="text-center text-muted" ng-if="$ctrl.userCreationEnabled" >
+            <small>Don't have an account yet? <a ui-sref="registration">Sign up</a></small>
+          </p>
+
+          <div ng-if="$ctrl.providers.length > 0">
+            <div class="signup-or-separator">
+              <h6 class="text">or</h6>
+              <hr>
+            </div>
+          </div>
+        </form>
+
+        <button class="btn btn-block btn-{{provider.icon}}" data-ng-repeat="provider in $ctrl.providers" ng-click="$ctrl.authenticate(provider.id)">
+          <ng-md-icon icon="{{provider.icon}}" size="20" style="fill: white;margin-right: 5px"></ng-md-icon>Sign in with {{provider.name}}
+        </button>
+      </div>
     </div>
-    <form name="formUser" ng-submit="$ctrl.login($event)" layout="column">
-      <md-input-container class="md-icon-float">
-        <label>Username</label>
-        <input ng-model="$ctrl.user.username" type="text" ng-required="true" autofocus>
-      </md-input-container>
-
-      <md-input-container class="md-icon-float">
-        <label>Password</label>
-        <input ng-model="$ctrl.user.password" type="password" ng-required="true">
-      </md-input-container>
-
-      <md-button type="submit" class="md-raised md-primary"
-                 ng-disabled="formUser.$invalid || formUser.$pristine">
-        Login
-      </md-button>
-
-      <a ng-if="$ctrl.userCreationEnabled" ui-sref="registration" class="text-right">Create an account</a>
-    </form>
-  </div>
 </md-content>
 

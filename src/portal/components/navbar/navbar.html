@@ -27,7 +27,7 @@
   <md-menu ng-if="$ctrl.graviteeUser.username" md-offset="0 54">
     <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" aria-label="Open user menu">
       <img ng-src="{{$ctrl.graviteeUser.picture || 'assets/GRAVITEE_LOGO1-01.png'}}" alt="user-picture"/>
-      <span>{{$ctrl.graviteeUser.username}}</span>
+      <span>{{$ctrl.graviteeUser.firstname}} {{$ctrl.graviteeUser.lastname}}</span>
     </md-button>
     <md-menu-content class="gv-menu-content" width="6">
       <div layout="row" class="gv-menu-content-main">

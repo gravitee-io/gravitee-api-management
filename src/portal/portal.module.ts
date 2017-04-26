@@ -22,7 +22,7 @@ import 'angular-translate-loader-static-files';
 import * as moment from 'moment';
 
 import portalRouterConfig from './portal.route';
-
+import authenticationConfig from '../authentication/authentication.config';
 import portalI18nConfig from './portal.i18n';
 
 import { HomeController } from './home/home.controller';
@@ -45,10 +45,11 @@ import PageComponent from './pages/page.component';
 
 import { NavbarComponent } from './components/navbar/navbar.component';
 
-angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.translate', 'duScroll'])
+angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.translate', 'duScroll', 'satellizer'])
   .value('duScrollOffset', 54)
   .config(portalRouterConfig)
   .config(portalI18nConfig)
+  .config(authenticationConfig)
   .controller('HomeController', HomeController)
   .controller('PortalApisController', PortalApisController)
   .component('api', ApiComponent)

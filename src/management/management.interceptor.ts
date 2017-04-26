@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import angular = require('angular');
+
 import NotificationService from '../services/notification.service';
 
-function interceptorConfig($httpProvider: ng.IHttpProvider) {
+function interceptorConfig(
+  $httpProvider: angular.IHttpProvider,
+) {
   'ngInject';
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
   $httpProvider.defaults.withCredentials = true;
 
   var sessionExpired;
 
-  var interceptorUnauthorized = ($q: ng.IQService, $injector: ng.auto.IInjectorService): ng.IHttpInterceptor => ({
+  var interceptorUnauthorized = ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor => ({
     responseError: function (error) {
       if (error.config && !error.config.tryItMode) {
         var unauthorizedError = !error || error.status === 401;
@@ -58,7 +62,7 @@ function interceptorConfig($httpProvider: ng.IHttpProvider) {
     }
   });
 
-  var interceptorTimeout = function ($q: ng.IQService, $injector: ng.auto.IInjectorService): ng.IHttpInterceptor {
+  var interceptorTimeout = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
     return {
       request: function (config) {
         config.timeout = 10000;

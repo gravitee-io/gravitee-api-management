@@ -14,6 +14,7 @@
 @import 'constants.scss';
 @import 'portal/portal.scss';
 @import 'user/_user.scss';
+@import 'user/login/_login.scss';
 @import 'management/api/policies/_policy.scss';
 @import 'management/api/_api.scss';
 @import 'management/api/analytics/_analytics.scss';
@@ -276,7 +277,6 @@ gravitee-sidenav {
 
 .gravitee-no-sidenav-container {
   background: $backgroundColor;
-  padding-top: 100px;
   height: 100%;
 }
 
