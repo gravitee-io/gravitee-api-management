@@ -27,7 +27,6 @@ class ApiPoliciesController {
 
   constructor (
     private ApiService,
-    private resolvedApi,
     private PolicyService,
     private $mdDialog: angular.material.IDialogService,
     private NotificationService,
@@ -51,7 +50,7 @@ class ApiPoliciesController {
       this.policiesToCopy.push(policy);
       this.policiesMap[policy.policyId] = policy;
     });
-    _.forEach(resolvedApi.data.paths, (policies, path) => {
+    _.forEach(this.$scope.$parent.apiCtrl.api.paths, (policies, path) => {
       this.apiPoliciesByPath[path] = _.cloneDeep(policies);
     });
     this.completeApiPolicies(this.apiPoliciesByPath);
@@ -325,13 +324,14 @@ class ApiPoliciesController {
 
     const that = this;
 
-    return this.ApiService.update(this.$scope.$parent.apiCtrl.api).then( ( {data} ) => {
+    let api = this.$scope.$parent.apiCtrl.api;
+    return this.ApiService.update(api).then( ({data} ) => {
       that.$rootScope.$broadcast('apiChangeSuccess');
-      that.NotificationService.show('API \'' + this.$scope.$parent.apiCtrl.api.name + '\' saved');
-      that.pathsToCompare = this.generatePathsToCompare();
+      that.NotificationService.show('API \'' + data.name + '\' saved');
+      that.pathsToCompare = that.generatePathsToCompare();
 
       that.$timeout(function () {
-        that.$scope.$parent.apiCtrl.api = data;
+        api = data;
       });
     });
   }

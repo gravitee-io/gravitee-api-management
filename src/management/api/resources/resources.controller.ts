@@ -16,7 +16,6 @@
 import * as _ from 'lodash';
 
 class ApiResourcesController {
-  private api: any;
   private creation: boolean;
   private resourceJsonSchemaForm: string[];
   private types: any[];
@@ -25,17 +24,16 @@ class ApiResourcesController {
 
   constructor (
     private ApiService,
-    private resolvedApi,
     private $mdSidenav,
     private $mdDialog,
     private ResourceService,
     private NotificationService,
     private $scope,
     private $rootScope,
-    private resolvedResources
+    private resolvedResources,
+    private $timeout
   ) {
     'ngInject';
-    this.api = resolvedApi.data;
     this.creation = true;
     this.resourceJsonSchemaForm = ["*"];
 
@@ -137,7 +135,7 @@ class ApiResourcesController {
       }
     }).then(function (response) {
       if (response) {
-        that.api.resources.splice(resourceIdx, 1);
+        that.$scope.$parent.apiCtrl.api.resources.splice(resourceIdx, 1);
         that.updateApi();
       }
     });
@@ -147,7 +145,7 @@ class ApiResourcesController {
     delete this.resource.$$hashKey;
 
     if (this.creation) {
-      this.api.resources.push(this.resource);
+      this.$scope.$parent.apiCtrl.api.resources.push(this.resource);
     }
 
     this.updateApi();
@@ -156,11 +154,15 @@ class ApiResourcesController {
   updateApi() {
     const that = this;
 
-    return this.ApiService.update(this.api).then( ( {data} ) => {
+    let api = this.$scope.$parent.apiCtrl.api;
+    return this.ApiService.update(api).then( ( {data} ) => {
       that.closeResourcePanel();
-      that.api = data;
       that.$rootScope.$broadcast('apiChangeSuccess');
-      that.NotificationService.show('API \'' + that.$scope.$parent.apiCtrl.api.name + '\' saved');
+      that.NotificationService.show('API \'' + data.name + '\' saved');
+
+      that.$timeout(function () {
+        api = data;
+      });
     });
   }
 

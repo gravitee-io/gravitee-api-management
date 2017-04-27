@@ -18,7 +18,7 @@
 <div layout="column">
   <section layout="row" flex>
     <md-content flex>
-      <md-table-container ng-show="apiResourcesCtrl.api.resources.length > 0">
+      <md-table-container ng-show="$parent.apiCtrl.api.resources.length > 0">
         <table md-table>
           <thead md-head md-order="order">
           <tr md-row>
@@ -29,7 +29,7 @@
           </tr>
           </thead>
           <tbody md-body>
-          <tr md-row ng-repeat="resource in apiResourcesCtrl.api.resources | orderBy: order">
+          <tr md-row ng-repeat="resource in $parent.apiCtrl.api.resources | orderBy: order">
             <td md-cell><span><b>{{resource.name}}</b></span></td>
             <td md-cell>{{apiResourcesCtrl.getResourceTypeName(resource.type)}}</td>
             <td md-cell>
@@ -103,7 +103,7 @@
   </section>
 </div>
 
-<gravitee-empty-state ng-if="apiResourcesCtrl.api.resources.length == 0"
+<gravitee-empty-state ng-if="$parent.apiCtrl.api.resources.length == 0"
                       icon="style"
                       model="Resource"
                       message="Resources will appear here"
@@ -111,8 +111,8 @@
                       create-mode="true"></gravitee-empty-state>
 
 
-<div ng-style="apiResourcesCtrl.api.resources.length == 0 && {'text-align':'center'}">
-  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': apiResourcesCtrl.api.resources.length > 0}" class="md-fab" aria-label="Add resource" ng-click="apiResourcesCtrl.showResourcePanel()">
+<div ng-style="$parent.apiCtrl.api.resources.length == 0 && {'text-align':'center'}">
+  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $parent.apiCtrl.api.resources.length > 0}" class="md-fab" aria-label="Add resource" ng-click="apiResourcesCtrl.showResourcePanel()">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
 </div>
