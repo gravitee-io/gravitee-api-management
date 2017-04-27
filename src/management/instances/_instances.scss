@@ -53,3 +53,49 @@
   font-size: 15px;
   padding-top: 50px;
 }
+
+.gravitee-instances-box{
+  min-width: 320px;
+  width: 320px;
+  max-width: 320px;
+  margin: 14px;
+  a, a:link, a:visited, a:hover, a:active {
+    text-decoration: none;
+    color: black;
+  }
+
+  md-card-header {
+    padding: 0px 0px 20px 0px;
+  }
+  md-card-avatar {
+    width: 35px;
+    height: 20px;
+  }
+  md-card-content {
+    padding: 0px;
+  }
+  md-card-footer {
+    padding: 0px 5px 5px 5px;
+  }
+  .api-box-description {
+    text-align: center;
+  }
+  .api-box-name-version {
+    font-size: 14px;
+    font-weight: 700;
+    color: grey;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    small {
+      padding: 0px;
+    }
+  }
+  .api-box-state {
+    font-size: 12px;
+  }
+  .api-box-footer {
+    color: #cdcdcd;
+  }
+}

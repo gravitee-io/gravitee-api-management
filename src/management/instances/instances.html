@@ -31,11 +31,11 @@
   <md-card-content ng-if="!isLoading && !$ctrl._displayEmptyMode"
                    style="padding: 0; overflow-y: auto;">
     <div layout="row" layout-wrap class="inset">
-      <div class="apis-box" flex="20" flex-gt-sm="20" flex-xs="50" flex-sm="33"
+      <div class="gravitee-instances-box"
            ng-repeat="instance in $ctrl.instances | filter:displayAllInstances?{}:{state: 'started'}
              | filter:$ctrl.searchGatewayInstances | orderBy:'-started_at'">
         <a ui-sref="management.instances.detail.environment({instanceId: instance.event})">
-          <md-card class="api-box gravitee-card gravitee-api-card">
+          <md-card class="gravitee-instances-box gravitee-card gravitee-api-card">
             <md-card-header layout="row" layout-align="end start">
             </md-card-header>
             <md-card-content>
