@@ -25,10 +25,12 @@ export const NavbarComponent: ng.IComponentOptions = {
     $scope.$on('graviteeUserRefresh', function () {
       UserService.current().then(function (user) {
         vm.graviteeUser = user;
-        let that = vm;
-        UserService.currentUserPicture().then( (picture) => {
-          that.graviteeUser.picture = picture;
-        });
+        if (user && user.username) {
+          let that = vm;
+          UserService.currentUserPicture().then( (picture) => {
+            that.graviteeUser.picture = picture;
+          });
+        }
       });
     });
 

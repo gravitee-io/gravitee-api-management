@@ -58,7 +58,7 @@ class ImageController {
   }
 
   getSource() {
-    if (this.$scope.image && this.$scope.imageOriginal !== this.$scope.image) {
+    if (this.$scope.image) {
       return this.$scope.image;
     }
     return this.$scope.imageUrl || this.$scope.imageDefault;
