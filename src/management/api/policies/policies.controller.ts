@@ -35,7 +35,8 @@ class ApiPoliciesController {
     private dragularService,
     private $q,
     private $rootScope,
-    private $timeout
+    private $timeout,
+    private StringService
   ) {
     'ngInject';
     this.apiPoliciesByPath = {};
@@ -122,7 +123,7 @@ class ApiPoliciesController {
   }
 
   initDragularDropZone(path) {
-    const dragularApiOptions = document.querySelector('.dropzone-' + _.kebabCase(path));
+    const dragularApiOptions = document.querySelector('.dropzone-' + this.StringService.hashCode(path));
     if (dragularApiOptions) {
       this.dragularService([dragularApiOptions], {
         copy: false,
@@ -221,7 +222,7 @@ class ApiPoliciesController {
   getDropzoneClass(path) {
     return "gravitee-policy-dropzone " +
       'gravitee-policy-dropzone-filled' +
-      " dropzone-" + _.kebabCase(path);
+      " dropzone-" + this.StringService.hashCode(path);
   }
 
   toggleHttpMethod(method, methods) {

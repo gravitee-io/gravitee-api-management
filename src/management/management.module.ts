@@ -268,6 +268,8 @@ import PageRamlComponent from '../components/documentation/page-raml.component';
 import PageMarkdownComponent from '../components/documentation/page-markdown.component';
 import PageSidenavDirective from '../components/documentation/page-sidenav.directive';
 
+import StringService from '../services/string.service';
+
 import config from './management.config';
 import routerConfig from '../index.route';
 import managementRouterConfig from './management.route';
@@ -379,6 +381,7 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .service('TagService', TagService)
   .service('TenantService', TenantService)
   .service('PortalPagesService', PortalPagesService)
+  .service('StringService', StringService)
   .directive('filecontent', () => DocumentationDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())
