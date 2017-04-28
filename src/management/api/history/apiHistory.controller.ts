@@ -208,9 +208,9 @@ class ApiHistoryController {
       that.NotificationService.show('Api rollback !');
       that.$rootScope.$broadcast("apiChangeSuccess");
 
-      that.ApiService.get(that.api.id).then(function (data) {
+      that.ApiService.get(that.api.id).then(function (response) {
         that.$timeout(function () {
-          that.$scope.$parent.apiCtrl.api = data;
+          that.$scope.$parent.apiCtrl.api = response.data;
         });
       });
     });
