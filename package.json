@@ -30,7 +30,7 @@
     "angular-utf8-base64": "0.0.5",
     "api-console": "^3.0.15",
     "bootstrap": "^3.3.7",
-    "codemirror": "^5.24.0",
+    "codemirror": "^5.25.2",
     "diff": "^3.2.0",
     "dragular": "^4.3.0",
     "highcharts": "^5.0.7",

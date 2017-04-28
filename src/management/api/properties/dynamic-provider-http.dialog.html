@@ -22,17 +22,7 @@
       <textarea
         ui-codemirror="{ onLoad : ctrl.codemirrorLoaded }"
         ui-codemirror-opts="ctrl.codeMirrorOptions"
-        rows="5">
-    [{
-        "key" : 1,
-        "value" : "https://north-europe.company.com/"
-    }, {
-        "key" : 2,
-        "value" : "https://north-europe.company.com/"
-    }, {
-        "key" : 3,
-        "value" : "https://south-asia.company.com/"
-    }]
+        ng-model="ctrl.specificationExample">
       </textarea>
     </p>
   </md-dialog-content>

@@ -6,6 +6,10 @@
 .CodeMirror {
   border: 1px solid #eee;
   height: auto;
+
+  .CodeMirror-gutter-wrapper {
+    left: -30px !important;
+  }
 }
 
 .no-top {

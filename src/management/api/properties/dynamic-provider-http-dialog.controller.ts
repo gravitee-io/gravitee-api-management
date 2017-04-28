@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogDynamicProviderHttpController($scope, $mdDialog: angular.material.IDialogService) {
+function DialogDynamicProviderHttpController($mdDialog: angular.material.IDialogService) {
   'ngInject';
 
   this.cancel = $mdDialog.cancel;
 
   this.codeMirrorOptions = {
-    lineWrapping: true,
+    lineWrapping: false,
     lineNumbers: true,
-    mode: "javascript",
+    mode: 'javascript',
     readOnly: true,
     controller: this
   };
@@ -30,16 +30,22 @@ function DialogDynamicProviderHttpController($scope, $mdDialog: angular.material
     this.controller.editor = _editor;
 
     // Editor part
-    var _doc = this.controller.editor.getDoc();
+    const _doc = this.controller.editor.getDoc();
 
     // Options
     _doc.markClean();
   };
 
-  this.reload = function () {
-    this.ctrl.codeMirrorOptions.controller.editor.setSize("100%", "100%");
-    this.ctrl.codeMirrorOptions.controller.editor.focus();
-  };
+  this.specificationExample = JSON.stringify([{
+    "key" : 1,
+    "value" : "https://north-europe.company.com/"
+  }, {
+    "key" : 2,
+    "value" : "https://north-europe.company.com/"
+  }, {
+    "key" : 3,
+    "value" : "https://south-asia.company.com/"
+  }], null, 2);
 }
 
 export default DialogDynamicProviderHttpController;
