@@ -280,7 +280,7 @@ class ApiPlansController {
   }
 
   publish(plan, ev) {
-    var _this = this;
+    let that = this;
 
     this.$mdDialog.show({
         controller: 'DialogPublishPlanController',
@@ -288,11 +288,12 @@ class ApiPlansController {
         parent: angular.element(document.body),
         targetEvent: ev,
         clickOutsideToClose: true,
-        apiId: this.$stateParams.apiId,
+        apiId: that.$stateParams.apiId,
         plan: plan
       }).then(function (plan) {
         if (plan) {
-          _this.list();
+          that.$scope.$parent.apiCtrl.checkAPISynchronization({id: that.$stateParams.apiId});
+          that.list();
         }
       }, function() {
         // You cancelled the dialog
