@@ -107,4 +107,9 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationAnalyticsResource getApplicationAnalyticsResource() {
         return resourceContext.getResource(ApplicationAnalyticsResource.class);
     }
+
+    @Path("logs")
+    public ApplicationLogsResource getApplicationLogsResource() {
+        return resourceContext.getResource(ApplicationLogsResource.class);
+    }
 }
