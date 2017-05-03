@@ -22,7 +22,8 @@
 
 	<properties>
 		<jsoup.version>1.10.1</jsoup.version>
-		<swagger.version>1.5.10</swagger.version>
+		<swagger.version>1.5.12</swagger.version>
+		<swagger-compat-spec-parser.version>1.0.28</swagger-compat-spec-parser.version>
 	</properties>
 
 	<parent>
@@ -129,24 +130,10 @@
 		</dependency>
 
 		<!-- Swagger parser -->
-		<!--
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-parser</artifactId>
-			<version>1.0.22</version>
-			<exclusions>
-				<exclusion>
-					<groupId>io.swagger</groupId>
-					<artifactId>swagger-core</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		-->
-
 		<dependency>
 			<groupId>io.swagger</groupId>
 			<artifactId>swagger-compat-spec-parser</artifactId>
-			<version>1.0.28</version>
+			<version>${swagger-compat-spec-parser.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>io.swagger</groupId>
