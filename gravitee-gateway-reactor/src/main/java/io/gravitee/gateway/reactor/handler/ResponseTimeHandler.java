@@ -40,8 +40,7 @@ public class ResponseTimeHandler implements Handler<Response> {
         serverRequest.metrics().setResponseHttpStatus(response.status());
         serverRequest.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
         serverRequest.metrics().setProxyLatencyMs(proxyResponseTimeInMs - serverRequest.metrics().getApiResponseTimeMs());
-        serverRequest.metrics().setRequestContentType(serverRequest.headers().contentType());
-        serverRequest.metrics().setResponseContentType(response.headers().contentType());
+        serverRequest.metrics().setClientResponseHeaders(response.headers());
 
         // Push response to the next handler
         next.handle(response);

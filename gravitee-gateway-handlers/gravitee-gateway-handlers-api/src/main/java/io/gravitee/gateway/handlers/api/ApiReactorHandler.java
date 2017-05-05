@@ -90,6 +90,9 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
             // Set execution context attributes and metrics specific to this handler
             serverRequest.metrics().setApi(api.getId());
 
+            // Create a copy of incoming HTTP request headers
+            serverRequest.metrics().setClientRequestHeaders(new HttpHeaders(serverRequest.headers()));
+
             executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
             executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
             executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.properties());
