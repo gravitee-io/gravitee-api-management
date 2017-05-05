@@ -26,7 +26,6 @@ import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.endpoint.EndpointManager;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
-import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import io.gravitee.gateway.http.core.endpoint.impl.DefaultEndpointLifecycleManager;
 import io.gravitee.gateway.http.core.logger.HttpDump;
 import io.gravitee.gateway.http.core.logger.LoggableClientRequest;
@@ -110,6 +109,16 @@ public class DefaultHttpInvoker implements Invoker {
 
         final boolean enableHttpDump = api.getProxy().isDumpRequest();
         final HttpMethod httpMethod = extractHttpMethod(executionContext, serverRequest);
+
+        // Create a copy of request headers send by the gateway to the backend
+        serverRequest.metrics().setProxyRequestHeaders(serverRequest.headers());
+
+        // Create a copy of proxy response headers send by the backend
+        Handler<ClientResponse> finalResult = result;
+        result = proxyResponse -> {
+            serverRequest.metrics().setProxyResponseHeaders(proxyResponse.headers());
+            finalResult.handle(proxyResponse);
+        };
 
         ClientRequest clientRequest = invoke0(endpoint.connector(), httpMethod,
                 requestUri, serverRequest, executionContext,

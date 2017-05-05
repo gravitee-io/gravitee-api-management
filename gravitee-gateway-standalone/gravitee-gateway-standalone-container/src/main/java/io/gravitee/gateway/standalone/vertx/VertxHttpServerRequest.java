@@ -52,8 +52,14 @@ class VertxHttpServerRequest implements Request {
         this.httpServerRequest = httpServerRequest;
         this.instant = Instant.now();
         this.id = UUID.toString(UUID.random());
+
         this.metrics = RequestMetrics.on(instant.toEpochMilli()).build();
-        this.init();
+        this.metrics.setRequestId(id());
+        this.metrics.setRequestHttpMethod(method());
+        this.metrics.setRequestLocalAddress(localAddress());
+        this.metrics.setRequestRemoteAddress(remoteAddress());
+        this.metrics.setRequestPath(path());
+        this.metrics.setRequestUri(uri());
     }
 
     @Override
@@ -166,16 +172,5 @@ class VertxHttpServerRequest implements Request {
     @Override
     public RequestMetrics metrics() {
         return metrics;
-    }
-
-    private void init() {
-        this.metrics.setRequestId(id());
-        this.metrics.setRequestHttpMethod(method());
-        this.metrics.setRequestLocalAddress(localAddress());
-        this.metrics.setRequestRemoteAddress(remoteAddress());
-        this.metrics.setRequestPath(path());
-        this.metrics.setRequestUri(uri());
-        this.metrics.setRequestContentType(headers().contentType());
-        this.metrics.setRequestContentLength(headers().contentLength());
     }
 }
