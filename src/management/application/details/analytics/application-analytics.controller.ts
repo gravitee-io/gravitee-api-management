@@ -23,7 +23,8 @@ class ApplicationAnalyticsController {
   private applicationDashboard: any;
 
   constructor(
-    private ApplicationService: ApplicationService
+    private ApplicationService: ApplicationService,
+    private $state: ng.ui.IStateService
   ) {
     'ngInject';
 
@@ -126,6 +127,13 @@ class ApplicationAnalyticsController {
         }
       });
     });
+  }
+
+  viewLogs() {
+    // Update the query parameter
+    this.$state.transitionTo(
+      'management.applications.portal.logs',
+      this.$state.params);
   }
 }
 

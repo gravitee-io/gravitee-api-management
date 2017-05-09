@@ -100,7 +100,7 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       }
     })
     .state('management.applications.portal.analytics', {
-      url: '/analytics?from&to',
+      url: '/analytics?from&to&q',
       component: 'applicationAnalytics',
       data: {
         menu: {
@@ -117,7 +117,43 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         to: {
           type: "int",
           dynamic: true
+        },
+        q: {
+          type: 'string',
+          dynamic: true
         }
       }
     })
+    .state('management.applications.portal.logs', {
+      url: '/logs?from&to&q',
+      component: 'applicationLogs',
+      data: {
+        menu: {
+          label: 'Logs',
+          icon: 'receipt'
+        }
+      },
+      params: {
+        from: {
+          type: 'int',
+          dynamic: true
+        },
+        to: {
+          type: 'int',
+          dynamic: true
+        },
+        q: {
+          type: 'string',
+          dynamic: true
+        }
+      }
+    })
+    .state('management.applications.portal.log', {
+      url: '/logs/:logId',
+      component: 'applicationLog',
+      resolve: {
+        log: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
+          ApplicationService.getLog($stateParams['applicationId'], $stateParams['logId']).then(response => response.data)
+      },
+    });
 }

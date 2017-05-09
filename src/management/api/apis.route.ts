@@ -19,6 +19,7 @@ import DocumentationService from '../../services/apiDocumentation.service';
 import TenantService from '../../services/tenant.service';
 import ResourceService from '../../services/resource.service';
 import TagService from "../../services/tag.service";
+import ApiService from "../../services/api.service";
 
 export default apisRouterConfig;
 
@@ -252,7 +253,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       }
     })
     .state('management.apis.detail.analytics', {
-      url: '/analytics?from&to',
+      url: '/analytics?from&to&q',
       template: require('./analytics/analytics.html'),
       controller: 'ApiAnalyticsController',
       controllerAs: 'analyticsCtrl',
@@ -270,8 +271,46 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         to: {
           type: 'int',
           dynamic: true
+        },
+        q: {
+          type: 'string',
+          dynamic: true
         }
       }
+    })
+    .state('management.apis.detail.logs', {
+      url: '/logs?from&to&q',
+      template: require('./logs/logs.html'),
+      controller: 'ApiLogsController',
+      controllerAs: 'logsCtrl',
+      data: {
+        menu: {
+          label: 'Logs',
+          icon: 'receipt'
+        }
+      },
+      params: {
+        from: {
+          type: 'int',
+          dynamic: true
+        },
+        to: {
+          type: 'int',
+          dynamic: true
+        },
+        q: {
+          type: 'string',
+          dynamic: true
+        }
+      }
+    })
+    .state('management.apis.detail.log', {
+      url: '/logs/:logId',
+      component: 'log',
+      resolve: {
+        log: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getLog($stateParams['apiId'], $stateParams['logId']).then(response => response.data)
+      },
     })
     .state('management.apis.detail.documentation', {
       url: '/documentation',
@@ -355,7 +394,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       data: {
         menu: {
           label: 'Events',
-          icon: 'event_note'
+          icon: 'event'
         }
       }
     });

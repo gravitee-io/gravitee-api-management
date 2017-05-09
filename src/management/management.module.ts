@@ -182,6 +182,9 @@ import ApplicationSubscriptionsController from './application/details/subscripti
 import ApplicationSubscriptionsComponent from './application/details/subscriptions/application-subscriptions.component';
 import ApplicationAnalyticsController from './application/details/analytics/application-analytics.controller';
 import ApplicationAnalyticsComponent from './application/details/analytics/application-analytics.component';
+import ApplicationLogsController from './application/details/logs/application-logs.controller';
+import ApplicationLogsComponent from './application/details/logs/application-logs.component';
+import ApplicationLogComponent from './application/details/logs/application-log.component';
 import DialogApplicationController from './application/dialog/applicationDialog.controller';
 import DialogAddMemberController from './application/details/members/addMemberDialog.controller';
 import DialogApplicationPermissionsHelpController from './application/details/members/application-permissions-dialog.controller';
@@ -208,6 +211,13 @@ import DashboardFilterController from '../components/dashboard/dashboard-filter.
 import DashboardTimeframeComponent from '../components/dashboard/dashboard-timeframe.component';
 import DashboardTimeframeController from '../components/dashboard/dashboard-timeframe.controller';
 
+// Logs
+import ApiLogsController from '../management/api/logs/logs.controller';
+import LogsTimeframeComponent from '../management/api/logs/components/logs-timeframe.component';
+import LogsTimeframeController from '../management/api/logs/components/logs-timeframe.controller';
+import LogComponent from '../management/api/logs/log.component';
+
+// Others
 import ImageDirective from '../components/image/image.directive';
 import EventsService from '../services/events.service';
 import AnalyticsService from '../services/analytics.service';
@@ -430,6 +440,8 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .component('applicationSubscriptions', ApplicationSubscriptionsComponent)
   .component('applicationMembers', ApplicationMembersComponent)
   .component('applicationAnalytics', ApplicationAnalyticsComponent)
+  .component('applicationLogs', ApplicationLogsComponent)
+  .component('applicationLog', ApplicationLogComponent)
   .controller('DialogApplicationController', DialogApplicationController)
   .controller('DialogAddMemberController', DialogAddMemberController)
   .controller('DialogApplicationPermissionsHelpController', DialogApplicationPermissionsHelpController)
@@ -438,7 +450,7 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .controller('ApplicationMembersController', ApplicationMembersController)
   .controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController)
   .controller('ApplicationAnalyticsController', ApplicationAnalyticsController)
-
+  .controller('ApplicationLogsController', ApplicationLogsController)
   .component('user', UserComponent)
 
   .component('gvPage', PageComponent)
@@ -452,6 +464,11 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
 
   .filter('currentSubmenus', submenuFilter)
   .service('SidenavService', SidenavService)
+
+  .controller('ApiLogsController', ApiLogsController)
+  .component('gvLogsTimeframe', LogsTimeframeComponent)
+  .controller('LogsTimeframeController', LogsTimeframeController)
+  .component('log', LogComponent)
 
   .filter('humanDateFilter', function () {
     return function(input) {

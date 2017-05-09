@@ -20,7 +20,7 @@ class DashboardFilterController {
   private filters: any[];
   private onFilterChange: any;
 
-  constructor(private $rootScope) {
+  constructor(private $rootScope, private $state: ng.ui.IStateService) {
     'ngInject';
 
     this.fields = {};
@@ -89,6 +89,14 @@ class DashboardFilterController {
   createAndSendQuery() {
     // Create a query with all the current filters
     let query = _.values(_.mapValues(this.fields, function(value) { return value.query; })).join(' AND ');
+
+    // Update the query parameter
+    this.$state.transitionTo(
+      this.$state.current,
+      _.merge(this.$state.params, {
+        q: query
+      }),
+      {notify: false});
 
     this.onFilterChange({query: query});
   }

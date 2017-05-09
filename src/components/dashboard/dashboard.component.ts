@@ -20,7 +20,8 @@ const DashboardComponent: ng.IComponentOptions = {
   bindings: {
     model: '<',
     onFilterChange: '&',
-    onTimeframeChange: '&'
+    onTimeframeChange: '&',
+    onViewLogClick: '&'
   },
   controller: function($scope) {
     'ngInject';
@@ -55,6 +56,12 @@ const DashboardComponent: ng.IComponentOptions = {
       $scope.$broadcast('onQueryFilterChange', query);
       if (this.onFilterChange) {
         this.onFilterChange({query: query});
+      }
+    };
+
+    this.viewLogs = function() {
+      if (this.onViewLogClick) {
+        this.onViewLogClick();
       }
     };
 

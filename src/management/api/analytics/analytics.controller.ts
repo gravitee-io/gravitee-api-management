@@ -19,7 +19,11 @@ class ApiAnalyticsController {
 
   private api: any;
 
-  constructor(private ApiService, private resolvedApi, private $scope) {
+  constructor(
+    private ApiService,
+    private resolvedApi,
+    private $scope,
+    private $state: ng.ui.IStateService) {
   'ngInject';
     this.ApiService = ApiService;
     this.$scope = $scope;
@@ -183,6 +187,13 @@ class ApiAnalyticsController {
         }
       });
     });
+  }
+
+  viewLogs() {
+    // Update the query parameter
+    this.$state.transitionTo(
+      'management.apis.detail.logs',
+      this.$state.params);
   }
 }
 

@@ -1,0 +1,29 @@
+
+
+tr.log-error {
+  background-color: #f9f2f4;
+  color: #c7254e;
+}
+
+.log-table {
+  table {
+    margin-bottom: 0;
+  }
+
+  .vertical-text {
+    //hack: on FF, width is calculated before transformation
+    width: 19px;
+    writing-mode: vertical-lr;
+    text-orientation: sideways;
+  }
+
+  .log-header {
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  table.md-table td.md-cell {
+    border: 0;
+    font-size:12px;
+  }
+}

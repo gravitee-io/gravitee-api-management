@@ -15,32 +15,34 @@
     limitations under the License.
 
 -->
-<md-card flex>
-  <div class="widget-card" flex>
-    <md-card-title>
-      <md-card-title-text>
-        <span class="md-title"><strong>Timeframe</strong></span>
-        <span class="md-subhead">
+<div class="widget-card" flex>
+  <md-card-title>
+    <md-card-title-text>
+      <span class="md-title"><strong>Timeframe</strong></span>
+      <span class="md-subhead">
           <span>Data from <code>{{$ctrl.current.from | date:'medium'}}</code> to <code>{{$ctrl.current.to | date:'medium'}}</code></span>
-          <span ng-if="$ctrl.$state.params.interval">with an interval of <code>{{$ctrl.current.intervalLabel}}</code>.</span>
+          <span
+            ng-if="$ctrl.$state.params.interval">with an interval of <code>{{$ctrl.current.intervalLabel}}</code>.</span>
         </span>
-      </md-card-title-text>
-    </md-card-title>
-    <md-card-content>
-      <div layout="row" layout-align="center center" style="margin-bottom: 10px">
-        <div class="btn-group pull-right">
-          <button class="btn btn-default" ng-repeat="timeframe in $ctrl.timeframes track by timeframe.id" ng-click="$ctrl.updateTimeframe(timeframe.id)"
-                     ng-class="{'gravitee-analytics-timeframe-active' : timeframe === $ctrl.timeframe}">
-            {{timeframe.title}}
-          </button>
-        </div>
-
-        <div layout="row" layout-align="center center" style="margin-left: 25px">
-          <md-datepicker ng-model="$ctrl.pickerStartDate" md-placeholder="Select begin date" md-max-date="$ctrl.pickerEndDate"></md-datepicker>
-          <md-datepicker ng-model="$ctrl.pickerEndDate" md-placeholder="Select end date" md-min-date="$ctrl.pickerStartDate" md-max-date="$ctrl.now"></md-datepicker>
-          <md-button class="md-raised" ng-click="$ctrl.updateRangeDate()">Apply</md-button>
-        </div>
+    </md-card-title-text>
+  </md-card-title>
+  <md-card-content>
+    <div layout="row" layout-align="center center" style="margin-bottom: 10px">
+      <div class="btn-group pull-right">
+        <button class="btn btn-default" ng-repeat="timeframe in $ctrl.timeframes track by timeframe.id"
+                ng-click="$ctrl.updateTimeframe(timeframe.id)"
+                ng-class="{'gravitee-analytics-timeframe-active' : timeframe === $ctrl.timeframe}">
+          {{timeframe.title}}
+        </button>
       </div>
-    </md-card-content>
-  </div>
-</md-card>
+
+      <div layout="row" layout-align="center center" style="margin-left: 25px">
+        <md-datepicker ng-model="$ctrl.pickerStartDate" md-placeholder="Select begin date"
+                       md-max-date="$ctrl.pickerEndDate"></md-datepicker>
+        <md-datepicker ng-model="$ctrl.pickerEndDate" md-placeholder="Select end date"
+                       md-min-date="$ctrl.pickerStartDate" md-max-date="$ctrl.now"></md-datepicker>
+        <md-button class="md-raised" ng-click="$ctrl.updateRangeDate()">Apply</md-button>
+      </div>
+    </div>
+  </md-card-content>
+</div>

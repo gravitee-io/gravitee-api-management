@@ -15,25 +15,23 @@
     limitations under the License.
 
 -->
-<md-card flex ng-if="$ctrl.filters.length > 0">
-  <div class="widget-card chipsdemoBasicUsage" flex>
-    <md-card-title>
-      <md-card-title-text>
-        <span class="md-title"><strong>Filters</strong></span>
-      </md-card-title-text>
-    </md-card-title>
-    <md-card-content>
-      <md-chips class="custom-chips"
-                ng-model="$ctrl.filters" md-on-remove="$ctrl.deleteChips($chip)">
-        <md-chip-template>
+<div class="widget-card chipsdemoBasicUsage" flex ng-if="$ctrl.filters.length > 0">
+  <md-card-title>
+    <md-card-title-text>
+      <span class="md-title"><strong>Filters</strong></span>
+    </md-card-title-text>
+  </md-card-title>
+  <md-card-content>
+    <md-chips class="custom-chips"
+              ng-model="$ctrl.filters" md-on-remove="$ctrl.deleteChips($chip)">
+      <md-chip-template>
           <span>
             <strong>{{$chip.label}}</strong>
           </span>
-        </md-chip-template>
-        <button md-chip-remove class="md-primary vegetablechip">
-          <ng-md-icon icon="close"></ng-md-icon>
-        </button>
-      </md-chips>
-    </md-card-content>
-  </div>
-</md-card>
+      </md-chip-template>
+      <button md-chip-remove class="md-primary vegetablechip">
+        <ng-md-icon icon="close"></ng-md-icon>
+      </button>
+    </md-chips>
+  </md-card-content>
+</div>

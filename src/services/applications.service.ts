@@ -16,6 +16,14 @@
 
 import * as _ from 'lodash';
 
+export class LogsQuery {
+  from: number;
+  to: number;
+  query?: string;
+  page: number;
+  size: number;
+}
+
 interface IMember {
   username: string;
   type: string;
@@ -128,6 +136,28 @@ class ApplicationService {
 
     return this.$http.get(url);
   }
+
+  /*
+   * Logs
+   */
+  findLogs(api: string, query: LogsQuery): any {
+    var url = this.applicationsURL + api + '/logs?';
+
+    var keys = Object.keys(query);
+    _.forEach(keys, function (key) {
+      var val = query[key];
+      if (val !== undefined && val !== '') {
+        url += key + '=' + val + '&';
+      }
+    });
+
+    return this.$http.get(url);
+  }
+
+  getLog(api, logId) {
+    return this.$http.get(this.applicationsURL + api + '/logs/' + logId);
+  }
+
 }
 
 export default ApplicationService;
