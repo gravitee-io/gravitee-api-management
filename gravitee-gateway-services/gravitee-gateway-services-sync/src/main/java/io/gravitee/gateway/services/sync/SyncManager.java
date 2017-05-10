@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.text.Collator;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -79,8 +78,38 @@ public class SyncManager {
                     .stream()
                     .collect(Collectors.toMap(io.gravitee.repository.management.model.Api::getId, api -> api));
 
+            // Get last event by API
+            Map<String, Event> events = new HashMap<>();
+            apis.forEach((id, api) -> {
+                Event event = getLastEvent(id);
+                if (event != null) {
+                    events.put(id, event);
+                }
+            });
+
+            // Extract definition for each event
+            Map<String, Api> definitions = new HashMap<>();
+            events
+                    .values()
+                    .forEach(event -> {
+                        try {
+                            // Read API definition from event
+                            io.gravitee.repository.management.model.Api eventPayload = objectMapper.readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class);
+                            Api definition = objectMapper.readValue(eventPayload.getDefinition(), Api.class);
+                            io.gravitee.repository.management.model.Api api = apis.get(definition.getId());
+
+                            // Update definition with required information for deployment phase
+                            definition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
+                            definition.setDeployedAt(api.getUpdatedAt());
+                            definitions.put(definition.getId(), definition);
+                        } catch (IOException ioe) {
+                            logger.error("Error while determining deployed APIs store into events payload", ioe);
+                        }
+                    });
+
             // Determine APIs to undeploy because of deployment tags
-            Set<String> apisToRemove = apiManager.apis().stream()
+            Set<String> apisToRemove = definitions.values()
+                    .stream()
                     .filter(api -> !hasMatchingTags(api))
                     .map(Api::getId)
                     .collect(Collectors.toSet());
@@ -89,26 +118,8 @@ public class SyncManager {
             apisToRemove.forEach(apiId -> {
                 apiManager.undeploy(apiId);
                 apis.remove(apiId);
-            });
-
-            // Remove api not relative to this gateway instance
-            Set<String> apisToDeploy = apis.entrySet().stream()
-                    .map(apiEntry -> {
-                        Api api = new Api();
-                        api.setId(apiEntry.getValue().getId());
-                        api.setName(apiEntry.getValue().getName());
-                        api.setTags(apiEntry.getValue().getTags());
-                        return api;
-                    })
-                    .filter(this::hasMatchingTags)
-                    .map(io.gravitee.definition.model.Api::getId)
-                    .collect(Collectors.toSet());
-
-            // Get last event for each API
-            Map<String, Event> events = new HashMap<>();
-            apisToDeploy.forEach(api -> {
-                Event event = getLastEvent(api);
-                events.put(api, event);
+                events.remove(apiId);
+                definitions.remove(apiId);
             });
 
             // Determine API which must be stopped and stop them
@@ -116,8 +127,7 @@ public class SyncManager {
                     .stream()
                     .filter(apiEvent -> {
                         Event event = apiEvent.getValue();
-                        return event != null &&
-                                (event.getType() == EventType.STOP_API || event.getType() == EventType.UNPUBLISH_API);
+                        return event.getType() == EventType.STOP_API || event.getType() == EventType.UNPUBLISH_API;
                     })
                     .forEach(apiEvent -> apiManager.undeploy(apiEvent.getKey()));
 
@@ -126,33 +136,27 @@ public class SyncManager {
                     .stream()
                     .filter(apiEvent -> {
                         Event event = apiEvent.getValue();
-                        return event != null && (
-                                event.getType() == EventType.START_API || event.getType() == EventType.PUBLISH_API);
+                        return event.getType() == EventType.START_API || event.getType() == EventType.PUBLISH_API;
                     })
                     .forEach(apiEvent -> {
-                        try {
-                            // Read API definition from event
-                            io.gravitee.repository.management.model.Api payloadApi = objectMapper.readValue(
-                                    apiEvent.getValue().getPayload(), io.gravitee.repository.management.model.Api.class);
+                        // Read API definition from event
+                        Api definition = definitions.get(apiEvent.getKey());
 
-                            // API to deploy
-                            Api apiToDeploy = convert(payloadApi);
+                        // API to deploy
+                        enhanceWithData(definition);
 
-                            if (apiToDeploy != null) {
-                                // Get deployed API
-                                Api deployedApi = apiManager.get(apiToDeploy.getId());
+                        if (definition != null) {
+                            // Get deployed API
+                            Api deployedApi = apiManager.get(definition.getId());
 
-                                // API is not yet deployed, so let's do it !
-                                if (deployedApi == null) {
-                                    apiManager.deploy(apiToDeploy);
-                                } else {
-                                    if (deployedApi.getDeployedAt().before(apiToDeploy.getDeployedAt())) {
-                                        apiManager.update(apiToDeploy);
-                                    }
+                            // API is not yet deployed, so let's do it !
+                            if (deployedApi == null) {
+                                apiManager.deploy(definition);
+                            } else {
+                                if (deployedApi.getDeployedAt().before(definition.getDeployedAt())) {
+                                    apiManager.update(definition);
                                 }
                             }
-                        } catch (IOException ioe) {
-                            logger.error("Error while determining deployed APIs store into events payload", ioe);
                         }
                     });
 
@@ -233,36 +237,18 @@ public class SyncManager {
         return (!events.isEmpty()) ? events.get(0) : null;
     }
 
-    private Api convert(io.gravitee.repository.management.model.Api remoteApi) {
+    private void enhanceWithData(Api definition) {
         try {
-            String definition = remoteApi.getDefinition();
-            if (definition != null && !definition.isEmpty()) {
-                Api api = objectMapper.readValue(definition, Api.class);
-
-                api.setId(remoteApi.getId());
-                api.setName(remoteApi.getName());
-                api.setVersion(remoteApi.getVersion());
-                api.setEnabled(remoteApi.getLifecycleState() == LifecycleState.STARTED);
-                api.setDeployedAt(remoteApi.getUpdatedAt());
-
-                try {
-                    // Deploy only published plan
-                    api.setPlans(planRepository.findByApi(api.getId())
-                            .stream()
-                            .filter(plan -> plan.getStatus() == io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
-                            .map(this::convert)
-                            .collect(Collectors.toList()));
-                } catch (TechnicalException te) {
-                    logger.error("Unexpected error while adding plan to the API: {} [{}]", remoteApi.getName(),
-                            remoteApi.getId(), te);
-                }
-                return api;
-            }
-        } catch (IOException ioe) {
-            logger.error("Unable to prepare API definition from repository for {}", remoteApi, ioe);
+            // Deploy only published plan
+            definition.setPlans(planRepository.findByApi(definition.getId())
+                    .stream()
+                    .filter(plan -> plan.getStatus() == io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
+                    .map(this::convert)
+                    .collect(Collectors.toList()));
+        } catch (TechnicalException te) {
+            logger.error("Unexpected error while adding plan to the API: {} [{}]", definition.getName(),
+                    definition.getId(), te);
         }
-
-        return null;
     }
 
     private Plan convert(io.gravitee.repository.management.model.Plan repoPlan) {
