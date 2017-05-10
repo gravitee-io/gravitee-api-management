@@ -13,31 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query;
+package io.gravitee.repository.log.api;
 
-import io.gravitee.repository.analytics.query.count.CountQueryBuilder;
-import io.gravitee.repository.analytics.query.groupby.GroupByQueryBuilder;
-import io.gravitee.repository.analytics.query.tabular.TabularQueryBuilder;
+import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.analytics.query.tabular.TabularQuery;
+import io.gravitee.repository.analytics.query.tabular.TabularResponse;
+import io.gravitee.repository.log.model.Request;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class QueryBuilders {
+public interface LogRepository {
 
-    public static DateHistogramQueryBuilder dateHistogram() {
-        return DateHistogramQueryBuilder.query();
-    }
+    TabularResponse query(TabularQuery query) throws AnalyticsException;
 
-    public static GroupByQueryBuilder groupBy() {
-        return GroupByQueryBuilder.query();
-    }
-
-    public static CountQueryBuilder count() {
-        return CountQueryBuilder.query();
-    }
-
-    public static TabularQueryBuilder tabular() {
-        return TabularQueryBuilder.query();
-    }
+    Request findById(String requestId) throws AnalyticsException;
 }

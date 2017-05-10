@@ -13,31 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query;
+package io.gravitee.repository.analytics.query.tabular;
 
-import io.gravitee.repository.analytics.query.count.CountQueryBuilder;
-import io.gravitee.repository.analytics.query.groupby.GroupByQueryBuilder;
-import io.gravitee.repository.analytics.query.tabular.TabularQueryBuilder;
+import io.gravitee.repository.analytics.query.AbstractQuery;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class QueryBuilders {
+public class TabularQuery extends AbstractQuery<TabularResponse> {
 
-    public static DateHistogramQueryBuilder dateHistogram() {
-        return DateHistogramQueryBuilder.query();
+    private int size = 20;
+
+    private int page = 0;
+
+    @Override
+    public Class<TabularResponse> responseType() {
+        return TabularResponse.class;
     }
 
-    public static GroupByQueryBuilder groupBy() {
-        return GroupByQueryBuilder.query();
+    public int size() {
+        return size;
     }
 
-    public static CountQueryBuilder count() {
-        return CountQueryBuilder.query();
+    void size(int size) {
+        this.size = size;
     }
 
-    public static TabularQueryBuilder tabular() {
-        return TabularQueryBuilder.query();
+    public int page() {
+        return page;
+    }
+
+    void page(int page) {
+        this.page = page;
     }
 }

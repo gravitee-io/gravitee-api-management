@@ -13,31 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query;
+package io.gravitee.repository.analytics.query.tabular;
 
-import io.gravitee.repository.analytics.query.count.CountQueryBuilder;
-import io.gravitee.repository.analytics.query.groupby.GroupByQueryBuilder;
-import io.gravitee.repository.analytics.query.tabular.TabularQueryBuilder;
+import io.gravitee.repository.log.model.Request;
+import io.gravitee.repository.analytics.query.response.Response;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class QueryBuilders {
+public class TabularResponse implements Response {
 
-    public static DateHistogramQueryBuilder dateHistogram() {
-        return DateHistogramQueryBuilder.query();
+    private final long total;
+
+    public TabularResponse(long total) {
+        this.total = total;
     }
 
-    public static GroupByQueryBuilder groupBy() {
-        return GroupByQueryBuilder.query();
+    private List<Request> requests;
+
+    public List<Request> getRequests() {
+        return requests;
     }
 
-    public static CountQueryBuilder count() {
-        return CountQueryBuilder.query();
+    public void setRequests(List<Request> requests) {
+        this.requests = requests;
     }
 
-    public static TabularQueryBuilder tabular() {
-        return TabularQueryBuilder.query();
+    public long getSize() {
+        return total;
     }
 }
