@@ -762,14 +762,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     private void removeTag(String apiId, String tagId) throws TechnicalManagementException {
         try {
-            Optional<Api> optApi = apiRepository.findById(apiId);
-            if (optApi.isPresent()) {
-                Api api = optApi.get();
-                api.getTags().remove(tagId);
-                apiRepository.update(api);
-            } else {
-                throw new ApiNotFoundException(apiId);
-            }
+            ApiEntity apiEntity = this.findById(apiId);
+            apiEntity.getTags().remove(tagId);
+            update(apiId, convert(apiEntity));
         } catch (Exception ex) {
             LOGGER.error("An error occurs while removing tag from API: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while removing tag from API: " + apiId, ex);
@@ -931,6 +926,28 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         return null;
+    }
+
+    private static UpdateApiEntity convert(ApiEntity apiEntity) {
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+
+        updateApiEntity.setProxy(apiEntity.getProxy());
+        updateApiEntity.setVersion(apiEntity.getVersion());
+        updateApiEntity.setName(apiEntity.getName());
+        updateApiEntity.setProperties(apiEntity.getProperties());
+        updateApiEntity.setDescription(apiEntity.getDescription());
+
+        if (apiEntity.getGroup() != null) {
+            updateApiEntity.setGroup(apiEntity.getGroup().getId());
+        }
+        updateApiEntity.setPaths(apiEntity.getPaths());
+        updateApiEntity.setPicture(apiEntity.getPicture());
+        updateApiEntity.setResources(apiEntity.getResources());
+        updateApiEntity.setTags(apiEntity.getTags());
+        updateApiEntity.setServices(apiEntity.getServices());
+        updateApiEntity.setVisibility(apiEntity.getVisibility());
+
+        return updateApiEntity;
     }
 
     private LifecycleState convert(EventType eventType) {
