@@ -284,10 +284,11 @@ public class ApiResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response exportDefinition(@PathParam("api") String api, @QueryParam("exclude") String exclude) {
+    public Response exportDefinition(@PathParam("api") String api,
+                                     @QueryParam("exclude") @DefaultValue("") String exclude) {
         final ApiEntity apiEntity = get(api);
         return Response
-                .ok(apiService.exportAsJson(api, apiEntity.getPermission(), exclude != null ? exclude.split(",") : null))
+                .ok(apiService.exportAsJson(api, apiEntity.getPermission(), exclude.split(",")))
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s",getExportFilename(apiEntity)))
                 .build();
     }
