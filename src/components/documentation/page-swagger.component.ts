@@ -26,10 +26,11 @@ const PageSwaggerComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.$onInit = function() {
-      if (this.page === undefined) {
-        this.url = Constants.baseURL + 'apis/' + $state.params['apiId'] + '/pages/' + $state.params['pageId'] + '/content';
+      let pageId = (this.page === undefined) ? $state.params['pageId'] : this.page.id;
+      if ($state.params['apiId']) {
+        this.url = Constants.baseURL + 'apis/' + $state.params['apiId'] + '/pages/' + pageId + '/content';
       } else {
-        this.url = Constants.baseURL + 'apis/' + $state.params['apiId'] + '/pages/' + this.page.id + '/content';
+        this.url = Constants.baseURL + 'portal/pages/' + pageId + '/content';
       }
     };
 
