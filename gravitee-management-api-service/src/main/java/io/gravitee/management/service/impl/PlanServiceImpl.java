@@ -204,6 +204,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             // Update plan status
             plan.setStatus(Plan.Status.CLOSED);
             plan.setClosedAt(new Date());
+            plan.setUpdatedAt(plan.getClosedAt());
 
             // Close active subscriptions
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
