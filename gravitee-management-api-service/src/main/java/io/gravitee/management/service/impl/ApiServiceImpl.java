@@ -861,7 +861,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         api.setViews(updateApiEntity.getViews());
 
         if (updateApiEntity.getGroup() != null && !updateApiEntity.getGroup().isEmpty()) {
-            api.setGroup(updateApiEntity.getGroup());
+            try {
+                groupService.findById(updateApiEntity.getGroup());
+                api.setGroup(updateApiEntity.getGroup());
+            } catch (GroupNotFoundException gnfe) {
+                throw new InvalidDataException("Group [" + updateApiEntity.getGroup() + "] does not exist");
+            }
         }
 
         try {
