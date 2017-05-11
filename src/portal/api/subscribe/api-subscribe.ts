@@ -19,6 +19,7 @@ function ApiSubscribeController($state,
                                 NotificationService,
                                 ApplicationService,
                                 ApiService,
+                                Constants,
                                 $translate,
                                 $location) {
   'ngInject';
@@ -109,8 +110,8 @@ function ApiSubscribeController($state,
   };
 
   vm.getSampleCall = function () {
-    return 'curl -X GET "' + $location.protocol() + '://' + $location.host() + vm.api.proxy.context_path +
-      '" -H "X-Gravitee-Api-Key: ' + (vm.apiKey ? vm.apiKey : 'given_api_key') + '"';
+    return 'curl -X GET "' + Constants.portal.entrypoint + vm.api.proxy.context_path +
+      '" -H "' + Constants.portal.apikeyHeader + ': ' + (vm.apiKey ? vm.apiKey : 'given_api_key') + '"';
   }
 }
 
