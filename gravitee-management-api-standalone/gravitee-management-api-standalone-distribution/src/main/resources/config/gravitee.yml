@@ -28,9 +28,11 @@
 #    enabled: true
 #    path: ${gravitee.home}/logs/gravitee_accesslog_yyyy_mm_dd.log
 
-# Path to plugins repository
+# Plugins repository
 #plugins:
-#  path: ${gravitee.home}/plugins
+#  path:
+#    - ${gravitee.home}/plugins
+#    - ${gravitee.home}/my-custom-plugins
 # If a plugin is already installed (but with a different version), management node does not start anymore
 #  failOnDuplicate: true
 
