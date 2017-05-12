@@ -33,6 +33,13 @@ class ChartDirective {
       },
       controller: ChartController,
       link: function (scope, element, attributes, controller) {
+
+        Highcharts.setOptions({
+          global: {
+            useUTC: false
+          }
+        });
+
         let chartElement = element[0];
 
         if (scope.type && scope.type.startsWith('area')) {
