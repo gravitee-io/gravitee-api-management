@@ -38,9 +38,9 @@
   },
   "api": {
     "version": "Version",
-    "contextPath": "Chemin",
+    "endpoint": "Endpoint",
     "owner": "Propriétaire",
-    "lastDeployment": "Dernière mise à jour",
+    "publishedAt": "Publié",
     "subscription": {
       "title": "Sélectionner une application pour souscrire",
       "subtitle": "Vous êtes sur le point de souscrire au plan {{planName}} {{planInformation}}",

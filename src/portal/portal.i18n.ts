@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as moment from 'moment';
+
 function portalI18nConfig($translateProvider, $windowProvider) {
   'ngInject';
 
@@ -26,6 +28,10 @@ function portalI18nConfig($translateProvider, $windowProvider) {
 
   $translateProvider.preferredLanguage(lang.substring(0, 2));
   $translateProvider.useSanitizeValueStrategy('escape');
+
+  const locale = (window.navigator as any).userLanguage || window.navigator.language;
+  moment.locale(locale);
+
 }
 
 export default portalI18nConfig;

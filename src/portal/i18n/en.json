@@ -38,9 +38,9 @@
   },
   "api": {
     "version": "Version",
-    "contextPath": "Context path",
+    "endpoint": "Endpoint",
     "owner": "Owner",
-    "lastDeployment": "Last update",
+    "publishedAt": "Published",
     "subscription": {
       "title": "Select an application to subscribe",
       "subtitle": "You are subscribing to plan {{planName}} {{planInformation}}",

@@ -17,7 +17,14 @@ const ApiHeaderComponent: ng.IComponentOptions = {
   bindings: {
     api: '<'
   },
-  template: require('./api-header.html')
+  template: require('./api-header.html'),
+  controller: function(Constants) {
+    'ngInject';
+
+    this.getEndpoint = function () {
+      return Constants.portal.entrypoint + this.api.proxy.context_path;
+    }
+  }
 };
 
 export default ApiHeaderComponent;

@@ -15,36 +15,33 @@
     limitations under the License.
 
 -->
-<section id="header" layout="row" flex class="md-whiteframe-5dp">
-  <div layout="row" layout-align="center" flex>
-    <div layout="column" style="min-width: 540px;">
-      <div class="api-general">
-        <h1 ui-sref="portal.api.plans({apiId: $ctrl.api.id})">{{::$ctrl.api.name}}</h1>
-        <span>{{'api.version' | translate}} {{::$ctrl.api.version}}</span>
-        <p>{{::$ctrl.api.description}}</p>
+<section id="header" class="md-whiteframe-5dp" layout="row" layout-align="center center">
+
+  <div layout="column" flex="65">
+    <div layout="row" layout-align="start center">
+      <img width="60" height="60" ng-src="{{$ctrl.api.picture_url}}" alt="api-logo" />
+      <span class="api-title" ui-sref="portal.api.plans({apiId: $ctrl.api.id})">{{::$ctrl.api.name}}</span>
+    </div>
+
+    <div layout="row" style="margin-top: 18px;">
+      <div layout="row" flex="50">
+        <span class="api-description">{{::$ctrl.api.description}}</span>
       </div>
-      <div class="api-description" layout="row">
-        <p ng-if="$ctrl.api.proxy.context_path">
-          <ng-md-icon icon="http" style="fill: silver"></ng-md-icon>
-          <span>{{::$ctrl.api.proxy.context_path}}<md-tooltip md-direction="bottom">{{'api.contextPath' | translate}}</md-tooltip></span>
-        </p>
-        <p>
-          <ng-md-icon icon="person" style="fill: silver"></ng-md-icon>
-          <span>{{::$ctrl.api.owner.username}}<md-tooltip md-direction="bottom">{{'api.owner' | translate}}</md-tooltip></span>
-        </p>
-        <p ng-if="::$ctrl.api.deployed_at">
-          <ng-md-icon icon="schedule" style="fill: silver"></ng-md-icon>
-          <span>{{::$ctrl.api.deployed_at | humanDateFilter}}<md-tooltip md-direction="bottom">{{'api.lastDeployment' | translate}}</md-tooltip></span>
-        </p>
+
+      <div class="api-description" layout="column" layout-align="start start" flex="30">
+        <span>{{'api.version' | translate}}: {{::$ctrl.api.version}}</span>
+        <span ng-if="$ctrl.api.proxy.context_path">{{'api.endpoint' | translate}}: {{::$ctrl.getEndpoint()}}</span>
+        <span>{{'api.owner' | translate}}: {{::$ctrl.api.owner.username}}</span>
+        <span ng-if="$ctrl.api.deployed_at">{{'api.publishedAt' | translate}}: {{::$ctrl.api.deployed_at | humanDateFilter}}</span>
       </div>
-      <div class="api-actions" layout="row">
+
+      <div layout="column" layout-align="center center" flex="20">
         <md-button class="md-raised" ui-sref="portal.api.pages({apiId: $ctrl.api.id})">{{'api.documentation.title' | translate}}</md-button>
-        <md-button class="md-raised md-primary" style="margin: 6px 0; background-color: #006CAB"
+        <md-button class="md-raised md-primary" style="background-color: #006CAB"
                    ui-sref="portal.api.plans({apiId: $ctrl.api.id, '#': 'plans'})">{{'api.plan.subscribe' | translate}}</md-button>
       </div>
-    </div>
-    <div class="api-logo">
-      <img width="200" height="200" ng-src="{{$ctrl.api.picture_url}}" alt="api-logo" />
+
+      <div flex></div>
     </div>
   </div>
 </section>
