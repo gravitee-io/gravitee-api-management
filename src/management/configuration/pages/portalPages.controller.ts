@@ -25,7 +25,6 @@ class PortalPagesController {
     private PortalPagesService: PortalPagesService,
     private $scope: any,
     private $state: any,
-    private $location: any,
     private dragularService: any) {
     'ngInject';
 
@@ -40,7 +39,7 @@ class PortalPagesController {
   $onInit() {
     let that = this;
     if (this.pages.length && !this.$state.params.pageId) {
-      this.$location.url(`/configuration/admin/pages/${this.pages[0].id}`);
+      this.$state.go("management.configuration.admin.pages.page", {pageId: this.pages[0].id});
     }
     this.list().then( () => {
       let d = document.querySelector('.pages');

@@ -20,12 +20,12 @@ const PagesComponent: ng.IComponentOptions = {
     pages: '<'
   },
   template: require('./pages.html'),
-  controller: function($state, $stateParams, $location) {
+  controller: function($state, $stateParams) {
     'ngInject';
 
     this.$onInit = function() {
       if (this.pages.length && !$stateParams.pageId) {
-        $location.url(`/pages/${this.pages[0].id}`);
+        $state.go('portal.pages.page', {pageId: this.pages[0].id});
       } else {
         _.each(this.pages, function(p) { p.selected = (p.id === $stateParams.pageId); });
       }

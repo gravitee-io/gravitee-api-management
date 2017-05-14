@@ -21,23 +21,16 @@ class DocumentationController {
   private pages: any;
 
 	constructor(
-    private resolvedPages,
     private DocumentationService,
     private $scope,
     private $state,
-    private $location,
     private dragularService) {
     'ngInject';
 
-    this.pages = resolvedPages.data;
     this.DocumentationService = DocumentationService;
 		this.editMode = false;
 
     $scope.listPagesDisplayed = true;
-
-    if (this.pages.length && !$state.params.pageId) {
-      $location.url(`/apis/${$state.params.apiId}/settings/documentation/${this.pages[0].id}`);
-    }
 
     $scope.$on('onGraviteePageDeleted', () => {
       this.$state.go('management.apis.detail.documentation', {}, {reload: true});

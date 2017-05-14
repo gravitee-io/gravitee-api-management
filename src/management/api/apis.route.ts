@@ -317,11 +317,6 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       template: require('./documentation/apiDocumentation.html'),
       controller: 'DocumentationController',
       controllerAs: 'documentationCtrl',
-      resolve: {
-        resolvedPages: function ($stateParams, DocumentationService: DocumentationService) {
-          return DocumentationService.list($stateParams.apiId);
-        }
-      },
       data: {
         menu: {
           label: 'Documentation',
