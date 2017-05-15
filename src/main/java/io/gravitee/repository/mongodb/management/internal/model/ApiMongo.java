@@ -20,6 +20,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -56,6 +57,8 @@ public class ApiMongo extends Auditable {
     private String group;
 
     private Set<String> views;
+
+    private List<ApiMetadataMongo> metadatas;
 
     public String getId() {
         return id;
@@ -145,6 +148,14 @@ public class ApiMongo extends Auditable {
         this.views = views;
     }
 
+    public List<ApiMetadataMongo> getMetadatas() {
+        return metadatas;
+    }
+
+    public void setMetadatas(List<ApiMetadataMongo> metadatas) {
+        this.metadatas = metadatas;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -166,6 +177,7 @@ public class ApiMongo extends Auditable {
         sb.append(", version='").append(version).append('\'');
         sb.append(", state='").append(lifecycleState).append('\'');
         sb.append(", visibility='").append(visibility).append('\'');
+        sb.append(", metadatas='").append(metadatas).append('\'');
         sb.append('}');
         return sb.toString();
     }
