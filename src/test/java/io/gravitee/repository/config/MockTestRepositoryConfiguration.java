@@ -27,6 +27,8 @@ import org.springframework.context.annotation.Bean;
 import java.util.*;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.any;
@@ -161,9 +163,9 @@ public class MockTestRepositoryConfiguration {
         when(applicationRepository.findByName("arched")).thenReturn(newSet(searchedApp1, searchedApp2));
         when(applicationRepository.findByName("aRcHEd")).thenReturn(newSet(searchedApp1, searchedApp2));
 
-        when(applicationRepository.findByIds(Arrays.asList("searched-app1", "searched-app2"))).thenReturn(newSet(searchedApp1, searchedApp2));
-        when(applicationRepository.findByGroups(Collections.singletonList("application-group"))).thenReturn(newSet(groupedApplication1, groupedApplication2));
-        when(applicationRepository.findByGroups(Collections.singletonList("application-group"), ApplicationStatus.ARCHIVED)).thenReturn(newSet(groupedApplication2));
+        when(applicationRepository.findByIds(asList("searched-app1", "searched-app2"))).thenReturn(newSet(searchedApp1, searchedApp2));
+        when(applicationRepository.findByGroups(singletonList("application-group"))).thenReturn(newSet(groupedApplication1, groupedApplication2));
+        when(applicationRepository.findByGroups(singletonList("application-group"), ApplicationStatus.ARCHIVED)).thenReturn(newSet(groupedApplication2));
         return applicationRepository;
     }
 
@@ -219,19 +221,19 @@ public class MockTestRepositoryConfiguration {
         when(eventRepository.create(any(Event.class))).thenReturn(event1);
 
         when(pageEvent.getTotalElements()).thenReturn(2L);
-        when(pageEvent.getContent()).thenReturn(Arrays.asList(event6, event5));
+        when(pageEvent.getContent()).thenReturn(asList(event6, event5));
         when(eventRepository.search(
                 new EventCriteria.Builder().from(1451606400000L).to(1470157767000L).types(EventType.START_API).build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(pageEvent);
 
         when(pageEvent2.getTotalElements()).thenReturn(3L);
-        when(pageEvent2.getContent()).thenReturn(Arrays.asList(event6, event5, event4));
+        when(pageEvent2.getContent()).thenReturn(asList(event6, event5, event4));
         when(eventRepository.search(
                 new EventCriteria.Builder().from(1451606400000L).to(1470157767000L).types(EventType.START_API, EventType.STOP_API).build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(pageEvent2);
 
         when(pageEvent3.getTotalElements()).thenReturn(2L);
-        when(pageEvent3.getContent()).thenReturn(Arrays.asList(event2, event1));
+        when(pageEvent3.getContent()).thenReturn(asList(event2, event1));
         when(eventRepository.search(
                 new EventCriteria.Builder()
                         .from(1451606400000L).to(1470157767000L)
@@ -246,7 +248,7 @@ public class MockTestRepositoryConfiguration {
                 new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(pageEvent4);
 
         when(pageEvent5.getTotalElements()).thenReturn(1L);
-        when(pageEvent5.getContent()).thenReturn(Collections.singletonList(event4));
+        when(pageEvent5.getContent()).thenReturn(singletonList(event4));
         when(eventRepository.search(
                 new EventCriteria.Builder()
                         .from(1451606400000L).to(1470157767000L)
@@ -256,7 +258,7 @@ public class MockTestRepositoryConfiguration {
                 new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(pageEvent5);
 
         when(pageEvent6.getTotalElements()).thenReturn(2L);
-        when(pageEvent6.getContent()).thenReturn(Arrays.asList(event2, event1));
+        when(pageEvent6.getContent()).thenReturn(asList(event2, event1));
         when(eventRepository.search(
                 new EventCriteria.Builder()
                 .from(1451606400000L).to(1470157767000L)
@@ -265,24 +267,24 @@ public class MockTestRepositoryConfiguration {
                 null)).thenReturn(pageEvent6);
 
         when(pageEvent7.getTotalElements()).thenReturn(3L);
-        when(pageEvent7.getContent()).thenReturn(Arrays.asList(event4, event2, event1));
+        when(pageEvent7.getContent()).thenReturn(asList(event4, event2, event1));
         when(eventRepository.search(
                 new EventCriteria.Builder()
                         .from(1451606400000L).to(1470157767000L)
-                        .property(Event.EventProperties.API_ID.getValue(), Arrays.asList("api-1", "api-3"))
+                        .property(Event.EventProperties.API_ID.getValue(), asList("api-1", "api-3"))
                         .build(),
                 null)).thenReturn(pageEvent7);
 
         when(eventRepository.search(
                 new EventCriteria.Builder()
                         .from(1451606400000L).to(1470157767000L)
-                        .property(Event.EventProperties.API_ID.getValue(), Arrays.asList("api-1", "api-3"))
-                        .build())).thenReturn(Arrays.asList(event4, event2, event1));
+                        .property(Event.EventProperties.API_ID.getValue(), asList("api-1", "api-3"))
+                        .build())).thenReturn(asList(event4, event2, event1));
 
         when(eventRepository.search(
                 new EventCriteria.Builder()
-                        .property(Event.EventProperties.API_ID.getValue(), Arrays.asList("api-1", "api-3"))
-                        .build())).thenReturn(Arrays.asList(event4, event2, event1));
+                        .property(Event.EventProperties.API_ID.getValue(), asList("api-1", "api-3"))
+                        .build())).thenReturn(asList(event4, event2, event1));
 
         when(eventRepository.search(
                 new EventCriteria.Builder().types(EventType.GATEWAY_STARTED).build(),
@@ -304,7 +306,7 @@ public class MockTestRepositoryConfiguration {
         when(userRepository.create(any(User.class))).thenReturn(user);
         when(userRepository.findByUsername("createuser1")).thenReturn(of(user));
         when(userRepository.findByUsername("user0")).thenReturn(of(user));
-        when(userRepository.findByUsernames(Arrays.asList("user0", "user4"))).thenReturn(new HashSet<>(Arrays.asList(user,user4)));
+        when(userRepository.findByUsernames(asList("user0", "user4"))).thenReturn(new HashSet<>(asList(user,user4)));
         when(user.getUsername()).thenReturn("createuser1");
         when(user.getEmail()).thenReturn("createuser1@gravitee.io");
 
@@ -394,7 +396,7 @@ public class MockTestRepositoryConfiguration {
         group_application_1.setId("group-application-1");
         group_application_1.setName("group-application-1");
         group_application_1.setType(Group.Type.APPLICATION);
-        group_application_1.setAdministrators(Arrays.asList("user1", "user2"));
+        group_application_1.setAdministrators(asList("user1", "user2"));
         final Group group_api_to_delete = new Group();
         group_api_to_delete.setId("group-api-to-delete");
         group_api_to_delete.setName("group-api-to-delete");
@@ -456,7 +458,7 @@ public class MockTestRepositoryConfiguration {
         when(planRepository.findById("stores")).thenReturn(Optional.empty());
 
         when(planRepository.findByApi("api1")).thenReturn(
-                new HashSet<>(Arrays.asList(plan, plan2)));
+                new HashSet<>(asList(plan, plan2)));
 
         when(planRepository.findById("unknown")).thenReturn(empty());
         when(planRepository.update(null)).thenThrow(Exception.class);
@@ -492,10 +494,10 @@ public class MockTestRepositoryConfiguration {
                 .thenReturn(Collections.singleton(m1));
         when(repo.findByUserAndReferenceTypeAndMembershipType("user1", MembershipReferenceType.API, "OWNER"))
                 .thenReturn(Collections.singleton(m1));
-        when(repo.findByReferencesAndMembershipType(MembershipReferenceType.API, Arrays.asList("api2", "api3"), null))
-                .thenReturn(new HashSet<>(Arrays.asList(m2, m3)));
-        when(repo.findByReferencesAndMembershipType(MembershipReferenceType.API, Arrays.asList("api2", "api3"), "OWNER"))
-                .thenReturn(new HashSet<>(Collections.singletonList(m2)));
+        when(repo.findByReferencesAndMembershipType(MembershipReferenceType.API, asList("api2", "api3"), null))
+                .thenReturn(new HashSet<>(asList(m2, m3)));
+        when(repo.findByReferencesAndMembershipType(MembershipReferenceType.API, asList("api2", "api3"), "OWNER"))
+                .thenReturn(new HashSet<>(singletonList(m2)));
         when(repo.update(any())).thenReturn(m4);
 
         return repo;
@@ -631,5 +633,45 @@ public class MockTestRepositoryConfiguration {
         when(tenantRepository.findById("asia")).thenReturn(of(tenant2), of(tenant2Updated));
 
         return tenantRepository;
+    }
+
+    @Bean
+    public MetadataRepository metadataRepository() throws Exception {
+        final MetadataRepository metadataRepository = mock(MetadataRepository.class);
+
+        final Metadata booleanMetadata = mock(Metadata.class);
+        when(booleanMetadata.getName()).thenReturn("Boolean");
+
+        final Metadata stringMetadata = mock(Metadata.class);
+        when(stringMetadata.getName()).thenReturn("Metadata name");
+        when(stringMetadata.getFormat()).thenReturn(MetadataFormat.STRING);
+        when(stringMetadata.getValue()).thenReturn("String");
+        when(stringMetadata.getKey()).thenReturn("key");
+        when(stringMetadata.getReferenceId()).thenReturn("apiId");
+        when(stringMetadata.getReferenceType()).thenReturn(MetadataReferenceType.API);
+
+        final Metadata metadata2Updated = mock(Metadata.class);
+        when(metadata2Updated.getName()).thenReturn("New metadata");
+        when(metadata2Updated.getValue()).thenReturn("New value");
+        when(metadata2Updated.getFormat()).thenReturn(MetadataFormat.URL);
+        when(metadata2Updated.getReferenceType()).thenReturn(MetadataReferenceType.APPLICATION);
+
+        final List<Metadata> metadataList = asList(booleanMetadata, stringMetadata, mock(Metadata.class));
+        final List<Metadata> metadataListAfterAdd = asList(booleanMetadata, stringMetadata, mock(Metadata.class), mock(Metadata.class));
+        final List<Metadata> metadataListAfterDelete = asList(booleanMetadata, stringMetadata);
+
+
+        when(metadataRepository.findByReferenceType(MetadataReferenceType.DEFAULT)).thenReturn(metadataList, metadataListAfterAdd, metadataList, metadataList);
+        when(metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId")).thenReturn(metadataList, metadataListAfterDelete);
+        when(metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "apiId")).thenReturn(singletonList(stringMetadata));
+        when(metadataRepository.findByReferenceType(MetadataReferenceType.APPLICATION)).thenReturn(singletonList(metadata2Updated));
+        when(metadataRepository.findByKeyAndReferenceType("string", MetadataReferenceType.API)).thenReturn(singletonList(stringMetadata));
+
+        when(metadataRepository.create(any(Metadata.class))).thenReturn(booleanMetadata);
+
+        when(metadataRepository.findById("new-metadata", "_", MetadataReferenceType.DEFAULT)).thenReturn(of(stringMetadata));
+        when(metadataRepository.findById("boolean", "_", MetadataReferenceType.DEFAULT)).thenReturn(of(booleanMetadata), of(metadata2Updated));
+
+        return metadataRepository;
     }
 }
