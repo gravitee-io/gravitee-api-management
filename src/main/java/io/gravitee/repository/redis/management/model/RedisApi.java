@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.redis.management.model;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -38,6 +39,7 @@ public class RedisApi {
     private long updatedAt;
     private String picture;
     private Set<String> views;
+    private List<RedisApiMetadata> metadatas;
 
     public String getDefinition() {
         return definition;
@@ -141,6 +143,14 @@ public class RedisApi {
 
     public void setViews(Set<String> views) {
         this.views = views;
+    }
+
+    public List<RedisApiMetadata> getMetadatas() {
+        return metadatas;
+    }
+
+    public void setMetadatas(List<RedisApiMetadata> metadatas) {
+        this.metadatas = metadatas;
     }
 
     @Override
