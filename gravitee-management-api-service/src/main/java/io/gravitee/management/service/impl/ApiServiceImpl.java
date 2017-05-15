@@ -91,6 +91,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     @Value("${configuration.default-icon:${gravitee.home}/config/default-icon.png}")
     private String defaultIcon;
 
+    @Autowired
+    private ApiMetadataService apiMetadataService;
+
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
         UpdateApiEntity apiEntity = new UpdateApiEntity();
@@ -717,6 +720,44 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 removeTag(api.getId(), tagId);
             }
         });
+    }
+
+    @Override
+    public ApiModelEntity findByIdForTemplates(String apiId) {
+        final ApiEntity apiEntity = findById(apiId);
+
+        final ApiModelEntity apiModelEntity = new ApiModelEntity();
+
+        apiModelEntity.setId(apiEntity.getId());
+        apiModelEntity.setName(apiEntity.getName());
+        apiModelEntity.setDescription(apiEntity.getDescription());
+        apiModelEntity.setCreatedAt(apiEntity.getCreatedAt());
+        apiModelEntity.setDeployedAt(apiEntity.getDeployedAt());
+        apiModelEntity.setUpdatedAt(apiEntity.getUpdatedAt());
+        apiModelEntity.setGroup(apiEntity.getGroup());
+        apiModelEntity.setVisibility(apiEntity.getVisibility());
+        apiModelEntity.setViews(apiEntity.getViews());
+        apiModelEntity.setVersion(apiEntity.getVersion());
+        apiModelEntity.setState(apiEntity.getState());
+        apiModelEntity.setTags(apiEntity.getTags());
+        apiModelEntity.setServices(apiEntity.getServices());
+        apiModelEntity.setPaths(apiEntity.getPaths());
+        apiModelEntity.setPermission(apiEntity.getPermission());
+        apiModelEntity.setPicture(apiEntity.getPicture());
+        apiModelEntity.setPictureUrl(apiEntity.getPictureUrl());
+        apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
+        apiModelEntity.setProperties(apiEntity.getProperties());
+        apiModelEntity.setProxy(apiEntity.getProxy());
+
+        final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(apiId);
+
+        if (metadataList != null) {
+            final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
+            metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(),
+                    metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
+            apiModelEntity.setMetadata(mapMetadata);
+        }
+        return apiModelEntity;
     }
 
     private void removeTag(String apiId, String tagId) throws TechnicalManagementException {

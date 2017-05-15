@@ -52,4 +52,9 @@ public class ConfigurationResource {
     public TenantsResource getTenantsResource() {
         return resourceContext.getResource(TenantsResource.class);
     }
+
+    @Path("metadata")
+    public MetadataResource getMetadataResource() {
+        return resourceContext.getResource(MetadataResource.class);
+    }
 }

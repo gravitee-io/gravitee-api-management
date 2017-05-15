@@ -186,7 +186,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		try {
 			Template template = new Template(pageEntity.getId(), pageEntity.getContent(), freemarkerConfiguration);
 
-			ApiEntity apiEntity = apiService.findById(api);
+			ApiModelEntity apiEntity = apiService.findByIdForTemplates(api);
 			Map<String, Object> model = new HashMap<>();
 			model.put("api", apiEntity);
 

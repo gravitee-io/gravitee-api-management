@@ -64,8 +64,9 @@ public class ApiPagesResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     public PageEntity getPage(
                 @PathParam("api") String api,
-                @PathParam("page") String page) {
-        PageEntity pageEntity = pageService.findById(page);
+                @PathParam("page") String page,
+                @QueryParam("portal") boolean portal) {
+        PageEntity pageEntity = pageService.findById(page, portal);
         final ApiEntity apiEntity = apiService.findById(api);
         if (isDisplayable(apiEntity, pageEntity.isPublished())) {
             return pageEntity;
@@ -84,8 +85,9 @@ public class ApiPagesResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response getPageContent(
             @PathParam("api") String api,
-            @PathParam("page") String page) {
-        PageEntity pageEntity = pageService.findById(page, true);
+            @PathParam("page") String page,
+            @QueryParam("portal") boolean portal) {
+        PageEntity pageEntity = pageService.findById(page, portal);
         final ApiEntity apiEntity = apiService.findById(api);
         if (isDisplayable(apiEntity, pageEntity.isPublished())) {
             return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();

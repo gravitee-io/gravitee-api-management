@@ -161,7 +161,7 @@ public class PageEntity {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("Page{");
-		sb.append("id='").append(name).append('\'');
+		sb.append("id='").append(id).append('\'');
 		sb.append(", name='").append(name).append('\'');
 		sb.append(", type='").append(type).append('\'');
 		sb.append(", order='").append(order).append('\'');

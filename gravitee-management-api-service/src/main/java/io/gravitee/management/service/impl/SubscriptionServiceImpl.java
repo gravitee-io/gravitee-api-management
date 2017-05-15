@@ -208,7 +208,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             subscription = subscriptionRepository.create(subscription);
 
-            final ApiEntity api = apiService.findById(planEntity.getApis().iterator().next());
+            final ApiModelEntity api = apiService.findByIdForTemplates(planEntity.getApis().iterator().next());
             final PrimaryOwnerEntity apiOwner = api.getPrimaryOwner();
             final PrimaryOwnerEntity appOwner = applicationEntity.getPrimaryOwner();
 
@@ -327,7 +327,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             final ApplicationEntity application = applicationService.findById(subscription.getApplication());
             final PlanEntity plan = planService.findById(subscription.getPlan());
-            final ApiEntity api = apiService.findById(plan.getApis().iterator().next());
+            final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
 
             if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {

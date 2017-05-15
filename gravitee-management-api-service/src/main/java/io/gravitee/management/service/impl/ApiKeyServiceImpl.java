@@ -164,7 +164,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
                 final ApplicationEntity application = applicationService.findById(key.getApplication());
                 final PlanEntity plan = planService.findById(key.getPlan());
-                final ApiEntity api = apiService.findById(plan.getApis().iterator().next());
+                final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
 
                 if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
@@ -273,7 +273,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             final ApplicationEntity application = applicationService.findById(key.getApplication());
             final PlanEntity plan = planService.findById(key.getPlan());
-            final ApiEntity api = apiService.findById(plan.getApis().iterator().next());
+            final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
 
             if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {

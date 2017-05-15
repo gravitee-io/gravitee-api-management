@@ -87,6 +87,9 @@ public class SubscriptionServiceTest {
     private ApiEntity apiEntity;
 
     @Mock
+    private ApiModelEntity apiModelEntity;
+
+    @Mock
     private ApiKeyEntity apiKeyEntity;
 
     @Test
@@ -202,7 +205,7 @@ public class SubscriptionServiceTest {
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+        when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
 
         SecurityContextHolder.setContext(new SecurityContext() {
@@ -327,7 +330,7 @@ public class SubscriptionServiceTest {
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+        when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
         when(subscriptionRepository.create(any())).thenAnswer(new Answer<Subscription>() {
             @Override

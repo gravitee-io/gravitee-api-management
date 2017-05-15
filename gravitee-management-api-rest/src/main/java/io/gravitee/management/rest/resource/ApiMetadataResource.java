@@ -1,0 +1,122 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.management.rest.resource;
+
+import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.*;
+import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.service.ApiMetadataService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.util.List;
+
+/**
+ * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+@Api(tags = {"API", "Metadata"})
+public class ApiMetadataResource extends AbstractResource {
+
+    @Inject
+    private ApiMetadataService metadataService;
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiPermissionsRequired(ApiPermission.MANAGE_API)
+    @ApiOperation(value = "List metadata for the given API",
+            notes = "User must have the MANAGE_API permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of metadata", response = ApiMetadataEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public List<ApiMetadataEntity> listApiMetadatas(
+            @PathParam("api") String api) {
+        return metadataService.findAllByApi(api);
+    }
+
+    @GET
+    @Path("{metadata}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiPermissionsRequired(ApiPermission.MANAGE_API)
+    @ApiOperation(value = "A metadata for the given API and metadata id",
+            notes = "User must have the MANAGE_API permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "A metadata", response = ApiMetadataEntity.class),
+            @ApiResponse(code = 404, message = "Metadata not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public ApiMetadataEntity getApiMetadata(@PathParam("api") String api, @PathParam("metadata") String metadata) {
+        return metadataService.findByIdAndApi(metadata, api);
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiPermissionsRequired(ApiPermission.MANAGE_API)
+    @ApiOperation(value = "Create an API metadata",
+            notes = "User must have the MANAGE_API permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "A new API metadata", response = ApiMetadataEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response create(@PathParam("api") String api, @Valid @NotNull final NewApiMetadataEntity metadata) {
+        // prevent creation of a metadata on an another API
+        metadata.setApiId(api);
+
+        final ApiMetadataEntity apiMetadataEntity = metadataService.create(metadata);
+        return Response
+                .created(URI.create("/apis/" + api + "/metadata/" + apiMetadataEntity.getKey()))
+                .entity(apiMetadataEntity)
+                .build();
+    }
+
+    @PUT
+    @Path("{metadata}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiPermissionsRequired(ApiPermission.MANAGE_API)
+    @ApiOperation(value = "Update an API metadata",
+            notes = "User must have the MANAGE_API permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "API metadata", response = ApiMetadataEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response update(@PathParam("api") String api, @Valid @NotNull final UpdateApiMetadataEntity metadata) {
+        // prevent update of a metadata on an another API
+        metadata.setApiId(api);
+
+        return Response.ok(metadataService.update(metadata)).build();
+    }
+
+    @DELETE
+    @Path("{metadata}")
+    @ApiPermissionsRequired(ApiPermission.MANAGE_API)
+    @ApiOperation(value = "Delete a metadata",
+            notes = "User must have the MANAGE_API permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Metadata successfully deleted"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response delete(@PathParam("api") String api, @PathParam("metadata") String metadata) {
+        metadataService.delete(metadata, api);
+        return Response.noContent().build();
+    }
+}

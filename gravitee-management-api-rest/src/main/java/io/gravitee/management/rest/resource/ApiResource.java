@@ -34,7 +34,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayOutputStream;
-import java.util.List;
 
 import static java.lang.String.format;
 
@@ -336,6 +335,11 @@ public class ApiResource extends AbstractResource {
     @Path("subscriptions")
     public ApiSubscriptionsResource getApiSubscriptionsResource() {
         return resourceContext.getResource(ApiSubscriptionsResource.class);
+    }
+
+    @Path("metadata")
+    public ApiMetadataResource getApiMetadataResource() {
+        return resourceContext.getResource(ApiMetadataResource.class);
     }
 
     private void setPermission(ApiEntity api) {
