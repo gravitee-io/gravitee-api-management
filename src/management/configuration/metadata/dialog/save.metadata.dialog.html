@@ -1,0 +1,72 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-dialog aria-label="{{$ctrl.metadata.key?'Update':'New'}} metadata">
+  <form name="formMetadata" ng-submit="$ctrl.save()" novalidate>
+    <md-dialog-content layout-padding>
+      <h4>{{$ctrl.metadata.key?'Update':'New'}} metadata</h4>
+      <div layout="column">
+        <div layout="row">
+          <md-input-container ng-if="$ctrl.metadata.key">
+            <label>Key</label>
+            <input ng-model="$ctrl.metadata.key">
+          </md-input-container>
+          <md-input-container flex>
+            <label>Name</label>
+            <input ng-model="$ctrl.metadata.name" required autofocus>
+          </md-input-container>
+        </div>
+        <md-input-container>
+          <label>Format</label>
+          <md-select ng-model="$ctrl.metadata.format">
+            <md-option ng-repeat="metadataFormat in $ctrl.metadataFormats" ng-value="metadataFormat">
+              {{metadataFormat}}
+            </md-option>
+          </md-select>
+        </md-input-container>
+        <div layout="row">
+          <md-input-container ng-if="$ctrl.metadata.format === 'boolean'" flex>
+            <md-checkbox ng-model="$ctrl.metadata.value"
+                         gv-metadata-format="$ctrl.metadata.format" ng-pattern="pattern"
+                         ng-true-value="'true'" ng-false-value="'false'" gv-metadata-validator>
+              Default value
+            </md-checkbox>
+          </md-input-container>
+          <md-input-container ng-if="$ctrl.metadata.format === 'date'" flex>
+            <label>Default value</label>
+            <md-datepicker ng-model="$ctrl.metadata.value" gv-metadata-format="$ctrl.metadata.format"
+                           ng-pattern="pattern" gv-metadata-validator></md-datepicker>
+
+          </md-input-container>
+          <md-input-container ng-if="$ctrl.metadata.format !== 'boolean' && $ctrl.metadata.format !== 'date'" flex>
+            <label>Default value</label>
+            <input type="text" ng-model="$ctrl.metadata.value"
+                   gv-metadata-format="$ctrl.metadata.format" ng-pattern="pattern" gv-metadata-validator>
+          </md-input-container>
+        </div>
+      </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+      <md-button ng-click="$ctrl.cancel()" class="md-primary">
+        Cancel
+      </md-button>
+      <md-button  type="submit" class="md-raised md-primary" ng-disabled="formMetadata.$invalid">
+        {{$ctrl.metadata.key?'Update':'Create'}} metadata
+      </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>

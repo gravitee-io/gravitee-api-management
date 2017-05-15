@@ -62,3 +62,35 @@
 .main-content-api-gallery {
   background: #F5F5F6;
 }
+
+.api-metadata {
+  color: silver;
+  text-align: center;
+
+  h4 {
+    margin-top: 0;
+  }
+
+  p {
+    margin-bottom: 5px;
+  }
+}
+
+.api-metadata-dialog {
+  background-color: #FFF;
+  max-height: 80%;
+  overflow-y: scroll;
+
+  table {
+    margin: 50px;
+    width: inherit;
+  }
+
+  .md-toolbar-tools {
+    background-color: #34A0D4;
+  }
+}
+
+.md-panel-outer-wrapper {
+  position: fixed;
+}

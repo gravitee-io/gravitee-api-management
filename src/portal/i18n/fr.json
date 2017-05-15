@@ -7,7 +7,8 @@
     "SECONDS": "secondes",
     "MINUTES": "minutes",
     "HOURS": "heurs",
-    "DAYS": "jours"
+    "DAYS": "jours",
+    "close": "Fermer"
   },
   "home": {
     "title": "Gravitee.io",
@@ -70,6 +71,11 @@
         "title": "Aucune documentation sur cette API",
         "message": "Revenez vite, l'API sera complétée rapidement"
       }
+    },
+    "metadata": {
+      "title": "Méta-données",
+      "name": "Nom",
+      "value": "Valeur"
     }
   },
   "applications": {

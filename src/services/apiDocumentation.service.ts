@@ -25,9 +25,9 @@ class DocumentationService {
     return this.$http.get(this.documentationURL(apiId));
   }
 
-  get(apiId: string, pageId?: string) {
+  get(apiId: string, pageId?: string, portal?: boolean) {
     if (pageId) {
-      return this.$http.get(this.documentationURL(apiId) + pageId);
+      return this.$http.get(this.documentationURL(apiId) + pageId + (portal !== undefined?'?portal=' + portal:''));
     }
   }
 
@@ -39,7 +39,7 @@ class DocumentationService {
       .then(function(response) {
         if (response.data.length > 0) {
           that
-            .get(apiId, response.data[0].id)
+            .get(apiId, response.data[0].id, true)
             .then(response => deferred.resolve(response));
         } else {
           deferred.resolve({});

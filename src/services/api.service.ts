@@ -63,8 +63,7 @@ class ApiService {
     return this.$http.put(this.apisURL + api.id,
       {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private,
         'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
-        'picture': api.picture, 'resources': api.resources, 'views': api.views,
-        'group': api.group ? api.group.id : ''
+        'picture': api.picture, 'resources': api.resources, 'views': api.views, 'group': api.group ? api.group.id : ''
       }
     );
   }
@@ -267,6 +266,26 @@ class ApiService {
 
   updateApiKey(apiId, apiKey) {
     return this.$http.put(this.apisURL + apiId + '/keys/' + apiKey.key, apiKey);
+  }
+
+  listApiMetadata(apiId) {
+    return this.$http.get(this.apisURL + apiId + '/metadata');
+  }
+
+  getApiMetadata(apiId, metadataId) {
+    return this.$http.get(this.apisURL + apiId + '/metadata/' + metadataId);
+  }
+
+  createMetadata(apiId, metadata) {
+    return this.$http.post(this.apisURL + apiId + '/metadata', metadata);
+  }
+
+  updateMetadata(apiId, metadata) {
+    return this.$http.put(this.apisURL + apiId + '/metadata/' + metadata.key, metadata);
+  }
+
+  deleteMetadata(apiId, metadataId) {
+    return this.$http.delete(this.apisURL + apiId + '/metadata/' + metadataId);
   }
 }
 

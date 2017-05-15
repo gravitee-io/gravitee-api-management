@@ -18,8 +18,9 @@ import ApisController from './apis.controller';
 import DocumentationService from '../../services/apiDocumentation.service';
 import TenantService from '../../services/tenant.service';
 import ResourceService from '../../services/resource.service';
-import TagService from "../../services/tag.service";
-import ApiService from "../../services/api.service";
+import TagService from '../../services/tag.service';
+import ApiService from '../../services/api.service';
+import MetadataService from '../../services/metadata.service';
 
 export default apisRouterConfig;
 
@@ -252,6 +253,26 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
+    .state('management.apis.detail.metadata', {
+      url: '/metadata',
+      template: require('./metadata/apiMetadata.html'),
+      controller: 'ApiMetadataController',
+      controllerAs: 'apiMetadataCtrl',
+      resolve: {
+        metadataFormats: (MetadataService: MetadataService) => MetadataService.listFormats(),
+        metadata: function ($stateParams, ApiService) {
+          return ApiService.listApiMetadata($stateParams.apiId).then(function (response) {
+            return response.data;
+          });
+        }
+      },
+      data: {
+        menu: {
+          label: 'Metadata',
+          icon: 'description'
+        }
+      }
+    })
     .state('management.apis.detail.analytics', {
       url: '/analytics?from&to&q',
       template: require('./analytics/analytics.html'),
@@ -382,7 +403,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       controllerAs: 'apiEventsCtrl',
       resolve: {
         resolvedEvents: function ($stateParams, ApiService) {
-          var eventTypes = 'START_API,STOP_API';
+          const eventTypes = 'START_API,STOP_API';
           return ApiService.getApiEvents($stateParams.apiId, eventTypes);
         }
       },

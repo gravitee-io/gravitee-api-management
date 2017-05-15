@@ -88,7 +88,9 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/apis/:apiId',
       resolve: {
         api: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
-          ApiService.get($stateParams['apiId']).then(response => response.data)
+          ApiService.get($stateParams['apiId']).then(response => response.data),
+        metadata: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.listApiMetadata($stateParams['apiId']).then(response => response.data)
       },
       component: 'api'
     })
@@ -124,7 +126,7 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       component: 'apiPage',
       resolve: {
         page: ($stateParams: ng.ui.IStateParamsService, DocumentationService: DocumentationService) =>
-          DocumentationService.get($stateParams['apiId'], $stateParams['pageId']).then(response => response.data)
+          DocumentationService.get($stateParams['apiId'], $stateParams['pageId'], true).then(response => response.data)
       },
       params: {
         pageId: {

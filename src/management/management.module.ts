@@ -242,7 +242,12 @@ import DialogClosePlanController from '../management/api/plans/closePlanDialog.c
 import DialogPublishPlanController from '../management/api/plans/publishPlanDialog.controller';
 import TagsController from '../management/configuration/tags/tags.controller';
 import TagService from '../services/tag.service';
+import MetadataController from '../management/configuration/metadata/metadata.controller';
+import MetadataService from '../services/metadata.service';
 import DeleteTagDialogController from '../management/configuration/tags/delete.tag.dialog.controller';
+import DeleteMetadataDialogController from '../management/configuration/metadata/dialog/delete.metadata.dialog.controller';
+import NewMetadataDialogController from '../management/configuration/metadata/dialog/new.metadata.dialog.controller';
+import UpdateMetadataDialogController from '../management/configuration/metadata/dialog/update.metadata.dialog.controller';
 import ChartDirective from '../components/chart/chart.directive';
 import UserAvatarDirective from '../components/avatar/user-avatar.directive';
 import DialogConfirmController from '../components/dialog/confirmDialog.controller';
@@ -254,7 +259,14 @@ import DeleteTenantDialogController from '../management/configuration/tenants/de
 import ViewsComponent from '../management/configuration/views/views.component';
 import TenantsComponent from '../management/configuration/tenants/tenants.component';
 import TagsComponent from '../management/configuration/tags/tags.component';
+import MetadataComponent from '../management/configuration/metadata/metadata.component';
+import MetadataValidatorDirective from '../components/metadata/metadata.validator.directive';
 
+import ApiMetadataController from '../management/api/metadata/apiMetadata.controller';
+import ApiMetadataComponent from '../management/api/metadata/apiMetadata.component';
+import UpdateApiMetadataDialogController from './api/metadata/dialog/update.api.metadata.dialog.controller';
+import DeleteApiMetadataDialogController from './api/metadata/dialog/delete.api.metadata.dialog.controller';
+import NewApiMetadataDialogController from './api/metadata/dialog/new.api.metadata.dialog.controller';
 
 import PortalPagesComponent from '../management/configuration/pages/portalPages.component';
 import PortalPagesController from '../management/configuration/pages/portalPages.controller';
@@ -368,7 +380,15 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .controller('DialogClosePlanController', DialogClosePlanController)
   .controller('DialogPublishPlanController', DialogPublishPlanController)
   .controller('TagsController', TagsController)
+  .controller('MetadataController', MetadataController)
+  .controller('ApiMetadataController', ApiMetadataController)
   .controller('DeleteTagDialogController', DeleteTagDialogController)
+  .controller('DeleteMetadataDialogController', DeleteMetadataDialogController)
+  .controller('NewMetadataDialogController', NewMetadataDialogController)
+  .controller('UpdateMetadataDialogController', UpdateMetadataDialogController)
+  .controller('NewApiMetadataDialogController', NewApiMetadataDialogController)
+  .controller('UpdateApiMetadataDialogController', UpdateApiMetadataDialogController)
+  .controller('DeleteApiMetadataDialogController', DeleteApiMetadataDialogController)
   .controller('DialogConfirmController', DialogConfirmController)
   .controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController)
   .controller('PortalPagesController', PortalPagesController)
@@ -389,6 +409,7 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .service('GroupService', GroupService)
   .service('SubscriptionService', SubscriptionService)
   .service('TagService', TagService)
+  .service('MetadataService', MetadataService)
   .service('TenantService', TenantService)
   .service('PortalPagesService', PortalPagesService)
   .service('StringService', StringService)
@@ -411,6 +432,8 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .component('tenants', TenantsComponent)
   .component('tags', TagsComponent)
   .component('portalPages', PortalPagesComponent)
+  .component('metadata', MetadataComponent)
+  .directive('gvMetadataValidator', () => MetadataValidatorDirective)
 
   .component('instances', InstancesComponent)
   .component('instance', InstanceComponent)
@@ -427,6 +450,7 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .component('apiCreationStep4', ApiCreationStep4Component)
   .component('apiCreationStep5', ApiCreationStep5Component)
   .component('apiPlan', ApiPlanComponent)
+  .component('apiMetadata', ApiMetadataComponent)
   .component('gvDashboard', DashboardComponent)
   .component('gvDashboardFilter', DashboardFilterComponent)
   .controller('DashboardFilterController', DashboardFilterController)
