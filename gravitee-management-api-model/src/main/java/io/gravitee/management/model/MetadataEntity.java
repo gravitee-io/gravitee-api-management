@@ -35,8 +35,6 @@ public class MetadataEntity {
 
     private String value;
 
-    private boolean hidden;
-
     public String getKey() {
         return key;
     }
@@ -69,14 +67,6 @@ public class MetadataEntity {
         this.value = value;
     }
 
-    public boolean isHidden() {
-        return hidden;
-    }
-
-    public void setHidden(boolean hidden) {
-        this.hidden = hidden;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -97,7 +87,6 @@ public class MetadataEntity {
                 ", name='" + name + '\'' +
                 ", format=" + format +
                 ", value='" + value + '\'' +
-                ", hidden=" + hidden +
                 '}';
     }
 }

@@ -39,8 +39,6 @@ public class ApiMetadataEntity {
 
     private String defaultValue;
 
-    private boolean hidden;
-
     private String apiId;
 
     public String getKey() {
@@ -83,14 +81,6 @@ public class ApiMetadataEntity {
         this.defaultValue = defaultValue;
     }
 
-    public boolean isHidden() {
-        return hidden;
-    }
-
-    public void setHidden(boolean hidden) {
-        this.hidden = hidden;
-    }
-
     public String getApiId() {
         return apiId;
     }
@@ -121,7 +111,6 @@ public class ApiMetadataEntity {
                 ", format=" + format +
                 ", value='" + value + '\'' +
                 ", defaultValue='" + defaultValue + '\'' +
-                ", hidden=" + hidden +
                 ", apiId=" + apiId +
                 '}';
     }

@@ -225,7 +225,6 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
         apiMetadataEntity.setValue(metadata.getValue());
         apiMetadataEntity.setKey(metadata.getKey());
         apiMetadataEntity.setName(metadata.getName());
-        apiMetadataEntity.setHidden(metadata.isHidden());
         apiMetadataEntity.setFormat(MetadataFormat.valueOf(metadata.getFormat().name()));
         return apiMetadataEntity;
     }
@@ -234,7 +233,6 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
         final Metadata metadata = new Metadata();
         metadata.setKey(metadataEntity.getKey());
         metadata.setName(metadataEntity.getName());
-        metadata.setHidden(metadataEntity.isHidden());
         metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(metadataEntity.getFormat().name()));
 
         if (MetadataFormat.DATE.equals(metadataEntity.getFormat())) {
@@ -249,7 +247,6 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
         final Metadata metadata = new Metadata();
         metadata.setKey(IdGenerator.generate(metadataEntity.getName()));
         metadata.setName(metadataEntity.getName());
-        metadata.setHidden(metadataEntity.isHidden());
         metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(metadataEntity.getFormat().name()));
 
         if (MetadataFormat.DATE.equals(metadataEntity.getFormat())) {
@@ -268,7 +265,6 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
         final Metadata metadata = new Metadata();
         metadata.setKey(metadataEntity.getKey());
         metadata.setName(metadataEntity.getName());
-        metadata.setHidden(metadataEntity.isHidden());
         metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(metadataEntity.getFormat().name()));
 
         if (MetadataFormat.DATE.equals(metadataEntity.getFormat())) {
