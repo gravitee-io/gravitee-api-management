@@ -266,10 +266,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
             final Set<ApiEntity> apis = new HashSet<>(publicApis.size() + userApis.size() + groupApis.size());
 
-            apis.addAll(convert(publicApis, false));
-            apis.addAll(convert(userApis, false));
+            apis.addAll(convert(publicApis, true));
+            apis.addAll(convert(userApis, true));
 
-            apis.addAll(convert(groupApis, false));
+            apis.addAll(convert(groupApis, true));
 
             return apis;
         } catch (TechnicalException ex) {
