@@ -172,7 +172,6 @@ ds:
 # Sharding tags configuration
 # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
 #tags: products,stocks,!international
-tags: internet
 
 # Multi-tenant configuration
 # Allow only a single-value
