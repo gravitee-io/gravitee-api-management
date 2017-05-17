@@ -20,9 +20,9 @@ import ApiService from '../../../services/api.service';
 class ApiMetadataController {
   private api: any;
 
-  'ngInject';
   constructor(private NotificationService: NotificationService, private $mdDialog: angular.material.IDialogService,
               private resolvedApi, private ApiService: ApiService, private metadataFormats, private metadata) {
+    'ngInject';
     this.api = resolvedApi.data;
   }
 

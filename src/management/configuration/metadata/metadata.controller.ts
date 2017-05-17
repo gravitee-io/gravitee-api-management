@@ -21,11 +21,11 @@ class MetadataController {
   private metadata: any;
   private metadataFormats: [any];
 
-  'ngInject';
   constructor(
     private MetadataService: MetadataService,
     private NotificationService: NotificationService,
     private $mdDialog: angular.material.IDialogService) {
+    'ngInject';
   }
 
   newMetadata() {
