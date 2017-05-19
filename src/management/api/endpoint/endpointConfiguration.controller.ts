@@ -32,7 +32,8 @@ class ApiEndpointController {
     private $state,
     private $stateParams,
     private resolvedApi,
-    private resolvedTenants) {
+    private resolvedTenants,
+    private $timeout) {
     'ngInject';
 
     this.api = resolvedApi.data;
@@ -56,8 +57,6 @@ class ApiEndpointController {
           useCompression : true
         }
       };
-
-      this.api.proxy.endpoints.push(this.endpoint);
     }
 
     // Keep the initial state in case of form reset
@@ -77,6 +76,7 @@ class ApiEndpointController {
   }
 
   update(api) {
+    api.proxy.endpoints.push(this.endpoint);
     this.ApiService.update(api).then(() => {
       this.onApiUpdate();
     });
@@ -94,7 +94,6 @@ class ApiEndpointController {
   }
 
   backToGatewayConfiguration() {
-    this.api.proxy.endpoints = _.cloneDeep(this.initialEndpoints);
     this.$state.go('management.apis.detail.general.gateway');
   }
 }
