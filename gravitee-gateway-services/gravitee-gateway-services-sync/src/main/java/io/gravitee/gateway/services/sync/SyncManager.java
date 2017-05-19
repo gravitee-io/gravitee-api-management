@@ -219,20 +219,19 @@ public class SyncManager {
         return true;
     }
 
-    private Event getLastEvent(String api) {
-        EventCriteria eventCriteria;
+    private Event getLastEvent(final String api) {
+        final EventCriteria.Builder eventCriteriaBuilder;
         if (lastRefreshAt == -1) {
-            eventCriteria = new EventCriteria.Builder()
-                    .property(Event.EventProperties.API_ID.getValue(), api)
-                    .build();
+            eventCriteriaBuilder = new EventCriteria.Builder()
+                    .property(Event.EventProperties.API_ID.getValue(), api);
         } else {
-            eventCriteria = new EventCriteria.Builder()
+            eventCriteriaBuilder = new EventCriteria.Builder()
                     .property(Event.EventProperties.API_ID.getValue(), api)
-                    .from(lastRefreshAt).to(System.currentTimeMillis())
-                    .build();
+                    .from(lastRefreshAt).to(System.currentTimeMillis());
         }
 
-        List<Event> events = eventRepository.search(eventCriteria,
+        List<Event> events = eventRepository.search(eventCriteriaBuilder
+                .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API).build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()).getContent();
         return (!events.isEmpty()) ? events.get(0) : null;
     }
