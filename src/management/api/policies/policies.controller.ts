@@ -79,31 +79,36 @@ class ApiPoliciesController {
 
   generatePathsToCompare() {
     return _.map(_.keys(this.apiPoliciesByPath), (p) => {
-        return this.clearPathParam(p);
-  });
+      return this.clearPathParam(p);
+    });
   }
 
   completeApiPolicies(pathMap) {
     _.forEach(pathMap, (policies) => {
       _.forEach(policies, (policy) => {
 
-      _.forEach(policy, (value, property) => {
-      if (property !== "methods" && property !== "enabled" && property !== "description" && property !== "$$hashKey") {
-      policy.policyId = property;
-      policy.name = this.policiesMap[policy.policyId].name;
-      policy.type = this.policiesMap[policy.policyId].type;
-      policy.version = this.policiesMap[policy.policyId].version;
-      policy.schema = this.policiesMap[policy.policyId].schema;
-    }
-  });
+        _.forEach(policy, (value, property) => {
+          if (property !== "methods" && property !== "enabled" && property !== "description" && property !== "$$hashKey") {
+            policy.policyId = property;
+            let currentPolicy = this.policiesMap[policy.policyId];
+            if (currentPolicy) {
+              policy.name = currentPolicy.name;
+              policy.type = currentPolicy.type;
+              policy.version = currentPolicy.version;
+              policy.schema = currentPolicy.schema;
+            }
+          }
+        });
 
-    if ( !policy.methods ) {
-      policy.methods = _.clone(this.httpMethods);
-    } else {
-      policy.methods = _.map(policy.methods, (method: string) => { return method.toUpperCase(); });
-    }
-  });
-  });
+        if (!policy.methods) {
+          policy.methods = _.clone(this.httpMethods);
+        } else {
+          policy.methods = _.map(policy.methods, (method: string) => {
+            return method.toUpperCase();
+          });
+        }
+      });
+    });
   }
 
   initDragular() {
@@ -190,7 +195,7 @@ class ApiPoliciesController {
     ev.stopPropagation();
     this.selectedApiPolicy = this.apiPoliciesByPath[path][index];
     this.$scope.policyJsonSchema = this.selectedApiPolicy.schema;
-    if (Object.keys(this.$scope.policyJsonSchema).length === 0) {
+    if (!this.$scope.policyJsonSchema || Object.keys(this.$scope.policyJsonSchema).length === 0) {
       this.$scope.policyJsonSchema = {
         "type": "object",
         "id": "empty",
@@ -215,7 +220,11 @@ class ApiPoliciesController {
     if (!selected && ! policy.enabled) {
       classes.push("gravitee-policy-card-disabled");
     }
-    return classes.join();
+
+    if (!policy.schema) {
+      classes.push("gravitee-policy-card-missed");
+    }
+    return classes.join(' ');
   }
 
   getDropzoneClass(path) {

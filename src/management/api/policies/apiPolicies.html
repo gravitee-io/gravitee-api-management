@@ -94,6 +94,10 @@
                          ng-class="apiPoliciesCtrl.getApiPolicyClass(policy)"
                          layout="row" layout-align="space-between start">
                   <md-card-content layout="column" layout-align="start start" layout-fill>
+                    <div ng-if="!policy.schema" layout="column" layout-align="start start">
+                      <span class="md-subhead">Unknown policy</span>
+                      <i>Please check that the policy '{{policy.policyId}}' is installed in plugins</i>
+                    </div>
                     <span class="md-subhead">{{policy.name}}</span>
                     <span class="gravitee-policy-card-description">{{policy.description}}</span>
                     <div ng-class="{'gravitee-policy-card-method': policy.description}" layout="row" layout-align="start center" layout-fill>
@@ -109,7 +113,7 @@
                         Remove policy
                       </md-tooltip>
                     </ng-md-icon>
-                    <ng-md-icon icon="mode_edit" style="fill: #757575" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.editPolicyDescription($index, path, $event)">
+                    <ng-md-icon ng-if="policy.schema" icon="mode_edit" style="fill: #757575" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.editPolicyDescription($index, path, $event)">
                       <md-tooltip md-direction="right">
                         Edit policy description
                       </md-tooltip>
