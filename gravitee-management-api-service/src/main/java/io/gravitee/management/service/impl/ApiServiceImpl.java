@@ -417,7 +417,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
                 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, enabled);
 
-                boolean sync = apiSynchronizationProcessor.processCheckSynchronization(convert(payloadEntity, true), api);
+                final ApiEntity deployedApi = convert(payloadEntity, true);
+                // Remove policy description from sync check
+                removeDescriptionFromPolicies(api);
+                removeDescriptionFromPolicies(deployedApi);
+
+                boolean sync = apiSynchronizationProcessor.processCheckSynchronization(deployedApi, api);
 
                 // 2_ If API definition is synchronized, check if there is any modification for API's plans
                 // but only for published or closed plan
@@ -435,6 +440,17 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         return false;
+    }
+
+    private void removeDescriptionFromPolicies(final ApiEntity api) {
+        if (api.getPaths() != null) {
+            api.getPaths().forEach((s, path) -> {
+                if (path.getRules() != null) {
+                    path.getRules().forEach(rule -> rule.setDescription(""));
+                }
+            });
+        }
+
     }
 
     @Override
