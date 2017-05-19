@@ -15,7 +15,7 @@
  */
 import * as _ from 'lodash';
 
-function DialogAddGroupMemberController($scope, $mdDialog, group, GroupService, UserService, NotificationService) {
+function DialogAddGroupMemberController($scope, $mdDialog, group, GroupService, UserService, NotificationService, $q) {
   'ngInject';
 
   $scope.groupItem = group;
@@ -67,22 +67,25 @@ function DialogAddGroupMemberController($scope, $mdDialog, group, GroupService, 
   };
 
   $scope.addMembers = function () {
-    var members = [];
-    for (var i = 0; i < $scope.usersSelected.length; i++) {
-      var username = $scope.usersSelected[i];
-      var member = {
-        "username" : username,
+    let members = [];
+
+    let promises = [];
+
+    for (let i = 0; i < $scope.usersSelected.length; i++) {
+      let member = {
+        "username" : $scope.usersSelected[i],
         "type" : "user"
       };
-      GroupService.addOrUpdateMember($scope.groupItem.group.id, member).then(() => {
-        NotificationService.show(`Member ${username} has been added to the group`);
-        members.push(member);
-      }).catch(function (error) {
-        NotificationService.show(`Error while adding member ${username}`);
-        $scope.error = error;
-      });
+      members.push(member);
+      promises.push(GroupService.addOrUpdateMember($scope.groupItem.group.id, member));
     }
-    $mdDialog.hide(members);
+
+    $q.all(promises).then(function () {
+      NotificationService.show('Member(s) has been added to the group');
+      $mdDialog.hide(members);
+    }).catch(function (error) {
+      $scope.error = error;
+    });
   };
 }
 
