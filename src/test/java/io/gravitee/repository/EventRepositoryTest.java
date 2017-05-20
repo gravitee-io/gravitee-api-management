@@ -28,8 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class EventRepositoryTest extends AbstractRepositoryTest {
 
@@ -192,5 +191,14 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
         assertTrue(3L == events.size());
         Event event = events.iterator().next();
         assertTrue("event4".equals(event.getId()));
+    }
+
+    @Test
+    public void shouldDelete() throws Exception {
+        assertTrue(eventRepository.findById("event5").isPresent());
+
+        eventRepository.delete("event5");
+
+        assertFalse(eventRepository.findById("event5").isPresent());
     }
 }

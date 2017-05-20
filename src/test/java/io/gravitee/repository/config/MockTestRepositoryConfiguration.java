@@ -231,6 +231,8 @@ public class MockTestRepositoryConfiguration {
 
         when(eventRepository.findById("event1")).thenReturn(of(event1));
 
+        when(eventRepository.findById("event5")).thenReturn(of(event5), empty());
+
         when(eventRepository.create(any(Event.class))).thenReturn(event1);
 
         when(pageEvent.getTotalElements()).thenReturn(2L);
