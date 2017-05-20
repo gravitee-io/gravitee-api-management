@@ -33,11 +33,13 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64)
     var excludes = _.map(_.filter($scope.filteredFields, (fl: any) => { return !fl.checked; }), "id");
     ApiService.export(apiId, excludes)
       .then( (response) => {
-        var link = document.createElement('a');
+        let link = document.createElement('a');
         document.body.appendChild(link);
         link.href = 'data:application/json;charset=utf-8;base64,' + base64.encode(JSON.stringify(response.data, null, 2));
-        var contentDispositionHeader = response.headers('content-disposition') || response.headers('Content-Disposition');
-        link.download = contentDispositionHeader ? contentDispositionHeader.split('=')[1] : apiId;
+        let fileName = response.data.name + ' ' + response.data.version;
+        fileName = fileName.replace(/[\s]/gi, '-');
+        fileName = fileName.replace(/[^\w]/gi, '-');
+        link.download = fileName + '.json';
         link.target = "_self";
         link.click();
         document.body.removeChild(link);
