@@ -129,13 +129,13 @@
 				<version>1.5.3</version>
 				<!-- Include Asciidoctor PDF for pdf generation -->
 				<dependencies>
-					<!-- Comment this section to use the default jruby artifact provided by the plugin -->
+					<!-- Comment this section to use the default jruby artifact provided by externalugin -->
 					<dependency>
 						<groupId>org.jruby</groupId>
 						<artifactId>jruby-complete</artifactId>
 						<version>${jruby.version}</version>
 					</dependency>
-					<!-- Comment this section to use the default AsciidoctorJ artifact provided by the plugin -->
+					<!-- Comment this section to use the default AsciidoctorJ artifact provided by externalugin -->
 					<dependency>
 						<groupId>org.asciidoctor</groupId>
 						<artifactId>asciidoctorj</artifactId>
@@ -273,6 +273,13 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
 			<version>${jackson.version}</version>
+		</dependency>
+
+		<!-- JWT -->
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>nimbus-jose-jwt</artifactId>
+			<version>4.37.1</version>
 		</dependency>
 
 		<!-- Unit testing -->

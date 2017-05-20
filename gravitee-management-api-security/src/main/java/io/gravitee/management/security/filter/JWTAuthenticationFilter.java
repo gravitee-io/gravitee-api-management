@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.security.config.basic.filter;
+package io.gravitee.management.security.filter;
 
 import com.auth0.jwt.JWTVerifier;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.idp.api.authentication.UserDetails;
-import io.gravitee.management.security.JWTCookieGenerator;
+import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.service.common.JWTHelper.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

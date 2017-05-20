@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.security.config.basic;
+package io.gravitee.management.security.config;
 
 import io.gravitee.management.idp.api.IdentityProvider;
 import io.gravitee.management.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.management.idp.core.plugin.IdentityProviderManager;
-import io.gravitee.management.security.JWTCookieGenerator;
-import io.gravitee.management.security.config.basic.filter.AuthenticationSuccessFilter;
-import io.gravitee.management.security.config.basic.filter.CORSFilter;
-import io.gravitee.management.security.config.basic.filter.JWTAuthenticationFilter;
-import io.gravitee.management.service.utils.EnvironmentUtils;
+import io.gravitee.management.security.authentication.AuthenticationProviderManager;
+import io.gravitee.management.security.cookies.JWTCookieGenerator;
+import io.gravitee.management.security.filter.AuthenticationSuccessFilter;
+import io.gravitee.management.security.filter.CORSFilter;
+import io.gravitee.management.security.filter.JWTAuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,9 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.Filter;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
@@ -67,29 +69,34 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     @Autowired
     private IdentityProviderManager identityProviderManager;
 
+    @Autowired
+    private AuthenticationProviderManager authenticationProviderManager;
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         LOGGER.info("Loading authentication identity providers for Basic authentication");
-        List<String> providers = loadingAuthenticationIdentityProviders();
+        List<io.gravitee.management.security.authentication.AuthenticationProvider> providers =
+                authenticationProviderManager.getIdentityProviders()
+                        .stream()
+                        .filter(authenticationProvider -> !authenticationProvider.external())
+                        .collect(Collectors.toList());
 
-        for (int idx = 0; idx < providers.size(); idx++) {
-            String providerType = providers.get(idx);
-            LOGGER.info("Loading identity provider of type {} at position {}", providerType, idx);
+        for (io.gravitee.management.security.authentication.AuthenticationProvider provider : providers) {
+            LOGGER.info("Loading authentication provider of type {} at position {}", provider.type(), provider.index());
 
             boolean found = false;
             Collection<IdentityProvider> identityProviders = identityProviderManager.getAll();
             for (IdentityProvider identityProvider : identityProviders) {
-                if (identityProvider.type().equalsIgnoreCase(providerType)) {
+                if (identityProvider.type().equalsIgnoreCase(provider.type())) {
                     AuthenticationProvider authenticationProviderPlugin = identityProviderManager.loadIdentityProvider(
-                            identityProvider.type(), identityProviderProperties(idx));
+                            identityProvider.type(), provider.configuration());
 
                     if (authenticationProviderPlugin != null) {
                         Object authenticationProvider = authenticationProviderPlugin.configure();
 
                         if (authenticationProvider instanceof org.springframework.security.authentication.AuthenticationProvider) {
                             auth.authenticationProvider((org.springframework.security.authentication.AuthenticationProvider) authenticationProvider);
-                        }
-                        else if (authenticationProvider instanceof SecurityConfigurer) {
+                        } else if (authenticationProvider instanceof SecurityConfigurer) {
                             auth.apply((SecurityConfigurer) authenticationProvider);
                         }
                         found = true;
@@ -99,38 +106,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
             }
 
             if (!found) {
-                LOGGER.error("No authentication provider found for type: {}", providerType);
-                throw new IllegalStateException("No authentication provider found for type: " + providerType);
+                LOGGER.error("No authentication provider found for type: {}", provider.type());
+                throw new IllegalStateException("No authentication provider found for type: " + provider.type());
             }
         }
-    }
-
-    private Map<String, Object> identityProviderProperties(int idx) {
-        String prefix = "security.providers[" + (idx++) + "].";
-        Map<String, Object> properties = EnvironmentUtils.getPropertiesStartingWith(environment, prefix);
-        Map<String, Object> unprefixedProperties = new HashMap<>(properties.size());
-        properties.entrySet().stream().forEach(propEntry -> unprefixedProperties.put(
-                propEntry.getKey().substring(prefix.length()), propEntry.getValue()));
-        return unprefixedProperties;
-    }
-
-    private List<String> loadingAuthenticationIdentityProviders() {
-        LOGGER.debug("Looking for authentication identity providers...");
-        List<String> providers = new ArrayList<>();
-
-        boolean found = true;
-        int idx = 0;
-
-        while (found) {
-            String type = environment.getProperty("security.providers[" + (idx++) + "].type");
-            found = (type != null);
-            if (found) {
-                LOGGER.debug("\tSecurity type {} has been defined", type);
-                providers.add(type);
-            }
-        }
-
-        return providers;
     }
 
     /*
@@ -160,6 +139,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .authorizeRequests()
                     .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
                     .antMatchers(HttpMethod.GET, "/user/**").permitAll()
+                    .antMatchers(HttpMethod.POST, "/auth/**").permitAll()
 
                     // API requests
                     .antMatchers(HttpMethod.GET, "/apis/**").permitAll()

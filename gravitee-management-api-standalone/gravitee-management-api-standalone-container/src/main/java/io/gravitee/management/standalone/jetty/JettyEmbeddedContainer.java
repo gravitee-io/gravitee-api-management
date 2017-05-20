@@ -15,11 +15,10 @@
  */
 package io.gravitee.management.standalone.jetty;
 
-import java.util.EnumSet;
-
-import javax.servlet.DispatcherType;
-
+import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.management.rest.resource.GraviteeApplication;
 import io.gravitee.management.security.SecurityConfiguration;
+import io.gravitee.management.standalone.jetty.handler.NoContentOutputErrorHandler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -28,17 +27,16 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.*;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.management.rest.resource.GraviteeApplication;
-import io.gravitee.management.standalone.jetty.handler.NoContentOutputErrorHandler;
+import javax.servlet.DispatcherType;
+import java.util.EnumSet;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,9 +46,6 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
     @Autowired
     private Server server;
-    
-    @Value("${security.type:basic}")
-    private String securityImplementation;
 
     private ApplicationContext applicationContext;
 
@@ -71,7 +66,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         context.addServlet(servletHolder, "/*");
 
         // Spring configuration
-        System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, securityImplementation);
+        System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, "basic");
 
         AnnotationConfigWebApplicationContext webApplicationContext = new AnnotationConfigWebApplicationContext();
         webApplicationContext.register(SecurityConfiguration.class);

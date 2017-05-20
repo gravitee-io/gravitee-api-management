@@ -62,13 +62,6 @@
 			<version>${spring.security.version}</version>
 		</dependency>
 
-		<!-- Spring Security OAuth 2 dependencies -->
-		<dependency>
-			<groupId>org.springframework.security.oauth</groupId>
-			<artifactId>spring-security-oauth2</artifactId>
-			<version>${spring.security.oauth2.version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>

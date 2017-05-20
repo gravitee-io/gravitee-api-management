@@ -33,7 +33,7 @@
 #  path:
 #    - ${gravitee.home}/plugins
 #    - ${gravitee.home}/my-custom-plugins
-# If a plugin is already installed (but with a different version), management node does not start anymore
+# If a external is already installed (but with a different version), management node does not start anymore
 #  failOnDuplicate: true
 
 # Management repository is used to store global configuration such as APIs, applications, apikeys, ...
@@ -105,7 +105,6 @@ analytics:
 #  API_CONSUMER: Can create and manage Applications
 #  ADMIN: Can manage global system
 security:
-  type: basic # authentication type (default to 'basic', possible values : 'basic', 'oauth2')
   providers:  # authentication providers
     - type: memory
       users:
@@ -158,6 +157,12 @@ security:
 #        GRAVITEE-ADMINS: ADMIN,
 #        GRAVITEE-USERS: USER,
 #      }
+#    - type: google # Allow to authenticate to portal using a Google Plus account
+#      clientId: xxxx-xxx-xxx-xxx
+#      clientSecret: xxxx-xxx-xxx-xxxx
+#    - type: github # Allow to authenticate to portal using a GitHub account
+#      clientId: xxxx-xxx-xxx-xxx
+#      clientSecret: xxxx-xxx-xxx-xxxx
 
 # SMTP configuration used to send mails
 email:

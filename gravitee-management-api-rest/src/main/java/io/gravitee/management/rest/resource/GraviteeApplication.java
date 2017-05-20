@@ -21,6 +21,10 @@ import io.gravitee.management.rest.filter.ApplicationPermissionFilter;
 import io.gravitee.management.rest.filter.SecurityContextFilter;
 import io.gravitee.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.management.rest.provider.*;
+import io.gravitee.management.rest.resource.auth.GitHubAuthenticationResource;
+import io.gravitee.management.rest.resource.auth.GoogleAuthenticationResource;
+import io.gravitee.management.security.authentication.AuthenticationProvider;
+import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import io.swagger.jaxrs.listing.SwaggerSerializers;
@@ -28,13 +32,21 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
+import javax.inject.Inject;
+import java.util.Map;
+import java.util.Optional;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GraviteeApplication extends ResourceConfig {
 
-    public GraviteeApplication() {
+    private final AuthenticationProviderManager authenticationProviderManager;
+
+    @Inject
+    public GraviteeApplication(AuthenticationProviderManager authenticationProviderManager) {
+        this.authenticationProviderManager = authenticationProviderManager;
 
         BeanConfig beanConfig = new BeanConfig();
         beanConfig.setVersion(Version.RUNTIME_VERSION.MAJOR_VERSION);
@@ -56,6 +68,9 @@ public class GraviteeApplication extends ResourceConfig {
         register(GroupsResource.class);
         register(PortalResource.class);
 
+        // Dynamically register social authentication provider
+        registerSocialProviders();
+
         register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);
         register(UnrecognizedPropertyExceptionMapper.class);
@@ -75,5 +90,25 @@ public class GraviteeApplication extends ResourceConfig {
         register(SwaggerSerializers.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
+    }
+
+    private void registerSocialProviders() {
+        registerSocialProvider("google", GoogleAuthenticationResource.class);
+        registerSocialProvider("github", GitHubAuthenticationResource.class);
+    }
+
+    private void registerSocialProvider(String provider, Class resource) {
+        if (authenticationProviderManager != null) {
+            Optional<AuthenticationProvider> socialProvider = authenticationProviderManager.findIdentityProviderByType(provider);
+            if (socialProvider.isPresent()) {
+                Map<String, Object> configuration = socialProvider.get().configuration();
+                String clientId = (String) configuration.get("clientId");
+                String clientSecret = (String) configuration.get("clientSecret");
+
+                if (clientId != null && !clientId.isEmpty() && clientSecret != null && !clientSecret.isEmpty()) {
+                    register(resource);
+                }
+            }
+        }
     }
 }

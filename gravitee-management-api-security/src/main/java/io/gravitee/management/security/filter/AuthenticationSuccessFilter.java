@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.security.config.basic.filter;
+package io.gravitee.management.security.filter;
 
 import com.auth0.jwt.JWTSigner;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.management.idp.api.authentication.UserDetails;
-import io.gravitee.management.security.JWTCookieGenerator;
+import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.service.common.JWTHelper.Claims;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

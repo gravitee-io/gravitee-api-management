@@ -19,7 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.model.permissions.Role;
-import io.gravitee.management.security.JWTCookieGenerator;
+import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
@@ -74,11 +74,16 @@ public class UserResource extends AbstractResource {
                 LOG.info("User '{}' no longer exists.", username, unfe);
                 return logout();
             }
+
             List<GrantedAuthority> authorities = new ArrayList<>(details.getAuthorities());
             authorities.add(new SimpleGrantedAuthority(Role.API_CONSUMER.name()));
-            return Response.ok(
-                    new UserDetails(details.getUsername(), details.getPassword(), authorities),
-                    MediaType.APPLICATION_JSON).build();
+
+            UserDetails userDetails = new UserDetails(details.getUsername(), details.getPassword(), authorities);
+            userDetails.setFirstname(details.getFirstname());
+            userDetails.setLastname(details.getLastname());
+            userDetails.setEmail(details.getEmail());
+
+            return Response.ok(userDetails, MediaType.APPLICATION_JSON).build();
         }
         return Response.ok().build();
     }

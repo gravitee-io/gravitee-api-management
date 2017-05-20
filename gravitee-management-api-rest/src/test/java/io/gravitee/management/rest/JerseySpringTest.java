@@ -81,7 +81,7 @@ public abstract class JerseySpringTest {
                 // Find first available port.
                 forceSet(TestProperties.CONTAINER_PORT, "0");
 
-                ResourceConfig application = new GraviteeApplication();
+                ResourceConfig application = new GraviteeApplication(null);
 
                 application.property("contextConfig", context);
                 application.register(AuthenticationFilter.class);

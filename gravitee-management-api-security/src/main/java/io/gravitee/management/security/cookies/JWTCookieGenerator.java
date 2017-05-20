@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.security;
+package io.gravitee.management.security.cookies;
 
 import io.gravitee.common.http.HttpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
