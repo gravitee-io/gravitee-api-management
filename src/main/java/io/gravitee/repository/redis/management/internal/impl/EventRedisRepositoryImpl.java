@@ -42,7 +42,8 @@ public class EventRedisRepositoryImpl extends AbstractRedisRepository implements
 
     @Override
     public RedisEvent find(String eventId) {
-        Object event = redisTemplate.opsForHash().get(REDIS_KEY, eventId);
+        final Object event = redisTemplate.opsForHash().get(REDIS_KEY, eventId);
+
         if (event == null) {
             return null;
         }
@@ -145,15 +146,17 @@ public class EventRedisRepositoryImpl extends AbstractRedisRepository implements
 
     @Override
     public void delete(String event) {
-        RedisEvent redisEvent = find(event);
+        final RedisEvent redisEvent = find(event);
 
-        redisTemplate.executePipelined( new RedisCallback<Object>() {
-            @Override
-            public Object doInRedis(RedisConnection connection) throws DataAccessException {
-                redisTemplate.opsForHash().delete(REDIS_KEY, event);
-                redisTemplate.opsForSet().remove(REDIS_KEY + ":type:" + redisEvent.getType(), redisEvent.getId());
-                return null;
+        redisTemplate.executePipelined((RedisConnection connection) ->  {
+            redisTemplate.opsForHash().delete(REDIS_KEY, event);
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":type:" + redisEvent.getType(), redisEvent.getId());
+            redisTemplate.opsForZSet().remove(REDIS_KEY + ":updated_at", redisEvent.getId());
+            if (redisEvent.getProperties() != null) {
+                redisEvent.getProperties().forEach((key, value) ->
+                        redisTemplate.opsForSet().remove(REDIS_KEY + ":" + key + ":" + value, redisEvent.getId()));
             }
+            return null;
         });
     }
 }

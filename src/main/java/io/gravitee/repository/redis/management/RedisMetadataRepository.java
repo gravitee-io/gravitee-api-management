@@ -83,6 +83,9 @@ public class RedisMetadataRepository implements MetadataRepository {
     }
 
     private Metadata convert(final RedisMetadata redisMetadata) {
+        if (redisMetadata == null) {
+            return null;
+        }
         final Metadata metadata = new Metadata();
         metadata.setKey(redisMetadata.getKey());
         metadata.setName(redisMetadata.getName());
