@@ -61,11 +61,6 @@ public class User {
 	private String lastname;
 
 	/**
-	 * The user roles
-	 */
-	private Set<String> roles;
-
-	/**
 	 * The user creation date
 	 */
 	private Date createdAt;
@@ -123,14 +118,6 @@ public class User {
 
 	public void setPassword(String password) {
 		this.password = password;
-	}
-
-	public Set<String> getRoles() {
-		return roles;
-	}
-
-	public void setRoles(Set<String> roles) {
-		this.roles = roles;
 	}
 
 	public Date getCreatedAt() {

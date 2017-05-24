@@ -43,9 +43,15 @@ public class Membership {
     private MembershipReferenceType referenceType;
 
     /**
-     * Membership type
+     * Role scope
      */
-    private String type;
+    private int roleScope;
+
+    /**
+     * Role name
+     */
+    private String roleName;
+
     /**
      * Creation date
      */
@@ -74,12 +80,20 @@ public class Membership {
         this.createdAt = createdAt;
     }
 
-    public String getType() {
-        return type;
+    public int getRoleScope() {
+        return roleScope;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setRoleScope(int roleScope) {
+        this.roleScope = roleScope;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 
     public Date getUpdatedAt() {
@@ -120,13 +134,14 @@ public class Membership {
         Membership m = (Membership)o;
         return Objects.equals(userId, m.userId) &&
                 Objects.equals(referenceId, m.referenceId) &&
-                Objects.equals(referenceType, m.referenceType) &&
-                Objects.equals(type, m.type);
+                Objects.equals(referenceType, m.referenceType)  &&
+                Objects.equals(roleScope, m.roleScope) &&
+                Objects.equals(roleName, m.roleName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, referenceId, referenceType, type);
+        return Objects.hash(userId, referenceId, referenceType, roleScope, roleName);
     }
 
     public String toString() {
@@ -134,7 +149,8 @@ public class Membership {
                 "userId='" + userId + '\'' +
                 ", referenceId='" + referenceId + '\'' +
                 ", referenceType='" + referenceType + '\'' +
-                ", type='" + type + '\'' +
+                ", roleScope='" + roleScope + '\'' +
+                ", roleName='" + roleName + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

@@ -19,12 +19,6 @@ package io.gravitee.repository.management.model;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum MembershipReferenceType {
-
-    MANAGEMENT,
-    PORTAL,
-    APPLICATION,
-    API,
-    API_GROUP,
-    APPLICATION_GROUP
+public enum MembershipDefaultReferenceId {
+   DEFAULT
 }

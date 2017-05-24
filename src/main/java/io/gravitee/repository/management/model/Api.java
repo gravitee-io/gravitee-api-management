@@ -92,7 +92,11 @@ public class Api {
     private Set<String> views;
 
     /**
-     * The labels associated to this API
+     * The owner of the API
+     */
+    private String owner;
+
+    /**
      */
     private List<String> labels;
 

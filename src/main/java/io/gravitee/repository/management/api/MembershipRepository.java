@@ -49,22 +49,24 @@ public interface MembershipRepository {
      * => find all members of an api
      * @param referenceType the reference type
      * @param referenceId the reference id
-     * @param membershipType the membershipType, could be null
+     * @param roleScope the roleScope, could be null
+     * @param roleName the roleName, could be null
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByReferenceAndMembershipType (MembershipReferenceType referenceType, String referenceId, String membershipType) throws TechnicalException;
+    Set<Membership> findByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName) throws TechnicalException;
 
     /**
      * find all memberships for a specific reference
      * => find all primary owner of a list of apis
      * @param referenceType the reference type
      * @param referenceIds the reference ids
-     * @param membershipType the membershipType, could be null
+     * @param roleScope the roleScope, could be null
+     * @param roleName the roleName, could be null
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByReferencesAndMembershipType (MembershipReferenceType referenceType, List<String> referenceIds, String membershipType) throws TechnicalException;
+    Set<Membership> findByReferencesAndRole (MembershipReferenceType referenceType, List<String> referenceIds, RoleScope roleScope, String roleName) throws TechnicalException;
 
     /**
      * find all memberships for a user and a referenceType
@@ -81,8 +83,10 @@ public interface MembershipRepository {
      * => find all apis of a user where he is a primary owner
      * @param userId the user
      * @param referenceType the referenceType
+     * @param roleScope the roleScope, could be null
+     * @param roleName the roleName, could be null
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByUserAndReferenceTypeAndMembershipType(String userId, MembershipReferenceType referenceType, String membershipType) throws TechnicalException;
+    Set<Membership> findByUserAndReferenceTypeAndRole(String userId, MembershipReferenceType referenceType, RoleScope roleScope, String roleName) throws TechnicalException;
 }
