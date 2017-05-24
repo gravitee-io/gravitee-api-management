@@ -3,7 +3,8 @@
     "userId" : "user1",
     "referenceId" : "api1",
     "referenceType" : "API",
-    "type" : "OWNER",
+    "roleScope" : 3,
+    "roleName" : "OWNER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   },
@@ -11,7 +12,8 @@
     "userId" : "user2",
     "referenceId" : "api2",
     "referenceType" : "API",
-    "type" : "OWNER",
+    "roleScope" : 3,
+    "roleName" : "OWNER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   },
@@ -19,7 +21,8 @@
     "userId" : "user3",
     "referenceId" : "api3",
     "referenceType" : "API",
-    "type" : "USER",
+    "roleScope" : 3,
+    "roleName" : "USER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   },
@@ -27,7 +30,8 @@
     "userId" : "userToDelete",
     "referenceId" : "app1",
     "referenceType" : "APPLICATION",
-    "type" : "USER",
+    "roleScope" : 4,
+    "roleName" : "USER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   },
@@ -35,7 +39,8 @@
     "userId" : "userToUpdate",
     "referenceId" : "app1",
     "referenceType" : "APPLICATION",
-    "type" : "USER",
+    "roleScope" : 4,
+    "roleName" : "USER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   }

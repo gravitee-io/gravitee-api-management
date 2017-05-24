@@ -488,12 +488,15 @@ public class MockTestRepositoryConfiguration {
         Membership m1 = mock(Membership.class);
         when(m1.getUserId()).thenReturn("user1");
         when(m1.getReferenceType()).thenReturn(MembershipReferenceType.API);
-        when(m1.getType()).thenReturn("OWNER");
+        when(m1.getRoleScope()).thenReturn(3);
+        when(m1.getRoleName()).thenReturn("OWNER");
         when(m1.getReferenceId()).thenReturn("api1");
         Membership m2 = new Membership("user2", "api2", MembershipReferenceType.API);
-        m2.setType("OWNER");
+        m2.setRoleScope(3);
+        m2.setRoleName("OWNER");
         Membership m3 = new Membership("user3", "api3", MembershipReferenceType.API);
-        m3.setType("USER");
+        m3.setRoleScope(3);
+        m3.setRoleName("USER");
         Membership m4 = new Membership("userToDelete", "app1", MembershipReferenceType.APPLICATION);
         m4.setCreatedAt(new Date(0));
 
@@ -503,15 +506,17 @@ public class MockTestRepositoryConfiguration {
                 .thenReturn(empty());
         when(repo.findById("userToDelete", MembershipReferenceType.APPLICATION, "app1"))
                 .thenReturn(empty());
-        when(repo.findByReferenceAndMembershipType(eq(MembershipReferenceType.API), eq("api1"), any()))
+        when(repo.findByReferenceAndRole(eq(MembershipReferenceType.API), eq("api1"), eq(RoleScope.API), any()))
+                .thenReturn(Collections.singleton(m1));
+        when(repo.findByReferenceAndRole(eq(MembershipReferenceType.API), eq("api1"), eq(null), any()))
                 .thenReturn(Collections.singleton(m1));
         when(repo.findByUserAndReferenceType("user1", MembershipReferenceType.API))
                 .thenReturn(Collections.singleton(m1));
-        when(repo.findByUserAndReferenceTypeAndMembershipType("user1", MembershipReferenceType.API, "OWNER"))
+        when(repo.findByUserAndReferenceTypeAndRole("user1", MembershipReferenceType.API, RoleScope.API, "OWNER"))
                 .thenReturn(Collections.singleton(m1));
-        when(repo.findByReferencesAndMembershipType(MembershipReferenceType.API, asList("api2", "api3"), null))
+        when(repo.findByReferencesAndRole(MembershipReferenceType.API, asList("api2", "api3"), null, null))
                 .thenReturn(new HashSet<>(asList(m2, m3)));
-        when(repo.findByReferencesAndMembershipType(MembershipReferenceType.API, asList("api2", "api3"), "OWNER"))
+        when(repo.findByReferencesAndRole(MembershipReferenceType.API, asList("api2", "api3"), RoleScope.API, "OWNER"))
                 .thenReturn(new HashSet<>(singletonList(m2)));
         when(repo.update(any())).thenReturn(m4);
 
@@ -688,5 +693,53 @@ public class MockTestRepositoryConfiguration {
         when(metadataRepository.findById("boolean", "_", MetadataReferenceType.DEFAULT)).thenReturn(of(booleanMetadata), of(metadata2Updated));
 
         return metadataRepository;
+    }
+
+    @Bean
+    public RoleRepository roleRepository() throws Exception {
+        final RoleRepository roleRepository = mock(RoleRepository.class);
+
+        final Role toCreate = mock(Role.class);
+        when(toCreate.getName()).thenReturn("to create");
+        when(toCreate.getScope()).thenReturn(RoleScope.API);
+        when(toCreate.getPermissions()).thenReturn(new int[]{3});
+
+        final Role toDelete = mock(Role.class);
+        when(toDelete.getName()).thenReturn("to delete");
+        when(toDelete.getScope()).thenReturn(RoleScope.MANAGEMENT);
+        when(toDelete.getPermissions()).thenReturn(new int[]{1,2,3});
+
+        final Role toUpdate = mock(Role.class);
+        when(toUpdate.getName()).thenReturn("to update");
+        when(toUpdate.getDescription()).thenReturn("new description");
+        when(toUpdate.getScope()).thenReturn(RoleScope.MANAGEMENT);
+        when(toUpdate.isDefaultRole()).thenReturn(true);
+        when(toUpdate.getPermissions()).thenReturn(new int[]{4,5});
+
+        final Role findByScope1 = mock(Role.class);
+        when(findByScope1.getName()).thenReturn("find by scope 1");
+        when(findByScope1.getDescription()).thenReturn("role description");
+        when(findByScope1.getScope()).thenReturn(RoleScope.PORTAL);
+        when(findByScope1.isDefaultRole()).thenReturn(true);
+        when(findByScope1.isSystem()).thenReturn(true);
+        when(findByScope1.getPermissions()).thenReturn(new int[]{1});
+
+        final Role findByScope2 = mock(Role.class);
+        when(findByScope2.getName()).thenReturn("find by scope 2");
+        when(findByScope2.getScope()).thenReturn(RoleScope.PORTAL);
+        when(findByScope2.isDefaultRole()).thenReturn(false);
+        when(findByScope2.getPermissions()).thenReturn(new int[]{1});
+
+        when(roleRepository.findById(findByScope1.getScope(), findByScope1.getName())).thenReturn(of(findByScope1));
+        when(roleRepository.findById(toUpdate.getScope(), toUpdate.getName())).thenReturn(of(toUpdate));
+        when(roleRepository.findById(toCreate.getScope(), toCreate.getName())).thenReturn(empty(),of(findByScope1));
+        when(roleRepository.findById(toDelete.getScope(), toDelete.getName())).thenReturn(of(findByScope1), empty());
+        when(roleRepository.findById(findByScope2.getScope(), findByScope2.getName())).thenReturn(of(findByScope2));
+        when(roleRepository.create(any(Role.class))).thenReturn(toCreate);
+        when(roleRepository.findAll()).thenReturn(newSet(toDelete,toUpdate, findByScope1, findByScope2));
+        when(roleRepository.findByScope(RoleScope.PORTAL)).thenReturn(newSet(findByScope1, findByScope2));
+        when(roleRepository.update(any())).thenReturn(toUpdate);
+
+        return roleRepository;
     }
 }

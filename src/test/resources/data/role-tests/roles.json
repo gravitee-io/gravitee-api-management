@@ -1,0 +1,27 @@
+[
+  {
+    "name": "to delete",
+    "scope": "MANAGEMENT",
+    "permissions": [1,2,3]
+  },
+  {
+    "name": "to update",
+    "defaultRole": false,
+    "scope": "MANAGEMENT",
+    "permissions": [1,2,3]
+  },
+  {
+    "name": "find by scope 1",
+    "description": "role description",
+    "scope": "PORTAL",
+    "defaultRole": true,
+    "system": true,
+    "permissions": [1]
+  },
+  {
+    "name": "find by scope 2",
+    "defaultRole": false,
+    "scope": "PORTAL",
+    "permissions": [1]
+  }
+]

@@ -86,6 +86,8 @@ public abstract class AbstractRepositoryTest {
     protected TenantRepository tenantRepository;
     @Inject
     protected MetadataRepository metadataRepository;
+    @Inject
+    protected RoleRepository roleRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -157,6 +159,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Metadata) {
             metadataRepository.create((Metadata) object);
+        }
+        else if (object instanceof Role) {
+            roleRepository.create((Role) object);
         }
     }
 
