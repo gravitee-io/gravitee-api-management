@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.mongodb.management.internal.membership.MembershipMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.MembershipMongo;
 import io.gravitee.repository.mongodb.management.internal.model.MembershipPkMongo;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -45,10 +47,6 @@ public class MongoMembershipRepository implements MembershipRepository {
 
     @Autowired
     private MembershipMongoRepository internalMembershipRepo;
-
-    @Autowired
-    private GraviteeMapper mapper;
-
 
     @Override
     public Membership create(Membership membership) throws TechnicalException {
@@ -84,33 +82,35 @@ public class MongoMembershipRepository implements MembershipRepository {
         MembershipMongo membershipMongo = internalMembershipRepo.findOne(membershipPkMongo);
 
         logger.debug("Find membership by ID [{}, {}, {}]", userId, referenceType, referenceId);
-        return Optional.ofNullable(mapper.map(membershipMongo, Membership.class));
+        return Optional.ofNullable(map(membershipMongo));
     }
 
     @Override
-    public Set<Membership> findByReferenceAndMembershipType(MembershipReferenceType referenceType, String referenceId, String membershipType) throws TechnicalException {
+    public Set<Membership> findByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName) throws TechnicalException {
         logger.debug("Find membership by reference [{}, {}]", referenceType, referenceId);
         Set<MembershipMongo> membershipMongos;
+        String membershipType = convertRoleToType(roleScope, roleName);
         if(membershipType == null) {
             membershipMongos = internalMembershipRepo.findByReference(referenceType.name(), referenceId);
         } else {
             membershipMongos = internalMembershipRepo.findByReferenceAndMembershipType(referenceType.name(), referenceId, membershipType);
         }
-        Set<Membership> memberships = mapper.collection2set(membershipMongos, MembershipMongo.class, Membership.class);
+        Set<Membership> memberships = membershipMongos.stream().map(this::map).collect(Collectors.toSet());
         logger.debug("Find membership by reference [{}, {}] = {}", referenceType, referenceId, memberships);
         return memberships;
     }
 
     @Override
-    public Set<Membership> findByReferencesAndMembershipType(MembershipReferenceType referenceType, List<String> referenceIds, String membershipType) throws TechnicalException {
+    public Set<Membership> findByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, RoleScope roleScope, String roleName) throws TechnicalException {
         logger.debug("Find membership by references [{}, {}]", referenceType, referenceIds);
         Set<MembershipMongo> membershipMongos;
+        String membershipType = convertRoleToType(roleScope, roleName);
         if(membershipType == null) {
             membershipMongos = internalMembershipRepo.findByReferences(referenceType.name(), referenceIds);
         } else {
             membershipMongos = internalMembershipRepo.findByReferencesAndMembershipType(referenceType.name(), referenceIds, membershipType);
         }
-        Set<Membership> memberships = mapper.collection2set(membershipMongos, MembershipMongo.class, Membership.class);
+        Set<Membership> memberships = membershipMongos.stream().map(this::map).collect(Collectors.toSet());
         logger.debug("Find membership by references [{}, {}] = {}", referenceType, referenceIds, memberships);
         return memberships;
     }
@@ -118,36 +118,51 @@ public class MongoMembershipRepository implements MembershipRepository {
     @Override
     public Set<Membership> findByUserAndReferenceType(String userId, MembershipReferenceType referenceType) throws TechnicalException {
         logger.debug("Find membership by user and referenceType [{}, {}]", userId, referenceType);
-        Set<Membership> memberships = mapper.collection2set(
-                internalMembershipRepo.findByUserAndReferenceType(userId, referenceType.name()), MembershipMongo.class, Membership.class);
+        Set<Membership> memberships = internalMembershipRepo.findByUserAndReferenceType(userId, referenceType.name()).
+                stream().
+                map(this::map).
+                collect(Collectors.toSet());
         logger.debug("Find membership by user and referenceType [{}, {}] = {}", userId, referenceType, memberships);
         return memberships;
     }
 
     @Override
-    public Set<Membership> findByUserAndReferenceTypeAndMembershipType(String userId, MembershipReferenceType referenceType, String membershipType) throws TechnicalException {
+    public Set<Membership> findByUserAndReferenceTypeAndRole(String userId, MembershipReferenceType referenceType, RoleScope roleScope, String roleName) throws TechnicalException {
+        String membershipType = convertRoleToType(roleScope, roleName);
         logger.debug("Find membership by user and referenceType and membershipType [{}, {}, {}]", userId, referenceType, membershipType);
-        Set<Membership> memberships = mapper.collection2set(
-                internalMembershipRepo.findByUserAndReferenceTypeAndMembershipType(userId, referenceType.name(), membershipType), MembershipMongo.class, Membership.class);
+        Set<Membership> memberships = internalMembershipRepo.findByUserAndReferenceTypeAndMembershipType(userId, referenceType.name(), membershipType).
+                stream().
+                map(this::map).
+                collect(Collectors.toSet());
         logger.debug("Find membership by user and referenceType and membershipType [{}, {}, {}] = {}", userId, referenceType, membershipType, memberships);
         return memberships;
     }
 
     private Membership map(MembershipMongo membershipMongo) {
+        if (membershipMongo == null) {
+            return null;
+        }
         Membership membership = new Membership();
         membership.setUserId(membershipMongo.getId().getUserId());
         membership.setReferenceType(MembershipReferenceType.valueOf(membershipMongo.getId().getReferenceType()));
         membership.setReferenceId(membershipMongo.getId().getReferenceId());
-        membership.setType(membershipMongo.getType());
+        String[] role = convertTypeToRole(membershipMongo.getType());
+        if (role != null) {
+            membership.setRoleScope(Integer.valueOf(role[0]));
+            membership.setRoleName(role[1]);
+        }
         membership.setCreatedAt(membershipMongo.getCreatedAt());
         membership.setUpdatedAt(membershipMongo.getUpdatedAt());
         return membership;
     }
 
     private MembershipMongo map(Membership membership) {
+        if (membership == null) {
+            return null;
+        }
         MembershipMongo membershipMongo = new MembershipMongo();
         membershipMongo.setId(mapPk(membership));
-        membershipMongo.setType(membership.getType());
+        membershipMongo.setType(convertRoleToType(membership.getRoleScope(), membership.getRoleName()));
         membershipMongo.setCreatedAt(membership.getCreatedAt());
         membershipMongo.setUpdatedAt(membership.getUpdatedAt());
         return membershipMongo;
@@ -159,5 +174,27 @@ public class MongoMembershipRepository implements MembershipRepository {
         membershipPkMongo.setReferenceType(membership.getReferenceType().name());
         membershipPkMongo.setReferenceId(membership.getReferenceId());
         return membershipPkMongo;
+    }
+
+    private String convertRoleToType(RoleScope roleScope, String roleName) {
+        if (roleName == null) {
+            return null;
+        }
+        return convertRoleToType(roleScope.getId(), roleName);
+    }
+
+    private String convertRoleToType(int roleScope, String roleName) {
+        return roleScope + ":" + roleName;
+    }
+
+    private String[] convertTypeToRole(String type) {
+        if(type == null) {
+            return null;
+        }
+        String[] role = type.split(":");
+        if (role .length != 2) {
+            return null;
+        }
+        return role;
     }
 }

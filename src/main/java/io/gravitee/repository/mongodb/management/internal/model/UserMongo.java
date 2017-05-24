@@ -41,7 +41,6 @@ public class UserMongo extends Auditable {
     private String password;
     private String firstname;
     private String lastname;
-    private List<String> roles;
     private String picture;
     private String source;
     private String sourceId;
@@ -85,14 +84,6 @@ public class UserMongo extends Auditable {
 
 	public void setLastname(String lastname) {
 		this.lastname = lastname;
-	}
-
-	public List<String> getRoles() {
-		return roles;
-	}
-
-	public void setRoles(List<String> roles) {
-		this.roles = roles;
 	}
 
     public String getPicture() {

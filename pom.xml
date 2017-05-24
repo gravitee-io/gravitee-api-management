@@ -32,12 +32,12 @@
 	<name>Gravitee.io APIM - Repository - MongoDB</name>
 
 	<properties>
-		<gravitee-repository.version>1.7.0</gravitee-repository.version>
+		<gravitee-repository.version>1.8.1-SNAPSHOT</gravitee-repository.version>
 		<embed.mongo.version>1.50.5</embed.mongo.version>
 		<mongo.version>3.4.2</mongo.version>
 		<spring.data.mongodb.version>1.7.2.RELEASE</spring.data.mongodb.version>
 		<dozer.version>5.4.0</dozer.version>
-		<gravitee-repository-test.version>1.7.0</gravitee-repository-test.version>
+		<gravitee-repository-test.version>1.8.1-SNAPSHOT</gravitee-repository-test.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
 	</properties>
 

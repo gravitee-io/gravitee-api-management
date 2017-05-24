@@ -11,6 +11,10 @@ db.subscriptions.createIndex( { "application" : 1 } );
 db.keys.createIndex( { "plan" : 1 } );
 db.keys.createIndex( { "application" : 1 } );
 db.pages.createIndex( { "api" : 1 } );
+db.memberships.createIndex( {"_id.referenceType":1, "_id.referenceId":1, "type":1} );
+db.memberships.createIndex( {"_id.referenceType":1, "_id.userId":1} );
+db.memberships.createIndex( {"_id.referenceType":1, "_id.userId":1, "type":1} );
+db.roles.createIndex( {"_id.scope": 1 } );
 
 db.apis.reIndex();
 db.applications.reIndex();
@@ -19,3 +23,5 @@ db.plans.reIndex();
 db.subscriptions.reIndex();
 db.keys.reIndex();
 db.pages.reIndex();
+db.memberships.reIndex();
+db.roles.reIndex();

@@ -112,7 +112,7 @@ public class ApplicationMongo extends Auditable {
     public String toString() {
         final StringBuilder sb = new StringBuilder("Application{");
         sb.append("id='").append(id).append('\'');
-        sb.append("name='").append(name).append('\'');
+        sb.append(", name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
         sb.append(", status='").append(status).append('\'');
         sb.append('}');
