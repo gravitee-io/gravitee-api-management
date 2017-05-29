@@ -21,6 +21,7 @@
       <img  ng-src="{{$ctrl.getLogo()}}" alt="logo"/>
     </a>
     <md-button class="gv-navbar-link" ui-sref="portal.apis.list">{{'menu.gallery' | translate}}</md-button>
+    <md-button class="gv-navbar-link" ui-sref="portal.pages">{{'menu.documentation' | translate}}</md-button>
   </div>
   <span flex></span>
   <md-button ng-if="!$ctrl.graviteeUser.username" ui-sref="login">{{'menu.login' | translate}}</md-button>

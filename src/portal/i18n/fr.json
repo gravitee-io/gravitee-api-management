@@ -26,6 +26,7 @@
   "menu": {
     "login": "Connexion",
     "gallery": "Galerie d'APIs",
+    "documentation": "Documentation",
     "profile": "Mon compte",
     "management": "Administration",
     "applications": "Mes applications",
