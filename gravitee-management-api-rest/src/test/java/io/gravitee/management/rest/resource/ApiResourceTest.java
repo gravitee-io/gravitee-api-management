@@ -18,6 +18,7 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.UpdateApiEntity;
+import io.gravitee.management.rest.resource.param.LifecycleActionParam;
 import org.junit.Ignore;
 import org.junit.Test;
 

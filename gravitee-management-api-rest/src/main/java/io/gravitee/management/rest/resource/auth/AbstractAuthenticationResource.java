@@ -20,18 +20,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.management.model.UserEntity;
-import io.gravitee.management.model.permissions.Role;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.common.JWTHelper;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,6 +36,7 @@ import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFA
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 abstract class AbstractAuthenticationResource {
@@ -68,7 +66,7 @@ abstract class AbstractAuthenticationResource {
 
         claims.put(JWTHelper.Claims.ISSUER, environment.getProperty("jwt.issuer", JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER));
         claims.put(JWTHelper.Claims.SUBJECT, user.getUsername());
-        claims.put(JWTHelper.Claims.PERMISSIONS, Collections.singleton(new SimpleGrantedAuthority(Role.USER.toString())));
+//        claims.put(JWTHelper.Claims.PERMISSIONS, Collections.singleton(new SimpleGrantedAuthority(Role.USER.toString())));
         claims.put(JWTHelper.Claims.EMAIL, user.getEmail());
         claims.put(JWTHelper.Claims.FIRSTNAME, user.getFirstname());
         claims.put(JWTHelper.Claims.LASTNAME, user.getLastname());

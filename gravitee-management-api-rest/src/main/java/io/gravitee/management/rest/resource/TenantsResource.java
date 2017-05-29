@@ -19,6 +19,10 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.NewTenantEntity;
 import io.gravitee.management.model.TenantEntity;
 import io.gravitee.management.model.UpdateTenantEntity;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.TenantService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +35,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Configuration", "Tenants"})
@@ -51,6 +56,9 @@ public class TenantsResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_TENANT, acls = RolePermissionAction.CREATE)
+    })
     public List<TenantEntity> create(@Valid @NotNull final List<NewTenantEntity> tenant) {
         return tenantService.create(tenant);
     }
@@ -58,6 +66,9 @@ public class TenantsResource extends AbstractResource  {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_TENANT, acls = RolePermissionAction.UPDATE)
+    })
     public List<TenantEntity> update(@Valid @NotNull final List<UpdateTenantEntity> tenant) {
         return tenantService.update(tenant);
     }
@@ -65,6 +76,9 @@ public class TenantsResource extends AbstractResource  {
     @Path("{tenant}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_TENANT, acls = RolePermissionAction.DELETE)
+    })
     public void delete(@PathParam("tenant") String tenant) {
         tenantService.delete(tenant);
     }

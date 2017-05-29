@@ -18,6 +18,10 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.PolicyEntity;
 import io.gravitee.management.model.PolicyListItem;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.PolicyService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,8 +34,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,6 +43,7 @@ import java.util.stream.Stream;
  * Defines the REST resources to manage Policy.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/policies")
@@ -54,6 +59,9 @@ public class PoliciesResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List policies")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+    })
     public Collection<PolicyListItem> listPolicies(@QueryParam("expand") List<String> expand) {
         Stream<PolicyListItem> stream = policyService.findAll().stream().map(this::convert);
 
@@ -72,7 +80,7 @@ public class PoliciesResource {
         }
 
         return stream
-                .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
+                .sorted(Comparator.comparing(PolicyListItem::getName))
                 .collect(Collectors.toList());
     }
 

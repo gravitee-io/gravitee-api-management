@@ -17,6 +17,10 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.monitoring.MonitoringData;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.MonitoringService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -27,7 +31,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Gateway"})
@@ -39,6 +44,9 @@ public class MonitoringResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get monitoring metrics for a gateway instance")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_PLATFORM, acls = RolePermissionAction.READ)
+    })
     public MonitoringData instanceMonitoring(
             @PathParam("gatewayId") String gatewayId) {
         return monitoringService.findMonitoring(gatewayId);

@@ -40,7 +40,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Import(RepositoryAuthenticationProviderConfiguration.class)
@@ -73,7 +74,7 @@ public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthent
 	@Override
 	protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
 		try {
-			UserEntity user = userService.findByName(username);
+			UserEntity user = userService.findByName(username, true);
 			if (RepositoryIdentityProvider.PROVIDER_TYPE.equals(user.getSource())) {
 				return mapUserEntityToUserDetails(user);
 			} else {
@@ -92,7 +93,7 @@ public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthent
 		if (userEntity.getRoles() != null && userEntity.getRoles().size() > 0) {
 
 			authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(
-					userEntity.getRoles().stream().collect(Collectors.joining(","))
+					userEntity.getRoles().stream().map(r -> r.getScope().name()+":"+r.getName()).collect(Collectors.joining(","))
 			);
 		}
 

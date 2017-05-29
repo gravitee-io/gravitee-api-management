@@ -5,7 +5,7 @@
   "group" : "My Group",
   "members" : [ {
     "username" : "johndoe",
-    "type" : "PRIMARY_OWNER"
+    "role" : "PRIMARY_OWNER"
   } ],
   "pages" : [ {
     "name" : "My Title",

@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Priority;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -113,6 +114,7 @@ public abstract class JerseySpringTest {
         };
     }
 
+    @Priority(50)
      public static class AuthenticationFilter implements ContainerRequestFilter {
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {

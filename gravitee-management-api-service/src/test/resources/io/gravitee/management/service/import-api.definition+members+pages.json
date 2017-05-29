@@ -98,11 +98,11 @@
   "members": [
     {
       "username": "admin",
-      "type": "PRIMARY_OWNER"
+      "role": "PRIMARY_OWNER"
     },
     {
       "username": "user",
-      "type": "OWNER"
+      "role": "OWNER"
     }
   ],
   "pages": [

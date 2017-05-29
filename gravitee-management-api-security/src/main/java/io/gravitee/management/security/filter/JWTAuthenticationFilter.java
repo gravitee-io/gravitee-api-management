@@ -36,10 +36,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -83,9 +80,16 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
                 try {
                     final Map<String, Object> verify = jwtVerifier.verify(stringToken);
 
-                    final List<SimpleGrantedAuthority> authorities = ((List<Map>) verify.get(Claims.PERMISSIONS)).stream()
-                            .map(map -> new SimpleGrantedAuthority(map.get("authority").toString()))
-                            .collect(Collectors.toList());
+                    List<Map> permissions = (List<Map>) verify.get(Claims.PERMISSIONS);
+                    List<SimpleGrantedAuthority> authorities;
+
+                    if (permissions != null) {
+                        authorities = ((List<Map>) verify.get(Claims.PERMISSIONS)).stream()
+                                .map(map -> new SimpleGrantedAuthority(map.get("authority").toString()))
+                                .collect(Collectors.toList());
+                    } else {
+                        authorities = Collections.emptyList();
+                    }
 
                     final UserDetails userDetails = new UserDetails(getStringValue(verify.get(Claims.SUBJECT)), "",
                             authorities);

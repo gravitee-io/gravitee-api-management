@@ -16,24 +16,38 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.idp.api.authentication.UserDetails;
+import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.permissions.ApplicationPermission;
-import io.gravitee.management.rest.resource.param.MembershipTypeParam;
-import io.gravitee.management.rest.security.ApplicationPermissionsRequired;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.SinglePrimaryOwnerException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static io.gravitee.management.model.permissions.SystemRole.PRIMARY_OWNER;
+import static io.gravitee.management.model.permissions.RolePermission.*;
+import static io.gravitee.management.model.permissions.RolePermissionAction.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com
@@ -41,7 +55,7 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Api(tags = {"Application"})
-public class ApplicationMembersResource {
+public class ApplicationMembersResource  extends AbstractResource {
 
     @Inject
     private MembershipService membershipService;
@@ -52,57 +66,108 @@ public class ApplicationMembersResource {
     private UserService userService;
 
     @GET
+    @Path("/permissions")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApplicationPermissionsRequired(ApplicationPermission.READ)
+    @ApiOperation(value = "Get application members",
+            notes = "User must have the APPLICATION_MEMBER permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Application member's permissions", response = MemberEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ)
+    })
+    public Response getPermissions(@PathParam("application") String application) {
+        Map<String, char[]> permissions = new HashMap<>();
+
+        final Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            final UserDetails details = ((UserDetails) principal);
+            final String username = details.getUsername();
+            final ApplicationEntity applicationEntity = applicationService.findById(application);
+            if (username.equals(applicationEntity.getPrimaryOwner().getUsername()) || isAdmin()) {
+                final char[] rights = new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
+                for (ApplicationPermission perm: ApplicationPermission.values()) {
+                    permissions.put(perm.getName(), rights);
+                }
+            } else {
+                MemberEntity member = membershipService.getMember(MembershipReferenceType.APPLICATION, application, username);
+                if (member == null && applicationEntity.getGroup() != null) {
+                    member = membershipService.getMember(MembershipReferenceType.APPLICATION_GROUP, applicationEntity.getGroup().getId(), username);
+                }
+
+                if (member != null) {
+                    permissions = member.getPermissions();
+                }
+            }
+        }
+        return Response.ok(permissions).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List application members",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Application successfully deleted", response = MemberEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ)
+    })
     public List<MemberEntity> listApplicationMembers(@PathParam("application") String application) {
         applicationService.findById(application);
-        return membershipService.getMembers(MembershipReferenceType.APPLICATION, application, null).stream()
-                .sorted((o1, o2) -> o1.getUsername().compareTo(o2.getUsername()))
+        return membershipService.getMembers(MembershipReferenceType.APPLICATION, application, null, null).stream()
+                .sorted(Comparator.comparing(MemberEntity::getUsername))
                 .collect(Collectors.toList());
     }
 
     @POST
-    @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_MEMBERS)
     @ApiOperation(value = "Add or update an application member",
             notes = "User must have the MANAGE_MEMBERS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Member has been added or updated successfully"),
             @ApiResponse(code = 400, message = "Membership parameter is not valid"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE)
+    })
     public Response addOrUpdateApplicationMember(
             @PathParam("application") String application,
+
             @ApiParam(name = "user", required = true)
-                @NotNull @QueryParam("user") String username,
-            @ApiParam(name = "type", required = true, allowableValues = "PRIMARY_OWNER,OWNER,USER")
-                @NotNull @QueryParam("type") MembershipTypeParam membershipType) {
+            @NotNull @QueryParam("user") String username,
+
+            @ApiParam(name = "rolename", required = true)
+            @NotNull @QueryParam("rolename") String roleName
+    ) {
+        if (PRIMARY_OWNER.name().equals(roleName)) {
+            throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
+        }
         applicationService.findById(application);
-        if (membershipType.getValue() == null) {
+        if (roleName == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        membershipService.addOrUpdateMember(MembershipReferenceType.APPLICATION, application, username, membershipType.getValue());
+        membershipService.addOrUpdateMember(MembershipReferenceType.APPLICATION, application, username, RoleScope.APPLICATION, roleName);
         return Response.created(URI.create("/applications/" + application + "/members/" + username)).build();
     }
 
     @DELETE
-    @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_MEMBERS)
     @ApiOperation(value = "Remove an application member",
             notes = "User must have the MANAGE_MEMBERS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Member has been removed successfully"),
             @ApiResponse(code = 400, message = "User does not exist"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE)
+    })
     public Response deleteApplicationMember(
             @PathParam("application") String application,
             @ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String username) {
         applicationService.findById(application);
         try {
-            userService.findByName(username);
+            userService.findByName(username, false);
         } catch (UserNotFoundException unfe) {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }

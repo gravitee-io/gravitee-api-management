@@ -16,7 +16,9 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.*;
+import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 
 import java.util.Set;
 
@@ -28,12 +30,15 @@ public interface MembershipService {
 
     MemberEntity getMember(MembershipReferenceType referenceType, String referenceId, String username);
 
+    RoleEntity getRole(MembershipReferenceType referenceType, String referenceId, String username);
+
     Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId);
 
-    Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, MembershipType membershipType);
+    Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName);
 
-    void addOrUpdateMember(MembershipReferenceType referenceType, String referenceId, String username, MembershipType membershipType);
+    MemberEntity addOrUpdateMember(MembershipReferenceType referenceType, String referenceId, String username, RoleScope roleScope, String roleName);
 
     void deleteMember(MembershipReferenceType referenceType, String referenceId, String username);
 
+    void transferApiOwnership(String apiId, String username);
 }

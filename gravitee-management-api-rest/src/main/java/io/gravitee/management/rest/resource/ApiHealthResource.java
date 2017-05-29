@@ -16,9 +16,11 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.HealthParam;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.HealthCheckService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,9 +34,9 @@ import javax.ws.rs.core.Response;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiPermissionsRequired(ApiPermission.ANALYTICS)
 @Api(tags = {"API"})
 public class ApiHealthResource extends AbstractResource {
 
@@ -43,9 +45,10 @@ public class ApiHealthResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-            value = "Health statistics for API"
-    )
+    @ApiOperation("Health statistics for API")
+    @Permissions({
+            @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)
+    })
     public Response health(
             @PathParam("api") String api,
             @BeanParam HealthParam healthParam) {

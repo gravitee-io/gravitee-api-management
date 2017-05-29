@@ -28,6 +28,7 @@ import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,11 +167,12 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
             logger.debug("delete {}", groupId);
             GroupEntity groupEntity = this.findById(groupId);
             //remove all members
-            membershipRepository.findByReferenceAndMembershipType(
+            membershipRepository.findByReferenceAndRole(
                     groupEntity.getType().equals(GroupEntityType.API)
                             ? MembershipReferenceType.API_GROUP
                             : MembershipReferenceType.APPLICATION_GROUP,
                     groupId,
+                    null,
                     null)
                     .forEach(member -> {
                         try {

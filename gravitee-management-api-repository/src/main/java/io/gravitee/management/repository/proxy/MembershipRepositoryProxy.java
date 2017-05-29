@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -52,8 +53,8 @@ public class MembershipRepositoryProxy extends AbstractProxy<MembershipRepositor
     }
 
     @Override
-    public Set<Membership> findByReferenceAndMembershipType(MembershipReferenceType referenceType, String referenceId, String membershipType) throws TechnicalException {
-        return target.findByReferenceAndMembershipType(referenceType, referenceId, membershipType);
+    public Set<Membership> findByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName) throws TechnicalException {
+        return target.findByReferenceAndRole(referenceType, referenceId, roleScope, roleName);
     }
 
     @Override
@@ -62,12 +63,12 @@ public class MembershipRepositoryProxy extends AbstractProxy<MembershipRepositor
     }
 
     @Override
-    public Set<Membership> findByUserAndReferenceTypeAndMembershipType(String userId, MembershipReferenceType referenceType, String membershipType) throws TechnicalException {
-        return target.findByUserAndReferenceTypeAndMembershipType(userId, referenceType, membershipType);
+    public Set<Membership> findByUserAndReferenceTypeAndRole(String userId, MembershipReferenceType referenceType, RoleScope roleScope, String roleName) throws TechnicalException {
+        return target.findByUserAndReferenceTypeAndRole(userId, referenceType, roleScope, roleName);
     }
 
     @Override
-    public Set<Membership> findByReferencesAndMembershipType(MembershipReferenceType referenceType, List<String> referenceIds, String membershipType) throws TechnicalException {
-        return target.findByReferencesAndMembershipType(referenceType, referenceIds, membershipType);
+    public Set<Membership> findByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, RoleScope roleScope, String roleName) throws TechnicalException {
+        return target.findByReferencesAndRole(referenceType, referenceIds, roleScope, roleName);
     }
 }

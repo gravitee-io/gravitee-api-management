@@ -40,6 +40,7 @@ import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/auth/google")
@@ -95,7 +96,7 @@ public class GoogleAuthenticationResource extends AbstractAuthenticationResource
     private Response processUser(final Map<String, Object> userInfo) {
         String username = (String) userInfo.get("email");
         try {
-            userService.findByName(username);
+            userService.findByName(username, false);
         } catch (UserNotFoundException unfe) {
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setUsername(username);
@@ -104,7 +105,7 @@ public class GoogleAuthenticationResource extends AbstractAuthenticationResource
             newUser.setFirstname(userInfo.get("given_name").toString());
             newUser.setLastname(userInfo.get("family_name").toString());
             newUser.setEmail(username);
-            userService.create(newUser);
+            userService.create(newUser, true);
         }
 
         // User refresh

@@ -30,14 +30,14 @@
     <artifactId>gravitee-management-api</artifactId>
     <packaging>pom</packaging>
 
-    <version>1.9.0-SNAPSHOT</version>
+    <version>1.8.1-SNAPSHOT</version>
     <name>Gravitee.io APIM - Management</name>
 
     <properties>
         <gravitee-definition.version>1.4.0</gravitee-definition.version>
         <gravitee-common.version>1.4.0</gravitee-common.version>
         <gravitee-plugin.version>1.2.0</gravitee-plugin.version>
-        <gravitee-repository.version>1.8.0</gravitee-repository.version>
+        <gravitee-repository.version>1.8.1-SNAPSHOT</gravitee-repository.version>
         <gravitee-gateway-api.version>1.4.0</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.0.0</gravitee-fetcher-api.version>
 

@@ -126,7 +126,7 @@ security:
           # Passwords are encoded using BCrypt
           # Password value: password
           password: $2a$10$9kjw/SH9gucCId3Lnt6EmuFreUAcXSZgpvAYuW2ISv7hSOhHRH1AO
-          roles: USER
+          roles: MANAGEMENT:USER, PORTAL:USER
         - user:
           username: admin
           # Password value: admin
@@ -137,12 +137,12 @@ security:
           # Password value: api1
           password: $2a$10$iXdXO4wAYdhx2LOwijsp7.PsoAZQ05zEdHxbriIYCbtyo.y32LTji
           # You can declare multiple roles using comma separator
-          roles: API_PUBLISHER, API_CONSUMER
+          roles: MANAGEMENT:API_PUBLISHER, PORTAL:API_PUBLISHER MANAGEMENT:USER, PORTAL:USER
         - user:
           username: application1
           # Password value: application1
           password: $2a$10$2gtKPYRB9zaVaPcn5RBx/.3T.7SeZoDGs9GKqbo9G64fKyXFR1He.
-          roles: API_CONSUMER
+          roles: MANAGEMENT:USER, PORTAL:USER
     # Enable authentication using internal repository
     - type: gravitee
 #    - type: ldap

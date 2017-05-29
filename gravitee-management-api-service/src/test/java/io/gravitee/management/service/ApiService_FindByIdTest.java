@@ -20,17 +20,18 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.MembershipType;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
-import io.gravitee.management.service.jackson.filter.ApiMembershipTypeFilter;
+import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,7 +76,7 @@ public class ApiService_FindByIdTest {
 
     @Before
     public void setUp() {
-        PropertyFilter apiMembershipTypeFilter = new ApiMembershipTypeFilter();
+        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
     }
 
@@ -83,8 +84,9 @@ public class ApiService_FindByIdTest {
     public void shouldFindById() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
-        po.setType(MembershipType.PRIMARY_OWNER.name());
-        when(membershipRepository.findByReferenceAndMembershipType(any(), any(), any()))
+        po.setRoleScope(RoleScope.API.getId());
+        po.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferenceAndRole(any(), any(), any(), any()))
                 .thenReturn(Collections.singleton(po));
 
         final ApiEntity apiEntity = apiService.findById(API_ID);

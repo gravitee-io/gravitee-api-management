@@ -18,8 +18,9 @@ package io.gravitee.management.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.MembershipType;
 import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
@@ -91,7 +92,7 @@ public class ApiService_CreateTest {
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
         when(newApi.getContextPath()).thenReturn("/context");
-        when(userService.findByName(USER_NAME)).thenReturn(new UserEntity());
+        when(userService.findByName(USER_NAME, false)).thenReturn(new UserEntity());
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 
@@ -172,13 +173,15 @@ public class ApiService_CreateTest {
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 
         when(newApi.getContextPath()).thenReturn(contextPathToCreate);
-        when(userService.findByName(USER_NAME)).thenReturn(new UserEntity());
+        when(userService.findByName(USER_NAME, false)).thenReturn(new UserEntity());
         Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
-        po.setType(MembershipType.PRIMARY_OWNER.name());
-        when(membershipRepository.findByReferencesAndMembershipType(
+        po.setRoleScope(RoleScope.API.getId());
+        po.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndRole(
                 MembershipReferenceType.API,
                 Collections.singletonList(API_ID),
-                MembershipType.PRIMARY_OWNER.name()))
+                RoleScope.API,
+                SystemRole.PRIMARY_OWNER.name()))
                 .thenReturn(Collections.singleton(po));
 
         apiService.create(newApi, USER_NAME);
@@ -191,7 +194,7 @@ public class ApiService_CreateTest {
 
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
-        when(userService.findByName(USER_NAME)).thenReturn(new UserEntity());
+        when(userService.findByName(USER_NAME, false)).thenReturn(new UserEntity());
 
         apiService.create(newApi, USER_NAME);
     }
@@ -208,7 +211,7 @@ public class ApiService_CreateTest {
         when(newApi.getContextPath()).thenReturn("/context");
         UserEntity admin = new UserEntity();
         admin.setUsername(USER_NAME);
-        when(userService.findByName(admin.getUsername())).thenReturn(admin);
+        when(userService.findByName(admin.getUsername(), false)).thenReturn(admin);
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 

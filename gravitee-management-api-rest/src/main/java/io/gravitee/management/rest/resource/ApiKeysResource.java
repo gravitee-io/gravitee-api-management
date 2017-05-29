@@ -17,8 +17,10 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApiKeyEntity;
-import io.gravitee.management.model.permissions.ApiPermission;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiKeyService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -35,9 +37,9 @@ import javax.ws.rs.core.Response;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiPermissionsRequired(ApiPermission.MANAGE_API_KEYS)
 @Api(tags = {"API"})
 public class ApiKeysResource extends AbstractResource {
 
@@ -50,6 +52,9 @@ public class ApiKeysResource extends AbstractResource {
     @DELETE
     @Path("{key}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
+    })
     public Response revokeApiKey(
             @PathParam("api") String api,
             @PathParam("key") String apiKey) {
@@ -70,6 +75,9 @@ public class ApiKeysResource extends AbstractResource {
             @ApiResponse(code = 200, message = "API Key successfully updated", response = ApiKeyEntity.class),
             @ApiResponse(code = 400, message = "Bad plan format"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
+    })
     public Response updateApiKey(
             @PathParam("api") String api,
             @PathParam("key") String apiKey,

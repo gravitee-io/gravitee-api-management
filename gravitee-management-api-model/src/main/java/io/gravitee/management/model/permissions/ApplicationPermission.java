@@ -17,15 +17,32 @@ package io.gravitee.management.model.permissions;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-public enum ApplicationPermission {
+public enum ApplicationPermission implements Permission {
+    DEFINITION(  "DEFINITION",   1000),
+    MEMBER(      "MEMBER",       1100),
+    ANALYTICS(    "ANALYTICS",     1200),
+    LOG(         "LOG",          1300),
+    SUBSCRIPTION("SUBSCRIPTION", 1400);
 
-    READ,
-    MANAGE_APPLICATION,
-    DELETE,
-    MANAGE_MEMBERS,
-    MANAGE_SUBSCRIPTIONS,
-    MANAGE_API_KEYS,
-    ANALYTICS
+    String name;
+    int mask;
+
+    ApplicationPermission(String name, int mask) {
+        this.name = name;
+        this.mask = mask;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public int getMask() {
+        return mask;
+    }
+
 }

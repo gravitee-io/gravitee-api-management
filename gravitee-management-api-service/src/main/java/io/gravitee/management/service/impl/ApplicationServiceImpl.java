@@ -17,6 +17,7 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
@@ -24,10 +25,7 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,17 +73,18 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             Optional<Application> application = applicationRepository.findById(applicationId);
 
             if (application.isPresent()) {
-                Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndMembershipType(
+                Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndRole(
                         MembershipReferenceType.APPLICATION,
                         applicationId,
-                        MembershipType.PRIMARY_OWNER.name())
+                        RoleScope.APPLICATION,
+                        SystemRole.PRIMARY_OWNER.name())
                         .stream()
                         .findFirst();
                 if (!primaryOwnerMembership.isPresent()) {
                     LOGGER.error("The Application {} doesn't have any primary owner.", applicationId);
                     throw new TechnicalException("The Application " + applicationId + " doesn't have any primary owner.");
                 }
-                return convert(application.get(), userService.findByName(primaryOwnerMembership.get().getUserId()));
+                return convert(application.get(), userService.findByName(primaryOwnerMembership.get().getUserId(), false));
             }
 
             throw new ApplicationNotFoundException(applicationId);
@@ -200,12 +199,13 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
             // Add the primary owner of the newly created API
             Membership membership = new Membership(username, createdApplication.getId(), MembershipReferenceType.APPLICATION);
-            membership.setType(MembershipType.PRIMARY_OWNER.name());
+            membership.setRoleScope(RoleScope.APPLICATION.getId());
+            membership.setRoleName(SystemRole.PRIMARY_OWNER.name());
             membership.setCreatedAt(application.getCreatedAt());
             membership.setUpdatedAt(application.getCreatedAt());
             membershipRepository.create(membership);
 
-            return convert(createdApplication, userService.findByName(username));
+            return convert(createdApplication, userService.findByName(username, false));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, username, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for user " + username, ex);
@@ -279,10 +279,11 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             return Collections.emptySet();
         }
         //find primary owners usernames of each applications
-        Set<Membership> memberships = membershipRepository.findByReferencesAndMembershipType(
+        Set<Membership> memberships = membershipRepository.findByReferencesAndRole(
                 MembershipReferenceType.APPLICATION,
                 applications.stream().map(Application::getId).collect(Collectors.toList()),
-                MembershipType.PRIMARY_OWNER.name()
+                RoleScope.APPLICATION,
+                SystemRole.PRIMARY_OWNER.name()
         );
 
         int poMissing = applications.size() - memberships.size();
@@ -299,7 +300,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         memberships.forEach(membership -> applicationToUser.put(membership.getReferenceId(), membership.getUserId()));
 
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
-        userService.findByNames(memberships.stream().map(Membership::getUserId).collect(Collectors.toList()))
+        userService.findByNames(memberships.stream().map(Membership::getUserId).collect(Collectors.toList()), false)
                 .forEach(userEntity -> userIdToUserEntity.put(userEntity.getUsername(), userEntity));
 
         return applications.stream()

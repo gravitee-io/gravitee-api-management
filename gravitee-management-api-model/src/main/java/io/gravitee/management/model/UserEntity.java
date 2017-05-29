@@ -22,7 +22,9 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class UserEntity {
 
@@ -54,7 +56,7 @@ public class UserEntity {
     /**
      * The user roles
      */
-    private Set<String> roles;
+    private Set<UserRoleEntity> roles;
 
     /**
      * The user creation date
@@ -144,11 +146,11 @@ public class UserEntity {
 		this.password = password;
 	}
 
-	public Set<String> getRoles() {
+	public Set<UserRoleEntity> getRoles() {
 		return roles;
 	}
 
-	public void setRoles(Set<String> roles) {
+	public void setRoles(Set<UserRoleEntity> roles) {
 		this.roles = roles;
 	}
 
@@ -206,6 +208,7 @@ public class UserEntity {
         sb.append(", firstname='").append(firstname).append('\'');
         sb.append(", lastname='").append(lastname).append('\'');
         sb.append(", mail='").append(email).append('\'');
+        sb.append(", roles='").append(roles).append('\'');
         sb.append('}');
         return sb.toString();
     }

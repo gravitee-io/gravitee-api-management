@@ -17,10 +17,12 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.UpdateApplicationEntity;
-import io.gravitee.management.model.permissions.ApplicationPermission;
 import io.gravitee.management.rest.enhancer.ApplicationEnhancer;
-import io.gravitee.management.rest.security.ApplicationPermissionsRequired;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApplicationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,6 +39,7 @@ import javax.ws.rs.core.Response;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Application"})
@@ -53,12 +56,14 @@ public class ApplicationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApplicationPermissionsRequired(ApplicationPermission.READ)
     @ApiOperation(value = "Get an application",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Application", response = ApplicationEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
+    })
     public ApplicationEntity getApplication(@PathParam("application") String application) {
         ApplicationEntity applicationEntity = applicationService.findById(application);
         return applicationEnhancer.enhance(securityContext).apply(applicationEntity);
@@ -67,12 +72,14 @@ public class ApplicationResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_APPLICATION)
-    @ApiOperation(value = "Get an application",
+    @ApiOperation(value = "Update an application",
             notes = "User must have the MANAGE_APPLICATION permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Updated application", response = ApplicationEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
+    })
     public ApplicationEntity updateApplication(
             @PathParam("application") String application,
             @Valid @NotNull final UpdateApplicationEntity updatedApplication) {
@@ -82,12 +89,14 @@ public class ApplicationResource extends AbstractResource {
     }
 
     @DELETE
-    @ApplicationPermissionsRequired(ApplicationPermission.DELETE)
     @ApiOperation(value = "Delete an application",
             notes = "User must have the DELETE permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Application successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE)
+    })
     public Response deleteApplication(@PathParam("application") String application) {
         applicationService.archive(application);
         return Response.noContent().build();

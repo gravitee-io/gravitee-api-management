@@ -18,6 +18,10 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ResourceEntity;
 import io.gravitee.management.model.ResourceListItem;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ResourceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,12 +34,14 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/resources")
@@ -51,6 +57,9 @@ public class ResourcesResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List resources")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+    })
     public Collection<ResourceListItem> listResources(@QueryParam("expand") List<String> expand) {
         Stream<ResourceListItem> stream = resourceService.findAll().stream().map(this::convert);
 
@@ -69,7 +78,7 @@ public class ResourcesResource {
         }
 
         return stream
-                .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
+                .sorted(Comparator.comparing(ResourceListItem::getName))
                 .collect(Collectors.toList());
     }
 

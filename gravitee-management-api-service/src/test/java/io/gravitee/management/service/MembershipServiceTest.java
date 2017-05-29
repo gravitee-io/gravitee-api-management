@@ -16,15 +16,16 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.MembershipType;
-import io.gravitee.management.model.NewUserEntity;
+import io.gravitee.management.model.RoleEntity;
+import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.exceptions.NotAuthorizedMembershipException;
+import io.gravitee.management.service.exceptions.RoleNotFoundException;
 import io.gravitee.management.service.impl.MembershipServiceImpl;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.User;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,8 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static org.mockito.Mockito.*;
 
 /**
@@ -62,17 +65,19 @@ public class MembershipServiceTest {
 
     @Mock
     private IdentityService identityService;
+    @Mock
+    private RoleService roleService;
 
     @Test
     public void shouldGetEmptyMembersWithMembership() throws Exception {
-        when(membershipRepository.findByReferenceAndMembershipType(MembershipReferenceType.API, API_ID, MembershipType.PRIMARY_OWNER.name()))
+        when(membershipRepository.findByReferenceAndRole(MembershipReferenceType.API, API_ID, RoleScope.API, SystemRole.PRIMARY_OWNER.name()))
                 .thenReturn(Collections.emptySet());
 
-        Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, API_ID, MembershipType.PRIMARY_OWNER);
+        Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, API_ID, RoleScope.API, SystemRole.PRIMARY_OWNER.name());
 
         Assert.assertNotNull(members);
         Assert.assertTrue("members must be empty", members.isEmpty());
-        verify(membershipRepository, times(1)).findByReferenceAndMembershipType(MembershipReferenceType.API, API_ID, MembershipType.PRIMARY_OWNER.name());
+        verify(membershipRepository, times(1)).findByReferenceAndRole(MembershipReferenceType.API, API_ID, RoleScope.API, SystemRole.PRIMARY_OWNER.name());
     }
 
     @Test
@@ -82,22 +87,28 @@ public class MembershipServiceTest {
         membership.setCreatedAt(new Date());
         membership.setUpdatedAt(membership.getCreatedAt());
         membership.setReferenceType(MembershipReferenceType.API);
-        membership.setType(MembershipType.PRIMARY_OWNER.name());
+        membership.setRoleScope(RoleScope.API.getId());
+        membership.setRoleName("PRIMAY_OWNER");
         membership.setUserId("user-id");
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(membership.getUserId());
         userEntity.setFirstname("John");
         userEntity.setLastname("Doe");
-        when(membershipRepository.findByReferenceAndMembershipType(MembershipReferenceType.API, API_ID, MembershipType.PRIMARY_OWNER.name()))
+        RoleEntity po = mock(RoleEntity.class);
+        po.setScope(io.gravitee.management.model.permissions.RoleScope.API);
+        po.setName(SystemRole.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferenceAndRole(MembershipReferenceType.API, API_ID, RoleScope.API, SystemRole.PRIMARY_OWNER.name()))
                 .thenReturn(Collections.singleton(membership));
-        when(userService.findByName(membership.getUserId())).thenReturn(userEntity);
+        when(userService.findByName(membership.getUserId(), false)).thenReturn(userEntity);
+        when(membershipRepository.findById(userEntity.getUsername(),MembershipReferenceType.API, API_ID)).thenReturn(of(membership));
+        when(roleService.findById(RoleScope.valueOf(membership.getRoleScope()), membership.getRoleName())).thenReturn(po);
 
-        Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, API_ID, MembershipType.PRIMARY_OWNER);
+        Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, API_ID, RoleScope.API, SystemRole.PRIMARY_OWNER.name());
 
         Assert.assertNotNull(members);
         Assert.assertFalse("members must not be empty", members.isEmpty());
-        verify(membershipRepository, times(1)).findByReferenceAndMembershipType(MembershipReferenceType.API, API_ID, MembershipType.PRIMARY_OWNER.name());
-        verify(userService, times(1)).findByName(membership.getUserId());
+        verify(membershipRepository, times(1)).findByReferenceAndRole(MembershipReferenceType.API, API_ID, RoleScope.API, SystemRole.PRIMARY_OWNER.name());
+        verify(userService, times(1)).findByName(membership.getUserId(), false);
     }
 
     @Test
@@ -107,22 +118,28 @@ public class MembershipServiceTest {
         membership.setCreatedAt(new Date());
         membership.setUpdatedAt(membership.getCreatedAt());
         membership.setReferenceType(MembershipReferenceType.API);
-        membership.setType(MembershipType.PRIMARY_OWNER.name());
+        membership.setRoleScope(RoleScope.API.getId());
+        membership.setRoleName("PRIMAY_OWNER");
         membership.setUserId("user-id");
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(membership.getUserId());
         userEntity.setFirstname("John");
         userEntity.setLastname("Doe");
-        when(membershipRepository.findByReferenceAndMembershipType(MembershipReferenceType.API, API_ID, null))
+        RoleEntity po = mock(RoleEntity.class);
+        po.setScope(io.gravitee.management.model.permissions.RoleScope.API);
+        po.setName(SystemRole.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferenceAndRole(MembershipReferenceType.API, API_ID, null, null))
                 .thenReturn(Collections.singleton(membership));
-        when(userService.findByName(membership.getUserId())).thenReturn(userEntity);
+        when(userService.findByName(membership.getUserId(), false)).thenReturn(userEntity);
+        when(membershipRepository.findById(userEntity.getUsername(),MembershipReferenceType.API, API_ID)).thenReturn(of(membership));
+        when(roleService.findById(RoleScope.valueOf(membership.getRoleScope()), membership.getRoleName())).thenReturn(po);
 
         Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, API_ID);
 
         Assert.assertNotNull(members);
         Assert.assertFalse("members must not be empty", members.isEmpty());
-        verify(membershipRepository, times(1)).findByReferenceAndMembershipType(MembershipReferenceType.API, API_ID, null);
-        verify(userService, times(1)).findByName(membership.getUserId());
+        verify(membershipRepository, times(1)).findByReferenceAndRole(MembershipReferenceType.API, API_ID, null, null);
+        verify(userService, times(1)).findByName(membership.getUserId(), false);
     }
 
     @Test
@@ -130,15 +147,22 @@ public class MembershipServiceTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername("my name");
         userEntity.setEmail("me@mail.com");
+        RoleEntity role = mock(RoleEntity.class);
+        Membership newMembership = new Membership();
+        newMembership.setReferenceType(MembershipReferenceType.API_GROUP);
+        newMembership.setRoleScope(RoleScope.API.getId());
+        newMembership.setReferenceId(API_ID);
+        newMembership.setUserId(userEntity.getUsername());
+        when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.API);
+        when(roleService.findById(any(), any())).thenReturn(role);
+        when(userService.findByName(userEntity.getUsername(), false)).thenReturn(userEntity);
+        when(membershipRepository.findById(userEntity.getUsername(), MembershipReferenceType.API_GROUP, API_ID)).thenReturn(empty(), of(newMembership));
+        when(membershipRepository.create(any())).thenReturn(newMembership);
 
-        when(userService.findByName(userEntity.getUsername())).thenReturn(userEntity);
-        when(membershipRepository.findById(userEntity.getUsername(), MembershipReferenceType.API_GROUP, API_ID)).thenReturn(Optional.empty());
+        membershipService.addOrUpdateMember(MembershipReferenceType.API_GROUP, API_ID, userEntity.getUsername(), RoleScope.API, "OWNER");
 
-
-        membershipService.addOrUpdateMember(MembershipReferenceType.API_GROUP, API_ID, userEntity.getUsername(), MembershipType.OWNER);
-
-        verify(userService, times(1)).findByName(userEntity.getUsername());
-        verify(membershipRepository, times(1)).findById(userEntity.getUsername(), MembershipReferenceType.API_GROUP, API_ID);
+        verify(userService, times(2)).findByName(userEntity.getUsername(), false);
+        verify(membershipRepository, times(2)).findById(userEntity.getUsername(), MembershipReferenceType.API_GROUP, API_ID);
         verify(membershipRepository, times(1)).create(any());
         verify(membershipRepository, never()).update(any());
         verify(emailService, times(1)).sendAsyncEmailNotification(any());
@@ -151,26 +175,51 @@ public class MembershipServiceTest {
         userEntity.setEmail("me@mail.com");
         Membership membership = new Membership();
         membership.setUserId(userEntity.getUsername());
+        Membership newMembership = new Membership();
+        newMembership.setUserId(userEntity.getUsername());
+        newMembership.setReferenceType(MembershipReferenceType.API_GROUP);
+        newMembership.setReferenceId(API_ID);
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.API);
+        when(roleService.findById(any(), any())).thenReturn(role);
+        when(userService.findByName(userEntity.getUsername(), false)).thenReturn(userEntity);
+        when(membershipRepository.findById(userEntity.getUsername(), MembershipReferenceType.API_GROUP, API_ID)).thenReturn(of(membership));
+        when(membershipRepository.update(any())).thenReturn(newMembership);
 
-        when(userService.findByName(userEntity.getUsername())).thenReturn(userEntity);
-        when(membershipRepository.findById(userEntity.getUsername(), MembershipReferenceType.API_GROUP, API_ID)).thenReturn(Optional.of(membership));
+        membershipService.addOrUpdateMember(MembershipReferenceType.API_GROUP, API_ID, userEntity.getUsername(), RoleScope.API, "OWNER");
 
-        membershipService.addOrUpdateMember(MembershipReferenceType.API_GROUP, API_ID, userEntity.getUsername(), MembershipType.OWNER);
-
-        verify(userService, times(1)).findByName(userEntity.getUsername());
-        verify(membershipRepository, times(1)).findById(userEntity.getUsername(), MembershipReferenceType.API_GROUP, API_ID);
+        verify(userService, times(2)).findByName(userEntity.getUsername(), false);
+        verify(membershipRepository, times(2)).findById(userEntity.getUsername(), MembershipReferenceType.API_GROUP, API_ID);
         verify(membershipRepository, never()).create(any());
         verify(membershipRepository, times(1)).update(any());
         verify(emailService, times(1)).sendAsyncEmailNotification(any());
     }
 
-    @Test(expected = NotAuthorizedMembershipException.class)
-    public void shouldDisallowAddPrimaryOwnerOnApiGroup() throws Exception {
-        membershipService.addOrUpdateMember(MembershipReferenceType.API_GROUP, API_ID, "xxxxx", MembershipType.PRIMARY_OWNER);
+    @Test(expected = RoleNotFoundException.class)
+    public void shouldDisallowAddUnknownRoleOnApiGroup() throws Exception {
+        when(roleService.findById(any(), any())).thenThrow(new RoleNotFoundException(RoleScope.PORTAL, "name"));
+        membershipService.addOrUpdateMember(MembershipReferenceType.API_GROUP, API_ID, "xxxxx", RoleScope.PORTAL, "name");
+    }
+
+    @Test(expected = RoleNotFoundException.class)
+    public void shouldDisallowAddUnknownRoleOnApplicationGroup() throws Exception {
+        when(roleService.findById(any(), any())).thenThrow(new RoleNotFoundException(RoleScope.PORTAL, "name"));
+        membershipService.addOrUpdateMember(MembershipReferenceType.APPLICATION_GROUP, API_ID, "xxxxx", RoleScope.PORTAL, "name");
     }
 
     @Test(expected = NotAuthorizedMembershipException.class)
-    public void shouldDisallowAddPrimaryOwnerOnApplicationGroup() throws Exception {
-        membershipService.addOrUpdateMember(MembershipReferenceType.APPLICATION_GROUP, API_ID, "xxxxx", MembershipType.PRIMARY_OWNER);
+    public void shouldDisallowAddWrongRoleOnApiGroup() throws Exception {
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.APPLICATION);
+        when(roleService.findById(any(), any())).thenReturn(role);
+        membershipService.addOrUpdateMember(MembershipReferenceType.API_GROUP, API_ID, "xxxxx", RoleScope.APPLICATION, "PRIMAY_OWNER");
+    }
+
+    @Test(expected = NotAuthorizedMembershipException.class)
+    public void shouldDisallowAddWrongRoleOnApplicationGroup() throws Exception {
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.API);
+        when(roleService.findById(any(), any())).thenReturn(role);
+        membershipService.addOrUpdateMember(MembershipReferenceType.APPLICATION_GROUP, API_ID, "xxxxx", RoleScope.API, "PRIMAY_OWNER");
     }
 }

@@ -17,7 +17,11 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.enhancer.ViewEnhancer;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ViewService;
 import io.swagger.annotations.Api;
@@ -31,7 +35,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Views"})
@@ -68,6 +73,9 @@ public class ViewsResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.CREATE)
+    })
     public List<ViewEntity> create(@Valid @NotNull final List<NewViewEntity> views) {
         return viewService.create(views);
     }
@@ -75,6 +83,9 @@ public class ViewsResource extends AbstractResource  {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.UPDATE)
+    })
     public List<ViewEntity> update(@Valid @NotNull final List<UpdateViewEntity> views) {
         return viewService.update(views);
     }
@@ -82,6 +93,9 @@ public class ViewsResource extends AbstractResource  {
     @Path("{view}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.DELETE)
+    })
     public void delete(@PathParam("view") String view) {
         viewService.delete(view);
     }

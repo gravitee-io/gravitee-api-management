@@ -18,9 +18,12 @@ package io.gravitee.management.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class MemberEntity {
 
@@ -32,7 +35,9 @@ public class MemberEntity {
 
     private String email;
 
-    private MembershipType type;
+    private String role;
+
+    private Map<String, char[]> permissions;
 
     @JsonProperty("created_at")
     private Date createdAt;
@@ -48,12 +53,12 @@ public class MemberEntity {
         this.createdAt = createdAt;
     }
 
-    public MembershipType getType() {
-        return type;
+    public String getRole() {
+        return role;
     }
 
-    public void setType(MembershipType type) {
-        this.type = type;
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public Date getUpdatedAt() {
@@ -94,5 +99,13 @@ public class MemberEntity {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Map<String, char[]> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(Map<String, char[]> permissions) {
+        this.permissions = permissions;
     }
 }

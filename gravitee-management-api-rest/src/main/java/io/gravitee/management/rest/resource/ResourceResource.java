@@ -17,6 +17,10 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ResourceEntity;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ResourceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -31,6 +35,7 @@ import javax.ws.rs.core.Context;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Plugin", "Resource"})
@@ -45,6 +50,9 @@ public class ResourceResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a resource")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+    })
     public ResourceEntity getResource(
             @PathParam("resource") String resource) {
         return resourceService.findById(resource);
@@ -54,6 +62,9 @@ public class ResourceResource {
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a resource's schema")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+    })
     public String getResourceSchema(
             @PathParam("resource") String resource) {
         // Check that the resource exists

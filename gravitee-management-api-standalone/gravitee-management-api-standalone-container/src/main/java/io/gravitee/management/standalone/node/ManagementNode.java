@@ -17,6 +17,7 @@ package io.gravitee.management.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.common.node.AbstractNode;
+import io.gravitee.management.service.InitializerService;
 import io.gravitee.management.services.ServiceManager;
 import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.plugin.core.api.PluginRegistry;
@@ -27,6 +28,7 @@ import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ManagementNode extends AbstractNode {
@@ -44,6 +46,7 @@ public class ManagementNode extends AbstractNode {
         components.add(PluginRegistry.class);
         components.add(ServiceManager.class);
         components.add(JettyEmbeddedContainer.class);
+        components.add(InitializerService.class);
 
         return components;
     }

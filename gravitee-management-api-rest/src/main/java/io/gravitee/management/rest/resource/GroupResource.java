@@ -19,6 +19,10 @@ import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.GroupEntityType;
 import io.gravitee.management.model.NewGroupEntity;
 import io.gravitee.management.model.UpdateGroupEntity;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.GroupService;
 import io.swagger.annotations.*;
 
@@ -54,6 +58,9 @@ public class GroupResource extends AbstractResource {
             @ApiResponse(code = 200, message = "Group definition", response = GroupEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.READ)
+    })
     public GroupEntity get(@PathParam("group") String group) {
         return groupService.findById(group);
     }
@@ -63,6 +70,9 @@ public class GroupResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 204, message = "Group successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.DELETE)
+    })
     public Response delete(@PathParam("group") String group) {
         groupService.delete(group);
         return Response.noContent().build();
@@ -75,6 +85,9 @@ public class GroupResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Group successfully updated", response = GroupEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.UPDATE)
+    })
     public GroupEntity update(
             @PathParam("group")String group,
             @ApiParam(name = "group", required = true)@Valid @NotNull final UpdateGroupEntity updateGroupEntity) {

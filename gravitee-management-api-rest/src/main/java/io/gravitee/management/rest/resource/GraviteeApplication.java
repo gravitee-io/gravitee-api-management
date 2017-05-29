@@ -17,8 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.util.Version;
 import io.gravitee.management.rest.bind.AuthenticationBinder;
-import io.gravitee.management.rest.filter.ApiPermissionFilter;
-import io.gravitee.management.rest.filter.ApplicationPermissionFilter;
+import io.gravitee.management.rest.filter.PermissionsFilter;
 import io.gravitee.management.rest.filter.SecurityContextFilter;
 import io.gravitee.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.management.rest.provider.*;
@@ -40,6 +39,7 @@ import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GraviteeApplication extends ResourceConfig {
@@ -82,8 +82,7 @@ public class GraviteeApplication extends ResourceConfig {
         register(BadRequestExceptionMapper.class);
 
         register(SecurityContextFilter.class);
-        register(ApiPermissionFilter.class);
-        register(ApplicationPermissionFilter.class);
+        register(PermissionsFilter.class);
         register(CorsResponseFilter.class);
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);

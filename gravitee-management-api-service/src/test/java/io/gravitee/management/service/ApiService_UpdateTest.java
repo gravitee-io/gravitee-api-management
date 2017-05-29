@@ -21,13 +21,14 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.MembershipType;
+import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
-import io.gravitee.management.service.jackson.filter.ApiMembershipTypeFilter;
+import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -86,7 +87,7 @@ public class ApiService_UpdateTest {
 
     @Before
     public void setUp() {
-        PropertyFilter apiMembershipTypeFilter = new ApiMembershipTypeFilter();
+        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
     }
 
@@ -103,8 +104,9 @@ public class ApiService_UpdateTest {
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn("/context");
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
-        po.setType(MembershipType.PRIMARY_OWNER.name());
-        when(membershipRepository.findByReferencesAndMembershipType(any(), any(), any()))
+        po.setRoleScope(RoleScope.API.getId());
+        po.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
                 .thenReturn(Collections.singleton(po));
 
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
@@ -188,18 +190,22 @@ public class ApiService_UpdateTest {
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 
         Membership po1 = new Membership("admin", API_ID, MembershipReferenceType.API);
-        po1.setType(MembershipType.PRIMARY_OWNER.name());
-        when(membershipRepository.findByReferencesAndMembershipType(
+        po1.setRoleScope(RoleScope.API.getId());
+        po1.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndRole(
                 MembershipReferenceType.API,
                 Collections.singletonList(API_ID),
-                MembershipType.PRIMARY_OWNER.name()))
+                RoleScope.API,
+                SystemRole.PRIMARY_OWNER.name()))
                 .thenReturn(Collections.singleton(po1));
         Membership po2 = new Membership("admin", API_ID2, MembershipReferenceType.API);
-        po2.setType(MembershipType.PRIMARY_OWNER.name());
-        when(membershipRepository.findByReferencesAndMembershipType(
+        po2.setRoleScope(RoleScope.API.getId());
+        po2.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndRole(
                 MembershipReferenceType.API,
                 Collections.singletonList(API_ID2),
-                MembershipType.PRIMARY_OWNER.name()))
+                RoleScope.API,
+                SystemRole.PRIMARY_OWNER.name()))
                 .thenReturn(Collections.singleton(po2));
 
         apiService.update(API_ID, existingApi);

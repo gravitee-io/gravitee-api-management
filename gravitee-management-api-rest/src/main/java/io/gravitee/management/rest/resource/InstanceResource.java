@@ -17,6 +17,10 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.InstanceEntity;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.InstanceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -31,6 +35,7 @@ import javax.ws.rs.core.Context;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Gateway"})
@@ -48,6 +53,9 @@ public class InstanceResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a gateway instance")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_INSTANCE, acls = RolePermissionAction.READ)
+    })
     public InstanceEntity getInstance() {
         return instanceService.findById(this.instance);
     }

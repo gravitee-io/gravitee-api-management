@@ -17,6 +17,10 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.InstanceListItem;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.InstanceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -28,11 +32,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/instances")
@@ -48,10 +54,11 @@ public class InstancesResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List gateway instances")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_INSTANCE, acls = RolePermissionAction.READ)
+    })
     public Collection<InstanceListItem> listInstances(@QueryParam("includeStopped") boolean includeStopped) {
-        return instanceService.findInstances(includeStopped)
-                .stream()
-                .collect(Collectors.toList());
+        return new ArrayList<>(instanceService.findInstances(includeStopped));
     }
 
     @Path("{instance}")

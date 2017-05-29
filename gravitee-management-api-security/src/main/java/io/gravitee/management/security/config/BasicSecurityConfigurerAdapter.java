@@ -50,7 +50,8 @@ import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFA
 
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
@@ -143,13 +144,13 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                     // API requests
                     .antMatchers(HttpMethod.GET, "/apis/**").permitAll()
-                    .antMatchers(HttpMethod.POST, "/apis").hasAnyAuthority("ADMIN", "API_PUBLISHER")
+                    .antMatchers(HttpMethod.POST, "/apis").authenticated()
                     .antMatchers(HttpMethod.POST, "/apis/**").authenticated()
                     .antMatchers(HttpMethod.PUT, "/apis/**").authenticated()
                     .antMatchers(HttpMethod.DELETE, "/apis/**").authenticated()
 
                     // Application requests
-                    .antMatchers(HttpMethod.POST, "/applications").hasAnyAuthority("ADMIN", "API_CONSUMER")
+                    .antMatchers(HttpMethod.POST, "/applications").authenticated()
                     .antMatchers(HttpMethod.POST, "/applications/**").authenticated()
                     .antMatchers(HttpMethod.PUT, "/applications/**").authenticated()
                     .antMatchers(HttpMethod.DELETE, "/applications/**").authenticated()
@@ -158,18 +159,18 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     .antMatchers(HttpMethod.GET, "/subscriptions/**").authenticated()
 
                     // Instance requests
-                    .antMatchers(HttpMethod.GET, "/instances/**").hasAuthority("ADMIN")
+                    .antMatchers(HttpMethod.GET, "/instances/**").authenticated()
 
                     // Platform requests
-                    .antMatchers(HttpMethod.GET, "/platform/**").hasAuthority("ADMIN")
+                    .antMatchers(HttpMethod.GET, "/platform/**").authenticated()
 
                     // User management
                     .antMatchers(HttpMethod.POST, "/users").permitAll()
                     .antMatchers(HttpMethod.POST, "/users/register").permitAll()
-                    .antMatchers(HttpMethod.GET, "/users").hasAuthority("ADMIN")
+                    .antMatchers(HttpMethod.GET, "/users").authenticated()
                     .antMatchers(HttpMethod.GET, "/users/**").authenticated()
-                    .antMatchers(HttpMethod.PUT, "/users/**").hasAuthority("ADMIN")
-                    .antMatchers(HttpMethod.DELETE, "/users/**").hasAuthority("ADMIN")
+                    .antMatchers(HttpMethod.PUT, "/users/**").authenticated()
+                    .antMatchers(HttpMethod.DELETE, "/users/**").authenticated()
 
                     // Swagger
                     .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
@@ -187,13 +188,13 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     .antMatchers(HttpMethod.GET, "/configuration/tenants/**").permitAll()
 
                     // Configuration
-                    .antMatchers("/configuration/**").hasAuthority("ADMIN")
+                    .antMatchers("/configuration/**").authenticated()
 
                     // Portal
                     .antMatchers(HttpMethod.GET, "/portal/**").permitAll()
-                    .antMatchers(HttpMethod.POST, "/portal/**").hasAnyAuthority("ADMIN")
-                    .antMatchers(HttpMethod.PUT, "/portal/**").hasAnyAuthority("ADMIN")
-                    .antMatchers(HttpMethod.DELETE, "/portal/**").hasAnyAuthority("ADMIN")
+                    .antMatchers(HttpMethod.POST, "/portal/**").authenticated()
+                    .antMatchers(HttpMethod.PUT, "/portal/**").authenticated()
+                    .antMatchers(HttpMethod.DELETE, "/portal/**").authenticated()
 
                     .anyRequest().authenticated()
             .and()

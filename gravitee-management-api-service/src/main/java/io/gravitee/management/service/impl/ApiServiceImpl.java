@@ -27,6 +27,8 @@ import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
+import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
@@ -34,6 +36,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.management.model.Visibility;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -93,6 +96,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private ApiMetadataService apiMetadataService;
+
+    @Autowired
+    private RoleService roleService;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
@@ -155,9 +161,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 Api createdApi = apiRepository.create(repoApi);
 
                 // Add the primary owner of the newly created API
-                UserEntity primaryOwner = userService.findByName(username);
+                UserEntity primaryOwner = userService.findByName(username, false);
                 Membership membership = new Membership(primaryOwner.getUsername(), createdApi.getId(), MembershipReferenceType.API);
-                membership.setType(MembershipType.PRIMARY_OWNER.name());
+                membership.setRoleScope(RoleScope.API.getId());
+                membership.setRoleName(SystemRole.PRIMARY_OWNER.name());
                 membership.setCreatedAt(repoApi.getCreatedAt());
                 membership.setUpdatedAt(repoApi.getCreatedAt());
                 membershipRepository.create(membership);
@@ -209,17 +216,19 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Optional<Api> api = apiRepository.findById(apiId);
 
             if (api.isPresent()) {
-                Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndMembershipType(
+                Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndRole(
                         MembershipReferenceType.API,
                         api.get().getId(),
-                        MembershipType.PRIMARY_OWNER.name())
+                        RoleScope.API,
+                        SystemRole.PRIMARY_OWNER.name())
                         .stream()
                         .findFirst();
                 if (!primaryOwnerMembership.isPresent()) {
                     LOGGER.error("The API {} doesn't have any primary owner.", apiId);
                     throw new TechnicalException("The API " + apiId + " doesn't have any primary owner.");
                 }
-                return convert(api.get(), userService.findByName(primaryOwnerMembership.get().getUserId()), true);
+
+                return convert(api.get(), userService.findByName(primaryOwnerMembership.get().getUserId(), false), true);
             }
 
             throw new ApiNotFoundException(apiId);
@@ -535,7 +544,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public String exportAsJson(final String apiId, io.gravitee.management.model.MembershipType membershipType, String... filteredFields) {
+    public String exportAsJson(final String apiId, String role, String... filteredFields) {
         final ApiEntity apiEntity = findById(apiId);
         List<String> filteredFiedsList = Arrays.asList(filteredFields);
 
@@ -545,10 +554,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setDeployedAt(null);
         apiEntity.setPrimaryOwner(null);
         apiEntity.setState(null);
-        // because ApiEntity checks permission before export datas,
-        // we have to set membershipType.
-        // see annotations `MembershipTypesAllowed` ok ApiEntity class.
-        apiEntity.setPermission(membershipType);
+
         ObjectNode apiJsonNode = objectMapper.valueToTree(apiEntity);
         String field;
 
@@ -565,6 +571,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, apiId);
             if (members != null) {
                 members.forEach(m -> {
+                    m.setFirstname(null);
+                    m.setLastname(null);
+                    m.setEmail(null);
+                    m.setPermissions(null);
                     m.setCreatedAt(null);
                     m.setUpdatedAt(null);
                 });
@@ -650,15 +660,27 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             // Members
             final JsonNode membersDefinition = jsonNode.path("members");
             if (membersDefinition != null && membersDefinition.isArray()) {
+                String memberAsPrimaryOwner = null;
                 for (final JsonNode memberNode : membersDefinition) {
                     MemberEntity memberEntity = objectMapper.readValue(memberNode.toString(), MemberEntity.class);
                     membershipService.addOrUpdateMember(
                             MembershipReferenceType.API,
                             createdOrUpdatedApiEntity.getId(),
                             memberEntity.getUsername(),
-                            memberEntity.getType());
+                            RoleScope.API,
+                            memberEntity.getRole());
+                    if (SystemRole.PRIMARY_OWNER.name().equals(memberEntity.getRole())) {
+                        memberAsPrimaryOwner = memberEntity.getUsername();
+                    }
+                }
+                //transfer ownership if necessary
+                if (memberAsPrimaryOwner != null && !username.equals(memberAsPrimaryOwner)) {
+                    membershipService.transferApiOwnership(createdOrUpdatedApiEntity.getId(), memberAsPrimaryOwner);
                 }
             }
+
+            //
+
             //Pages
             final JsonNode pagesDefinition = jsonNode.path("pages");
             if (pagesDefinition != null && pagesDefinition.isArray()) {
@@ -758,7 +780,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiModelEntity.setTags(apiEntity.getTags());
         apiModelEntity.setServices(apiEntity.getServices());
         apiModelEntity.setPaths(apiEntity.getPaths());
-        apiModelEntity.setPermission(apiEntity.getPermission());
+        apiModelEntity.setRole(apiEntity.getRole());
         apiModelEntity.setPicture(apiEntity.getPicture());
         apiModelEntity.setPictureUrl(apiEntity.getPictureUrl());
         apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
@@ -810,15 +832,31 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
+//    @Override
+//    public ApiEntity transferOwnership(String apiId, String newOwner) throws TechnicalException {
+//        Optional<Api> optApi = apiRepository.findById(apiId);
+//        if (optApi.isPresent()) {
+//            //check that user exists
+//            userService.findByName(newOwner, false);
+//            Api api = optApi.get();
+//            api.setOwner(newOwner);
+//            api.setUpdatedAt(new Date());
+//            return convert(apiRepository.update(api), false);
+//        } else {
+//            throw new ApiNotFoundException(apiId);
+//        }
+//    }
+
     private Set<ApiEntity> convert(Set<Api> apis, boolean readDefinition) throws TechnicalException {
         if (apis == null || apis.isEmpty()) {
             return Collections.emptySet();
         }
         //find primary owners usernames of each apis
-        Set<Membership> memberships = membershipRepository.findByReferencesAndMembershipType(
+        Set<Membership> memberships = membershipRepository.findByReferencesAndRole(
                 MembershipReferenceType.API,
                 apis.stream().map(Api::getId).collect(Collectors.toList()),
-                MembershipType.PRIMARY_OWNER.name()
+                RoleScope.API,
+                SystemRole.PRIMARY_OWNER.name()
         );
 
         int poMissing = apis.size() - memberships.size();
@@ -835,7 +873,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         memberships.forEach(membership -> apiToUser.put(membership.getReferenceId(), membership.getUserId()));
 
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
-        userService.findByNames(memberships.stream().map(Membership::getUserId).collect(Collectors.toList()))
+        userService.findByNames(memberships.stream().map(Membership::getUserId).collect(Collectors.toList()), false)
                 .forEach(userEntity -> userIdToUserEntity.put(userEntity.getUsername(), userEntity));
 
         return apis.stream()
@@ -889,7 +927,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         if (primaryOwner != null) {
-            final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+        final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
             primaryOwnerEntity.setUsername(primaryOwner.getUsername());
             primaryOwnerEntity.setLastname(primaryOwner.getLastname());
             primaryOwnerEntity.setFirstname(primaryOwner.getFirstname());

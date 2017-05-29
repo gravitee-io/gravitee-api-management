@@ -16,12 +16,14 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.analytics.query.LogQuery;
 import io.gravitee.management.model.log.ApiRequest;
 import io.gravitee.management.model.log.SearchLogResponse;
-import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.rest.resource.param.LogsParam;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.LogsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -33,9 +35,9 @@ import javax.ws.rs.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiPermissionsRequired(ApiPermission.ANALYTICS)
 @Api(tags = {"API"})
 public class ApiLogsResource extends AbstractResource {
 
@@ -48,6 +50,7 @@ public class ApiLogsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API logs"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
     public SearchLogResponse apiLogs(
             @PathParam("api") String api,
             @BeanParam LogsParam param) {
@@ -71,6 +74,7 @@ public class ApiLogsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Single log"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
     public ApiRequest apiLog(
             @PathParam("api") String api,
             @PathParam("log") String logId) {

@@ -16,8 +16,12 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.NewExternalUserEntity;
+import io.gravitee.management.model.RoleEntity;
+import io.gravitee.management.model.UserRoleEntity;
+import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.model.UserEntity;
-import io.gravitee.management.model.permissions.Role;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
@@ -53,7 +57,12 @@ public class UserServiceTest {
     private static final String FIRST_NAME = "The";
     private static final String LAST_NAME = "User";
     private static final String PASSWORD = "gh2gyf8!zjfnz";
-    private static final Set<String> ROLES = Collections.singleton(Role.USER.name());
+    private static final Set<UserRoleEntity> ROLES = Collections.singleton(new UserRoleEntity());
+    static {
+        UserRoleEntity r = ROLES.iterator().next();
+        r.setScope(io.gravitee.management.model.permissions.RoleScope.PORTAL);
+        r.setName("USER");
+    }
 
     @InjectMocks
     private UserServiceImpl userService = new UserServiceImpl();
@@ -63,6 +72,11 @@ public class UserServiceTest {
 
     @Mock
     private ApplicationService applicationService;
+
+    @Mock
+    private RoleService roleService;
+
+    @Mock MembershipService membershipService;
 
     @Mock
     private NewExternalUserEntity newUser;
@@ -78,31 +92,30 @@ public class UserServiceTest {
         when(user.getFirstname()).thenReturn(FIRST_NAME);
         when(user.getLastname()).thenReturn(LAST_NAME);
         when(user.getPassword()).thenReturn(PASSWORD);
-        when(user.getRoles()).thenReturn(ROLES);
         when(userRepository.findByUsernames(Collections.singletonList(USER_NAME))).thenReturn(Collections.singleton(user));
 
-        final UserEntity userEntity = userService.findByName(USER_NAME);
+        final UserEntity userEntity = userService.findByName(USER_NAME, false);
 
         assertEquals(USER_NAME, userEntity.getUsername());
         assertEquals(FIRST_NAME, userEntity.getFirstname());
         assertEquals(LAST_NAME, userEntity.getLastname());
         assertEquals(EMAIL, userEntity.getEmail());
         assertEquals(PASSWORD, userEntity.getPassword());
-        assertEquals(ROLES, userEntity.getRoles());
+        assertEquals(null, userEntity.getRoles());
     }
 
     @Test(expected = UserNotFoundException.class)
     public void shouldNotFindByUsernameBecauseNotExists() throws TechnicalException {
         when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.empty());
 
-        userService.findByName(USER_NAME);
+        userService.findByName(USER_NAME, false);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByUsernameBecauseTechnicalException() throws TechnicalException {
         when(userRepository.findByUsernames(Collections.singletonList(USER_NAME))).thenThrow(TechnicalException.class);
 
-        userService.findByName(USER_NAME);
+        userService.findByName(USER_NAME, false);
     }
 
     @Test
@@ -119,12 +132,19 @@ public class UserServiceTest {
         when(user.getFirstname()).thenReturn(FIRST_NAME);
         when(user.getLastname()).thenReturn(LAST_NAME);
         when(user.getPassword()).thenReturn(PASSWORD);
-        when(user.getRoles()).thenReturn(ROLES);
         when(user.getCreatedAt()).thenReturn(date);
         when(user.getUpdatedAt()).thenReturn(date);
         when(userRepository.create(any(User.class))).thenReturn(user);
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.PORTAL);
+        when(role.getName()).thenReturn("USER");
+        when(roleService.findDefaultRoleByScopes(RoleScope.MANAGEMENT, RoleScope.PORTAL)).thenReturn(Collections.singletonList(role));
+        when(membershipService.getRole(
+                MembershipReferenceType.PORTAL,
+                MembershipDefaultReferenceId.DEFAULT.name(),
+                user.getUsername())).thenReturn(role);
 
-        final UserEntity createdUserEntity = userService.create(newUser);
+        final UserEntity createdUserEntity = userService.create(newUser, false);
 
         verify(userRepository).create(argThat(new ArgumentMatcher<User>() {
             public boolean matches(final Object argument) {
@@ -133,7 +153,6 @@ public class UserServiceTest {
                     EMAIL.equals(userToCreate.getEmail()) &&
                     FIRST_NAME.equals(userToCreate.getFirstname()) &&
                     LAST_NAME.equals(userToCreate.getLastname()) &&
-                    Collections.singleton(Role.API_CONSUMER.name()).equals(userToCreate.getRoles()) &&
                     userToCreate.getCreatedAt() != null &&
                     userToCreate.getUpdatedAt() != null &&
                     userToCreate.getCreatedAt().equals(userToCreate.getUpdatedAt());
@@ -155,7 +174,7 @@ public class UserServiceTest {
         when(newUser.getUsername()).thenReturn(USER_NAME);
         when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(new User()));
 
-        userService.create(newUser);
+        userService.create(newUser, false);
 
         verify(userRepository, never()).create(any());
     }
@@ -166,7 +185,7 @@ public class UserServiceTest {
         when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.empty());
         when(userRepository.create(any(User.class))).thenThrow(TechnicalException.class);
 
-        userService.create(newUser);
+        userService.create(newUser, false);
 
         verify(userRepository, never()).create(any());
     }

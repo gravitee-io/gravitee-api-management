@@ -19,17 +19,18 @@ import com.auth0.jwt.JWTSigner;
 import com.auth0.jwt.JWTVerifier;
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.permissions.Role;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.EmailService;
-import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.common.JWTHelper.Claims;
+import io.gravitee.management.service.exceptions.DefaultRoleNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.management.model.User;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -70,6 +71,12 @@ public class UserServiceImpl extends TransactionalService implements UserService
     @Autowired
     private ApplicationService applicationService;
 
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private MembershipService membershipService;
+
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
 
@@ -100,7 +107,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
             user.setUpdatedAt(user.getLastConnectionAt());
 
             User updatedUser = userRepository.update(user);
-            return convert(updatedUser);
+            return convert(updatedUser, true);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to connect {}", username, ex);
             throw new TechnicalManagementException("An error occurs while trying to connect " + username, ex);
@@ -108,10 +115,10 @@ public class UserServiceImpl extends TransactionalService implements UserService
     }
 
     @Override
-    public UserEntity findByName(String username) {
+    public UserEntity findByName(String username, boolean loadRoles) {
         LOGGER.debug("Find user by name: {}", username);
 
-        Optional<UserEntity> optionalUser = this.findByNames(Collections.singletonList(username)).stream().findFirst();
+        Optional<UserEntity> optionalUser = this.findByNames(Collections.singletonList(username), loadRoles).stream().findFirst();
         if (optionalUser.isPresent()) {
             return optionalUser.get();
         }
@@ -120,14 +127,14 @@ public class UserServiceImpl extends TransactionalService implements UserService
     }
 
     @Override
-    public Set<UserEntity> findByNames(List<String> usernames) {
+    public Set<UserEntity> findByNames(List<String> usernames, boolean loadRoles) {
         try {
             LOGGER.debug("Find user by names: {}", usernames);
 
             Set<User> users = userRepository.findByUsernames(usernames);
 
             if (!users.isEmpty()) {
-                return users.stream().map(UserServiceImpl::convert).collect(Collectors.toSet());
+                return users.stream().map(u -> this.convert(u, loadRoles)).collect(Collectors.toSet());
             }
 
             Optional<String> usernamesAsString = usernames.stream().reduce((a, b) -> a + "/" + b);
@@ -188,7 +195,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
             // Set date fields
             user.setUpdatedAt(new Date());
 
-            return convert(userRepository.update(user));
+            return convert(userRepository.update(user), true);
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to create an internal user with the token {}", registerUserEntity.getToken(), ex);
             throw new TechnicalManagementException(ex.getMessage(), ex);
@@ -201,7 +208,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
      * @return
      */
     @Override
-    public UserEntity create(NewExternalUserEntity newExternalUserEntity) {
+    public UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole) {
         try {
             LOGGER.debug("Create an external user {}", newExternalUserEntity);
             Optional<User> checkUser = userRepository.findByUsername(newExternalUserEntity.getUsername());
@@ -215,14 +222,47 @@ public class UserServiceImpl extends TransactionalService implements UserService
             user.setCreatedAt(new Date());
             user.setUpdatedAt(user.getCreatedAt());
 
-            // Set default role
-            user.setRoles(Collections.singleton(Role.API_CONSUMER.name()));
-
             User createdUser = userRepository.create(user);
-            return convert(createdUser);
+
+            if (addDefaultRole) {
+                addDefaultMembership(createdUser);
+            }
+
+            return convert(createdUser, true);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create an external user {}", newExternalUserEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create an external user" + newExternalUserEntity, ex);
+        }
+    }
+
+    private void addDefaultMembership(User user) {
+        RoleScope[] scopes = {RoleScope.MANAGEMENT, RoleScope.PORTAL};
+        List<RoleEntity> defaultRoleByScopes = roleService.findDefaultRoleByScopes(scopes);
+        if (defaultRoleByScopes == null || defaultRoleByScopes.isEmpty()) {
+            throw new DefaultRoleNotFoundException(scopes);
+        }
+
+        for (RoleEntity defaultRoleByScope : defaultRoleByScopes) {
+            switch (defaultRoleByScope.getScope()) {
+                case MANAGEMENT:
+                    membershipService.addOrUpdateMember(
+                            MembershipReferenceType.MANAGEMENT,
+                            MembershipDefaultReferenceId.DEFAULT.name(),
+                            user.getUsername(),
+                            RoleScope.MANAGEMENT,
+                            defaultRoleByScope.getName());
+                    break;
+                case PORTAL:
+                    membershipService.addOrUpdateMember(
+                            MembershipReferenceType.PORTAL,
+                            MembershipDefaultReferenceId.DEFAULT.name(),
+                            user.getUsername(),
+                            RoleScope.PORTAL,
+                            defaultRoleByScope.getName());
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -237,7 +277,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
         newExternalUserEntity.setSource("gravitee");
         newExternalUserEntity.setSourceId(newExternalUserEntity.getUsername());
 
-        final UserEntity userEntity = create(newExternalUserEntity);
+        final UserEntity userEntity = create(newExternalUserEntity, true);
 
         // generate a JWT to store user's information and for security purpose
         final Map<String, Object> claims = new HashMap<>();
@@ -301,7 +341,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
             user.setPicture(updateUserEntity.getPicture());
 
             User updatedUser = userRepository.update(user);
-            return convert(updatedUser);
+            return convert(updatedUser, true);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update {}", updateUserEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying update " + updateUserEntity, ex);
@@ -309,13 +349,13 @@ public class UserServiceImpl extends TransactionalService implements UserService
     }
 
     @Override
-    public Set<UserEntity> findAll() {
+    public Set<UserEntity> findAll(boolean loadRoles) {
         try {
             LOGGER.debug("Find all users");
 
             Set<User> users = userRepository.findAll();
 
-            return users.stream().map(UserServiceImpl::convert).collect(Collectors.toSet());
+            return users.stream().map(u -> convert(u, loadRoles)).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all users", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all users", ex);
@@ -361,7 +401,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
         return user;
     }
 
-    private static UserEntity convert(User user) {
+    private UserEntity convert(User user, boolean loadRoles) {
         if (user == null) {
             return null;
         }
@@ -374,12 +414,44 @@ public class UserServiceImpl extends TransactionalService implements UserService
         userEntity.setFirstname(user.getFirstname());
         userEntity.setLastname(user.getLastname());
         userEntity.setPassword(user.getPassword());
-        userEntity.setRoles(user.getRoles());
         userEntity.setCreatedAt(user.getCreatedAt());
         userEntity.setUpdatedAt(user.getUpdatedAt());
         userEntity.setLastConnectionAt(user.getLastConnectionAt());
         userEntity.setPicture(user.getPicture());
 
+        if(loadRoles) {
+            Set<UserRoleEntity> roles = new HashSet<>();
+            RoleEntity roleEntity = membershipService.getRole(
+                    MembershipReferenceType.PORTAL,
+                    MembershipDefaultReferenceId.DEFAULT.name(),
+                    user.getUsername());
+            if (roleEntity != null) {
+                roles.add(convert(roleEntity));
+            }
+
+            roleEntity = membershipService.getRole(
+                    MembershipReferenceType.MANAGEMENT,
+                    MembershipDefaultReferenceId.DEFAULT.name(),
+                    user.getUsername());
+            if (roleEntity != null) {
+                roles.add(convert(roleEntity));
+            }
+
+            userEntity.setRoles(roles);
+        }
+
         return userEntity;
+    }
+
+    private UserRoleEntity convert(RoleEntity roleEntity) {
+        if (roleEntity == null) {
+            return null;
+        }
+
+        UserRoleEntity userRoleEntity = new UserRoleEntity();
+        userRoleEntity.setScope(roleEntity.getScope());
+        userRoleEntity.setName(roleEntity.getName());
+        userRoleEntity.setPermissions(roleEntity.getPermissions());
+        return userRoleEntity;
     }
 }

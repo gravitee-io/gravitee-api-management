@@ -49,42 +49,42 @@ public class ApplicationEnhancer {
         return application -> {
             // Add primary owner
             Collection<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.APPLICATION, application.getId());
-            Optional<MemberEntity> primaryOwnerOpt = members.stream().filter(m -> MembershipType.PRIMARY_OWNER.equals(m.getType())).findFirst();
-            if (primaryOwnerOpt.isPresent()) {
-                MemberEntity primaryOwner = primaryOwnerOpt.get();
-                UserEntity user = userService.findByName(primaryOwner.getUsername());
-
-                PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
-                owner.setUsername(user.getUsername());
-                owner.setEmail(user.getEmail());
-                owner.setFirstname(user.getFirstname());
-                owner.setLastname(user.getLastname());
-                application.setPrimaryOwner(owner);
-            }
+//            Optional<MemberEntity> primaryOwnerOpt = members.stream().filter(m -> MembershipType.PRIMARY_OWNER.equals(m.getType())).findFirst();
+//            if (application..isPresent()) {
+//                MemberEntity primaryOwner = primaryOwnerOpt.get();
+//                UserEntity user = userService.findByName(primaryOwner.getUsername());
+//
+//                PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
+//                owner.setUsername(user.getUsername());
+//                owner.setEmail(user.getEmail());
+//                owner.setFirstname(user.getFirstname());
+//                owner.setLastname(user.getLastname());
+//                application.setPrimaryOwner(owner);
+//            }
             
             // Add Members size
             application.setMembersSize(members.size());
 
             // Add permission for current user (if authenticated)
-            if (securityContext.isUserInRole("ADMIN")) {
-                application.setPermission(MembershipType.PRIMARY_OWNER);
-            } else if(securityContext.getUserPrincipal() != null) {
-                MemberEntity member = membershipService.getMember(
-                        MembershipReferenceType.APPLICATION,
-                        application.getId(),
-                        securityContext.getUserPrincipal().getName());
-                if (member != null) {
-                    application.setPermission(member.getType());
-                } else if (application.getGroup() != null && application.getGroup().getId() != null) {
-                    member = membershipService.getMember(
-                            MembershipReferenceType.APPLICATION_GROUP,
-                            application.getGroup().getId(),
-                            securityContext.getUserPrincipal().getName());
-                    if (member != null) {
-                        application.setPermission(member.getType());
-                    }
-                }
-            }
+//            if (securityContext.isUserInRole(DefaultRole.ADMIN.name())) {
+//                application.setPermission(MembershipType.PRIMARY_OWNER);
+//            } else if(securityContext.getUserPrincipal() != null) {
+//                MemberEntity member = membershipService.getMember(
+//                        MembershipReferenceType.APPLICATION,
+//                        application.getId(),
+//                        securityContext.getUserPrincipal().getName());
+//                if (member != null) {
+//                    application.setPermission(member.getType());
+//                } else if (application.getGroup() != null && application.getGroup().getId() != null) {
+//                    member = membershipService.getMember(
+//                            MembershipReferenceType.APPLICATION_GROUP,
+//                            application.getGroup().getId(),
+//                            securityContext.getUserPrincipal().getName());
+//                    if (member != null) {
+//                        application.setPermission(member.getType());
+//                    }
+//                }
+//            }
 
             return application;
         };

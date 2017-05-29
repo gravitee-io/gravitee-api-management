@@ -16,15 +16,15 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.ProcessSubscriptionEntity;
-import io.gravitee.management.model.SubscriptionEntity;
-import io.gravitee.management.model.UpdateSubscriptionEntity;
-import io.gravitee.management.model.permissions.ApiPermission;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.model.*;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.SubscriptionService;
+import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -34,11 +34,11 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"API", "Subscription"})
@@ -50,9 +50,11 @@ public class ApiPlanSubscriptionsResource extends AbstractResource {
     @Inject
     private ApplicationService applicationService;
 
+    @Inject
+    private ApiService apiService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.READ)
     @ApiOperation(value = "List subscriptions for an API",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({
@@ -61,31 +63,39 @@ public class ApiPlanSubscriptionsResource extends AbstractResource {
     public Set<SubscriptionEntity> listApiSubscriptions(
             @PathParam("api") String api,
             @PathParam("plan") String plan) {
-        Set<SubscriptionEntity> subscriptions = subscriptionService.findByPlan(plan);
-        if (isAdmin()) {
-            return subscriptions;
-        } else if (isAuthenticated()) {
-            Set<String> userApps = applicationService.findByUser(getAuthenticatedUsername()).
-                    stream().
-                    map(ApplicationEntity::getId).
-                    collect(Collectors.toSet());
-            return subscriptions.
-                    stream().
-                    filter(subscription -> userApps.contains(subscription.getApplication())).
-                    collect(Collectors.toSet());
+
+        if (Visibility.PUBLIC.equals(apiService.findById(api).getVisibility())
+                || hasPermission(RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ)) {
+
+            Set<SubscriptionEntity> subscriptions = subscriptionService.findByPlan(plan);
+            if (isAdmin()) {
+                return subscriptions;
+            } else if (isAuthenticated()) {
+                Set<String> userApps = applicationService.findByUser(getAuthenticatedUsername()).
+                        stream().
+                        map(ApplicationEntity::getId).
+                        collect(Collectors.toSet());
+                return subscriptions.
+                        stream().
+                        filter(subscription -> userApps.contains(subscription.getApplication())).
+                        collect(Collectors.toSet());
+            }
+            return Collections.emptySet();
         }
-        return Collections.emptySet();
+        throw new ForbiddenAccessException();
     }
 
     @GET
     @Path("{subscription}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_API_KEYS)
     @ApiOperation(value = "Get a subscription",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Get a subscription", response = SubscriptionEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
+    })
     public SubscriptionEntity getApiSubscription(
             @PathParam("api") String api,
             @PathParam("subscription") String subscription) {
@@ -96,13 +106,15 @@ public class ApiPlanSubscriptionsResource extends AbstractResource {
     @Path("{subscription}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_API_KEYS)
     @ApiOperation(value = "Update a subscription",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Update a subscription", response = SubscriptionEntity.class),
             @ApiResponse(code = 400, message = "Bad subscription format"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
+    })
     public Response updateApiSubscription(
             @PathParam("api") String api,
             @PathParam("subscription") String subscription,
@@ -125,13 +137,15 @@ public class ApiPlanSubscriptionsResource extends AbstractResource {
     @POST
     @Path("{subscription}/process")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_API_KEYS)
     @ApiOperation(value = "Update a subscription",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Update a subscription", response = SubscriptionEntity.class),
             @ApiResponse(code = 400, message = "Bad subscription format"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
+    })
     public Response processApiSubscription(
             @PathParam("api") String api,
             @PathParam("subscription") String subscription,

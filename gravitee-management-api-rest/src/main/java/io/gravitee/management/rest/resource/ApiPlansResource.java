@@ -16,14 +16,15 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.NewPlanEntity;
-import io.gravitee.management.model.PlanEntity;
-import io.gravitee.management.model.PlanType;
-import io.gravitee.management.model.UpdatePlanEntity;
-import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.model.*;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.PlanStatusParam;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PlanService;
+import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -34,11 +35,13 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"API", "Plan"})
@@ -47,12 +50,14 @@ public class ApiPlansResource extends AbstractResource {
     @Inject
     private PlanService planService;
 
+    @Inject
+    private ApiService apiService;
+
     @Context
     private ResourceContext resourceContext;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.READ)
     @ApiOperation(
             value = "List plans for an API",
             notes = "List all the plans accessible to the current user.")
@@ -63,21 +68,29 @@ public class ApiPlansResource extends AbstractResource {
             @PathParam("api") String api,
             @QueryParam("status") @DefaultValue("published") PlanStatusParam status) {
 
-        return planService.findByApi(api).stream()
-                .filter(plan -> status.getStatuses().contains(plan.getStatus()))
-                .sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
-                .collect(Collectors.toList());
+        if (Visibility.PUBLIC.equals(apiService.findById(api).getVisibility())
+            || hasPermission(RolePermission.API_PLAN, api, RolePermissionAction.READ)) {
+
+            return planService.findByApi(api).stream()
+                    .filter(plan -> status.getStatuses().contains(plan.getStatus()))
+                    .sorted(Comparator.comparingInt(PlanEntity::getOrder))
+                    .collect(Collectors.toList());
+        }
+
+        throw new ForbiddenAccessException();
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_PLANS)
     @ApiOperation(value = "Create a plan",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Plan successfully created", response = PlanEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_PLAN, acls = RolePermissionAction.CREATE)
+    })
     public Response createPlan(
             @PathParam("api") String api,
             @ApiParam(name = "plan", required = true) @Valid @NotNull NewPlanEntity newPlanEntity) {
@@ -96,13 +109,15 @@ public class ApiPlansResource extends AbstractResource {
     @Path("/{plan}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_PLANS)
     @ApiOperation(value = "Update a plan",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Plan successfully updated", response = PlanEntity.class),
             @ApiResponse(code = 400, message = "Bad plan format"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_PLAN, acls = RolePermissionAction.UPDATE)
+    })
     public Response updatePlan(
             @PathParam("api") String api,
             @PathParam("plan") String plan,
@@ -133,7 +148,6 @@ public class ApiPlansResource extends AbstractResource {
     @GET
     @Path("/{plan}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.READ)
     @ApiOperation(value = "Get a plan",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
@@ -142,26 +156,33 @@ public class ApiPlansResource extends AbstractResource {
     public Response getPlan(
             @PathParam("api") String api,
             @PathParam("plan") String plan) {
-        PlanEntity planEntity = planService.findById(plan);
-        if (! planEntity.getApis().contains(api)) {
-            return Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("'plan' parameter does not correspond to the current API")
-                    .build();
-        }
 
-        return Response.ok(planEntity).build();
+        if (Visibility.PUBLIC.equals(apiService.findById(api).getVisibility())
+                || hasPermission(RolePermission.API_PLAN, api, RolePermissionAction.READ)) {
+            PlanEntity planEntity = planService.findById(plan);
+            if (!planEntity.getApis().contains(api)) {
+                return Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity("'plan' parameter does not correspond to the current API")
+                        .build();
+            }
+
+            return Response.ok(planEntity).build();
+        }
+        throw new ForbiddenAccessException();
     }
 
     @DELETE
     @Path("/{plan}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_PLANS)
     @ApiOperation(value = "Delete a plan",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Plan successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_PLAN, acls = RolePermissionAction.DELETE)
+    })
     public Response deletePlan(
             @PathParam("api") String api,
             @PathParam("plan") String plan) {
@@ -181,12 +202,14 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Path("/{plan}/_close")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_PLANS)
     @ApiOperation(value = "Close  a plan",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Plan successfully closed", response = PlanEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_PLAN, acls = RolePermissionAction.UPDATE)
+    })
     public Response closePlan(
             @PathParam("api") String api,
             @PathParam("plan") String plan) {
@@ -204,12 +227,14 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Path("/{plan}/_publish")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_PLANS)
     @ApiOperation(value = "Publicly publish plan",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Plan successfully published", response = PlanEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_PLAN, acls = RolePermissionAction.UPDATE)
+    })
     public Response publishPlan(
             @PathParam("api") String api,
             @PathParam("plan") String plan) {

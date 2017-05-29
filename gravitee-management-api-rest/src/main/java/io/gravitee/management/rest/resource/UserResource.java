@@ -16,9 +16,10 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.idp.api.authentication.UserDetailRole;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.UpdateUserEntity;
-import io.gravitee.management.model.permissions.Role;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
@@ -29,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.http.HttpServletResponse;
@@ -40,9 +40,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * @author Azize Elamrani (azize at gravitee.io)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/user")
@@ -68,20 +70,31 @@ public class UserResource extends AbstractResource {
         if (principal instanceof UserDetails) {
             final UserDetails details = ((UserDetails) principal);
             final String username = details.getUsername();
+            UserEntity userEntity;
             try {
-                userService.findByName(username);
+                userEntity = userService.findByName(username, true);
             } catch (final UserNotFoundException unfe) {
                 LOG.info("User '{}' no longer exists.", username, unfe);
                 return logout();
             }
 
             List<GrantedAuthority> authorities = new ArrayList<>(details.getAuthorities());
-            authorities.add(new SimpleGrantedAuthority(Role.API_CONSUMER.name()));
 
             UserDetails userDetails = new UserDetails(details.getUsername(), details.getPassword(), authorities);
             userDetails.setFirstname(details.getFirstname());
             userDetails.setLastname(details.getLastname());
             userDetails.setEmail(details.getEmail());
+
+            //convert UserEntityRoles to UserDetailsRoles
+            userDetails.setRoles(userEntity.getRoles().
+                    stream().
+                    map( userEntityRole -> {
+                        UserDetailRole userDetailRole = new UserDetailRole();
+                        userDetailRole.setScope(userEntityRole.getScope().name());
+                        userDetailRole.setName(userEntityRole.getName());
+                        userDetailRole.setPermissions(userEntityRole.getPermissions());
+                        return userDetailRole;
+                    }).collect(Collectors.toList()));
 
             return Response.ok(userDetails, MediaType.APPLICATION_JSON).build();
         }
@@ -103,7 +116,7 @@ public class UserResource extends AbstractResource {
     @Path("/{username}/picture")
     @ApiOperation(value = "Get user's picture")
     public Response getCurrentUserPicture(@PathParam("username") final String username) {
-        return Response.ok(userService.findByName(username).getPicture()).build();
+        return Response.ok(userService.findByName(username, false).getPicture()).build();
     }
 
     @POST

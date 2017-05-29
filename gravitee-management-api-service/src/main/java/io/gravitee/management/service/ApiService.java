@@ -22,6 +22,7 @@ import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ApiService {
@@ -61,7 +62,7 @@ public interface ApiService {
     
     ApiEntity rollback(String apiId, UpdateApiEntity api);
 
-    String exportAsJson(String apiId, MembershipType membershipType, String... filteredFields);
+    String exportAsJson(String apiId, String role, String... filteredFields);
 
     ApiEntity createOrUpdateWithDefinition(ApiEntity apiEntity, String apiDefinition, String username);
 

@@ -52,6 +52,9 @@ public abstract class AbstractFilterTest {
     @Autowired
     protected MembershipService membershipService;
 
+    @Autowired
+    protected RoleService roleService;
+
     @Configuration
     static class ContextConfiguration {
 
@@ -78,6 +81,11 @@ public abstract class AbstractFilterTest {
         @Bean
         public MembershipService membershipService() {
             return mock(MembershipService.class);
+        }
+
+        @Bean
+        public RoleService roleService() {
+            return mock(RoleService.class);
         }
     }
 }

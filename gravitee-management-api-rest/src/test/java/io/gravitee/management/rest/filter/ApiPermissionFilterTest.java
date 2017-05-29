@@ -15,14 +15,16 @@
  */
 package io.gravitee.management.rest.filter;
 
-import io.gravitee.management.model.GroupEntity;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.MembershipType;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.permissions.ApiPermission;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.model.permissions.RoleScope;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.MembershipService;
+import io.gravitee.management.service.RoleService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import org.junit.Assert;
@@ -32,7 +34,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -51,13 +52,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class ApiPermissionFilterTest {
 
     @InjectMocks
-    protected ApiPermissionFilter apiPermissionFilter;
+    protected PermissionsFilter apiPermissionFilter;
 
     @Mock
     protected ApiService apiService;
-
-    @Mock
-    protected ResourceInfo resourceInfo;
 
     @Mock
     protected SecurityContext securityContext;
@@ -66,7 +64,10 @@ public class ApiPermissionFilterTest {
     protected MembershipService membershipService;
 
     @Mock
-    protected ApiPermissionsRequired apiPermissionsRequired;
+    protected RoleService roleService;
+
+    @Mock
+    protected Permissions apiPermissions;
 
     @Mock
     protected ContainerRequestContext containerRequestContext;
@@ -83,18 +84,22 @@ public class ApiPermissionFilterTest {
         Principal user = () -> "user";
         when(apiService.findById(api.getId())).thenReturn(api);
         when(securityContext.getUserPrincipal()).thenReturn(user);
-        when(apiPermissionsRequired.value()).thenReturn(ApiPermission.READ);
+        Permission perm = mock(Permission.class);
+        when(perm.value()).thenReturn(RolePermission.API_ANALYTICS);
+        when(perm.acls()).thenReturn(new RolePermissionAction[]{RolePermissionAction.UPDATE});
+        when(apiPermissions.value()).thenReturn(new Permission[]{perm});
         UriInfo uriInfo = mock(UriInfo.class);
         MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
         map.put("api", Collections.singletonList(api.getId()));
         when(uriInfo.getPathParameters()).thenReturn(map);
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
-        when(membershipService.getMember(MembershipReferenceType.API, api.getId(), user.getName())).thenReturn(null);
+        when(membershipService.getRole(MembershipReferenceType.API, api.getId(), user.getName())).thenReturn(null);
+        when(roleService.hasPermission(any(), any(), any())).thenReturn(false);
 
         try {
-            apiPermissionFilter.filter(apiPermissionsRequired, containerRequestContext);
+            apiPermissionFilter.filter(apiPermissions, containerRequestContext);
         } catch(ForbiddenAccessException e) {
-            verify(membershipService, times(1)).getMember(any(), any(), any());
+            verify(membershipService, times(1)).getRole(any(), any(), any());
             throw e;
         }
 
@@ -110,18 +115,22 @@ public class ApiPermissionFilterTest {
         Principal user = () -> "user";
         when(apiService.findById(api.getId())).thenReturn(api);
         when(securityContext.getUserPrincipal()).thenReturn(user);
-        when(apiPermissionsRequired.value()).thenReturn(ApiPermission.READ);
+        Permission perm = mock(Permission.class);
+        when(perm.value()).thenReturn(RolePermission.API_ANALYTICS);
+        when(perm.acls()).thenReturn(new RolePermissionAction[]{RolePermissionAction.UPDATE});
+        when(apiPermissions.value()).thenReturn(new Permission[]{perm});
         UriInfo uriInfo = mock(UriInfo.class);
         MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
         map.put("api", Collections.singletonList(api.getId()));
         when(uriInfo.getPathParameters()).thenReturn(map);
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
-        when(membershipService.getMember(any(MembershipReferenceType.class), anyString(), eq(user.getName()))).thenReturn(null);
+        when(membershipService.getRole(any(MembershipReferenceType.class), anyString(), eq(user.getName()))).thenReturn(null);
+        when(roleService.hasPermission(any(), any(), any())).thenReturn(false);
 
         try {
-            apiPermissionFilter.filter(apiPermissionsRequired, containerRequestContext);
+            apiPermissionFilter.filter(apiPermissions, containerRequestContext);
         } catch(ForbiddenAccessException e) {
-            verify(membershipService, times(2)).getMember(any(), any(), any());
+            verify(membershipService, times(2)).getRole(any(), any(), any());
             throw e;
         }
 
@@ -135,20 +144,25 @@ public class ApiPermissionFilterTest {
         Principal user = () -> "user";
         when(apiService.findById(api.getId())).thenReturn(api);
         when(securityContext.getUserPrincipal()).thenReturn(user);
-        when(apiPermissionsRequired.value()).thenReturn(ApiPermission.MANAGE_MEMBERS);
+        Permission perm = mock(Permission.class);
+        when(perm.value()).thenReturn(RolePermission.API_ANALYTICS);
+        when(perm.acls()).thenReturn(new RolePermissionAction[]{RolePermissionAction.UPDATE});
+        when(apiPermissions.value()).thenReturn(new Permission[]{perm});
         UriInfo uriInfo = mock(UriInfo.class);
         MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
         map.put("api", Collections.singletonList(api.getId()));
         when(uriInfo.getPathParameters()).thenReturn(map);
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
-        MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setType(MembershipType.USER);
-        when(membershipService.getMember(MembershipReferenceType.API, api.getId(), user.getName())).thenReturn(memberEntity);
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(RoleScope.API);
+        when(role.getPermissions()).thenReturn(Collections.singletonMap(ApiPermission.ANALYTICS.getName(), new char[]{RolePermissionAction.CREATE.getId()}));
+        when(membershipService.getRole(MembershipReferenceType.API, api.getId(), user.getName())).thenReturn(role);
+        when(roleService.hasPermission(role, perm.value().getPermission(), perm.acls())).thenReturn(false);
 
         try {
-            apiPermissionFilter.filter(apiPermissionsRequired, containerRequestContext);
+            apiPermissionFilter.filter(apiPermissions, containerRequestContext);
         } catch(ForbiddenAccessException e) {
-            verify(membershipService, times(1)).getMember(any(), any(), any());
+            verify(membershipService, times(1)).getRole(any(), any(), any());
             throw e;
         }
 
@@ -162,18 +176,23 @@ public class ApiPermissionFilterTest {
         Principal user = () -> "user";
         when(apiService.findById(api.getId())).thenReturn(api);
         when(securityContext.getUserPrincipal()).thenReturn(user);
-        when(apiPermissionsRequired.value()).thenReturn(ApiPermission.MANAGE_MEMBERS);
+        Permission perm = mock(Permission.class);
+        when(perm.value()).thenReturn(RolePermission.API_ANALYTICS);
+        when(perm.acls()).thenReturn(new RolePermissionAction[]{RolePermissionAction.UPDATE});
+        when(apiPermissions.value()).thenReturn(new Permission[]{perm});
         UriInfo uriInfo = mock(UriInfo.class);
         MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
         map.put("api", Collections.singletonList(api.getId()));
         when(uriInfo.getPathParameters()).thenReturn(map);
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
-        MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setType(MembershipType.OWNER);
-        when(membershipService.getMember(MembershipReferenceType.API, api.getId(), user.getName())).thenReturn(memberEntity);
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(RoleScope.API);
+        when(role.getPermissions()).thenReturn(Collections.singletonMap(ApiPermission.ANALYTICS.getName(), new char[]{RolePermissionAction.UPDATE.getId()}));
+        when(membershipService.getRole(MembershipReferenceType.API, api.getId(), user.getName())).thenReturn(role);
+        when(roleService.hasPermission(role, perm.value().getPermission(), perm.acls())).thenReturn(true);
 
-        apiPermissionFilter.filter(apiPermissionsRequired, containerRequestContext);
-        verify(membershipService, times(1)).getMember(any(), any(), any());
+        apiPermissionFilter.filter(apiPermissions, containerRequestContext);
+        verify(membershipService, times(1)).getRole(any(), any(), any());
     }
 
     @Test
@@ -185,18 +204,23 @@ public class ApiPermissionFilterTest {
         Principal user = () -> "user";
         when(apiService.findById(api.getId())).thenReturn(api);
         when(securityContext.getUserPrincipal()).thenReturn(user);
-        when(apiPermissionsRequired.value()).thenReturn(ApiPermission.MANAGE_MEMBERS);
+        Permission perm = mock(Permission.class);
+        when(perm.value()).thenReturn(RolePermission.API_ANALYTICS);
+        when(perm.acls()).thenReturn(new RolePermissionAction[]{RolePermissionAction.UPDATE});
+        when(apiPermissions.value()).thenReturn(new Permission[]{perm});
         UriInfo uriInfo = mock(UriInfo.class);
         MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
         map.put("api", Collections.singletonList(api.getId()));
         when(uriInfo.getPathParameters()).thenReturn(map);
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
-        MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setType(MembershipType.OWNER);
-        when(membershipService.getMember(MembershipReferenceType.API, api.getId(), user.getName())).thenReturn(null);
-        when(membershipService.getMember(MembershipReferenceType.API_GROUP, api.getGroup().getId(), user.getName())).thenReturn(memberEntity);
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(RoleScope.API);
+        when(role.getPermissions()).thenReturn(Collections.singletonMap(ApiPermission.ANALYTICS.getName(), new char[]{RolePermissionAction.UPDATE.getId()}));
+        when(membershipService.getRole(MembershipReferenceType.API, api.getId(), user.getName())).thenReturn(null);
+        when(membershipService.getRole(MembershipReferenceType.API_GROUP, api.getGroup().getId(), user.getName())).thenReturn(role);
+        when(roleService.hasPermission(role, perm.value().getPermission(), perm.acls())).thenReturn(true);
 
-        apiPermissionFilter.filter(apiPermissionsRequired, containerRequestContext);
-        verify(membershipService, times(2)).getMember(any(), any(), any());
+        apiPermissionFilter.filter(apiPermissions, containerRequestContext);
+        verify(membershipService, times(2)).getRole(any(), any(), any());
     }
 }

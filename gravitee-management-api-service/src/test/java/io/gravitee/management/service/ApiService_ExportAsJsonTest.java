@@ -19,21 +19,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.Charsets;
-import com.google.common.hash.Hasher;
 import com.google.common.io.Resources;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.impl.ApiServiceImpl;
-import io.gravitee.management.service.jackson.filter.ApiMembershipTypeFilter;
+import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -88,7 +89,7 @@ public class ApiService_ExportAsJsonTest {
 
     @Before
     public void setUp() throws TechnicalException {
-        PropertyFilter apiMembershipTypeFilter = new ApiMembershipTypeFilter();
+        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
 
         Api api = new Api();
@@ -106,17 +107,18 @@ public class ApiService_ExportAsJsonTest {
         membership.setUserId("johndoe");
         membership.setReferenceId(API_ID);
         membership.setReferenceType(MembershipReferenceType.API);
-        membership.setType(MembershipType.PRIMARY_OWNER.name());
-        when(membershipRepository.findByReferenceAndMembershipType(eq(MembershipReferenceType.API), eq(API_ID), any()))
+        membership.setRoleScope(RoleScope.API.getId());
+        membership.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferenceAndRole(eq(MembershipReferenceType.API), eq(API_ID), any(), any()))
                 .thenReturn(Collections.singleton(membership));
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setUsername(membership.getUserId());
-        memberEntity.setType(MembershipType.valueOf(membership.getType()));
+        memberEntity.setRole(SystemRole.PRIMARY_OWNER.name());
         when(membershipService.getMembers(eq(MembershipReferenceType.API), eq(API_ID)))
                 .thenReturn(Collections.singleton(memberEntity));
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(memberEntity.getUsername());
-        when(userService.findByName(memberEntity.getUsername())).thenReturn(userEntity);
+        when(userService.findByName(memberEntity.getUsername(), false)).thenReturn(userEntity);
 
         api.setGroup("my-group");
         GroupEntity groupEntity = new GroupEntity();
@@ -170,7 +172,7 @@ public class ApiService_ExportAsJsonTest {
     @Test
     public void shouldConvertAsJsonForExport() throws TechnicalException, IOException {
 
-        String jsonForExport = apiService.exportAsJson(API_ID, MembershipType.PRIMARY_OWNER);
+        String jsonForExport = apiService.exportAsJson(API_ID, SystemRole.PRIMARY_OWNER.name());
 
         URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExport.json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
@@ -181,7 +183,7 @@ public class ApiService_ExportAsJsonTest {
 
     @Test
     public void shouldConvertAsJsonWithoutMembers() throws IOException {
-        String jsonForExport = apiService.exportAsJson(API_ID, MembershipType.PRIMARY_OWNER, "members");
+        String jsonForExport = apiService.exportAsJson(API_ID, SystemRole.PRIMARY_OWNER.name(), "members");
 
         URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportWithoutMembers.json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
@@ -192,7 +194,7 @@ public class ApiService_ExportAsJsonTest {
 
     @Test
     public void shouldConvertAsJsonWithoutPages() throws IOException {
-        String jsonForExport = apiService.exportAsJson(API_ID, MembershipType.PRIMARY_OWNER, "pages");
+        String jsonForExport = apiService.exportAsJson(API_ID, SystemRole.PRIMARY_OWNER.name(), "pages");
 
         URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportWithoutPages.json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
@@ -203,7 +205,7 @@ public class ApiService_ExportAsJsonTest {
 
     @Test
     public void shouldConvertAsJsonWithoutPlans() throws IOException {
-        String jsonForExport = apiService.exportAsJson(API_ID, MembershipType.PRIMARY_OWNER, "plans");
+        String jsonForExport = apiService.exportAsJson(API_ID, SystemRole.PRIMARY_OWNER.name(), "plans");
 
         URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportWithoutPlans.json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);

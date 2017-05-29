@@ -25,7 +25,8 @@ import io.gravitee.definition.model.services.Services;
 import java.util.*;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiModelEntity {
@@ -44,7 +45,7 @@ public class ApiModelEntity {
     private Lifecycle.State state;
     private PrimaryOwnerEntity primaryOwner;
     private Properties properties;
-    private MembershipType permission;
+    private String role;
     private Services services;
     private Set<String> tags;
     private String picture;
@@ -133,12 +134,12 @@ public class ApiModelEntity {
         this.paths = paths;
     }
 
-    public MembershipType getPermission() {
-        return permission;
+    public String getRole() {
+        return role;
     }
 
-    public void setPermission(MembershipType permission) {
-        this.permission = permission;
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public PrimaryOwnerEntity getPrimaryOwner() {
@@ -256,7 +257,7 @@ public class ApiModelEntity {
             ", visibility=" + visibility +
             ", state=" + state +
             ", primaryOwner=" + primaryOwner +
-            ", permission=" + permission +
+            ", role=" + role +
             ", tags=" + tags +
             ", view=" + views +
             ", group=" + group +

@@ -23,12 +23,12 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.MembershipType;
 import io.gravitee.management.model.mixin.ApiMixin;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
-import io.gravitee.management.service.jackson.filter.ApiMembershipTypeFilter;
+import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -78,7 +78,7 @@ public class ApiService_StartTest {
 
     @Before
     public void setUp() {
-        PropertyFilter apiMembershipTypeFilter = new ApiMembershipTypeFilter();
+        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
     }
 
@@ -90,8 +90,9 @@ public class ApiService_StartTest {
         final EventEntity event = mockEvent(EventType.PUBLISH_API);
         when(eventService.findByApi(API_ID)).thenReturn(Collections.singleton(event));
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
-        po.setType(MembershipType.PRIMARY_OWNER.name());
-        when(membershipRepository.findByReferencesAndMembershipType(any(), any(), any()))
+        po.setRoleScope(RoleScope.API.getId());
+        po.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
                 .thenReturn(Collections.singleton(po));
 
         apiService.start(API_ID, USER_NAME);
@@ -123,7 +124,7 @@ public class ApiService_StartTest {
         ObjectNode node = factory.objectNode();
         node.set("id", factory.textNode(API_ID));
 
-        Map<String, String> properties = new HashMap<String, String>();
+        Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.API_ID.getValue(), API_ID);
         properties.put(Event.EventProperties.USERNAME.getValue(), USER_NAME);
 

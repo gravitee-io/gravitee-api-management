@@ -17,9 +17,11 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.EventEntity;
-import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.EventTypeListParam;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.EventService;
 import io.swagger.annotations.*;
 
@@ -30,9 +32,9 @@ import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiPermissionsRequired(ApiPermission.MANAGE_LIFECYCLE)
 @Api(tags = {"API"})
 public class ApiEventsResource extends AbstractResource {
 
@@ -46,6 +48,9 @@ public class ApiEventsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API's events"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ)
+    })
     public List<EventEntity> events(
             @PathParam("api") String api,
             @ApiParam @DefaultValue("all") @QueryParam("type") EventTypeListParam eventTypeListParam) {

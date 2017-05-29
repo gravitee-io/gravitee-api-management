@@ -28,7 +28,8 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import static org.mockito.Mockito.mock;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(loader=AnnotationConfigContextLoader.class)
@@ -54,6 +55,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected MembershipService membershipService;
+
+    @Autowired
+    protected RoleService roleService;
 
     @Configuration
     static class ContextConfiguration {
@@ -91,6 +95,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public MembershipService membershipService() {
             return mock(MembershipService.class);
+        }
+
+        @Bean
+        public RoleService roleService() {
+            return mock(RoleService.class);
         }
     }
 }

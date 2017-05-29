@@ -19,7 +19,11 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.EventEntity;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.EventSearchParam;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.EventService;
 import io.gravitee.repository.management.model.Event;
@@ -31,10 +35,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Gateway"})
@@ -48,6 +52,9 @@ public class PlatformEventsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_PLATFORM, acls = RolePermissionAction.READ)
+    })
     public Page<EventEntity> listEvents(@BeanParam EventSearchParam eventSearchParam) {
         eventSearchParam.validate();
 

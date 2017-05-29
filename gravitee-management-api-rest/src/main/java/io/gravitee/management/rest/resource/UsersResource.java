@@ -39,7 +39,8 @@ import java.util.stream.Collectors;
  * Defines the REST resources to manage Users.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Azize Elamrani (azize.elamrani at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/users")
@@ -96,7 +97,7 @@ public class UsersResource extends AbstractResource {
         if (query != null && ! query.trim().isEmpty()) {
             return identityService.search(query);
         } else {
-            return userService.findAll()
+            return userService.findAll(true)
                     .stream()
                     .map(userEntity -> {
                         User user = new User();
@@ -115,7 +116,7 @@ public class UsersResource extends AbstractResource {
     @Path("{username}")
     @Produces(MediaType.APPLICATION_JSON)
     public UserEntity getUser(@PathParam("username") String username) {
-        UserEntity user = userService.findByName(username);
+        UserEntity user = userService.findByName(username, true);
 
         // Delete password for security reason
         user.setPassword(null);
@@ -127,7 +128,7 @@ public class UsersResource extends AbstractResource {
     @GET
     @Path("{username}/picture")
     public Response getUserPicture(@PathParam("username") String username, @Context Request request) {
-        UserEntity user = userService.findByName(username);
+        UserEntity user = userService.findByName(username, false);
 
         if (user.getPicture() == null) {
             throw new NotFoundException();

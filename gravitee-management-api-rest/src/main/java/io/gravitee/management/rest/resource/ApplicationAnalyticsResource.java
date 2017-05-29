@@ -16,6 +16,8 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.analytics.Analytics;
 import io.gravitee.management.model.analytics.query.AggregationType;
 import io.gravitee.management.model.analytics.query.CountQuery;
@@ -24,6 +26,8 @@ import io.gravitee.management.model.analytics.query.GroupByQuery;
 import io.gravitee.management.rest.resource.param.Aggregation;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.management.rest.resource.param.Range;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.AnalyticsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -41,6 +45,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Application"})
@@ -52,6 +57,9 @@ public class ApplicationAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get Application analytics")
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_ANALYTICS, acls = RolePermissionAction.READ)
+    })
     public Response hits(
             @PathParam("application") String application,
             @BeanParam AnalyticsParam analyticsParam) {

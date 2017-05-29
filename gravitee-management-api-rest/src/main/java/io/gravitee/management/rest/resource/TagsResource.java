@@ -19,6 +19,10 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.NewTagEntity;
 import io.gravitee.management.model.TagEntity;
 import io.gravitee.management.model.UpdateTagEntity;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.TagService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +34,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Sharding Tags"})
@@ -51,6 +56,9 @@ public class TagsResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.CREATE)
+    })
     public List<TagEntity> create(@Valid @NotNull final List<NewTagEntity> tags) {
         return tagService.create(tags);
     }
@@ -58,6 +66,9 @@ public class TagsResource extends AbstractResource  {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.UPDATE)
+    })
     public List<TagEntity> update(@Valid @NotNull final List<UpdateTagEntity> tags) {
         return tagService.update(tags);
     }
@@ -65,6 +76,9 @@ public class TagsResource extends AbstractResource  {
     @Path("{tag}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.DELETE)
+    })
     public void delete(@PathParam("tag") String tag) {
         tagService.delete(tag);
     }

@@ -24,7 +24,7 @@ import io.gravitee.management.model.PlanStatus;
 import io.gravitee.management.service.exceptions.ApiNotDeletableException;
 import io.gravitee.management.service.exceptions.ApiRunningStateException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
-import io.gravitee.management.service.jackson.filter.ApiMembershipTypeFilter;
+import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
@@ -74,7 +74,7 @@ public class ApiService_DeleteTest {
 
     @Before
     public void setUp() {
-        PropertyFilter apiMembershipTypeFilter = new ApiMembershipTypeFilter();
+        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
     }
 

@@ -18,11 +18,12 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
-import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.enhancer.ApplicationEnhancer;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApplicationService;
-import io.gravitee.repository.management.model.Application;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/applications")
@@ -56,11 +58,14 @@ public class ApplicationsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-            value = "List all the applications accessible to authenticated user")
+    @ApiOperation("List all the applications accessible to authenticated user")
     @ApiResponses({
             @ApiResponse(code = 200, message = "User's applications", response = ApplicationEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.PORTAL_APPLICATION, acls = RolePermissionAction.READ)
+    })
     public List<ApplicationEntity> listApplications(
             @QueryParam("group") final String group,
             @QueryParam("query") final String query) {
@@ -102,6 +107,9 @@ public class ApplicationsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 201, message = "Application successfully created", response = ApplicationEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.CREATE),
+    })
     public Response createApplication(
             @ApiParam(name = "application", required = true)
             @Valid @NotNull final NewApplicationEntity application) {

@@ -57,4 +57,9 @@ public class ConfigurationResource {
     public MetadataResource getMetadataResource() {
         return resourceContext.getResource(MetadataResource.class);
     }
+
+    @Path("rolescopes")
+    public RoleScopesResource getRoleScopesResource() {
+        return resourceContext.getResource(RoleScopesResource.class);
+    }
 }

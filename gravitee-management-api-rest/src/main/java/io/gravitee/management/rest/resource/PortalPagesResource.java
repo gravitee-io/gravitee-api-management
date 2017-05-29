@@ -20,6 +20,10 @@ import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.UpdatePageEntity;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.*;
@@ -101,6 +105,9 @@ public class PortalPagesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.CREATE)
+    })
     public Response createPage(
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
         int order = pageService.findMaxPortalPageOrder() + 1;
@@ -126,6 +133,9 @@ public class PortalPagesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+    })
     public PageEntity updatePage(
             @PathParam("page") String page,
             @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
@@ -142,6 +152,9 @@ public class PortalPagesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 204, message = "Page successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.DELETE)
+    })
     public void deletePage(
             @PathParam("page") String page) {
         pageService.findById(page);

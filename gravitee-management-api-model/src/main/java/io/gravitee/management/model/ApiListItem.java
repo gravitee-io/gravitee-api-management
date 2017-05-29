@@ -25,6 +25,7 @@ import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiListItem {
@@ -50,7 +51,7 @@ public class ApiListItem {
     @JsonProperty("owner")
     private PrimaryOwnerEntity primaryOwner;
 
-    private MembershipType permission;
+    private String role;
 
     @JsonProperty(value = "picture_url")
     private String pictureUrl;
@@ -61,6 +62,8 @@ public class ApiListItem {
     private Set<String> views;
 
     private List<String> labels;
+
+    private boolean manageable;
 
     public String getId() {
         return id;
@@ -134,12 +137,12 @@ public class ApiListItem {
         this.primaryOwner = primaryOwner;
     }
 
-    public MembershipType getPermission() {
-        return permission;
+    public String getRole() {
+        return role;
     }
 
-    public void setPermission(MembershipType permission) {
-        this.permission = permission;
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public String getPictureUrl() {
@@ -174,6 +177,14 @@ public class ApiListItem {
         this.labels = labels;
     }
 
+    public boolean isManageable() {
+        return manageable;
+    }
+
+    public void setManageable(boolean manageable) {
+        this.manageable = manageable;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -199,7 +210,8 @@ public class ApiListItem {
             ", visibility=" + visibility +
             ", state=" + state +
             ", primaryOwner=" + primaryOwner +
-            ", permission=" + permission +
+            ", role=" + role +
+            ", manageable=" + manageable +
             '}';
     }
 }

@@ -42,6 +42,7 @@ import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/auth/oauth2")
@@ -103,7 +104,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         }
 
         try {
-            userService.findByName(username);
+            userService.findByName(username, false);
         } catch (UserNotFoundException unfe) {
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setUsername(username);
@@ -112,7 +113,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             newUser.setLastname((String) userInfo.get(authenticationProvider.configuration().get("mapping.lastname")));
             newUser.setFirstname((String) userInfo.get(authenticationProvider.configuration().get("mapping.firstname")));
             newUser.setEmail(username);
-            userService.create(newUser);
+            userService.create(newUser, true);
         }
 
         // User refresh

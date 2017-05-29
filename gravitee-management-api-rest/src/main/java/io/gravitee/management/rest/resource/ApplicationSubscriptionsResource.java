@@ -16,13 +16,12 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.ApiKeyEntity;
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.PlanEntity;
-import io.gravitee.management.model.SubscriptionEntity;
-import io.gravitee.management.model.permissions.ApplicationPermission;
+import io.gravitee.management.model.*;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.model.Subscription;
-import io.gravitee.management.rest.security.ApplicationPermissionsRequired;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.*;
 import io.swagger.annotations.*;
 
@@ -36,6 +35,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Application", "Subscription"})
@@ -58,12 +58,14 @@ public class ApplicationSubscriptionsResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_SUBSCRIPTIONS)
     @ApiOperation(value = "Subscribe to a plan",
             notes = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Subscription successfully created", response = Subscription.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.CREATE)
+    })
     public Response createSubscription(
             @PathParam("application") String application,
             @ApiParam(name = "plan", required = true)
@@ -77,12 +79,14 @@ public class ApplicationSubscriptionsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApplicationPermissionsRequired(ApplicationPermission.READ)
     @ApiOperation(value = "List subscriptions for the application",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of subscriptions", response = Subscription.class, responseContainer = "Set"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)
+    })
     public Set<Subscription> listApplicationSubscriptions(
             @PathParam("application") String application,
             @QueryParam("plan") String optionalPlanId) {
@@ -100,12 +104,14 @@ public class ApplicationSubscriptionsResource {
     @GET
     @Path("{subscription}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApplicationPermissionsRequired(ApplicationPermission.READ)
     @ApiOperation(value = "Get subscription information",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Subscription information", response = Subscription.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)
+    })
     public Subscription getSubscription(
             @PathParam("subscription") String subscription) {
         return convert(subscriptionService.findById(subscription));
@@ -114,13 +120,15 @@ public class ApplicationSubscriptionsResource {
     @GET
     @Path("{subscription}/keys")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApplicationPermissionsRequired(ApplicationPermission.READ)
     @ApiOperation(value = "List all API Keys for a subscription",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of API Keys for a subscription", response = ApiKeyEntity.class,
                     responseContainer = "Set"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)
+    })
     public Set<ApiKeyEntity> listApiKeysForSubscription(
             @PathParam("subscription") String subscription) {
         return apiKeyService.findBySubscription(subscription);
@@ -129,12 +137,14 @@ public class ApplicationSubscriptionsResource {
     @POST
     @Path("{subscription}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_API_KEYS)
     @ApiOperation(value = "Renew an API key",
             notes = "User must have the MANAGE_API_KEYS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "A new API Key", response = ApiKeyEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
+    })
     public Response renewApiKey(
             @PathParam("application") String application,
             @PathParam("subscription") String subscription) {
@@ -149,13 +159,15 @@ public class ApplicationSubscriptionsResource {
     @DELETE
     @Path("{subscription}/keys/{key}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApplicationPermissionsRequired(ApplicationPermission.MANAGE_API_KEYS)
     @ApiOperation(value = "Revoke an API key",
             notes = "User must have the MANAGE_API_KEYS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "API key successfully revoked"),
             @ApiResponse(code = 400, message = "API Key does not correspond to the subscription"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
+    })
     public Response revokeApiKey(
             @PathParam("application") String application,
             @PathParam("subscription") String subscription,

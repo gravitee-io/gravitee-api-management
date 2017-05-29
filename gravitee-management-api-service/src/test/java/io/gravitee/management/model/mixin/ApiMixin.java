@@ -30,7 +30,10 @@ public interface ApiMixin {
 
     @JsonProperty
     String getId();
-    
+
     @JsonProperty
     String getName();
+
+    @JsonProperty
+    String getOwner();
 }

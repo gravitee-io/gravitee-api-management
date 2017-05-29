@@ -33,17 +33,17 @@ public interface UserService {
 
     UserEntity connect(String username);
 
-    UserEntity findByName(String username);
+    UserEntity findByName(String username, boolean loadRoles);
 
-    Set<UserEntity> findByNames(List<String> usernames);
+    Set<UserEntity> findByNames(List<String> usernames, boolean loadRoles);
 
     UserEntity create(RegisterUserEntity registerUserEntity);
 
-    UserEntity create(NewExternalUserEntity newExternalUserEntity);
+    UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
 
     UserEntity update(UpdateUserEntity updateUserEntity);
 
-    Set<UserEntity> findAll();
+    Set<UserEntity> findAll(boolean loadRoles);
 
     UserEntity register(NewExternalUserEntity newExternalUserEntity);
 }

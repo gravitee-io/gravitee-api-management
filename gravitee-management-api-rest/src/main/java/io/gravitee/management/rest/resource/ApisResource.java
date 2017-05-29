@@ -18,11 +18,20 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.VerifyApiParam;
-import io.gravitee.management.service.*;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.MembershipService;
+import io.gravitee.management.service.SwaggerService;
+import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -42,6 +51,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/apis")
@@ -59,9 +69,6 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private UserService userService;
-
-    @Inject
-    private ApplicationService applicationService;
 
     @Inject
     private SwaggerService swaggerService;
@@ -93,6 +100,7 @@ public class ApisResource extends AbstractResource {
                 .filter(apiEntity -> view == null || (apiEntity.getViews() != null && apiEntity.getViews().contains(view)))
                 .filter(apiEntity -> group == null || (apiEntity.getGroup() != null && apiEntity.getGroup().getId().equals(group)))
                 .map(this::convert)
+                .map(this::setManageable)
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .collect(Collectors.toList());
     }
@@ -111,6 +119,9 @@ public class ApisResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 201, message = "API successfully created"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE)
+    })
     public Response createApi(
             @ApiParam(name = "api", required = true)
             @Valid @NotNull final NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
@@ -134,6 +145,10 @@ public class ApisResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API successfully created"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.UPDATE)
+    })
     public Response importDefinition(
             @ApiParam(name = "definition", required = true) @Valid @NotNull String apiDefinition) {
         return Response.ok(apiService.createOrUpdateWithDefinition(
@@ -147,6 +162,9 @@ public class ApisResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API definition from Swagger descriptor", response = NewApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE)
+    })
     public NewApiEntity importSwagger(
             @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
         return swaggerService.prepare(swaggerDescriptor);
@@ -159,6 +177,9 @@ public class ApisResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "No API match the following criteria"),
             @ApiResponse(code = 400, message = "API already exist with the following criteria")})
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE)
+    })
     public Response verify(@Valid VerifyApiParam verifyApiParam) {
         try {
             // TODO : create verify service to query repository with criteria
@@ -208,10 +229,10 @@ public class ApisResource extends AbstractResource {
         }
 
         // Add primary owner
-        Collection<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, api.getId(), MembershipType.PRIMARY_OWNER);
+        Collection<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, api.getId(), RoleScope.API, SystemRole.PRIMARY_OWNER.name());
         if (! members.isEmpty()) {
             MemberEntity primaryOwner = members.iterator().next();
-            UserEntity user = userService.findByName(primaryOwner.getUsername());
+            UserEntity user = userService.findByName(primaryOwner.getUsername(), false);
 
             PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
             owner.setUsername(user.getUsername());
@@ -221,26 +242,13 @@ public class ApisResource extends AbstractResource {
             apiItem.setPrimaryOwner(owner);
         }
 
-        // Add permission for current user (if authenticated)
-        if(isAuthenticated()) {
-            if (isAdmin()) {
-                apiItem.setPermission(MembershipType.PRIMARY_OWNER);
-            } else {
-                MemberEntity member = membershipService.getMember(MembershipReferenceType.API, apiItem.getId(), getAuthenticatedUsername());
-                if (member == null && api.getGroup() != null && api.getGroup().getId() != null) {
-                    member = membershipService.getMember(MembershipReferenceType.API_GROUP, api.getGroup().getId(), getAuthenticatedUsername());
-                }
-                if (member != null) {
-                    apiItem.setPermission(member.getType());
-                } else {
-                    if (apiItem.getVisibility() == Visibility.PUBLIC) {
-                        // If API is public, all users have the user permission
-                        apiItem.setPermission(MembershipType.USER);
-                    }
-                }
-            }
-        }
-
         return apiItem;
+    }
+
+    private ApiListItem setManageable(ApiListItem api) {
+        api.setManageable(
+                isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), RolePermissionAction.READ)
+        );
+        return api;
     }
 }

@@ -18,8 +18,10 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.GroupEntityType;
 import io.gravitee.management.model.NewGroupEntity;
-import io.gravitee.management.model.permissions.ApiPermission;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.GroupService;
 import io.swagger.annotations.*;
 
@@ -33,7 +35,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
-import java.util.List;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -60,9 +61,10 @@ public class GroupsResource extends AbstractResource {
             @ApiResponse(code = 200, message = "List of groups", response = GroupEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
-    public Response findByOptionnalType(
+    public Response findByOptionalType(
             @ApiParam(name = "type") @QueryParam("type") @Nullable GroupEntityType type) {
-        if( isAdmin() || (type != null && type.equals(GroupEntityType.API))) {
+        if (hasPermission(RolePermission.MANAGEMENT_ROLE, new RolePermissionAction[]{RolePermissionAction.READ})
+                || (type != null && type.equals(GroupEntityType.API))) {
             if (type == null) {
                 return Response
                         .ok(groupService.findAll())
@@ -89,6 +91,9 @@ public class GroupsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 201, message = "Group successfully created"),
             @ApiResponse(code = 500, message = "Internal Server Error")
+    })
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.CREATE)
     })
     public Response createGroup(
             @ApiParam(name = "group", required = true)

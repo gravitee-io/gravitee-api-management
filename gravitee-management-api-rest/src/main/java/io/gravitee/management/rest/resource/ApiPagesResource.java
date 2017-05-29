@@ -17,14 +17,16 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.permissions.ApiPermission;
-import io.gravitee.management.rest.security.ApiPermissionsRequired;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.PageService;
+import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.Page;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -34,6 +36,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -56,7 +59,6 @@ public class ApiPagesResource extends AbstractResource {
     @GET
     @Path("/{page}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.READ)
     @ApiOperation(value = "Get a page",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
@@ -66,18 +68,22 @@ public class ApiPagesResource extends AbstractResource {
                 @PathParam("api") String api,
                 @PathParam("page") String page,
                 @QueryParam("portal") boolean portal) {
-        PageEntity pageEntity = pageService.findById(page, portal);
         final ApiEntity apiEntity = apiService.findById(api);
-        if (isDisplayable(apiEntity, pageEntity.isPublished())) {
-            return pageEntity;
-        } else {
-            throw new UnauthorizedAccessException();
+
+        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
+                || hasPermission(RolePermission.API_PLAN, api, RolePermissionAction.READ)) {
+            PageEntity pageEntity = pageService.findById(page, portal);
+            if (isDisplayable(apiEntity, pageEntity.isPublished())) {
+                return pageEntity;
+            } else {
+                throw new UnauthorizedAccessException();
+            }
         }
+        throw new ForbiddenAccessException();
     }
 
     @GET
     @Path("/{page}/content")
-    @ApiPermissionsRequired(ApiPermission.READ)
     @ApiOperation(value = "Get the page's content",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
@@ -87,17 +93,20 @@ public class ApiPagesResource extends AbstractResource {
             @PathParam("api") String api,
             @PathParam("page") String page,
             @QueryParam("portal") boolean portal) {
-        PageEntity pageEntity = pageService.findById(page, portal);
         final ApiEntity apiEntity = apiService.findById(api);
-        if (isDisplayable(apiEntity, pageEntity.isPublished())) {
-            return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
-        } else {
-            throw new UnauthorizedAccessException();
+        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
+                || hasPermission(RolePermission.API_PLAN, api, RolePermissionAction.READ)) {
+            PageEntity pageEntity = pageService.findById(page, portal);
+            if (isDisplayable(apiEntity, pageEntity.isPublished())) {
+                return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
+            } else {
+                throw new UnauthorizedAccessException();
+            }
         }
+        throw new ForbiddenAccessException();
     }
 
     @GET
-    @ApiPermissionsRequired(ApiPermission.READ)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List pages",
             notes = "User must have the READ permission to use this service")
@@ -108,23 +117,28 @@ public class ApiPagesResource extends AbstractResource {
             @PathParam("api") String api,
             @QueryParam("homepage") Boolean homepage) {
         final ApiEntity apiEntity = apiService.findById(api);
+        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
+                || hasPermission(RolePermission.API_PLAN, api, RolePermissionAction.READ)) {
+            final List<PageListItem> pages = pageService.findApiPagesByApiAndHomepage(api, homepage);
 
-        final List<PageListItem> pages = pageService.findApiPagesByApiAndHomepage(api, homepage);
-
-        return pages.stream()
-            .filter(page -> this.isDisplayable(apiEntity, page.isPublished()))
-            .collect(Collectors.toList());
+            return pages.stream()
+                    .filter(page -> this.isDisplayable(apiEntity, page.isPublished()))
+                    .collect(Collectors.toList());
+        }
+        throw new ForbiddenAccessException();
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
     @ApiOperation(value = "Create a page",
             notes = "User must have the MANAGE_PAGES permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE)
+    })
     public Response createPage(
             @PathParam("api") String api,
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
@@ -146,12 +160,14 @@ public class ApiPagesResource extends AbstractResource {
     @Path("/{page}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
     @ApiOperation(value = "Update a page",
             notes = "User must have the MANAGE_PAGES permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+    })
     public PageEntity updatePage(
             @PathParam("api") String api,
             @PathParam("page") String page,
@@ -164,12 +180,14 @@ public class ApiPagesResource extends AbstractResource {
 
     @DELETE
     @Path("/{page}")
-    @ApiPermissionsRequired(ApiPermission.MANAGE_PAGES)
     @ApiOperation(value = "Delete a page",
             notes = "User must have the MANAGE_PAGES permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Page successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE)
+    })
     public void deletePage(
             @PathParam("api") String api,
             @PathParam("page") String page) {
@@ -185,8 +203,8 @@ public class ApiPagesResource extends AbstractResource {
                 member = membershipService.getMember(MembershipReferenceType.API_GROUP, apiEntity.getGroup().getId(), getAuthenticatedUsername());
             }
             if (member != null) {
-                return (MembershipType.USER == member.getType() && isPublished) ||
-                        MembershipType.USER != member.getType();
+                //TODO prendre en compte le droit de modifier une page via les roles et non pas uniquement le owner
+                return Objects.equals(apiEntity.getPrimaryOwner().getUsername(), getAuthenticatedUsername()) || isPublished;
             }
         }
 

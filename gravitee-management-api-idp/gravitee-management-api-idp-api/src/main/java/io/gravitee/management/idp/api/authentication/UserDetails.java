@@ -19,9 +19,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
- * @author Azize Elamrani (azize at gravitee.io)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class UserDetails extends User {
@@ -31,6 +33,7 @@ public class UserDetails extends User {
     private String lastname;
     private String source;
     private String sourceId;
+    private List<UserDetailRole> roles;
 
     public UserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
@@ -74,6 +77,14 @@ public class UserDetails extends User {
 
     public void setSourceId(String sourceId) {
         this.sourceId = sourceId;
+    }
+
+    public List<UserDetailRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<UserDetailRole> roles) {
+        this.roles = roles;
     }
 
     @Override

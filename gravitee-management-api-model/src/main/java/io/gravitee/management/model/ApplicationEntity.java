@@ -43,7 +43,7 @@ public class ApplicationEntity {
     @JsonProperty("owner")
     private PrimaryOwnerEntity primaryOwner;
 
-    private MembershipType permission;
+    private String role;
     
     @JsonProperty("members_size")
     private int membersSize;
@@ -96,12 +96,12 @@ public class ApplicationEntity {
         this.updatedAt = updatedAt;
     }
 
-    public MembershipType getPermission() {
-        return permission;
+    public String getRole() {
+        return role;
     }
 
-    public void setPermission(MembershipType permission) {
-        this.permission = permission;
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public PrimaryOwnerEntity getPrimaryOwner() {

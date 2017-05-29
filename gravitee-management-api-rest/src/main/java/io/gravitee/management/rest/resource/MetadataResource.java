@@ -19,6 +19,10 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.MetadataEntity;
 import io.gravitee.management.model.NewMetadataEntity;
 import io.gravitee.management.model.UpdateMetadataEntity;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.MetadataService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +34,7 @@ import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Metadata"})
@@ -40,6 +45,9 @@ public class MetadataResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.PORTAL_METADATA, acls = RolePermissionAction.READ)
+    })
     public List<MetadataEntity> list() {
         return metadataService.findAllDefault();
     }
@@ -47,6 +55,9 @@ public class MetadataResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.PORTAL_METADATA, acls = RolePermissionAction.CREATE)
+    })
     public MetadataEntity create(@Valid @NotNull final NewMetadataEntity metadata) {
         return metadataService.create(metadata);
     }
@@ -54,6 +65,9 @@ public class MetadataResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.PORTAL_METADATA, acls = RolePermissionAction.UPDATE)
+    })
     public MetadataEntity update(@Valid @NotNull final UpdateMetadataEntity metadata) {
         return metadataService.update(metadata);
     }
@@ -61,6 +75,9 @@ public class MetadataResource extends AbstractResource {
     @Path("{metadata}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.PORTAL_METADATA, acls = RolePermissionAction.DELETE)
+    })
     public void delete(@PathParam("metadata") String metadata) {
         metadataService.delete(metadata);
     }

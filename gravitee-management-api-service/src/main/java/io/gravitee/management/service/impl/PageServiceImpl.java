@@ -416,11 +416,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
     @Override
 	public void delete(String pageName) {
 		try {
-			logger.debug("Delete PAGE : {}", pageName);
+			logger.debug("Delete DOCUMENTATION : {}", pageName);
 			pageRepository.delete(pageName);
 		} catch (TechnicalException ex) {
-			logger.error("An error occurs while trying to delete PAGE {}", pageName, ex);
-			throw new TechnicalManagementException("An error occurs while trying to delete PAGE " + pageName, ex);
+			logger.error("An error occurs while trying to delete DOCUMENTATION {}", pageName, ex);
+			throw new TechnicalManagementException("An error occurs while trying to delete DOCUMENTATION " + pageName, ex);
 		}
 	}
 

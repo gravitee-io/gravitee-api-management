@@ -42,6 +42,7 @@ import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/auth/github")
@@ -105,7 +106,7 @@ public class GitHubAuthenticationResource extends AbstractAuthenticationResource
         }
 
         try {
-            userService.findByName(username);
+            userService.findByName(username, false);
         } catch (UserNotFoundException unfe) {
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setUsername(username);
@@ -115,7 +116,7 @@ public class GitHubAuthenticationResource extends AbstractAuthenticationResource
             newUser.setLastname(partNames[0]);
             newUser.setFirstname(partNames[1]);
             newUser.setEmail(username);
-            userService.create(newUser);
+            userService.create(newUser, true);
         }
 
         // User refresh

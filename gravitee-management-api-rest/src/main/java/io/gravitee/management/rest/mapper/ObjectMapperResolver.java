@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.management.service.jackson.filter.ApiMembershipTypeFilter;
+import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
@@ -32,7 +32,9 @@ import java.io.IOException;
 import java.util.Collections;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Provider
 public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
@@ -40,6 +42,9 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
 
     public ObjectMapperResolver() {
         mapper = new GraviteeMapper();
+
+        //because Permissions are represented as char[]
+        mapper.enable(SerializationFeature.WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS);
 
         // register filter provider
         registerFilterProvider();
@@ -75,7 +80,7 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
     }
 
     private void registerFilterProvider() {
-        PropertyFilter apiMembershipTypeFilter = new ApiMembershipTypeFilter();
+        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         mapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
     }
 }

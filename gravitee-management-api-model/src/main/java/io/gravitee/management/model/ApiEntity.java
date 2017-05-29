@@ -45,12 +45,10 @@ public class ApiEntity {
 
     @NotNull
     @DeploymentRequired
-    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     @JsonProperty(value = "proxy", required = true)
     private Proxy proxy;
 
     @DeploymentRequired
-    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
     
@@ -71,19 +69,16 @@ public class ApiEntity {
     private PrimaryOwnerEntity primaryOwner;
 
     @DeploymentRequired
-    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     @JsonProperty(value = "properties")
     private io.gravitee.definition.model.Properties properties;
 
-    private MembershipType permission;
+    private String role;
 
     @DeploymentRequired
-    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     @JsonProperty(value = "services")
     private Services services;
 
     @DeploymentRequired
-    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     private Set<String> tags;
     
     private String picture;
@@ -92,7 +87,6 @@ public class ApiEntity {
     private String pictureUrl;
 
     @DeploymentRequired
-    @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
     @JsonProperty(value = "resources")
     private List<Resource> resources = new ArrayList<>();
 
@@ -180,12 +174,12 @@ public class ApiEntity {
         this.paths = paths;
     }
 
-    public MembershipType getPermission() {
-        return permission;
+    public String getRole() {
+        return role;
     }
 
-    public void setPermission(MembershipType permission) {
-        this.permission = permission;
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public PrimaryOwnerEntity getPrimaryOwner() {
@@ -311,7 +305,7 @@ public class ApiEntity {
             ", visibility=" + visibility +
             ", state=" + state +
             ", primaryOwner=" + primaryOwner +
-            ", permission=" + permission +
+            ", role=" + role +
             ", tags=" + tags +
             ", view=" + views +
             ", group=" + group +
