@@ -25,6 +25,7 @@ export class PortalApisController {
   constructor (private resolvedApis,
                private resolvedViews,
                private $scope: IScope,
+               private $state,
                private $stateParams) {
     'ngInject';
     this.apis = resolvedApis.data;
@@ -37,5 +38,14 @@ export class PortalApisController {
     $scope.$on('$stateChangeStart', function() {
       this.hideApis = true;
     });
+  }
+
+  goToApi(api) {
+    this.$state.go('portal.api.plans', {apiId: api.id});
+  }
+
+  changeView(event, view) {
+    event.stopPropagation();
+    this.$state.go('portal.apis.list', {view: view});
   }
 }

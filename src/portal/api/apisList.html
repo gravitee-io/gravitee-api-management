@@ -17,34 +17,37 @@
 -->
 <md-content gv-theme-element="portal.apisList">
   <div id="main-content" layout="row" layout-align="center start" style="padding-top: 70px; padding-bottom: 50px;">
-    <div flex="100" flex-gt-xs="80" flex-gt-lg="70">
-      <div layout="row">
-        <md-input-container style="margin: 0">
-          <input type="text" placeholder="{{'apis.filter' | translate}}" ng-model="$ctrl.apiFilter" />
-        </md-input-container>
-
-        <div>
-          <label translate="apis.views"></label>
-          <md-button style="color: #34A0D4;" ng-class="{'gv-button-toggled' : view.id == $resolve.$stateParams.view}"
-                     ng-if="view.id === 'all' || view.totalApis > 0"
-                     ng-repeat="view in apisCtrl.views track by view.id" ui-sref=".({ view: view.id })">{{view.name}}</md-button>
-        </div>
+    <div flex="15" layout="column" class="apis-sidenav" layout-padding>
+      <ul>
+        <li class="sidenav_item"
+            ng-class="{'active': view.id == $resolve.$stateParams.view}"
+            ng-if="view.id === 'all' || view.totalApis > 0"
+            ng-repeat="view in apisCtrl.views track by view.id"
+            ui-sref=".({ view: view.id })">
+          <span>{{view.name}}</span>
+        </li>
+      </ul>
+    </div>
+    <div flex="85" layout="column">
+      <div layout="row" layout-align="center center">
+        <h5 class="gravitee-view-description" ng-if="apisCtrl.view && apisCtrl.view.description && !apisCtrl.hideApis">
+          {{apisCtrl.view.description}}
+        </h5>
       </div>
-      <h5 class="gravitee-view-description" ng-if="apisCtrl.view && apisCtrl.view.description && !apisCtrl.hideApis">
-        {{apisCtrl.view.description}}
-      </h5>
       <div layout="row" layout-align="center center">
         <md-content ng-show="!apisCtrl.hideApis"
                     layout="row" layout-align="start start"
                     layout-wrap
                     class="api-gallery">
+          <input type="text" class="form-control apis-filter" placeholder="{{'apis.filter' | translate}}" ng-model="$ctrl.apiFilter" />
           <md-card class="api-box gravitee-card gravitee-api-card"
                    ng-repeat="api in apisCtrl.apis | filter:$ctrl.apiFilter track by api.id"
-                   ui-sref="portal.api.plans({apiId: api.id})"
+                   ng-click="apisCtrl.goToApi(api)"
                    layout-wrap>
             <md-card-title style="padding-top: 15px; padding-bottom: 0px;">
               <md-card-title-text>
-                <span class="md-headline">{{::api.name}} <span class="md-subhead">{{::api.version}}</span></span>
+                <span class="md-headline">{{::api.name}}</span>
+                <span class="md-subhead">{{::api.version}}</span>
               </md-card-title-text>
               <md-card-title-media>
                 <div class="md-media-sm card-media">
@@ -53,7 +56,12 @@
               </md-card-title-media>
             </md-card-title>
             <md-card-content>
-              <small>{{::api.description}}</small>
+              <div class="api-infos">
+                <small>{{::api.description}}</small>
+              </div>
+              <div ng-if="api.views" class="api-views">
+                <a ng-repeat="view in api.views" class="ui label" ng-click="apisCtrl.changeView($event, view)">{{view}}</a>
+              </div>
             </md-card-content>
           </md-card>
         </md-content>

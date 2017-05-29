@@ -94,3 +94,98 @@
 .md-panel-outer-wrapper {
   position: fixed;
 }
+
+
+.apis-sidenav {
+  margin-left: 30px;
+
+  ul {
+    list-style-type: none;
+    position: fixed;
+
+    li {
+      outline: none;
+    }
+
+    li.sidenav_item {
+      display: list-item;
+      position: relative;
+      margin-bottom: 0;
+      padding: 1px 0;
+
+      span {
+        line-height: 1.2;
+        color: #000000;
+        display: block;
+        margin: 10px;
+        padding-left: 8px;
+        text-decoration: none;
+        font-size: 14px;
+      }
+    }
+
+    li.active {
+      border-left: 2px solid #34A0D4;
+    }
+
+    li.active span, li.sidenav_item:hover span {
+      -webkit-transition: all .4s ease!important;
+      font-weight: 600;
+      color: #34A0D4;
+    }
+  }
+}
+
+.apis-filter {
+  margin: 12px;
+}
+
+md-card-content {
+  small {
+    font-size: 12px;
+  }
+}
+
+.api-infos {
+  padding-bottom: 10px;
+}
+
+.api-views {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding-top: 10px;
+}
+
+.ui.label {
+  display: inline-block;
+  line-height: 1;
+  vertical-align: baseline;
+  margin: 0 .14285714em;
+  background-color: #E8E8E8;
+  background-image: none;
+  padding: .5833em .833em;
+  color: rgba(0,0,0,.6);
+  text-transform: none;
+  font-weight: 700;
+  border: 0 solid transparent;
+  border-radius: .28571429rem;
+  -webkit-transition: background .1s ease;
+  transition: background .1s ease;
+}
+
+.ui.label>a {
+  cursor: pointer;
+  opacity: .5;
+  -webkit-transition: .1s opacity ease;
+  transition: .1s opacity ease
+}
+
+.ui.label>a:hover {
+  opacity: 0;
+}
+
+a.ui.label:focus, a.ui.label:hover {
+  color: rgba(0,0,0,.8);
+  background-color: #E0E0E0;
+  text-decoration: none;
+  cursor: pointer;
+}

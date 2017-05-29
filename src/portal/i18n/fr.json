@@ -34,8 +34,7 @@
   },
   "apis": {
     "all": "Toutes les APIs",
-    "filter": "Filtrer",
-    "views": "Filtres rapide : "
+    "filter": "Filtrer APIs..."
   },
   "api": {
     "version": "Version",
