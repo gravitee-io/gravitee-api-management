@@ -27,7 +27,6 @@ module.exports = {
     loaders: [
       {
         test: /\.json$/,
-        exclude: /constants\.json/,
         loaders: [
           'json-loader'
         ]

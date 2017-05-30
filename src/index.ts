@@ -22,27 +22,30 @@ import './index.scss';
 import './portal/portal.module';
 import './management/management.module';
 
-fetchData().then(bootstrapApplication);
+const constants = require('../constants.json');
+const build = require('../build.json');
 
-function fetchData() {
+initLoader().then(bootstrapApplication);
+
+function initLoader() {
   let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
-  let $http: ng.IHttpService = initInjector.get('$http');
   let $q: ng.IQService = initInjector.get('$q');
 
-  return $q.all([$http.get('constants.json'), $http.get('build.json')]).then(function (responses: any) {
-    angular.module('gravitee-management').constant('Constants', responses[0].data);
-    angular.module('gravitee-management').constant('Build', responses[1].data);
+  const img = document.createElement('img');
+  img.classList.add('gravitee-splash-screen');
+  img.setAttribute('src', constants.loaderLogo);
 
-    angular.module('gravitee-portal').constant('Constants', responses[0].data);
-    angular.module('gravitee-portal').constant('Build', responses[1].data);
-    return $q.all([$http.get(`./themes/${responses[0].data.theme}-theme.json`)])
-      .then((responses: any) => {
-        angular.module('gravitee-portal').constant('Theme', responses[0].data);
-      });
-  });
+  document.getElementById('loader').appendChild(img);
+
+  return $q.resolve();
 }
 
 function bootstrapApplication() {
+  angular.module('gravitee-management').constant('Constants', constants);
+  angular.module('gravitee-management').constant('Build', build);
+
+  angular.module('gravitee-portal').constant('Build', build);
+
   angular.element(document).ready(function() {
     angular.bootstrap(document, ['gravitee-portal', 'gravitee-management']);
   });

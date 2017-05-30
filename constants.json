@@ -9,5 +9,6 @@
       "apikeyHeader": "X-Gravitee-Api-Key"
     },
     "theme": "default",
-    "logo": "themes/assets/GRAVITEE_LOGO1-01.png"
+    "logo": "themes/assets/GRAVITEE_LOGO1-01.png",
+    "loaderLogo": "assets/gravitee_logo_anim.gif"
 }
