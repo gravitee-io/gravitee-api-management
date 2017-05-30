@@ -221,7 +221,7 @@ class ApiPoliciesController {
       classes.push("gravitee-policy-card-disabled");
     }
 
-    if (!policy.schema) {
+    if (!policy.name) {
       classes.push("gravitee-policy-card-missed");
     }
     return classes.join(' ');
