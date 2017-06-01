@@ -127,6 +127,25 @@
 
   <section>
     <md-subheader class="md-primary" style="background-color: #fafafa">
+      <span>Deployment</span>
+      <div class="hints">Use sharding tags to control where the API must be deployed.</div>
+    </md-subheader>
+    <div layout="column">
+      <md-input-container class="flex">
+        <label>Sharding tags</label>
+        <md-select ng-model="generalCtrl.api.tags" multiple>
+          <md-option ng-repeat="tag in generalCtrl.tags" ng-value="tag.id">
+            {{tag.name}}<span ng-if="tag.description" class="gravitee-general-description"> - {{tag.description}}</span>
+          </md-option>
+        </md-select>
+      </md-input-container>
+    </div>
+  </section>
+
+  <br />
+
+  <section>
+    <md-subheader class="md-primary" style="background-color: #fafafa">
       <span>Multi-tenant</span>
       <div class="hints">Use multi-tenant to route incoming HTTP requests to relative endpoints.</div>
     </md-subheader>

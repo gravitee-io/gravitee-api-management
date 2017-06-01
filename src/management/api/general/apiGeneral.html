@@ -16,6 +16,7 @@
 
 -->
 <form name="generalCtrl.formApi" ng-submit="generalCtrl.update(generalCtrl.api)" novalidate>
+  <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
   <div layout="column" layout-gt-sm="row">
     <md-input-container flex="30">
       <label>Name</label>
@@ -61,17 +62,13 @@
     </md-input-container>
   </div>
 
+  <md-subheader class="md-primary" style="background-color: #fafafa">Portal</md-subheader>
   <div layout="column">
     <md-input-container class="flex">
-      <label>Sharding tags</label>
-      <md-select ng-model="generalCtrl.api.tags" multiple>
-        <md-option ng-repeat="tag in generalCtrl.tags" ng-value="tag.id">
-          {{tag.name}}<span ng-if="tag.description" class="gravitee-general-description"> - {{tag.description}}</span>
-        </md-option>
-      </md-select>
+      <label>Labels</label>
+      <md-chips ng-model="generalCtrl.api.labels" placeholder="Enter a label" ng-click="generalCtrl.formApi.$setDirty()"></md-chips>
     </md-input-container>
   </div>
-
   <div layout="column">
     <md-input-container class="flex">
       <label>Portal views</label>

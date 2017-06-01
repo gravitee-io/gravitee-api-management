@@ -60,6 +60,8 @@ class ApiAdminController {
     if (!this.api.group) {
       this.api.group = GroupService.getEmptyGroup();
     }
+
+    this.api.labels = this.api.labels || [];
     this.groups = [this.api.group];
 
     this.$scope.lbs = [
