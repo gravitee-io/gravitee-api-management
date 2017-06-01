@@ -118,6 +118,7 @@ public class RedisApiRepository implements ApiRepository {
         api.setPicture(redisApi.getPicture());
         api.setGroup(redisApi.getGroup());
         api.setViews(redisApi.getViews());
+        api.setLabels(redisApi.getLabels());
 
         return api;
     }
@@ -142,7 +143,8 @@ public class RedisApiRepository implements ApiRepository {
         redisApi.setPicture(api.getPicture());
         redisApi.setGroup(api.getGroup());
         redisApi.setViews(api.getViews());
-        
+        redisApi.setLabels(api.getLabels());
+
         return redisApi;
     }
 }

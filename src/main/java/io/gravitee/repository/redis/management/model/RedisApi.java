@@ -39,6 +39,7 @@ public class RedisApi {
     private long updatedAt;
     private String picture;
     private Set<String> views;
+    private List<String> labels;
     private List<RedisApiMetadata> metadatas;
 
     public String getDefinition() {
@@ -143,6 +144,14 @@ public class RedisApi {
 
     public void setViews(Set<String> views) {
         this.views = views;
+    }
+
+    public List<String> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(List<String> labels) {
+        this.labels = labels;
     }
 
     public List<RedisApiMetadata> getMetadatas() {
