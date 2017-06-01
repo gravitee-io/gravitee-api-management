@@ -878,6 +878,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setDescription(api.getDescription());
         apiEntity.setPicture(api.getPicture());
         apiEntity.setViews(api.getViews());
+        apiEntity.setLabels(api.getLabels());
 
         final LifecycleState lifecycleState = api.getLifecycleState();
         if (lifecycleState != null) {
@@ -911,6 +912,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         api.setDescription(updateApiEntity.getDescription().trim());
         api.setPicture(updateApiEntity.getPicture());
         api.setViews(updateApiEntity.getViews());
+
+        if (updateApiEntity.getLabels() != null) {
+            api.setLabels(new ArrayList<>(new LinkedHashSet<>(updateApiEntity.getLabels())));
+        }
 
         if (updateApiEntity.getGroup() != null && !updateApiEntity.getGroup().isEmpty()) {
             try {
@@ -962,6 +967,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         updateApiEntity.setTags(apiEntity.getTags());
         updateApiEntity.setServices(apiEntity.getServices());
         updateApiEntity.setVisibility(apiEntity.getVisibility());
+        updateApiEntity.setLabels(apiEntity.getLabels());
 
         return updateApiEntity;
     }

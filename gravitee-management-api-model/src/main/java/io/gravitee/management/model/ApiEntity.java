@@ -95,6 +95,8 @@ public class ApiEntity {
 
     private Set<String> views;
 
+    private List<String> labels;
+
     public String getId() {
         return id;
     }
@@ -261,6 +263,14 @@ public class ApiEntity {
 
     public void setGroup(GroupEntity group) {
         this.group = group;
+    }
+
+    public List<String> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(List<String> labels) {
+        this.labels = labels;
     }
 
     @Override

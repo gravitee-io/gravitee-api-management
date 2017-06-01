@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -58,6 +59,8 @@ public class ApiListItem {
     private String contextPath;
 
     private Set<String> views;
+
+    private List<String> labels;
 
     public String getId() {
         return id;
@@ -161,6 +164,14 @@ public class ApiListItem {
 
     public void setViews(Set<String> views) {
         this.views = views;
+    }
+    
+    public List<String> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(List<String> labels) {
+        this.labels = labels;
     }
 
     @Override
