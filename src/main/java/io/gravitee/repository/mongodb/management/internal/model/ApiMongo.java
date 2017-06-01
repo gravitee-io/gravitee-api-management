@@ -58,6 +58,8 @@ public class ApiMongo extends Auditable {
 
     private Set<String> views;
 
+    private List<String> labels;
+
     private List<ApiMetadataMongo> metadatas;
 
     public String getId() {
@@ -146,6 +148,14 @@ public class ApiMongo extends Auditable {
 
     public void setViews(Set<String> views) {
         this.views = views;
+    }
+
+    public List<String> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(List<String> labels) {
+        this.labels = labels;
     }
 
     public List<ApiMetadataMongo> getMetadatas() {

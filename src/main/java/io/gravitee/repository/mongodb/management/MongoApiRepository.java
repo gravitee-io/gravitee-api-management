@@ -95,6 +95,7 @@ public class MongoApiRepository implements ApiRepository {
 		apiMongo.setPicture(api.getPicture());
         apiMongo.setGroup(api.getGroup());
 		apiMongo.setViews(api.getViews());
+		apiMongo.setLabels(api.getLabels());
 
 		ApiMongo applicationMongoUpdated = internalApiRepo.save(apiMongo);
 		return mapApi(applicationMongoUpdated);
