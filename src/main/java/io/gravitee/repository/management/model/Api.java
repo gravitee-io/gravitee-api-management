@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -91,9 +92,9 @@ public class Api {
     private Set<String> views;
 
     /**
-     * The tags associated to this API
+     * The labels associated to this API
      */
-    private Set<String> tags;
+    private List<String> labels;
 
     public Date getCreatedAt() {
         return createdAt;
@@ -197,6 +198,14 @@ public class Api {
 
     public void setViews(Set<String> views) {
         this.views = views;
+    }
+
+    public List<String> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(List<String> labels) {
+        this.labels = labels;
     }
 
     @Override
