@@ -271,6 +271,7 @@ class ApiPlansController {
         subscriptions: response.data.length
       }).then(function (plan) {
         if (plan) {
+          _this.$scope.$parent.apiCtrl.checkAPISynchronization({id: _this.$stateParams.apiId});
           _this.list();
         }
       }, function() {
