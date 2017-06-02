@@ -59,8 +59,7 @@ public class ApiEntity {
 
     @JsonProperty("updated_at")
     private Date updatedAt;
-
-    @DeploymentRequired
+    
     private Visibility visibility;
 
     private Lifecycle.State state;
