@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.management.idp</groupId>
         <artifactId>gravitee-management-api-idp</artifactId>
-        <version>1.7.0-SNAPSHOT</version>
+        <version>1.6.1</version>
     </parent>
 
     <artifactId>gravitee-management-api-idp-ldap</artifactId>
