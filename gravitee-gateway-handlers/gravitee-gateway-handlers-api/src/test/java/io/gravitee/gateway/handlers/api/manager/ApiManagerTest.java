@@ -19,6 +19,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.builders.ApiDefinitionBuilder;
 import io.gravitee.gateway.handlers.api.builders.ProxyDefinitionBuilder;
+import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.handlers.api.validator.ValidationException;
 import io.gravitee.gateway.handlers.api.validator.Validator;
@@ -27,6 +28,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.Collections;
 
 import static org.mockito.Mockito.*;
 
@@ -56,7 +59,7 @@ public class ApiManagerTest {
     public void add_simpleApi() {
         Api api = new ApiDefinitionBuilder().name("api-test")
                 .proxy(new ProxyDefinitionBuilder().contextPath("/team").target("default", "http://localhost/target").build()).build();
-
+        api.setPlans(Collections.singletonList(new Plan()));
         apiManager.deploy(api);
 
         verify(eventManager, only()).publishEvent(ReactorEvent.DEPLOY, api);

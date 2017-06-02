@@ -51,48 +51,58 @@ public class ApiManagerImpl implements ApiManager {
     public void deploy(Api api) {
         MDC.put("api", api.getId());
         logger.info("Deployment of {}", api);
-        logger.info("Deploying {} plan(s) for API {}:", api.getPlans().size(), api.getId());
-        for(Plan plan: api.getPlans()) {
-            logger.info("\t- {}", plan.getName());
-        }
 
-        try {
-            validator.validate(api);
-            apis.put(api.getId(), api);
-
-            if (api.isEnabled()) {
-                //TODO: load plan for this API
-
-                eventManager.publishEvent(ReactorEvent.DEPLOY, api);
-            } else {
-                logger.debug("{} is not enabled. Skip deployment.", api);
+        // Deploy the API only if there is at least one plan
+        if (!api.getPlans().isEmpty()) {
+            logger.info("Deploying {} plan(s) for API {}:", api.getPlans().size(), api.getId());
+            for (Plan plan : api.getPlans()) {
+                logger.info("\t- {}", plan.getName());
             }
-        } catch (ValidationException ve) {
-            logger.error("API {} can't be deployed because of validation errors", api, ve);
-        } finally {
-            MDC.remove("api");
+
+            try {
+                validator.validate(api);
+                apis.put(api.getId(), api);
+
+                if (api.isEnabled()) {
+                    eventManager.publishEvent(ReactorEvent.DEPLOY, api);
+                } else {
+                    logger.debug("{} is not enabled. Skip deployment.", api);
+                }
+            } catch (ValidationException ve) {
+                logger.error("API {} can't be deployed because of validation errors", api, ve);
+            }
+        } else {
+            logger.warn("There is no published plan associated to this API, skipping deployment...");
         }
+
+        MDC.remove("api");
     }
 
     @Override
     public void update(Api api) {
         MDC.put("api", api.getId());
         logger.info("Updating {}", api);
-        logger.info("Deploying {} plan(s) for API {}:", api.getPlans().size(), api.getId());
-        for(Plan plan: api.getPlans()) {
-            logger.info("\t- {}", plan.getName());
+
+        if (! api.getPlans().isEmpty()) {
+            logger.info("Deploying {} plan(s) for API {}:", api.getPlans().size(), api.getId());
+            for(Plan plan: api.getPlans()) {
+                logger.info("\t- {}", plan.getName());
+            }
+
+            try {
+                validator.validate(api);
+
+                apis.put(api.getId(), api);
+                eventManager.publishEvent(ReactorEvent.UPDATE, api);
+            } catch (ValidationException ve) {
+                logger.error("API {} can't be updated because of validation errors", api, ve);
+            }
+        } else {
+            logger.warn("There is no published plan associated to this API, undeploy it...");
+            undeploy(api.getId());
         }
 
-        try {
-            validator.validate(api);
-
-            apis.put(api.getId(), api);
-            eventManager.publishEvent(ReactorEvent.UPDATE, api);
-        } catch (ValidationException ve) {
-            logger.error("API {} can't be updated because of validation errors", api, ve);
-        } finally {
-            MDC.remove("api");
-        }
+        MDC.remove("api");
     }
 
     @Override
