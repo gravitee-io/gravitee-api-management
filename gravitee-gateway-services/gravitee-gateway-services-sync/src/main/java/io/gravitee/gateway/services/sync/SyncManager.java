@@ -152,10 +152,8 @@ public class SyncManager {
                             // API is not yet deployed, so let's do it !
                             if (deployedApi == null) {
                                 apiManager.deploy(definition);
-                            } else {
-                                if (deployedApi.getDeployedAt().before(definition.getDeployedAt())) {
-                                    apiManager.update(definition);
-                                }
+                            } else if (deployedApi.getDeployedAt().before(definition.getDeployedAt())) {
+                                apiManager.update(definition);
                             }
                         }
                     });
