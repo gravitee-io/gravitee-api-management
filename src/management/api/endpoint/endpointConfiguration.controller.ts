@@ -76,9 +76,13 @@ class ApiEndpointController {
   }
 
   update(api) {
-    api.proxy.endpoints.push(this.endpoint);
+    if (!_.includes(api.proxy.endpoints, this.endpoint)) {
+      api.proxy.endpoints.push(this.endpoint);
+    }
+
     this.ApiService.update(api).then(() => {
       this.onApiUpdate();
+      this.initialEndpoints = _.cloneDeep(api.proxy.endpoints);
     });
   }
 
@@ -94,6 +98,7 @@ class ApiEndpointController {
   }
 
   backToGatewayConfiguration() {
+    this.api.proxy.endpoints = _.cloneDeep(this.initialEndpoints);
     this.$state.go('management.apis.detail.general.gateway');
   }
 }
