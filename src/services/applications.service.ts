@@ -134,7 +134,7 @@ class ApplicationService {
       }
     });
 
-    return this.$http.get(url);
+    return this.$http.get(url, {timeout: 30000});
   }
 
   /*
@@ -151,7 +151,7 @@ class ApplicationService {
       }
     });
 
-    return this.$http.get(url);
+    return this.$http.get(url, {timeout: 30000});
   }
 
   getLog(api, logId) {

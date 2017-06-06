@@ -26,7 +26,7 @@ export class LogsQuery {
 class ApiService {
   private apisURL: string;
 
-  constructor(private $http, Constants, private $q) {
+  constructor(private $http, Constants) {
     'ngInject';
     this.apisURL = `${Constants.baseURL}apis/`;
   }
@@ -119,7 +119,7 @@ class ApiService {
       }
     });
 
-    return this.$http.get(url);
+    return this.$http.get(url, {timeout: 30000});
   }
 
   /*
@@ -136,7 +136,7 @@ class ApiService {
       }
     });
 
-    return this.$http.get(url);
+    return this.$http.get(url, {timeout: 30000});
   }
 
   getLog(api, logId) {

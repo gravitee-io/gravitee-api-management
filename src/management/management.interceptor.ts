@@ -65,7 +65,8 @@ function interceptorConfig(
   var interceptorTimeout = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
     return {
       request: function (config) {
-        config.timeout = 10000;
+        // Use defined HTTP timeout or default value
+        config.timeout = config.timeout || 10000;
         return config;
       },
       responseError: function (error) {

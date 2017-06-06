@@ -4,9 +4,17 @@
   "managementTitle": "Gravitee.io Management",
   "devMode": false,
   "userCreationEnabled": true,
+
   "portal": {
     "entrypoint": "https://api.company.com",
     "apikeyHeader": "X-Gravitee-Api-Key"
+  },
+
+  // Portal theme customisation
+  "theme": {
+    "name": "default",
+    "logo": "themes/assets/GRAVITEE_LOGO1-01.png",
+    "loader": "assets/gravitee_logo_anim.gif"
   },
 
   "authentication": {

@@ -38,30 +38,8 @@ class AnalyticsService {
       }
     });
 
-    return this.$http.get(url);
+    return this.$http.get(url, {timeout: 30000});
   }
-
-  hitsBy(key, query, field, aggType, from, to, interval) {
-    return this.$http.get(this.analyticsURL + '?type=hits_by&key=' + key + '&query=' + query + '&field=' + field + '&aggType=' + aggType + '&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
-
-  globalHits(from, to, interval, key, query) {
-    return this.$http.get(this.analyticsURL + '?type=global_hits&key=' + key + '&query=' + query + '&interval=' + interval + '&from=' + from + '&to=' + to);
-  }
-
-  topHits(from, to, interval, key, query, field, orderField, orderDirection, orderMode, size) {
-    return this.$http.get(this.analyticsURL + '?type=top_hits&key=' + key +
-                                              '&query=' + query +
-                                              '&field=' + field +
-                                              ((orderField) ? '&orderField=' + orderField : "") +
-                                              ((orderDirection) ?'&orderDirection=' + orderDirection : "") +
-                                              ((orderMode) ? '&orderMode=' + orderMode : "") +
-                                              '&interval=' + interval +
-                                              '&from=' + from +
-                                              '&to=' + to +
-                                              '&size=' + size);
-  }
-
 }
 
 export default AnalyticsService;
