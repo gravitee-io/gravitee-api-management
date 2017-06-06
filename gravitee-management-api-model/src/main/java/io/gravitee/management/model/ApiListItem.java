@@ -20,9 +20,11 @@ import io.gravitee.common.component.Lifecycle;
 
 import java.util.Date;
 import java.util.Objects;
+import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ApiListItem {
 
@@ -54,6 +56,8 @@ public class ApiListItem {
 
     @JsonProperty(value = "context_path")
     private String contextPath;
+
+    private Set<String> views;
 
     public String getId() {
         return id;
@@ -149,6 +153,14 @@ public class ApiListItem {
 
     public void setContextPath(String contextPath) {
         this.contextPath = contextPath;
+    }
+
+    public Set<String> getViews() {
+        return views;
+    }
+
+    public void setViews(Set<String> views) {
+        this.views = views;
     }
 
     @Override

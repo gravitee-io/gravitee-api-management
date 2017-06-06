@@ -187,7 +187,7 @@ public class ApisResource extends AbstractResource {
             uriBuilder.queryParam("hash", api.getPicture().hashCode());
         }
         apiItem.setPictureUrl(uriBuilder.build().toString());
-
+        apiItem.setViews(api.getViews());
         apiItem.setCreatedAt(api.getCreatedAt());
         apiItem.setUpdatedAt(api.getUpdatedAt());
 
