@@ -58,7 +58,6 @@
         <module>gravitee-management-api-model</module>
         <module>gravitee-management-api-service</module>
         <module>gravitee-management-api-rest</module>
-        <module>gravitee-management-api-war</module>
         <module>gravitee-management-api-standalone</module>
         <module>gravitee-management-api-security</module>
         <module>gravitee-management-api-idp</module>
