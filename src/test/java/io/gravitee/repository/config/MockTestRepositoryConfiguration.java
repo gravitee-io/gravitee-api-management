@@ -63,9 +63,11 @@ public class MockTestRepositoryConfiguration {
     public ApiRepository apiRepository() throws Exception {
         final ApiRepository apiRepository = mock(ApiRepository.class);
 
-        final Api api = mock(Api.class);
-        when(api.getName()).thenReturn("api1");
+        final Api apiToDelete = mock(Api.class);
+        when(apiToDelete.getId()).thenReturn("api-to-delete");
 
+        final Api apiToUpdate = mock(Api.class);
+        when(apiToUpdate.getName()).thenReturn("api-to-update");
         final Api apiUpdated = mock(Api.class);
         when(apiUpdated.getName()).thenReturn("New API name");
         when(apiUpdated.getDescription()).thenReturn("New description");
@@ -79,12 +81,11 @@ public class MockTestRepositoryConfiguration {
         when(apiUpdated.getVersion()).thenReturn("New version");
         when(apiUpdated.getVisibility()).thenReturn(Visibility.PRIVATE);
 
-        when(apiRepository.findById(anyString())).thenReturn(empty());
-        when(apiRepository.findById("api1")).thenReturn(of(api), of(apiUpdated));
+        when(apiRepository.findById("api-to-update")).thenReturn(of(apiToUpdate), of(apiUpdated));
 
-        final Set<Api> apis = newSet(api, mock(Api.class));
-        when(apiRepository.findAll()).thenReturn(apis);
-        doAnswer(invocation -> apis.remove(api)).when(apiRepository).delete("api1");
+        when(apiRepository.findById("api-to-delete")).thenReturn(of(apiToDelete), empty());
+
+        when(apiRepository.findById("findByNameMissing")).thenReturn(empty());
 
         final Api newApi = mock(Api.class);
         when(newApi.getVersion()).thenReturn("1");
@@ -99,6 +100,18 @@ public class MockTestRepositoryConfiguration {
         when(groupedApi.getGroup()).thenReturn("api-group");
         when(apiRepository.findById("grouped-api")).thenReturn(of(groupedApi));
 
+        final Api apiToFindById = mock(Api.class);
+        when(apiToFindById.getVersion()).thenReturn("1");
+        when(apiToFindById.getName()).thenReturn("api-to-findById");
+        when(apiToFindById.getLifecycleState()).thenReturn(LifecycleState.STOPPED);
+        when(apiToFindById.getVisibility()).thenReturn(Visibility.PUBLIC);
+        when(apiToFindById.getDefinition()).thenReturn("{}");
+        when(apiToFindById.getCreatedAt()).thenReturn(parse("11/02/2016"));
+        when(apiToFindById.getUpdatedAt()).thenReturn(parse("12/02/2016"));
+        when(apiToFindById.getLabels()).thenReturn(Arrays.asList("label 1", "label 2"));
+        when(apiRepository.findById("api-to-findById")).thenReturn(of(apiToFindById));
+
+        when(apiRepository.findAll()).thenReturn(new HashSet<>(Arrays.asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class))));
         return apiRepository;
     }
 

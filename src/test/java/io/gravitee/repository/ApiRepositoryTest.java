@@ -66,9 +66,9 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldUpdate() throws Exception {
-        Optional<Api> optional = apiRepository.findById("api1");
+        Optional<Api> optional = apiRepository.findById("api-to-update");
         Assert.assertTrue("API to update not found", optional.isPresent());
-        Assert.assertEquals("Invalid saved api name.", "api1", optional.get().getName());
+        Assert.assertEquals("Invalid saved api name.", "api-to-update", optional.get().getName());
 
         final Api api = optional.get();
         api.setName("New API name");
@@ -89,7 +89,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
         Assert.assertEquals(nbAPIsBeforeUpdate, nbAPIsAfterUpdate);
 
-        Optional<Api> optionalUpdated = apiRepository.findById("api1");
+        Optional<Api> optionalUpdated = apiRepository.findById("api-to-update");
         Assert.assertTrue("API to update not found", optionalUpdated.isPresent());
 
         final Api apiUpdated = optionalUpdated.get();
@@ -108,8 +108,16 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void findByIdTest() throws Exception {
-        Optional<Api> optional = apiRepository.findById("api1");
+        Optional<Api> optional = apiRepository.findById("api-to-findById");
         Assert.assertTrue("Find api by name return no result ", optional.isPresent());
+
+        Api api = optional.get();
+        Assert.assertEquals("Invalid api name", "api-to-findById", api.getName());
+        Assert.assertEquals("Invalid api version", "1", api.getVersion());
+        Assert.assertEquals("Invalid api visibility", Visibility.PUBLIC, api.getVisibility());
+        Assert.assertEquals("Invalid api lifecycle state", LifecycleState.STOPPED, api.getLifecycleState());
+        Assert.assertEquals("Invalid api labels", 2, api.getLabels().size());
+        Assert.assertEquals("Invalid api label at position 0", "label 1", api.getLabels().iterator().next());
     }
 
     @Test
@@ -128,11 +136,11 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void deleteApiTest() throws Exception {
-        int nbApiBefore = apiRepository.findAll().size();
-        apiRepository.delete("api1");
-        int nbApiAfter = apiRepository.findAll().size();
-
-        Assert.assertEquals(nbApiBefore - 1, nbApiAfter);
+        Optional<Api> api = apiRepository.findById("api-to-delete");
+        Assert.assertTrue("api exists", api.isPresent());
+        apiRepository.delete("api-to-delete");
+        api = apiRepository.findById("api-to-delete");
+        Assert.assertFalse("api was deleted", api.isPresent());
     }
 
     @Test
