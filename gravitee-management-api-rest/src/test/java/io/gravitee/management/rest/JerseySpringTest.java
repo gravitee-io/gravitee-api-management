@@ -17,6 +17,9 @@ package io.gravitee.management.rest;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -25,6 +28,8 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.SecurityContext;
 
 import io.gravitee.management.rest.mapper.ObjectMapperResolver;
+import io.gravitee.management.security.authentication.AuthenticationProvider;
+import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -81,7 +86,17 @@ public abstract class JerseySpringTest {
                 // Find first available port.
                 forceSet(TestProperties.CONTAINER_PORT, "0");
 
-                ResourceConfig application = new GraviteeApplication(null);
+                ResourceConfig application = new GraviteeApplication(new AuthenticationProviderManager() {
+                    @Override
+                    public List<AuthenticationProvider> getIdentityProviders() {
+                        return Collections.emptyList();
+                    }
+
+                    @Override
+                    public Optional<AuthenticationProvider> findIdentityProviderByType(String type) {
+                        return Optional.empty();
+                    }
+                });
 
                 application.property("contextConfig", context);
                 application.register(AuthenticationFilter.class);

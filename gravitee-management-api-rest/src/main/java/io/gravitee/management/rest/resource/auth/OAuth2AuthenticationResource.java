@@ -44,48 +44,46 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/auth/github")
+@Path("/auth/oauth2")
 @Api(tags = {"Authentication"})
-public class GitHubAuthenticationResource extends AbstractAuthenticationResource {
-
-    private static final String GITHUB_ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token";
-    private static final String GITHUB_USER_INFO_URL = "https://api.github.com/user";
-    private static final String GITHUB_ACCESS_TOKEN_PROPERTY = "access_token";
-    private static final String GITHUB_AUTHORIZATION_HEADER = "token %s";
+public class OAuth2AuthenticationResource extends AbstractAuthenticationResource {
 
     @Inject
-    @Named("github")
+    @Named("oauth2")
     private AuthenticationProvider authenticationProvider;
 
     private Client client;
 
-    public GitHubAuthenticationResource() {
+    public OAuth2AuthenticationResource() {
         this.client = ClientBuilder.newClient();
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public Response github(@Valid final Payload payload,
+    public Response oauth2(@Valid final Payload payload,
                            @Context final HttpServletRequest request) throws IOException {
         // Step 1. Exchange authorization code for access token.
         final MultivaluedStringMap accessData = new MultivaluedStringMap();
         accessData.add(CLIENT_ID_KEY, payload.getClientId());
         accessData.add(REDIRECT_URI_KEY, payload.getRedirectUri());
-        accessData.add(CLIENT_SECRET,
-                (String) authenticationProvider.configuration().get("clientSecret"));
+        accessData.add(CLIENT_SECRET, (String) authenticationProvider.configuration().get("clientSecret"));
         accessData.add(CODE_KEY, payload.getCode());
         accessData.add(GRANT_TYPE_KEY, AUTH_CODE);
-        Response response = client.target(GITHUB_ACCESS_TOKEN_URL)
+        Response response = client.target((String) authenticationProvider.configuration().get("tokenEndpoint"))
                 .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.form(accessData));
         accessData.clear();
 
         // Step 2. Retrieve profile information about the current user.
-        final String accessToken = (String) getResponseEntity(response).get(GITHUB_ACCESS_TOKEN_PROPERTY);
+        final String accessToken = (String) getResponseEntity(response).get(
+                (String) authenticationProvider.configuration().get("accessTokenProperty"));
         response = client
-                .target(GITHUB_USER_INFO_URL)
+                .target((String) authenticationProvider.configuration().get("userInfoEndpoint"))
                 .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
-                .header(HttpHeaders.AUTHORIZATION, String.format(GITHUB_AUTHORIZATION_HEADER, accessToken))
+                .header(HttpHeaders.AUTHORIZATION,
+                        String.format(
+                                (String) authenticationProvider.configuration().get("authorizationHeader"),
+                                accessToken))
                 .get();
 
         // Step 3. Process the authenticated user.
@@ -98,10 +96,10 @@ public class GitHubAuthenticationResource extends AbstractAuthenticationResource
     }
 
     private Response processUser(final Map<String, Object> userInfo) {
-        String username = (String) userInfo.get("email");
+        String username = (String) userInfo.get(authenticationProvider.configuration().get("mapping.email"));
 
         if (username == null) {
-            throw new BadRequestException("No public email linked to your GitHub account");
+            throw new BadRequestException("No public email linked to your account");
         }
 
         try {
@@ -109,11 +107,10 @@ public class GitHubAuthenticationResource extends AbstractAuthenticationResource
         } catch (UserNotFoundException unfe) {
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setUsername(username);
-            newUser.setSource(AuthenticationSource.GITHUB.getName());
-            newUser.setSourceId(userInfo.get("id").toString());
-            String[] partNames = userInfo.get("name").toString().split(" ");
-            newUser.setLastname(partNames[0]);
-            newUser.setFirstname(partNames[1]);
+            newUser.setSource(AuthenticationSource.OAUTH2.getName());
+            newUser.setSourceId((String) userInfo.get(authenticationProvider.configuration().get("mapping.id")));
+            newUser.setLastname((String) userInfo.get(authenticationProvider.configuration().get("mapping.lastname")));
+            newUser.setFirstname((String) userInfo.get(authenticationProvider.configuration().get("mapping.firstname")));
             newUser.setEmail(username);
             userService.create(newUser);
         }
@@ -121,7 +118,7 @@ public class GitHubAuthenticationResource extends AbstractAuthenticationResource
         // User refresh
         UpdateUserEntity user = new UpdateUserEntity();
         user.setUsername(username);
-        user.setPicture(userInfo.get("avatar_url").toString());
+        user.setPicture((String) authenticationProvider.configuration().get("mapping.picture"));
 
         userService.update(user);
 

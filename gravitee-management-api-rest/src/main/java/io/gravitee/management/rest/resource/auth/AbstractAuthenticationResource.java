@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.permissions.Role;
-import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.common.JWTHelper;
 import org.hibernate.validator.constraints.NotBlank;
@@ -42,13 +41,10 @@ import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFA
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-abstract class SocialAuthenticationResource {
+abstract class AbstractAuthenticationResource {
 
     @Autowired
-    private Environment environment;
-
-    @Autowired
-    protected AuthenticationProviderManager authenticationProviderManager;
+    protected Environment environment;
 
     @Autowired
     protected UserService userService;

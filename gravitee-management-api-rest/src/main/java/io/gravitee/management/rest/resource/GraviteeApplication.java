@@ -16,6 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.util.Version;
+import io.gravitee.management.rest.bind.AuthenticationBinder;
 import io.gravitee.management.rest.filter.ApiPermissionFilter;
 import io.gravitee.management.rest.filter.ApplicationPermissionFilter;
 import io.gravitee.management.rest.filter.SecurityContextFilter;
@@ -23,6 +24,7 @@ import io.gravitee.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.management.rest.provider.*;
 import io.gravitee.management.rest.resource.auth.GitHubAuthenticationResource;
 import io.gravitee.management.rest.resource.auth.GoogleAuthenticationResource;
+import io.gravitee.management.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.swagger.jaxrs.config.BeanConfig;
@@ -68,8 +70,9 @@ public class GraviteeApplication extends ResourceConfig {
         register(GroupsResource.class);
         register(PortalResource.class);
 
-        // Dynamically register social authentication provider
-        registerSocialProviders();
+        // Dynamically register authentication endpoints
+        register(new AuthenticationBinder(authenticationProviderManager));
+        registerAuthenticationEndpoints();
 
         register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);
@@ -92,12 +95,13 @@ public class GraviteeApplication extends ResourceConfig {
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
     }
 
-    private void registerSocialProviders() {
-        registerSocialProvider("google", GoogleAuthenticationResource.class);
-        registerSocialProvider("github", GitHubAuthenticationResource.class);
+    private void registerAuthenticationEndpoints() {
+        registerAuthenticationEndpoint("google", GoogleAuthenticationResource.class);
+        registerAuthenticationEndpoint("github", GitHubAuthenticationResource.class);
+        registerAuthenticationEndpoint("oauth2", OAuth2AuthenticationResource.class);
     }
 
-    private void registerSocialProvider(String provider, Class resource) {
+    private void registerAuthenticationEndpoint(String provider, Class resource) {
         if (authenticationProviderManager != null) {
             Optional<AuthenticationProvider> socialProvider = authenticationProviderManager.findIdentityProviderByType(provider);
             if (socialProvider.isPresent()) {

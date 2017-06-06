@@ -38,7 +38,7 @@ public class AuthenticationProviderManagerImpl implements AuthenticationProvider
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 
-    private static final Set<String> OAUTH2_AUTHENTICATION_PROVIDERS = new HashSet(Arrays.asList("google", "github"));
+    private static final Set<String> OAUTH2_AUTHENTICATION_PROVIDERS = new HashSet(Arrays.asList("google", "github", "oauth2"));
 
     private List<AuthenticationProvider> identityProviders;
 

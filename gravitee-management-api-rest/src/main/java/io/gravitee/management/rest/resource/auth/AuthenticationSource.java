@@ -21,14 +21,15 @@ import org.apache.commons.lang.StringUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum AuthenticationProvider {
+public enum AuthenticationSource {
 
-    FACEBOOK("facebook"), GOOGLE("google"), LINKEDIN("linkedin"), GITHUB("github"), FOURSQUARE(
-            "foursquare"), TWITTER("twitter");
+    GOOGLE("google"),
+    GITHUB("github"),
+    OAUTH2("oauth2");
 
     String name;
 
-    AuthenticationProvider(final String name) {
+    AuthenticationSource(final String name) {
         this.name = name;
     }
 

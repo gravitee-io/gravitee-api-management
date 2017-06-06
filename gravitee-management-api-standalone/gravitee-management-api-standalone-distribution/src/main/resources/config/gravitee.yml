@@ -165,6 +165,19 @@ security:
 #    - type: github # Allow to authenticate to portal using a GitHub account
 #      clientId: xxxx-xxx-xxx-xxx
 #      clientSecret: xxxx-xxx-xxx-xxxx
+#    - type: oauth2
+#      clientId: xxxx-xxx-xxx-xxx
+#      clientSecret: xxxx-xxx-xxx-xxx
+#      tokenEndpoint: https://oauth2_authorization_server/token
+#      userInfoEndpoint: https://oauth2_authorization_server/userinfo
+#      accessTokenProperty: access_token
+#      authorizationHeader: "Bearer %s"
+#      mapping:
+#        id: sub
+#        email: email
+#        lastname: family_name
+#        firstname: given_name
+#        picture: picture
 
 # SMTP configuration used to send mails
 email:
