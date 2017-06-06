@@ -32,7 +32,7 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
         $rootScope.portalTitle = Constants.portalTitle;
         this.pages = resolvedDocumentation;
 
-        this.getLogo = () => Constants.logo;
+        this.getLogo = () => Constants.theme.logo;
       },
       controllerAs: 'indexCtrl',
       resolve: {

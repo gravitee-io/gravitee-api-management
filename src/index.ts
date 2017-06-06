@@ -33,7 +33,7 @@ function initLoader() {
 
   const img = document.createElement('img');
   img.classList.add('gravitee-splash-screen');
-  img.setAttribute('src', constants.loaderLogo);
+  img.setAttribute('src', constants.theme.loader);
 
   document.getElementById('loader').appendChild(img);
 
@@ -51,7 +51,7 @@ function bootstrapApplication() {
   angular.module('gravitee-portal').constant('Constants', constants);
   angular.module('gravitee-portal').constant('Build', build);
 
-  $q.all([$http.get(`./themes/${constants.theme}-theme.json`)])
+  $q.all([$http.get(`./themes/${constants.theme.name}-theme.json`)])
     .then((responses: any) => {
       angular.module('gravitee-portal').constant('Theme', responses[0].data);
 

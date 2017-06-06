@@ -43,7 +43,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     }
 
     vm.getLogo = function() {
-      return Constants.logo;
+      return Constants.theme.logo;
     }
   }
 };

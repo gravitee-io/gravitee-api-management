@@ -45,6 +45,6 @@ export class HomeController {
   }
 
   getLogo() {
-    return this.Constants.logo;
+    return this.Constants.theme.logo;
   }
 }

@@ -1,14 +1,16 @@
 {
-    "baseURL": "/management/",
-    "portalTitle": "Gravitee.io Portal",
-    "managementTitle": "Gravitee.io Management",
-    "devMode": false,
-    "userCreationEnabled": true,
-    "portal": {
-      "entrypoint": "https://api.company.com",
-      "apikeyHeader": "X-Gravitee-Api-Key"
-    },
-    "theme": "default",
+  "baseURL": "/management/",
+  "portalTitle": "Gravitee.io Portal",
+  "managementTitle": "Gravitee.io Management",
+  "devMode": false,
+  "userCreationEnabled": true,
+  "portal": {
+    "entrypoint": "https://api.company.com",
+    "apikeyHeader": "X-Gravitee-Api-Key"
+  },
+  "theme": {
+    "name": "default",
     "logo": "themes/assets/GRAVITEE_LOGO1-01.png",
-    "loaderLogo": "assets/gravitee_logo_anim.gif"
+    "loader": "assets/gravitee_logo_anim.gif"
+  }
 }
