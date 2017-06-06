@@ -8,6 +8,7 @@
     "entrypoint": "https://api.company.com",
     "apikeyHeader": "X-Gravitee-Api-Key"
   },
+
   "theme": {
     "name": "default",
     "logo": "themes/assets/GRAVITEE_LOGO1-01.png",

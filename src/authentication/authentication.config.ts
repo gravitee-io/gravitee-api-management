@@ -41,11 +41,14 @@ function authenticationConfig ($authProvider: AuthProvider, Constants) {
     }
 
     // Custom
-    let customConfig = Constants.authentication.custom;
+    let customConfig = Constants.authentication.oauth2;
     if (customConfig) {
       $authProvider.oauth2(_.merge(customConfig, {
         url: Constants.baseURL + '/auth/oauth2',
-        redirectUri: window.location.origin
+        oauthType: '2.0',
+        redirectUri: window.location.origin,
+        requiredUrlParams: ['scope'],
+        scopeDelimiter: ' '
       }));
     }
   }

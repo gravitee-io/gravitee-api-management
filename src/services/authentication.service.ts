@@ -21,6 +21,7 @@ class AuthenticationService {
   private providers: {
     id: string;
     name: string;
+    color?: string;
     icon: string
   }[] = [];
 
@@ -45,6 +46,16 @@ class AuthenticationService {
           id: 'github',
           name: 'GitHub',
           icon: 'github-circle'
+        });
+      }
+
+      let customConfig = Constants.authentication.oauth2;
+      if (customConfig && customConfig.clientId) {
+        this.providers.push({
+          id: customConfig.name,
+          name: customConfig.name,
+          color: customConfig.color,
+          icon: 'person_outline'
         });
       }
     }

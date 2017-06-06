@@ -25,6 +25,19 @@
     /* Enable social authentication with GitHub. clientId is required to enable it */
     "github": {
       "clientId": "github_clientId"
+    },
+    /*
+      Enable authentication with a standard OAuth2 / OpenID Connect server.
+      This authentication provider supports only authorization code grant flow.
+    */
+    "oauth2": {
+      "clientId": "oauth2_clientId",
+      "name": "My OAuth2 server",
+      "color": "#0076b4",
+      // Authorization endpoint to ask for an authorization_code
+      "authorizationEndpoint": "https://oauth2_authorization_server/authorize",
+      // Required scope
+      "scope": ["profile", "openid"]
     }
   }
 }
