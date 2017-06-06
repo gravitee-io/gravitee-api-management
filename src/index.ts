@@ -41,12 +41,22 @@ function initLoader() {
 }
 
 function bootstrapApplication() {
+  let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
+  let $q: ng.IQService = initInjector.get('$q');
+  let $http: ng.IHttpService = initInjector.get('$http');
+
   angular.module('gravitee-management').constant('Constants', constants);
   angular.module('gravitee-management').constant('Build', build);
 
+  angular.module('gravitee-portal').constant('Constants', constants);
   angular.module('gravitee-portal').constant('Build', build);
 
-  angular.element(document).ready(function() {
-    angular.bootstrap(document, ['gravitee-portal', 'gravitee-management']);
-  });
+  $q.all([$http.get(`./themes/${constants.theme}-theme.json`)])
+    .then((responses: any) => {
+      angular.module('gravitee-portal').constant('Theme', responses[0].data);
+
+      angular.element(document).ready(function() {
+        angular.bootstrap(document, ['gravitee-portal', 'gravitee-management']);
+      });
+    });
 }
