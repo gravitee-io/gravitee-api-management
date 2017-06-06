@@ -75,6 +75,7 @@ public class JettyServerFactory implements FactoryBean<Server> {
                 jettyConfiguration.getAcceptors(),
                 jettyConfiguration.getSelectors(),
                 new HttpConnectionFactory(httpConfig));
+        http.setHost(jettyConfiguration.getHttpHost());
         http.setPort(jettyConfiguration.getHttpPort());
         http.setIdleTimeout(jettyConfiguration.getIdleTimeout());
 

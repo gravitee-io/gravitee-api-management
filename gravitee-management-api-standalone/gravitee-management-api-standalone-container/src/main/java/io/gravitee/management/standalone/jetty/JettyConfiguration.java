@@ -23,6 +23,9 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class JettyConfiguration {
 
+    @Value("${jetty.host:0.0.0.0}")
+    private String httpHost;
+
     @Value("${jetty.port:8083}")
     private int httpPort;
 
@@ -58,6 +61,14 @@ public class JettyConfiguration {
 
     @Value("${jetty.accesslog.path:${gravitee.home}/logs/gravitee_accesslog_yyyy_mm_dd.log}")
     private String accessLogPath;
+
+    public String getHttpHost() {
+      return httpHost;
+    }
+
+    public void setHttpHost(String httpHost) {
+      this.httpHost = httpHost;
+    }
 
     public int getHttpPort() {
         return httpPort;
