@@ -13,8 +13,11 @@
         "background-color": "#fbfbfb",
         "color": "#000"
       },
-      "content": {
+      "homepage": {
         "background-color": "#fff"
+      },
+      "content": {
+        "background-color": "#383c48"
       },
       "topapis": {
         "background-color": "#383c48"
