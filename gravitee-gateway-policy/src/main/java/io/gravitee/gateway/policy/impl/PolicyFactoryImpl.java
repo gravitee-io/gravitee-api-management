@@ -47,7 +47,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
     /**
      * Cache of injectable fields by policy
      */
-    private Map<Class<?>, Set<Field>> injectableFields = new HashMap<>();
+//    private Map<Class<?>, Set<Field>> injectableFields = new HashMap<>();
 
     @Override
     public Object create(PolicyMetadata policyMetadata, Map<Class<?>, Object> injectables) {
@@ -73,7 +73,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
                 LOGGER.error("Unable to instantiate policy {}", policyMetadata.policy().getName(), ex);
             }
         }
-
+/*
         if (policyInst != null && injectables != null) {
             Set<Field> fields = lookingForInjectableFields(policyMetadata.policy());
             if (fields != null) {
@@ -96,7 +96,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
                 }
             }
         }
-
+*/
         return policyInst;
     }
 
@@ -130,11 +130,12 @@ public class PolicyFactoryImpl implements PolicyFactory {
 
         return constructor;
     }
-
+/*
     private Set<Field> lookingForInjectableFields(Class<?> policyClass) {
         return injectableFields.computeIfAbsent(policyClass,
                 aClass -> ReflectionUtils.getAllFields(policyClass, withAnnotation(Inject.class)));
     }
+*/
 
     public static Predicate<Member> withParametersAssignableFrom(final Class... types) {
         return input -> {
