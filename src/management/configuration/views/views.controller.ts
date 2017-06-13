@@ -72,6 +72,7 @@ class ViewsController {
       save: function (input) {
         view.name = input.$modelValue;
         if (!_.includes(that.viewsToCreate, view)) {
+          delete view.totalApis;
           that.viewsToUpdate.push(view);
         }
       },
@@ -101,6 +102,7 @@ class ViewsController {
       save: function (input) {
         view.description = input.$modelValue;
         if (!_.includes(that.viewsToCreate, view)) {
+          delete view.totalApis;
           that.viewsToUpdate.push(view);
         }
       },
