@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import ApiService from '../../../services/api.service';
+import ApplicationService from '../../../services/applications.service';
 
 function ApiSubscribeController($state,
                                 NotificationService,
-                                ApplicationService,
-                                ApiService,
+                                ApplicationService: ApplicationService,
+                                ApiService: ApiService,
                                 Constants,
-                                $translate,
-                                $location) {
+                                $translate) {
   'ngInject';
   const vm = this;
 
@@ -66,7 +67,7 @@ function ApiSubscribeController($state,
   function fetchApiKey(application) {
     vm.subscription = getSubscription(application);
     if (application && vm.subscription) {
-      ApiService.listApiKeys(application.id, vm.subscription.id).then(function (apiKeys) {
+      ApplicationService.listApiKeys(application.id, vm.subscription.id).then(function (apiKeys) {
         let apiKey = _.find(apiKeys.data, function (apiKey: any) {
           return !apiKey.revoked;
         });
@@ -110,7 +111,7 @@ function ApiSubscribeController($state,
   };
 
   vm.getSampleCall = function () {
-    return 'curl -X GET "' + Constants.portal.entrypoint + vm.api.proxy.context_path +
+    return 'curl -X GET "' + Constants.portal.entrypoint + vm.api.context_path +
       '" -H "' + Constants.portal.apikeyHeader + ': ' + (vm.apiKey ? vm.apiKey : 'given_api_key') + '"';
   }
 }

@@ -30,7 +30,7 @@
 
       <div class="api-description" layout="column" layout-align="start start" flex="30">
         <span>{{'api.version' | translate}}: {{::$ctrl.api.version}}</span>
-        <span ng-if="$ctrl.api.proxy.context_path">{{'api.endpoint' | translate}}: {{::$ctrl.getEndpoint()}}</span>
+        <span ng-if="$ctrl.api.context_path">{{'api.endpoint' | translate}}: {{::$ctrl.getEndpoint()}}</span>
         <span>{{'api.owner' | translate}}: {{::$ctrl.api.owner.username}}</span>
         <span ng-if="$ctrl.api.deployed_at">{{'api.publishedAt' | translate}}: {{::$ctrl.api.deployed_at | humanDateFilter}}</span>
       </div>

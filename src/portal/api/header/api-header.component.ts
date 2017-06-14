@@ -22,7 +22,7 @@ const ApiHeaderComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.getEndpoint = function () {
-      return Constants.portal.entrypoint + this.api.proxy.context_path;
+      return Constants.portal.entrypoint + this.api.context_path;
     }
   }
 };
