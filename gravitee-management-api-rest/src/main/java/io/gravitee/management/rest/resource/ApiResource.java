@@ -75,6 +75,8 @@ public class ApiResource extends AbstractResource {
             // force browser to get if updated
             uriBuilder.queryParam("hash", apiEntity.getPicture().hashCode());
         }
+
+        apiEntity.setContextPath(apiEntity.getProxy().getContextPath());
         apiEntity.setPictureUrl(uriBuilder.build().toString());
         apiEntity.setPicture(null);
         setPermission(apiEntity);

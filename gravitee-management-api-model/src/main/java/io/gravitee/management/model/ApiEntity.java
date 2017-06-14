@@ -40,6 +40,9 @@ public class ApiEntity {
     private String description;
     private GroupEntity group;
 
+    @JsonProperty(value = "context_path")
+    private String contextPath;
+
     @NotNull
     @DeploymentRequired
     @MembershipTypesAllowed({"PRIMARY_OWNER", "OWNER"})
@@ -271,6 +274,14 @@ public class ApiEntity {
 
     public void setLabels(List<String> labels) {
         this.labels = labels;
+    }
+
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
     }
 
     @Override
