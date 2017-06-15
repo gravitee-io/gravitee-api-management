@@ -201,4 +201,20 @@ public class ApiSerializerTest extends AbstractTest {
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assert.assertNotNull(generatedJsonDefinition);
     }
+
+    @Test
+    public void definition_hostHeader_empty() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-empty-hostHeader.json", Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_hostHeader() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-hostHeader.json", Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
 }

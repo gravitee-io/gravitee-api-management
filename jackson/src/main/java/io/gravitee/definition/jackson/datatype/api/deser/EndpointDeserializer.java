@@ -102,6 +102,14 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
             endpoint.setTenant(tenant);
         }
 
+        JsonNode hostHeaderNode = node.get("hostHeader");
+        if (hostHeaderNode != null) {
+            String hostHeader = hostHeaderNode.asText();
+            if (! hostHeader.trim().isEmpty()) {
+                endpoint.setHostHeader(hostHeader);
+            }
+        }
+
         return endpoint;
     }
 }

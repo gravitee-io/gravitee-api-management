@@ -43,6 +43,8 @@ public class Endpoint {
 
     private String tenant;
 
+    private String hostHeader;
+
     public Endpoint(String name, String target) {
         this();
         this.name = name;
@@ -131,6 +133,14 @@ public class Endpoint {
 
     public void setTenant(String tenant) {
         this.tenant = tenant;
+    }
+
+    public String getHostHeader() {
+        return hostHeader;
+    }
+
+    public void setHostHeader(String hostHeader) {
+        this.hostHeader = hostHeader;
     }
 
     @Override

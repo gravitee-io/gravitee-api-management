@@ -58,6 +58,10 @@ public class EndpointSerializer extends StdScalarSerializer<Endpoint> {
             jgen.writeStringField("tenant", endpoint.getTenant());
         }
 
+        if (endpoint.getHostHeader() != null && !endpoint.getHostHeader().trim().isEmpty()) {
+            jgen.writeStringField("hostHeader", endpoint.getHostHeader());
+        }
+
         jgen.writeEndObject();
     }
 }

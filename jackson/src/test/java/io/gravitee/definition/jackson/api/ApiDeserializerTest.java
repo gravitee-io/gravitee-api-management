@@ -385,4 +385,20 @@ public class ApiDeserializerTest extends AbstractTest {
         load("/io/gravitee/definition/jackson/api-multiplesameendpoints.json", Api.class);
         Assert.fail("should throw deser exception");
     }
+
+    @Test
+    public void definition_hostHeader_empty() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-empty-hostHeader.json", Api.class);
+
+        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Assert.assertNull(endpoint.getHostHeader());
+    }
+
+    @Test
+    public void definition_hostHeader() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-hostHeader.json", Api.class);
+
+        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Assert.assertNotNull(endpoint.getHostHeader());
+    }
 }
