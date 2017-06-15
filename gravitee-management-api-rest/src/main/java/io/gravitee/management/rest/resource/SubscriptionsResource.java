@@ -103,7 +103,7 @@ public class SubscriptionsResource {
 
         subscription.getPlan().setApis(plan.getApis().stream().map(api -> {
             io.gravitee.management.model.ApiEntity apiEntity = apiService.findById(api);
-            return new Subscription.Api(apiEntity.getId(), apiEntity.getName());
+            return new Subscription.Api(apiEntity.getId(), apiEntity.getName(), apiEntity.getVersion());
         }).collect(Collectors.toList()));
 
         return subscription;

@@ -236,11 +236,13 @@ public class Subscription {
     public static class Api {
         private final String id;
         private final String name;
+        private final String version;
         private Owner owner;
 
-        public Api(final String id, final String name) {
+        public Api(final String id, final String name, final String version) {
             this.id = id;
             this.name = name;
+            this.version = version;
         }
 
         public String getId() {
@@ -257,6 +259,10 @@ public class Subscription {
 
         public void setOwner(Owner owner) {
             this.owner = owner;
+        }
+
+        public String getVersion() {
+            return version;
         }
     }
 
