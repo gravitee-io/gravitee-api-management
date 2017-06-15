@@ -170,7 +170,11 @@ public class VertxHttpClient extends AbstractHttpClient {
             httpClientRequest.putHeader(headerName, headerValues.getValue());
         }
 
-        httpClientRequest.putHeader(HttpHeaders.HOST, host);
+        if (endpoint.getHostHeader() != null && !endpoint.getHostHeader().isEmpty()) {
+            httpClientRequest.putHeader(HttpHeaders.HOST, endpoint.getHostHeader());
+        } else {
+            httpClientRequest.putHeader(HttpHeaders.HOST, host);
+        }
     }
 
     private HttpMethod convert(io.gravitee.common.http.HttpMethod httpMethod) {
