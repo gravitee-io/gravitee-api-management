@@ -25,7 +25,7 @@ class ApplicationSubscriptionsController {
   private subscriptions: any;
   private statusFilters: string[];
   private selectedStatus: string[];
-  private apiNameById: any;
+//  private apiNameById: any;
   private subscriptionsByApi: any;
   private showRevokedKeys: boolean;
   private data: any[];
@@ -42,7 +42,7 @@ class ApplicationSubscriptionsController {
     this.data = [];
     this.statusFilters = ['accepted', 'pending', 'rejected', 'closed'];
     this.selectedStatus = ['accepted', 'pending'];
-    this.apiNameById = {};
+//    this.apiNameById = {};
   }
 
   $onInit() {
@@ -61,7 +61,7 @@ class ApplicationSubscriptionsController {
   applyFilters() {
     let that = this;
     this.subscriptionsByApi = _.groupBy(_.filter(that.subscriptions, (subscription: any) => _.includes(that.selectedStatus, subscription.status)), function (sub) {
-      that.apiNameById[sub.plan.apis[0].id] = sub.plan.apis[0].name;
+//      that.apiNameById[sub.plan.apis[0].id] = sub.plan.apis[0].name;
       return sub.plan.apis[0].id;
     });
   }
