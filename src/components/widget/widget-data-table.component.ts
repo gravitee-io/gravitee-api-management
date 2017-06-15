@@ -23,10 +23,11 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget'
   },
-  controller: function($scope: ng.IScope) {
+  controller: function($scope: ng.IScope, $state: ng.ui.IStateService) {
     'ngInject';
-    
+
     this.$scope = $scope;
+    this.$state = $state;
     this.selected = [];
 
     this.$onInit = function() {
@@ -64,6 +65,14 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
         mode: (add) ? 'add' : 'remove'
       });
     };
+
+    this.goto = function(key) {
+      if (this.widget.chart.link === 'api') {
+        this.$state.go('management.apis.detail.analytics', {apiId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to});
+      } else if (this.widget.chart.link === 'application') {
+        this.$state.go('management.applications.portal.analytics', {applicationId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to});
+      }
+    }
   }
 };
 

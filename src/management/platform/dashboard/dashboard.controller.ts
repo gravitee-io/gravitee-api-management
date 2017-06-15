@@ -50,6 +50,7 @@ class DashboardController {
       subhead: 'Ordered by API calls',
       chart: {
         type: 'table',
+        link: 'api',
         columns: ['API', 'Hits'],
         paging: 5,
         request: {
@@ -67,6 +68,7 @@ class DashboardController {
       subhead: 'Ordered by application calls',
       chart: {
         type: 'table',
+        link: 'application',
         columns: ['Application', 'Hits'],
         paging: 5,
         request: {
@@ -84,6 +86,7 @@ class DashboardController {
       subhead: 'Order by API 5xx status calls',
       chart: {
         type: 'table',
+        link: 'api',
         columns: ['Application', 'Hits'],
         paging: 5,
         request: {
@@ -102,6 +105,7 @@ class DashboardController {
       subhead: 'Order by API response time calls',
       chart: {
         type: 'table',
+        link: 'api',
         columns: ['API', 'Latency (in ms)'],
         paging: 5,
         request: {
@@ -120,6 +124,7 @@ class DashboardController {
       subhead: 'Order by gateway latency',
       chart: {
         type: 'table',
+        link: 'api',
         columns: ['API', 'Latency (in ms)'],
         paging: 5,
         request: {

@@ -23,14 +23,14 @@
       </tr>
     </thead>
     <tbody md-body>
-      <tr ng-if="$ctrl.results.length > 0" class="gravitee-link" md-row
+      <tr ng-if="$ctrl.results.length > 0" md-row
           ng-repeat="result in $ctrl.results | limitTo: $ctrl.widget.chart.paging: ($ctrl.paging - 1) * $ctrl.widget.chart.paging"
           md-auto-select md-select="result" md-select-id="key" style="height: 25px;"
           md-on-select="$ctrl.selectItem" md-on-deselect="$ctrl.deselectItem">
         <td md-cell>
-          <span ng-if="!result.metadata.deleted">
+          <a ng-if="!result.metadata.deleted" ng-click="$ctrl.goto(result.key)">
             {{result.metadata.name}} <small ng-if="result.metadata.version">({{result.metadata.version}})</small>
-          </span>
+          </a>
 
           <span ng-if="result.metadata.deleted" style="color: grey;">
             {{result.metadata.name}}
