@@ -152,6 +152,17 @@
                           </span>
           </md-checkbox>
         </div>
+
+        <div layout-xs="column" flex-xs="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Override Host header</label>
+            <input ng-model="endpointCtrl.endpoint.hostHeader" type="text" name="hostHeader">
+            <div class="hint" >
+              Allows to override Host header sent to the target endpoint. If no value is specified,
+              the Host header value is defined using the host and port from the endpoint's target.
+            </div>
+          </md-input-container>
+        </div>
       </div>
     </div>
   </section>
