@@ -27,6 +27,7 @@ function portalI18nConfig($translateProvider, $windowProvider) {
   const lang = $window.navigator.language || $window.navigator.userLanguage;
 
   $translateProvider.preferredLanguage(lang.substring(0, 2));
+  $translateProvider.fallbackLanguage('en');
   $translateProvider.useSanitizeValueStrategy('escape');
 
   const locale = (window.navigator as any).userLanguage || window.navigator.language;
