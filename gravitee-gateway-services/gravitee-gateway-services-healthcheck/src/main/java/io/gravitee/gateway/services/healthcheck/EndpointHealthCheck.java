@@ -78,6 +78,8 @@ class EndpointHealthCheck implements Runnable {
         if (api.getProxy().getEndpoints() != null) {
             for (Endpoint endpoint : api.getProxy().getEndpoints()) {
                 if (endpoint.isHealthcheck()) {
+                    URI requestUri = URI.create(endpoint.getTarget() + healthCheck.getRequest().getUri());
+
                     // Prepare HTTP client
                     HttpClientOptions httpClientOptions = new HttpClientOptions()
                             .setMaxPoolSize(1)
@@ -113,16 +115,18 @@ class EndpointHealthCheck implements Runnable {
                                     new PemTrustOptions().addCertValue(
                                             io.vertx.core.buffer.Buffer.buffer(sslOptions.getPem())));
                         }
+                    } else if(HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme())) {
+                        // SSL is not configured but the endpoint scheme is HTTPS so let's enable the SSL on Vert.x HTTP client
+                        // automatically
+                        httpClientOptions.setSsl(true).setTrustAll(true);
                     }
 
                     HttpClient httpClient = vertx.createHttpClient(httpClientOptions);
 
-                    // Run health-check
-                    URI requestUri = URI.create(endpoint.getTarget() + healthCheck.getRequest().getUri());
-
                     final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
                             (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
+                    // Run health-check
                     HttpClientRequest healthRequest = httpClient.request(
                             HttpMethod.valueOf(healthCheck.getRequest().getMethod().name().toUpperCase()),
                             port,
