@@ -78,10 +78,11 @@ public class SyncManager {
                     .stream()
                     .collect(Collectors.toMap(io.gravitee.repository.management.model.Api::getId, api -> api));
 
+            long nextLastRefreshAt = System.currentTimeMillis();
             // Get last event by API
             Map<String, Event> events = new HashMap<>();
             apis.forEach((id, api) -> {
-                Event event = getLastEvent(id);
+                Event event = getLastEvent(id, nextLastRefreshAt);
                 if (event != null) {
                     events.put(id, event);
                 }
@@ -158,7 +159,7 @@ public class SyncManager {
                         }
                     });
 
-            lastRefreshAt = System.currentTimeMillis();
+            lastRefreshAt = nextLastRefreshAt;
         } catch (TechnicalException te) {
             logger.error("Unable to sync instance", te);
         }
@@ -217,7 +218,7 @@ public class SyncManager {
         return true;
     }
 
-    private Event getLastEvent(final String api) {
+    private Event getLastEvent(final String api, long nextLastRefreshAt) {
         final EventCriteria.Builder eventCriteriaBuilder;
         if (lastRefreshAt == -1) {
             eventCriteriaBuilder = new EventCriteria.Builder()
@@ -225,7 +226,7 @@ public class SyncManager {
         } else {
             eventCriteriaBuilder = new EventCriteria.Builder()
                     .property(Event.EventProperties.API_ID.getValue(), api)
-                    .from(lastRefreshAt).to(System.currentTimeMillis());
+                    .from(lastRefreshAt).to(nextLastRefreshAt);
         }
 
         List<Event> events = eventRepository.search(eventCriteriaBuilder
