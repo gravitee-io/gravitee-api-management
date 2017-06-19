@@ -22,10 +22,23 @@ import './index.scss';
 import './portal/portal.module';
 import './management/management.module';
 
-const constants = require('../constants.json');
-const build = require('../build.json');
+let constants: any;
+fetchData().then(initLoader).then(initTheme).then(bootstrapApplication);
 
-initLoader().then(bootstrapApplication);
+function fetchData() {
+  let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
+  let $http: ng.IHttpService = initInjector.get('$http');
+  let $q: ng.IQService = initInjector.get('$q');
+
+  return $q.all([$http.get('constants.json'), $http.get('build.json')]).then(function (responses: any) {
+    constants = responses[0].data;
+    angular.module('gravitee-management').constant('Constants', constants);
+    angular.module('gravitee-management').constant('Build', responses[1].data);
+
+    angular.module('gravitee-portal').constant('Constants', constants);
+    angular.module('gravitee-portal').constant('Build', responses[1].data);
+  });
+}
 
 function initLoader() {
   let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
@@ -40,23 +53,18 @@ function initLoader() {
   return $q.resolve();
 }
 
-function bootstrapApplication() {
+function initTheme() {
   let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
-  let $q: ng.IQService = initInjector.get('$q');
   let $http: ng.IHttpService = initInjector.get('$http');
 
-  angular.module('gravitee-management').constant('Constants', constants);
-  angular.module('gravitee-management').constant('Build', build);
-
-  angular.module('gravitee-portal').constant('Constants', constants);
-  angular.module('gravitee-portal').constant('Build', build);
-
-  $q.all([$http.get(`./themes/${constants.theme.name}-theme.json`)])
-    .then((responses: any) => {
-      angular.module('gravitee-portal').constant('Theme', responses[0].data);
-
-      angular.element(document).ready(function() {
-        angular.bootstrap(document, ['gravitee-portal', 'gravitee-management']);
-      });
+  return $http.get(`./themes/${constants.theme.name}-theme.json`)
+    .then((response: any) => {
+      angular.module('gravitee-portal').constant('Theme', response.data);
     });
+}
+
+function bootstrapApplication() {
+  angular.element(document).ready(function () {
+    angular.bootstrap(document, ['gravitee-portal', 'gravitee-management']);
+  });
 }
