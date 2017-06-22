@@ -31,6 +31,8 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.filter.AndFilter;
 import org.springframework.ldap.filter.EqualsFilter;
 import org.springframework.ldap.filter.WhitespaceWildcardsFilter;
+import org.springframework.ldap.query.LdapQuery;
+import org.springframework.ldap.query.LdapQueryBuilder;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -73,7 +75,16 @@ public class LdapIdentityLookup implements IdentityLookup<String>, InitializingB
         AndFilter filter = new AndFilter();
         filter.and(new EqualsFilter("objectclass", "person"));
         filter.and(new WhitespaceWildcardsFilter("cn", query));
-        return ldapTemplate.search("", filter.encode(), new UserAttributesMapper());
+
+        LdapQuery ldapQuery = LdapQueryBuilder
+                .query()
+                .countLimit(20)
+                .timeLimit(5000)
+                .attributes(identifierAttribute, "givenname", "sn", "mail")
+                .filter(filter);
+
+
+        return ldapTemplate.search(ldapQuery, new UserAttributesMapper());
     }
 
     @Override
@@ -81,17 +92,20 @@ public class LdapIdentityLookup implements IdentityLookup<String>, InitializingB
         AndFilter filter = new AndFilter();
         filter.and(new EqualsFilter("objectclass", "person"));
         filter.and(new EqualsFilter(identifierAttribute, id));
-        List<User> users = ldapTemplate.search("", filter.encode(), new UserAttributesMapper());
+
+        LdapQuery ldapQuery = LdapQueryBuilder
+                .query()
+                .countLimit(1)
+                .timeLimit(5000)
+                .attributes(identifierAttribute, "givenname", "sn", "mail")
+                .filter(filter);
+
+        List<User> users = ldapTemplate.search(ldapQuery, new UserAttributesMapper());
         if (users != null && ! users.isEmpty()) {
             LdapUser user = (LdapUser) users.iterator().next();
             List<String> result = ldapTemplate.search(
                     "", filter.encode(),
-                    new ContextMapper<String>() {
-                        @Override
-                        public String mapFromContext(Object o) throws NamingException {
-                            return ((LdapCtx) o).getNameInNamespace();
-                        }
-                    });
+                    (ContextMapper<String>) o -> ((LdapCtx) o).getNameInNamespace());
             user.setDn(result.iterator().next());
 
             return user;
