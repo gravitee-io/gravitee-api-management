@@ -134,6 +134,9 @@ class EndpointHealthCheck implements Runnable {
                             requestUri.toString()
                     );
 
+                    // Set timeout on request
+                    healthRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
+
                     // Prepare request
                     if (healthCheck.getRequest().getHeaders() != null) {
                         healthCheck.getRequest().getHeaders().forEach(
@@ -169,8 +172,12 @@ class EndpointHealthCheck implements Runnable {
 
                         report(endpoint, healthBuilder);
 
-                        // Close client
-                        httpClient.close();
+                        try {
+                            // Close client
+                            httpClient.close();
+                        } catch (IllegalStateException ise) {
+                            // Do not take care about exception when closing client
+                        }
                     });
 
                     // Send request
