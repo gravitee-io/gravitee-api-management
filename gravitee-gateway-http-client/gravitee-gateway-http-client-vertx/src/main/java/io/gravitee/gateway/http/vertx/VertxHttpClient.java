@@ -23,8 +23,8 @@ import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
-import io.gravitee.gateway.api.proxy.ProxyRequestConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.http.core.client.AbstractHttpClient;
 import io.netty.channel.ConnectTimeoutException;
@@ -71,7 +71,7 @@ public class VertxHttpClient extends AbstractHttpClient {
     private final Map<Context, HttpClient> httpClients = new HashMap<>();
 
     @Override
-    public ProxyRequestConnection request(ProxyRequest proxyRequest, Handler<ProxyResponse> responseHandler) {
+    public ProxyConnection request(ProxyRequest proxyRequest, Handler<ProxyResponse> responseHandler) {
         HttpClient httpClient = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
 
         final URI uri = proxyRequest.uri();
@@ -80,22 +80,19 @@ public class VertxHttpClient extends AbstractHttpClient {
 
         String relativeUri = (uri.getRawQuery() == null) ? uri.getRawPath() : uri.getRawPath() + '?' + uri.getRawQuery();
 
+        // Prepare request
         HttpClientRequest clientRequest = httpClient.request(
-                convert(proxyRequest.method()),
-                port,
-                uri.getHost(),
-                relativeUri,
-                clientResponse -> handleClientResponse(clientResponse, responseHandler));
-
+                convert(proxyRequest.method()), port, uri.getHost(), relativeUri);
         clientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
 
-        VertxProxyRequestConnection invokerRequest = new VertxProxyRequestConnection(clientRequest);
+        VertxProxyConnection proxyConnection = new VertxProxyConnection(clientRequest);
+        clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse, responseHandler));
 
         clientRequest.exceptionHandler(event -> {
             LOGGER.error("Server proxying failed: {}", event.getMessage());
 
-            if (invokerRequest.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
-                invokerRequest.connectTimeoutHandler().handle(event);
+            if (proxyConnection.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
+                proxyConnection.connectTimeoutHandler().handle(event);
             } else {
                 VertxProxyResponse clientResponse = new VertxProxyResponse(
                         ((event instanceof ConnectTimeoutException) || (event instanceof TimeoutException)) ?
@@ -133,16 +130,15 @@ public class VertxHttpClient extends AbstractHttpClient {
             }
         }
 
-        // Send HTTP head as soon as possible
-        clientRequest.sendHead();
-
-        return invokerRequest;
+        return proxyConnection;
     }
 
-    private void handleClientResponse(HttpClientResponse clientResponse,
+    private void handleClientResponse(VertxProxyConnection proxyConnection, HttpClientResponse clientResponse,
                                       Handler<ProxyResponse> proxyResponseHandler) {
         VertxProxyResponse proxyClientResponse = new VertxProxyResponse(
                 clientResponse.statusCode());
+
+        proxyConnection.setProxyResponse(proxyClientResponse);
 
         // Copy HTTP headers
         clientResponse.headers().names().forEach(headerName ->

@@ -43,6 +43,7 @@ public abstract class PolicyChain extends BufferedReadWriteStream implements io.
     protected static final PolicyResult SUCCESS_POLICY_CHAIN = new SuccessPolicyResult();
 
     protected Handler<PolicyResult> resultHandler;
+    protected Handler<PolicyResult> streamErrorHandler;
     protected final List<Policy> policies;
     protected final Iterator<Policy> policyIterator;
     protected final ExecutionContext executionContext;
@@ -85,8 +86,17 @@ public abstract class PolicyChain extends BufferedReadWriteStream implements io.
         failWith(PolicyResult.failure(convertStackTrace(throwable)));
     }
 
+    @Override
+    public void streamFailWith(PolicyResult policyResult) {
+        streamErrorHandler.handle(policyResult);
+    }
+
     public void setResultHandler(Handler<PolicyResult> resultHandler) {
         this.resultHandler = resultHandler;
+    }
+
+    public void setStreamErrorHandler(Handler<PolicyResult> streamErrorHandler) {
+        this.streamErrorHandler = streamErrorHandler;
     }
 
     private String convertStackTrace(Throwable throwable) {

@@ -17,24 +17,39 @@ package io.gravitee.gateway.http.vertx;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.proxy.ProxyRequestConnection;
+import io.gravitee.gateway.api.proxy.ProxyConnection;
+import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.vertx.core.http.HttpClientRequest;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-class VertxProxyRequestConnection implements ProxyRequestConnection {
+class VertxProxyConnection implements ProxyConnection {
 
     private final HttpClientRequest httpClientRequest;
+    private ProxyResponse proxyResponse;
     private Handler<Throwable> timeoutHandler;
 
-    VertxProxyRequestConnection(final HttpClientRequest httpClientRequest) {
+    VertxProxyConnection(final HttpClientRequest httpClientRequest) {
         this.httpClientRequest = httpClientRequest;
     }
 
+    public void setProxyResponse(ProxyResponse proxyResponse) {
+        this.proxyResponse = proxyResponse;
+    }
+
     @Override
-    public VertxProxyRequestConnection connectTimeoutHandler(Handler<Throwable> timeoutHandler) {
+    public ProxyConnection cancel() {
+        this.httpClientRequest.end();
+        if (proxyResponse != null) {
+            proxyResponse.bodyHandler(null);
+        }
+        return this;
+    }
+
+    @Override
+    public VertxProxyConnection connectTimeoutHandler(Handler<Throwable> timeoutHandler) {
         this.timeoutHandler = timeoutHandler;
         return this;
     }
@@ -44,7 +59,7 @@ class VertxProxyRequestConnection implements ProxyRequestConnection {
     }
 
     @Override
-    public VertxProxyRequestConnection write(Buffer chunk) {
+    public VertxProxyConnection write(Buffer chunk) {
         httpClientRequest.write(io.vertx.core.buffer.Buffer.buffer(chunk.getBytes()));
 
         return this;
