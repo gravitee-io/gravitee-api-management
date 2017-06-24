@@ -27,7 +27,7 @@ public class StreamablePolicy implements Policy {
 
     @Override
     public void onRequest(Object... args) throws PolicyException {
-        throw new RuntimeException();
+        ((PolicyChain)args[2]).doNext(null, null);
     }
 
     @Override

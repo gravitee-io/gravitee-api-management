@@ -24,7 +24,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
-import io.gravitee.gateway.api.proxy.ProxyRequestConnection;
+import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.http.core.invoker.DefaultHttpInvoker;
 import org.slf4j.Logger;
@@ -41,8 +41,8 @@ public class FailoverHttpInvoker extends DefaultHttpInvoker {
     private final static String ATTEMPTS_COUNTER_ATTRIBUTE = "gravitee.attribute.failover.attempts";
 
     @Override
-    protected ProxyRequestConnection invoke0(HttpClient httpClient, Request serverRequest, ProxyRequest proxyRequest,
-                                             ExecutionContext executionContext, Handler<ProxyResponse> response) {
+    protected ProxyConnection invoke0(HttpClient httpClient, Request serverRequest, ProxyRequest proxyRequest,
+                                      ExecutionContext executionContext, Handler<ProxyResponse> response) {
         return httpClient.request(proxyRequest, response).connectTimeoutHandler(result -> {
             LOGGER.warn("Connection timeout from {}:{}", proxyRequest.uri().getHost(), proxyRequest.uri().getPort());
             int attempts = getAttempts(executionContext);

@@ -18,33 +18,38 @@ package io.gravitee.gateway.http.core.logger;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.proxy.ProxyRequestConnection;
+import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.stream.WriteStream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class LoggableProxyRequestConnection implements ProxyRequestConnection {
+public class LoggableProxyConnection implements ProxyConnection {
 
-    private final ProxyRequestConnection proxyRequestConnection;
+    private final ProxyConnection proxyConnection;
     private final Request request;
 
-    public LoggableProxyRequestConnection(final ProxyRequestConnection proxyRequestConnection, final Request request) {
-        this.proxyRequestConnection = proxyRequestConnection;
+    public LoggableProxyConnection(final ProxyConnection proxyConnection, final Request request) {
+        this.proxyConnection = proxyConnection;
         this.request = request;
     }
 
     @Override
-    public ProxyRequestConnection connectTimeoutHandler(Handler<Throwable> timeoutHandler) {
-        return proxyRequestConnection.connectTimeoutHandler(timeoutHandler);
+    public ProxyConnection cancel() {
+        return proxyConnection.cancel();
+    }
+
+    @Override
+    public ProxyConnection connectTimeoutHandler(Handler<Throwable> timeoutHandler) {
+        return proxyConnection.connectTimeoutHandler(timeoutHandler);
     }
 
     @Override
     public void end() {
         HttpDump.logger.info("{}/{} >> upstream proxying complete", request.id(), request.transactionId());
 
-        proxyRequestConnection.end();
+        proxyConnection.end();
     }
 
     @Override
@@ -53,6 +58,6 @@ public class LoggableProxyRequestConnection implements ProxyRequestConnection {
                 chunk.length());
         HttpDump.logger.info("{}/{} >> {}", request.id(), request.transactionId(), chunk.toString());
 
-        return proxyRequestConnection.write(chunk);
+        return proxyConnection.write(chunk);
     }
 }

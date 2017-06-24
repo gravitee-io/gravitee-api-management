@@ -137,7 +137,7 @@ public class ResponsePolicyChainTest {
 
         ReadWriteStream stream = spy(new BufferedReadWriteStream());
         when(policy4.onResponseContent(
-                any(Request.class), any(Response.class), eq(executionContext)
+                any(Request.class), any(Response.class), any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)
         )).thenReturn(stream);
 
         PolicyChain chain = ResponsePolicyChain.create(
@@ -159,12 +159,12 @@ public class ResponsePolicyChainTest {
 
         ReadWriteStream streamPolicy4 = spy(new BufferedReadWriteStream());
         when(policy4.onResponseContent(
-                any(Request.class), any(Response.class), eq(executionContext)
+                any(Request.class), any(Response.class), any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)
         )).thenReturn(streamPolicy4);
 
         ReadWriteStream streamPolicy5 = spy(new BufferedReadWriteStream());
         when(policy5.onResponseContent(
-                any(Request.class), any(Response.class), eq(executionContext)
+                any(Request.class), any(Response.class), any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)
         )).thenReturn(streamPolicy5);
 
         InOrder inOrder = inOrder(streamPolicy4, streamPolicy5);
@@ -192,12 +192,12 @@ public class ResponsePolicyChainTest {
 
         ReadWriteStream streamPolicy4 = spy(new BufferedReadWriteStream());
         when(policy4.onResponseContent(
-                any(Request.class), any(Response.class), eq(executionContext)
+                any(Request.class), any(Response.class), any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)
         )).thenReturn(streamPolicy4);
 
         ReadWriteStream streamPolicy5 = spy(new BufferedReadWriteStream());
         when(policy5.onResponseContent(
-                any(Request.class), any(Response.class), eq(executionContext)
+                any(Request.class), any(Response.class), any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)
         )).thenReturn(streamPolicy5);
 
         InOrder inOrder = inOrder(streamPolicy4, streamPolicy5);

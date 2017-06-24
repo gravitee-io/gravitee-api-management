@@ -57,7 +57,7 @@ public abstract class StreamablePolicyChain extends PolicyChain {
             if (policy.isStreamable()) {
                 try {
                     // Run OnXXXContent to get ReadWriteStream object
-                    final ReadWriteStream streamer = stream(policy, request, response, executionContext);
+                    final ReadWriteStream streamer = stream(policy, request, response, this, executionContext);
                     if (streamer != null) {
                         // An handler was never assigned to start the chain, so let's do it
                         if (streamablePolicyHandlerChain == null) {

@@ -26,14 +26,14 @@ import io.gravitee.gateway.api.endpoint.EndpointManager;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
-import io.gravitee.gateway.api.proxy.ProxyRequestConnection;
+import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import io.gravitee.gateway.http.core.endpoint.impl.DefaultEndpointLifecycleManager;
 import io.gravitee.gateway.http.core.logger.HttpDump;
 import io.gravitee.gateway.http.core.logger.LoggableClientResponse;
-import io.gravitee.gateway.http.core.logger.LoggableProxyRequestConnection;
+import io.gravitee.gateway.http.core.logger.LoggableProxyConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +90,7 @@ public class DefaultHttpInvoker implements Invoker {
     protected EndpointManager<HttpClient> endpointManager;
 
     @Override
-    public ProxyRequestConnection invoke(ExecutionContext executionContext, Request serverRequest, Handler<ProxyResponse> result) {
+    public ProxyConnection invoke(ExecutionContext executionContext, Request serverRequest, Handler<ProxyResponse> result) {
         // Get target if overridden by a policy
         String targetUri = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
         HttpEndpoint endpoint;
@@ -160,20 +160,20 @@ public class DefaultHttpInvoker implements Invoker {
                 .headers(proxyRequestHeaders(serverRequest.headers(), host, endpoint.definition()))
                 .build();
 
-        ProxyRequestConnection proxyRequestConnection = invoke0(endpoint.connector(), serverRequest, proxyRequest,
+        ProxyConnection proxyConnection = invoke0(endpoint.connector(), serverRequest, proxyRequest,
                 executionContext, (enableHttpDump) ? loggableClientResponse(result, serverRequest) : result);
 
         if (enableHttpDump) {
-            HttpDump.logger.info("{}/{} >> Rewriting: {} -> {}", serverRequest.id(), serverRequest.transactionId(), proxyRequest.uri(), uri);
-            HttpDump.logger.info("{}/{} >> {} {}", serverRequest.id(), serverRequest.transactionId(), httpMethod, uri);
+            HttpDump.logger.info("{}/{} >> Rewriting: {} -> {}", serverRequest.id(), serverRequest.transactionId(), serverRequest.uri(), requestUri);
+            HttpDump.logger.info("{}/{} >> {} {}", serverRequest.id(), serverRequest.transactionId(), httpMethod, requestUri.getRawPath());
 
             proxyRequest.headers().forEach((headerName, headerValues) -> HttpDump.logger.info("{}/{} >> {}: {}",
                     serverRequest.id(), serverRequest.transactionId(), headerName, headerValues.stream().collect(Collectors.joining(","))));
 
-            proxyRequestConnection = new LoggableProxyRequestConnection(proxyRequestConnection, serverRequest);
+            proxyConnection = new LoggableProxyConnection(proxyConnection, serverRequest);
         }
 
-        return proxyRequestConnection;
+        return proxyConnection;
     }
 
     private HttpHeaders proxyRequestHeaders(HttpHeaders serverHeaders, String host, Endpoint endpoint) {
@@ -208,8 +208,8 @@ public class DefaultHttpInvoker implements Invoker {
         return endpointManager.loadbalancer().next();
     }
 
-    protected ProxyRequestConnection invoke0(HttpClient httpClient, Request serverRequest, ProxyRequest proxyRequest,
-                                             ExecutionContext context, Handler<ProxyResponse> proxyResponse) {
+    protected ProxyConnection invoke0(HttpClient httpClient, Request serverRequest, ProxyRequest proxyRequest,
+                                      ExecutionContext context, Handler<ProxyResponse> proxyResponse) {
         return httpClient.request(proxyRequest, proxyResponse);
     }
 

@@ -38,6 +38,7 @@ public class RequestPolicyChainProcessor {
 
     private final Iterator<PolicyChainResolver> iterator;
     private Handler<PolicyChainResult> resultHandler;
+    private Handler<PolicyChainResult> streamErrorHandler;
     private PolicyChain lastPolicyChain;
 
     public RequestPolicyChainProcessor(List<PolicyChainResolver> policyChainResolvers) {
@@ -58,6 +59,7 @@ public class RequestPolicyChainProcessor {
                     resultHandler.handle(new PolicyChainResult(lastPolicyChain, policyResult));
                 }
             });
+            policyChain.setStreamErrorHandler(result -> streamErrorHandler.handle(new PolicyChainResult(lastPolicyChain, result)));
             policyChain.doNext(request, response);
         } else {
             resultHandler.handle(new PolicyChainResult(lastPolicyChain, null));
@@ -66,5 +68,9 @@ public class RequestPolicyChainProcessor {
 
     public void setResultHandler(Handler<PolicyChainResult> resultHandler) {
         this.resultHandler = resultHandler;
+    }
+
+    public void setStreamErrorHandler(Handler<PolicyChainResult> streamErrorHandler) {
+        this.streamErrorHandler = streamErrorHandler;
     }
 }

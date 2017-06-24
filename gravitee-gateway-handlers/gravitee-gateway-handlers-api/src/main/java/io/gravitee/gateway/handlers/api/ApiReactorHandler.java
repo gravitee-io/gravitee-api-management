@@ -28,7 +28,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.proxy.ProxyRequestConnection;
+import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
@@ -113,7 +113,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                     Invoker upstreamInvoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
 
                     long serviceInvocationStart = System.currentTimeMillis();
-                    ProxyRequestConnection proxyRequestConnection = upstreamInvoker.invoke(executionContext, serverRequest, responseStream -> {
+                    ProxyConnection proxyConnection = upstreamInvoker.invoke(executionContext, serverRequest, responseStream -> {
                         // Set the status
                         serverResponse.status(responseStream.status());
 
@@ -122,6 +122,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
                         // Calculate response policies
                         PolicyChain responsePolicyChain = apiPolicyResolver.resolve(StreamType.ON_RESPONSE, serverRequest, serverResponse, executionContext);
+
                         responsePolicyChain.setResultHandler(responsePolicyResult -> {
                             if (responsePolicyResult.isFailure()) {
                                 sendPolicyFailure(responsePolicyResult, serverResponse);
@@ -148,16 +149,27 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                             }
                         });
 
+                        responsePolicyChain.setStreamErrorHandler(result -> {
+                            sendPolicyFailure(result, serverResponse);
+                            handler.handle(serverResponse);
+                        });
+
                         // Execute response policy chain
                         responsePolicyChain.doNext(serverRequest, serverResponse);
                     });
 
+                    requestPolicyChain.setStreamErrorHandler(result -> {
+                        proxyConnection.cancel();
+                        sendPolicyFailure(result.getPolicyResult(), serverResponse);
+                        handler.handle(serverResponse);
+                    });
+
                     // In case of underlying service unavailable, we can have a null client request
-                    if (proxyRequestConnection != null) {
+                    if (proxyConnection != null) {
                         // Plug request policy chain stream to backend request stream
                         requestPolicyChainResult.getPolicyChain()
-                                .bodyHandler(proxyRequestConnection::write)
-                                .endHandler(aVoid -> proxyRequestConnection.end());
+                                .bodyHandler(proxyConnection::write)
+                                .endHandler(aVoid -> proxyConnection.end());
                     }
 
                     // Plug server request stream to request policy chain stream
