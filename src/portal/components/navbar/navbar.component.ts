@@ -40,10 +40,14 @@ export const NavbarComponent: ng.IComponentOptions = {
 
     vm.hasRoles = function (roles) {
       return UserService.isUserInRoles(roles);
-    }
+    };
 
     vm.getLogo = function() {
       return Constants.theme.logo;
-    }
+    };
+
+    vm.getUserPicture = function() {
+      return '/assets/default_user_picture.png';
+    };
   }
 };
