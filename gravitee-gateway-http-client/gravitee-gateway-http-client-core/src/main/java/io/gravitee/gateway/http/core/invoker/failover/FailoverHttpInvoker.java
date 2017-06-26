@@ -16,21 +16,19 @@
 package io.gravitee.gateway.http.core.invoker.failover;
 
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Failover;
-import io.gravitee.gateway.api.ClientRequest;
-import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
+import io.gravitee.gateway.api.proxy.ProxyRequest;
+import io.gravitee.gateway.api.proxy.ProxyRequestConnection;
+import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.http.core.invoker.DefaultHttpInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.URI;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -43,15 +41,14 @@ public class FailoverHttpInvoker extends DefaultHttpInvoker {
     private final static String ATTEMPTS_COUNTER_ATTRIBUTE = "gravitee.attribute.failover.attempts";
 
     @Override
-    protected ClientRequest invoke0(HttpClient httpClient, HttpMethod method, URI uri, Request serverRequest,
-                                    ExecutionContext executionContext, Handler<ClientResponse> response) {
-        return httpClient.request(method, uri, serverRequest.headers(),
-                response).connectTimeoutHandler(result -> {
-            LOGGER.warn("Connection timeout from {}:{}", uri.getHost(), uri.getPort());
+    protected ProxyRequestConnection invoke0(HttpClient httpClient, Request serverRequest, ProxyRequest proxyRequest,
+                                             ExecutionContext executionContext, Handler<ProxyResponse> response) {
+        return httpClient.request(proxyRequest, response).connectTimeoutHandler(result -> {
+            LOGGER.warn("Connection timeout from {}:{}", proxyRequest.uri().getHost(), proxyRequest.uri().getPort());
             int attempts = getAttempts(executionContext);
             int maxAttempts = getFailover().getMaxAttempts();
 
-            LOGGER.debug("Current attempts is {} (max={})", attempts, maxAttempts);
+            LOGGER.debug("Current attempt is {} (max={})", attempts, maxAttempts);
 
             if (maxAttempts == 0 || attempts < maxAttempts) {
                 invoke(executionContext, serverRequest, response);
@@ -88,7 +85,7 @@ public class FailoverHttpInvoker extends DefaultHttpInvoker {
         return api.getProxy().getFailover();
     }
 
-    private class FailoverClientResponse implements ClientResponse {
+    private class FailoverClientResponse implements ProxyResponse {
 
         private Handler<Void> endHandler;
 
@@ -103,13 +100,13 @@ public class FailoverHttpInvoker extends DefaultHttpInvoker {
         }
 
         @Override
-        public ClientResponse bodyHandler(Handler<Buffer> bodyHandler) {
+        public ProxyResponse bodyHandler(Handler<Buffer> bodyHandler) {
             // No need to record this handler because no data will be handle
             return this;
         }
 
         @Override
-        public ClientResponse endHandler(Handler<Void> endHandler) {
+        public ProxyResponse endHandler(Handler<Void> endHandler) {
             this.endHandler = endHandler;
             return this;
         }

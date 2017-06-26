@@ -32,12 +32,8 @@ public class HttpEndpoint implements io.gravitee.gateway.api.endpoint.Endpoint<H
         this.httpClient = httpClient;
     }
 
-    public Endpoint getEndpoint() {
+    public Endpoint definition() {
         return endpoint;
-    }
-
-    public HttpClient getHttpClient() {
-        return httpClient;
     }
 
     @Override

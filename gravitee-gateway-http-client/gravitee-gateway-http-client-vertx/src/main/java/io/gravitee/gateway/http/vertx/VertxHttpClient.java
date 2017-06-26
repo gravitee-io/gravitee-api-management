@@ -21,10 +21,11 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
-import io.gravitee.gateway.api.ClientRequest;
-import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.proxy.ProxyRequest;
+import io.gravitee.gateway.api.proxy.ProxyRequestConnection;
+import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.http.core.client.AbstractHttpClient;
 import io.netty.channel.ConnectTimeoutException;
 import io.vertx.core.Context;
@@ -41,7 +42,6 @@ import javax.annotation.Resource;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
@@ -71,16 +71,17 @@ public class VertxHttpClient extends AbstractHttpClient {
     private final Map<Context, HttpClient> httpClients = new HashMap<>();
 
     @Override
-    public ClientRequest request(io.gravitee.common.http.HttpMethod method, URI uri, HttpHeaders headers, Handler<ClientResponse> responseHandler) {
+    public ProxyRequestConnection request(ProxyRequest proxyRequest, Handler<ProxyResponse> responseHandler) {
         HttpClient httpClient = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
 
+        final URI uri = proxyRequest.uri();
         final int port = uri.getPort() != -1 ? uri.getPort() :
                 (HTTPS_SCHEME.equals(uri.getScheme()) ? 443 : 80);
 
         String relativeUri = (uri.getRawQuery() == null) ? uri.getRawPath() : uri.getRawPath() + '?' + uri.getRawQuery();
 
         HttpClientRequest clientRequest = httpClient.request(
-                convert(method),
+                convert(proxyRequest.method()),
                 port,
                 uri.getHost(),
                 relativeUri,
@@ -88,7 +89,7 @@ public class VertxHttpClient extends AbstractHttpClient {
 
         clientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
 
-        VertxClientRequest invokerRequest = new VertxClientRequest(clientRequest);
+        VertxProxyRequestConnection invokerRequest = new VertxProxyRequestConnection(clientRequest);
 
         clientRequest.exceptionHandler(event -> {
             LOGGER.error("Server proxying failed: {}", event.getMessage());
@@ -96,7 +97,7 @@ public class VertxHttpClient extends AbstractHttpClient {
             if (invokerRequest.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
                 invokerRequest.connectTimeoutHandler().handle(event);
             } else {
-                VertxClientResponse clientResponse = new VertxClientResponse(
+                VertxProxyResponse clientResponse = new VertxProxyResponse(
                         ((event instanceof ConnectTimeoutException) || (event instanceof TimeoutException)) ?
                         HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
 
@@ -120,14 +121,13 @@ public class VertxHttpClient extends AbstractHttpClient {
             }
         });
 
-        // Copy headers to final API
-        copyRequestHeaders(headers, clientRequest,
-                (port == 80 || port == 443) ? uri.getHost() : uri.getHost() + ':' + port);
+        // Copy headers to upstream
+        copyRequestHeaders(proxyRequest.headers(), clientRequest);
 
         // Check chunk flag on the request if there are some content to push and if transfer_encoding is set
         // with chunk value
-        if (hasContent(headers)) {
-            String transferEncoding = headers.getFirst(HttpHeaders.TRANSFER_ENCODING);
+        if (hasContent(proxyRequest.headers())) {
+            String transferEncoding = proxyRequest.headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
             if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding)) {
                 clientRequest.setChunked(true);
             }
@@ -140,8 +140,8 @@ public class VertxHttpClient extends AbstractHttpClient {
     }
 
     private void handleClientResponse(HttpClientResponse clientResponse,
-                                      Handler<ClientResponse> clientResponseHandler) {
-        VertxClientResponse proxyClientResponse = new VertxClientResponse(
+                                      Handler<ProxyResponse> proxyResponseHandler) {
+        VertxProxyResponse proxyClientResponse = new VertxProxyResponse(
                 clientResponse.statusCode());
 
         // Copy HTTP headers
@@ -154,26 +154,12 @@ public class VertxHttpClient extends AbstractHttpClient {
         // Signal end of the response
         clientResponse.endHandler(v -> proxyClientResponse.endHandler().handle(null));
 
-        clientResponseHandler.handle(proxyClientResponse);
+        proxyResponseHandler.handle(proxyClientResponse);
     }
 
-    private void copyRequestHeaders(HttpHeaders headers, HttpClientRequest httpClientRequest, String host) {
+    private void copyRequestHeaders(HttpHeaders headers, HttpClientRequest httpClientRequest) {
         for (Map.Entry<String, List<String>> headerValues : headers.entrySet()) {
-            String headerName = headerValues.getKey();
-            String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
-
-            // Remove hop-by-hop headers.
-            if (HOP_HEADERS.contains(lowerHeaderName)) {
-                continue;
-            }
-
-            httpClientRequest.putHeader(headerName, headerValues.getValue());
-        }
-
-        if (endpoint.getHostHeader() != null && !endpoint.getHostHeader().isEmpty()) {
-            httpClientRequest.putHeader(HttpHeaders.HOST, endpoint.getHostHeader());
-        } else {
-            httpClientRequest.putHeader(HttpHeaders.HOST, host);
+            httpClientRequest.putHeader(headerValues.getKey(), headerValues.getValue());
         }
     }
 

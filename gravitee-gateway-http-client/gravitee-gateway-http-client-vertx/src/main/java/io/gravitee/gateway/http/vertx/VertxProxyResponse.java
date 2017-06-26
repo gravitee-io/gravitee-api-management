@@ -16,14 +16,15 @@
 package io.gravitee.gateway.http.vertx;
 
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.proxy.ProxyResponse;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-class VertxClientResponse implements ClientResponse {
+class VertxProxyResponse implements ProxyResponse {
 
     private Handler<Buffer> bodyHandler;
     private Handler<Void> endHandler;
@@ -31,7 +32,7 @@ class VertxClientResponse implements ClientResponse {
     private final int status;
     private final HttpHeaders httpHeaders = new HttpHeaders();
 
-    public VertxClientResponse(final int status) {
+    VertxProxyResponse(final int status) {
         this.status = status;
     }
 
@@ -46,7 +47,7 @@ class VertxClientResponse implements ClientResponse {
     }
 
     @Override
-    public ClientResponse bodyHandler(Handler<Buffer> bodyHandler) {
+    public ProxyResponse bodyHandler(Handler<Buffer> bodyHandler) {
         this.bodyHandler = bodyHandler;
         return this;
     }
@@ -56,7 +57,7 @@ class VertxClientResponse implements ClientResponse {
     }
 
     @Override
-    public ClientResponse endHandler(Handler<Void> endHandler) {
+    public ProxyResponse endHandler(Handler<Void> endHandler) {
         this.endHandler = endHandler;
         return this;
     }

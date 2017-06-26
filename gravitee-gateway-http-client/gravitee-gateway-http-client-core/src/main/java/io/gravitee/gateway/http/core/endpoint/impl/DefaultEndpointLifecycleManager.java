@@ -75,7 +75,7 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
         List<io.gravitee.definition.model.Endpoint> filteredEndpoints = this.endpoints
                 .values()
                 .stream()
-                .map(HttpEndpoint::getEndpoint)
+                .map(HttpEndpoint::definition)
                 .collect(Collectors.toList());
 
         // Use a LB strategy only if more than one endpoint
@@ -118,7 +118,7 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
             Map.Entry<String, HttpEndpoint> endpoint = it.next();
             try {
                 logger.info("Close target endpoint: {}", endpoint.getKey());
-                endpoint.getValue().getHttpClient().stop();
+                endpoint.getValue().connector().stop();
                 it.remove();
                 endpointsTarget.remove(endpoint.getKey());
             } catch (Exception ex) {
