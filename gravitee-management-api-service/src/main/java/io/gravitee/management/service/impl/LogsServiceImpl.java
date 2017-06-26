@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Component
-public class LogsServiceImpl extends TransactionalService implements LogsService {
+public class LogsServiceImpl implements LogsService {
 
     /**
      * Logger.
