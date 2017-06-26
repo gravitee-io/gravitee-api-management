@@ -22,9 +22,13 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.gateway.api.*;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Invoker;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.proxy.ProxyRequestConnection;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
@@ -109,8 +113,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                     Invoker upstreamInvoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
 
                     long serviceInvocationStart = System.currentTimeMillis();
-                    ClientRequest clientRequest = upstreamInvoker.invoke(executionContext, serverRequest, responseStream -> {
-
+                    ProxyRequestConnection proxyRequestConnection = upstreamInvoker.invoke(executionContext, serverRequest, responseStream -> {
                         // Set the status
                         serverResponse.status(responseStream.status());
 
@@ -150,11 +153,11 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                     });
 
                     // In case of underlying service unavailable, we can have a null client request
-                    if (clientRequest != null) {
+                    if (proxyRequestConnection != null) {
                         // Plug request policy chain stream to backend request stream
                         requestPolicyChainResult.getPolicyChain()
-                                .bodyHandler(clientRequest::write)
-                                .endHandler(aVoid -> clientRequest.end());
+                                .bodyHandler(proxyRequestConnection::write)
+                                .endHandler(aVoid -> proxyRequestConnection.end());
                     }
 
                     // Plug server request stream to request policy chain stream

@@ -16,10 +16,10 @@
 package io.gravitee.gateway.http.core.logger;
 
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.gateway.api.ClientResponse;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
 
 import java.util.stream.Collectors;
@@ -28,19 +28,19 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class LoggableClientResponse implements ClientResponse {
+public class LoggableClientResponse implements ProxyResponse {
 
-    private final ClientResponse clientResponse;
+    private final ProxyResponse proxyResponse;
     private final Request request;
 
-    public LoggableClientResponse(final ClientResponse clientResponse, final Request request) {
-        this.clientResponse = clientResponse;
+    public LoggableClientResponse(final ProxyResponse proxyResponse, final Request request) {
+        this.proxyResponse = proxyResponse;
         this.request = request;
     }
 
     @Override
     public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
-        return clientResponse.bodyHandler(chunk -> {
+        return proxyResponse.bodyHandler(chunk -> {
             HttpDump.logger.info("{}/{} << proxying content to downstream: {} bytes", request.id(),
                     request.transactionId(), chunk.length());
             HttpDump.logger.info("{}/{} << {}", request.id(), request.transactionId(), chunk.toString());
@@ -51,7 +51,7 @@ public class LoggableClientResponse implements ClientResponse {
 
     @Override
     public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
-        return clientResponse.endHandler(result -> {
+        return proxyResponse.endHandler(result -> {
             HttpDump.logger.info("{}/{} << downstream proxying complete", request.id(), request.transactionId());
 
             endHandler.handle(result);
@@ -60,14 +60,14 @@ public class LoggableClientResponse implements ClientResponse {
 
     @Override
     public HttpHeaders headers() {
-        clientResponse.headers().forEach((headerName, headerValues) -> HttpDump.logger.info("{} << {}: {}",
+        proxyResponse.headers().forEach((headerName, headerValues) -> HttpDump.logger.info("{} << {}: {}",
                 request.id(), headerName, headerValues.stream().collect(Collectors.joining(","))));
-        return clientResponse.headers();
+        return proxyResponse.headers();
     }
 
     @Override
     public int status() {
-        HttpDump.logger.info("{} << HTTP Status - {}", request.id(), clientResponse.status());
-        return clientResponse.status();
+        HttpDump.logger.info("{} << HTTP Status - {}", request.id(), proxyResponse.status());
+        return proxyResponse.status();
     }
 }

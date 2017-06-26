@@ -15,36 +15,36 @@
  */
 package io.gravitee.gateway.http.core.logger;
 
-import io.gravitee.gateway.api.ClientRequest;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.proxy.ProxyRequestConnection;
 import io.gravitee.gateway.api.stream.WriteStream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class LoggableClientRequest implements ClientRequest {
+public class LoggableProxyRequestConnection implements ProxyRequestConnection {
 
-    private final ClientRequest clientRequest;
+    private final ProxyRequestConnection proxyRequestConnection;
     private final Request request;
 
-    public LoggableClientRequest(final ClientRequest clientRequest, final Request request) {
-        this.clientRequest = clientRequest;
+    public LoggableProxyRequestConnection(final ProxyRequestConnection proxyRequestConnection, final Request request) {
+        this.proxyRequestConnection = proxyRequestConnection;
         this.request = request;
     }
 
     @Override
-    public ClientRequest connectTimeoutHandler(Handler<Throwable> timeoutHandler) {
-        return clientRequest.connectTimeoutHandler(timeoutHandler);
+    public ProxyRequestConnection connectTimeoutHandler(Handler<Throwable> timeoutHandler) {
+        return proxyRequestConnection.connectTimeoutHandler(timeoutHandler);
     }
 
     @Override
     public void end() {
         HttpDump.logger.info("{}/{} >> upstream proxying complete", request.id(), request.transactionId());
 
-        clientRequest.end();
+        proxyRequestConnection.end();
     }
 
     @Override
@@ -53,6 +53,6 @@ public class LoggableClientRequest implements ClientRequest {
                 chunk.length());
         HttpDump.logger.info("{}/{} >> {}", request.id(), request.transactionId(), chunk.toString());
 
-        return clientRequest.write(chunk);
+        return proxyRequestConnection.write(chunk);
     }
 }

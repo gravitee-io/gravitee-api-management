@@ -100,7 +100,7 @@ public class DefaultEndpointLifecycleManagerTest {
         assertNotNull(httpClientEndpoint);
 
         verify(applicationContext, times(1)).getBean(eq(HttpClient.class), any(Endpoint.class));
-        verify(httpClientEndpoint.getHttpClient(), times(1)).start();
+        verify(httpClientEndpoint.connector(), times(1)).start();
 
         assertEquals(httpClientEndpoint, endpointLifecycleManager.getOrDefault("endpoint"));
         assertEquals(httpClientEndpoint, endpointLifecycleManager.getOrDefault("unknown"));
@@ -129,7 +129,7 @@ public class DefaultEndpointLifecycleManagerTest {
         endpointLifecycleManager.stop();
 
         // Verify that the HTTP client is correctly stopped
-        verify(httpClientEndpoint.getHttpClient(), times(1)).stop();
+        verify(httpClientEndpoint.connector(), times(1)).stop();
 
         assertTrue(endpointLifecycleManager.targetByEndpoint().isEmpty());
         assertTrue(endpointLifecycleManager.endpoints().isEmpty());
