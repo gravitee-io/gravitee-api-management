@@ -237,6 +237,7 @@
         <div layout-xs="column" flex-xs="100">
           <md-checkbox
             ng-model="endpointCtrl.endpoint.ssl.enabled"
+            ng-change="endpointCtrl.toggleSSL()"
             aria-label="Enable SSL"
             class="md-align-top-left" flex>
             Enable client SSL
@@ -247,6 +248,7 @@
         <div layout-xs="column" flex-xs="100">
           <md-checkbox
             ng-model="endpointCtrl.endpoint.ssl.trustAll"
+            ng-change="endpointCtrl.toggleTrustAll()"
             aria-label="Enable trust all"
             class="md-warn md-align-top-left" flex>
             Enable trust all<br/>

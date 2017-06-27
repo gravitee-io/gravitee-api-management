@@ -101,6 +101,18 @@ class ApiEndpointController {
     this.api.proxy.endpoints = _.cloneDeep(this.initialEndpoints);
     this.$state.go('management.apis.detail.general.gateway');
   }
+
+  toggleTrustAll() {
+    if (this.endpoint.ssl.trustAll === true) {
+      this.endpoint.ssl.enabled = true;
+    }
+  }
+
+  toggleSSL() {
+    if (!this.endpoint.ssl.enabled) {
+      this.endpoint.ssl.trustAll = false;
+    }
+  }
 }
 
 export default ApiEndpointController;
